@@ -35,7 +35,7 @@ use secure_exec_execution::{
 use secure_exec_kernel::vfs::{VirtualStat, VirtualTimeSpec, VirtualUtimeSpec};
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsString;
 use std::fmt;
 use std::fs::{self, OpenOptions};
@@ -1178,39 +1178,50 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                     OFlag::O_DIRECTORY | OFlag::O_RDONLY,
                     Mode::empty(),
                 )?;
-                let mut entries = fs::read_dir(directory.handle.proc_path())
-                    .map_err(|error| {
-                        SidecarError::Io(format!(
-                            "failed to read mapped guest directory {} -> {}: {error}",
-                            path,
-                            directory.host_path.display()
-                        ))
-                    })?
-                    .filter_map(|entry| entry.ok())
-                    .filter(|entry| {
-                        let child = MappedRuntimeHostPath {
-                            guest_path: normalize_path(&format!(
-                                "{}/{}",
-                                path.trim_end_matches('/'),
-                                entry.file_name().to_string_lossy()
-                            )),
-                            host_root: mapped_host.host_root.clone(),
-                            host_path: directory.host_path.join(entry.file_name()),
-                        };
-                        open_mapped_runtime_beneath(
-                            &child,
-                            "fs.readdir entry",
-                            OFlag::O_PATH,
-                            Mode::empty(),
-                        )
-                        .is_ok()
-                    })
-                    .filter_map(|entry| entry.file_name().into_string().ok())
-                    .collect::<BTreeSet<_>>();
-                entries.extend(mapped_runtime_child_mount_basenames(process, path));
-                return Ok(javascript_sync_rpc_readdir_value(
-                    entries.into_iter().collect(),
-                ));
+                // Return each entry's directory-ness alongside its name so the guest's
+                // `readdirSync({withFileTypes:true})` does not issue one cross-thread
+                // stat RPC per entry. We already openat2 each child to validate it
+                // stays beneath the mount, so the type probe is one extra in-process
+                // fstat on the same fd — cheap relative to a per-entry RPC round-trip.
+                // metadata() follows symlinks, matching the prior statSync semantics.
+                let mut typed: BTreeMap<String, bool> = BTreeMap::new();
+                for entry in fs::read_dir(directory.handle.proc_path()).map_err(|error| {
+                    SidecarError::Io(format!(
+                        "failed to read mapped guest directory {} -> {}: {error}",
+                        path,
+                        directory.host_path.display()
+                    ))
+                })? {
+                    let Ok(entry) = entry else { continue };
+                    let Ok(name) = entry.file_name().into_string() else {
+                        continue;
+                    };
+                    let child = MappedRuntimeHostPath {
+                        guest_path: normalize_path(&format!(
+                            "{}/{}",
+                            path.trim_end_matches('/'),
+                            name
+                        )),
+                        host_root: mapped_host.host_root.clone(),
+                        host_path: directory.host_path.join(entry.file_name()),
+                    };
+                    let Ok(opened) = open_mapped_runtime_beneath(
+                        &child,
+                        "fs.readdir entry",
+                        OFlag::O_PATH,
+                        Mode::empty(),
+                    ) else {
+                        continue;
+                    };
+                    let is_dir = fs::metadata(opened.handle.proc_path())
+                        .map(|meta| meta.is_dir())
+                        .unwrap_or(false);
+                    typed.insert(name, is_dir);
+                }
+                for name in mapped_runtime_child_mount_basenames(process, path) {
+                    typed.entry(name).or_insert(true);
+                }
+                return Ok(javascript_sync_rpc_readdir_typed_value(typed));
             }
             kernel
                 .read_dir_for_process(EXECUTION_DRIVER_NAME, kernel_pid, path)
@@ -2639,6 +2650,18 @@ fn javascript_sync_rpc_readdir_value(entries: Vec<String>) -> Value {
     json!(entries
         .into_iter()
         .filter(|entry| entry != "." && entry != "..")
+        .collect::<Vec<_>>())
+}
+
+/// Like `javascript_sync_rpc_readdir_value` but carries each entry's
+/// directory-ness as `{name, isDirectory}`. The guest's `normalizeReaddirEntries`
+/// consumes these objects directly for `withFileTypes`, avoiding a per-entry stat
+/// RPC, and extracts `.name` for the plain string form.
+fn javascript_sync_rpc_readdir_typed_value(entries: BTreeMap<String, bool>) -> Value {
+    json!(entries
+        .into_iter()
+        .filter(|(name, _)| name != "." && name != "..")
+        .map(|(name, is_dir)| json!({ "name": name, "isDirectory": is_dir }))
         .collect::<Vec<_>>())
 }
 
