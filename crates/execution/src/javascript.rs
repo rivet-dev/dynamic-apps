@@ -71,6 +71,13 @@ const V8_HEAP_LIMIT_MB_ENV: &str = "AGENT_OS_V8_HEAP_LIMIT_MB";
 /// platform/operator MUST set it to cap a guest. A wall-clock backstop is
 /// intentionally NOT part of this knob (deferred to a follow-up).
 const V8_CPU_TIME_LIMIT_MS_ENV: &str = "AGENT_OS_V8_CPU_TIME_LIMIT_MS";
+/// Opt-in WALL-CLOCK execution backstop (ms). INDEPENDENT of the CPU-time budget:
+/// this counts elapsed real time INCLUDING idle/await, so it can cap a guest that
+/// blocks or awaits indefinitely. There is NO default — with this unset the guest
+/// has no wall-clock limit (long-lived ACP adapters must run indefinitely). When
+/// both this and `AGENT_OS_V8_CPU_TIME_LIMIT_MS` are set, both guards are armed and
+/// whichever fires first terminates execution.
+const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENT_OS_V8_WALL_CLOCK_LIMIT_MS";
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
@@ -1536,6 +1543,7 @@ fn register_v8_session<F>(
     session_id: String,
     heap_limit_mb: u32,
     cpu_time_limit_ms: u32,
+    wall_clock_limit_ms: u32,
     send_frame: F,
 ) -> Result<PendingV8SessionRegistration<'_>, JavascriptExecutionError>
 where
@@ -1550,6 +1558,7 @@ where
         session_id,
         heap_limit_mb,
         cpu_time_limit_ms,
+        wall_clock_limit_ms,
     })
     .map_err(JavascriptExecutionError::Spawn)?;
 
@@ -1674,6 +1683,7 @@ impl JavascriptExecutionEngine {
             session_id.clone(),
             javascript_heap_limit_mb(&request),
             javascript_cpu_time_limit_ms(&request),
+            javascript_wall_clock_limit_ms(&request),
             |frame| v8_host.send_frame(frame),
         )?;
 
@@ -1886,6 +1896,21 @@ fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u3
     request
         .env
         .get(V8_CPU_TIME_LIMIT_MS_ENV)
+        .and_then(|value| value.parse::<u32>().ok())
+        .unwrap_or(0)
+}
+
+/// Resolve the opt-in WALL-CLOCK backstop (ms) for a JavaScript execution.
+///
+/// Opt-in with NO default: read from `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS`, falling
+/// back to `0` (no limit) when unset/unparsable. `0` is normalized to `None` by
+/// the V8 session, so the wall-clock `TimeoutGuard` is NOT armed and the guest
+/// runs without a wall-clock limit. This is INDEPENDENT of the CPU-time budget:
+/// setting only one arms only that guard.
+fn javascript_wall_clock_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
+    request
+        .env
+        .get(V8_WALL_CLOCK_LIMIT_MS_ENV)
         .and_then(|value| value.parse::<u32>().ok())
         .unwrap_or(0)
 }
@@ -6577,7 +6602,7 @@ mod tests {
                 .as_nanos()
         );
 
-        let error = match register_v8_session(&host, session_id.clone(), 0, 0, |_frame| {
+        let error = match register_v8_session(&host, session_id.clone(), 0, 0, 0, |_frame| {
             Err(std::io::Error::new(
                 std::io::ErrorKind::BrokenPipe,
                 "simulated CreateSession send failure",

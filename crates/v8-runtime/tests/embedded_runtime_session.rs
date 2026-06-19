@@ -25,6 +25,7 @@ fn register_and_create_session(
         session_id: session_id.to_owned(),
         heap_limit_mb: None,
         cpu_time_limit_ms: None,
+        wall_clock_limit_ms: None,
     })?;
     Ok(receiver)
 }
@@ -39,6 +40,7 @@ fn register_and_create_session_with_cpu_time_limit(
         session_id: session_id.to_owned(),
         heap_limit_mb: None,
         cpu_time_limit_ms,
+        wall_clock_limit_ms: None,
     })?;
     Ok(receiver)
 }
@@ -153,6 +155,7 @@ fn assert_create_destroy_reuses_session_ids() -> io::Result<()> {
             session_id: session_id.clone(),
             heap_limit_mb: None,
             cpu_time_limit_ms: None,
+            wall_clock_limit_ms: None,
         })
         .expect_err("duplicate sessions should be rejected");
     assert_eq!(duplicate_error.kind(), io::ErrorKind::Other);

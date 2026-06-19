@@ -200,6 +200,7 @@ impl EmbeddedV8Runtime {
                 session_id,
                 heap_limit_mb,
                 cpu_time_limit_ms,
+                wall_clock_limit_ms,
             } => {
                 let output_generation = self
                     .session_outputs
@@ -215,6 +216,7 @@ impl EmbeddedV8Runtime {
                     session_id,
                     heap_limit_mb,
                     cpu_time_limit_ms,
+                    wall_clock_limit_ms,
                     output_generation,
                 )
                 .map_err(other_io_error)
@@ -526,10 +528,16 @@ fn dispatch_runtime_command(
             session_id,
             heap_limit_mb,
             cpu_time_limit_ms,
+            wall_clock_limit_ms,
         } => {
             let mut mgr = session_mgr.lock().expect("session manager lock poisoned");
-            mgr.create_session(session_id, heap_limit_mb, cpu_time_limit_ms)
-                .map_err(other_io_error)
+            mgr.create_session(
+                session_id,
+                heap_limit_mb,
+                cpu_time_limit_ms,
+                wall_clock_limit_ms,
+            )
+            .map_err(other_io_error)
         }
         RuntimeCommand::DestroySession { session_id } => {
             let shutdown = {
@@ -697,6 +705,7 @@ mod tests {
                     session_id: "drop-lifecycle".into(),
                     heap_limit_mb: None,
                     cpu_time_limit_ms: None,
+                    wall_clock_limit_ms: None,
                 })
                 .expect("create session");
             assert_eq!(
@@ -732,7 +741,7 @@ mod tests {
 
         {
             let mut mgr = session_mgr.lock().expect("session manager");
-            mgr.create_session("stream-target".into(), None, None)
+            mgr.create_session("stream-target".into(), None, None, None)
                 .expect("create target session");
         }
         call_id_router
@@ -1047,6 +1056,7 @@ mod tests {
                 session_id: session_id.into(),
                 heap_limit_mb: None,
                 cpu_time_limit_ms: None,
+                wall_clock_limit_ms: None,
             })
             .expect("create first session");
         runtime
@@ -1062,6 +1072,7 @@ mod tests {
                 session_id: session_id.into(),
                 heap_limit_mb: None,
                 cpu_time_limit_ms: None,
+                wall_clock_limit_ms: None,
             })
             .expect("create reused session");
 
@@ -1088,11 +1099,11 @@ mod tests {
         let session_mgr = test_session_manager();
         {
             let mut mgr = session_mgr.lock().expect("session manager");
-            mgr.create_session_with_output_generation("reused".into(), None, None, Some(1))
+            mgr.create_session_with_output_generation("reused".into(), None, None, None, Some(1))
                 .expect("create first session");
             mgr.destroy_session("reused")
                 .expect("destroy first session");
-            mgr.create_session_with_output_generation("reused".into(), None, None, Some(2))
+            mgr.create_session_with_output_generation("reused".into(), None, None, None, Some(2))
                 .expect("create reused session");
 
             assert!(
@@ -1141,6 +1152,7 @@ mod tests {
             .expect("session manager")
             .create_session_with_output_generation(
                 session_id.into(),
+                None,
                 None,
                 None,
                 Some(output_generation),

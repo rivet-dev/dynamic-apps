@@ -250,6 +250,7 @@ mod tests {
             session_id: session_id.clone(),
             heap_limit_mb: 0,
             cpu_time_limit_ms: 0,
+            wall_clock_limit_ms: 0,
         })
         .expect("create embedded runtime session");
 
@@ -258,6 +259,7 @@ mod tests {
                 session_id: session_id.clone(),
                 heap_limit_mb: 0,
                 cpu_time_limit_ms: 0,
+                wall_clock_limit_ms: 0,
             })
             .expect_err("duplicate session ids should be rejected");
         assert_eq!(duplicate_error.kind(), io::ErrorKind::Other);
@@ -273,6 +275,7 @@ mod tests {
             session_id: session_id.clone(),
             heap_limit_mb: 0,
             cpu_time_limit_ms: 0,
+            wall_clock_limit_ms: 0,
         })
         .expect("recreate embedded runtime session");
 

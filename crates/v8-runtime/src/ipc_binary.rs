@@ -47,6 +47,7 @@ pub enum BinaryFrame {
         session_id: String,
         heap_limit_mb: u32,
         cpu_time_limit_ms: u32,
+        wall_clock_limit_ms: u32,
     },
     DestroySession {
         session_id: String,
@@ -209,11 +210,13 @@ fn encode_body(buf: &mut Vec<u8>, frame: &BinaryFrame) -> io::Result<()> {
             session_id,
             heap_limit_mb,
             cpu_time_limit_ms,
+            wall_clock_limit_ms,
         } => {
             buf.push(MSG_CREATE_SESSION);
             write_session_id(buf, session_id)?;
             buf.extend_from_slice(&heap_limit_mb.to_be_bytes());
             buf.extend_from_slice(&cpu_time_limit_ms.to_be_bytes());
+            buf.extend_from_slice(&wall_clock_limit_ms.to_be_bytes());
         }
         BinaryFrame::DestroySession { session_id } => {
             buf.push(MSG_DESTROY_SESSION);
@@ -372,11 +375,13 @@ fn decode_body(buf: &[u8]) -> io::Result<BinaryFrame> {
         MSG_CREATE_SESSION => {
             let heap_limit_mb = read_u32(buf, &mut pos)?;
             let cpu_time_limit_ms = read_u32(buf, &mut pos)?;
+            let wall_clock_limit_ms = read_u32(buf, &mut pos)?;
             ensure_frame_consumed(buf, pos)?;
             Ok(BinaryFrame::CreateSession {
                 session_id,
                 heap_limit_mb,
                 cpu_time_limit_ms,
+                wall_clock_limit_ms,
             })
         }
         MSG_DESTROY_SESSION => {
@@ -691,6 +696,7 @@ mod tests {
             session_id: "sess-abc-123".into(),
             heap_limit_mb: 128,
             cpu_time_limit_ms: 5000,
+            wall_clock_limit_ms: 9000,
         });
     }
 
@@ -700,6 +706,7 @@ mod tests {
             session_id: "sess-1".into(),
             heap_limit_mb: 0,
             cpu_time_limit_ms: 0,
+            wall_clock_limit_ms: 0,
         });
     }
 
@@ -982,6 +989,7 @@ mod tests {
                 session_id: "a".into(),
                 heap_limit_mb: 64,
                 cpu_time_limit_ms: 1000,
+                wall_clock_limit_ms: 0,
             },
             BinaryFrame::Execute {
                 session_id: "a".into(),
@@ -1054,6 +1062,7 @@ mod tests {
         let mut create_session = vec![MSG_CREATE_SESSION, 1, b's'];
         create_session.extend_from_slice(&0u32.to_be_bytes());
         create_session.extend_from_slice(&0u32.to_be_bytes());
+        create_session.extend_from_slice(&0u32.to_be_bytes());
         create_session.push(0xAA);
 
         let destroy_session = vec![MSG_DESTROY_SESSION, 1, b's', 0xAA];
@@ -1124,6 +1133,7 @@ mod tests {
                 session_id: "sess-create".into(),
                 heap_limit_mb: 0,
                 cpu_time_limit_ms: 0,
+                wall_clock_limit_ms: 0,
             },
             BinaryFrame::DestroySession {
                 session_id: "sess-destroy".into(),
@@ -1205,6 +1215,7 @@ mod tests {
                     session_id: "s".into(),
                     heap_limit_mb: 0,
                     cpu_time_limit_ms: 0,
+                    wall_clock_limit_ms: 0,
                 },
                 0x02,
             ),

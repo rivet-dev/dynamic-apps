@@ -56,6 +56,15 @@ fn normalize_cpu_time_limit_ms(cpu_time_limit_ms: Option<u32>) -> Option<u32> {
     cpu_time_limit_ms.filter(|budget_ms| *budget_ms > 0)
 }
 
+/// Normalize an opt-in WALL-CLOCK backstop: `Some(0)` means "disabled" and folds
+/// to `None` so the wall-clock `TimeoutGuard` is NOT armed. There is no default —
+/// when the caller passes `None`/`0`, the guest runs with no wall-clock limit
+/// (opt-in by design, so long-lived ACP adapters are never killed by a default).
+/// This is INDEPENDENT of the CPU-time budget: setting one does not arm the other.
+fn normalize_wall_clock_limit_ms(wall_clock_limit_ms: Option<u32>) -> Option<u32> {
+    wall_clock_limit_ms.filter(|limit_ms| *limit_ms > 0)
+}
+
 /// Internal entry for a running session
 struct SessionEntry {
     /// Output receiver generation current when this session was created.
@@ -106,9 +115,11 @@ pub(crate) type DeferredQueue = Arc<Mutex<VecDeque<SessionMessage>>>;
 pub(crate) enum ExecutionAbortReason {
     /// Caller explicitly terminated the execution (e.g. session destroy).
     Terminated,
-    /// The WALL-CLOCK backstop (`TimeoutGuard`) elapsed. DORMANT in this PR: not
-    /// armed by F-001. Retained for the deferred wall-clock follow-up PR.
-    #[allow(dead_code)]
+    /// The opt-in WALL-CLOCK backstop (`TimeoutGuard`) elapsed. Counts elapsed
+    /// real time INCLUDING idle/await, so it can cap a guest that blocks/awaits
+    /// indefinitely. Armed only when `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` is set;
+    /// independent of the CPU-time budget.
+    #[cfg_attr(test, allow(dead_code))]
     WallClockTimedOut,
     /// The TRUE CPU-TIME budget (`CpuBudgetGuard`) was exhausted by active JS CPU.
     #[cfg_attr(test, allow(dead_code))]
@@ -230,11 +241,13 @@ impl SessionManager {
         session_id: String,
         heap_limit_mb: Option<u32>,
         cpu_time_limit_ms: Option<u32>,
+        wall_clock_limit_ms: Option<u32>,
     ) -> Result<(), String> {
         self.create_session_with_output_generation(
             session_id,
             heap_limit_mb,
             cpu_time_limit_ms,
+            wall_clock_limit_ms,
             None,
         )
     }
@@ -244,6 +257,7 @@ impl SessionManager {
         session_id: String,
         heap_limit_mb: Option<u32>,
         cpu_time_limit_ms: Option<u32>,
+        wall_clock_limit_ms: Option<u32>,
         output_generation: Option<u64>,
     ) -> Result<(), String> {
         if self.sessions.contains_key(&session_id) {
@@ -251,6 +265,7 @@ impl SessionManager {
         }
 
         let cpu_time_limit_ms = normalize_cpu_time_limit_ms(cpu_time_limit_ms);
+        let wall_clock_limit_ms = normalize_wall_clock_limit_ms(wall_clock_limit_ms);
         let (tx, rx) = crossbeam_channel::bounded(SESSION_COMMAND_CHANNEL_CAPACITY);
         let slot_control = Arc::clone(&self.slot_control);
         let max = self.max_concurrency;
@@ -275,6 +290,7 @@ impl SessionManager {
                 session_thread(
                     heap_limit_mb,
                     cpu_time_limit_ms,
+                    wall_clock_limit_ms,
                     rx,
                     slot_control,
                     max,
@@ -667,6 +683,7 @@ fn defer_session_command_before_slot(
 fn session_thread(
     #[cfg_attr(test, allow(unused_variables))] heap_limit_mb: Option<u32>,
     #[cfg_attr(test, allow(unused_variables))] cpu_time_limit_ms: Option<u32>,
+    #[cfg_attr(test, allow(unused_variables))] wall_clock_limit_ms: Option<u32>,
     rx: Receiver<SessionCommand>,
     slot_control: SlotControl,
     max_concurrency: usize,
@@ -1001,17 +1018,15 @@ fn session_thread(
                         }
 
                         // Arm the TRUE CPU-TIME budget watchdog before running
-                        // guest code. This is the ONLY execution budget F-001 arms
-                        // in this PR, and only when the operator opts in via
+                        // guest code, only when the operator opts in via
                         // `AGENT_OS_V8_CPU_TIME_LIMIT_MS` (normalized: `0`/unset =>
-                        // `None` => not armed => NO CPU limit). The wall-clock
-                        // `TimeoutGuard` is intentionally left DORMANT here; a
-                        // follow-up PR re-introduces a wall-clock backstop as its
-                        // own opt-in knob.
+                        // `None` => not armed => NO CPU limit).
                         //
                         // The watchdog counts ACTIVE JS CPU only (idle/await
                         // excluded) by polling the execution thread's CPU clock, so
-                        // a guest that mostly awaits is NOT killed by it.
+                        // a guest that mostly awaits is NOT killed by it. The
+                        // INDEPENDENT wall-clock backstop (armed just below) covers
+                        // the idle/await case when the operator opts into it.
                         let mut cpu_budget_guard = match cpu_time_limit_ms {
                             Some(budget_ms) => {
                                 // Enforcing a CPU budget requires the execution
@@ -1064,6 +1079,50 @@ fn session_thread(
                                                 stack: String::new(),
                                                 code:
                                                     crate::timeout::CPU_BUDGET_GUARD_START_ERROR_CODE
+                                                        .into(),
+                                            }),
+                                        };
+                                        send_event_with_generation(
+                                            &event_tx,
+                                            output_generation,
+                                            result_frame,
+                                        );
+                                        continue;
+                                    }
+                                }
+                            }
+                            _ => None,
+                        };
+
+                        // Arm the INDEPENDENT, opt-in WALL-CLOCK backstop alongside
+                        // the CPU budget. Unlike the CPU budget, this counts elapsed
+                        // real time INCLUDING idle/await, so it can cap a guest that
+                        // blocks or awaits indefinitely. Armed only when the operator
+                        // opts in via `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` (normalized:
+                        // `0`/unset => `None` => not armed => NO wall-clock limit, so
+                        // long-lived ACP adapters are never killed by a default).
+                        // Whichever guard fires first calls `terminate_execution` and
+                        // records its abort reason; the result frame reports which.
+                        let mut wall_clock_guard = match wall_clock_limit_ms {
+                            Some(limit_ms) => {
+                                let handle = iso.thread_safe_handle();
+                                match crate::timeout::TimeoutGuard::with_execution_abort(
+                                    limit_ms,
+                                    handle,
+                                    execution_abort.clone(),
+                                ) {
+                                    Ok(guard) => Some(guard),
+                                    Err(message) => {
+                                        let result_frame = RuntimeEvent::ExecutionResult {
+                                            session_id,
+                                            exit_code: 1,
+                                            exports: None,
+                                            error: Some(ExecutionErrorBin {
+                                                error_type: "Error".into(),
+                                                message,
+                                                stack: String::new(),
+                                                code:
+                                                    crate::timeout::TIMEOUT_GUARD_START_ERROR_CODE
                                                         .into(),
                                             }),
                                         };
@@ -1255,20 +1314,43 @@ fn session_thread(
                             }
                         }
 
-                        // Check whether the CPU-time budget watchdog fired.
+                        // Determine which execution budget (if any) fired. Both the
+                        // CPU-time budget and the wall-clock backstop can be armed;
+                        // whichever fired first recorded its abort reason. Prefer the
+                        // recorded abort reason (first-writer-wins) so the result
+                        // attributes termination to the guard that actually fired.
                         let abort_reason = execution_abort_reason(&execution_abort);
+                        let wall_clock_timed_out =
+                            wall_clock_guard.as_ref().is_some_and(|g| g.timed_out())
+                                || matches!(
+                                    abort_reason,
+                                    Some(ExecutionAbortReason::WallClockTimedOut)
+                                );
                         let cpu_budget_exceeded =
                             cpu_budget_guard.as_ref().is_some_and(|g| g.exceeded())
                                 || matches!(
                                     abort_reason,
                                     Some(ExecutionAbortReason::CpuBudgetExceeded)
                                 );
+                        // If both happened to fire, the recorded abort reason is the
+                        // authoritative first-fired guard; fall back to wall-clock
+                        // only when no CPU-budget reason was recorded.
+                        let cpu_budget_exceeded = cpu_budget_exceeded
+                            && !matches!(
+                                abort_reason,
+                                Some(ExecutionAbortReason::WallClockTimedOut)
+                            );
+                        let wall_clock_timed_out = wall_clock_timed_out && !cpu_budget_exceeded;
 
-                        // Cancel the CPU-budget watchdog (joins its thread).
+                        // Cancel both watchdogs (joins their threads).
                         if let Some(ref mut guard) = cpu_budget_guard {
                             guard.cancel();
                         }
                         drop(cpu_budget_guard);
+                        if let Some(ref mut guard) = wall_clock_guard {
+                            guard.cancel();
+                        }
+                        drop(wall_clock_guard);
 
                         if matches!(abort_reason, Some(ExecutionAbortReason::Terminated)) {
                             terminated = true;
@@ -1290,6 +1372,20 @@ fn session_thread(
                                         .into(),
                                     stack: String::new(),
                                     code: "ERR_SCRIPT_CPU_BUDGET_EXCEEDED".into(),
+                                }),
+                            }
+                        } else if wall_clock_timed_out {
+                            RuntimeEvent::ExecutionResult {
+                                session_id,
+                                exit_code: 1,
+                                exports: None,
+                                error: Some(ExecutionErrorBin {
+                                    error_type: "Error".into(),
+                                    message: "Script execution exceeded the wall-clock limit \
+                                         (AGENT_OS_V8_WALL_CLOCK_LIMIT_MS)"
+                                        .into(),
+                                    stack: String::new(),
+                                    code: "ERR_SCRIPT_WALL_CLOCK_EXCEEDED".into(),
                                 }),
                             }
                         } else if terminated {
@@ -1975,7 +2071,7 @@ mod tests {
         {
             let mut mgr = test_manager(4);
 
-            mgr.create_session("session-aaa".into(), None, None)
+            mgr.create_session("session-aaa".into(), None, None, None)
                 .expect("create session A");
             assert_eq!(mgr.session_count(), 1);
 
@@ -1992,16 +2088,16 @@ mod tests {
         {
             let mut mgr = test_manager(4);
 
-            mgr.create_session("session-bbb".into(), None, None)
+            mgr.create_session("session-bbb".into(), None, None, None)
                 .expect("create session B");
-            mgr.create_session("session-ccc".into(), Some(16), None)
+            mgr.create_session("session-ccc".into(), Some(16), None, None)
                 .expect("create session C");
             assert_eq!(mgr.session_count(), 2);
 
             std::thread::sleep(std::time::Duration::from_millis(200));
 
             // Duplicate session ID is rejected
-            let err = mgr.create_session("session-bbb".into(), None, None);
+            let err = mgr.create_session("session-bbb".into(), None, None, None);
             assert!(err.is_err());
             assert!(err.unwrap_err().contains("already exists"));
 
@@ -2023,11 +2119,11 @@ mod tests {
         {
             let mut mgr = test_manager(2);
 
-            mgr.create_session("s1".into(), None, None)
+            mgr.create_session("s1".into(), None, None, None)
                 .expect("create s1");
-            mgr.create_session("s2".into(), None, None)
+            mgr.create_session("s2".into(), None, None, None)
                 .expect("create s2");
-            mgr.create_session("s3".into(), None, None)
+            mgr.create_session("s3".into(), None, None, None)
                 .expect("create s3");
 
             // Allow threads to acquire slots
@@ -2054,8 +2150,14 @@ mod tests {
     #[test]
     fn detach_session_clears_call_id_routes_for_session() {
         let mut mgr = test_manager(1);
-        mgr.create_session_with_output_generation("session-route".into(), None, None, Some(7))
-            .expect("create session");
+        mgr.create_session_with_output_generation(
+            "session-route".into(),
+            None,
+            None,
+            None,
+            Some(7),
+        )
+        .expect("create session");
         mgr.call_id_router()
             .lock()
             .expect("call_id router")
@@ -2079,7 +2181,7 @@ mod tests {
     #[test]
     fn begin_destroy_session_removes_entry_before_finish() {
         let mut mgr = test_manager(1);
-        mgr.create_session("two-phase".into(), None, None)
+        mgr.create_session("two-phase".into(), None, None, None)
             .expect("create session");
 
         let first_shutdown = mgr
@@ -2093,7 +2195,7 @@ mod tests {
 
         // A same-id create during the unfinished shutdown window must succeed
         // because the entry was removed up front.
-        mgr.create_session("two-phase".into(), None, None)
+        mgr.create_session("two-phase".into(), None, None, None)
             .expect("re-create session while first shutdown is unfinished");
 
         let second_shutdown = mgr
@@ -2107,7 +2209,7 @@ mod tests {
     #[test]
     fn session_shutdown_finish_clears_late_call_routes() {
         let mut mgr = test_manager(1);
-        mgr.create_session("late-route".into(), None, None)
+        mgr.create_session("late-route".into(), None, None, None)
             .expect("create session");
 
         let shutdown = mgr
@@ -2248,7 +2350,7 @@ mod tests {
     #[test]
     fn late_terminate_execution_is_logged_instead_of_silently_dropped() {
         let (mut mgr, rx) = test_manager_with_events(1);
-        mgr.create_session("late-terminate".into(), None, None)
+        mgr.create_session("late-terminate".into(), None, None, None)
             .expect("create session");
 
         mgr.send_to_session("late-terminate", SessionMessage::TerminateExecution)
@@ -2299,7 +2401,7 @@ mod tests {
     #[test]
     fn late_bridge_response_is_logged_instead_of_silently_dropped() {
         let (mut mgr, rx) = test_manager_with_events(1);
-        mgr.create_session("late-bridge".into(), None, None)
+        mgr.create_session("late-bridge".into(), None, None, None)
             .expect("create session");
 
         mgr.send_to_session(

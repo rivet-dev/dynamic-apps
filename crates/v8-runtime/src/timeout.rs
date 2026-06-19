@@ -2,19 +2,22 @@
 //
 // Two INDEPENDENT mechanisms live here:
 //
-//   * `TimeoutGuard` — a WALL-CLOCK timer. It is intentionally left DORMANT in
-//     this PR (not armed by F-001). A follow-up PR will re-introduce a
-//     wall-clock backstop as its own opt-in knob; the code is retained so that
-//     re-arming it is a small, reviewed change rather than a rewrite.
+//   * `TimeoutGuard` — a WALL-CLOCK timer. It counts elapsed real time
+//     INCLUDING idle/await, so it can cap a guest that blocks or awaits
+//     indefinitely. It is an INDEPENDENT, opt-in backstop armed only when the
+//     operator sets `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` (off by default so
+//     long-lived ACP adapters are never killed by a default).
 //
 //   * `CpuBudgetGuard` — a TRUE CPU-TIME budget. It samples the EXECUTION
 //     thread's per-thread CPU clock (`pthread_getcpuclockid` +
 //     `clock_gettime`). Because a thread's CPU clock does not advance while the
 //     thread is parked/awaiting I/O, this counts ONLY active JS CPU time and
 //     EXCLUDES idle/await. V8 has no native budget primitive, so this poll +
-//     `terminate_execution()` approach is the standard embedder pattern. This
-//     is the only guard F-001 arms in this PR, and only when the operator opts
-//     in via `AGENT_OS_V8_CPU_TIME_LIMIT_MS`.
+//     `terminate_execution()` approach is the standard embedder pattern. Armed
+//     only when the operator opts in via `AGENT_OS_V8_CPU_TIME_LIMIT_MS`.
+//
+// The two guards are independent: setting one env knob arms only that guard,
+// and when both are set whichever fires first terminates execution.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -244,9 +247,12 @@ impl TimeoutGuard {
         })
     }
 
-    // DORMANT in this PR: the wall-clock session backstop is not armed by F-001.
-    // Retained for the deferred wall-clock follow-up PR.
-    #[allow(dead_code)]
+    /// Spawn a wall-clock backstop that signals the execution abort with
+    /// [`crate::session::ExecutionAbortReason::WallClockTimedOut`] when the limit
+    /// elapses. Unlike the CPU budget, this counts elapsed real time INCLUDING
+    /// idle/await. Armed only when the operator opts in via
+    /// `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS`.
+    #[cfg_attr(test, allow(dead_code))]
     pub(crate) fn with_execution_abort(
         timeout_ms: u32,
         isolate_handle: v8::IsolateHandle,

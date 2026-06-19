@@ -4578,6 +4578,276 @@ fn javascript_no_cpu_budget_when_env_unset() {
     }
 }
 
+// WALL-CLOCK BACKSTOP (opt-in, complements the CPU-time budget): with
+// `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` set, a guest that exceeds the wall-clock limit
+// must be terminated and the result attributed to the WALL-CLOCK reason. Crucially,
+// the wall-clock limit counts elapsed REAL time INCLUDING idle/await, so a guest
+// that merely AWAITS past the limit (burning almost no CPU) is still killed — this
+// is exactly what the CPU-time budget does NOT do. The guest awaits ~1.5s while the
+// wall-clock limit is only 300ms, and NO CPU budget is set, so only the wall-clock
+// guard can fire.
+//
+// BOUNDED variant: small explicit wall-clock limit so the backstop fires fast; the
+// run is fenced behind a worker thread + recv timeout so a regression surfaces as a
+// clear failure instead of a CI hang.
+fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
+    let (tx, rx) = mpsc::channel::<(i32, String, String)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("tempdir failed: {error}")));
+                return;
+            }
+        };
+        let mut engine = JavascriptExecutionEngine::default();
+        let context = engine.create_context(CreateJavascriptContextRequest {
+            vm_id: String::from("vm-js-wallclock"),
+            bootstrap_module: None,
+            compile_cache_root: None,
+        });
+
+        let execution = engine.start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js-wallclock"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            // Wall-clock limit (300ms) much SMALLER than the wall time the guest
+            // spends awaiting (~1.5s). The wall-clock backstop counts idle/await, so
+            // it must terminate the guest even though it burns almost no CPU. No CPU
+            // budget is set, proving the two knobs are independent.
+            env: BTreeMap::from([(
+                String::from("AGENT_OS_V8_WALL_CLOCK_LIMIT_MS"),
+                String::from("300"),
+            )]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                "await new Promise((resolve) => setTimeout(resolve, 1500));\n\
+                 console.log('awaited-ok');\n",
+            )),
+        });
+
+        match execution {
+            Ok(execution) => match execution.wait() {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    let _ = tx.send((result.exit_code, stdout, stderr));
+                }
+                Err(error) => {
+                    let _ = tx.send((-1, String::new(), format!("wait failed: {error}")));
+                }
+            },
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("start failed: {error}")));
+            }
+        }
+    });
+
+    match rx.recv_timeout(Duration::from_secs(20)) {
+        Ok((exit_code, stdout, stderr)) => {
+            assert_ne!(
+                exit_code, 0,
+                "awaiting guest returned a clean exit instead of being terminated by the \
+                 wall-clock backstop: stdout={stdout} stderr={stderr}"
+            );
+            // Must be attributed to the WALL-CLOCK reason specifically (not CPU budget).
+            assert!(
+                stderr.contains("ERR_SCRIPT_WALL_CLOCK_EXCEEDED")
+                    || stderr.contains("wall-clock limit"),
+                "termination was not attributed to the wall-clock backstop: \
+                 stdout={stdout} stderr={stderr}"
+            );
+            assert!(
+                !stderr.contains("ERR_SCRIPT_CPU_BUDGET_EXCEEDED")
+                    && !stderr.contains("CPU-time budget"),
+                "wall-clock termination was wrongly attributed to the CPU budget: \
+                 stdout={stdout} stderr={stderr}"
+            );
+            assert!(
+                !stdout.contains("awaited-ok"),
+                "guest ran to completion despite exceeding the wall-clock limit: \
+                 stdout={stdout} stderr={stderr}"
+            );
+        }
+        Err(_) => {
+            panic!(
+                "awaiting guest was NOT terminated by the wall-clock backstop \
+                 (wait() never returned within the bounded test window => backstop never fired)"
+            );
+        }
+    }
+}
+
+// WALL-CLOCK / CPU-BUDGET INDEPENDENCE: setting ONLY the CPU budget must NOT impose
+// any wall-clock limit. A guest that awaits past a window which the wall-clock limit
+// (if it were armed) would have killed, but burns almost no CPU, must run to
+// completion when only `AGENT_OS_V8_CPU_TIME_LIMIT_MS` is set. This confirms the CPU
+// budget does not secretly behave like a wall-clock timer and that the knobs are
+// independent.
+fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
+    let (tx, rx) = mpsc::channel::<(i32, String, String)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("tempdir failed: {error}")));
+                return;
+            }
+        };
+        let mut engine = JavascriptExecutionEngine::default();
+        let context = engine.create_context(CreateJavascriptContextRequest {
+            vm_id: String::from("vm-js-cpu-only"),
+            bootstrap_module: None,
+            compile_cache_root: None,
+        });
+
+        let execution = engine.start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js-cpu-only"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            // Only the CPU budget is set (300ms). The guest awaits ~1.2s of wall
+            // time but burns no CPU, so neither guard should fire — proving the CPU
+            // budget alone does NOT arm a wall-clock limit.
+            env: BTreeMap::from([(
+                String::from("AGENT_OS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("300"),
+            )]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                "await new Promise((resolve) => setTimeout(resolve, 1200));\n\
+                 console.log('cpu-only-ok');\n",
+            )),
+        });
+
+        match execution {
+            Ok(execution) => match execution.wait() {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    let _ = tx.send((result.exit_code, stdout, stderr));
+                }
+                Err(error) => {
+                    let _ = tx.send((-1, String::new(), format!("wait failed: {error}")));
+                }
+            },
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("start failed: {error}")));
+            }
+        }
+    });
+
+    match rx.recv_timeout(Duration::from_secs(20)) {
+        Ok((exit_code, stdout, stderr)) => {
+            assert!(
+                !stderr.contains("ERR_SCRIPT_WALL_CLOCK_EXCEEDED")
+                    && !stderr.contains("wall-clock limit"),
+                "a wall-clock limit fired despite only the CPU budget being set; the knobs \
+                 must be independent: exit_code={exit_code} stdout={stdout} stderr={stderr}"
+            );
+            assert_eq!(
+                exit_code, 0,
+                "awaiting guest should complete cleanly with only a CPU budget set \
+                 (idle excluded, no wall-clock limit): stdout={stdout} stderr={stderr}"
+            );
+            assert!(
+                stdout.contains("cpu-only-ok"),
+                "guest did not run to completion with only a CPU budget set: \
+                 stdout={stdout} stderr={stderr}"
+            );
+        }
+        Err(_) => {
+            panic!(
+                "cpu-budget-only guest never produced a result within the bounded test window \
+                 (unexpected hang)"
+            );
+        }
+    }
+}
+
+// WALL-CLOCK OPT-IN: with NEITHER `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` nor
+// `AGENT_OS_V8_CPU_TIME_LIMIT_MS` set, there is NO time limit of any kind. A guest
+// that awaits well past any default a former wall-clock timer might have imposed
+// must run to completion. This guards the requirement that long-lived ACP adapters
+// (which run indefinitely on wall-clock) are never killed by a default.
+fn javascript_no_time_limit_when_neither_env_set() {
+    let (tx, rx) = mpsc::channel::<(i32, String, String)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("tempdir failed: {error}")));
+                return;
+            }
+        };
+        let mut engine = JavascriptExecutionEngine::default();
+        let context = engine.create_context(CreateJavascriptContextRequest {
+            vm_id: String::from("vm-js-notimelimit"),
+            bootstrap_module: None,
+            compile_cache_root: None,
+        });
+
+        let execution = engine.start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js-notimelimit"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            // No time-limit env of any kind: no wall-clock and no CPU guard armed.
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            // Awaits ~1.2s, then exits cleanly. Self-terminating so the test cannot
+            // hang even if (incorrectly) no limit were enforced.
+            inline_code: Some(String::from(
+                "await new Promise((resolve) => setTimeout(resolve, 1200));\n\
+                 console.log('no-limit-ok');\n",
+            )),
+        });
+
+        match execution {
+            Ok(execution) => match execution.wait() {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    let _ = tx.send((result.exit_code, stdout, stderr));
+                }
+                Err(error) => {
+                    let _ = tx.send((-1, String::new(), format!("wait failed: {error}")));
+                }
+            },
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("start failed: {error}")));
+            }
+        }
+    });
+
+    match rx.recv_timeout(Duration::from_secs(20)) {
+        Ok((exit_code, stdout, stderr)) => {
+            assert!(
+                !stderr.contains("ERR_SCRIPT_WALL_CLOCK_EXCEEDED")
+                    && !stderr.contains("wall-clock limit")
+                    && !stderr.contains("ERR_SCRIPT_CPU_BUDGET_EXCEEDED")
+                    && !stderr.contains("CPU-time budget"),
+                "a time limit fired despite no limit env being set (must be strictly opt-in): \
+                 exit_code={exit_code} stdout={stdout} stderr={stderr}"
+            );
+            assert_eq!(
+                exit_code, 0,
+                "awaiting guest should complete cleanly when no time limit is set: \
+                 stdout={stdout} stderr={stderr}"
+            );
+            assert!(
+                stdout.contains("no-limit-ok"),
+                "guest did not run to completion with no time limit set: \
+                 stdout={stdout} stderr={stderr}"
+            );
+        }
+        Err(_) => {
+            panic!(
+                "no-limit guest never produced a result within the bounded test window \
+                 (unexpected hang)"
+            );
+        }
+    }
+}
+
 // SE-EXEC-06 (M.1 / F-003): a heap-allocation bomb must be capped by terminating
 // the offending isolate, NOT by letting V8 fatal-abort (SIGTRAP) the process-global
 // runtime and take down every concurrent tenant. Before the fix, no
@@ -4811,4 +5081,12 @@ fn javascript_v8_suite() {
     javascript_infinite_loop_is_terminated_by_cpu_watchdog();
     javascript_awaiting_guest_is_not_killed_by_cpu_budget();
     javascript_no_cpu_budget_when_env_unset();
+
+    // WALL-CLOCK BACKSTOP (opt-in, complements the CPU-time budget):
+    //   1. wall-clock SET  => awaiting guest terminated (wall-clock reason; idle counted)
+    //   2. CPU budget only => no wall-clock limit imposed (knobs independent)
+    //   3. neither SET     => no time limit at all (strictly opt-in)
+    javascript_awaiting_guest_is_terminated_by_wall_clock_backstop();
+    javascript_cpu_budget_only_does_not_impose_wall_clock_limit();
+    javascript_no_time_limit_when_neither_env_set();
 }

@@ -7,6 +7,7 @@ pub enum RuntimeCommand {
         session_id: String,
         heap_limit_mb: Option<u32>,
         cpu_time_limit_ms: Option<u32>,
+        wall_clock_limit_ms: Option<u32>,
     },
     DestroySession {
         session_id: String,
@@ -96,10 +97,12 @@ impl TryFrom<BinaryFrame> for RuntimeCommand {
                 session_id,
                 heap_limit_mb,
                 cpu_time_limit_ms,
+                wall_clock_limit_ms,
             } => Ok(RuntimeCommand::CreateSession {
                 session_id,
                 heap_limit_mb: non_zero_option(heap_limit_mb),
                 cpu_time_limit_ms: non_zero_option(cpu_time_limit_ms),
+                wall_clock_limit_ms: non_zero_option(wall_clock_limit_ms),
             }),
             BinaryFrame::DestroySession { session_id } => {
                 Ok(RuntimeCommand::DestroySession { session_id })

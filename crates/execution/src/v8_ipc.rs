@@ -44,6 +44,7 @@ pub enum BinaryFrame {
         session_id: String,
         heap_limit_mb: u32,
         cpu_time_limit_ms: u32,
+        wall_clock_limit_ms: u32,
     },
     DestroySession {
         session_id: String,
@@ -153,10 +154,12 @@ pub fn decode_frame(buf: &[u8]) -> io::Result<BinaryFrame> {
         MSG_CREATE_SESSION => {
             let heap_limit_mb = read_u32(buf, &mut pos)?;
             let cpu_time_limit_ms = read_u32(buf, &mut pos)?;
+            let wall_clock_limit_ms = read_u32(buf, &mut pos)?;
             Ok(BinaryFrame::CreateSession {
                 session_id,
                 heap_limit_mb,
                 cpu_time_limit_ms,
+                wall_clock_limit_ms,
             })
         }
         MSG_DESTROY_SESSION => Ok(BinaryFrame::DestroySession { session_id }),
@@ -291,11 +294,13 @@ fn encode_body(buf: &mut Vec<u8>, frame: &BinaryFrame) -> io::Result<()> {
             session_id,
             heap_limit_mb,
             cpu_time_limit_ms,
+            wall_clock_limit_ms,
         } => {
             buf.push(MSG_CREATE_SESSION);
             write_session_id(buf, session_id)?;
             buf.extend_from_slice(&heap_limit_mb.to_be_bytes());
             buf.extend_from_slice(&cpu_time_limit_ms.to_be_bytes());
+            buf.extend_from_slice(&wall_clock_limit_ms.to_be_bytes());
         }
         BinaryFrame::DestroySession { session_id } => {
             buf.push(MSG_DESTROY_SESSION);
@@ -542,6 +547,7 @@ mod tests {
             session_id: "sess-1".into(),
             heap_limit_mb: 256,
             cpu_time_limit_ms: 30000,
+            wall_clock_limit_ms: 45000,
         };
         let bytes = encode_frame(&frame).unwrap();
         let decoded = decode_frame(&bytes[4..]).unwrap();

@@ -34,11 +34,13 @@ impl V8Runtime {
         session_id: &str,
         heap_limit_mb: u32,
         cpu_time_limit_ms: u32,
+        wall_clock_limit_ms: u32,
     ) -> io::Result<()> {
         self.send_frame(&BinaryFrame::CreateSession {
             session_id: session_id.to_owned(),
             heap_limit_mb,
             cpu_time_limit_ms,
+            wall_clock_limit_ms,
         })
     }
 
