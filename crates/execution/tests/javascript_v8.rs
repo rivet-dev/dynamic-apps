@@ -4015,6 +4015,83 @@ console.log(JSON.stringify({
     );
 }
 
+// SE-EXEC-04 (B.2 / F-001): a CPU-bound `while (true) {}` guest must be terminated
+// by the JS CPU watchdog instead of pinning a core on the shared, slot-bounded V8
+// runtime and starving peers. Before the fix, `CreateSession` hardcoded
+// `cpu_time_limit_ms: 0` (normalized to `None`), so no `TimeoutGuard` was armed and
+// `wait()` blocked forever.
+//
+// This is the BOUNDED safeguard variant: it sets a small explicit CPU budget via
+// `AGENT_OS_V8_CPU_TIME_LIMIT_MS` so the watchdog fires quickly and the test passes
+// fast. The whole guest run is also fenced behind a generous wall-clock watchdog on
+// a worker thread so a regression surfaces as a clear failure instead of a CI hang.
+// The unbounded default-config saturation variant stays env-gated (see below).
+fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
+    let (tx, rx) = mpsc::channel::<(i32, String, String)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("tempdir failed: {error}")));
+                return;
+            }
+        };
+        let mut engine = JavascriptExecutionEngine::default();
+        let context = engine.create_context(CreateJavascriptContextRequest {
+            vm_id: String::from("vm-js"),
+            bootstrap_module: None,
+            compile_cache_root: None,
+        });
+
+        let execution = engine.start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            // Small bounded budget so the watchdog terminates the runaway fast.
+            env: BTreeMap::from([(
+                String::from("AGENT_OS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("750"),
+            )]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from("while (true) {}\n")),
+        });
+
+        match execution {
+            Ok(execution) => match execution.wait() {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    let _ = tx.send((result.exit_code, stdout, stderr));
+                }
+                Err(error) => {
+                    let _ = tx.send((-1, String::new(), format!("wait failed: {error}")));
+                }
+            },
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("start failed: {error}")));
+            }
+        }
+    });
+
+    match rx.recv_timeout(Duration::from_secs(20)) {
+        Ok((exit_code, stdout, stderr)) => {
+            // The watchdog must terminate the loop with a nonzero exit code.
+            assert_ne!(
+                exit_code, 0,
+                "infinite loop returned a clean exit instead of being terminated by the CPU watchdog: stdout={stdout} stderr={stderr}"
+            );
+        }
+        Err(_) => {
+            // No result within the budget => the watchdog never armed/fired and the
+            // CPU-bound guest ran unbounded. This is exactly the F-001 break.
+            panic!(
+                "infinite-loop guest was NOT terminated by the CPU watchdog \
+                 (wait() never returned within the bounded test budget => unbounded CPU runaway)"
+            );
+        }
+    }
+}
+
 #[test]
 fn javascript_v8_suite() {
     // Keep V8-backed integration coverage inside one top-level libtest case.
@@ -4073,4 +4150,8 @@ fn javascript_v8_suite() {
     javascript_execution_v8_dynamic_import_accepts_file_urls();
     javascript_execution_v8_wasm_instantiate_streaming_never_hangs();
     javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm();
+
+    // SE-EXEC-04 (F-001): CPU watchdog terminates a runaway guest. Runs LAST because
+    // a regression here would leak a CPU-bound worker thread on the shared V8 runtime.
+    javascript_infinite_loop_is_terminated_by_cpu_watchdog();
 }
