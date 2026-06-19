@@ -979,6 +979,15 @@ fn deliver_input(
             if data.len() <= waiter.length {
                 waiter.result = Some(Some(data.to_vec()));
             } else {
+                // The waiter consumes `waiter.length` bytes directly; only the
+                // tail is buffered, so the buffer cap must be enforced on the
+                // tail. Otherwise a single large write past a pending reader
+                // bypasses MAX_PTY_BUFFER_BYTES entirely.
+                let tail_len = data.len() - waiter.length;
+                if tail_len > available_capacity(&pty.input_buffer) {
+                    pty.waiting_input_reads.push_front(waiter_id);
+                    return Err(PtyError::would_block("PTY input buffer full"));
+                }
                 let (head, tail) = data.split_at(waiter.length);
                 waiter.result = Some(Some(head.to_vec()));
                 pty.input_buffer.push_front(tail.to_vec());
@@ -1006,6 +1015,17 @@ fn deliver_output(
             if data.len() <= waiter.length {
                 waiter.result = Some(Some(data.to_vec()));
             } else {
+                // Enforce the buffer cap on the tail (see deliver_input).
+                let tail_len = data.len() - waiter.length;
+                if tail_len > available_capacity(&pty.output_buffer) {
+                    pty.waiting_output_reads.push_front(waiter_id);
+                    let message = if echo {
+                        "PTY output buffer full (echo backpressure)"
+                    } else {
+                        "PTY output buffer full"
+                    };
+                    return Err(PtyError::would_block(message));
+                }
                 let (head, tail) = data.split_at(waiter.length);
                 waiter.result = Some(Some(head.to_vec()));
                 pty.output_buffer.push_front(tail.to_vec());

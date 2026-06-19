@@ -332,3 +332,45 @@ fn mount_table_unmount_succeeds_after_children_are_removed() {
     table.unmount("/a/b").expect("unmount child first");
     table.unmount("/a").expect("unmount parent after child");
 }
+
+#[test]
+fn mount_table_does_not_alias_paths_that_repeat_the_mount_segment() {
+    // Regression: `resolve_index` previously stripped the mount prefix with
+    // `trim_start_matches`, which removes *every* leading repetition. For a
+    // mount `/data`, `/data/database.sqlite` was mangled to `/base.sqlite`
+    // (because `/database.sqlite` still starts with `/data`), so a read of one
+    // file silently returned a different file within the mount.
+    let mut backing = MemoryFileSystem::new();
+    backing
+        .write_file("/database.sqlite", b"REAL".to_vec())
+        .expect("seed real file");
+    backing
+        .write_file("/base.sqlite", b"DECOY".to_vec())
+        .expect("seed decoy file");
+
+    let mut table = MountTable::new(MemoryFileSystem::new());
+    table
+        .mount("/data", backing, MountOptions::new("memory"))
+        .expect("mount memory filesystem");
+
+    assert_eq!(
+        table.read_file("/data/database.sqlite").expect("read file"),
+        b"REAL".to_vec(),
+        "path must map to the file the caller named, not an aliased one"
+    );
+
+    // A genuinely nested directory named like the mount must also resolve right.
+    let mut nested = MemoryFileSystem::new();
+    nested.mkdir("/data", true).expect("nested dir");
+    nested
+        .write_file("/data/file.txt", b"NESTED".to_vec())
+        .expect("seed nested file");
+    let mut table = MountTable::new(MemoryFileSystem::new());
+    table
+        .mount("/data", nested, MountOptions::new("memory"))
+        .expect("mount nested filesystem");
+    assert_eq!(
+        table.read_file("/data/data/file.txt").expect("read nested"),
+        b"NESTED".to_vec()
+    );
+}

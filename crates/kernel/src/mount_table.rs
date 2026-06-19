@@ -820,10 +820,12 @@ impl MountTable {
             if normalized == mount.path {
                 return Ok((index, String::from("/")));
             }
-            if normalized.starts_with(&format!("{}/", mount.path)) {
-                let suffix = normalized
-                    .trim_start_matches(&mount.path)
-                    .trim_start_matches('/');
+            let mount_prefix = format!("{}/", mount.path);
+            if let Some(suffix) = normalized.strip_prefix(&mount_prefix) {
+                // Strip exactly the mount prefix once. `trim_start_matches` would
+                // strip every leading repetition of `mount.path`, so a path like
+                // `/data/data/file` under mount `/data` would alias to `/file`
+                // instead of `/data/file`, routing reads/writes to the wrong file.
                 return Ok((index, format!("/{suffix}")));
             }
         }

@@ -586,12 +586,23 @@ impl<F: VirtualFileSystem> VirtualFileSystem for PermissionedFileSystem<F> {
     }
 
     fn read_link(&self, path: &str) -> VfsResult<String> {
-        self.check(FsOperation::ReadLink, &crate::vfs::normalize_path(path))?;
+        // Authorize the parent-symlink-resolved path (without following the
+        // final component, matching `lstat`/`readlink` semantics). A lexical
+        // check would let a symlink whose parent resolves into a denied prefix
+        // disclose link targets of permission-denied paths.
+        validate_path(path)?;
+        let subject = self.resolved_destination_path(path)?;
+        self.check(FsOperation::ReadLink, &subject)?;
         self.inner.read_link(path)
     }
 
     fn lstat(&self, path: &str) -> VfsResult<VirtualStat> {
-        self.check(FsOperation::Stat, &crate::vfs::normalize_path(path))?;
+        // Authorize the parent-symlink-resolved path (see `read_link`); a
+        // lexical check would leak metadata (size/mode/mtime/inode) of files
+        // under a permission-denied prefix reached via a symlinked parent.
+        validate_path(path)?;
+        let subject = self.resolved_destination_path(path)?;
+        self.check(FsOperation::Stat, &subject)?;
         self.inner.lstat(path)
     }
 

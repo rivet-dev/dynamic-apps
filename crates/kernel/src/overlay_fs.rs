@@ -164,7 +164,7 @@ impl OverlayFileSystem {
             if should_follow {
                 if let Ok(stat) = self.merged_lstat(&candidate) {
                     if stat.is_symbolic_link {
-                        let target = self.read_link(&candidate)?;
+                        let target = self.read_link_inner(&candidate)?;
                         let target_path = if target.starts_with('/') {
                             Self::normalized(&target)
                         } else {
@@ -243,7 +243,7 @@ impl OverlayFileSystem {
                     paths.push(current.clone());
                 }
 
-                let target = self.read_link(&current)?;
+                let target = self.read_link_inner(&current)?;
                 let target_path = if target.starts_with('/') {
                     Self::normalized(&target)
                 } else {
@@ -297,6 +297,33 @@ impl OverlayFileSystem {
         let normalized = Self::normalized(path);
         normalized == OVERLAY_METADATA_ROOT
             || normalized.starts_with(&(String::from(OVERLAY_METADATA_ROOT) + "/"))
+    }
+
+    /// Returns true if `path`, or the location it resolves to through symlinks,
+    /// lands in the reserved overlay metadata namespace.
+    ///
+    /// The lexical [`is_internal_metadata_path`] check alone is bypassable: the
+    /// underlying `MemoryFileSystem` follows symlinks, so a guest-created symlink
+    /// whose resolved target enters `/.secure-exec-overlay` (directly, or via a
+    /// symlink to an ancestor such as `/`) would slip past a purely lexical guard
+    /// and let the guest read or tamper with whiteout/opaque markers (e.g.
+    /// resurrecting a deleted lower-layer file). Resolving before the check
+    /// closes that hole while leaving ordinary symlinks unaffected.
+    fn touches_internal_metadata(&self, path: &str) -> bool {
+        if Self::is_internal_metadata_path(path) {
+            return true;
+        }
+        if let Ok(resolved) = self.resolve_merged_path(path, true, 0) {
+            if Self::is_internal_metadata_path(&resolved) {
+                return true;
+            }
+        }
+        if let Ok(resolved) = self.resolved_destination_path(path) {
+            if Self::is_internal_metadata_path(&resolved) {
+                return true;
+            }
+        }
+        false
     }
 
     fn hidden_root_entry_name() -> &'static str {
@@ -521,7 +548,7 @@ impl OverlayFileSystem {
             let stat = self.lstat(&current_path)?;
             if !self.has_entry_in_upper(&current_path) {
                 let bytes = if stat.is_symbolic_link {
-                    self.read_link(&current_path)?.len() as u64
+                    self.read_link_inner(&current_path)?.len() as u64
                 } else if stat.is_directory {
                     0
                 } else {
@@ -554,7 +581,7 @@ impl OverlayFileSystem {
 
         let stat = self.merged_lstat(path)?;
         let bytes = if stat.is_symbolic_link {
-            self.read_link(path)?.len() as u64
+            self.read_link_inner(path)?.len() as u64
         } else if stat.is_directory {
             0
         } else {
@@ -801,6 +828,31 @@ impl OverlayFileSystem {
             .ok_or_else(|| Self::entry_not_found(path))
     }
 
+    /// `read_link` body without the resolving metadata guard, for use by the
+    /// internal symlink-resolution helpers (`resolve_merged_path` and friends).
+    /// The public `read_link` wraps this with `touches_internal_metadata`;
+    /// resolution must not call back into that wrapper or it would recurse on a
+    /// symlink that points at itself's resolution path.
+    fn read_link_inner(&self, path: &str) -> VfsResult<String> {
+        if Self::is_internal_metadata_path(path) {
+            return Err(Self::entry_not_found(path));
+        }
+        if self.is_whited_out(path) {
+            return Err(Self::entry_not_found(path));
+        }
+        if self.has_entry_in_upper(path) {
+            return self
+                .upper
+                .as_ref()
+                .expect("upper must exist when path exists")
+                .read_link(path);
+        }
+        let Some((index, _)) = self.find_lower_by_entry(path) else {
+            return Err(Self::entry_not_found(path));
+        };
+        self.lowers[index].read_link(path)
+    }
+
     fn ensure_ancestor_directories_in_upper(&mut self, path: &str) -> VfsResult<()> {
         if Self::is_internal_metadata_path(path) {
             return Err(VfsError::permission_denied("mkdir", path));
@@ -934,7 +986,7 @@ impl OverlayFileSystem {
                 entries.push(OverlaySnapshotEntry {
                     path: current_path.clone(),
                     stat,
-                    kind: OverlaySnapshotKind::Symlink(self.read_link(&current_path)?),
+                    kind: OverlaySnapshotKind::Symlink(self.read_link_inner(&current_path)?),
                 });
                 continue;
             }
@@ -1148,7 +1200,7 @@ fn sync_upper_root_metadata(upper: &mut MemoryFileSystem, lowers: &[MemoryFileSy
 
 impl VirtualFileSystem for OverlayFileSystem {
     fn read_file(&mut self, path: &str) -> VfsResult<Vec<u8>> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1168,7 +1220,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn read_dir(&mut self, path: &str) -> VfsResult<Vec<String>> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::directory_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1232,7 +1284,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn read_dir_limited(&mut self, path: &str, max_entries: usize) -> VfsResult<Vec<String>> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::directory_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1331,7 +1383,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn read_dir_with_types(&mut self, path: &str) -> VfsResult<Vec<VirtualDirEntry>> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::directory_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1407,7 +1459,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn write_file(&mut self, path: &str, content: impl Into<Vec<u8>>) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("open", path));
         }
         self.clear_path_metadata(path)?;
@@ -1420,7 +1472,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn create_file_exclusive(&mut self, path: &str, content: impl Into<Vec<u8>>) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("open", path));
         }
         self.clear_path_metadata(path)?;
@@ -1433,7 +1485,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn append_file(&mut self, path: &str, content: impl Into<Vec<u8>>) -> VfsResult<u64> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("open", path));
         }
         self.clear_path_metadata(path)?;
@@ -1446,7 +1498,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn create_dir(&mut self, path: &str) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("mkdir", path));
         }
         self.clear_path_metadata(path)?;
@@ -1458,7 +1510,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn mkdir(&mut self, path: &str, recursive: bool) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("mkdir", path));
         }
         self.clear_path_metadata(path)?;
@@ -1474,14 +1526,14 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn exists(&self, path: &str) -> bool {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return false;
         }
         self.path_exists_in_merged_view(path)
     }
 
     fn stat(&mut self, path: &str) -> VfsResult<VirtualStat> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1501,7 +1553,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn remove_file(&mut self, path: &str) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("unlink", path));
         }
         if self.is_whited_out(path) {
@@ -1524,7 +1576,7 @@ impl VirtualFileSystem for OverlayFileSystem {
 
     fn remove_dir(&mut self, path: &str) -> VfsResult<()> {
         let normalized = Self::normalized(path);
-        if Self::is_internal_metadata_path(&normalized) {
+        if self.touches_internal_metadata(&normalized) {
             return Err(VfsError::permission_denied("rmdir", path));
         }
         if normalized == "/" {
@@ -1564,8 +1616,8 @@ impl VirtualFileSystem for OverlayFileSystem {
     fn rename(&mut self, old_path: &str, new_path: &str) -> VfsResult<()> {
         let old_normalized = Self::normalized(old_path);
         let new_normalized = Self::normalized(new_path);
-        if Self::is_internal_metadata_path(&old_normalized)
-            || Self::is_internal_metadata_path(&new_normalized)
+        if self.touches_internal_metadata(&old_normalized)
+            || self.touches_internal_metadata(&new_normalized)
         {
             return Err(VfsError::permission_denied("rename", old_path));
         }
@@ -1633,7 +1685,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn realpath(&self, path: &str) -> VfsResult<String> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1653,7 +1705,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn symlink(&mut self, target: &str, link_path: &str) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(link_path) {
+        if self.touches_internal_metadata(link_path) {
             return Err(VfsError::permission_denied("symlink", link_path));
         }
         self.clear_path_metadata(link_path)?;
@@ -1662,7 +1714,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn read_link(&self, path: &str) -> VfsResult<String> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1682,7 +1734,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn lstat(&self, path: &str) -> VfsResult<VirtualStat> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1701,7 +1753,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn link(&mut self, old_path: &str, new_path: &str) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(old_path) || Self::is_internal_metadata_path(new_path) {
+        if self.touches_internal_metadata(old_path) || self.touches_internal_metadata(new_path) {
             return Err(VfsError::permission_denied("link", new_path));
         }
         self.clear_path_metadata(new_path)?;
@@ -1711,7 +1763,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn chmod(&mut self, path: &str, mode: u32) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("chmod", path));
         }
         if self.is_whited_out(path) {
@@ -1724,7 +1776,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn chown(&mut self, path: &str, uid: u32, gid: u32) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("chown", path));
         }
         if self.is_whited_out(path) {
@@ -1737,7 +1789,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn utimes(&mut self, path: &str, atime_ms: u64, mtime_ms: u64) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("utime", path));
         }
         if self.is_whited_out(path) {
@@ -1756,7 +1808,7 @@ impl VirtualFileSystem for OverlayFileSystem {
         mtime: VirtualUtimeSpec,
         follow_symlinks: bool,
     ) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("utime", path));
         }
         if self.is_whited_out(path) {
@@ -1770,7 +1822,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn truncate(&mut self, path: &str, length: u64) -> VfsResult<()> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(VfsError::permission_denied("truncate", path));
         }
         if self.is_whited_out(path) {
@@ -1783,7 +1835,7 @@ impl VirtualFileSystem for OverlayFileSystem {
     }
 
     fn pread(&mut self, path: &str, offset: u64, length: usize) -> VfsResult<Vec<u8>> {
-        if Self::is_internal_metadata_path(path) {
+        if self.touches_internal_metadata(path) {
             return Err(Self::entry_not_found(path));
         }
         if self.is_whited_out(path) {
@@ -1807,6 +1859,61 @@ impl VirtualFileSystem for OverlayFileSystem {
 mod tests {
     use super::{OverlayFileSystem, OverlayMode};
     use crate::vfs::{MemoryFileSystem, VfsResult, VirtualFileSystem};
+
+    #[test]
+    fn symlink_into_metadata_namespace_cannot_read_or_resurrect_whiteouts() {
+        let mut lower = MemoryFileSystem::new();
+        lower.mkdir("/data", true).expect("create lower directory");
+        lower
+            .write_file("/data/secret.txt", b"secret".to_vec())
+            .expect("seed lower file");
+
+        let mut overlay =
+            OverlayFileSystem::with_upper(vec![lower], MemoryFileSystem::new());
+
+        // Delete a lower-layer file: a whiteout marker is written under the
+        // reserved metadata root and the file disappears from the merged view.
+        overlay
+            .remove_file("/data/secret.txt")
+            .expect("whiteout lower file");
+        assert!(!overlay.exists("/data/secret.txt"));
+
+        // A guest symlink whose target is the metadata root must not become a
+        // window into the reserved namespace.
+        overlay
+            .symlink("/.secure-exec-overlay/whiteouts", "/escape")
+            .expect("creating the symlink itself is allowed");
+
+        // Listing through the symlink must be denied, not disclose markers.
+        assert!(
+            overlay.read_dir("/escape").is_err(),
+            "listing the metadata namespace via a symlink must be denied"
+        );
+
+        // Removing the whiteout marker through the symlink must be denied, so the
+        // deleted lower-layer file cannot be resurrected.
+        assert!(
+            overlay
+                .remove_file("/escape/anything")
+                .is_err(),
+            "tampering with metadata via a symlink must be denied"
+        );
+        assert!(
+            !overlay.exists("/data/secret.txt"),
+            "deleted lower-layer file must stay deleted"
+        );
+
+        // The same bypass via a symlink to an ancestor (e.g. `/`) is also closed.
+        overlay
+            .symlink("/", "/rootlink")
+            .expect("symlink to root is allowed");
+        assert!(
+            overlay
+                .read_dir("/rootlink/.secure-exec-overlay/whiteouts")
+                .is_err(),
+            "metadata must be unreachable via an ancestor symlink too"
+        );
+    }
 
     #[test]
     fn whiteouts_persist_when_overlay_reopens_with_same_upper() {
