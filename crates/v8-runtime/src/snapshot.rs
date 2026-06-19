@@ -181,6 +181,11 @@ where
     }
     let mut isolate = v8::Isolate::new(params);
     crate::isolate::configure_isolate(&mut isolate);
+    if heap_limit_mb.is_some() {
+        // Same OOM guard as the fresh-isolate path: terminate this isolate on heap
+        // exhaustion instead of fatal-aborting the shared process (F-003).
+        crate::isolate::install_heap_limit_guard(&mut isolate);
+    }
     isolate
 }
 

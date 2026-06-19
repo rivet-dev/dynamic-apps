@@ -4092,6 +4092,98 @@ fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
     }
 }
 
+// SE-EXEC-06 (M.1 / F-003): a heap-allocation bomb must be capped by terminating
+// the offending isolate, NOT by letting V8 fatal-abort (SIGTRAP) the process-global
+// runtime and take down every concurrent tenant. Before the fix, no
+// near-heap-limit/OOM callback was registered, so reaching the operator-configured
+// `AGENT_OS_V8_HEAP_LIMIT_MB` cap triggered V8's default fatal-OOM abort.
+//
+// This is the BOUNDED safeguard variant: with a small heap cap the guard fires fast,
+// terminates the isolate, and the run returns a nonzero exit WITHOUT aborting the
+// process. The guest run is fenced behind a wall-clock watchdog on a worker thread so
+// a regression surfaces as a clear failure rather than a CI hang or a SIGTRAP that
+// kills the whole test binary. The unbounded RAM-saturation variant stays env-gated.
+fn javascript_heap_allocation_bomb_is_capped_by_oom_guard() {
+    let (tx, rx) = mpsc::channel::<(i32, String, String)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("tempdir failed: {error}")));
+                return;
+            }
+        };
+        let mut engine = JavascriptExecutionEngine::default();
+        let context = engine.create_context(CreateJavascriptContextRequest {
+            vm_id: String::from("vm-js"),
+            bootstrap_module: None,
+            compile_cache_root: None,
+        });
+
+        let execution = engine.start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            // Small bounded heap cap so the OOM guard fires quickly.
+            env: BTreeMap::from([(
+                String::from("AGENT_OS_V8_HEAP_LIMIT_MB"),
+                String::from("32"),
+            )]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                r#"
+// Grow unbounded; with a 32MB heap cap the OOM guard must terminate the isolate
+// well before this completes. If it ever completes, the cap did not bound it.
+const sink = [];
+for (let i = 0; i < 1_000_000; i += 1) {
+  sink.push(new Array(100_000).fill(i));
+}
+console.log("BOMB_COMPLETED_WITHOUT_CAP");
+"#,
+            )),
+        });
+
+        match execution {
+            Ok(execution) => match execution.wait() {
+                Ok(result) => {
+                    let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                    let stderr = String::from_utf8_lossy(&result.stderr).into_owned();
+                    let _ = tx.send((result.exit_code, stdout, stderr));
+                }
+                Err(error) => {
+                    let _ = tx.send((-1, String::new(), format!("wait failed: {error}")));
+                }
+            },
+            Err(error) => {
+                let _ = tx.send((-1, String::new(), format!("start failed: {error}")));
+            }
+        }
+    });
+
+    match rx.recv_timeout(Duration::from_secs(30)) {
+        Ok((exit_code, stdout, stderr)) => {
+            // The bad actor wins if the bomb runs to completion.
+            assert!(
+                !stdout.contains("BOMB_COMPLETED_WITHOUT_CAP"),
+                "heap bomb completed despite configured heap limit: stdout={stdout} stderr={stderr}"
+            );
+            // The OOM guard must terminate the isolate with a nonzero exit.
+            assert_ne!(
+                exit_code, 0,
+                "heap bomb should be terminated by the OOM guard when a heap limit is configured: stdout={stdout} stderr={stderr}"
+            );
+        }
+        Err(_) => {
+            // No result within the budget => the OOM guard never fired and the guest
+            // ran unbounded (or the process aborted). This is exactly the F-003 break.
+            panic!(
+                "heap-allocation bomb was NOT terminated by the OOM guard \
+                 (wait() never returned within the bounded test budget)"
+            );
+        }
+    }
+}
+
 #[test]
 fn javascript_v8_suite() {
     // Keep V8-backed integration coverage inside one top-level libtest case.
@@ -4150,6 +4242,11 @@ fn javascript_v8_suite() {
     javascript_execution_v8_dynamic_import_accepts_file_urls();
     javascript_execution_v8_wasm_instantiate_streaming_never_hangs();
     javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm();
+
+    // SE-EXEC-06 (F-003): OOM guard terminates a heap-allocation bomb instead of
+    // letting V8 fatal-abort the process. Runs before the CPU case; both are fenced
+    // behind worker-thread wall-clock watchdogs.
+    javascript_heap_allocation_bomb_is_capped_by_oom_guard();
 
     // SE-EXEC-04 (F-001): CPU watchdog terminates a runaway guest. Runs LAST because
     // a regression here would leak a CPU-bound worker thread on the shared V8 runtime.
