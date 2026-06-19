@@ -623,10 +623,13 @@ fn send_output_frame(
 }
 
 fn default_compile_cache_root() -> PathBuf {
-    std::env::temp_dir().join(format!(
-        "secure-exec-sidecar-compile-cache-{}",
-        std::process::id()
-    ))
+    // Stable across sidecar processes so V8 compile-cache (cachedData) survives a
+    // fresh sidecar/VM and benefits cold starts. Previously keyed by PID, which
+    // gave every process an empty cache — cold module imports never reused
+    // compiled bytecode. Entries are namespaced+validated downstream by
+    // `stable_compile_cache_namespace_hash` + V8's source/version checks, so a
+    // shared root is safe; stale or mismatched entries are simply ignored.
+    std::env::temp_dir().join("secure-exec-sidecar-compile-cache")
 }
 
 #[cfg(test)]
