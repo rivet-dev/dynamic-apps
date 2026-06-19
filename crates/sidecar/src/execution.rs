@@ -4540,8 +4540,14 @@ where
                 NetworkOperation::Http,
                 format_tcp_resource(host, port),
             )?;
-            let addresses = if host.parse::<IpAddr>().is_ok() {
-                Vec::new()
+            // Pin the outbound connection to the IP addresses that pass the
+            // egress range guard at resolution time. A literal IP is validated
+            // directly; a hostname is resolved once here and the resulting
+            // address set is pinned into the HTTP client's resolver below so a
+            // rebinding DNS server cannot make the second (TLS/TCP) lookup land
+            // on a private/link-local/metadata IP that this check rejected.
+            let pinned_addresses = if let Ok(literal_ip) = host.parse::<IpAddr>() {
+                filter_dns_safe_ip_addrs(vec![literal_ip], host)?
             } else {
                 filter_dns_safe_ip_addrs(
                     resolve_dns_ip_addrs(
@@ -4555,22 +4561,9 @@ where
                     host,
                 )?
             };
-            let mut request_url = url.clone();
             let mut headers = BTreeMap::new();
             for (name, value) in &request.headers {
                 headers.insert(name.clone(), Value::String(value.clone()));
-            }
-            if url.scheme() == "http" && !addresses.is_empty() {
-                request_url
-                    .set_host(Some(&addresses[0].to_string()))
-                    .map_err(|_| {
-                        SidecarError::Execution(String::from(
-                            "ERR_INVALID_URL: failed to rewrite host for python httpRequest",
-                        ))
-                    })?;
-                headers
-                    .entry(String::from("host"))
-                    .or_insert_with(|| Value::String(host.to_owned()));
             }
             let options = JavascriptHttpRequestOptions {
                 method: Some(
@@ -4592,7 +4585,8 @@ where
             };
             let headers =
                 parse_http_header_collection(&options.headers, "python httpRequest headers")?;
-            let response = issue_outbound_http_request(&request_url, &options, &headers)?;
+            let response =
+                issue_outbound_http_request(&url, &options, &headers, &pinned_addresses)?;
             let payload_json = response.as_str().ok_or_else(|| {
                 SidecarError::Execution(String::from(
                     "python httpRequest returned a non-string response payload",
@@ -16164,13 +16158,60 @@ fn outbound_http_response_json(url: &Url, response: ureq::Response) -> Result<Va
     .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
 }
 
+/// Split a ureq resolver `netloc` (`host:port`, with optional `[..]` IPv6
+/// brackets) into its host and port components. Returns `None` if the port is
+/// missing or unparseable.
+fn split_netloc(netloc: &str) -> Option<(&str, u16)> {
+    let (host, port) = netloc.rsplit_once(':')?;
+    let port: u16 = port.parse().ok()?;
+    let host = host
+        .strip_prefix('[')
+        .and_then(|rest| rest.strip_suffix(']'))
+        .unwrap_or(host);
+    Some((host, port))
+}
+
 fn issue_outbound_http_request(
     url: &Url,
     options: &JavascriptHttpRequestOptions,
     headers: &HttpHeaderCollection,
+    pinned_addresses: &[IpAddr],
 ) -> Result<Value, SidecarError> {
     let method = options.method.as_deref().unwrap_or("GET");
+    // Pin the underlying resolver to the egress-vetted addresses. ureq performs
+    // its own DNS resolution for the TCP/TLS connect; without this override an
+    // https:// request would re-resolve the hostname through the host resolver
+    // (a rebinding DNS server could then return a private/metadata IP that the
+    // earlier range check would have rejected). The pinned resolver returns only
+    // the vetted addresses and refuses any host it was not vetted for, while the
+    // request URL keeps the original hostname so TLS SNI and the Host header stay
+    // correct.
+    let pinned_host = url.host_str().map(str::to_owned);
+    let pinned: Vec<IpAddr> = pinned_addresses.to_vec();
+    let resolver = move |netloc: &str| -> std::io::Result<Vec<SocketAddr>> {
+        let (host, port) = split_netloc(netloc).ok_or_else(|| {
+            std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("invalid network location: {netloc}"),
+            )
+        })?;
+        let expected_host = pinned_host.as_deref();
+        if expected_host != Some(host) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                format!("EACCES: outbound HTTP resolver pinned to {expected_host:?}, refusing {host}"),
+            ));
+        }
+        if pinned.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "EACCES: no egress-vetted address available for outbound HTTP request",
+            ));
+        }
+        Ok(pinned.iter().map(|ip| SocketAddr::new(*ip, port)).collect())
+    };
     let mut agent_builder = ureq::AgentBuilder::new()
+        .resolver(resolver)
         .timeout_connect(Duration::from_secs(5))
         .timeout_read(Duration::from_secs(15))
         .timeout_write(Duration::from_secs(15));
@@ -20273,7 +20314,6 @@ mod error_code_tests {
         );
     }
 }
-
 #[cfg(test)]
 mod ssrf_egress_classifier_tests {
     // F-005/006/007 (sec-sidecar T1/T7/T11): the egress classifier must treat the
@@ -20424,5 +20464,92 @@ mod ssrf_egress_classifier_tests {
         // The DNS egress filter must also deny these via EACCES.
         assert_dns_denied(IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)), "240.0.0.1 (reserved)");
         assert_dns_denied(IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)), "224.0.0.1 (multicast)");
+    }
+}
+
+/// Adversarial coverage for the DNS-rebinding gap (VECTORS.md D.3) on the
+/// Python/Pyodide `httpRequestSync` outbound HTTP path. The egress range guard
+/// (`filter_dns_safe_ip_addrs`) runs at resolution time, but `ureq` performs its
+/// own DNS resolution for the TCP/TLS connect, so a rebinding DNS server could
+/// previously make the second lookup land on a private/link-local/metadata IP
+/// the first check rejected. The fix pins `ureq`'s resolver to the vetted
+/// address set; these tests prove the connect is pinned and refuses any other
+/// host or an empty (fully-rejected) address set.
+#[cfg(test)]
+mod dns_rebinding_pin_tests {
+    use super::{issue_outbound_http_request, split_netloc, JavascriptHttpRequestOptions};
+    use std::collections::BTreeMap;
+    use std::io::{Read, Write};
+    use std::net::{IpAddr, Ipv4Addr, TcpListener};
+    use std::thread;
+    use url::Url;
+
+    fn empty_headers() -> super::HttpHeaderCollection {
+        super::parse_http_header_collection(&BTreeMap::new(), "test headers")
+            .expect("empty header collection")
+    }
+
+    fn options() -> JavascriptHttpRequestOptions {
+        JavascriptHttpRequestOptions {
+            method: Some(String::from("GET")),
+            headers: BTreeMap::new(),
+            body: None,
+            reject_unauthorized: None,
+        }
+    }
+
+    #[test]
+    fn split_netloc_handles_hostnames_and_bracketed_ipv6() {
+        assert_eq!(split_netloc("attacker.example:80"), Some(("attacker.example", 80)));
+        assert_eq!(split_netloc("[::1]:443"), Some(("::1", 443)));
+        assert_eq!(split_netloc("10.0.0.1:8080"), Some(("10.0.0.1", 8080)));
+        assert_eq!(split_netloc("no-port"), None);
+        assert_eq!(split_netloc("host:notaport"), None);
+    }
+
+    /// A loopback HTTP server stands in for the egress-vetted target. The
+    /// request URL uses a *different* hostname (`attacker.example`) whose real
+    /// DNS would resolve elsewhere; pinning forces the connect onto the vetted
+    /// IP only. If the resolver were unpinned, the request would fail to reach
+    /// this server (and on a real host could land on a private/metadata IP).
+    #[test]
+    fn outbound_http_connect_is_pinned_to_vetted_ip() {
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind loopback server");
+        let port = listener.local_addr().expect("local addr").port();
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("accept");
+            let mut buf = [0u8; 1024];
+            let _ = stream.read(&mut buf);
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi")
+                .expect("write response");
+            let _ = stream.flush();
+        });
+
+        let url = Url::parse(&format!("http://attacker.example:{port}/")).expect("url");
+        let pinned = vec![IpAddr::V4(Ipv4Addr::LOCALHOST)];
+        let result = issue_outbound_http_request(&url, &options(), &empty_headers(), &pinned)
+            .expect("pinned request should reach the vetted loopback target");
+        let payload = result.as_str().expect("string payload");
+        assert!(
+            payload.contains("\"status\":200"),
+            "expected 200 from pinned target, got: {payload}"
+        );
+        server.join().expect("server thread");
+    }
+
+    /// With no vetted address (every resolved IP was rejected by the range
+    /// guard, or the literal IP was a blocked range), the pinned resolver must
+    /// refuse rather than fall back to the host resolver.
+    #[test]
+    fn outbound_http_refuses_when_no_vetted_address() {
+        let url = Url::parse("https://attacker.example/").expect("url");
+        let error = issue_outbound_http_request(&url, &options(), &empty_headers(), &[])
+            .expect_err("empty pinned set must be refused");
+        let message = error.to_string();
+        assert!(
+            message.contains("EACCES") || message.contains("ERR_HTTP_REQUEST_FAILED"),
+            "expected an egress refusal, got: {message}"
+        );
     }
 }
