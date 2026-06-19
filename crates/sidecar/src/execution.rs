@@ -9216,6 +9216,17 @@ fn prepare_javascript_shadow(
         .env
         .get("AGENT_OS_GUEST_ENTRYPOINT")
         .cloned()
+        // An absolute `entrypoint` may be a host path that lives inside the VM's
+        // host cwd (callers can pass a fully-qualified host path). The guest sees
+        // it at its translated guest path (host_cwd -> guest_cwd), so the shadow
+        // must be keyed by that guest path rather than the raw host path. Falling
+        // back to the host path here would materialize the file at the wrong guest
+        // location and the runtime's `require()` would fail with "Cannot find
+        // module".
+        .or_else(|| {
+            resolve_host_entrypoint_within_vm_host_cwd(vm, &resolved.entrypoint)
+                .map(|(guest_entrypoint, _)| guest_entrypoint)
+        })
         .or_else(|| {
             resolved
                 .entrypoint
@@ -9238,10 +9249,58 @@ fn prepare_javascript_shadow(
             }
         };
         if host_entrypoint.exists() {
-            return materialize_host_path_to_shadow(vm, &guest_entrypoint, &host_entrypoint);
+            materialize_host_path_to_shadow(vm, &guest_entrypoint, &host_entrypoint)?;
+            // The shadow write only stages the file on the host side; the runtime
+            // resolves modules against the kernel VFS, so the staged entrypoint
+            // must be synced into the kernel before execution starts (otherwise
+            // `require()` reports "Cannot find module").
+            return sync_shadow_entrypoint_into_kernel(vm, &guest_entrypoint);
         }
     }
     materialize_guest_path_to_shadow(vm, &guest_entrypoint)
+}
+
+/// Sync a freshly-staged shadow entrypoint into the kernel VFS so the runtime's
+/// kernel-backed module resolver can read it. Mirrors the host->kernel file sync
+/// used by the broader shadow reconciliation, but scoped to the single
+/// entrypoint we just materialized.
+fn sync_shadow_entrypoint_into_kernel(
+    vm: &mut VmState,
+    guest_entrypoint: &str,
+) -> Result<(), SidecarError> {
+    if vm.kernel.exists(guest_entrypoint).unwrap_or(false) {
+        return Ok(());
+    }
+    let shadow_path = shadow_path_for_guest(vm, guest_entrypoint);
+    let bytes = match fs::read(&shadow_path) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(SidecarError::Io(format!(
+                "failed to read staged shadow entrypoint {}: {error}",
+                shadow_path.display()
+            )));
+        }
+    };
+    if let Some(parent) = guest_parent_path(guest_entrypoint) {
+        if !vm.kernel.exists(&parent).unwrap_or(false) {
+            vm.kernel.mkdir(&parent, true).map_err(kernel_error)?;
+        }
+    }
+    vm.kernel
+        .write_file(guest_entrypoint, bytes)
+        .map_err(kernel_error)?;
+    Ok(())
+}
+
+fn guest_parent_path(guest_path: &str) -> Option<String> {
+    let parent = Path::new(guest_path).parent()?;
+    let parent = parent.to_string_lossy();
+    if parent.is_empty() || parent == "/" {
+        None
+    } else {
+        Some(parent.into_owned())
+    }
 }
 
 fn materialize_host_path_to_shadow(
