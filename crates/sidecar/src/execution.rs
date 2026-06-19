@@ -11218,6 +11218,12 @@ fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'stati
                 (172, 16..=31) => Some(("172.16.0.0/12", "private")),
                 (192, 168) => Some(("192.168.0.0/16", "private")),
                 (169, 254) => Some(("169.254.0.0/16", "link-local")),
+                // 224.0.0.0/4 is the IPv4 multicast range and 240.0.0.0/4 is
+                // reserved/future-use (255.255.255.255 broadcast falls in it).
+                // Neither is a legitimate unicast egress target, so a guest
+                // connect to them must be denied rather than attempted.
+                (224..=239, _) => Some(("224.0.0.0/4", "multicast")),
+                (240..=255, _) => Some(("240.0.0.0/4", "reserved")),
                 _ => None,
             }
         }
@@ -20273,6 +20279,36 @@ mod ssrf_egress_classifier_tests {
             restricted_non_loopback_ip_range(IpAddr::V6("::8.8.8.8".parse::<Ipv6Addr>().unwrap()))
                 .is_none(),
             "::8.8.8.8 (public IPv4-compatible) must remain allowed"
+        );
+    }
+
+    #[test]
+    fn classifier_denies_reserved_and_multicast_targets() {
+        // F-007 (sec-sidecar T11): 224.0.0.0/4 (multicast) and 240.0.0.0/4
+        // (reserved / future use) are not legitimate unicast egress targets;
+        // a guest connect to them must be classified as restricted and denied.
+        // Bounded SAFEGUARD: exercises the classifier directly (no network I/O).
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)), "multicast");
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(239, 255, 255, 255)), "multicast");
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)), "reserved");
+        // 255.255.255.255 (limited broadcast) falls in 240.0.0.0/4.
+        assert_restricted(IpAddr::V4(Ipv4Addr::BROADCAST), "reserved");
+
+        // IPv4-compatible IPv6 spellings must canonicalize and be denied too.
+        assert_restricted(
+            IpAddr::V6("::224.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "multicast",
+        );
+        assert_restricted(
+            IpAddr::V6("::240.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "reserved",
+        );
+
+        // Guard against over-blocking: addresses just outside 224/4 stay allowed.
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(223, 255, 255, 255)))
+                .is_none(),
+            "223.255.255.255 is outside 224/4 and must remain allowed"
         );
     }
 
