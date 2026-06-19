@@ -11184,6 +11184,25 @@ fn loopback_cidr(ip: IpAddr) -> &'static str {
     }
 }
 
+/// Returns the embedded IPv4 address of an IPv4-compatible IPv6 address
+/// (`::a.b.c.d`): the first six 16-bit segments are zero and the final 32 bits
+/// hold the IPv4 address. The all-zero (`::`) and loopback (`::1`) addresses are
+/// deliberately excluded so they are handled by the unspecified/loopback paths
+/// rather than treated as IPv4-compatible.
+fn ipv4_compatible_embedded(ip: Ipv6Addr) -> Option<Ipv4Addr> {
+    let segments = ip.segments();
+    if segments[0..6].iter().any(|&s| s != 0) {
+        return None;
+    }
+    let embedded = (u32::from(segments[6]) << 16) | u32::from(segments[7]);
+    // Skip :: (0.0.0.0) and ::1 (0.0.0.1) — these are the IPv6 unspecified /
+    // loopback addresses, not IPv4-compatible representations of an IPv4 host.
+    if embedded == 0 || embedded == 1 {
+        return None;
+    }
+    Some(Ipv4Addr::from(embedded))
+}
+
 fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'static str)> {
     match ip {
         IpAddr::V4(ip) => {
@@ -11205,6 +11224,15 @@ fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'stati
         IpAddr::V6(ip) => {
             if let Some(mapped) = ip.to_ipv4_mapped() {
                 return restricted_non_loopback_ip_range(IpAddr::V4(mapped));
+            }
+            // IPv4-compatible IPv6 (::a.b.c.d): the first six segments are zero
+            // and the last two carry an embedded IPv4 address. `to_ipv4_mapped`
+            // returns None for this form, so without canonicalizing it here a
+            // guest could spell a restricted IPv4 target (e.g. cloud-metadata
+            // ::169.254.169.254) and bypass the IPv4 classifier. `::`/`::1` are
+            // excluded so they fall through to the unspecified/loopback paths.
+            if let Some(compat) = ipv4_compatible_embedded(ip) {
+                return restricted_non_loopback_ip_range(IpAddr::V4(compat));
             }
 
             if ip.is_unspecified() {
@@ -20163,7 +20191,9 @@ mod ssrf_egress_classifier_tests {
     // This is a bounded SAFEGUARD test: it exercises the classifier and the DNS
     // egress filter directly (no network I/O, no Node), so it runs fast and
     // deterministically. See FAILURES.md#F-005.
-    use super::{filter_dns_safe_ip_addrs, restricted_non_loopback_ip_range, SidecarError};
+    use super::{
+        filter_dns_safe_ip_addrs, is_loopback_ip, restricted_non_loopback_ip_range, SidecarError,
+    };
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     fn assert_restricted(ip: IpAddr, expected_label: &str) {
@@ -20201,6 +20231,48 @@ mod ssrf_egress_classifier_tests {
         assert!(
             restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(100, 128, 0, 0))).is_none(),
             "100.128.0.0 is outside CGNAT and must remain allowed"
+        );
+    }
+
+    #[test]
+    fn classifier_denies_ipv6_spelled_metadata_addresses() {
+        // F-006 (sec-sidecar T7): IPv6 spellings of the cloud-metadata IPv4
+        // address must canonicalize back to 169.254.169.254 and be denied. The
+        // IPv4-mapped form (::ffff:169.254.169.254) was already handled; the
+        // IPv4-compatible form (::169.254.169.254) is the gap this fixes.
+        let mapped = "::ffff:169.254.169.254".parse::<Ipv6Addr>().unwrap();
+        assert_restricted(IpAddr::V6(mapped), "link-local");
+
+        let compat = "::169.254.169.254".parse::<Ipv6Addr>().unwrap();
+        assert_restricted(IpAddr::V6(compat), "link-local");
+
+        // Other IPv4-compatible private/CGNAT spellings must also be canonicalized.
+        assert_restricted(
+            IpAddr::V6("::10.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "private",
+        );
+        assert_restricted(
+            IpAddr::V6("::100.64.0.1".parse::<Ipv6Addr>().unwrap()),
+            "carrier-grade-nat",
+        );
+
+        // Guard against over-blocking: the IPv6 unspecified/loopback addresses
+        // are not IPv4-compatible host targets, and a public IPv4-compatible
+        // address must remain allowed.
+        assert_eq!(
+            restricted_non_loopback_ip_range(IpAddr::V6(Ipv6Addr::UNSPECIFIED)),
+            Some(("::/128", "unspecified")),
+            ":: must classify as unspecified, not via the IPv4-compat path"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V6(Ipv6Addr::LOCALHOST)).is_none()
+                || is_loopback_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)),
+            "::1 must not be classified as a restricted IPv4-compatible target"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V6("::8.8.8.8".parse::<Ipv6Addr>().unwrap()))
+                .is_none(),
+            "::8.8.8.8 (public IPv4-compatible) must remain allowed"
         );
     }
 
