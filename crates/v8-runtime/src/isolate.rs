@@ -1,6 +1,7 @@
 // V8 isolate lifecycle: platform init, create, configure, destroy
 
 use std::collections::HashMap;
+use std::ffi::c_void;
 use std::sync::Once;
 
 use crate::ipc::ExecutionError;
@@ -99,6 +100,56 @@ pub fn init_v8_platform() {
     });
 }
 
+// Headroom granted to V8 when the near-heap-limit callback fires. V8 fatal-aborts
+// the whole process (SIGTRAP) if the callback does not raise the limit, so we must
+// hand back a larger limit to give the engine room to unwind. Termination has
+// already been requested, so this extra budget only covers propagation of the
+// uncatchable termination exception, not continued guest allocation.
+const NEAR_HEAP_LIMIT_HEADROOM_BYTES: usize = 16 * 1024 * 1024;
+
+/// Invoked by V8 when heap usage approaches the configured limit. Instead of
+/// letting V8 fatal-abort the (process-global) runtime, request termination of the
+/// offending isolate and return a raised limit so V8 can propagate the uncatchable
+/// termination exception cleanly. `data` is a leaked `Box<v8::IsolateHandle>` for
+/// the isolate this callback was registered on.
+extern "C" fn near_heap_limit_callback(
+    data: *mut c_void,
+    current_heap_limit: usize,
+    initial_heap_limit: usize,
+) -> usize {
+    if !data.is_null() {
+        // Safety: `data` is the pointer produced by `Box::into_raw` in
+        // `install_heap_limit_guard` and lives for the entire lifetime of the
+        // isolate.
+        let handle = unsafe { &*(data as *const v8::IsolateHandle) };
+        // Terminate any JS currently running on this isolate. This unwinds the
+        // guest with an uncatchable exception rather than crashing the process.
+        handle.terminate_execution();
+    }
+    // Grant headroom so V8 does not immediately fatal-abort before the termination
+    // takes effect. We never shrink below the current limit.
+    current_heap_limit
+        .max(initial_heap_limit)
+        .saturating_add(NEAR_HEAP_LIMIT_HEADROOM_BYTES)
+}
+
+/// Register the near-heap-limit OOM guard on an isolate that was created with a
+/// configured heap cap. Without this guard, V8 fatal-aborts the whole (process-
+/// global) runtime with a SIGTRAP when the cap is reached, taking down every
+/// concurrent tenant; with it, the offending isolate is terminated instead.
+///
+/// Must be called for every isolate created with a non-`None` heap limit,
+/// regardless of whether it was built fresh or restored from a snapshot.
+pub fn install_heap_limit_guard(isolate: &mut v8::OwnedIsolate) {
+    // The callback needs a thread-safe handle to request termination of this very
+    // isolate. The handle is leaked so it outlives the callback registration; the
+    // number of isolates per process is bounded, so this is not an unbounded leak,
+    // and the memory is reclaimed when the process exits.
+    let handle = Box::new(isolate.thread_safe_handle());
+    let data = Box::into_raw(handle) as *mut c_void;
+    isolate.add_near_heap_limit_callback(near_heap_limit_callback, data);
+}
+
 /// Create a new V8 isolate with an optional heap limit in MB.
 pub fn create_isolate(heap_limit_mb: Option<u32>) -> v8::OwnedIsolate {
     let mut params = v8::CreateParams::default();
@@ -108,6 +159,9 @@ pub fn create_isolate(heap_limit_mb: Option<u32>) -> v8::OwnedIsolate {
     }
     let mut isolate = v8::Isolate::new(params);
     configure_isolate(&mut isolate);
+    if heap_limit_mb.is_some() {
+        install_heap_limit_guard(&mut isolate);
+    }
     isolate
 }
 

@@ -49,8 +49,11 @@ const SESSION_COMMAND_CHANNEL_CAPACITY: usize = 256;
 const MAX_DEFERRED_SESSION_COMMANDS: usize = SESSION_COMMAND_CHANNEL_CAPACITY;
 const MAX_DEFERRED_SYNC_MESSAGES: usize = SESSION_COMMAND_CHANNEL_CAPACITY;
 
+/// Normalize an opt-in CPU-time budget: `Some(0)` means "disabled" and folds to
+/// `None` so the CPU-budget watchdog is NOT armed. There is no default — when the
+/// caller passes `None`/`0`, the guest runs with no CPU limit (opt-in by design).
 fn normalize_cpu_time_limit_ms(cpu_time_limit_ms: Option<u32>) -> Option<u32> {
-    cpu_time_limit_ms.filter(|timeout_ms| *timeout_ms > 0)
+    cpu_time_limit_ms.filter(|budget_ms| *budget_ms > 0)
 }
 
 /// Internal entry for a running session
@@ -101,9 +104,15 @@ pub(crate) type DeferredQueue = Arc<Mutex<VecDeque<SessionMessage>>>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ExecutionAbortReason {
+    /// Caller explicitly terminated the execution (e.g. session destroy).
     Terminated,
+    /// The WALL-CLOCK backstop (`TimeoutGuard`) elapsed. DORMANT in this PR: not
+    /// armed by F-001. Retained for the deferred wall-clock follow-up PR.
+    #[allow(dead_code)]
+    WallClockTimedOut,
+    /// The TRUE CPU-TIME budget (`CpuBudgetGuard`) was exhausted by active JS CPU.
     #[cfg_attr(test, allow(dead_code))]
-    TimedOut,
+    CpuBudgetExceeded,
 }
 
 struct ExecutionAbortState {
@@ -712,6 +721,16 @@ fn session_thread(
         return;
     }
 
+    // Capture THIS session thread's per-thread CPU clock once. The clock id is
+    // stable for the thread's lifetime and can be polled from the watchdog
+    // thread; this is what lets the CPU-budget guard measure active JS CPU time
+    // (excluding idle/await) without running on the execution thread itself.
+    // Guest JS always runs on this thread, so this clock is the execution clock.
+    #[cfg(all(not(test), unix))]
+    let exec_thread_cpu_clock = crate::timeout::current_thread_cpu_clock();
+    #[cfg(all(not(test), not(unix)))]
+    let exec_thread_cpu_clock: Option<crate::timeout::ThreadCpuClock> = None;
+
     // Isolate creation is deferred to first Execute (when bridge code is known
     // for snapshot cache lookup). This avoids creating an isolate that may never
     // be used and enables snapshot-based fast creation.
@@ -981,12 +1000,55 @@ fn session_thread(
                             }
                         }
 
-                        // Start timeout guard before execution
-                        let mut timeout_guard = match cpu_time_limit_ms {
-                            Some(ms) => {
+                        // Arm the TRUE CPU-TIME budget watchdog before running
+                        // guest code. This is the ONLY execution budget F-001 arms
+                        // in this PR, and only when the operator opts in via
+                        // `AGENT_OS_V8_CPU_TIME_LIMIT_MS` (normalized: `0`/unset =>
+                        // `None` => not armed => NO CPU limit). The wall-clock
+                        // `TimeoutGuard` is intentionally left DORMANT here; a
+                        // follow-up PR re-introduces a wall-clock backstop as its
+                        // own opt-in knob.
+                        //
+                        // The watchdog counts ACTIVE JS CPU only (idle/await
+                        // excluded) by polling the execution thread's CPU clock, so
+                        // a guest that mostly awaits is NOT killed by it.
+                        let mut cpu_budget_guard = match cpu_time_limit_ms {
+                            Some(budget_ms) => {
+                                // Enforcing a CPU budget requires the execution
+                                // thread's CPU clock captured at session start. If
+                                // it is unavailable we cannot honor the operator's
+                                // requested cap — surface that rather than silently
+                                // running uncapped.
+                                let cpu_clock = match exec_thread_cpu_clock {
+                                    Some(clock) => clock,
+                                    None => {
+                                        let result_frame = RuntimeEvent::ExecutionResult {
+                                            session_id,
+                                            exit_code: 1,
+                                            exports: None,
+                                            error: Some(ExecutionErrorBin {
+                                                error_type: "Error".into(),
+                                                message: format!(
+                                                    "{}: per-thread CPU clock unavailable; cannot enforce AGENT_OS_V8_CPU_TIME_LIMIT_MS",
+                                                    crate::timeout::CPU_BUDGET_GUARD_START_ERROR_CODE
+                                                ),
+                                                stack: String::new(),
+                                                code: crate::timeout::CPU_BUDGET_GUARD_START_ERROR_CODE
+                                                    .into(),
+                                            }),
+                                        };
+                                        send_event_with_generation(
+                                            &event_tx,
+                                            output_generation,
+                                            result_frame,
+                                        );
+                                        continue;
+                                    }
+                                };
                                 let handle = iso.thread_safe_handle();
-                                match crate::timeout::TimeoutGuard::with_execution_abort(
-                                    ms,
+                                match crate::timeout::CpuBudgetGuard::new(
+                                    budget_ms,
+                                    cpu_clock,
                                     handle,
                                     execution_abort.clone(),
                                 ) {
@@ -1001,7 +1063,7 @@ fn session_thread(
                                                 message,
                                                 stack: String::new(),
                                                 code:
-                                                    crate::timeout::TIMEOUT_GUARD_START_ERROR_CODE
+                                                    crate::timeout::CPU_BUDGET_GUARD_START_ERROR_CODE
                                                         .into(),
                                             }),
                                         };
@@ -1193,16 +1255,18 @@ fn session_thread(
                             }
                         }
 
-                        // Check if timeout fired
+                        // Check whether the CPU-time budget watchdog fired.
                         let abort_reason = execution_abort_reason(&execution_abort);
-                        let timed_out = timeout_guard.as_ref().is_some_and(|g| g.timed_out())
-                            || matches!(abort_reason, Some(ExecutionAbortReason::TimedOut));
+                        let cpu_budget_exceeded = cpu_budget_guard
+                            .as_ref()
+                            .is_some_and(|g| g.exceeded())
+                            || matches!(abort_reason, Some(ExecutionAbortReason::CpuBudgetExceeded));
 
-                        // Cancel timeout guard (joins timer thread)
-                        if let Some(ref mut guard) = timeout_guard {
+                        // Cancel the CPU-budget watchdog (joins its thread).
+                        if let Some(ref mut guard) = cpu_budget_guard {
                             guard.cancel();
                         }
-                        drop(timeout_guard);
+                        drop(cpu_budget_guard);
 
                         if matches!(abort_reason, Some(ExecutionAbortReason::Terminated)) {
                             terminated = true;
@@ -1212,16 +1276,19 @@ fn session_thread(
                         }
 
                         // Send ExecutionResult
-                        let result_frame = if timed_out {
+                        let result_frame = if cpu_budget_exceeded {
                             RuntimeEvent::ExecutionResult {
                                 session_id,
                                 exit_code: 1,
                                 exports: None,
                                 error: Some(ExecutionErrorBin {
                                     error_type: "Error".into(),
-                                    message: "Script execution timed out".into(),
+                                    message:
+                                        "Script execution exceeded the CPU-time budget \
+                                         (AGENT_OS_V8_CPU_TIME_LIMIT_MS)"
+                                            .into(),
                                     stack: String::new(),
-                                    code: "ERR_SCRIPT_EXECUTION_TIMEOUT".into(),
+                                    code: "ERR_SCRIPT_CPU_BUDGET_EXCEEDED".into(),
                                 }),
                             }
                         } else if terminated {

@@ -1,6 +1,7 @@
 use base64::Engine;
 use secure_exec_execution::wasm::{
-    NativeBinaryFormat, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV, WASM_PREWARM_TIMEOUT_MS_ENV,
+    NativeBinaryFormat, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV, WASM_MAX_STACK_BYTES_ENV,
+    WASM_PREWARM_TIMEOUT_MS_ENV,
 };
 use secure_exec_execution::{
     CreateWasmContextRequest, StartWasmExecutionRequest, WasmExecutionEngine, WasmExecutionError,
@@ -12,7 +13,9 @@ use std::fs;
 use std::os::unix::fs::symlink;
 use std::path::Path;
 use std::process::Command;
+use std::sync::mpsc;
 use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::thread;
 use std::time::Duration;
 use tempfile::tempdir;
 
@@ -2276,6 +2279,93 @@ fn expected_format_display(format: NativeBinaryFormat) -> &'static str {
     }
 }
 
+// SE-EXEC-05 (B.1 / F-002): never-returning self-recursion. Under a real
+// configured stack byte cap (`AGENT_OS_WASM_MAX_STACK_BYTES`) this must be bounded
+// deterministically and attributed to THAT budget rather than silently ignored.
+fn wasm_unbounded_recursion_module() -> Vec<u8> {
+    wat::parse_str(
+        r#"
+(module
+  (memory (export "memory") 1)
+  (func $recurse (param $depth i32) (result i32)
+    (call $recurse (i32.add (local.get $depth) (i32.const 1)))
+  )
+  (func $_start (export "_start")
+    (drop (call $recurse (i32.const 0)))
+  )
+)
+"#,
+    )
+    .expect("compile unbounded-recursion wasm fixture")
+}
+
+// Watchdog runner for WASM cases that may run unbounded. The whole execution
+// (engine + context + wait) happens on a spawned thread, so a guest that the
+// engine never terminates cannot hang the test binary: the test thread reclaims
+// control after `wall_clock_budget` and reports `None`.
+fn run_wasm_execution_with_watchdog(
+    module_bytes: Vec<u8>,
+    env: BTreeMap<String, String>,
+    wall_clock_budget: Duration,
+) -> Option<(String, String, i32)> {
+    let (tx, rx) = mpsc::channel::<(String, String, i32)>();
+    thread::spawn(move || {
+        let temp = match tempdir() {
+            Ok(temp) => temp,
+            Err(_) => return,
+        };
+        write_fixture(&temp.path().join("guest.wasm"), &module_bytes);
+
+        let mut engine = WasmExecutionEngine::default();
+        let context = engine.create_context(CreateWasmContextRequest {
+            vm_id: String::from("vm-wasm"),
+            module_path: Some(String::from("./guest.wasm")),
+        });
+
+        let result = run_wasm_execution(
+            &mut engine,
+            context.context_id,
+            temp.path(),
+            Vec::new(),
+            env,
+            WasmPermissionTier::Full,
+        );
+        let _ = tx.send(result);
+    });
+
+    rx.recv_timeout(wall_clock_budget).ok()
+}
+
+// SE-EXEC-05 (B.1) SAFEGUARD [x-ref FAILURES.md#F-002]: with
+// `AGENT_OS_WASM_MAX_STACK_BYTES` configured, never-returning recursion must be
+// terminated nonzero AND the failure must cite the operator-configured stack
+// byte budget instead of the engine's generic default-guard message. Before the
+// fix the env was never read by the engine (dead cap), so the guest trapped on
+// V8's default `RangeError` with a generic message. The run is watchdog-bound so
+// it cannot hang CI, and the configured cap makes it terminate fast.
+fn wasm_deep_recursion_respects_configured_stack_byte_limit() {
+    assert_node_available();
+
+    let env = BTreeMap::from([(String::from(WASM_MAX_STACK_BYTES_ENV), String::from("65536"))]);
+    let outcome = run_wasm_execution_with_watchdog(
+        wasm_unbounded_recursion_module(),
+        env,
+        Duration::from_secs(45),
+    );
+
+    let (stdout, stderr, exit_code) =
+        outcome.expect("deep recursion run did not finish within the watchdog budget");
+
+    assert_ne!(
+        exit_code, 0,
+        "deep recursion should be terminated, not run unbounded: stdout={stdout} stderr={stderr}"
+    );
+    assert!(
+        stderr.contains("65536") || stderr.to_lowercase().contains("configured"),
+        "termination should cite the configured stack byte limit, not a generic default guard: stderr={stderr}"
+    );
+}
+
 // Separate libtest cases in this binary still trip a V8 teardown/init crash, so
 // keep the WASM runtime coverage in one top-level suite until that boundary is fixed.
 #[test]
@@ -2313,4 +2403,8 @@ fn wasm_suite() {
     wasm_execution_rejects_shell_shim_before_handing_bytes_to_v8();
     wasm_execution_rejects_random_non_wasm_bytes_with_typed_error();
     wasm_execution_rejects_native_binary_headers_with_explicit_error();
+
+    // SE-EXEC-05 (B.1) SAFEGUARD [x-ref FAILURES.md#F-002]: the configured WASM
+    // stack byte cap must now bound runaway recursion and attribute the failure.
+    wasm_deep_recursion_respects_configured_stack_byte_limit();
 }

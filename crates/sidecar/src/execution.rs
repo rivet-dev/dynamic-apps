@@ -11272,21 +11272,67 @@ fn loopback_cidr(ip: IpAddr) -> &'static str {
     }
 }
 
+/// Returns the embedded IPv4 address of an IPv4-compatible IPv6 address
+/// (`::a.b.c.d`): the first six 16-bit segments are zero and the final 32 bits
+/// hold the IPv4 address. The all-zero (`::`) and loopback (`::1`) addresses are
+/// deliberately excluded so they are handled by the unspecified/loopback paths
+/// rather than treated as IPv4-compatible.
+fn ipv4_compatible_embedded(ip: Ipv6Addr) -> Option<Ipv4Addr> {
+    let segments = ip.segments();
+    if segments[0..6].iter().any(|&s| s != 0) {
+        return None;
+    }
+    let embedded = (u32::from(segments[6]) << 16) | u32::from(segments[7]);
+    // Skip :: (0.0.0.0) and ::1 (0.0.0.1) — these are the IPv6 unspecified /
+    // loopback addresses, not IPv4-compatible representations of an IPv4 host.
+    if embedded == 0 || embedded == 1 {
+        return None;
+    }
+    Some(Ipv4Addr::from(embedded))
+}
+
 fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'static str)> {
     match ip {
         IpAddr::V4(ip) => {
+            if ip.is_unspecified() {
+                // 0.0.0.0 is unspecified; the host stack routes a connect() to
+                // it back to 127.0.0.1, so it must not bypass the loopback gate.
+                return Some(("0.0.0.0/32", "unspecified"));
+            }
             let [first, second, ..] = ip.octets();
             match (first, second) {
                 (10, _) => Some(("10.0.0.0/8", "private")),
+                (100, 64..=127) => Some(("100.64.0.0/10", "carrier-grade-nat")),
                 (172, 16..=31) => Some(("172.16.0.0/12", "private")),
                 (192, 168) => Some(("192.168.0.0/16", "private")),
                 (169, 254) => Some(("169.254.0.0/16", "link-local")),
+                // 224.0.0.0/4 is the IPv4 multicast range and 240.0.0.0/4 is
+                // reserved/future-use (255.255.255.255 broadcast falls in it).
+                // Neither is a legitimate unicast egress target, so a guest
+                // connect to them must be denied rather than attempted.
+                (224..=239, _) => Some(("224.0.0.0/4", "multicast")),
+                (240..=255, _) => Some(("240.0.0.0/4", "reserved")),
                 _ => None,
             }
         }
         IpAddr::V6(ip) => {
             if let Some(mapped) = ip.to_ipv4_mapped() {
                 return restricted_non_loopback_ip_range(IpAddr::V4(mapped));
+            }
+            // IPv4-compatible IPv6 (::a.b.c.d): the first six segments are zero
+            // and the last two carry an embedded IPv4 address. `to_ipv4_mapped`
+            // returns None for this form, so without canonicalizing it here a
+            // guest could spell a restricted IPv4 target (e.g. cloud-metadata
+            // ::169.254.169.254) and bypass the IPv4 classifier. `::`/`::1` are
+            // excluded so they fall through to the unspecified/loopback paths.
+            if let Some(compat) = ipv4_compatible_embedded(ip) {
+                return restricted_non_loopback_ip_range(IpAddr::V4(compat));
+            }
+
+            if ip.is_unspecified() {
+                // :: is the IPv6 unspecified address; same routing hazard as
+                // 0.0.0.0, so deny it rather than letting it reach the host.
+                return Some(("::/128", "unspecified"));
             }
 
             let segments = ip.segments();
@@ -20225,5 +20271,158 @@ mod error_code_tests {
             javascript_sync_rpc_error_code(&error),
             "ERR_NATIVE_BINARY_NOT_SUPPORTED"
         );
+    }
+}
+
+#[cfg(test)]
+mod ssrf_egress_classifier_tests {
+    // F-005/006/007 (sec-sidecar T1/T7/T11): the egress classifier must treat the
+    // unspecified address (0.0.0.0 / ::), CGNAT (100.64.0.0/10), IPv6 spellings of
+    // restricted IPv4 targets (::a.b.c.d), and reserved/multicast (240/4, 224/4) as
+    // restricted. 0.0.0.0 routes to 127.0.0.1 on connect(), so leaving it
+    // unclassified let a guest bypass the loopback port-ownership gate.
+    //
+    // These are bounded SAFEGUARD tests: they exercise the classifier and the DNS
+    // egress filter directly (no network I/O, no Node), so they run fast and
+    // deterministically. See FAILURES.md#F-005, #F-006, #F-007.
+    use super::{
+        filter_dns_safe_ip_addrs, is_loopback_ip, restricted_non_loopback_ip_range, SidecarError,
+    };
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+    fn assert_restricted(ip: IpAddr, expected_label: &str) {
+        let classification = restricted_non_loopback_ip_range(ip);
+        assert!(
+            classification.is_some(),
+            "{ip} must be classified as a restricted egress target"
+        );
+        let (_cidr, label) = classification.unwrap();
+        assert_eq!(
+            label, expected_label,
+            "{ip} should be labelled {expected_label}, got {label}"
+        );
+    }
+
+    fn assert_dns_denied(ip: IpAddr, label: &str) {
+        match filter_dns_safe_ip_addrs(vec![ip], "attacker.example") {
+            Err(SidecarError::Execution(message)) => assert!(
+                message.starts_with("EACCES:"),
+                "{label}: egress filter must deny with EACCES, got: {message}"
+            ),
+            other => panic!("{label}: expected EACCES denial, got {other:?}"),
+        }
+    }
+
+    // F-005 (sec-sidecar T1).
+    #[test]
+    fn classifier_denies_unspecified_and_cgnat_targets() {
+        // 0.0.0.0 (IPv4 unspecified) -> would route to host loopback.
+        assert_restricted(IpAddr::V4(Ipv4Addr::UNSPECIFIED), "unspecified");
+        // :: (IPv6 unspecified).
+        assert_restricted(IpAddr::V6(Ipv6Addr::UNSPECIFIED), "unspecified");
+
+        // CGNAT 100.64.0.0/10 spans 100.64.x.x .. 100.127.x.x.
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)), "carrier-grade-nat");
+        assert_restricted(
+            IpAddr::V4(Ipv4Addr::new(100, 127, 255, 254)),
+            "carrier-grade-nat",
+        );
+
+        // Guard against over-blocking: addresses just outside 100.64/10 stay allowed.
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(100, 63, 255, 255)))
+                .is_none(),
+            "100.63.255.255 is outside CGNAT and must remain allowed"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(100, 128, 0, 0))).is_none(),
+            "100.128.0.0 is outside CGNAT and must remain allowed"
+        );
+
+        // The DNS egress filter must also deny these via EACCES.
+        assert_dns_denied(IpAddr::V4(Ipv4Addr::UNSPECIFIED), "0.0.0.0 (unspecified)");
+        assert_dns_denied(IpAddr::V6(Ipv6Addr::UNSPECIFIED), ":: (unspecified)");
+        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)), "100.64.0.1 (CGNAT)");
+    }
+
+    // F-006 (sec-sidecar T7).
+    #[test]
+    fn classifier_denies_ipv6_spelled_metadata_addresses() {
+        // The IPv4-mapped form (::ffff:169.254.169.254) was already handled; the
+        // IPv4-compatible form (::169.254.169.254) is the gap this fixes.
+        let mapped = "::ffff:169.254.169.254".parse::<Ipv6Addr>().unwrap();
+        assert_restricted(IpAddr::V6(mapped), "link-local");
+
+        let compat = "::169.254.169.254".parse::<Ipv6Addr>().unwrap();
+        assert_restricted(IpAddr::V6(compat), "link-local");
+
+        // Other IPv4-compatible private/CGNAT spellings must also be canonicalized.
+        assert_restricted(
+            IpAddr::V6("::10.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "private",
+        );
+        assert_restricted(
+            IpAddr::V6("::100.64.0.1".parse::<Ipv6Addr>().unwrap()),
+            "carrier-grade-nat",
+        );
+
+        // Guard against over-blocking: the IPv6 unspecified/loopback addresses
+        // are not IPv4-compatible host targets, and a public IPv4-compatible
+        // address must remain allowed.
+        assert_eq!(
+            restricted_non_loopback_ip_range(IpAddr::V6(Ipv6Addr::UNSPECIFIED)),
+            Some(("::/128", "unspecified")),
+            ":: must classify as unspecified, not via the IPv4-compat path"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V6(Ipv6Addr::LOCALHOST)).is_none()
+                || is_loopback_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)),
+            "::1 must not be classified as a restricted IPv4-compatible target"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V6("::8.8.8.8".parse::<Ipv6Addr>().unwrap()))
+                .is_none(),
+            "::8.8.8.8 (public IPv4-compatible) must remain allowed"
+        );
+
+        // The DNS egress filter must deny the IPv4-compat metadata spelling.
+        assert_dns_denied(
+            IpAddr::V6("::169.254.169.254".parse::<Ipv6Addr>().unwrap()),
+            "::169.254.169.254 (IPv4-compat metadata)",
+        );
+    }
+
+    // F-007 (sec-sidecar T11).
+    #[test]
+    fn classifier_denies_reserved_and_multicast_targets() {
+        // 224.0.0.0/4 (multicast) and 240.0.0.0/4 (reserved / future use) are not
+        // legitimate unicast egress targets; a guest connect to them must be
+        // classified as restricted and denied.
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)), "multicast");
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(239, 255, 255, 255)), "multicast");
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)), "reserved");
+        // 255.255.255.255 (limited broadcast) falls in 240.0.0.0/4.
+        assert_restricted(IpAddr::V4(Ipv4Addr::BROADCAST), "reserved");
+
+        // IPv4-compatible IPv6 spellings must canonicalize and be denied too.
+        assert_restricted(
+            IpAddr::V6("::224.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "multicast",
+        );
+        assert_restricted(
+            IpAddr::V6("::240.0.0.1".parse::<Ipv6Addr>().unwrap()),
+            "reserved",
+        );
+
+        // Guard against over-blocking: addresses just outside 224/4 stay allowed.
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(223, 255, 255, 255)))
+                .is_none(),
+            "223.255.255.255 is outside 224/4 and must remain allowed"
+        );
+
+        // The DNS egress filter must also deny these via EACCES.
+        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)), "240.0.0.1 (reserved)");
+        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)), "224.0.0.1 (multicast)");
     }
 }

@@ -12,8 +12,15 @@ try {
 	});
 	const vm = await client.createVm(session, {
 		runtime: "java_script",
-		metadata: {
-			example: "native-client",
+		config: {
+			env: {},
+			rootFilesystem: {
+				mode: "ephemeral",
+				disableDefaultBaseLayer: false,
+				lowers: [{ kind: "bundledBaseFilesystem" }],
+				bootstrapEntries: [],
+			},
+			loopbackExemptPorts: [],
 		},
 	});
 

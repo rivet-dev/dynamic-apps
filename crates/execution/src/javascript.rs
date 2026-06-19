@@ -62,6 +62,15 @@ const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_DATA_BYTES";
 const NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS";
 static NEXT_V8_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 const V8_HEAP_LIMIT_MB_ENV: &str = "AGENT_OS_V8_HEAP_LIMIT_MB";
+/// Opt-in TRUE CPU-time budget (ms) for guest JavaScript. Unset/`0` => no limit.
+///
+/// Guest inline code (e.g. `while (true) {}`) runs on the shared, slot-bounded V8
+/// runtime; with this set, a runaway burning CPU is terminated by the CPU-budget
+/// watchdog (which counts active JS CPU only, excluding idle/await). There is NO
+/// default: with this unset the guest runs CPU-uncapped by design — the
+/// platform/operator MUST set it to cap a guest. A wall-clock backstop is
+/// intentionally NOT part of this knob (deferred to a follow-up).
+const V8_CPU_TIME_LIMIT_MS_ENV: &str = "AGENT_OS_V8_CPU_TIME_LIMIT_MS";
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
@@ -1529,6 +1538,7 @@ fn register_v8_session<F>(
     v8_host: &V8RuntimeHost,
     session_id: String,
     heap_limit_mb: u32,
+    cpu_time_limit_ms: u32,
     send_frame: F,
 ) -> Result<PendingV8SessionRegistration<'_>, JavascriptExecutionError>
 where
@@ -1542,7 +1552,7 @@ where
     send_frame(&BinaryFrame::CreateSession {
         session_id,
         heap_limit_mb,
-        cpu_time_limit_ms: 0,
+        cpu_time_limit_ms,
     })
     .map_err(JavascriptExecutionError::Spawn)?;
 
@@ -1666,6 +1676,7 @@ impl JavascriptExecutionEngine {
             v8_host,
             session_id.clone(),
             javascript_heap_limit_mb(&request),
+            javascript_cpu_time_limit_ms(&request),
             |frame| v8_host.send_frame(frame),
         )?;
 
@@ -1865,6 +1876,20 @@ fn javascript_heap_limit_mb(request: &StartJavascriptExecutionRequest) -> u32 {
         .get(V8_HEAP_LIMIT_MB_ENV)
         .and_then(|value| value.parse::<u32>().ok())
         .filter(|value| *value > 0)
+        .unwrap_or(0)
+}
+
+/// Resolve the opt-in TRUE CPU-time budget (ms) for a JavaScript execution.
+///
+/// Opt-in with NO default: read from `AGENT_OS_V8_CPU_TIME_LIMIT_MS`, falling
+/// back to `0` (no limit) when unset/unparsable. `0` is normalized to `None` by
+/// the V8 session, so the CPU-budget watchdog is NOT armed and the guest runs
+/// CPU-uncapped. The platform/operator must set this to cap a guest.
+fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
+    request
+        .env
+        .get(V8_CPU_TIME_LIMIT_MS_ENV)
+        .and_then(|value| value.parse::<u32>().ok())
         .unwrap_or(0)
 }
 
@@ -6555,7 +6580,7 @@ mod tests {
                 .as_nanos()
         );
 
-        let error = match register_v8_session(&host, session_id.clone(), 0, |_frame| {
+        let error = match register_v8_session(&host, session_id.clone(), 0, 0, |_frame| {
             Err(std::io::Error::new(
                 std::io::ErrorKind::BrokenPipe,
                 "simulated CreateSession send failure",
