@@ -51,6 +51,13 @@ const DEFAULT_WASM_GUEST_PATH: &str =
 // Warmup is a best-effort compile-cache optimization; fall back to a cold start
 // instead of burning minutes on a stalled prewarm session.
 const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
+/// Wall-clock execution budget applied when no explicit fuel budget
+/// (`AGENT_OS_WASM_MAX_FUEL`) is configured. Without this default a guest module
+/// that never returns (e.g. an infinite loop) would gate termination behind
+/// `Some(limit)` in [`WasmExecution::wait`] and pin a host CPU core forever,
+/// starving every other tenant on the shared process. Operators that need a
+/// tighter (or looser) bound can still set `AGENT_OS_WASM_MAX_FUEL` explicitly.
+const DEFAULT_WASM_EXECUTION_TIMEOUT_MS: u64 = 30_000;
 const MAX_SYNC_WASM_PREWARM_MODULE_BYTES: u64 = 16 * 1024 * 1024;
 const WASM_CAPTURED_OUTPUT_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 const WASM_SYNC_READ_LIMIT_BYTES: usize = 16 * 1024 * 1024;
@@ -4818,7 +4825,14 @@ fn resolve_wasm_execution_timeout(
     // configured "fuel" budget is currently enforced as a tight wall-clock
     // timeout while still being passed through to the child process for
     // observability and future in-runtime enforcement.
-    Ok(wasm_limit_u64(&request.env, WASM_MAX_FUEL_ENV)?.map(Duration::from_millis))
+    //
+    // When no explicit fuel budget is configured we still apply a default
+    // wall-clock timeout: otherwise `wait()` gates termination behind
+    // `Some(limit)` and a never-returning guest (e.g. an infinite loop) pins a
+    // host CPU core indefinitely, starving other tenants on the shared process.
+    let budget_ms = wasm_limit_u64(&request.env, WASM_MAX_FUEL_ENV)?
+        .unwrap_or(DEFAULT_WASM_EXECUTION_TIMEOUT_MS);
+    Ok(Some(Duration::from_millis(budget_ms)))
 }
 
 fn resolve_wasm_prewarm_timeout(
@@ -5266,9 +5280,10 @@ mod tests {
         wasm_memory_limit_pages, wasm_mutation_touches_read_only_mapping,
         wasm_read_only_filesystem_error, wasm_sandbox_root, wasm_sync_read_length,
         wasm_sync_rpc_error_code, StartWasmExecutionRequest, Value, WasmExecutionError,
-        WasmInternalSyncRpc, WasmPermissionTier, WASM_CAPTURED_OUTPUT_LIMIT_BYTES,
-        WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV, WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV,
-        WASM_SANDBOX_ROOT_ENV, WASM_SYNC_READ_LIMIT_BYTES,
+        WasmInternalSyncRpc, WasmPermissionTier, DEFAULT_WASM_EXECUTION_TIMEOUT_MS,
+        WASM_CAPTURED_OUTPUT_LIMIT_BYTES, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV,
+        WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV, WASM_SANDBOX_ROOT_ENV,
+        WASM_SYNC_READ_LIMIT_BYTES,
     };
     use std::collections::{BTreeMap, VecDeque};
     use std::fs;
@@ -5325,6 +5340,28 @@ mod tests {
         assert_eq!(
             resolve_wasm_prewarm_timeout(&request).expect("prewarm timeout"),
             Duration::from_millis(750)
+        );
+    }
+
+    // F-004 (SE-EXEC-08) SAFEGUARD: a guest module supplied with NO fuel env must
+    // still be bound by a default wall-clock execution timeout. Before the fix
+    // `resolve_wasm_execution_timeout` returned `None` here, so `wait()` gated
+    // termination behind `Some(limit)` and a never-returning guest pinned a host
+    // CPU core forever. This bounded unit assertion runs by default and is fast;
+    // the unbounded CPU-saturation variant stays env-gated in tests/wasm.rs.
+    #[test]
+    fn wasm_execution_timeout_defaults_to_bounded_value_without_fuel_env() {
+        let temp = tempdir().expect("create temp dir");
+        let request = request_with_env(temp.path(), BTreeMap::new());
+
+        let timeout = resolve_wasm_execution_timeout(&request)
+            .expect("execution timeout resolves without fuel env");
+
+        assert_eq!(
+            timeout,
+            Some(Duration::from_millis(DEFAULT_WASM_EXECUTION_TIMEOUT_MS)),
+            "a no-fuel guest must still be bounded by a default wall-clock timeout, \
+             otherwise wait() never terminates an infinite-loop module (F-004)"
         );
     }
 
