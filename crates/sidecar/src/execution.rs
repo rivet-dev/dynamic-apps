@@ -11187,9 +11187,15 @@ fn loopback_cidr(ip: IpAddr) -> &'static str {
 fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'static str)> {
     match ip {
         IpAddr::V4(ip) => {
+            if ip.is_unspecified() {
+                // 0.0.0.0 is unspecified; the host stack routes a connect() to
+                // it back to 127.0.0.1, so it must not bypass the loopback gate.
+                return Some(("0.0.0.0/32", "unspecified"));
+            }
             let [first, second, ..] = ip.octets();
             match (first, second) {
                 (10, _) => Some(("10.0.0.0/8", "private")),
+                (100, 64..=127) => Some(("100.64.0.0/10", "carrier-grade-nat")),
                 (172, 16..=31) => Some(("172.16.0.0/12", "private")),
                 (192, 168) => Some(("192.168.0.0/16", "private")),
                 (169, 254) => Some(("169.254.0.0/16", "link-local")),
@@ -11199,6 +11205,12 @@ fn restricted_non_loopback_ip_range(ip: IpAddr) -> Option<(&'static str, &'stati
         IpAddr::V6(ip) => {
             if let Some(mapped) = ip.to_ipv4_mapped() {
                 return restricted_non_loopback_ip_range(IpAddr::V4(mapped));
+            }
+
+            if ip.is_unspecified() {
+                // :: is the IPv6 unspecified address; same routing hazard as
+                // 0.0.0.0, so deny it rather than letting it reach the host.
+                return Some(("::/128", "unspecified"));
             }
 
             let segments = ip.segments();
@@ -20137,5 +20149,79 @@ mod error_code_tests {
             javascript_sync_rpc_error_code(&error),
             "ERR_NATIVE_BINARY_NOT_SUPPORTED"
         );
+    }
+}
+
+#[cfg(test)]
+mod ssrf_egress_classifier_tests {
+    // F-005 (sec-sidecar T1): the egress classifier must treat the unspecified
+    // address (0.0.0.0 / ::) and the CGNAT block (100.64.0.0/10) as restricted.
+    // 0.0.0.0 routes to 127.0.0.1 on connect(), so leaving it unclassified let a
+    // guest bypass the loopback port-ownership gate; CGNAT reaches carrier/internal
+    // infrastructure. Both must be denied via EACCES from the egress filter.
+    //
+    // This is a bounded SAFEGUARD test: it exercises the classifier and the DNS
+    // egress filter directly (no network I/O, no Node), so it runs fast and
+    // deterministically. See FAILURES.md#F-005.
+    use super::{filter_dns_safe_ip_addrs, restricted_non_loopback_ip_range, SidecarError};
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+    fn assert_restricted(ip: IpAddr, expected_label: &str) {
+        let classification = restricted_non_loopback_ip_range(ip);
+        assert!(
+            classification.is_some(),
+            "{ip} must be classified as a restricted egress target"
+        );
+        let (_cidr, label) = classification.unwrap();
+        assert_eq!(
+            label, expected_label,
+            "{ip} should be labelled {expected_label}, got {label}"
+        );
+    }
+
+    #[test]
+    fn classifier_denies_unspecified_and_cgnat_targets() {
+        // 0.0.0.0 (IPv4 unspecified) -> would route to host loopback.
+        assert_restricted(IpAddr::V4(Ipv4Addr::UNSPECIFIED), "unspecified");
+        // :: (IPv6 unspecified).
+        assert_restricted(IpAddr::V6(Ipv6Addr::UNSPECIFIED), "unspecified");
+
+        // CGNAT 100.64.0.0/10 spans 100.64.x.x .. 100.127.x.x.
+        assert_restricted(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)), "carrier-grade-nat");
+        assert_restricted(
+            IpAddr::V4(Ipv4Addr::new(100, 127, 255, 254)),
+            "carrier-grade-nat",
+        );
+
+        // Guard against over-blocking: addresses just outside 100.64/10 stay allowed.
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(100, 63, 255, 255))).is_none(),
+            "100.63.255.255 is outside CGNAT and must remain allowed"
+        );
+        assert!(
+            restricted_non_loopback_ip_range(IpAddr::V4(Ipv4Addr::new(100, 128, 0, 0))).is_none(),
+            "100.128.0.0 is outside CGNAT and must remain allowed"
+        );
+    }
+
+    #[test]
+    fn dns_egress_filter_blocks_unspecified_and_cgnat() {
+        for (ip, label) in [
+            (IpAddr::V4(Ipv4Addr::UNSPECIFIED), "0.0.0.0 (unspecified)"),
+            (IpAddr::V6(Ipv6Addr::UNSPECIFIED), ":: (unspecified)"),
+            (
+                IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)),
+                "100.64.0.1 (CGNAT)",
+            ),
+        ] {
+            let result = filter_dns_safe_ip_addrs(vec![ip], "attacker.example");
+            match result {
+                Err(SidecarError::Execution(message)) => assert!(
+                    message.starts_with("EACCES:"),
+                    "{label}: egress filter must deny with EACCES, got: {message}"
+                ),
+                other => panic!("{label}: expected EACCES denial, got {other:?}"),
+            }
+        }
     }
 }
