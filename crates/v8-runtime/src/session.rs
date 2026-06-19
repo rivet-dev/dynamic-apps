@@ -1257,10 +1257,12 @@ fn session_thread(
 
                         // Check whether the CPU-time budget watchdog fired.
                         let abort_reason = execution_abort_reason(&execution_abort);
-                        let cpu_budget_exceeded = cpu_budget_guard
-                            .as_ref()
-                            .is_some_and(|g| g.exceeded())
-                            || matches!(abort_reason, Some(ExecutionAbortReason::CpuBudgetExceeded));
+                        let cpu_budget_exceeded =
+                            cpu_budget_guard.as_ref().is_some_and(|g| g.exceeded())
+                                || matches!(
+                                    abort_reason,
+                                    Some(ExecutionAbortReason::CpuBudgetExceeded)
+                                );
 
                         // Cancel the CPU-budget watchdog (joins its thread).
                         if let Some(ref mut guard) = cpu_budget_guard {
@@ -1283,10 +1285,9 @@ fn session_thread(
                                 exports: None,
                                 error: Some(ExecutionErrorBin {
                                     error_type: "Error".into(),
-                                    message:
-                                        "Script execution exceeded the CPU-time budget \
+                                    message: "Script execution exceeded the CPU-time budget \
                                          (AGENT_OS_V8_CPU_TIME_LIMIT_MS)"
-                                            .into(),
+                                        .into(),
                                     stack: String::new(),
                                     code: "ERR_SCRIPT_CPU_BUDGET_EXCEEDED".into(),
                                 }),

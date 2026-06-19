@@ -22,9 +22,9 @@
 //!      here.
 
 use secure_exec_kernel::permissions::{
-    check_command_execution, check_network_access, filter_env, EnvAccessRequest, EnvironmentOperation,
-    FsAccessRequest, FsOperation, NetworkAccessRequest, NetworkOperation, PermissionedFileSystem,
-    Permissions,
+    check_command_execution, check_network_access, filter_env, EnvAccessRequest,
+    EnvironmentOperation, FsAccessRequest, FsOperation, NetworkAccessRequest, NetworkOperation,
+    PermissionedFileSystem, Permissions,
 };
 use secure_exec_kernel::resource_accounting::ResourceLimits;
 use secure_exec_kernel::vfs::{MemoryFileSystem, VfsResult, VirtualFileSystem};
@@ -48,8 +48,23 @@ fn all_fs_operations() -> Vec<FsOperation> {
         | ReadLink | Link | Chmod | Chown | Utimes | Truncate | MountSensitive => (),
     };
     let all = vec![
-        Read, Write, Mkdir, CreateDir, ReadDir, Stat, Remove, Rename, Exists, Symlink, ReadLink,
-        Link, Chmod, Chown, Utimes, Truncate, MountSensitive,
+        Read,
+        Write,
+        Mkdir,
+        CreateDir,
+        ReadDir,
+        Stat,
+        Remove,
+        Rename,
+        Exists,
+        Symlink,
+        ReadLink,
+        Link,
+        Chmod,
+        Chown,
+        Utimes,
+        Truncate,
+        MountSensitive,
     ];
     for op in &all {
         exhaustiveness_witness(*op);

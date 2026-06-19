@@ -395,10 +395,7 @@ enum GuestModuleResolution {
 
 impl GuestModuleResolution {
     fn from_env(env: &BTreeMap<String, String>) -> Self {
-        match env
-            .get("AGENT_OS_JS_MODULE_RESOLUTION")
-            .map(String::as_str)
-        {
+        match env.get("AGENT_OS_JS_MODULE_RESOLUTION").map(String::as_str) {
             Some("relative") => Self::Relative,
             Some("none") => Self::None,
             _ => Self::Node,

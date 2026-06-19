@@ -788,10 +788,9 @@ mod tests {
 
     #[test]
     fn unknown_fields_are_rejected() {
-        let error = serde_json::from_str::<CreateVmConfig>(
-            r#"{"rootFilesystem":{},"surprise":true}"#,
-        )
-        .expect_err("unknown fields should fail");
+        let error =
+            serde_json::from_str::<CreateVmConfig>(r#"{"rootFilesystem":{},"surprise":true}"#)
+                .expect_err("unknown fields should fail");
         assert!(error.to_string().contains("unknown field"));
     }
 
@@ -846,16 +845,11 @@ mod tests {
         let none = js_runtime_config(serde_json::json!({ "platform": "node" })).unwrap();
         assert!(none.js_runtime.unwrap().allowed_builtins.is_none());
         // Some([]) => deny all (representable, distinct from None).
-        let empty =
-            js_runtime_config(serde_json::json!({ "allowedBuiltins": [] })).unwrap();
-        assert_eq!(
-            empty.js_runtime.unwrap().allowed_builtins,
-            Some(Vec::new())
-        );
+        let empty = js_runtime_config(serde_json::json!({ "allowedBuiltins": [] })).unwrap();
+        assert_eq!(empty.js_runtime.unwrap().allowed_builtins, Some(Vec::new()));
         // Some([..]) => explicit.
-        let some =
-            js_runtime_config(serde_json::json!({ "allowedBuiltins": ["path", "node:fs"] }))
-                .unwrap();
+        let some = js_runtime_config(serde_json::json!({ "allowedBuiltins": ["path", "node:fs"] }))
+            .unwrap();
         assert_eq!(
             some.js_runtime.unwrap().allowed_builtins,
             Some(vec!["path".to_owned(), "node:fs".to_owned()])

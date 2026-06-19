@@ -163,7 +163,8 @@ impl CfgTestTracker {
             // on a `use` / `fn` / `const` is a single item and gets matched
             // line-by-line, so we still skip just that line below.
             self.pending_cfg_test = false;
-            if trimmed.starts_with("mod ") || trimmed.starts_with("pub mod ")
+            if trimmed.starts_with("mod ")
+                || trimmed.starts_with("pub mod ")
                 || trimmed.starts_with("pub(crate) mod ")
                 || trimmed.starts_with("pub(super) mod ")
             {
@@ -215,8 +216,8 @@ fn scan_class(root: &Path, files: &[PathBuf], class: &BannedClass) -> Vec<String
         let rel_str = rel.to_string_lossy().replace('\\', "/");
         let allowed = allow.contains(rel_str.as_str());
         let abs = root.join(rel);
-        let content = std::fs::read_to_string(&abs)
-            .unwrap_or_else(|err| panic!("read {abs:?}: {err}"));
+        let content =
+            std::fs::read_to_string(&abs).unwrap_or_else(|err| panic!("read {abs:?}: {err}"));
         let mut tracker = CfgTestTracker::new();
         for (idx, raw) in content.lines().enumerate() {
             let in_test = tracker.in_test(raw);
@@ -228,12 +229,7 @@ fn scan_class(root: &Path, files: &[PathBuf], class: &BannedClass) -> Vec<String
             }
             let code = strip_line_comment(raw);
             if line_matches(code, class.needles) {
-                violations.push(format!(
-                    "{}:{}: {}",
-                    rel_str,
-                    idx + 1,
-                    raw.trim()
-                ));
+                violations.push(format!("{}:{}: {}", rel_str, idx + 1, raw.trim()));
             }
         }
     }

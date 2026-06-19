@@ -4026,7 +4026,10 @@ fn js_runtime_env(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
         .collect()
 }
 
-fn run_js_runtime_guest(env: BTreeMap<String, String>, inline_code: &str) -> JavascriptExecutionResult {
+fn run_js_runtime_guest(
+    env: BTreeMap<String, String>,
+    inline_code: &str,
+) -> JavascriptExecutionResult {
     let temp = tempdir().expect("create temp dir");
     let mut engine = JavascriptExecutionEngine::default();
     let context = engine.create_context(CreateJavascriptContextRequest {
@@ -4225,7 +4228,10 @@ fn js_runtime_module_resolution_relative_allows_local_denies_bare() {
         .expect("start JavaScript execution");
     let result = execution.wait().expect("wait for JavaScript execution");
     let stderr = String::from_utf8_lossy(&result.stderr);
-    assert_eq!(result.exit_code, 0, "relative-resolution test failed\nstderr:\n{stderr}");
+    assert_eq!(
+        result.exit_code, 0,
+        "relative-resolution test failed\nstderr:\n{stderr}"
+    );
 }
 
 fn js_runtime_node_platform_allow_list_restricts_builtins() {
@@ -4256,8 +4262,11 @@ fn js_runtime_browser_loads_cjs_npm_package() {
         r#"{"name":"demo-pkg","version":"1.0.0","main":"index.js"}"#,
     )
     .expect("write package.json");
-    std::fs::write(pkg_dir.join("index.js"), "module.exports = { answer: 42 };\n")
-        .expect("write index.js");
+    std::fs::write(
+        pkg_dir.join("index.js"),
+        "module.exports = { answer: 42 };\n",
+    )
+    .expect("write index.js");
     let mut engine = JavascriptExecutionEngine::default();
     let context = engine.create_context(CreateJavascriptContextRequest {
         vm_id: String::from("vm-js"),

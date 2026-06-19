@@ -16199,7 +16199,9 @@ fn issue_outbound_http_request(
         if expected_host != Some(host) {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::PermissionDenied,
-                format!("EACCES: outbound HTTP resolver pinned to {expected_host:?}, refusing {host}"),
+                format!(
+                    "EACCES: outbound HTTP resolver pinned to {expected_host:?}, refusing {host}"
+                ),
             ));
         }
         if pinned.is_empty() {
@@ -20362,7 +20364,10 @@ mod ssrf_egress_classifier_tests {
         assert_restricted(IpAddr::V6(Ipv6Addr::UNSPECIFIED), "unspecified");
 
         // CGNAT 100.64.0.0/10 spans 100.64.x.x .. 100.127.x.x.
-        assert_restricted(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)), "carrier-grade-nat");
+        assert_restricted(
+            IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)),
+            "carrier-grade-nat",
+        );
         assert_restricted(
             IpAddr::V4(Ipv4Addr::new(100, 127, 255, 254)),
             "carrier-grade-nat",
@@ -20382,7 +20387,10 @@ mod ssrf_egress_classifier_tests {
         // The DNS egress filter must also deny these via EACCES.
         assert_dns_denied(IpAddr::V4(Ipv4Addr::UNSPECIFIED), "0.0.0.0 (unspecified)");
         assert_dns_denied(IpAddr::V6(Ipv6Addr::UNSPECIFIED), ":: (unspecified)");
-        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)), "100.64.0.1 (CGNAT)");
+        assert_dns_denied(
+            IpAddr::V4(Ipv4Addr::new(100, 64, 0, 1)),
+            "100.64.0.1 (CGNAT)",
+        );
     }
 
     // F-006 (sec-sidecar T7).
@@ -20462,8 +20470,14 @@ mod ssrf_egress_classifier_tests {
         );
 
         // The DNS egress filter must also deny these via EACCES.
-        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)), "240.0.0.1 (reserved)");
-        assert_dns_denied(IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)), "224.0.0.1 (multicast)");
+        assert_dns_denied(
+            IpAddr::V4(Ipv4Addr::new(240, 0, 0, 1)),
+            "240.0.0.1 (reserved)",
+        );
+        assert_dns_denied(
+            IpAddr::V4(Ipv4Addr::new(224, 0, 0, 1)),
+            "224.0.0.1 (multicast)",
+        );
     }
 }
 
@@ -20500,7 +20514,10 @@ mod dns_rebinding_pin_tests {
 
     #[test]
     fn split_netloc_handles_hostnames_and_bracketed_ipv6() {
-        assert_eq!(split_netloc("attacker.example:80"), Some(("attacker.example", 80)));
+        assert_eq!(
+            split_netloc("attacker.example:80"),
+            Some(("attacker.example", 80))
+        );
         assert_eq!(split_netloc("[::1]:443"), Some(("::1", 443)));
         assert_eq!(split_netloc("10.0.0.1:8080"), Some(("10.0.0.1", 8080)));
         assert_eq!(split_netloc("no-port"), None);

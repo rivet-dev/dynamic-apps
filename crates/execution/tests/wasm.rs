@@ -2346,7 +2346,10 @@ fn run_wasm_execution_with_watchdog(
 fn wasm_deep_recursion_respects_configured_stack_byte_limit() {
     assert_node_available();
 
-    let env = BTreeMap::from([(String::from(WASM_MAX_STACK_BYTES_ENV), String::from("65536"))]);
+    let env = BTreeMap::from([(
+        String::from(WASM_MAX_STACK_BYTES_ENV),
+        String::from("65536"),
+    )]);
     let outcome = run_wasm_execution_with_watchdog(
         wasm_unbounded_recursion_module(),
         env,
