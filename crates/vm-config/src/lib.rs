@@ -6,6 +6,7 @@ use ts_rs::TS;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export, export_to = "../../../packages/core/src/generated/")]
+#[derive(Default)]
 pub struct CreateVmConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
@@ -43,23 +44,6 @@ pub struct CreateVmConfig {
     #[serde(default, rename = "jsRuntime", skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub js_runtime: Option<JsRuntimeConfig>,
-}
-
-impl Default for CreateVmConfig {
-    fn default() -> Self {
-        Self {
-            cwd: None,
-            env: BTreeMap::new(),
-            root_filesystem: RootFilesystemConfig::default(),
-            permissions: None,
-            limits: None,
-            dns: None,
-            native_root: None,
-            listen: None,
-            loopback_exempt_ports: Vec::new(),
-            js_runtime: None,
-        }
-    }
 }
 
 impl CreateVmConfig {
@@ -143,9 +127,11 @@ impl JsRuntimeConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export, export_to = "../../../packages/core/src/generated/")]
+#[derive(Default)]
 pub enum JsRuntimePlatform {
     /// Full Node.js host surface (process/Buffer/require, `node:*`, npm
     /// resolution, virtual Node identity). Default.
+    #[default]
     Node,
     /// Web-platform globals (fetch/URL/WebCrypto/...), no Node surface.
     Browser,
@@ -156,28 +142,18 @@ pub enum JsRuntimePlatform {
     Bare,
 }
 
-impl Default for JsRuntimePlatform {
-    fn default() -> Self {
-        Self::Node
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(export, export_to = "../../../packages/core/src/generated/")]
+#[derive(Default)]
 pub enum JsModuleResolution {
     /// node_modules ancestor-walk + exports/imports/conditions + realpath. Default.
+    #[default]
     Node,
     /// Relative/absolute ESM from the VFS only; bare specifiers do not resolve.
     Relative,
     /// No resolution: any import/require (even relative) fails.
     None,
-}
-
-impl Default for JsModuleResolution {
-    fn default() -> Self {
-        Self::Node
-    }
 }
 
 /// Canonical set of recognized Node builtin module names (without the `node:`
@@ -292,15 +268,11 @@ impl RootFilesystemConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export, export_to = "../../../packages/core/src/generated/")]
+#[derive(Default)]
 pub enum RootFilesystemMode {
+    #[default]
     Ephemeral,
     ReadOnly,
-}
-
-impl Default for RootFilesystemMode {
-    fn default() -> Self {
-        Self::Ephemeral
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]

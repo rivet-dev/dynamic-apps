@@ -2588,12 +2588,12 @@ fn has_code_pattern_boundary(source: &str, index: usize, pattern: &str) -> bool 
     let before_ok = index == 0
         || bytes
             .get(index - 1)
-            .map_or(true, |byte| !is_js_ident_continue(*byte) && *byte != b'.');
+            .is_none_or(|byte| !is_js_ident_continue(*byte) && *byte != b'.');
     let end = index + pattern.len();
     let after_ok = pattern.ends_with('.')
         || bytes
             .get(end)
-            .map_or(true, |byte| !is_js_ident_continue(*byte));
+            .is_none_or(|byte| !is_js_ident_continue(*byte));
     before_ok && after_ok
 }
 

@@ -1422,6 +1422,31 @@ impl Drop for ProcessTableInner {
     }
 }
 
+fn lock_or_recover<'a, T>(mutex: &'a Mutex<T>) -> MutexGuard<'a, T> {
+    match mutex.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    }
+}
+
+fn wait_or_recover<'a, T>(condvar: &Condvar, guard: MutexGuard<'a, T>) -> MutexGuard<'a, T> {
+    match condvar.wait(guard) {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    }
+}
+
+fn wait_timeout_or_recover<'a, T>(
+    condvar: &Condvar,
+    guard: MutexGuard<'a, T>,
+    timeout: Duration,
+) -> (MutexGuard<'a, T>, WaitTimeoutResult) {
+    match condvar.wait_timeout(guard, timeout) {
+        Ok(result) => result,
+        Err(poisoned) => poisoned.into_inner(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1494,30 +1519,5 @@ mod tests {
 
         assert_eq!(table.allocate_pid().expect("allocate pid"), 2);
         assert_eq!(table.allocate_pid().expect("allocate pid"), 3);
-    }
-}
-
-fn lock_or_recover<'a, T>(mutex: &'a Mutex<T>) -> MutexGuard<'a, T> {
-    match mutex.lock() {
-        Ok(guard) => guard,
-        Err(poisoned) => poisoned.into_inner(),
-    }
-}
-
-fn wait_or_recover<'a, T>(condvar: &Condvar, guard: MutexGuard<'a, T>) -> MutexGuard<'a, T> {
-    match condvar.wait(guard) {
-        Ok(guard) => guard,
-        Err(poisoned) => poisoned.into_inner(),
-    }
-}
-
-fn wait_timeout_or_recover<'a, T>(
-    condvar: &Condvar,
-    guard: MutexGuard<'a, T>,
-    timeout: Duration,
-) -> (MutexGuard<'a, T>, WaitTimeoutResult) {
-    match condvar.wait_timeout(guard, timeout) {
-        Ok(result) => result,
-        Err(poisoned) => poisoned.into_inner(),
     }
 }

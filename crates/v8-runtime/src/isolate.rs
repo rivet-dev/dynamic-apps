@@ -24,15 +24,24 @@ pub struct PromiseRejectState {
 
 impl PromiseRejectState {
     fn record_unhandled(&mut self, promise_id: i32, error: ExecutionError) {
-        if self.unhandled.contains_key(&promise_id) {
-            self.unhandled.insert(promise_id, error);
-            return;
+        use std::collections::hash_map::Entry;
+        // Cache the length before taking the entry, since `Entry` borrows the
+        // map mutably and we cannot read `len()` while it is held.
+        let under_limit = self.unhandled.len() < MAX_UNHANDLED_PROMISE_REJECTIONS;
+        match self.unhandled.entry(promise_id) {
+            // Existing rejection for this promise — overwrite with latest error.
+            Entry::Occupied(mut entry) => {
+                entry.insert(error);
+            }
+            // New rejection: store it if under the cap, otherwise count overflow.
+            Entry::Vacant(entry) => {
+                if under_limit {
+                    entry.insert(error);
+                } else {
+                    self.overflow_count = self.overflow_count.saturating_add(1);
+                }
+            }
         }
-        if self.unhandled.len() < MAX_UNHANDLED_PROMISE_REJECTIONS {
-            self.unhandled.insert(promise_id, error);
-            return;
-        }
-        self.overflow_count = self.overflow_count.saturating_add(1);
     }
 
     fn mark_handled(&mut self, promise_id: i32) {

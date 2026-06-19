@@ -18,6 +18,9 @@ impl Copy for crate::generated_protocol::v1::GuestFilesystemOperation {}
 impl Copy for crate::generated_protocol::v1::RootFilesystemMode {}
 impl Copy for crate::generated_protocol::v1::WasmPermissionTier {}
 
+// `derive(Default)` cannot be added: these are foreign generated types, so the
+// `Default` impl must be written by hand here (orphan rule).
+#[allow(clippy::derivable_impls)]
 impl Default for crate::generated_protocol::v1::RootFilesystemEntryKind {
     fn default() -> Self {
         Self::File
@@ -40,12 +43,14 @@ impl Default for crate::generated_protocol::v1::RootFilesystemEntry {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for crate::generated_protocol::v1::RootFilesystemMode {
     fn default() -> Self {
         Self::Ephemeral
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for crate::generated_protocol::v1::RootFilesystemDescriptor {
     fn default() -> Self {
         Self {

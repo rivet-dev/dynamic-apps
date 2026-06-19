@@ -12394,7 +12394,7 @@ console.log(JSON.stringify(summary));
             });
             let request = RequestFrame::new(
                 1,
-                OwnershipScope::connection(&"connection".repeat(16)),
+                OwnershipScope::connection("connection".repeat(16)),
                 RequestPayload::OpenSession(OpenSessionRequest {
                     placement: SidecarPlacement::SidecarPlacementShared(SidecarPlacementShared {
                         pool: None,

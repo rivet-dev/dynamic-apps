@@ -11,22 +11,22 @@
 //! The four banned classes mirror the kernel/sidecar trust boundary:
 //!
 //!   * fs      -- `std::fs` / `tokio::fs` / `File::open` / `File::create` /
-//!                `OpenOptions` / raw `openat`. Sanctioned only in the
-//!                sidecar host-FS plumbing, the VFS-backed runtime modules,
-//!                and runtime asset/module loaders.
+//!     `OpenOptions` / raw `openat`. Sanctioned only in the sidecar host-FS
+//!     plumbing, the VFS-backed runtime modules, and runtime asset/module
+//!     loaders.
 //!   * net     -- `std::net` / `tokio::net` socket constructors, `reqwest`,
-//!                `hyper`, `to_socket_addrs`, `UnixStream::pair`. Sanctioned
-//!                only in the kernel DNS/socket plane, the sidecar host-net
-//!                chokepoint (`sidecar::execution`), the embedded V8 runtime
-//!                IPC pair, and host-backed storage plugins.
+//!     `hyper`, `to_socket_addrs`, `UnixStream::pair`. Sanctioned only in the
+//!     kernel DNS/socket plane, the sidecar host-net chokepoint
+//!     (`sidecar::execution`), the embedded V8 runtime IPC pair, and
+//!     host-backed storage plugins.
 //!   * process -- `std::process::Command` / `tokio::process` / OS `fork`.
-//!                Sanctioned only where secure-exec spawns its own helper
-//!                process (the client transport that launches the sidecar).
-//!                Guest "process" spawns are dispatched through the kernel
-//!                `CommandDriver` registry and never touch `Command::new`.
+//!     Sanctioned only where secure-exec spawns its own helper process (the
+//!     client transport that launches the sidecar). Guest "process" spawns are
+//!     dispatched through the kernel `CommandDriver` registry and never touch
+//!     `Command::new`.
 //!   * env     -- `std::env::var` / `var_os` / `vars`. Sanctioned only at the
-//!                scrubbed env-assembly / bootstrap points that read host
-//!                configuration before a VM is constructed.
+//!     scrubbed env-assembly / bootstrap points that read host configuration
+//!     before a VM is constructed.
 //!
 //! IMPORTANT MAINTENANCE NOTES
 //! ---------------------------
@@ -496,7 +496,7 @@ fn no_secure_exec_crate_depends_on_agent_acp_session() {
             }
             // Dependency key is the token before `=` or whitespace.
             let key = line
-                .split(|c| c == '=' || c == ' ' || c == '\t')
+                .split(['=', ' ', '\t'])
                 .next()
                 .unwrap_or("")
                 .trim_matches('"')

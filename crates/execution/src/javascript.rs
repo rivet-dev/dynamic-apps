@@ -6455,7 +6455,7 @@ mod tests {
             .expect("fill stdin buffer to limit");
 
         let error = bridge
-            .write(&[b'y'])
+            .write(b"y")
             .expect_err("stdin buffer over limit should fail");
         assert!(matches!(error, JavascriptExecutionError::Stdin(_)));
 

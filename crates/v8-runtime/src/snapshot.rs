@@ -313,51 +313,6 @@ fn bridge_cache_key(bridge_code: &str) -> SnapshotCacheKey {
     sha256(bridge_code.as_bytes())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn bridge_cache_key_uses_full_sha256_digest() {
-        assert_eq!(
-            bridge_cache_key("abc"),
-            [
-                0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae,
-                0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61,
-                0xf2, 0x00, 0x15, 0xad,
-            ]
-        );
-    }
-
-    #[test]
-    fn create_snapshot_rejects_oversized_bridge_code_before_v8_creation() {
-        let bridge_code = " ".repeat(MAX_V8_BRIDGE_CODE_BYTES + 1);
-        let error = match create_snapshot(&bridge_code) {
-            Ok(_) => panic!("oversized bridge code should be rejected"),
-            Err(error) => error,
-        };
-
-        assert!(error.contains(V8_BRIDGE_CODE_LIMIT_ERROR_CODE));
-        assert!(error.contains("bridge code too large for V8 bridge setup"));
-        assert!(error.contains(&MAX_V8_BRIDGE_CODE_BYTES.to_string()));
-    }
-
-    #[test]
-    fn snapshot_cache_rejects_oversized_bridge_code_without_retaining_in_flight_state() {
-        let cache = SnapshotCache::new(1);
-        let bridge_code = " ".repeat(MAX_V8_BRIDGE_CODE_BYTES + 1);
-
-        for _ in 0..2 {
-            let error = match cache.get_or_create(&bridge_code) {
-                Ok(_) => panic!("oversized bridge code should be rejected"),
-                Err(error) => error,
-            };
-
-            assert!(error.contains(V8_BRIDGE_CODE_LIMIT_ERROR_CODE));
-        }
-    }
-}
-
 #[doc(hidden)]
 pub fn run_snapshot_consolidated_checks() {
     fn eval(isolate: &mut v8::OwnedIsolate, code: &str) -> String {
@@ -1323,6 +1278,51 @@ pub fn run_snapshot_consolidated_checks() {
                 "undefined",
                 "session B should not see session A's user data"
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bridge_cache_key_uses_full_sha256_digest() {
+        assert_eq!(
+            bridge_cache_key("abc"),
+            [
+                0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae,
+                0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61,
+                0xf2, 0x00, 0x15, 0xad,
+            ]
+        );
+    }
+
+    #[test]
+    fn create_snapshot_rejects_oversized_bridge_code_before_v8_creation() {
+        let bridge_code = " ".repeat(MAX_V8_BRIDGE_CODE_BYTES + 1);
+        let error = match create_snapshot(&bridge_code) {
+            Ok(_) => panic!("oversized bridge code should be rejected"),
+            Err(error) => error,
+        };
+
+        assert!(error.contains(V8_BRIDGE_CODE_LIMIT_ERROR_CODE));
+        assert!(error.contains("bridge code too large for V8 bridge setup"));
+        assert!(error.contains(&MAX_V8_BRIDGE_CODE_BYTES.to_string()));
+    }
+
+    #[test]
+    fn snapshot_cache_rejects_oversized_bridge_code_without_retaining_in_flight_state() {
+        let cache = SnapshotCache::new(1);
+        let bridge_code = " ".repeat(MAX_V8_BRIDGE_CODE_BYTES + 1);
+
+        for _ in 0..2 {
+            let error = match cache.get_or_create(&bridge_code) {
+                Ok(_) => panic!("oversized bridge code should be rejected"),
+                Err(error) => error,
+            };
+
+            assert!(error.contains(V8_BRIDGE_CODE_LIMIT_ERROR_CODE));
         }
     }
 }

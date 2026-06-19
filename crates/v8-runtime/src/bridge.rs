@@ -1457,7 +1457,7 @@ fn vm_create_context_value<'s>(
         let global = context.global(context_scope);
         vm_collect_object_keys(context_scope, global)
     };
-    let mirrored_keys = match {
+    let mirrored_keys_result = {
         let tc = &mut v8::TryCatch::new(scope);
         let mirrored_keys = {
             let context_scope = &mut v8::ContextScope::new(tc, context);
@@ -1471,7 +1471,8 @@ fn vm_create_context_value<'s>(
         } else {
             Ok(mirrored_keys)
         }
-    } {
+    };
+    let mirrored_keys = match mirrored_keys_result {
         Ok(mirrored_keys) => mirrored_keys,
         Err(exception) => {
             remove_vm_context_slot(context_id);
@@ -2288,7 +2289,7 @@ mod tests {
         "#;
         {
             let tc = &mut v8::TryCatch::new(scope);
-            let source = v8::String::new(tc, &source).unwrap();
+            let source = v8::String::new(tc, source).unwrap();
             let script = v8::Script::compile(tc, source, None).unwrap();
             let result = script.run(tc);
             assert!(

@@ -2112,6 +2112,9 @@ enum ExpectedResponseKind {
     SignalState,
     ZombieTimerCount,
     FilesystemResult,
+    // `PermissionDecision` is a sidecar-initiated callback response, so no host
+    // request maps to it in `expected_response_kind`; kept for protocol symmetry.
+    #[allow(dead_code)]
     PermissionDecision,
     PersistenceState,
     PersistenceFlushed,

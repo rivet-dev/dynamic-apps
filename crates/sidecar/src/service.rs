@@ -3040,6 +3040,7 @@ pub(crate) fn vfs_error(error: VfsError) -> SidecarError {
 /// (yarn-berry default) has no `node_modules` at all. A flat (hoisted) layout is
 /// required. The empirically-supported package managers are captured in
 /// `crates/sidecar/tests/module_layout_e2e.rs`.
+#[allow(dead_code)]
 const HOISTED_NODE_MODULES_GUIDANCE: &str = "secure-exec can't load mounted node_modules: the directory uses a non-flat layout (pnpm / bun / yarn workspaces store, or yarn Plug'n'Play) whose package store isn't visible inside the VM. A flat (hoisted) node_modules is required.\n  - pnpm        -> add `node-linker=hoisted` to .npmrc, then reinstall\n  - yarn berry  -> set `nodeLinker: node-modules` in .yarnrc.yml (not pnp/pnpm)\n  - bun         -> install dependencies outside a workspace (workspaces use a .bun store)\n  - npm / yarn classic -> already flat, no change needed";
 
 /// Detect, from an adapter's captured stderr, a non-flat-`node_modules` failure
@@ -3051,6 +3052,7 @@ const HOISTED_NODE_MODULES_GUIDANCE: &str = "secure-exec can't load mounted node
 ///   lives above the mounted project (`.pnpm`, `.bun`, `.store`, PnP `__virtual__`),
 /// - a yarn Plug'n'Play fingerprint (`.pnp.cjs`, the zip cache, or PnP's
 ///   "isn't declared in your dependencies" resolver error).
+#[allow(dead_code)]
 fn symlinked_node_modules_hint(stderr: &str) -> Option<&'static str> {
     // Package stores that only appear in a path when a non-flat layout is used.
     // pnpm (isolated), bun (workspace), yarn-berry (nodeLinker: pnpm), and PnP

@@ -263,10 +263,11 @@ impl OverlayFileSystem {
                 );
             }
 
-            if self.find_lower_by_entry(&current).is_some() && !self.has_entry_in_upper(&current) {
-                if seen.insert(current.clone()) {
-                    paths.push(current.clone());
-                }
+            if self.find_lower_by_entry(&current).is_some()
+                && !self.has_entry_in_upper(&current)
+                && seen.insert(current.clone())
+            {
+                paths.push(current.clone());
             }
         }
 

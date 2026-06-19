@@ -46,7 +46,7 @@ pub const DEFAULT_WASM_SYNC_READ_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 /// All operator-tunable VM-scoped limits. Fields are concrete values; the `Default` impls own the
 /// numbers and equal today's hardcoded constants, so unset operator config leaves behavior
 /// unchanged.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct VmLimits {
     /// Kernel resource limits (existing type, existing `resource.*` keys).
     pub resources: ResourceLimits,
@@ -117,21 +117,6 @@ pub struct WasmLimits {
     pub captured_output_limit_bytes: usize,
     /// WASM sync read cap. Also templated into the JS runner shim, so it must flow from one field.
     pub sync_read_limit_bytes: usize,
-}
-
-impl Default for VmLimits {
-    fn default() -> Self {
-        Self {
-            resources: ResourceLimits::default(),
-            http: HttpLimits::default(),
-            tools: ToolLimits::default(),
-            plugins: PluginLimits::default(),
-            acp: AcpLimits::default(),
-            js_runtime: JsRuntimeLimits::default(),
-            python: PythonLimits::default(),
-            wasm: WasmLimits::default(),
-        }
-    }
 }
 
 impl Default for HttpLimits {

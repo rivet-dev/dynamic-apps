@@ -2171,8 +2171,10 @@ mod tests {
             format: String::from("agent_os_filesystem_snapshot_v1"),
             bytes: encode_snapshot(&snapshot).expect("encode restored snapshot"),
         };
-        let mut resource_limits = ResourceLimits::default();
-        resource_limits.max_filesystem_bytes = Some(3);
+        let resource_limits = ResourceLimits {
+            max_filesystem_bytes: Some(3),
+            ..ResourceLimits::default()
+        };
 
         let error = materialize_shadow_root_snapshot_entries(
             &root,
@@ -2215,8 +2217,10 @@ mod tests {
             )],
             ..RootFilesystemDescriptor::default()
         };
-        let mut resource_limits = ResourceLimits::default();
-        resource_limits.max_filesystem_bytes = Some(3);
+        let resource_limits = ResourceLimits {
+            max_filesystem_bytes: Some(3),
+            ..ResourceLimits::default()
+        };
 
         let error =
             materialize_shadow_root_snapshot_entries(&root, &descriptor, None, &resource_limits)
@@ -2259,8 +2263,10 @@ mod tests {
             )],
             ..RootFilesystemDescriptor::default()
         };
-        let mut resource_limits = ResourceLimits::default();
-        resource_limits.max_inode_count = Some(1);
+        let resource_limits = ResourceLimits {
+            max_inode_count: Some(1),
+            ..ResourceLimits::default()
+        };
 
         let error =
             materialize_shadow_root_snapshot_entries(&root, &descriptor, None, &resource_limits)
@@ -2304,8 +2310,10 @@ mod tests {
             )],
             ..RootFilesystemDescriptor::default()
         };
-        let mut resource_limits = ResourceLimits::default();
-        resource_limits.max_inode_count = Some(1);
+        let resource_limits = ResourceLimits {
+            max_inode_count: Some(1),
+            ..ResourceLimits::default()
+        };
 
         let error =
             materialize_shadow_root_snapshot_entries(&root, &descriptor, None, &resource_limits)

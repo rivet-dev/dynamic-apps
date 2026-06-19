@@ -339,10 +339,10 @@ impl SessionManager {
         session_id: &str,
         output_generation: u64,
     ) -> Result<Option<SessionShutdown>, String> {
-        if !self
+        if self
             .sessions
             .get(session_id)
-            .is_some_and(|entry| entry.output_generation == Some(output_generation))
+            .is_none_or(|entry| entry.output_generation != Some(output_generation))
         {
             return Ok(None);
         }
@@ -355,10 +355,10 @@ impl SessionManager {
         session_id: &str,
         output_generation: u64,
     ) -> Result<bool, String> {
-        if !self
+        if self
             .sessions
             .get(session_id)
-            .is_some_and(|entry| entry.output_generation == Some(output_generation))
+            .is_none_or(|entry| entry.output_generation != Some(output_generation))
         {
             return Ok(false);
         }

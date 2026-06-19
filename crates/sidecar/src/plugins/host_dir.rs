@@ -473,7 +473,7 @@ impl HostDirFilesystem {
             birthtime_ms: ctime_ms,
             ino: stat.st_ino,
             // st_nlink is u64 on x86_64 but u32 on aarch64; widen for both.
-            nlink: u64::from(stat.st_nlink),
+            nlink: stat.st_nlink,
             uid: stat.st_uid,
             gid: stat.st_gid,
         }
@@ -893,6 +893,10 @@ impl VirtualFileSystem for HostDirFilesystem {
 /// One read-only `host_dir`/`module_access` mount, keyed by its guest mount
 /// point. The filesystem reads mount-relative virtual paths (e.g. `/foo/index.js`
 /// for a mount at `/root/node_modules`).
+// `dead_code` is allowed because `host_dir.rs` is also `#[path]`-included by
+// `tests/host_dir.rs`, whose test compilation exercises only the filesystem
+// plugin and not the module-reader path (which the real lib build does use).
+#[allow(dead_code)]
 #[derive(Clone)]
 struct HostDirModuleMount {
     /// Normalized guest mount point, e.g. `/root/node_modules`.
@@ -900,6 +904,7 @@ struct HostDirModuleMount {
     filesystem: HostDirFilesystem,
 }
 
+#[allow(dead_code)]
 impl HostDirModuleMount {
     /// If `guest_path` falls under this mount, return the mount-relative virtual
     /// path (always absolute, e.g. `/foo/index.js`).
@@ -944,6 +949,7 @@ impl HostDirModuleMount {
 /// It never touches the `&mut` kernel, so a large cold-start module graph cannot
 /// serialize behind / starve work on the service-loop thread (e.g. an ACP
 /// `session/new` bootstrap awaiting the adapter's response on that same loop).
+#[allow(dead_code)]
 #[derive(Clone)]
 pub(crate) struct HostDirModuleReader {
     /// Mounts sorted longest-`guest_prefix`-first so the most specific mount
@@ -951,6 +957,7 @@ pub(crate) struct HostDirModuleReader {
     mounts: Vec<HostDirModuleMount>,
 }
 
+#[allow(dead_code)]
 impl HostDirModuleReader {
     /// Build a reader from `(guest_path, host_path)` pairs for the VM's read-only
     /// `host_dir`/`module_access` mounts. Mounts whose host root cannot be opened

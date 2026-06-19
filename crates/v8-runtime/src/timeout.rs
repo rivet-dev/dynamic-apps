@@ -25,9 +25,11 @@ use std::thread;
 use std::time::Duration;
 
 pub(crate) const TIMEOUT_GUARD_START_ERROR_CODE: &str = "ERR_TIMEOUT_GUARD_START";
+#[cfg_attr(test, allow(dead_code))]
 pub(crate) const CPU_BUDGET_GUARD_START_ERROR_CODE: &str = "ERR_CPU_BUDGET_GUARD_START";
 
 /// How often the CPU-budget watchdog samples the execution thread's CPU clock.
+#[cfg_attr(test, allow(dead_code))]
 const CPU_BUDGET_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 /// An opaque handle to a specific thread's CPU-time clock, captured ON that
@@ -37,6 +39,7 @@ const CPU_BUDGET_POLL_INTERVAL: Duration = Duration::from_millis(50);
 /// and remains valid for the lifetime of that thread, so the watchdog can poll
 /// it via `clock_gettime` without running on the execution thread itself.
 #[cfg(unix)]
+#[cfg_attr(test, allow(dead_code))]
 #[derive(Clone, Copy)]
 pub(crate) struct ThreadCpuClock {
     clockid: libc::clockid_t,
@@ -48,6 +51,7 @@ pub(crate) struct ThreadCpuClock {
 /// Returns `None` if the platform refuses to expose a per-thread CPU clock, in
 /// which case no CPU budget can be enforced.
 #[cfg(unix)]
+#[cfg_attr(test, allow(dead_code))]
 pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
     // SAFETY: `pthread_self` is always callable; `pthread_getcpuclockid` writes
     // a valid clockid into `clockid` on success (return 0).
@@ -66,6 +70,7 @@ pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
 impl ThreadCpuClock {
     /// Read accumulated CPU time for the captured thread, in milliseconds.
     /// Returns `None` if the clock read fails.
+    #[cfg_attr(test, allow(dead_code))]
     fn elapsed_ms(self) -> Option<u64> {
         // SAFETY: `clockid` came from a successful `pthread_getcpuclockid`; the
         // timespec is fully written by `clock_gettime` on success.
@@ -104,6 +109,7 @@ impl CpuBudgetGuard {
     /// - `cpu_clock`: the execution thread's CPU clock (captured on that thread)
     /// - `isolate_handle`: V8 isolate handle for `terminate_execution()`
     /// - `execution_abort`: signalled with `CpuBudgetExceeded` when the budget is exhausted
+    #[cfg_attr(test, allow(dead_code))]
     pub(crate) fn new(
         budget_ms: u32,
         cpu_clock: ThreadCpuClock,
