@@ -421,9 +421,33 @@ export function wrapNetworkAdapter(
 			);
 		}
 	};
+	// Parse host/port out of a request URL so host-keyed egress policies
+	// (e.g. denying the cloud-metadata host 169.254.169.254) can match. The
+	// network policy callback advertises { url, host, port }; passing only
+	// { url } would silently bypass any host- or port-keyed deny rule.
+	const checkUrl = (url: string): void => {
+		let host: string | undefined;
+		let port: number | undefined;
+		try {
+			const parsed = new URL(url);
+			// hostname strips any [...] IPv6 brackets and userinfo.
+			host = parsed.hostname || undefined;
+			if (parsed.port) {
+				port = Number.parseInt(parsed.port, 10);
+			} else if (parsed.protocol === "https:") {
+				port = 443;
+			} else if (parsed.protocol === "http:") {
+				port = 80;
+			}
+		} catch {
+			// Leave host/port undefined for unparseable URLs; the policy still
+			// sees the raw url and can decide on it.
+		}
+		check({ url, host, port });
+	};
 	return {
 		async fetch(url, options) {
-			check({ url });
+			checkUrl(url);
 			return adapter.fetch(url, options);
 		},
 		async dnsLookup(hostname) {
@@ -431,7 +455,7 @@ export function wrapNetworkAdapter(
 			return adapter.dnsLookup(hostname);
 		},
 		async httpRequest(url, options) {
-			check({ url });
+			checkUrl(url);
 			return adapter.httpRequest(url, options);
 		},
 	};
