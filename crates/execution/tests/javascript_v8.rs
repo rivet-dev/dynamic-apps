@@ -4660,6 +4660,66 @@ console.log("BOMB_COMPLETED_WITHOUT_CAP");
     }
 }
 
+// Adversarial coverage for the builtin allow/deny desync (VECTORS.md A.2).
+// A denied builtin must stay denied on EVERY guest resolution path. The most
+// likely desync is a sub-path specifier (`dns/promises`) leaking on one path
+// while its root (`dns`) is denied on another. The live guest-JS path is the
+// shared V8 runtime, whose single `loadBuiltinModule` funnel gates by root
+// name (`split('/')[0]`) for require / createRequire / process.getBuiltinModule
+// / dynamic import alike. With an allow-list that excludes `dns`, every path
+// must reject both `dns` and `dns/promises`.
+fn javascript_execution_denies_dns_and_subpaths_on_every_resolution_path() {
+    assert_js_runtime_guest_ok(
+        // node platform, allow-list excludes `dns` (only `path`/`module`).
+        js_runtime_env(&[("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[\"path\",\"module\"]")]),
+        r#"
+        import { createRequire } from "node:module";
+        const require = createRequire(import.meta.url);
+
+        function assertDeniedSync(label, fn) {
+          let denied = false;
+          let detail = "no error";
+          try {
+            const mod = fn();
+            const keys = mod && typeof mod === "object" ? Object.keys(mod).slice(0, 4).join(",") : typeof mod;
+            detail = "resolved to " + keys;
+          } catch (error) {
+            detail = String(error && error.message);
+            denied = !!error;
+          }
+          if (!denied) throw new Error(label + " was not denied: " + detail);
+        }
+
+        async function assertDeniedAsync(label, promise) {
+          let denied = false;
+          let detail = "no error";
+          try { await promise; detail = "import resolved"; }
+          catch (error) { detail = String(error && error.message); denied = !!error; }
+          if (!denied) throw new Error(label + " was not denied: " + detail);
+        }
+
+        // Positive control: an allowed builtin still resolves.
+        const path = await import("node:path");
+        if (typeof path.join !== "function") throw new Error("node:path should be allowed");
+
+        for (const specifier of ["dns", "node:dns", "dns/promises", "node:dns/promises"]) {
+          assertDeniedSync("require(" + specifier + ")", () => require(specifier));
+          assertDeniedSync(
+            "createRequire(" + specifier + ")",
+            () => createRequire(import.meta.url)(specifier),
+          );
+          if (typeof process.getBuiltinModule === "function") {
+            assertDeniedSync(
+              "process.getBuiltinModule(" + specifier + ")",
+              () => process.getBuiltinModule(specifier),
+            );
+          }
+          await assertDeniedAsync("import(" + specifier + ")", import(specifier));
+        }
+        "#,
+    );
+}
+
 #[test]
 fn javascript_v8_suite() {
     // Keep V8-backed integration coverage inside one top-level libtest case.
@@ -4683,6 +4743,7 @@ fn javascript_v8_suite() {
     javascript_execution_imports_node_fs_promises_without_hanging();
     javascript_execution_imports_node_perf_hooks_without_hanging();
     javascript_execution_exposes_compatibility_shims_and_denies_escape_builtins();
+    javascript_execution_denies_dns_and_subpaths_on_every_resolution_path();
     javascript_execution_v8_util_format_with_options_matches_node();
     javascript_execution_provides_async_hooks_and_diagnostics_channel_stubs();
     javascript_execution_supports_require_resolve_for_guest_code();
