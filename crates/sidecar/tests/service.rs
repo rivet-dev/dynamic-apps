@@ -3337,6 +3337,216 @@ ykAheWCsAteSEWVc0w==\n\
             )
             .expect("close listener");
         }
+        // Regression for #88: a server in one guest exec process and a client in a
+        // *different* guest exec process inside the SAME VM must talk over loopback.
+        // The fix builds the per-VM socket-path context from every concurrent exec's
+        // listeners (`build_javascript_socket_path_context` iterates all
+        // `active_processes`), so the client's `net.connect` resolves the server
+        // process's listener and routes through the shared kernel socket table.
+        fn javascript_net_cross_exec_loopback_routes_through_kernel_socket_table() {
+            assert_node_available();
+
+            let mut sidecar = create_test_sidecar();
+            let (connection_id, session_id) =
+                authenticate_and_open_session(&mut sidecar).expect("authenticate and open session");
+            let vm_id = create_vm(
+                &mut sidecar,
+                &connection_id,
+                &session_id,
+                PermissionsPolicy::allow_all(),
+            )
+            .expect("create vm");
+
+            // Two distinct guest exec processes in one VM.
+            let server_cwd = temp_dir("secure-exec-sidecar-js-cross-exec-server-cwd");
+            write_fixture(&server_cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
+            start_fake_javascript_process(&mut sidecar, &vm_id, &server_cwd, "proc-server");
+
+            let client_cwd = temp_dir("secure-exec-sidecar-js-cross-exec-client-cwd");
+            write_fixture(&client_cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
+            start_fake_javascript_process(&mut sidecar, &vm_id, &client_cwd, "proc-client");
+
+            // Process A (server) listens on loopback.
+            let listen = call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-server",
+                JavascriptSyncRpcRequest {
+                    id: 1,
+                    method: String::from("net.listen"),
+                    args: vec![json!({
+                        "host": "127.0.0.1",
+                        "port": 0,
+                        "backlog": 1,
+                    })],
+                },
+            )
+            .expect("server listen through sidecar net RPC");
+            let server_id = listen["serverId"].as_str().expect("server id").to_string();
+            let guest_port = listen["localPort"]
+                .as_u64()
+                .and_then(|value| u16::try_from(value).ok())
+                .expect("server listener guest port");
+
+            // Process B (client, a SEPARATE exec) connects to A's listener.
+            let connect = call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-client",
+                JavascriptSyncRpcRequest {
+                    id: 2,
+                    method: String::from("net.connect"),
+                    args: vec![json!({
+                        "host": "127.0.0.1",
+                        "port": guest_port,
+                    })],
+                },
+            )
+            .expect("client connect to the other exec's listener");
+            let client_socket_id = connect["socketId"]
+                .as_str()
+                .expect("client socket id")
+                .to_string();
+
+            // The client socket must be routed through the shared kernel socket
+            // table, not a host-only loopback shortcut.
+            {
+                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let client = vm
+                    .active_processes
+                    .get("proc-client")
+                    .expect("client process");
+                let socket = client
+                    .tcp_sockets
+                    .get(&client_socket_id)
+                    .expect("client tcp socket");
+                assert!(
+                    socket.kernel_socket_id.is_some(),
+                    "cross-exec net.connect must route through the kernel socket table"
+                );
+            }
+
+            // Process A accepts the connection from the other exec.
+            let mut accepted = None;
+            for attempt in 0..40 {
+                let value = call_javascript_sync_rpc(
+                    &mut sidecar,
+                    &vm_id,
+                    "proc-server",
+                    JavascriptSyncRpcRequest {
+                        id: 10 + attempt,
+                        method: String::from("net.server_accept"),
+                        args: vec![json!(server_id.clone())],
+                    },
+                )
+                .expect("server accept client from other exec");
+                if value != "__secure_exec_net_timeout__" {
+                    accepted = Some(value);
+                    break;
+                }
+                thread::sleep(std::time::Duration::from_millis(10));
+            }
+            let accepted = accepted.expect("eventually accept the cross-exec connection");
+            let accepted: Value =
+                serde_json::from_str(accepted.as_str().expect("accepted payload string"))
+                    .expect("parse accepted payload");
+            let server_socket_id = accepted["socketId"]
+                .as_str()
+                .expect("accepted socket id")
+                .to_string();
+
+            // Client (exec B) writes a byte; it must cross the exec boundary and be
+            // read by the server (exec A).
+            call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-client",
+                JavascriptSyncRpcRequest {
+                    id: 100,
+                    method: String::from("net.write"),
+                    args: vec![
+                        json!(client_socket_id.clone()),
+                        json!({
+                            "__agentOsType": "bytes",
+                            "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
+                        }),
+                    ],
+                },
+            )
+            .expect("client write payload across exec boundary");
+            call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-client",
+                JavascriptSyncRpcRequest {
+                    id: 101,
+                    method: String::from("net.shutdown"),
+                    args: vec![json!(client_socket_id.clone())],
+                },
+            )
+            .expect("client shutdown write half");
+
+            let mut payload = None;
+            for attempt in 0..40 {
+                let value = call_javascript_sync_rpc(
+                    &mut sidecar,
+                    &vm_id,
+                    "proc-server",
+                    JavascriptSyncRpcRequest {
+                        id: 200 + attempt,
+                        method: String::from("net.socket_read"),
+                        args: vec![json!(server_socket_id.clone())],
+                    },
+                )
+                .expect("server read bridged chunk from the other exec");
+                if value != "__secure_exec_net_timeout__" {
+                    payload = Some(value);
+                    break;
+                }
+                thread::sleep(std::time::Duration::from_millis(10));
+            }
+            let payload = payload.expect("eventually receive the cross-exec payload");
+            assert_eq!(
+                payload,
+                Value::from("cGluZw=="),
+                "server (exec A) must read the byte sent by client (exec B)"
+            );
+
+            // Tear everything down.
+            call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-client",
+                JavascriptSyncRpcRequest {
+                    id: 300,
+                    method: String::from("net.destroy"),
+                    args: vec![json!(client_socket_id)],
+                },
+            )
+            .expect("destroy client socket");
+            call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-server",
+                JavascriptSyncRpcRequest {
+                    id: 301,
+                    method: String::from("net.destroy"),
+                    args: vec![json!(server_socket_id)],
+                },
+            )
+            .expect("destroy server-accepted socket");
+            call_javascript_sync_rpc(
+                &mut sidecar,
+                &vm_id,
+                "proc-server",
+                JavascriptSyncRpcRequest {
+                    id: 302,
+                    method: String::from("net.server_close"),
+                    args: vec![json!(server_id)],
+                },
+            )
+            .expect("close listener");
+        }
         fn javascript_net_upgrade_socket_aliases_use_tcp_socket_state() {
             assert_node_available();
 
@@ -15569,6 +15779,7 @@ console.log(JSON.stringify({
             loopback_tls_endpoint_read_survives_competing_drain_and_peer_drop();
             javascript_net_socket_wait_connect_reports_tcp_socket_info();
             javascript_net_socket_read_and_socket_options_work_for_tcp_sockets();
+            javascript_net_cross_exec_loopback_routes_through_kernel_socket_table();
             javascript_net_upgrade_socket_aliases_use_tcp_socket_state();
             javascript_dgram_address_and_buffer_size_sync_rpcs_work();
             javascript_tls_client_upgrade_query_and_cipher_list_work();

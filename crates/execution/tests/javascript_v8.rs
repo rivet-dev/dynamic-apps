@@ -953,6 +953,61 @@ console.log(formatter.format(1234.5));
     assert_eq!(stdout, "1,234.50\n");
 }
 
+// Regression for #70: `Date#toLocaleDateString` with a non-default locale,
+// formatting options, and an explicit IANA time zone used to crash the embedded
+// V8 isolate with SIGTRAP. ICU's `DateTimePatternGeneratorCache::CreateGenerator`
+// hit a fatal abort under the near-heap-limit path; the OOM guard in
+// `crates/v8-runtime/src/isolate.rs` now converts that fatal abort into clean
+// termination, and ICU is bundled, so the exact repro runs and returns a string.
+fn javascript_execution_to_locale_date_string_does_not_crash_embedded_v8() {
+    let temp = tempdir().expect("create temp dir");
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                r#"
+const formatted = new Date(Date.UTC(2020, 0, 15)).toLocaleDateString("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "Europe/Warsaw",
+});
+console.log(JSON.stringify({ formatted }));
+"#,
+            )),
+        })
+        .expect("start JavaScript execution");
+
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(
+        result.exit_code, 0,
+        "guest process must not crash (e.g. SIGTRAP); stdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+
+    let output: Value = serde_json::from_slice(&result.stdout).expect("parse guest stdout as JSON");
+    let formatted = output
+        .get("formatted")
+        .and_then(Value::as_str)
+        .expect("formatted date string present");
+    assert!(
+        !formatted.is_empty(),
+        "toLocaleDateString returned an empty string: {output}"
+    );
+}
+
 fn javascript_execution_stream_consumers_text_reads_live_stdin() {
     let temp = tempdir().expect("create temp dir");
     let mut engine = JavascriptExecutionEngine::default();
@@ -5010,6 +5065,7 @@ fn javascript_v8_suite() {
     javascript_execution_process_kill_rejects_invalid_pid_in_guest_js();
     javascript_execution_preserves_binary_process_stdio_writes();
     javascript_execution_intl_number_format_does_not_require_host_icu();
+    javascript_execution_to_locale_date_string_does_not_crash_embedded_v8();
     javascript_execution_stream_consumers_text_reads_live_stdin();
     javascript_execution_process_stdin_async_iterator_finishes_with_live_stdin();
     javascript_execution_process_exit_from_live_stdin_listener_exits_without_waiting_for_eof();
