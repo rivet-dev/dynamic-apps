@@ -11,7 +11,7 @@ import {
 	type LocalCompatMount,
 	NATIVE_SIDECAR_FRAME_TIMEOUT_MS,
 	NativeSidecarKernelProxy,
-	NativeSidecarProcessClient,
+	Sidecar,
 	type RootFilesystemEntry,
 	type SidecarRegisteredHostCallbackDefinition,
 	type SidecarRequestFrame,
@@ -84,6 +84,19 @@ const SIDECAR_BUILD_INPUTS = [
 	path.join(REPO_ROOT, "crates/kernel"),
 	path.join(REPO_ROOT, "crates/sidecar"),
 ] as const;
+
+export type KernelBootTimingPhase =
+	| "filesystem_snapshot"
+	| "sidecar_spawn"
+	| "session_open"
+	| "vm_create"
+	| "vm_ready"
+	| "vm_configure";
+
+export interface KernelBootTiming {
+	phase: KernelBootTimingPhase;
+	durationMs: number;
+}
 let ensuredSidecarBinary: string | null = null;
 
 export type StdioChannel = "stdout" | "stderr";
@@ -2074,7 +2087,7 @@ async function snapshotFilesystemEntries(
 }
 
 async function materializeSnapshotEntriesIntoVm(
-	client: NativeSidecarProcessClient,
+	client: Sidecar,
 	session: AuthenticatedSession,
 	vm: CreatedVm,
 	entries: RootFilesystemEntry[],
@@ -2478,7 +2491,7 @@ class NativeKernel implements Kernel {
 	readonly timerTable = {};
 	readonly vfs: VirtualFileSystem;
 
-	private client: NativeSidecarProcessClient | null = null;
+	private client: Sidecar | null = null;
 	private session: AuthenticatedSession | null = null;
 	private vm: CreatedVm | null = null;
 	private proxy: NativeSidecarKernelProxy | null = null;
@@ -2509,6 +2522,8 @@ class NativeKernel implements Kernel {
 			permissions?: Permissions;
 			env?: Record<string, string>;
 			cwd?: string;
+			sidecar?: Sidecar;
+			onBootTiming?: (timing: KernelBootTiming) => void;
 			hostNetworkAdapter?: unknown;
 			loopbackExemptPorts?: number[];
 			mounts?: Array<{
@@ -2961,14 +2976,13 @@ class NativeKernel implements Kernel {
 			this.options.filesystem,
 			this.pendingLocalMounts,
 		);
-		const snapshotEntries = await snapshotFilesystemEntries(
-			this.options.filesystem,
-			"/",
-			[],
-			{
-				passthroughDirectories:
-					rootPassthroughPlan.passthroughDirectories,
-			},
+		const snapshotEntries = await this.measureBoot(
+			"filesystem_snapshot",
+			() =>
+				snapshotFilesystemEntries(this.options.filesystem, "/", [], {
+					passthroughDirectories:
+						rootPassthroughPlan.passthroughDirectories,
+				}),
 		);
 		this.liveFilesystemSyncRoots =
 			collectLiveFilesystemSyncRoots(snapshotEntries);
@@ -2990,34 +3004,45 @@ class NativeKernel implements Kernel {
 			bootstrapEntries: [],
 		};
 
-		const client = NativeSidecarProcessClient.spawn({
-			cwd: REPO_ROOT,
-			command: ensureNativeSidecarBinary(),
-			args: [],
-			frameTimeoutMs: NATIVE_SIDECAR_FRAME_TIMEOUT_MS,
-		});
-		const session = await client.authenticateAndOpenSession();
-		const vm = await client.createVm(session, {
-			runtime: "java_script",
-			config: {
-				env: createVmEnv,
-				rootFilesystem,
-				...(bootstrapPermissions ? { permissions: bootstrapPermissions } : {}),
-				loopbackExemptPorts: this.loopbackExemptPorts,
-			},
-		});
-		await client.waitForEvent(
-			{
-				type: "vm_lifecycle",
-				ownership: {
-					scope: "vm",
-					connection_id: session.connectionId,
-					session_id: session.sessionId,
-					vm_id: vm.vmId,
+		const ownsClient = this.options.sidecar === undefined;
+		const client =
+			this.options.sidecar ??
+			this.measureSyncBoot("sidecar_spawn", () =>
+				Sidecar.spawn({
+					cwd: REPO_ROOT,
+					command: ensureNativeSidecarBinary(),
+					args: [],
+					frameTimeoutMs: NATIVE_SIDECAR_FRAME_TIMEOUT_MS,
+				}),
+			);
+		const session = await this.measureBoot("session_open", () =>
+			client.authenticateAndOpenSession(),
+		);
+		const vm = await this.measureBoot("vm_create", () =>
+			client.createVm(session, {
+				runtime: "java_script",
+				config: {
+					env: createVmEnv,
+					rootFilesystem,
+					...(bootstrapPermissions ? { permissions: bootstrapPermissions } : {}),
+					loopbackExemptPorts: this.loopbackExemptPorts,
 				},
-				state: "ready",
-			},
-			10_000,
+			}),
+		);
+		await this.measureBoot("vm_ready", () =>
+			client.waitForEvent(
+				{
+					type: "vm_lifecycle",
+					ownership: {
+						scope: "vm",
+						connection_id: session.connectionId,
+						session_id: session.sessionId,
+						vm_id: vm.vmId,
+					},
+					state: "ready",
+				},
+				10_000,
+			),
 		);
 		if (requestedPermissions && snapshotEntries.length > 1) {
 			await materializeSnapshotEntriesIntoVm(
@@ -3035,35 +3060,38 @@ class NativeKernel implements Kernel {
 			this.loopbackExemptPorts.length > 0 ||
 			requestedPermissions
 		) {
-			await client.configureVm(session, vm, {
-				mounts: this.pendingLocalMounts.map((mount) =>
-					mount.fs instanceof NodeFileSystem
-						? serializeMountConfigForSidecar({
-								path: mount.path,
-								readOnly: mount.readOnly,
-								plugin: {
-									id: "host_dir",
-									config: {
-										hostPath: mount.fs.rootPath,
-										readOnly: mount.readOnly,
+			await this.measureBoot("vm_configure", () =>
+				client.configureVm(session, vm, {
+					mounts: this.pendingLocalMounts.map((mount) =>
+						mount.fs instanceof NodeFileSystem
+							? serializeMountConfigForSidecar({
+									path: mount.path,
+									readOnly: mount.readOnly,
+									plugin: {
+										id: "host_dir",
+										config: {
+											hostPath: mount.fs.rootPath,
+											readOnly: mount.readOnly,
+										},
 									},
-								},
-							})
-						: serializeMountConfigForSidecar({
-								path: mount.path,
-								driver: mount.fs,
-								readOnly: mount.readOnly,
-							}),
-				),
-				permissions: requestedPermissions,
-				loopbackExemptPorts: this.loopbackExemptPorts,
-			});
+								})
+							: serializeMountConfigForSidecar({
+									path: mount.path,
+									driver: mount.fs,
+									readOnly: mount.readOnly,
+								}),
+					),
+					permissions: requestedPermissions,
+					loopbackExemptPorts: this.loopbackExemptPorts,
+				}),
+			);
 		}
 
 		const proxy = new NativeSidecarKernelProxy({
 			client,
 			session,
 			vm,
+			disposeClient: ownsClient,
 			env: this.env,
 			cwd: this.cwd,
 			defaultExecCwd: this.options.cwd === undefined ? "/home/user" : this.cwd,
@@ -3080,6 +3108,33 @@ class NativeKernel implements Kernel {
 		this.proxy = proxy;
 		this.rootFilesystem = proxy.createRootView();
 	}
+
+	private async measureBoot<T>(
+		phase: KernelBootTimingPhase,
+		fn: () => Promise<T>,
+	): Promise<T> {
+		const start = performance.now();
+		try {
+			return await fn();
+		} finally {
+			this.options.onBootTiming?.({
+				phase,
+				durationMs: performance.now() - start,
+			});
+		}
+	}
+
+	private measureSyncBoot<T>(phase: KernelBootTimingPhase, fn: () => T): T {
+		const start = performance.now();
+		try {
+			return fn();
+		} finally {
+			this.options.onBootTiming?.({
+				phase,
+				durationMs: performance.now() - start,
+			});
+		}
+	}
 }
 
 export function createKernel(options: {
@@ -3087,6 +3142,8 @@ export function createKernel(options: {
 	permissions?: Permissions;
 	env?: Record<string, string>;
 	cwd?: string;
+	sidecar?: Sidecar;
+	onBootTiming?: (timing: KernelBootTiming) => void;
 	maxProcesses?: number;
 	hostNetworkAdapter?: unknown;
 	loopbackExemptPorts?: number[];

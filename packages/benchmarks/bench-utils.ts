@@ -1,31 +1,17 @@
 /**
  * Shared utilities for the Secure Exec cold-start, warm-start, and memory
  * benchmarks.
- *
- * The benchmarks drive the public SDK exactly as a consumer would:
- *
- *   import { NodeRuntime } from "secure-exec";
- *   const runtime = await NodeRuntime.create();
- *   await runtime.exec("export const x = 1;");
- *   await runtime.dispose();
- *
- * `NodeRuntime.create()` boots an out-of-process sidecar VM: it spawns the
- * sidecar binary, opens a session, creates a VM with a bootstrapped root
- * filesystem, and mounts the shell + Node runtimes. There is no in-process
- * isolate path. The benchmarks therefore measure full VM boot cost, not
- * isolate creation.
  */
 
+import { readFileSync } from "node:fs";
 import os from "node:os";
-import { NodeRuntime } from "secure-exec";
+import {
+	NodeRuntime,
+	Sidecar,
+	type NodeRuntimeBootTiming,
+	type NodeRuntimeCreateOptions,
+} from "secure-exec";
 
-/**
- * The full matrix matches the original harness: batch sizes 1/10/50/100/200,
- * 5 recorded iterations, 1 warmup discarded. All four are overridable via env so
- * a quick smoke run is possible without editing the file, e.g.:
- *
- *   BENCH_BATCH_SIZES=1,5 BENCH_ITERATIONS=2 BENCH_WARMUP=0 tsx coldstart.bench.ts
- */
 function numList(envVar: string, fallback: number[]): number[] {
 	const raw = process.env[envVar];
 	if (!raw) return fallback;
@@ -34,7 +20,8 @@ function numList(envVar: string, fallback: number[]): number[] {
 		.map((s) => Number(s.trim()))
 		.filter((n) => Number.isFinite(n) && n > 0);
 }
-function num(envVar: string, fallback: number): number {
+
+export function num(envVar: string, fallback: number): number {
 	const raw = process.env[envVar];
 	if (raw === undefined) return fallback;
 	const n = Number(raw);
@@ -46,21 +33,47 @@ export const ITERATIONS = num("BENCH_ITERATIONS", 5);
 export const WARMUP_ITERATIONS = num("BENCH_WARMUP", 1);
 export const MEMORY_ITERATIONS = num("BENCH_MEMORY_ITERATIONS", 5);
 
-/**
- * A trivial guest program: just enough to confirm the runtime is live and the
- * first `exec()` round-trips. Keeps the measurement focused on runtime boot,
- * not workload.
- */
 export const TRIVIAL_CODE = "export const x = 1;";
+export const RESIDENT_TRIVIAL_CODE =
+	"globalThis.__benchValue = (globalThis.__benchValue ?? 0) + 1;";
 
-/**
- * Cap concurrency below available parallelism to leave headroom for the bench
- * harness, Node's event loop, and each sidecar's own threads.
- */
 export const MAX_CONCURRENCY = Math.max(1, os.availableParallelism() - 4);
+export const MAX_LIVE_RUNTIMES = Math.max(
+	1,
+	num("BENCH_MAX_LIVE_RUNTIMES", Math.min(8, MAX_CONCURRENCY)),
+);
+export const MAX_RESIDENT_RUNNERS = Math.max(
+	1,
+	num("BENCH_MAX_RESIDENT_RUNNERS", 1),
+);
+export const EXEC_TIMEOUT_MS = Math.max(
+	1,
+	num("BENCH_EXEC_TIMEOUT_MS", 30_000),
+);
 
-export async function createBenchRuntime(): Promise<NodeRuntime> {
-	return NodeRuntime.create();
+export type BenchScenario =
+	| "owned-sidecar"
+	| "shared-sidecar"
+	| "resident-runner";
+
+export const SCENARIOS: BenchScenario[] = (
+	process.env.BENCH_SCENARIOS?.split(",").map((s) => s.trim()) ?? [
+		"owned-sidecar",
+		"shared-sidecar",
+		"resident-runner",
+	]
+).filter((s): s is BenchScenario =>
+	["owned-sidecar", "shared-sidecar", "resident-runner"].includes(s),
+);
+
+export async function createBenchRuntime(
+	options: Pick<NodeRuntimeCreateOptions, "sidecar" | "onBootTiming"> = {},
+): Promise<NodeRuntime> {
+	return NodeRuntime.create(options);
+}
+
+export function createBenchSidecar(): Sidecar {
+	return Sidecar.spawn();
 }
 
 export function percentile(sorted: number[], p: number): number {
@@ -94,15 +107,36 @@ export function formatBytes(bytes: number): string {
 	return `${round(mb, 2)} MB`;
 }
 
+function readMemInfo(): Record<string, string> {
+	try {
+		const entries = readFileSync("/proc/meminfo", "utf8")
+			.trim()
+			.split("\n")
+			.map((line) => {
+				const [key, value] = line.split(":");
+				return [key, value.trim()] as const;
+			});
+		return Object.fromEntries(entries);
+	} catch {
+		return {};
+	}
+}
+
 export function getHardware() {
 	const cpus = os.cpus();
+	const memInfo = readMemInfo();
 	return {
 		cpu: cpus[0]?.model ?? "unknown",
 		cores: os.availableParallelism(),
 		ram: `${round(os.totalmem() / 1024 ** 3, 1)} GB`,
+		memAvailable: memInfo.MemAvailable,
+		swapTotal: memInfo.SwapTotal,
+		swapFree: memInfo.SwapFree,
+		swapCached: memInfo.SwapCached,
 		node: process.version,
 		os: `${os.type()} ${os.release()}`,
 		arch: os.arch(),
+		loadAverage: os.loadavg().map((n) => round(n, 2)),
 	};
 }
 
@@ -116,6 +150,47 @@ export function forceGC() {
 
 export async function sleep(ms: number): Promise<void> {
 	return new Promise((r) => setTimeout(r, ms));
+}
+
+export type PhaseSamples = Record<string, number[]>;
+
+export function createBootTimingRecorder(phases: PhaseSamples) {
+	return (timing: NodeRuntimeBootTiming) => {
+		(phases[timing.phase] ??= []).push(timing.durationMs);
+	};
+}
+
+export function mergePhaseSamples(target: PhaseSamples, source: PhaseSamples) {
+	for (const [phase, samples] of Object.entries(source)) {
+		(target[phase] ??= []).push(...samples);
+	}
+}
+
+export function summarizePhases(phases: PhaseSamples) {
+	return Object.fromEntries(
+		Object.entries(phases).map(([phase, samples]) => [phase, stats(samples)]),
+	);
+}
+
+export async function runLimited<T>(
+	count: number,
+	concurrency: number,
+	fn: (index: number) => Promise<T>,
+): Promise<T[]> {
+	const results: T[] = new Array(count);
+	let next = 0;
+	const workers = Array.from(
+		{ length: Math.min(count, Math.max(1, concurrency)) },
+		async () => {
+			for (;;) {
+				const index = next++;
+				if (index >= count) return;
+				results[index] = await fn(index);
+			}
+		},
+	);
+	await Promise.all(workers);
+	return results;
 }
 
 /** Print a table to stderr for human readability. */

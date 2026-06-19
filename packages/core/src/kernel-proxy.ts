@@ -20,7 +20,7 @@ import type {
 	AuthenticatedSession,
 	CreatedVm,
 	GuestFilesystemStat,
-	NativeSidecarProcessClient,
+	Sidecar,
 	SidecarMountDescriptor,
 	SidecarProcessSnapshotEntry,
 	SidecarSignalHandlerRegistration,
@@ -310,9 +310,10 @@ interface TrackedProcessEntry {
 }
 
 interface NativeSidecarKernelProxyOptions {
-	client: NativeSidecarProcessClient;
+	client: Sidecar;
 	session: AuthenticatedSession;
 	vm: CreatedVm;
+	disposeClient?: boolean;
 	env: Record<string, string>;
 	cwd: string;
 	defaultExecCwd?: string;
@@ -330,7 +331,8 @@ export class NativeSidecarKernelProxy {
 	readonly processes = new Map<number, ProcessInfo>();
 	private readonly defaultExecCwd: string | undefined;
 
-	private readonly client: NativeSidecarProcessClient;
+	private readonly client: Sidecar;
+	private readonly disposeClient: boolean;
 	private readonly session: AuthenticatedSession;
 	private readonly vm: CreatedVm;
 	private readonly localMounts: LocalCompatMount[];
@@ -362,6 +364,7 @@ export class NativeSidecarKernelProxy {
 
 	constructor(options: NativeSidecarKernelProxyOptions) {
 		this.client = options.client;
+		this.disposeClient = options.disposeClient ?? true;
 		this.session = options.session;
 		this.vm = options.vm;
 		this.env = { ...options.env };
@@ -423,7 +426,9 @@ export class NativeSidecarKernelProxy {
 				this.finishProcess(entry, 143);
 			}
 		}
-		await this.client.dispose().catch(() => {});
+		if (this.disposeClient) {
+			await this.client.dispose().catch(() => {});
+		}
 		await this.eventPump.catch(() => {});
 		await this.onDispose?.().catch(() => {});
 	}
@@ -2268,7 +2273,7 @@ export type {
 	AuthenticatedSession,
 	CreatedVm,
 	GuestFilesystemStat,
-	NativeSidecarSpawnOptions,
+	SidecarSpawnOptions,
 	RootFilesystemEntry,
 	SidecarEventSelector,
 	SidecarPermissionsPolicy,
@@ -2282,7 +2287,7 @@ export type {
 } from "./sidecar-client.js";
 export {
 	NATIVE_SIDECAR_FRAME_TIMEOUT_MS,
-	NativeSidecarProcessClient,
+	Sidecar,
 	SidecarEventBufferOverflow,
 	SidecarProcessError,
 	SidecarProcessExited,

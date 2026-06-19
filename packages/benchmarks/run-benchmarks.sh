@@ -33,12 +33,18 @@ echo "Results: $RESULTS_DIR"
 echo
 
 echo "=== cold + warm start ==="
-npx tsx "$HERE/coldstart.bench.ts" >"$RESULTS_DIR/coldstart-$STAMP.json"
+npx tsx "$HERE/coldstart.bench.ts" \
+	>"$RESULTS_DIR/coldstart-$STAMP.json" \
+	2>"$RESULTS_DIR/coldstart-$STAMP.log"
 
 echo "=== memory ==="
-node --expose-gc --import tsx/esm "$HERE/memory.bench.ts" >"$RESULTS_DIR/memory-$STAMP.json"
+node --expose-gc --import tsx/esm "$HERE/memory.bench.ts" \
+	>"$RESULTS_DIR/memory-$STAMP.json" \
+	2>"$RESULTS_DIR/memory-$STAMP.log"
 
 echo
 echo "Done. Results saved to:"
 echo "  $RESULTS_DIR/coldstart-$STAMP.json"
+echo "  $RESULTS_DIR/coldstart-$STAMP.log"
 echo "  $RESULTS_DIR/memory-$STAMP.json"
+echo "  $RESULTS_DIR/memory-$STAMP.log"

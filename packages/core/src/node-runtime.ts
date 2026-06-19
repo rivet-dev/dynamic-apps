@@ -25,8 +25,10 @@ import type {
 	ExecResult,
 	HostToolDefinition,
 	Kernel,
+	KernelBootTiming,
 	Permissions,
 } from "./test-runtime.js";
+import type { Sidecar } from "./sidecar-client.js";
 import {
 	createInMemoryFileSystem,
 	createKernel,
@@ -36,6 +38,17 @@ import {
 } from "./test-runtime.js";
 
 export type { HostToolDefinition, HostToolExample } from "./test-runtime.js";
+
+export type NodeRuntimeBootTimingPhase =
+	| KernelBootTiming["phase"]
+	| "runtime_mount_wasm"
+	| "runtime_mount_node"
+	| "host_tools";
+
+export interface NodeRuntimeBootTiming {
+	phase: NodeRuntimeBootTimingPhase;
+	durationMs: number;
+}
 
 /** Repository root, used to locate the in-repo WASM command build output. */
 const REPO_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
@@ -130,6 +143,14 @@ export interface NodeRuntimeCreateOptions {
 	 * `@secure-exec/core` package (published installs).
 	 */
 	commandsDir?: string;
+	/**
+	 * Existing native sidecar process to use for this runtime. Omit this to use
+	 * the default shared sidecar behavior. When provided, the runtime owns only
+	 * its VM and leaves sidecar process disposal to the caller.
+	 */
+	sidecar?: Sidecar;
+	/** Receives coarse boot phase timings for benchmarks and diagnostics. */
+	onBootTiming?: (timing: NodeRuntimeBootTiming) => void;
 	/**
 	 * Files to seed into the VM's virtual filesystem before the guest runs,
 	 * keyed by absolute guest path. Parent directories are created as needed.
@@ -435,6 +456,21 @@ export interface NodeRuntimeProcess {
 	readonly exitCode: number | null;
 }
 
+export interface NodeRuntimeResidentRunnerExecOptions {
+	/** Abort the guest eval after this many milliseconds. */
+	timeout?: number;
+}
+
+export type NodeRuntimeResidentRunnerOptions = {};
+
+export interface NodeRuntimeResidentRunner {
+	exec(
+		code: string,
+		options?: NodeRuntimeResidentRunnerExecOptions,
+	): Promise<NodeRuntimeExecResult>;
+	dispose(): Promise<void>;
+}
+
 /** Result of {@link NodeRuntime.run}. */
 export interface NodeRuntimeRunResult<T = unknown> {
 	/** The JSON-decoded value the guest produced, when the run succeeded. */
@@ -445,6 +481,10 @@ export interface NodeRuntimeRunResult<T = unknown> {
 }
 
 let nextProgramId = 0;
+let nextResidentRequestId = 0;
+
+const RESIDENT_READY_PREFIX = "__SECURE_EXEC_RESIDENT_READY__";
+const RESIDENT_RESULT_PREFIX = "__SECURE_EXEC_RESIDENT_RESULT__";
 
 /**
  * Ergonomic, batteries-included runtime for executing guest JavaScript.
@@ -526,6 +566,8 @@ export class NodeRuntime {
 			},
 			env: options.env,
 			cwd: options.cwd,
+			sidecar: options.sidecar,
+			onBootTiming: (timing) => options.onBootTiming?.(timing),
 			loopbackExemptPorts: options.loopbackExemptPorts,
 		});
 
@@ -535,13 +577,20 @@ export class NodeRuntime {
 			// process: the kernel runs every command through a shell, so without
 			// `sh` nothing can be spawned, including the guest `node` program we
 			// run here and any child the guest spawns via node:child_process.
-			await kernel.mount(createWasmVmRuntime({ commandDirs: [commandsDir] }));
-			await kernel.mount(createNodeRuntime());
+			await measureBootTiming("runtime_mount_wasm", options.onBootTiming, () =>
+				kernel.mount(createWasmVmRuntime({ commandDirs: [commandsDir] })),
+			);
+			await measureBootTiming("runtime_mount_node", options.onBootTiming, () =>
+				kernel.mount(createNodeRuntime()),
+			);
 
 			// Register host tools after the runtimes are mounted so they are
 			// installed as guest commands the moment the VM is ready.
-			if (options.tools && Object.keys(options.tools).length > 0) {
-				await kernel.registerHostTools(options.tools);
+			const tools = options.tools;
+			if (tools && Object.keys(tools).length > 0) {
+				await measureBootTiming("host_tools", options.onBootTiming, () =>
+					kernel.registerHostTools(tools),
+				);
 			}
 		} catch (error) {
 			await kernel.dispose().catch(() => {});
@@ -549,6 +598,12 @@ export class NodeRuntime {
 		}
 
 		return new NodeRuntime(kernel);
+	}
+
+	async createResidentRunner(
+		_options: NodeRuntimeResidentRunnerOptions = {},
+	): Promise<NodeRuntimeResidentRunner> {
+		return ResidentNodeRunner.create(this);
 	}
 
 	/**
@@ -909,6 +964,208 @@ export class NodeRuntime {
 	/** Tear down the VM and release the sidecar. */
 	async dispose(): Promise<void> {
 		await this.kernel.dispose();
+	}
+}
+
+const RESIDENT_RUNNER_SOURCE = `
+import { Buffer } from "node:buffer";
+import { createInterface } from "node:readline";
+
+const readyPrefix = ${JSON.stringify(RESIDENT_READY_PREFIX)};
+const resultPrefix = ${JSON.stringify(RESIDENT_RESULT_PREFIX)};
+console.log(readyPrefix);
+
+const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
+for await (const line of rl) {
+	let request;
+	try {
+		request = JSON.parse(line);
+		const source = Buffer.from(String(request.code), "utf8").toString("base64");
+		await import(\`data:text/javascript;base64,\${source}#\${request.id}\`);
+		process.stdout.write(resultPrefix + JSON.stringify({
+			id: request.id,
+			exitCode: 0,
+			stderr: "",
+		}) + "\\n");
+	} catch (error) {
+		process.stdout.write(resultPrefix + JSON.stringify({
+			id: request?.id,
+			exitCode: 1,
+			stderr: error instanceof Error ? (error.stack ?? error.message) : String(error),
+		}) + "\\n");
+	}
+}
+`;
+
+class ResidentNodeRunner implements NodeRuntimeResidentRunner {
+	private proc: NodeRuntimeProcess | null = null;
+	private stdoutBuffer = "";
+	private active: {
+		id: number;
+		stdout: Uint8Array[];
+		stderr: Uint8Array[];
+		resolve: (result: NodeRuntimeExecResult) => void;
+		reject: (error: Error) => void;
+		timer?: ReturnType<typeof setTimeout>;
+	} | null = null;
+	private readonly readyPromise: Promise<void>;
+	private resolveReady!: () => void;
+	private rejectReady!: (error: Error) => void;
+
+	private constructor() {
+		this.readyPromise = new Promise((resolve, reject) => {
+			this.resolveReady = resolve;
+			this.rejectReady = reject;
+		});
+	}
+
+	static async create(runtime: NodeRuntime): Promise<ResidentNodeRunner> {
+		const runner = new ResidentNodeRunner();
+		runner.proc = await runtime.spawn(RESIDENT_RUNNER_SOURCE, {
+			onStdout: (chunk) => runner.handleStdout(chunk),
+			onStderr: (chunk) => runner.handleStderr(chunk),
+		});
+		runner.proc.wait().then(
+			(exitCode) => {
+				const error = new Error(
+					`resident runner exited before completing request: ${exitCode}`,
+				);
+				runner.rejectReady(error);
+				runner.active?.reject(error);
+				runner.active = null;
+			},
+			(error) => {
+				const normalized =
+					error instanceof Error ? error : new Error(String(error));
+				runner.rejectReady(normalized);
+				runner.active?.reject(normalized);
+				runner.active = null;
+			},
+		);
+		await runner.readyPromise;
+		return runner;
+	}
+
+	async exec(
+		code: string,
+		options: NodeRuntimeResidentRunnerExecOptions = {},
+	): Promise<NodeRuntimeExecResult> {
+		await this.readyPromise;
+		if (!this.proc) {
+			throw new Error("resident runner is not running");
+		}
+		if (this.active) {
+			throw new Error("resident runner supports one in-flight exec");
+		}
+		const proc = this.proc;
+		const id = nextResidentRequestId++;
+		return new Promise((resolve, reject) => {
+			const active = {
+				id,
+				stdout: [],
+				stderr: [],
+				resolve,
+				reject,
+				timer: undefined as ReturnType<typeof setTimeout> | undefined,
+			};
+			if (options.timeout !== undefined) {
+				active.timer = setTimeout(() => {
+					proc.kill("SIGKILL");
+					this.active = null;
+					reject(
+						new Error(`resident runner timed out after ${options.timeout}ms`),
+					);
+				}, options.timeout);
+			}
+			this.active = active;
+			proc.writeStdin(`${JSON.stringify({ id, code })}\n`);
+		});
+	}
+
+	async dispose(): Promise<void> {
+		const proc = this.proc;
+		this.proc = null;
+		this.active = null;
+		if (!proc) {
+			return;
+		}
+		proc.kill("SIGTERM");
+		await proc.wait().catch(() => {});
+	}
+
+	private handleStdout(chunk: Uint8Array): void {
+		this.stdoutBuffer += new TextDecoder().decode(chunk);
+		while (true) {
+			const newlineIndex = this.stdoutBuffer.indexOf("\n");
+			if (newlineIndex < 0) {
+				break;
+			}
+			const rawLine = this.stdoutBuffer.slice(0, newlineIndex);
+			this.stdoutBuffer = this.stdoutBuffer.slice(newlineIndex + 1);
+			const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+			if (line === RESIDENT_READY_PREFIX) {
+				this.resolveReady();
+				continue;
+			}
+			if (line.startsWith(RESIDENT_RESULT_PREFIX)) {
+				this.finishRequest(line.slice(RESIDENT_RESULT_PREFIX.length));
+				continue;
+			}
+			this.active?.stdout.push(new TextEncoder().encode(`${line}\n`));
+		}
+	}
+
+	private handleStderr(chunk: Uint8Array): void {
+		this.active?.stderr.push(chunk);
+	}
+
+	private finishRequest(payload: string): void {
+		const active = this.active;
+		if (!active) {
+			return;
+		}
+		let parsed: { id?: number; exitCode?: number; stderr?: string };
+		try {
+			parsed = JSON.parse(payload) as {
+				id?: number;
+				exitCode?: number;
+				stderr?: string;
+			};
+		} catch (error) {
+			active.reject(error instanceof Error ? error : new Error(String(error)));
+			this.active = null;
+			return;
+		}
+		if (parsed.id !== active.id) {
+			active.reject(
+				new Error(`resident runner response id mismatch: ${parsed.id}`),
+			);
+			this.active = null;
+			return;
+		}
+		if (active.timer !== undefined) {
+			clearTimeout(active.timer);
+		}
+		this.active = null;
+		const stderr = `${decodeChunks(active.stderr)}${parsed.stderr ?? ""}`;
+		active.resolve({
+			stdout: decodeChunks(active.stdout),
+			stderr,
+			exitCode: parsed.exitCode ?? 1,
+		});
+	}
+}
+
+async function measureBootTiming<T>(
+	phase: NodeRuntimeBootTimingPhase,
+	onBootTiming: ((timing: NodeRuntimeBootTiming) => void) | undefined,
+	fn: () => Promise<T>,
+): Promise<T> {
+	const start = performance.now();
+	try {
+		return await fn();
+	} finally {
+		onBootTiming?.({ phase, durationMs: performance.now() - start });
 	}
 }
 

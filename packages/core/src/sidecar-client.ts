@@ -5,11 +5,11 @@ import {
 import type { MountConfigJsonObject } from "./descriptors.js";
 import { type LiveSidecarEventSelector } from "./event-buffer.js";
 import {
-    decodeGuestFilesystemContent,
-    encodeGuestFilesystemContent,
-    type LiveRootFilesystemEntry,
-    type LiveRootFilesystemEntryEncoding,
-    type LiveRootFilesystemLowerDescriptor,
+	decodeGuestFilesystemContent,
+	encodeGuestFilesystemContent,
+	type LiveRootFilesystemEntry,
+	type LiveRootFilesystemEntryEncoding,
+	type LiveRootFilesystemLowerDescriptor,
 } from "./filesystem.js";
 import type { CreateVmConfig } from "./generated/CreateVmConfig.js";
 import {
@@ -56,8 +56,7 @@ export { SidecarEventBufferOverflow } from "./event-buffer.js";
 
 const BRIDGE_CONTRACT_VERSION = 1;
 
-export const NATIVE_SIDECAR_FRAME_TIMEOUT_MS =
-	DEFAULT_SIDECAR_FRAME_TIMEOUT_MS;
+export const NATIVE_SIDECAR_FRAME_TIMEOUT_MS = DEFAULT_SIDECAR_FRAME_TIMEOUT_MS;
 
 type OwnershipScope = LiveOwnershipScope;
 
@@ -162,8 +161,8 @@ type NativeTransportPayloadCodec = ProtocolFramePayloadCodec;
 
 export type SidecarRequestHandler = LiveSidecarRequestHandler;
 
-export interface NativeSidecarSpawnOptions {
-	cwd: string;
+export interface SidecarSpawnOptions {
+	cwd?: string;
 	command?: string;
 	args?: string[];
 	frameTimeoutMs?: number;
@@ -237,14 +236,16 @@ export interface SidecarProjectedModuleDescriptor {
 	entrypoint: string;
 }
 
-export class NativeSidecarProcessClient {
+export class Sidecar {
 	private readonly protocolClient: StdioSidecarProtocolClient;
 
 	private constructor(protocolClient: StdioSidecarProtocolClient) {
 		this.protocolClient = protocolClient;
 	}
 
-	static spawn(options: NativeSidecarSpawnOptions): NativeSidecarProcessClient {
+	static spawn(
+		options: SidecarSpawnOptions = {},
+	): Sidecar {
 		const protocolClient = StdioSidecarProtocolClient.spawn({
 			command: options.command,
 			args: options.args ?? [],
@@ -257,7 +258,7 @@ export class NativeSidecarProcessClient {
 			disposedErrorMessage: "native sidecar disposed",
 			payloadCodec: options.payloadCodec ?? "bare",
 		});
-		return new NativeSidecarProcessClient(protocolClient);
+		return new Sidecar(protocolClient);
 	}
 
 	setSidecarRequestHandler(handler: SidecarRequestHandler | null): void {
@@ -316,25 +317,25 @@ export class NativeSidecarProcessClient {
 		};
 	}
 
-    async createVm(
-        session: AuthenticatedSession,
-        options: {
-            runtime: GuestRuntimeKind;
-            config: CreateVmConfig;
-        },
-    ): Promise<CreatedVm> {
+	async createVm(
+		session: AuthenticatedSession,
+		options: {
+			runtime: GuestRuntimeKind;
+			config: CreateVmConfig;
+		},
+	): Promise<CreatedVm> {
 		const response = await this.sendRequest({
 			ownership: {
 				scope: "session",
 				connection_id: session.connectionId,
 				session_id: session.sessionId,
 			},
-            payload: {
-                type: "create_vm",
-                runtime: options.runtime,
-                config: options.config,
-            },
-        });
+			payload: {
+				type: "create_vm",
+				runtime: options.runtime,
+				config: options.config,
+			},
+		});
 		if (response.payload.type !== "vm_created") {
 			throw new Error(
 				`unexpected create_vm response: ${response.payload.type}`,

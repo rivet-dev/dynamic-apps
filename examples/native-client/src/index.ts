@@ -1,8 +1,8 @@
-import { NativeSidecarProcessClient } from "@secure-exec/core/sidecar-client";
+import { Sidecar } from "@secure-exec/core/sidecar-client";
 
 const decoder = new TextDecoder();
 
-const client = NativeSidecarProcessClient.spawn({
+const client = Sidecar.spawn({
 	cwd: process.cwd(),
 });
 

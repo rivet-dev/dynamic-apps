@@ -2,6 +2,9 @@ export type {
 	HostDirectoryMount,
 	HostToolDefinition,
 	HostToolExample,
+	SidecarSpawnOptions,
+	NodeRuntimeBootTiming,
+	NodeRuntimeBootTimingPhase,
 	NodeRuntimeCreateOptions,
 	NodeRuntimeExecOptions,
 	NodeRuntimeExecResult,
@@ -11,8 +14,11 @@ export type {
 	NodeRuntimeListener,
 	NodeRuntimeListenerQuery,
 	NodeRuntimeProcess,
+	NodeRuntimeResidentRunner,
+	NodeRuntimeResidentRunnerExecOptions,
+	NodeRuntimeResidentRunnerOptions,
 	NodeRuntimeRunResult,
 	NodeRuntimeSpawnOptions,
 	NodeRuntimeWaitForListenerOptions,
 } from "@secure-exec/core";
-export { NodeRuntime } from "@secure-exec/core";
+export { Sidecar, NodeRuntime } from "@secure-exec/core";

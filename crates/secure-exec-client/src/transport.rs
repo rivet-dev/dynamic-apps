@@ -1,7 +1,7 @@
 //! `SidecarTransport`: spawns a native sidecar binary and speaks the existing framed
 //! BARE protocol over its stdio.
 //!
-//! This mirrors the TypeScript `NativeSidecarProcessClient`. Generated wire payloads are the native
+//! This mirrors the TypeScript `Sidecar`. Generated wire payloads are the native
 //! transport path.
 //!
 //! Request-id direction is load-bearing: host-initiated `Request`/`Response` frames use positive ids

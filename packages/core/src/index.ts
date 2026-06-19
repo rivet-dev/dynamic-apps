@@ -19,6 +19,8 @@ export * from "./protocol-client.js";
 export * from "./protocol-frames.js";
 export * from "./request-payloads.js";
 export * from "./response-payloads.js";
+export { Sidecar } from "./sidecar-client.js";
+export type { SidecarSpawnOptions } from "./sidecar-client.js";
 export * from "./state.js";
 export * as protocol from "./generated-protocol.js";
 export * from "./generated-protocol.js";
