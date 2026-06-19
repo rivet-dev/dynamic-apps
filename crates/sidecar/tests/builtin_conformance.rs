@@ -2004,12 +2004,65 @@ console.log(JSON.stringify(results));
         &["dns"],
     );
 
+    // `dns.resolveSrv`/`resolveCaa`/`resolve(..., "MX")` record shapes differ
+    // by host Node *version*, not by guest correctness: Node >= 24 attaches a
+    // `type` discriminator (e.g. `"type":"SRV"`) to these records, while Node
+    // <= 22 omits it. The guest shim always emits the modern shape with `type`.
+    // CI runs on Node 22 and the dev machines run Node 24, so a raw
+    // `guest == host` comparison flaps on the runner's Node version even though
+    // every actual resolved value is identical. We therefore:
+    //   1. strip the version-dependent `type` discriminator from both sides
+    //      before comparing the resolved data, so the guest-vs-host conformance
+    //      check still covers all version-stable fields (addresses, ttls,
+    //      priorities, exchanges, ports, soa fields, ...); and
+    //   2. assert the guest's own `type` discriminators directly, so we keep
+    //      testing the guest's record-shape correctness independent of the
+    //      host Node version.
+    fn strip_record_type(value: &Value) -> Value {
+        match value {
+            Value::Object(map) => Value::Object(
+                map.iter()
+                    .filter(|(key, _)| key.as_str() != "type")
+                    .map(|(key, val)| (key.clone(), strip_record_type(val)))
+                    .collect(),
+            ),
+            Value::Array(items) => Value::Array(items.iter().map(strip_record_type).collect()),
+            other => other.clone(),
+        }
+    }
+
     assert_eq!(
-        guest,
-        host,
-        "guest V8 result diverged from host Node for dns\nhost: {}\nguest: {}",
+        strip_record_type(&guest),
+        strip_record_type(&host),
+        "guest V8 result diverged from host Node for dns (ignoring host-Node-version-dependent record `type` field)\nhost: {}\nguest: {}",
         serde_json::to_string_pretty(&host).expect("pretty host JSON"),
         serde_json::to_string_pretty(&guest).expect("pretty guest JSON")
+    );
+
+    // Guest record-shape correctness, asserted directly so it does not depend on
+    // the host Node version. The modern Node shape attaches these discriminators.
+    let type_at = |key: &str, index: usize| -> Option<String> {
+        guest[key]
+            .get(index)
+            .and_then(|record| record.get("type"))
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+    };
+    assert_eq!(type_at("resolveSrv", 0).as_deref(), Some("SRV"));
+    assert_eq!(type_at("resolveCallbackMx", 0).as_deref(), Some("MX"));
+    assert!(
+        guest["resolveCaa"].as_array().is_some_and(|records| records
+            .iter()
+            .all(|record| record.get("type").and_then(Value::as_str) == Some("CAA"))),
+        "guest resolveCaa records missing CAA type discriminator: {}",
+        guest["resolveCaa"]
+    );
+    assert!(
+        guest["resolveAny"].as_array().is_some_and(|records| records
+            .iter()
+            .all(|record| record.get("type").and_then(Value::as_str).is_some())),
+        "guest resolveAny records missing type discriminator: {}",
+        guest["resolveAny"]
     );
 
     let unsupported_cwd = temp_dir("builtin-conformance-dns-unsupported");
@@ -2710,16 +2763,23 @@ fn child_process_abort_reports_sigabrt_impl() {
 
     let cwd = temp_dir("builtin-child-process-abort-signal");
     let entrypoint = cwd.join("entry.mjs");
+    // Use an inline `node -e` child rather than spawning a child *file*. The
+    // previous version wrote the child script to a hardcoded host `/tmp` path
+    // and spawned it with `cwd: "/tmp"`; that path is written into the guest
+    // VFS by the parent, but the spawned guest child resolves the module
+    // against the runner's filesystem, so it fails with `Cannot find module`
+    // (exiting with code 1) before ever calling `process.abort()`. Whether the
+    // file happened to be visible depended on the CI runner's `/tmp` layout,
+    // which made this case flaky. The inline form mirrors the sibling
+    // `child-process-kill-numeric-signal` case and exercises the exact same
+    // guest behavior — `process.abort()` mapping to a SIGABRT-shaped exit —
+    // without any cross-runtime filesystem dependency.
     write_fixture(
         &entrypoint,
         r#"
 import childProcess from "node:child_process";
-import fs from "node:fs";
 
-const childEntrypoint = "/tmp/secure-exec-abort-child.cjs";
-fs.writeFileSync(childEntrypoint, "process.abort();\n");
-
-const child = childProcess.spawn("node", [childEntrypoint], { cwd: "/tmp" });
+const child = childProcess.spawn("node", ["-e", "process.abort();"]);
 const result = await new Promise((resolve, reject) => {
   const timer = setTimeout(() => {
     reject(new Error("spawn(node abort child) did not exit within 2s"));
@@ -2747,7 +2807,7 @@ console.log(JSON.stringify(result));
         &entrypoint,
         HashMap::new(),
         wire_permissions_allow_all(),
-        &["child_process", "fs"],
+        &["child_process"],
     );
 
     assert_eq!(guest["code"], host["code"]);
