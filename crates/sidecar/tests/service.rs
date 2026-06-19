@@ -761,11 +761,13 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .javascript_engine
                 .start_execution(secure_exec_execution::StartJavascriptExecutionRequest {
+                    guest_runtime: Default::default(),
                     vm_id,
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
                     env: BTreeMap::new(),
                     cwd,
+                    limits: Default::default(),
                     inline_code: Some(String::from("")),
                 })
                 .expect("start javascript execution");
@@ -1506,6 +1508,8 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.to_owned(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
@@ -1856,6 +1860,8 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .wasm_engine
                 .start_execution(StartWasmExecutionRequest {
+                    guest_runtime: Default::default(),
+                    limits: Default::default(),
                     vm_id: vm_id.to_owned(),
                     context_id: context.context_id,
                     argv: vec![String::from("./guest.wasm")],
@@ -1933,6 +1939,8 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.to_owned(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
@@ -4404,6 +4412,8 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.clone(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
@@ -4568,6 +4578,8 @@ ykAheWCsAteSEWVc0w==\n\
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.clone(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
@@ -9121,6 +9133,8 @@ export async function loadPyodide() {
             let execution = sidecar
                 .python_engine
                 .start_execution(StartPythonExecutionRequest {
+                    guest_runtime: Default::default(),
+                    limits: Default::default(),
                     vm_id: vm_id.clone(),
                     context_id: context.context_id,
                     code: String::from("print('hold-open')"),
@@ -9299,6 +9313,8 @@ await new Promise(() => {});
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.clone(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
@@ -9648,6 +9664,8 @@ console.log(
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -9935,6 +9953,8 @@ await new Promise(() => {});
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -11194,6 +11214,8 @@ console.log(JSON.stringify({ lookup, resolve4 }));
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -11384,6 +11406,8 @@ process.exit(0);
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -12082,6 +12106,8 @@ console.log(JSON.stringify(summary));
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -14457,6 +14483,8 @@ console.log(JSON.stringify(summary));
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -15105,6 +15133,8 @@ console.log(JSON.stringify({
             let execution = sidecar
             .javascript_engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: vm_id.clone(),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
@@ -15317,6 +15347,8 @@ console.log(JSON.stringify({
             let execution = sidecar
                 .javascript_engine
                 .start_execution(StartJavascriptExecutionRequest {
+                    limits: Default::default(),
+                    guest_runtime: Default::default(),
                     vm_id: vm_id.clone(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],

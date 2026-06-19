@@ -1,6 +1,6 @@
 use secure_exec_execution::{
-    CreatePythonContextRequest, PythonExecutionEngine, PythonExecutionEvent, PythonVfsRpcMethod,
-    PythonVfsRpcResponsePayload, PythonVfsRpcStat, StartPythonExecutionRequest,
+    CreatePythonContextRequest, PythonExecutionEngine, PythonExecutionEvent, PythonExecutionLimits,
+    PythonVfsRpcMethod, PythonVfsRpcResponsePayload, PythonVfsRpcStat, StartPythonExecutionRequest,
 };
 use std::collections::BTreeMap;
 use std::fs;
@@ -159,6 +159,8 @@ fn run_python_execution(
 ) -> (String, String, i32) {
     let execution = engine
         .start_execution(StartPythonExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-python"),
             context_id,
             code: String::from(code),
@@ -279,13 +281,21 @@ export async function loadPyodide(options) {
 
     let result = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            // The cap is enforced from the typed wire limit. The env knob carries
+            // a much larger value to prove it is inert: if it were still read the
+            // buffer would not cap at 32.
+            limits: PythonExecutionLimits {
+                output_buffer_max_bytes: Some(32),
+                ..Default::default()
+            },
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('ignored')"),
             file_path: None,
             env: BTreeMap::from([(
                 String::from(PYTHON_OUTPUT_BUFFER_MAX_BYTES_ENV),
-                String::from("32"),
+                String::from("999999"),
             )]),
             cwd: temp.path().to_path_buf(),
         })
@@ -329,6 +339,8 @@ export async function loadPyodide(options) {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('streamed')"),
@@ -506,6 +518,8 @@ export async function loadPyodide(options) {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('streaming')"),
@@ -629,6 +643,8 @@ export async function loadPyodide(options) {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('rpc bridge')"),
@@ -781,6 +797,8 @@ export async function loadPyodide() {
 
     let execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('hang')"),
@@ -836,13 +854,21 @@ export async function loadPyodide() {
 
     let execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            // Enforced from the typed wire limit. The env knob is set to "0"
+            // (which would *disable* the timeout if it were still read) to prove
+            // it is inert.
+            limits: PythonExecutionLimits {
+                execution_timeout_ms: Some(75),
+                ..Default::default()
+            },
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('hang')"),
             file_path: None,
             env: BTreeMap::from([(
                 String::from(PYTHON_EXECUTION_TIMEOUT_MS_ENV),
-                String::from("75"),
+                String::from("0"),
             )]),
             cwd: temp.path().to_path_buf(),
         })
@@ -894,13 +920,20 @@ export async function loadPyodide() {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            // Enforced from the typed wire limit; the env knob carries a much
+            // larger value to prove it is inert.
+            limits: PythonExecutionLimits {
+                vfs_rpc_timeout_ms: Some(50),
+                ..Default::default()
+            },
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('rpc timeout')"),
             file_path: None,
             env: BTreeMap::from([(
                 String::from(PYTHON_VFS_RPC_TIMEOUT_MS_ENV),
-                String::from("50"),
+                String::from("600000"),
             )]),
             cwd: temp.path().to_path_buf(),
         })
@@ -990,14 +1023,19 @@ export async function loadPyodide() {
 
     let result = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            // Enforced from the typed wire limit. The env knob is set to "0"
+            // (which would mean "use the V8 default / unlimited" if it were still
+            // read) to prove it is inert.
+            limits: PythonExecutionLimits {
+                max_old_space_mb: Some(64),
+                ..Default::default()
+            },
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('oom')"),
             file_path: None,
-            env: BTreeMap::from([(
-                String::from(PYTHON_MAX_OLD_SPACE_MB_ENV),
-                String::from("64"),
-            )]),
+            env: BTreeMap::from([(String::from(PYTHON_MAX_OLD_SPACE_MB_ENV), String::from("0"))]),
             cwd: temp.path().to_path_buf(),
         })
         .expect("start Python execution")
@@ -1043,6 +1081,8 @@ export async function loadPyodide(options) {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('hang')"),

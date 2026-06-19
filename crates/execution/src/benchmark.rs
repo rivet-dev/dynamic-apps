@@ -2531,6 +2531,8 @@ fn run_native_sample(
 
     let startup_started_at = Instant::now();
     let execution = engine.start_execution(StartJavascriptExecutionRequest {
+        limits: Default::default(),
+        guest_runtime: Default::default(),
         vm_id: String::from("vm-bench"),
         context_id: context.context_id,
         argv: vec![String::from(scenario.entrypoint)],
@@ -2653,6 +2655,8 @@ fn measure_transport_rtt(
         compile_cache_root: None,
     });
     let mut execution = engine.start_execution(StartJavascriptExecutionRequest {
+        limits: Default::default(),
+        guest_runtime: Default::default(),
         vm_id: String::from("vm-transport"),
         context_id: context.context_id,
         argv: vec![String::from("./bench/transport-echo.mjs")],

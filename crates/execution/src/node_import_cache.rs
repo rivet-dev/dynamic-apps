@@ -106,9 +106,9 @@ const DEFAULT_GUEST_CWD =
   typeof process.env.PWD === 'string' &&
   process.env.PWD.startsWith('/')
     ? path.posix.normalize(process.env.PWD)
-    : typeof process.env.AGENT_OS_VIRTUAL_OS_HOMEDIR === 'string' &&
-        process.env.AGENT_OS_VIRTUAL_OS_HOMEDIR.startsWith('/')
-      ? path.posix.normalize(process.env.AGENT_OS_VIRTUAL_OS_HOMEDIR)
+    : typeof (globalThis.__agentOsVirtualOs||{}).homedir === 'string' &&
+        (globalThis.__agentOsVirtualOs||{}).homedir.startsWith('/')
+      ? path.posix.normalize((globalThis.__agentOsVirtualOs||{}).homedir)
     : '/root';
 const UNMAPPED_GUEST_PATH = '/unknown';
 const PROJECTED_SOURCE_CACHE_ROOT = CACHE_PATH
@@ -2140,19 +2140,19 @@ const VIRTUAL_GID = parseVirtualProcessNumber(
   DEFAULT_VIRTUAL_GID,
 );
 const DEFAULT_GUEST_CWD = resolveVirtualPath(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_HOMEDIR,
+  (globalThis.__agentOsVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_USER = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_USER,
+  (globalThis.__agentOsVirtualOs||{}).user,
   DEFAULT_VIRTUAL_OS_USER,
 );
 const VIRTUAL_OS_HOMEDIR = resolveVirtualPath(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_HOMEDIR,
+  (globalThis.__agentOsVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_SHELL = resolveVirtualPath(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_SHELL,
+  (globalThis.__agentOsVirtualOs||{}).shell,
   DEFAULT_VIRTUAL_OS_SHELL,
 );
 
@@ -4027,11 +4027,9 @@ function createRpcBackedChildProcessModule(fromGuestDir = '/') {
         bootstrapEnv[key] = HOST_PROCESS_ENV[key];
       }
     }
-    for (const [key, value] of Object.entries(HOST_PROCESS_ENV)) {
-      if (key.startsWith('AGENT_OS_VIRTUAL_OS_') && typeof value === 'string') {
-        bootstrapEnv[key] = value;
-      }
-    }
+    // Virtual OS identity is no longer carried as `AGENT_OS_VIRTUAL_OS_*` env;
+    // nested child executions receive it via the typed `guest_runtime` →
+    // `__agentOsVirtualOs` global like every other guest execution.
 
     return bootstrapEnv;
   };
@@ -7170,51 +7168,53 @@ const guestMonotonicNow =
   globalThis.performance && typeof globalThis.performance.now === 'function'
     ? globalThis.performance.now.bind(globalThis.performance)
     : Date.now;
+// Virtual OS identity is carried as the typed `__agentOsVirtualOs` structured
+// global (populated by the runtime shim from `guest_runtime`), not
+// `AGENT_OS_VIRTUAL_OS_*` env vars. Absent fields are `undefined` and fall back
+// to the defaults below.
+const VIRTUAL_OS = globalThis.__agentOsVirtualOs || {};
 const VIRTUAL_OS_HOSTNAME = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_HOSTNAME,
+  VIRTUAL_OS.hostname,
   DEFAULT_VIRTUAL_OS_HOSTNAME,
 );
 const VIRTUAL_OS_TYPE = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_TYPE,
+  VIRTUAL_OS.type,
   DEFAULT_VIRTUAL_OS_TYPE,
 );
 const VIRTUAL_OS_PLATFORM = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_PLATFORM,
+  VIRTUAL_OS.platform,
   DEFAULT_VIRTUAL_OS_PLATFORM,
 );
 const VIRTUAL_OS_RELEASE = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_RELEASE,
+  VIRTUAL_OS.release,
   DEFAULT_VIRTUAL_OS_RELEASE,
 );
 const VIRTUAL_OS_VERSION = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_VERSION,
+  VIRTUAL_OS.version,
   DEFAULT_VIRTUAL_OS_VERSION,
 );
 const VIRTUAL_OS_ARCH = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_ARCH,
+  VIRTUAL_OS.arch,
   DEFAULT_VIRTUAL_OS_ARCH,
 );
 const VIRTUAL_OS_MACHINE = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_MACHINE,
+  VIRTUAL_OS.machine,
   DEFAULT_VIRTUAL_OS_MACHINE,
 );
 const VIRTUAL_OS_CPU_MODEL = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_CPU_MODEL,
+  VIRTUAL_OS.cpuModel,
   DEFAULT_VIRTUAL_OS_CPU_MODEL,
 );
 const VIRTUAL_OS_CPU_COUNT = parsePositiveInt(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_CPU_COUNT,
+  VIRTUAL_OS.cpuCount,
   DEFAULT_VIRTUAL_OS_CPU_COUNT,
 );
 const VIRTUAL_OS_TOTALMEM = parsePositiveInt(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_TOTALMEM,
+  VIRTUAL_OS.totalmem,
   DEFAULT_VIRTUAL_OS_TOTALMEM,
 );
 const VIRTUAL_OS_FREEMEM = Math.min(
-  parsePositiveInt(
-    HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_FREEMEM,
-    DEFAULT_VIRTUAL_OS_FREEMEM,
-  ),
+  parsePositiveInt(VIRTUAL_OS.freemem, DEFAULT_VIRTUAL_OS_FREEMEM),
   VIRTUAL_OS_TOTALMEM,
 );
 const DEFAULT_VIRTUAL_PROCESS_VERSION = 'v24.0.0';
@@ -7359,19 +7359,19 @@ function createGuestProcessUptime() {
 
 function createGuestOsModule(osModule) {
   const virtualHomeDir = resolveVirtualPath(
-    HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_HOMEDIR,
+    (globalThis.__agentOsVirtualOs||{}).homedir,
     DEFAULT_VIRTUAL_OS_HOMEDIR,
   );
   const virtualTmpDir = resolveVirtualPath(
-    HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_TMPDIR,
+    (globalThis.__agentOsVirtualOs||{}).tmpdir,
     DEFAULT_VIRTUAL_OS_TMPDIR,
   );
   const virtualUserName = parseVirtualProcessString(
-    HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_USER,
+    (globalThis.__agentOsVirtualOs||{}).user,
     DEFAULT_VIRTUAL_OS_USER,
   );
   const virtualShell = resolveVirtualPath(
-    HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_OS_SHELL,
+    (globalThis.__agentOsVirtualOs||{}).shell,
     DEFAULT_VIRTUAL_OS_SHELL,
   );
   const virtualCpuInfo = Object.freeze(
@@ -8821,15 +8821,15 @@ const VIRTUAL_PPID = parseVirtualProcessNumber(
   DEFAULT_VIRTUAL_PPID,
 );
 const VIRTUAL_OS_USER = parseVirtualProcessString(
-  process.env.AGENT_OS_VIRTUAL_OS_USER,
+  (globalThis.__agentOsVirtualOs||{}).user,
   DEFAULT_VIRTUAL_OS_USER,
 );
 const VIRTUAL_OS_HOMEDIR = resolveVirtualPath(
-  process.env.AGENT_OS_VIRTUAL_OS_HOMEDIR,
+  (globalThis.__agentOsVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_SHELL = resolveVirtualPath(
-  process.env.AGENT_OS_VIRTUAL_OS_SHELL,
+  (globalThis.__agentOsVirtualOs||{}).shell,
   DEFAULT_VIRTUAL_OS_SHELL,
 );
 const CONTROL_PIPE_FD = parseControlPipeFd(process.env.AGENT_OS_CONTROL_PIPE_FD);

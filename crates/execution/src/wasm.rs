@@ -2,9 +2,9 @@ use crate::common::{
     encode_json_string, encode_json_string_array, encode_json_string_map, frozen_time_ms,
 };
 use crate::javascript::{
-    CreateJavascriptContextRequest, JavascriptExecution, JavascriptExecutionEngine,
-    JavascriptExecutionError, JavascriptExecutionEvent, JavascriptSyncRpcRequest,
-    StartJavascriptExecutionRequest,
+    CreateJavascriptContextRequest, GuestRuntimeConfig, JavascriptExecution,
+    JavascriptExecutionEngine, JavascriptExecutionError, JavascriptExecutionEvent,
+    JavascriptExecutionLimits, JavascriptSyncRpcRequest, StartJavascriptExecutionRequest,
 };
 use crate::node_import_cache::NodeImportCache;
 use crate::runtime_support::{env_flag_enabled, file_fingerprint, warmup_marker_path};
@@ -110,6 +110,25 @@ pub struct WasmContext {
     pub module_path: Option<String>,
 }
 
+/// Per-execution WebAssembly runtime limits, carried as typed fields rather
+/// than `AGENT_OS_WASM_*` env vars. Populated by the sidecar from the per-VM
+/// kernel `ResourceLimits` (originating from `CreateVmConfig` on the BARE wire);
+/// `None` selects "unlimited / engine default". See the env-vs-wire rule in
+/// `crates/sidecar/CLAUDE.md`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct WasmExecutionLimits {
+    /// Fuel budget, enforced as a wall-clock timeout (ms) by the WASI runtime.
+    pub max_fuel: Option<u64>,
+    /// Linear-memory cap in bytes, validated against the module's declared
+    /// initial/maximum memory before execution.
+    pub max_memory_bytes: Option<u64>,
+    /// Stack cap in bytes. Validated and read from the wire here (previously a
+    /// dead `AGENT_OS_WASM_MAX_STACK_BYTES` env var that was set but never
+    /// read); runtime V8 stack-limit enforcement is a follow-up — see
+    /// [`resolve_wasm_stack_limit_bytes`].
+    pub max_stack_bytes: Option<u64>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StartWasmExecutionRequest {
     pub vm_id: String,
@@ -118,6 +137,12 @@ pub struct StartWasmExecutionRequest {
     pub env: BTreeMap<String, String>,
     pub cwd: PathBuf,
     pub permission_tier: WasmPermissionTier,
+    /// Per-execution runtime limits (see [`WasmExecutionLimits`]).
+    pub limits: WasmExecutionLimits,
+    /// Per-execution guest-runtime config, forwarded to the WASI runner's JS
+    /// execution (see [`JavascriptExecutionLimits`]'s sibling
+    /// [`crate::javascript::GuestRuntimeConfig`]).
+    pub guest_runtime: GuestRuntimeConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2035,6 +2060,13 @@ fn start_wasm_javascript_execution(
             argv: vec![String::from(WASM_INLINE_RUNNER_ENTRYPOINT)],
             env,
             cwd: request.cwd.clone(),
+            // The WASI runner's own JS limits are defaults; the WASM fuel/memory/
+            // stack caps are enforced Rust-side from `request.limits`, not via the
+            // runner's V8 heap.
+            limits: JavascriptExecutionLimits::default(),
+            // Forward the guest-runtime identity so the runner's shim sets
+            // process.* from typed config rather than env.
+            guest_runtime: request.guest_runtime.clone(),
             inline_code: Some(inline_code),
         })
         .map_err(map_javascript_error)
@@ -4823,16 +4855,35 @@ fn resolve_wasm_execution_timeout(
 ) -> Result<Option<Duration>, WasmExecutionError> {
     // Node's WASI runtime does not expose per-instruction fuel metering, so the
     // configured "fuel" budget is currently enforced as a tight wall-clock
-    // timeout while still being passed through to the child process for
-    // observability and future in-runtime enforcement.
+    // timeout. The value rides the typed `limits.max_fuel` (from the BARE-wire
+    // resource limits), not an `AGENT_OS_WASM_MAX_FUEL` env var.
     //
     // When no explicit fuel budget is configured we still apply a default
     // wall-clock timeout: otherwise `wait()` gates termination behind
     // `Some(limit)` and a never-returning guest (e.g. an infinite loop) pins a
     // host CPU core indefinitely, starving other tenants on the shared process.
-    let budget_ms = wasm_limit_u64(&request.env, WASM_MAX_FUEL_ENV)?
+    let budget_ms = request
+        .limits
+        .max_fuel
         .unwrap_or(DEFAULT_WASM_EXECUTION_TIMEOUT_MS);
     Ok(Some(Duration::from_millis(budget_ms)))
+}
+
+/// Resolve and validate the per-execution WASM stack cap from the typed wire
+/// limit. Reading and validating it here is what retires the historical
+/// `AGENT_OS_WASM_MAX_STACK_BYTES` dead cap (set into env, never read). Runtime
+/// V8 stack-limit enforcement still needs a stack lever on the V8 session and
+/// is tracked as a follow-up; for now an out-of-range value is rejected up
+/// front so a misconfiguration surfaces instead of being silently dropped.
+fn resolve_wasm_stack_limit_bytes(
+    request: &StartWasmExecutionRequest,
+) -> Result<Option<u64>, WasmExecutionError> {
+    match request.limits.max_stack_bytes {
+        Some(0) => Err(WasmExecutionError::InvalidLimit(String::from(
+            "wasm max stack bytes must be greater than zero",
+        ))),
+        other => Ok(other),
+    }
 }
 
 fn resolve_wasm_prewarm_timeout(
@@ -4964,7 +5015,7 @@ fn warmup_guest_argv(
 fn wasm_memory_limit_bytes(
     request: &StartWasmExecutionRequest,
 ) -> Result<Option<u64>, WasmExecutionError> {
-    wasm_limit_u64(&request.env, WASM_MAX_MEMORY_BYTES_ENV)
+    Ok(request.limits.max_memory_bytes)
 }
 
 fn wasm_stack_limit_bytes(
@@ -5000,6 +5051,12 @@ fn validate_module_limits(
     resolved_module: &ResolvedWasmModule,
     request: &StartWasmExecutionRequest,
 ) -> Result<(), WasmExecutionError> {
+    // Read and validate the wire stack cap on every execution. This is what
+    // retires the old `AGENT_OS_WASM_MAX_STACK_BYTES` dead cap: the value now
+    // comes off the typed wire limit and a bad value fails closed instead of
+    // being written to an env var nobody reads.
+    let _stack_limit = resolve_wasm_stack_limit_bytes(request)?;
+
     let Some(memory_limit) = wasm_memory_limit_bytes(request)? else {
         return Ok(());
     };
@@ -5275,15 +5332,16 @@ fn resolve_path_like_specifier(cwd: &Path, specifier: &str) -> Option<PathBuf> {
 mod tests {
     use super::{
         build_wasm_runner_bootstrap, open_wasm_guest_file, resolve_wasm_execution_timeout,
-        resolve_wasm_prewarm_timeout, resolved_module_path, translate_wasm_guest_path,
-        translate_wasm_host_symlink_target, wasm_guest_module_paths, wasm_host_path_is_read_only,
-        wasm_memory_limit_pages, wasm_mutation_touches_read_only_mapping,
-        wasm_read_only_filesystem_error, wasm_sandbox_root, wasm_sync_read_length,
-        wasm_sync_rpc_error_code, StartWasmExecutionRequest, Value, WasmExecutionError,
+        resolve_wasm_prewarm_timeout, resolve_wasm_stack_limit_bytes, resolved_module_path,
+        translate_wasm_guest_path, translate_wasm_host_symlink_target, wasm_guest_module_paths,
+        wasm_host_path_is_read_only, wasm_memory_limit_bytes, wasm_memory_limit_pages,
+        wasm_mutation_touches_read_only_mapping, wasm_read_only_filesystem_error,
+        wasm_sandbox_root, wasm_sync_read_length, wasm_sync_rpc_error_code, GuestRuntimeConfig,
+        StartWasmExecutionRequest, Value, WasmExecutionError, WasmExecutionLimits,
         WasmInternalSyncRpc, WasmPermissionTier, DEFAULT_WASM_EXECUTION_TIMEOUT_MS,
         WASM_CAPTURED_OUTPUT_LIMIT_BYTES, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV,
-        WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV, WASM_SANDBOX_ROOT_ENV,
-        WASM_SYNC_READ_LIMIT_BYTES,
+        WASM_MAX_STACK_BYTES_ENV, WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV,
+        WASM_SANDBOX_ROOT_ENV, WASM_SYNC_READ_LIMIT_BYTES,
     };
     use std::collections::{BTreeMap, VecDeque};
     use std::fs;
@@ -5293,7 +5351,18 @@ mod tests {
     use tempfile::tempdir;
 
     fn request_with_env(cwd: &Path, env: BTreeMap<String, String>) -> StartWasmExecutionRequest {
+        // Translate the legacy `AGENT_OS_WASM_*` limit env keys these tests still
+        // express into the typed limits the engine now reads (mirrors the
+        // sidecar's config→limits flow).
+        let parse = |key: &str| env.get(key).and_then(|value| value.parse::<u64>().ok());
+        let limits = WasmExecutionLimits {
+            max_fuel: parse(WASM_MAX_FUEL_ENV),
+            max_memory_bytes: parse(WASM_MAX_MEMORY_BYTES_ENV),
+            max_stack_bytes: parse(WASM_MAX_STACK_BYTES_ENV),
+        };
         StartWasmExecutionRequest {
+            limits,
+            guest_runtime: GuestRuntimeConfig::default(),
             vm_id: String::from("vm-wasm"),
             context_id: String::from("ctx-wasm"),
             argv: Vec::new(),
@@ -5301,6 +5370,89 @@ mod tests {
             cwd: cwd.to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         }
+    }
+
+    /// Build a request whose typed limits and `AGENT_OS_WASM_*` env disagree, so a
+    /// reader that still consulted env would observe the (wrong) env value.
+    fn request_with_typed_limits_and_misleading_env(
+        limits: WasmExecutionLimits,
+    ) -> StartWasmExecutionRequest {
+        StartWasmExecutionRequest {
+            limits,
+            guest_runtime: GuestRuntimeConfig::default(),
+            vm_id: String::from("vm-wasm"),
+            context_id: String::from("ctx-wasm"),
+            argv: Vec::new(),
+            // Deliberately huge env values: if any limit were still sourced from
+            // env, the assertions below would observe these instead.
+            env: BTreeMap::from([
+                (String::from(WASM_MAX_FUEL_ENV), String::from("999999")),
+                (
+                    String::from(WASM_MAX_MEMORY_BYTES_ENV),
+                    String::from("999999"),
+                ),
+                (
+                    String::from(WASM_MAX_STACK_BYTES_ENV),
+                    String::from("999999"),
+                ),
+            ]),
+            cwd: PathBuf::from("/tmp"),
+            permission_tier: WasmPermissionTier::Full,
+        }
+    }
+
+    #[test]
+    fn wasm_limits_are_read_from_typed_fields_and_env_is_inert() {
+        let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits {
+            max_fuel: Some(25),
+            max_memory_bytes: Some(65_536),
+            max_stack_bytes: Some(131_072),
+        });
+
+        assert_eq!(
+            resolve_wasm_execution_timeout(&request).expect("fuel timeout"),
+            Some(Duration::from_millis(25)),
+            "fuel must come from the typed wire limit, not AGENT_OS_WASM_MAX_FUEL"
+        );
+        assert_eq!(
+            wasm_memory_limit_bytes(&request).expect("memory limit"),
+            Some(65_536),
+            "memory must come from the typed wire limit, not AGENT_OS_WASM_MAX_MEMORY_BYTES"
+        );
+        assert_eq!(
+            resolve_wasm_stack_limit_bytes(&request).expect("stack limit"),
+            Some(131_072),
+            "stack must come from the typed wire limit (retiring the dead AGENT_OS_WASM_MAX_STACK_BYTES knob)"
+        );
+    }
+
+    #[test]
+    fn wasm_limits_default_to_none_when_unset_even_with_env_present() {
+        // Same misleading env, but no typed limits: every limit must be absent.
+        let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits::default());
+
+        assert_eq!(
+            resolve_wasm_execution_timeout(&request).expect("fuel"),
+            None
+        );
+        assert_eq!(wasm_memory_limit_bytes(&request).expect("memory"), None);
+        assert_eq!(
+            resolve_wasm_stack_limit_bytes(&request).expect("stack"),
+            None
+        );
+    }
+
+    #[test]
+    fn wasm_stack_limit_of_zero_is_rejected() {
+        let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits {
+            max_stack_bytes: Some(0),
+            ..WasmExecutionLimits::default()
+        });
+
+        assert!(
+            resolve_wasm_stack_limit_bytes(&request).is_err(),
+            "a zero stack cap must fail closed rather than be silently dropped"
+        );
     }
 
     #[test]

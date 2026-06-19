@@ -1,8 +1,8 @@
 use crate::common::{encode_json_string, frozen_time_ms};
 use crate::javascript::{
-    CreateJavascriptContextRequest, JavascriptExecution, JavascriptExecutionEngine,
-    JavascriptExecutionError, JavascriptExecutionEvent, JavascriptSyncRpcRequest,
-    StartJavascriptExecutionRequest,
+    CreateJavascriptContextRequest, GuestRuntimeConfig, JavascriptExecution,
+    JavascriptExecutionEngine, JavascriptExecutionError, JavascriptExecutionEvent,
+    JavascriptExecutionLimits, JavascriptSyncRpcRequest, StartJavascriptExecutionRequest,
 };
 use crate::node_import_cache::{NodeImportCache, NODE_IMPORT_CACHE_ASSET_ROOT_ENV};
 use crate::runtime_support::{
@@ -24,8 +24,6 @@ use std::time::{Duration, Instant};
 const NODE_ALLOW_PROCESS_BINDINGS_ENV: &str = "AGENT_OS_ALLOW_PROCESS_BINDINGS";
 const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENT_OS_GUEST_PATH_MAPPINGS";
 const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_DATA_BYTES";
-const NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS";
-const V8_HEAP_LIMIT_MB_ENV: &str = "AGENT_OS_V8_HEAP_LIMIT_MB";
 const PYODIDE_INDEX_URL_ENV: &str = "AGENT_OS_PYODIDE_INDEX_URL";
 const PYODIDE_PACKAGE_BASE_URL_ENV: &str = "AGENT_OS_PYODIDE_PACKAGE_BASE_URL";
 const PYODIDE_PACKAGE_CACHE_DIR_ENV: &str = "AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR";
@@ -36,10 +34,6 @@ const PYTHON_FILE_ENV: &str = "AGENT_OS_PYTHON_FILE";
 const PYTHON_PREWARM_ONLY_ENV: &str = "AGENT_OS_PYTHON_PREWARM_ONLY";
 const PYTHON_WARMUP_DEBUG_ENV: &str = "AGENT_OS_PYTHON_WARMUP_DEBUG";
 const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENT_OS_PYTHON_WARMUP_METRICS__:";
-const PYTHON_OUTPUT_BUFFER_MAX_BYTES_ENV: &str = "AGENT_OS_PYTHON_OUTPUT_BUFFER_MAX_BYTES";
-const PYTHON_EXECUTION_TIMEOUT_MS_ENV: &str = "AGENT_OS_PYTHON_EXECUTION_TIMEOUT_MS";
-const PYTHON_MAX_OLD_SPACE_MB_ENV: &str = "AGENT_OS_PYTHON_MAX_OLD_SPACE_MB";
-const PYTHON_VFS_RPC_TIMEOUT_MS_ENV: &str = "AGENT_OS_PYTHON_VFS_RPC_TIMEOUT_MS";
 const PYTHON_WARMUP_MARKER_VERSION: &str = "2";
 const DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES: usize = 1024 * 1024;
 const DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS: u64 = 5 * 60 * 1000;
@@ -192,6 +186,24 @@ pub struct PythonContext {
     pub pyodide_dist_path: PathBuf,
 }
 
+/// Per-execution Python runtime limits, carried as typed fields rather than
+/// `AGENT_OS_*` env vars. Populated by the sidecar from the per-VM `VmLimits`
+/// (originating from `CreateVmConfig` on the BARE wire); `None` selects the
+/// engine default. See the env-vs-wire rule in `crates/sidecar/CLAUDE.md`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PythonExecutionLimits {
+    /// Captured-output buffer cap in bytes. `None` keeps the engine default.
+    pub output_buffer_max_bytes: Option<usize>,
+    /// Execution wall-clock cap in ms. `None` keeps the engine default;
+    /// `Some(0)` disables the timeout.
+    pub execution_timeout_ms: Option<u64>,
+    /// Pyodide V8 old-space cap in MB (`0` keeps the V8 default). `None` keeps
+    /// the engine default.
+    pub max_old_space_mb: Option<usize>,
+    /// VFS sync-RPC wait ceiling in ms. `None` keeps the engine default.
+    pub vfs_rpc_timeout_ms: Option<u64>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StartPythonExecutionRequest {
     pub vm_id: String,
@@ -200,6 +212,11 @@ pub struct StartPythonExecutionRequest {
     pub file_path: Option<PathBuf>,
     pub env: BTreeMap<String, String>,
     pub cwd: PathBuf,
+    /// Per-execution runtime limits (see [`PythonExecutionLimits`]).
+    pub limits: PythonExecutionLimits,
+    /// Per-execution guest-runtime config, forwarded to the Pyodide runner's JS
+    /// execution (see [`GuestRuntimeConfig`]).
+    pub guest_runtime: GuestRuntimeConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -916,6 +933,15 @@ fn start_python_javascript_execution(
     let mut env = request.env.clone();
     env.extend(internal_env);
 
+    // The Pyodide runner is itself a V8 execution. Its heap cap (the Python
+    // `maxOldSpaceMb` knob) and sync-RPC wait ceiling ride the typed runner
+    // limits, not env — the JS engine reads them from `limits`, not `AGENT_OS_*`.
+    let max_old_space_mb = python_max_old_space_mb(request);
+    let runner_limits = JavascriptExecutionLimits {
+        v8_heap_limit_mb: (max_old_space_mb > 0).then(|| max_old_space_mb as u32),
+        sync_rpc_wait_timeout_ms: Some(PYTHON_SYNC_RPC_WAIT_TIMEOUT_MS),
+    };
+
     javascript_engine
         .start_execution(StartJavascriptExecutionRequest {
             vm_id: request.vm_id.clone(),
@@ -923,6 +949,10 @@ fn start_python_javascript_execution(
             argv: vec![import_cache.python_runner_path().display().to_string()],
             env,
             cwd: request.cwd.clone(),
+            limits: runner_limits,
+            // Forward the guest-runtime identity so the runner's shim sets
+            // process.* from typed config rather than env.
+            guest_runtime: request.guest_runtime.clone(),
             inline_code: Some(inline_code),
         })
         .map_err(map_javascript_error)
@@ -974,17 +1004,13 @@ fn build_python_internal_env(
         PYTHON_SYNC_RPC_DATA_BYTES.to_string(),
     );
     internal_env.insert(
-        NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV.to_string(),
-        PYTHON_SYNC_RPC_WAIT_TIMEOUT_MS.to_string(),
-    );
-    internal_env.insert(
         NODE_DISABLE_COMPILE_CACHE_ENV.to_string(),
         String::from("1"),
     );
-    internal_env.insert(
-        V8_HEAP_LIMIT_MB_ENV.to_string(),
-        python_max_old_space_mb(request).to_string(),
-    );
+    // The runner's V8 heap cap and sync-RPC wait timeout are carried as typed
+    // `JavascriptExecutionLimits` on the runner request (see the launch site),
+    // not as `AGENT_OS_V8_HEAP_LIMIT_MB` / `AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS`
+    // env knobs, which the JS engine no longer reads.
     internal_env.insert(PYTHON_CODE_ENV.to_string(), request.code.clone());
     internal_env.insert(NODE_FROZEN_TIME_ENV.to_string(), frozen_time_ms.to_string());
     if prewarm_only {
@@ -1186,37 +1212,24 @@ impl PythonOutputBuffer {
 
 fn python_output_buffer_max_bytes(request: &StartPythonExecutionRequest) -> usize {
     request
-        .env
-        .get(PYTHON_OUTPUT_BUFFER_MAX_BYTES_ENV)
-        .and_then(|value| value.trim().parse::<usize>().ok())
+        .limits
+        .output_buffer_max_bytes
         .unwrap_or(DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES)
 }
 
 fn python_execution_timeout(request: &StartPythonExecutionRequest) -> Option<Duration> {
-    match request.env.get(PYTHON_EXECUTION_TIMEOUT_MS_ENV) {
-        Some(value) => {
-            let trimmed = value.trim();
-            if trimmed == "0" {
-                None
-            } else {
-                Some(Duration::from_millis(
-                    trimmed
-                        .parse::<u64>()
-                        .ok()
-                        .filter(|value| *value > 0)
-                        .unwrap_or(DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS),
-                ))
-            }
-        }
+    match request.limits.execution_timeout_ms {
+        // `Some(0)` explicitly disables the timeout.
+        Some(0) => None,
+        Some(value) => Some(Duration::from_millis(value)),
         None => Some(Duration::from_millis(DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS)),
     }
 }
 
 fn python_max_old_space_mb(request: &StartPythonExecutionRequest) -> usize {
     request
-        .env
-        .get(PYTHON_MAX_OLD_SPACE_MB_ENV)
-        .and_then(|value| value.trim().parse::<usize>().ok())
+        .limits
+        .max_old_space_mb
         .filter(|value| *value > 0)
         .unwrap_or(DEFAULT_PYTHON_MAX_OLD_SPACE_MB)
 }
@@ -1224,9 +1237,8 @@ fn python_max_old_space_mb(request: &StartPythonExecutionRequest) -> usize {
 fn python_vfs_rpc_timeout(request: &StartPythonExecutionRequest) -> Duration {
     Duration::from_millis(
         request
-            .env
-            .get(PYTHON_VFS_RPC_TIMEOUT_MS_ENV)
-            .and_then(|value| value.trim().parse::<u64>().ok())
+            .limits
+            .vfs_rpc_timeout_ms
             .filter(|value| *value > 0)
             .unwrap_or(DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS),
     )

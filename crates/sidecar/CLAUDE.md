@@ -1,5 +1,17 @@
 See `../CLAUDE.md` for crate-wide runtime and testing rules.
 
+## env vs BARE wire — channel classification
+
+Spawned language-host engines are configured two ways: the **BARE wire/structured request** (`protocol.rs` payloads, `CreateVmConfig`, and the per-engine `Start{Javascript,Wasm,Python}ExecutionRequest` structs in `crates/execution`) and the **`AGENT_OS_*` env channel** (assembled in `prepare_guest_runtime_env` / `apply_wasm_limit_env` in `src/execution.rs`, read back by the engines/bridge). Every setting belongs to exactly one of three buckets:
+
+1. **Process-wide / host / build / test → env.** Shared across all VMs, not per-VM configurable (e.g. `SECURE_EXEC_NODE`, `*_V8_BRIDGE_BUILD_SCRIPT`, pyodide index/cache URLs, all test/debug knobs). Leave on env.
+2. **Per-VM bootstrap-before-wire → env (explicit carve-out).** Must exist at `exec` time *before* the wire/sync-RPC bridge is up: `AGENT_OS_SANDBOX_ROOT`, the sync-RPC bridge fds (`AGENT_OS_NODE_SYNC_RPC_ENABLE`/`_REQUEST_FD`/`_RESPONSE_FD`/`_DATA_BYTES`/`_WAIT_TIMEOUT_MS`), entrypoint/argv/payload (`AGENT_OS_ENTRYPOINT`/`_GUEST_ENTRYPOINT`/`_GUEST_ARGV`/`_BOOTSTRAP_MODULE`, `_PYTHON_CODE`/`_PYTHON_FILE`, `_WASM_MODULE_PATH`). Keep on env; keep scrubbed from guest `process.env` and from `child_process` spawns.
+3. **Per-VM runtime config → BARE wire.** Anything per-VM the established wire/bridge could carry: resource limits, isolation policy, virtualized identity. MUST ride the wire (a typed field on `CreateVmConfig`/`VmLimits` or the per-execution request), read by the engine from that field. New per-VM settings default here.
+
+**Dead-cap anti-pattern.** A value set on the wire that is then silently re-emitted as an `AGENT_OS_*` env knob is the dead-cap failure mode — the env knob can be wrong, stale, or never read while the wire value is ignored (this is exactly how `AGENT_OS_WASM_MAX_STACK_BYTES` was set into env but never read). If it's on the wire, the engine reads it from the wire path; do not duplicate it onto env "just in case", and per the versionless-lockstep rule do not keep an env knob as a fallback.
+
+Migration status: **resource limits** (typed `*ExecutionLimits` on the execution request) and **virtualized identity** (`process.{pid,ppid,uid,gid}` interpolated into the runtime shim; `os.{cpus,totalmem,freemem,homedir,userInfo,…}` via the `__agentOsVirtualOs` global the shim sets) are migrated to the wire. **Isolation policy** (`AGENT_OS_GUEST_PATH_MAPPINGS`, `EXTRA_FS_*_PATHS`, `ALLOWED_NODE_BUILTINS`, `LOOPBACK_EXEMPT_PORTS`, `WASM_PERMISSION_TIER`) is bucket 3 but still on env — future work. Note: the guest module loader and `os` module (`guestOs`) read their inputs at module-evaluation; the runtime shim sets `__agentOsVirtualOs` early enough that this works (verified by `os_resource_limits_are_vm_scoped` in `tests/builtin_conformance.rs`, which asserts the guest's `os.*` identity reflects the configured VM).
+
 ## Local Patterns
 
 - `RequestPayload::Ext`, `ResponsePayload::ExtResult`, `EventPayload::Ext`, and sidecar callback `Ext` payloads are opaque to core sidecar code; dispatch only by namespace and leave inner payload decoding to the registered extension.

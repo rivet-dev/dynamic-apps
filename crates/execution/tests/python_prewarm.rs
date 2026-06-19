@@ -29,6 +29,8 @@ fn run_python_execution(
 ) -> (String, String, i32) {
     let result = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context_id.to_string(),
             code: code.to_string(),

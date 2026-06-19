@@ -89,17 +89,16 @@ use rustls::{
 };
 use scrypt::{scrypt, Params as ScryptParams};
 use secure_exec_bridge::LifecycleState;
-use secure_exec_execution::wasm::{
-    WasmExecutionError, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV, WASM_MAX_STACK_BYTES_ENV,
-};
+use secure_exec_execution::wasm::WasmExecutionError;
 use secure_exec_execution::{
     javascript::handle_internal_bridge_call_from_host_context, v8_host::V8SessionHandle,
     v8_runtime, CreateJavascriptContextRequest, CreatePythonContextRequest,
-    CreateWasmContextRequest, JavascriptExecutionEvent, JavascriptSyncRpcRequest, ModuleFsReader,
+    CreateWasmContextRequest, GuestRuntimeConfig, JavascriptExecutionEvent,
+    JavascriptExecutionLimits, JavascriptSyncRpcRequest, ModuleFsReader,
     NodeSignalDispositionAction, NodeSignalHandlerRegistration, PythonExecutionEvent,
-    PythonVfsRpcMethod, PythonVfsRpcRequest, PythonVfsRpcResponsePayload,
+    PythonExecutionLimits, PythonVfsRpcMethod, PythonVfsRpcRequest, PythonVfsRpcResponsePayload,
     StartJavascriptExecutionRequest, StartPythonExecutionRequest, StartWasmExecutionRequest,
-    WasmExecutionEvent, WasmPermissionTier as ExecutionWasmPermissionTier,
+    WasmExecutionEvent, WasmExecutionLimits, WasmPermissionTier as ExecutionWasmPermissionTier,
 };
 use secure_exec_kernel::dns::{
     DnsLookupPolicy, DnsRecordResolution, DnsResolutionSource as KernelDnsResolutionSource,
@@ -3043,6 +3042,7 @@ where
                     .javascript_engine
                     .start_execution_with_module_reader(
                         StartJavascriptExecutionRequest {
+                            guest_runtime: guest_runtime_identity(vm, None, None),
                             vm_id: vm_id.clone(),
                             context_id: context.context_id,
                             argv: std::iter::once(resolved.entrypoint.clone())
@@ -3050,6 +3050,7 @@ where
                                 .collect(),
                             env: env.clone(),
                             cwd: resolved.host_cwd.clone(),
+                            limits: javascript_execution_limits(vm),
                             inline_code,
                         },
                         module_reader,
@@ -3111,20 +3112,16 @@ where
                         file_path: python_file_path,
                         env: env.clone(),
                         cwd: resolved.host_cwd.clone(),
+                        limits: python_execution_limits(vm),
+                        guest_runtime: guest_runtime_identity(vm, None, None),
                     })
                     .map_err(python_error)?;
                 (ActiveExecution::Python(execution), env.clone())
             }
             GuestRuntimeKind::WebAssembly => {
-                env.insert(
-                    String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                    kernel_pid.to_string(),
-                );
-                env.insert(
-                    String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                    String::from("0"),
-                );
-                apply_wasm_limit_env(&mut env, vm.kernel.resource_limits());
+                let wasm_limits = wasm_execution_limits(vm);
+                let wasm_guest_runtime =
+                    guest_runtime_identity(vm, Some(u64::from(kernel_pid)), Some(0));
                 let wasm_permission_tier = resolved.wasm_permission_tier.unwrap_or_else(|| {
                     resolve_wasm_permission_tier(
                         vm,
@@ -3146,6 +3143,8 @@ where
                         env: env.clone(),
                         cwd: resolved.host_cwd.clone(),
                         permission_tier: execution_wasm_permission_tier(wasm_permission_tier),
+                        limits: wasm_limits,
+                        guest_runtime: wasm_guest_runtime,
                     })
                     .map_err(wasm_error)?;
                 (ActiveExecution::Wasm(execution), env)
@@ -4704,9 +4703,11 @@ where
             let Some(process) = vm.active_processes.get(process_id) else {
                 return Ok(());
             };
+            let virtual_home = guest_virtual_home(vm);
             let cwd = request.cwd.clone().or_else(|| {
                 guest_runtime_path_for_host_path(
                     &vm.guest_env,
+                    &virtual_home,
                     &vm.host_cwd,
                     &process.host_cwd.to_string_lossy(),
                 )
@@ -5297,14 +5298,6 @@ where
                         String::from("SECURE_EXEC_KEEP_STDIN_OPEN"),
                         String::from("1"),
                     );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                        kernel_pid.to_string(),
-                    );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                        parent_kernel_pid.to_string(),
-                    );
                     let context =
                         self.javascript_engine
                             .create_context(CreateJavascriptContextRequest {
@@ -5327,6 +5320,11 @@ where
                         .javascript_engine
                         .start_execution_with_module_reader(
                             StartJavascriptExecutionRequest {
+                                guest_runtime: guest_runtime_identity(
+                                    vm,
+                                    Some(u64::from(kernel_pid)),
+                                    Some(u64::from(parent_kernel_pid)),
+                                ),
                                 vm_id: vm_id.to_owned(),
                                 context_id: context.context_id,
                                 argv: std::iter::once(resolved.entrypoint.clone())
@@ -5334,6 +5332,7 @@ where
                                     .collect(),
                                 env: execution_env,
                                 cwd: resolved.host_cwd.clone(),
+                                limits: javascript_execution_limits(vm),
                                 inline_code,
                             },
                             module_reader,
@@ -5343,15 +5342,12 @@ where
                 }
                 GuestRuntimeKind::WebAssembly => {
                     execution_env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                        kernel_pid.to_string(),
+                    let wasm_limits = wasm_execution_limits(vm);
+                    let wasm_guest_runtime = guest_runtime_identity(
+                        vm,
+                        Some(u64::from(kernel_pid)),
+                        Some(u64::from(parent_kernel_pid)),
                     );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                        parent_kernel_pid.to_string(),
-                    );
-                    apply_wasm_limit_env(&mut execution_env, vm.kernel.resource_limits());
                     let context = self.wasm_engine.create_context(CreateWasmContextRequest {
                         vm_id: vm_id.to_owned(),
                         module_path: Some(resolved.entrypoint.clone()),
@@ -5369,6 +5365,8 @@ where
                                     .wasm_permission_tier
                                     .unwrap_or(WasmPermissionTier::Full),
                             ),
+                            limits: wasm_limits,
+                            guest_runtime: wasm_guest_runtime,
                         })
                         .map_err(wasm_error)?;
                     ActiveExecution::Wasm(execution)
@@ -5692,14 +5690,6 @@ where
                         String::from("SECURE_EXEC_KEEP_STDIN_OPEN"),
                         String::from("1"),
                     );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                        kernel_pid.to_string(),
-                    );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                        parent_kernel_pid.to_string(),
-                    );
                     let context =
                         self.javascript_engine
                             .create_context(CreateJavascriptContextRequest {
@@ -5722,6 +5712,11 @@ where
                         .javascript_engine
                         .start_execution_with_module_reader(
                             StartJavascriptExecutionRequest {
+                                guest_runtime: guest_runtime_identity(
+                                    vm,
+                                    Some(u64::from(kernel_pid)),
+                                    Some(u64::from(parent_kernel_pid)),
+                                ),
                                 vm_id: vm_id.to_owned(),
                                 context_id: context.context_id,
                                 argv: std::iter::once(resolved.entrypoint.clone())
@@ -5729,6 +5724,7 @@ where
                                     .collect(),
                                 env: execution_env,
                                 cwd: resolved.host_cwd.clone(),
+                                limits: javascript_execution_limits(vm),
                                 inline_code,
                             },
                             module_reader,
@@ -5738,15 +5734,12 @@ where
                 }
                 GuestRuntimeKind::WebAssembly => {
                     execution_env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                        kernel_pid.to_string(),
+                    let wasm_limits = wasm_execution_limits(vm);
+                    let wasm_guest_runtime = guest_runtime_identity(
+                        vm,
+                        Some(u64::from(kernel_pid)),
+                        Some(u64::from(parent_kernel_pid)),
                     );
-                    execution_env.insert(
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                        parent_kernel_pid.to_string(),
-                    );
-                    apply_wasm_limit_env(&mut execution_env, vm.kernel.resource_limits());
                     let context = self.wasm_engine.create_context(CreateWasmContextRequest {
                         vm_id: vm_id.to_owned(),
                         module_path: Some(resolved.entrypoint.clone()),
@@ -5764,6 +5757,8 @@ where
                                     .wasm_permission_tier
                                     .unwrap_or(WasmPermissionTier::Full),
                             ),
+                            limits: wasm_limits,
+                            guest_runtime: wasm_guest_runtime,
                         })
                         .map_err(wasm_error)?;
                     ActiveExecution::Wasm(execution)
@@ -8568,7 +8563,6 @@ fn prepare_guest_runtime_env(
     guest_entrypoint: Option<String>,
 ) -> Result<(), SidecarError> {
     let user = vm.kernel.user_profile();
-    let resource_limits = vm.kernel.resource_limits();
     let path_mappings = runtime_guest_path_mappings(vm);
     let read_paths = expand_host_access_paths(
         std::iter::once(vm.cwd.clone())
@@ -8655,38 +8649,12 @@ fn prepare_guest_runtime_env(
             })?,
         );
     }
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_USER"),
-        user.username.clone(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_HOMEDIR"),
-        user.homedir.clone(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_SHELL"),
-        user.shell.clone(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_CPU_COUNT"),
-        virtual_os_cpu_count(resource_limits).to_string(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_TOTALMEM"),
-        virtual_os_totalmem_bytes(resource_limits).to_string(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_OS_FREEMEM"),
-        virtual_os_freemem_bytes(resource_limits).to_string(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_PROCESS_UID"),
-        user.uid.to_string(),
-    );
-    env.insert(
-        String::from("AGENT_OS_VIRTUAL_PROCESS_GID"),
-        user.gid.to_string(),
-    );
+    // Virtual OS identity (os.cpus/totalmem/freemem/homedir/userInfo/...) now
+    // rides the typed `guest_runtime` (see `guest_runtime_identity`), exposed to
+    // the guest as the `__agentOsVirtualOs` structured global by the runtime
+    // shim — no longer the `AGENT_OS_VIRTUAL_OS_*` env vars.
+    // Virtual process uid/gid now ride the typed `guest_runtime` identity
+    // (see `guest_runtime_identity`), not the `AGENT_OS_VIRTUAL_PROCESS_*` env.
     env.entry(String::from("HOME"))
         .or_insert_with(|| user.homedir.clone());
     env.entry(String::from("USER"))
@@ -8732,6 +8700,83 @@ fn virtual_os_freemem_bytes(resource_limits: &ResourceLimits) -> u64 {
     resource_limits
         .max_wasm_memory_bytes
         .unwrap_or(512 * 1024 * 1024)
+}
+
+/// Build the typed per-execution JavaScript limits from the per-VM `VmLimits`
+/// (sourced from `CreateVmConfig` on the BARE wire). These ride the execution
+/// request, not `AGENT_OS_*` env vars — see the env-vs-wire rule in
+/// `crates/sidecar/CLAUDE.md`.
+fn javascript_execution_limits(vm: &VmState) -> JavascriptExecutionLimits {
+    JavascriptExecutionLimits {
+        v8_heap_limit_mb: vm.limits.js_runtime.v8_heap_limit_mb,
+        sync_rpc_wait_timeout_ms: vm.limits.js_runtime.sync_rpc_wait_timeout_ms,
+    }
+}
+
+/// Build the typed per-execution guest-runtime identity (virtual `process.*`)
+/// from kernel state. Replaces the `AGENT_OS_VIRTUAL_PROCESS_{UID,GID,PID,PPID}`
+/// env round-trip: the runtime shim reads these from `guest_runtime`, not env.
+/// `uid`/`gid` come from the VM user profile (applied to every guest);
+/// `pid`/`ppid` are per-process and only set for paths that assigned them.
+fn guest_runtime_identity(
+    vm: &VmState,
+    virtual_pid: Option<u64>,
+    virtual_ppid: Option<u64>,
+) -> GuestRuntimeConfig {
+    let user = vm.kernel.user_profile();
+    let resource_limits = vm.kernel.resource_limits();
+    GuestRuntimeConfig {
+        virtual_uid: Some(u64::from(user.uid)),
+        virtual_gid: Some(u64::from(user.gid)),
+        virtual_pid,
+        virtual_ppid,
+        virtual_exec_path: None,
+        os_cpu_count: Some(virtual_os_cpu_count(resource_limits) as u64),
+        os_totalmem: Some(virtual_os_totalmem_bytes(resource_limits)),
+        os_freemem: Some(virtual_os_freemem_bytes(resource_limits)),
+        os_homedir: Some(user.homedir.clone()),
+        os_hostname: None,
+        os_shell: Some(user.shell.clone()),
+        os_user: Some(user.username.clone()),
+    }
+}
+
+/// The guest's virtual home directory, sourced from the VM user profile (the
+/// same value carried to the guest as `os.homedir()` via `guest_runtime`). Used
+/// by sidecar-internal `~`-path resolution; falls back to `/root` for a
+/// non-absolute profile value.
+fn guest_virtual_home(vm: &VmState) -> String {
+    let homedir = vm.kernel.user_profile().homedir;
+    if homedir.starts_with('/') {
+        homedir
+    } else {
+        String::from("/root")
+    }
+}
+
+/// Build the typed per-execution Python limits from the per-VM `VmLimits`.
+fn python_execution_limits(vm: &VmState) -> PythonExecutionLimits {
+    PythonExecutionLimits {
+        output_buffer_max_bytes: Some(vm.limits.python.output_buffer_max_bytes),
+        execution_timeout_ms: Some(vm.limits.python.execution_timeout_ms),
+        max_old_space_mb: Some(vm.limits.python.max_old_space_mb),
+        vfs_rpc_timeout_ms: Some(vm.limits.python.vfs_rpc_timeout_ms),
+    }
+}
+
+/// Build the typed per-execution WebAssembly limits from the per-VM kernel
+/// `ResourceLimits`. Replaces the old `apply_wasm_limit_env` env round-trip;
+/// notably this is the path that finally enforces the stack cap that the
+/// `AGENT_OS_WASM_MAX_STACK_BYTES` env knob set but no reader consumed.
+fn wasm_execution_limits(vm: &VmState) -> WasmExecutionLimits {
+    let resource_limits = vm.kernel.resource_limits();
+    WasmExecutionLimits {
+        max_fuel: resource_limits.max_wasm_fuel,
+        max_memory_bytes: resource_limits.max_wasm_memory_bytes,
+        max_stack_bytes: resource_limits
+            .max_wasm_stack_bytes
+            .map(|value| value as u64),
+    }
 }
 
 /// The guest JavaScript host platform configured for this VM, defaulting to
@@ -9469,18 +9514,6 @@ fn load_javascript_entrypoint_source(
     }
 
     fs::read_to_string(&normalized_entrypoint).ok()
-}
-
-fn apply_wasm_limit_env(env: &mut BTreeMap<String, String>, limits: &ResourceLimits) {
-    if let Some(limit) = limits.max_wasm_fuel {
-        env.insert(String::from(WASM_MAX_FUEL_ENV), limit.to_string());
-    }
-    if let Some(limit) = limits.max_wasm_memory_bytes {
-        env.insert(String::from(WASM_MAX_MEMORY_BYTES_ENV), limit.to_string());
-    }
-    if let Some(limit) = limits.max_wasm_stack_bytes {
-        env.insert(String::from(WASM_MAX_STACK_BYTES_ENV), limit.to_string());
-    }
 }
 
 fn emit_dns_resolution_event<B>(
@@ -10973,12 +11006,7 @@ fn host_runtime_path_for_guest_path_with_env(
     }
 
     let normalized = normalize_path(guest_path);
-    let virtual_home = runtime_env
-        .get("AGENT_OS_VIRTUAL_OS_HOMEDIR")
-        .or_else(|| vm.guest_env.get("AGENT_OS_VIRTUAL_OS_HOMEDIR"))
-        .filter(|value| value.starts_with('/'))
-        .cloned()
-        .unwrap_or_else(|| String::from("/root"));
+    let virtual_home = guest_virtual_home(vm);
 
     if normalized == virtual_home || normalized.starts_with(&format!("{virtual_home}/")) {
         let suffix = normalized
@@ -11059,6 +11087,7 @@ pub(crate) fn host_path_from_runtime_guest_mappings(
 
 fn guest_runtime_path_for_host_path(
     runtime_env: &BTreeMap<String, String>,
+    virtual_home: &str,
     cwd: &Path,
     host_path: &str,
 ) -> Option<String> {
@@ -11087,11 +11116,11 @@ fn guest_runtime_path_for_host_path(
         return None;
     }
 
-    let virtual_home = runtime_env
-        .get("AGENT_OS_VIRTUAL_OS_HOMEDIR")
-        .filter(|value| value.starts_with('/'))
-        .cloned()
-        .unwrap_or_else(|| String::from("/root"));
+    let virtual_home = if virtual_home.starts_with('/') {
+        virtual_home.to_string()
+    } else {
+        String::from("/root")
+    };
     let suffix = normalized
         .strip_prefix(&normalized_cwd)
         .ok()?

@@ -8294,15 +8294,22 @@ var __bridge = (() => {
     const parsed = Number.parseInt(rawValue, 10);
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
+  function getRuntimeVirtualOs() {
+    return globalThis.__agentOsVirtualOs || {};
+  }
+  function runtimeVirtualOsPositiveInt(name, fallback) {
+    const parsed = Number(getRuntimeVirtualOs()[name]);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+  }
   function getRuntimeVirtualCpuCount() {
-    return getRuntimePositiveIntEnv("AGENT_OS_VIRTUAL_OS_CPU_COUNT", 1);
+    return runtimeVirtualOsPositiveInt("cpuCount", 1);
   }
   function getRuntimeVirtualTotalMem() {
-    return getRuntimePositiveIntEnv("AGENT_OS_VIRTUAL_OS_TOTALMEM", 1073741824);
+    return runtimeVirtualOsPositiveInt("totalmem", 1073741824);
   }
   function getRuntimeVirtualFreeMem() {
     return Math.min(
-      getRuntimePositiveIntEnv("AGENT_OS_VIRTUAL_OS_FREEMEM", 536870912),
+      runtimeVirtualOsPositiveInt("freemem", 536870912),
       getRuntimeVirtualTotalMem()
     );
   }

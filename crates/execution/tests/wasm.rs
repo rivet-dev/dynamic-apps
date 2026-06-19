@@ -5,7 +5,7 @@ use secure_exec_execution::wasm::{
 };
 use secure_exec_execution::{
     CreateWasmContextRequest, StartWasmExecutionRequest, WasmExecutionEngine, WasmExecutionError,
-    WasmExecutionEvent, WasmPermissionTier,
+    WasmExecutionEvent, WasmExecutionLimits, WasmPermissionTier,
 };
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -193,6 +193,19 @@ fn parse_unicode_escape_unit(chars: &mut std::str::Chars<'_>) -> u16 {
     u16::from_str_radix(&hex, 16).expect("unicode escape value")
 }
 
+/// Mirror the sidecar's config→limits flow for tests that still express WASM
+/// limits via the historical `AGENT_OS_WASM_*` env keys: translate them into the
+/// typed `WasmExecutionLimits` the engine now reads. Production sources these
+/// from the BARE-wire resource limits, never env.
+fn wasm_limits_from_env(env: &BTreeMap<String, String>) -> WasmExecutionLimits {
+    let parse = |key: &str| env.get(key).and_then(|value| value.parse::<u64>().ok());
+    WasmExecutionLimits {
+        max_fuel: parse(WASM_MAX_FUEL_ENV),
+        max_memory_bytes: parse(WASM_MAX_MEMORY_BYTES_ENV),
+        max_stack_bytes: parse(WASM_MAX_STACK_BYTES_ENV),
+    }
+}
+
 fn run_wasm_execution(
     engine: &mut WasmExecutionEngine,
     context_id: String,
@@ -201,8 +214,11 @@ fn run_wasm_execution(
     env: BTreeMap<String, String>,
     permission_tier: WasmPermissionTier,
 ) -> (String, String, i32) {
+    let limits = wasm_limits_from_env(&env);
     let execution = engine
         .start_execution(StartWasmExecutionRequest {
+            limits,
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id,
             argv,
@@ -880,6 +896,8 @@ fn wasm_execution_runs_guest_module_through_v8() {
 
     let execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: vec![String::from("guest.wasm")],
@@ -1010,6 +1028,8 @@ fn wasm_execution_rejects_vm_mismatch() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-other"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1038,6 +1058,8 @@ fn wasm_execution_streams_exit_event() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1090,6 +1112,8 @@ fn wasm_execution_can_route_stdio_through_kernel_sync_rpc() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1145,6 +1169,8 @@ fn wasm_execution_reads_streaming_stdin_via_kernel_bridge() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1185,6 +1211,8 @@ fn wasm_execution_poll_oneoff_uses_kernel_poll_for_multiple_fds() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1249,6 +1277,8 @@ fn wasm_execution_emits_signal_state_from_control_channel() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1318,6 +1348,8 @@ fn wasm_execution_preserves_stdout_when_signal_state_marker_shares_stdout_chunk(
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1383,6 +1415,8 @@ fn wasm_execution_reassembles_split_signal_state_marker_across_stdout_chunks() {
 
     let mut execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -1866,13 +1900,16 @@ fn wasm_execution_rejects_modules_whose_memory_cap_exceeds_limit() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            // Enforced from the typed wire limit, not an env knob.
+            limits: WasmExecutionLimits {
+                max_memory_bytes: Some(2 * 65_536),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
-            env: BTreeMap::from([(
-                String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                (2 * 65_536_u64).to_string(),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         })
@@ -1934,13 +1971,18 @@ fn wasm_execution_rejects_modules_that_exceed_parser_file_size_cap() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            // The memory cap (which gates module-structure validation) is enforced
+            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // env knob.
+            limits: WasmExecutionLimits {
+                max_memory_bytes: Some(65_536),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
-            env: BTreeMap::from([(
-                String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                String::from("65536"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         })
@@ -1971,13 +2013,18 @@ fn wasm_execution_rejects_modules_with_too_many_import_entries() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            // The memory cap (which gates module-structure validation) is enforced
+            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // env knob.
+            limits: WasmExecutionLimits {
+                max_memory_bytes: Some(65_536),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
-            env: BTreeMap::from([(
-                String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                String::from("65536"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         })
@@ -2006,13 +2053,18 @@ fn wasm_execution_rejects_modules_with_too_many_memory_entries() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            // The memory cap (which gates module-structure validation) is enforced
+            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // env knob.
+            limits: WasmExecutionLimits {
+                max_memory_bytes: Some(65_536),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
-            env: BTreeMap::from([(
-                String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                String::from("65536"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         })
@@ -2043,13 +2095,18 @@ fn wasm_execution_rejects_varuints_that_exceed_parser_iteration_cap() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            // The memory cap (which gates module-structure validation) is enforced
+            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // env knob.
+            limits: WasmExecutionLimits {
+                max_memory_bytes: Some(65_536),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
-            env: BTreeMap::from([(
-                String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                String::from("65536"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
         })
@@ -2104,6 +2161,8 @@ fi\n";
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: vec![shim_path.to_string_lossy().into_owned()],
@@ -2167,6 +2226,8 @@ fn wasm_execution_rejects_random_non_wasm_bytes_with_typed_error() {
 
     let error = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: Vec::new(),
@@ -2230,6 +2291,8 @@ fn wasm_execution_rejects_native_binary_headers_with_explicit_error() {
 
         let error = engine
             .start_execution(StartWasmExecutionRequest {
+                guest_runtime: Default::default(),
+                limits: Default::default(),
                 vm_id: String::from("vm-wasm"),
                 context_id: context.context_id,
                 argv: Vec::new(),

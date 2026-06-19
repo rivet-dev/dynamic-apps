@@ -622,6 +622,7 @@ limits_struct!(AcpLimitsConfig {
 
 limits_struct!(JsRuntimeLimitsConfig {
     v8_heap_limit_mb,
+    sync_rpc_wait_timeout_ms,
     captured_output_limit_bytes,
     stdin_buffer_limit_bytes,
     event_payload_limit_bytes,
@@ -631,6 +632,7 @@ limits_struct!(JsRuntimeLimitsConfig {
 limits_struct!(PythonLimitsConfig {
     output_buffer_max_bytes,
     execution_timeout_ms,
+    max_old_space_mb,
     vfs_rpc_timeout_ms,
 });
 

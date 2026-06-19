@@ -1,8 +1,8 @@
 use base64::Engine;
 use secure_exec_execution::{
     v8_runtime::map_bridge_method, CreateJavascriptContextRequest, JavascriptExecution,
-    JavascriptExecutionEngine, JavascriptExecutionEvent, JavascriptExecutionResult,
-    JavascriptSyncRpcRequest, StartJavascriptExecutionRequest,
+    JavascriptExecutionEngine, JavascriptExecutionEvent, JavascriptExecutionLimits,
+    JavascriptExecutionResult, JavascriptSyncRpcRequest, StartJavascriptExecutionRequest,
 };
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -765,6 +765,8 @@ fn javascript_execution_uses_v8_runtime_without_spawning_guest_node_binary() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -792,6 +794,58 @@ fn javascript_execution_uses_v8_runtime_without_spawning_guest_node_binary() {
     );
 }
 
+fn javascript_execution_virtual_os_identity_comes_from_guest_runtime_not_env() {
+    let temp = tempdir().expect("create temp dir");
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            // os.* identity rides the typed guest_runtime; the env carries
+            // contradictory values to prove the AGENT_OS_VIRTUAL_OS_* knobs are
+            // inert.
+            guest_runtime: secure_exec_execution::GuestRuntimeConfig {
+                os_cpu_count: Some(7),
+                os_totalmem: Some(8_000_000_000),
+                os_freemem: Some(4_000_000_000),
+                ..Default::default()
+            },
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::from([
+                (
+                    String::from("AGENT_OS_VIRTUAL_OS_CPU_COUNT"),
+                    String::from("99"),
+                ),
+                (
+                    String::from("AGENT_OS_VIRTUAL_OS_TOTALMEM"),
+                    String::from("123"),
+                ),
+            ]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                r#"
+import os from "node:os";
+if (os.cpus().length !== 7) throw new Error(`cpus=${os.cpus().length}`);
+if (os.totalmem() !== 8000000000) throw new Error(`totalmem=${os.totalmem()}`);
+if (os.freemem() !== 4000000000) throw new Error(`freemem=${os.freemem()}`);
+"#,
+            )),
+        })
+        .expect("start JavaScript execution");
+
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(result.exit_code, 0, "stderr:\n{stderr}");
+    assert!(result.stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
 fn javascript_execution_virtualizes_process_metadata_for_inline_v8_code() {
     let temp = tempdir().expect("create temp dir");
     let mut engine = JavascriptExecutionEngine::default();
@@ -803,17 +857,25 @@ fn javascript_execution_virtualizes_process_metadata_for_inline_v8_code() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            // Identity rides the typed guest_runtime; the env carries different
+            // values to prove the `AGENT_OS_VIRTUAL_PROCESS_*` knobs are inert.
+            guest_runtime: secure_exec_execution::GuestRuntimeConfig {
+                virtual_pid: Some(4242),
+                virtual_ppid: Some(41),
+                ..Default::default()
+            },
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs"), String::from("alpha")],
             env: BTreeMap::from([
                 (
                     String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
-                    String::from("4242"),
+                    String::from("1"),
                 ),
                 (
                     String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
-                    String::from("41"),
+                    String::from("2"),
                 ),
             ]),
             cwd: temp.path().to_path_buf(),
@@ -847,6 +909,8 @@ fn javascript_execution_process_kill_rejects_invalid_pid_in_guest_js() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -898,6 +962,8 @@ fn javascript_execution_preserves_binary_process_stdio_writes() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -929,6 +995,8 @@ fn javascript_execution_intl_number_format_does_not_require_host_icu() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -964,6 +1032,8 @@ fn javascript_execution_stream_consumers_text_reads_live_stdin() {
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1009,6 +1079,8 @@ fn javascript_execution_process_stdin_async_iterator_finishes_with_live_stdin() 
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1055,6 +1127,8 @@ fn javascript_execution_process_exit_from_live_stdin_listener_exits_without_wait
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1122,6 +1196,8 @@ fn javascript_execution_process_exit_ignores_live_interval_handles() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1176,6 +1252,8 @@ fn javascript_execution_process_exit_bypasses_promise_catch_handlers() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1216,6 +1294,8 @@ fn javascript_execution_live_stdin_replays_end_after_late_listener_registration(
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1268,6 +1348,8 @@ fn javascript_execution_file_url_to_path_accepts_guest_absolute_paths() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1309,6 +1391,8 @@ fn javascript_execution_imports_node_events_without_hanging() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1351,6 +1435,8 @@ fn javascript_execution_imports_node_process_without_hanging() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1392,6 +1478,8 @@ fn javascript_execution_imports_node_fs_promises_without_hanging() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1432,6 +1520,8 @@ fn javascript_execution_imports_node_perf_hooks_without_hanging() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1484,6 +1574,8 @@ fn javascript_execution_exposes_compatibility_shims_and_denies_escape_builtins()
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1585,6 +1677,8 @@ console.log(JSON.stringify({
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1615,6 +1709,8 @@ fn javascript_execution_provides_async_hooks_and_diagnostics_channel_stubs() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1757,6 +1853,8 @@ if (JSON.stringify(searchPaths) !== JSON.stringify(expectedPaths)) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1828,6 +1926,8 @@ fn javascript_execution_rejects_native_node_addons() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.js")],
@@ -1879,6 +1979,8 @@ fs.statSync("/workspace/note.txt");
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -1954,6 +2056,8 @@ if (summary.rinfo.address !== "127.0.0.1" || summary.rinfo.port !== 7) {
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2084,6 +2188,8 @@ fn javascript_execution_strips_hashbang_from_module_entrypoints() {
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./index.js")],
@@ -2159,6 +2265,8 @@ fn javascript_execution_resolves_pnpm_store_dependencies_from_symlinked_entrypoi
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("/root/node_modules/pkg/dist/index.js")],
@@ -2235,6 +2343,8 @@ fn javascript_execution_resolves_dependencies_from_package_specific_symlink_moun
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("/root/node_modules/pkg/dist/index.js")],
@@ -2280,6 +2390,8 @@ fn javascript_execution_v8_timer_callbacks_fire_and_clear_correctly() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.js")],
@@ -2340,6 +2452,8 @@ fn javascript_execution_v8_readline_polyfill_emits_lines() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2385,6 +2499,8 @@ fn javascript_execution_v8_builtin_wrappers_expose_common_named_exports() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2591,6 +2707,8 @@ console.log(JSON.stringify({
     let host = run_host_node_json(temp.path(), &temp.path().join("entry.mjs"));
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2627,6 +2745,8 @@ fn javascript_execution_v8_web_stream_globals_support_basic_io() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2683,6 +2803,8 @@ fn javascript_execution_v8_text_codec_streams_support_pipe_through() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2770,6 +2892,8 @@ fn javascript_execution_v8_abort_controller_dispatches_abort() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2808,6 +2932,8 @@ fn javascript_execution_v8_request_accepts_abort_signal() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2848,6 +2974,8 @@ fn javascript_execution_v8_abort_signal_static_helpers_work() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -2916,6 +3044,8 @@ fn javascript_execution_v8_schedule_timer_bridge_resolves() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.js")],
@@ -2958,6 +3088,8 @@ fn javascript_execution_v8_kernel_poll_bridge_requests_multiple_fds() {
 
     let mut execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.js")],
@@ -3037,6 +3169,8 @@ fn javascript_execution_v8_crypto_random_sources_use_local_secure_bridge() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.js")],
@@ -3110,6 +3244,8 @@ fn javascript_execution_v8_load_polyfill_returns_runtime_module_expressions() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3247,6 +3383,8 @@ if (lifecycle.join(",") !== "write,finish,destroy") {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3306,6 +3444,8 @@ if (!(file instanceof bufferModule.Blob)) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3370,6 +3510,8 @@ try {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3464,6 +3606,8 @@ if (!resolved.endsWith("/entry.cjs")) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.cjs")],
@@ -3557,6 +3701,8 @@ if (!resolved.endsWith("/entry.cjs")) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.cjs")],
@@ -3595,6 +3741,8 @@ console.log(
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.cjs")],
@@ -3658,6 +3806,8 @@ console.log(JSON.stringify(dep));
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.cjs")],
@@ -3711,6 +3861,8 @@ for (const [name, module] of Object.entries({ http, https })) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3764,6 +3916,8 @@ if (isWritable(socket)) {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3805,6 +3959,8 @@ console.log(JSON.stringify({ href, value: module.default.value }));
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3840,6 +3996,8 @@ fn javascript_execution_v8_wasm_instantiate_streaming_never_hangs() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -3900,6 +4058,8 @@ fn javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -4039,6 +4199,8 @@ fn run_js_runtime_guest(
     });
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -4204,6 +4366,8 @@ fn js_runtime_module_resolution_relative_allows_local_denies_bare() {
     });
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -4275,6 +4439,8 @@ fn js_runtime_browser_loads_cjs_npm_package() {
     });
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -4362,6 +4528,8 @@ fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
             )]),
             cwd: temp.path().to_path_buf(),
             inline_code: Some(String::from("while (true) {}\n")),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4446,6 +4614,8 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
                 "await new Promise((resolve) => setTimeout(resolve, 1500));\n\
                  console.log('awaited-ok');\n",
             )),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4531,6 +4701,8 @@ fn javascript_no_cpu_budget_when_env_unset() {
                  while (Date.now() < end) { n++; }\n\
                  console.log('busy-done', n > 0);\n",
             )),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4624,6 +4796,8 @@ fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
                 "await new Promise((resolve) => setTimeout(resolve, 1500));\n\
                  console.log('awaited-ok');\n",
             )),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4717,6 +4891,8 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
                 "await new Promise((resolve) => setTimeout(resolve, 1200));\n\
                  console.log('cpu-only-ok');\n",
             )),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4799,6 +4975,8 @@ fn javascript_no_time_limit_when_neither_env_set() {
                 "await new Promise((resolve) => setTimeout(resolve, 1200));\n\
                  console.log('no-limit-ok');\n",
             )),
+            limits: Default::default(),
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -4880,11 +5058,10 @@ fn javascript_heap_allocation_bomb_is_capped_by_oom_guard() {
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
-            // Small bounded heap cap so the OOM guard fires quickly.
-            env: BTreeMap::from([(
-                String::from("AGENT_OS_V8_HEAP_LIMIT_MB"),
-                String::from("32"),
-            )]),
+            // Small bounded heap cap so the OOM guard fires quickly. The cap now
+            // rides the typed `limits` field (migrated off the dead
+            // `AGENT_OS_V8_HEAP_LIMIT_MB` env knob).
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             inline_code: Some(String::from(
                 r#"
@@ -4897,6 +5074,11 @@ for (let i = 0; i < 1_000_000; i += 1) {
 console.log("BOMB_COMPLETED_WITHOUT_CAP");
 "#,
             )),
+            limits: JavascriptExecutionLimits {
+                v8_heap_limit_mb: Some(32),
+                ..Default::default()
+            },
+            guest_runtime: Default::default(),
         });
 
         match execution {
@@ -5005,6 +5187,7 @@ fn javascript_v8_suite() {
     // Running these guest-runtime cases as separate tests in the same binary
     // still trips a V8 teardown/init boundary crash between cases.
     javascript_contexts_preserve_vm_and_bootstrap_configuration();
+    javascript_execution_virtual_os_identity_comes_from_guest_runtime_not_env();
     javascript_execution_uses_v8_runtime_without_spawning_guest_node_binary();
     javascript_execution_virtualizes_process_metadata_for_inline_v8_code();
     javascript_execution_process_kill_rejects_invalid_pid_in_guest_js();

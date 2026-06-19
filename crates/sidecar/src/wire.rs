@@ -468,6 +468,10 @@ fn legacy_limits_config(
     };
     let js_runtime = secure_exec_vm_config::JsRuntimeLimitsConfig {
         v8_heap_limit_mb: legacy_u64(metadata, "limits.js_runtime.v8_heap_limit_mb"),
+        sync_rpc_wait_timeout_ms: legacy_u64(
+            metadata,
+            "limits.js_runtime.sync_rpc_wait_timeout_ms",
+        ),
         captured_output_limit_bytes: legacy_u64(
             metadata,
             "limits.js_runtime.captured_output_limit_bytes",
@@ -485,6 +489,7 @@ fn legacy_limits_config(
     let python = secure_exec_vm_config::PythonLimitsConfig {
         output_buffer_max_bytes: legacy_u64(metadata, "limits.python.output_buffer_max_bytes"),
         execution_timeout_ms: legacy_u64(metadata, "limits.python.execution_timeout_ms"),
+        max_old_space_mb: legacy_u64(metadata, "limits.python.max_old_space_mb"),
         vfs_rpc_timeout_ms: legacy_u64(metadata, "limits.python.vfs_rpc_timeout_ms"),
     };
     let wasm = secure_exec_vm_config::WasmLimitsConfig {
@@ -575,6 +580,7 @@ fn legacy_has_acp_limits(config: &secure_exec_vm_config::AcpLimitsConfig) -> boo
 
 fn legacy_has_js_runtime_limits(config: &secure_exec_vm_config::JsRuntimeLimitsConfig) -> bool {
     config.v8_heap_limit_mb.is_some()
+        || config.sync_rpc_wait_timeout_ms.is_some()
         || config.captured_output_limit_bytes.is_some()
         || config.stdin_buffer_limit_bytes.is_some()
         || config.event_payload_limit_bytes.is_some()
@@ -584,6 +590,7 @@ fn legacy_has_js_runtime_limits(config: &secure_exec_vm_config::JsRuntimeLimitsC
 fn legacy_has_python_limits(config: &secure_exec_vm_config::PythonLimitsConfig) -> bool {
     config.output_buffer_max_bytes.is_some()
         || config.execution_timeout_ms.is_some()
+        || config.max_old_space_mb.is_some()
         || config.vfs_rpc_timeout_ms.is_some()
 }
 

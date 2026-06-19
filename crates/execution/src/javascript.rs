@@ -61,7 +61,8 @@ const NODE_SYNC_RPC_RESPONSE_FD_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_RESPONSE_FD"
 const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_DATA_BYTES";
 const NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS";
 static NEXT_V8_SESSION_ID: AtomicU64 = AtomicU64::new(1);
-const V8_HEAP_LIMIT_MB_ENV: &str = "AGENT_OS_V8_HEAP_LIMIT_MB";
+// V8 heap cap migrated to the typed `JavascriptExecutionLimits.v8_heap_limit_mb`
+// request field; the `AGENT_OS_V8_HEAP_LIMIT_MB` env const is no longer read.
 /// Opt-in TRUE CPU-time budget (ms) for guest JavaScript. Unset/`0` => no limit.
 ///
 /// Guest inline code (e.g. `while (true) {}`) runs on the shared, slot-bounded V8
@@ -271,6 +272,54 @@ pub struct JavascriptContext {
     pub compile_cache_dir: Option<PathBuf>,
 }
 
+/// Per-execution JavaScript runtime limits, carried as typed fields on the
+/// execution request rather than `AGENT_OS_*` env vars. The sidecar populates
+/// these from the per-VM `VmLimits` (which originate from `CreateVmConfig` on
+/// the BARE wire); `None` selects the engine default. See the env-vs-wire rule
+/// in `crates/sidecar/CLAUDE.md`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct JavascriptExecutionLimits {
+    /// V8 heap cap in MB. `None`/`Some(0)` keeps the engine default heap.
+    pub v8_heap_limit_mb: Option<u32>,
+    /// Sync-RPC blocking-wait ceiling in ms. `None` keeps the engine default.
+    pub sync_rpc_wait_timeout_ms: Option<u64>,
+}
+
+/// Per-execution guest-runtime config carried as typed fields rather than
+/// `AGENT_OS_*` env vars. The sidecar populates these from kernel state
+/// (`user_profile()`, `resource_limits()`) and `CreateVmConfig`; the runtime
+/// shim interpolates them into a `_processConfig` object the guest reads, so the
+/// guest's virtual identity no longer rides the ambient env channel. `None`
+/// keeps the guest-runtime default. See the env-vs-wire rule in
+/// `crates/sidecar/CLAUDE.md`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct GuestRuntimeConfig {
+    /// Virtual `process.pid`.
+    pub virtual_pid: Option<u64>,
+    /// Virtual `process.ppid`.
+    pub virtual_ppid: Option<u64>,
+    /// Virtual `process.uid` / `process.euid`.
+    pub virtual_uid: Option<u64>,
+    /// Virtual `process.gid` / `process.egid` / `process.groups`.
+    pub virtual_gid: Option<u64>,
+    /// Virtual `process.execPath`.
+    pub virtual_exec_path: Option<String>,
+    /// `os.cpus().length`.
+    pub os_cpu_count: Option<u64>,
+    /// `os.totalmem()` in bytes.
+    pub os_totalmem: Option<u64>,
+    /// `os.freemem()` in bytes.
+    pub os_freemem: Option<u64>,
+    /// `os.homedir()`.
+    pub os_homedir: Option<String>,
+    /// `os.hostname()`.
+    pub os_hostname: Option<String>,
+    /// Default login shell.
+    pub os_shell: Option<String>,
+    /// `os.userInfo().username`.
+    pub os_user: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StartJavascriptExecutionRequest {
     pub vm_id: String,
@@ -278,6 +327,10 @@ pub struct StartJavascriptExecutionRequest {
     pub argv: Vec<String>,
     pub env: BTreeMap<String, String>,
     pub cwd: PathBuf,
+    /// Per-execution runtime limits (see [`JavascriptExecutionLimits`]).
+    pub limits: JavascriptExecutionLimits,
+    /// Per-execution guest-runtime config (see [`GuestRuntimeConfig`]).
+    pub guest_runtime: GuestRuntimeConfig,
     /// Optional inline JavaScript code supplied by the sidecar.
     /// Eval entrypoints always execute this source directly. Module-mode file
     /// entrypoints may also use it so the isolate can evaluate the original
@@ -1750,6 +1803,8 @@ impl JavascriptExecutionEngine {
             &process_argv,
             translator.guest_cwd(),
             &request.env,
+            javascript_heap_limit_mb(&request),
+            &request.guest_runtime,
         );
 
         // Create session handle for sending bridge responses
@@ -1870,18 +1925,17 @@ fn stable_compile_cache_namespace_hash() -> u64 {
 
 fn javascript_sync_rpc_timeout(request: &StartJavascriptExecutionRequest) -> Duration {
     let timeout_ms = request
-        .env
-        .get(NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV)
-        .and_then(|value| value.parse::<u64>().ok())
+        .limits
+        .sync_rpc_wait_timeout_ms
+        .filter(|value| *value > 0)
         .unwrap_or(NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS);
     Duration::from_millis(timeout_ms)
 }
 
 fn javascript_heap_limit_mb(request: &StartJavascriptExecutionRequest) -> u32 {
     request
-        .env
-        .get(V8_HEAP_LIMIT_MB_ENV)
-        .and_then(|value| value.parse::<u32>().ok())
+        .limits
+        .v8_heap_limit_mb
         .filter(|value| *value > 0)
         .unwrap_or(0)
 }
@@ -2326,15 +2380,54 @@ fn prepend_v8_runtime_shim(
     argv: &[String],
     cwd: &str,
     env: &BTreeMap<String, String>,
+    // V8 heap cap in MB (`0` = engine default). Threaded from the typed wire
+    // limit and interpolated into the shim so guest heap-stats reporting no
+    // longer depends on an `AGENT_OS_V8_HEAP_LIMIT_MB` env var.
+    heap_limit_mb: u32,
+    // Typed guest-runtime identity, interpolated into the shim so virtual
+    // `process.*` identity no longer rides `AGENT_OS_VIRTUAL_PROCESS_*` env vars.
+    guest_runtime: &GuestRuntimeConfig,
 ) -> String {
     let argv_json = serde_json::to_string(argv).unwrap_or_else(|_| String::from("[\"node\"]"));
     let entry_json =
         serde_json::to_string(entrypoint).unwrap_or_else(|_| String::from("\"/<entry>\""));
     let cwd_json = serde_json::to_string(cwd).unwrap_or_else(|_| String::from("\"/\""));
     let env_json = serde_json::to_string(env).unwrap_or_else(|_| String::from("{}"));
+    // Virtual process identity object. `Option` fields serialize to `null`, which
+    // the shim treats as "unset" (leaving the V8-baked default) — matching the
+    // prior behavior when the env var was absent.
+    let identity_json = serde_json::json!({
+        "pid": guest_runtime.virtual_pid,
+        "ppid": guest_runtime.virtual_ppid,
+        "uid": guest_runtime.virtual_uid,
+        "gid": guest_runtime.virtual_gid,
+        "execPath": guest_runtime.virtual_exec_path,
+    })
+    .to_string();
+    // Virtual OS identity (os.cpus/totalmem/freemem/homedir/userInfo/...). Read
+    // by the bridge + node-import-cache os polyfill from the `__agentOsVirtualOs`
+    // global instead of `AGENT_OS_VIRTUAL_OS_*` env vars. Absent fields stay
+    // `null`, so the consumers fall back to their built-in defaults.
+    let virtual_os_json = serde_json::json!({
+        "cpuCount": guest_runtime.os_cpu_count,
+        "totalmem": guest_runtime.os_totalmem,
+        "freemem": guest_runtime.os_freemem,
+        "homedir": guest_runtime.os_homedir,
+        "hostname": guest_runtime.os_hostname,
+        "shell": guest_runtime.os_shell,
+        "user": guest_runtime.os_user,
+    })
+    .to_string();
 
     format!(
         r#"(function () {{
+  const __guestIdentity = {identity_json};
+  Object.defineProperty(globalThis, "__agentOsVirtualOs", {{
+    configurable: true,
+    enumerable: false,
+    value: {virtual_os_json},
+    writable: true,
+  }});
   const nextArgv = {argv_json};
   const entryFile = {entry_json};
   const nextCwd = {cwd_json};
@@ -2356,10 +2449,7 @@ fn prepend_v8_runtime_shim(
       ...(process.env || {{}}),
       ...visibleEnv,
     }};
-    const configuredHeapLimitMb = Number.parseInt(
-      nextEnv.AGENT_OS_V8_HEAP_LIMIT_MB ?? "",
-      10,
-    );
+    const configuredHeapLimitMb = {heap_limit_mb};
     if (Number.isFinite(configuredHeapLimitMb) && configuredHeapLimitMb > 0) {{
       Object.defineProperty(globalThis, "__agentOsV8HeapLimitBytes", {{
         configurable: true,
@@ -2406,27 +2496,27 @@ fn prepend_v8_runtime_shim(
         }}
       }};
     }}
-    const nextPid = Number(nextEnv.AGENT_OS_VIRTUAL_PROCESS_PID);
+    const nextPid = Number(__guestIdentity.pid);
     if (Number.isFinite(nextPid) && nextPid > 0) {{
       process.pid = nextPid;
     }}
-    const nextPpid = Number(nextEnv.AGENT_OS_VIRTUAL_PROCESS_PPID);
+    const nextPpid = Number(__guestIdentity.ppid);
     if (Number.isFinite(nextPpid) && nextPpid >= 0) {{
       process.ppid = nextPpid;
     }}
-    const nextUid = Number(nextEnv.AGENT_OS_VIRTUAL_PROCESS_UID);
+    const nextUid = Number(__guestIdentity.uid);
     if (Number.isFinite(nextUid) && nextUid >= 0) {{
       process.uid = nextUid;
       process.euid = nextUid;
     }}
-    const nextGid = Number(nextEnv.AGENT_OS_VIRTUAL_PROCESS_GID);
+    const nextGid = Number(__guestIdentity.gid);
     if (Number.isFinite(nextGid) && nextGid >= 0) {{
       process.gid = nextGid;
       process.egid = nextGid;
       process.groups = [nextGid];
     }}
-    if (typeof nextEnv.AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH === "string" && nextEnv.AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH.length > 0) {{
-      process.execPath = nextEnv.AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH;
+    if (typeof __guestIdentity.execPath === "string" && __guestIdentity.execPath.length > 0) {{
+      process.execPath = __guestIdentity.execPath;
     }}
     if (nextEnv.AGENT_OS_NODE_IPC === "1" && typeof __runtimeInstallProcessIpcBridge === "function") {{
       process.connected = true;
@@ -2515,7 +2605,7 @@ fn prepend_v8_runtime_shim(
     [
       "process", "Buffer", "require", "module", "exports",
       "__dirname", "__filename", "global",
-      "_processConfig", "__agentOsProcessConfigEnv",
+      "_processConfig", "__agentOsProcessConfigEnv", "__agentOsVirtualOs",
     ].forEach(__dropGlobal);
     if (__jsPlatform === "browser") {{
       // Narrow `crypto` from the full node:crypto module to the WebCrypto object
@@ -6334,6 +6424,70 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
+    fn javascript_limits_are_read_from_typed_fields_and_env_is_inert() {
+        // Misleading env values: a reader that still consulted `AGENT_OS_*` would
+        // observe these instead of the typed wire limits.
+        let env = std::collections::BTreeMap::from([
+            (
+                String::from("AGENT_OS_V8_HEAP_LIMIT_MB"),
+                String::from("999999"),
+            ),
+            (
+                String::from(NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV),
+                String::from("999999"),
+            ),
+        ]);
+        let request = StartJavascriptExecutionRequest {
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: String::from("ctx-js"),
+            argv: vec![String::from("/entry.mjs")],
+            env,
+            cwd: std::path::PathBuf::from("/tmp"),
+            limits: JavascriptExecutionLimits {
+                v8_heap_limit_mb: Some(64),
+                sync_rpc_wait_timeout_ms: Some(2_000),
+            },
+            inline_code: None,
+        };
+
+        assert_eq!(
+            javascript_heap_limit_mb(&request),
+            64,
+            "heap must come from the typed wire limit, not AGENT_OS_V8_HEAP_LIMIT_MB"
+        );
+        assert_eq!(
+            javascript_sync_rpc_timeout(&request),
+            std::time::Duration::from_millis(2_000),
+            "sync-rpc wait must come from the typed wire limit, not env"
+        );
+    }
+
+    #[test]
+    fn javascript_limits_fall_back_to_defaults_when_unset() {
+        let request = StartJavascriptExecutionRequest {
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: String::from("ctx-js"),
+            argv: vec![String::from("/entry.mjs")],
+            env: std::collections::BTreeMap::new(),
+            cwd: std::path::PathBuf::from("/tmp"),
+            limits: JavascriptExecutionLimits::default(),
+            inline_code: None,
+        };
+
+        assert_eq!(
+            javascript_heap_limit_mb(&request),
+            0,
+            "0 selects the engine default heap"
+        );
+        assert_eq!(
+            javascript_sync_rpc_timeout(&request),
+            std::time::Duration::from_millis(NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS),
+        );
+    }
+
+    #[test]
     fn inline_code_module_detection_prefers_commonjs_when_import_only_appears_in_comment() {
         let source = "// import { x } from 'y';\nmodule.exports = { foo: 1 };";
         assert!(!inline_code_uses_module_mode(source));
@@ -6637,6 +6791,8 @@ mod tests {
 
         let execution = engine
             .start_execution(StartJavascriptExecutionRequest {
+                limits: Default::default(),
+                guest_runtime: Default::default(),
                 vm_id: String::from("vm-drop-cleanup"),
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],

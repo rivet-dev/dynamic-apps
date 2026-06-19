@@ -1865,6 +1865,10 @@ console.log(JSON.stringify({
   cpusLength: os.cpus().length,
   freemem: os.freemem(),
   totalmem: os.totalmem(),
+  username: os.userInfo().username,
+  homedir: os.homedir(),
+  envUser: process.env.USER,
+  envHome: process.env.HOME,
 }));
 "#,
     );
@@ -1912,6 +1916,14 @@ console.log(JSON.stringify({
     sidecar
         .remove_connection_blocking(&connection_id)
         .expect("remove sidecar connection");
+
+    // Virtual identity must reflect the configured VM (distinct from the loader's
+    // hardcoded root/"/root" defaults) — this is the sidecar-level coverage that
+    // exercises the guestOs/`import os` path, which an engine-only test does not.
+    assert_eq!(constrained["username"], "user");
+    assert_eq!(constrained["homedir"], "/home/user");
+    assert_eq!(expanded["username"], "user");
+    assert_eq!(expanded["homedir"], "/home/user");
 
     assert_eq!(constrained["availableParallelism"], 2);
     assert_eq!(constrained["cpusLength"], 2);

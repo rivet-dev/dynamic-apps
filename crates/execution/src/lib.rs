@@ -18,16 +18,16 @@ pub mod python;
 pub mod wasm;
 
 pub use javascript::{
-    CreateJavascriptContextRequest, JavascriptContext, JavascriptExecution,
+    CreateJavascriptContextRequest, GuestRuntimeConfig, JavascriptContext, JavascriptExecution,
     JavascriptExecutionEngine, JavascriptExecutionError, JavascriptExecutionEvent,
-    JavascriptExecutionResult, JavascriptSyncRpcRequest, LocalModuleResolutionCache,
-    LocalResolvedModuleFormat, ModuleFsReader, ModuleResolveMode, ModuleResolver,
-    StartJavascriptExecutionRequest,
+    JavascriptExecutionLimits, JavascriptExecutionResult, JavascriptSyncRpcRequest,
+    LocalModuleResolutionCache, LocalResolvedModuleFormat, ModuleFsReader, ModuleResolveMode,
+    ModuleResolver, StartJavascriptExecutionRequest,
 };
 pub use python::{
     CreatePythonContextRequest, PythonContext, PythonExecution, PythonExecutionEngine,
-    PythonExecutionError, PythonExecutionEvent, PythonExecutionResult, PythonVfsRpcMethod,
-    PythonVfsRpcRequest, PythonVfsRpcResponsePayload, PythonVfsRpcStat,
+    PythonExecutionError, PythonExecutionEvent, PythonExecutionLimits, PythonExecutionResult,
+    PythonVfsRpcMethod, PythonVfsRpcRequest, PythonVfsRpcResponsePayload, PythonVfsRpcStat,
     StartPythonExecutionRequest,
 };
 pub use secure_exec_bridge::GuestRuntime;
@@ -35,7 +35,7 @@ pub use signal::{NodeSignalDispositionAction, NodeSignalHandlerRegistration};
 pub use wasm::{
     CreateWasmContextRequest, NativeBinaryFormat, StartWasmExecutionRequest, WasmContext,
     WasmExecution, WasmExecutionEngine, WasmExecutionError, WasmExecutionEvent,
-    WasmExecutionResult, WasmPermissionTier,
+    WasmExecutionLimits, WasmExecutionResult, WasmPermissionTier,
 };
 
 pub trait NativeExecutionBridge: secure_exec_bridge::ExecutionBridge {}

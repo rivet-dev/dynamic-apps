@@ -2,9 +2,9 @@
 
 use secure_exec_execution::{
     CreateJavascriptContextRequest, CreatePythonContextRequest, CreateWasmContextRequest,
-    JavascriptExecutionEngine, PythonExecutionEngine, PythonExecutionEvent,
+    JavascriptExecutionEngine, PythonExecutionEngine, PythonExecutionEvent, PythonExecutionLimits,
     StartJavascriptExecutionRequest, StartPythonExecutionRequest, StartWasmExecutionRequest,
-    WasmExecutionEngine, WasmPermissionTier,
+    WasmExecutionEngine, WasmExecutionLimits, WasmPermissionTier,
 };
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -13,10 +13,6 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::time::Duration;
 use tempfile::tempdir;
-
-const PYTHON_MAX_OLD_SPACE_MB_ENV: &str = "AGENT_OS_PYTHON_MAX_OLD_SPACE_MB";
-const WASM_MAX_FUEL_ENV: &str = "AGENT_OS_WASM_MAX_FUEL";
-const WASM_MAX_MEMORY_BYTES_ENV: &str = "AGENT_OS_WASM_MAX_MEMORY_BYTES";
 
 struct EnvVarGuard {
     key: &'static str,
@@ -101,6 +97,8 @@ fn node_permission_flags_allow_workers_for_internal_javascript_loader_runtime() 
 
     let default_result = js_engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id.clone(),
             argv: vec![String::from("./entry.mjs")],
@@ -115,6 +113,8 @@ fn node_permission_flags_allow_workers_for_internal_javascript_loader_runtime() 
 
     let worker_result = js_engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -174,6 +174,8 @@ fn node_permission_flags_only_propagate_nested_child_capabilities_when_parent_ex
 
     let denied_result = js_engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id.clone(),
             argv: vec![String::from("./entry.mjs")],
@@ -188,6 +190,8 @@ fn node_permission_flags_only_propagate_nested_child_capabilities_when_parent_ex
 
     let allowed_result = js_engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -240,14 +244,16 @@ export async function loadPyodide() {
 
     let mut execution = python_engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: PythonExecutionLimits {
+                max_old_space_mb: Some(64),
+                ..Default::default()
+            },
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('heap limit')"),
             file_path: None,
-            env: BTreeMap::from([(
-                String::from(PYTHON_MAX_OLD_SPACE_MB_ENV),
-                String::from("64"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
         })
         .expect("start python execution");
@@ -322,16 +328,16 @@ fn wasm_execution_applies_runtime_memory_and_fuel_limits_inside_v8_runtime() {
 
     let result = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: WasmExecutionLimits {
+                max_fuel: Some(250_000),
+                max_memory_bytes: Some(131_072),
+                ..Default::default()
+            },
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: vec![String::from("./guest.wasm")],
-            env: BTreeMap::from([
-                (String::from(WASM_MAX_FUEL_ENV), String::from("250000")),
-                (
-                    String::from(WASM_MAX_MEMORY_BYTES_ENV),
-                    String::from("131072"),
-                ),
-            ]),
+            env: BTreeMap::new(),
             cwd: wasm_cwd,
             permission_tier: WasmPermissionTier::Full,
         })
@@ -378,6 +384,8 @@ fn wasm_permission_tiers_do_not_fall_back_to_host_node_binary() {
 
         let result = engine
             .start_execution(StartWasmExecutionRequest {
+                guest_runtime: Default::default(),
+                limits: Default::default(),
                 vm_id: String::from("vm-wasm"),
                 context_id: context.context_id,
                 argv: vec![String::from("./guest.wasm")],

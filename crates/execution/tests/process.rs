@@ -47,6 +47,8 @@ fn embedded_runtime_process_keeps_host_pid_internal_for_javascript() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -84,6 +86,8 @@ fn embedded_runtime_process_keeps_host_pid_internal_for_wasm() {
 
     let execution = engine
         .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-wasm"),
             context_id: context.context_id,
             argv: vec![module_path.to_string_lossy().into_owned()],
@@ -135,6 +139,8 @@ export async function loadPyodide(options) {
 
     let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: Default::default(),
             vm_id: String::from("vm-python"),
             context_id: context.context_id,
             code: String::from("print('hang')"),

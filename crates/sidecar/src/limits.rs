@@ -37,6 +37,8 @@ pub const DEFAULT_V8_IPC_MAX_FRAME_BYTES: u32 = 64 * 1024 * 1024;
 
 pub const DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS: u64 = 5 * 60 * 1000;
+/// `0` keeps the Pyodide runner's V8 old-space at the engine default.
+pub const DEFAULT_PYTHON_MAX_OLD_SPACE_MB: usize = 0;
 pub const DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS: u64 = 30 * 1000;
 
 pub const DEFAULT_WASM_MAX_MODULE_FILE_BYTES: u64 = 256 * 1024 * 1024;
@@ -93,9 +95,12 @@ pub struct AcpLimits {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct JsRuntimeLimits {
-    /// `None` keeps the V8 engine default heap. Maps to the existing `AGENT_OS_V8_HEAP_LIMIT_MB`
-    /// per-execution env knob.
+    /// `None` keeps the V8 engine default heap. Carried as the typed
+    /// `JavascriptExecutionLimits.v8_heap_limit_mb` on the execution request
+    /// (no longer the `AGENT_OS_V8_HEAP_LIMIT_MB` env knob).
     pub v8_heap_limit_mb: Option<u32>,
+    /// Sync-RPC blocking-wait ceiling in ms. `None` keeps the engine default.
+    pub sync_rpc_wait_timeout_ms: Option<u64>,
     pub captured_output_limit_bytes: usize,
     pub stdin_buffer_limit_bytes: usize,
     pub event_payload_limit_bytes: usize,
@@ -108,6 +113,8 @@ pub struct JsRuntimeLimits {
 pub struct PythonLimits {
     pub output_buffer_max_bytes: usize,
     pub execution_timeout_ms: u64,
+    /// Pyodide V8 old-space cap in MB (`0` keeps the V8 default).
+    pub max_old_space_mb: usize,
     pub vfs_rpc_timeout_ms: u64,
 }
 
@@ -164,6 +171,7 @@ impl Default for JsRuntimeLimits {
     fn default() -> Self {
         Self {
             v8_heap_limit_mb: None,
+            sync_rpc_wait_timeout_ms: None,
             captured_output_limit_bytes: DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES,
             stdin_buffer_limit_bytes: DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES,
             event_payload_limit_bytes: DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES,
@@ -177,6 +185,7 @@ impl Default for PythonLimits {
         Self {
             output_buffer_max_bytes: DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES,
             execution_timeout_ms: DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS,
+            max_old_space_mb: DEFAULT_PYTHON_MAX_OLD_SPACE_MB,
             vfs_rpc_timeout_ms: DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS,
         }
     }
@@ -304,6 +313,9 @@ pub fn vm_limits_from_config(
             limits.js_runtime.v8_ipc_max_frame_bytes = u32::try_from(value)
                 .map_err(|_| integer_too_large("limits.jsRuntime.v8IpcMaxFrameBytes", value))?;
         }
+        if let Some(value) = js_runtime.sync_rpc_wait_timeout_ms {
+            limits.js_runtime.sync_rpc_wait_timeout_ms = Some(value);
+        }
     }
     if let Some(python) = config.python.as_ref() {
         set_usize(
@@ -315,6 +327,11 @@ pub fn vm_limits_from_config(
             &mut limits.python.execution_timeout_ms,
             python.execution_timeout_ms,
             "limits.python.executionTimeoutMs",
+        )?;
+        set_usize(
+            &mut limits.python.max_old_space_mb,
+            python.max_old_space_mb,
+            "limits.python.maxOldSpaceMb",
         )?;
         set_u64(
             &mut limits.python.vfs_rpc_timeout_ms,

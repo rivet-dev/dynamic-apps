@@ -66,8 +66,9 @@
 	{
 		"name": "DEFAULT_PYTHON_MAX_OLD_SPACE_MB",
 		"path": "crates/execution/src/python.rs",
-		"class": "policy-deferred",
-		"rationale": "Python host JS old-space heap sizing; tunable in principle, fold into a python heap field later."
+		"class": "policy",
+		"rationale": "Python host JS old-space heap sizing; engine-side default for the wired limit.",
+		"wired": "VmLimits.python.max_old_space_mb"
 	},
 	{
 		"name": "DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES",
@@ -95,6 +96,12 @@
 		"class": "policy",
 		"rationale": "V8 IPC frame size; single value feeds BOTH codec sides.",
 		"wired": "VmLimits.js_runtime.v8_ipc_max_frame_bytes"
+	},
+	{
+		"name": "DEFAULT_WASM_EXECUTION_TIMEOUT_MS",
+		"path": "crates/execution/src/wasm.rs",
+		"class": "policy-deferred",
+		"rationale": "WASM wall-clock backstop applied when no fuel budget is set; safety default to stop infinite-loop core-pinning, fold into a wasm execution-timeout field later."
 	},
 	{
 		"name": "DEFAULT_WASM_PREWARM_TIMEOUT_MS",
@@ -446,6 +453,13 @@
 		"class": "policy",
 		"rationale": "Python execution timeout.",
 		"wired": "VmLimits.python.execution_timeout_ms"
+	},
+	{
+		"name": "DEFAULT_PYTHON_MAX_OLD_SPACE_MB",
+		"path": "crates/sidecar/src/limits.rs",
+		"class": "policy",
+		"rationale": "Python host JS old-space heap sizing; sidecar default for the wired limit.",
+		"wired": "VmLimits.python.max_old_space_mb"
 	},
 	{
 		"name": "DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES",
@@ -855,6 +869,12 @@
 		"path": "crates/v8-runtime/src/isolate.rs",
 		"class": "invariant",
 		"rationale": "Bounded diagnostic accumulation with typed error."
+	},
+	{
+		"name": "NEAR_HEAP_LIMIT_HEADROOM_BYTES",
+		"path": "crates/v8-runtime/src/isolate.rs",
+		"class": "invariant",
+		"rationale": "Internal V8 near-heap-limit OOM-guard headroom; runtime self-protection mechanism, not an operator bound."
 	},
 	{
 		"name": "MAX_DEFERRED_SESSION_COMMANDS",
