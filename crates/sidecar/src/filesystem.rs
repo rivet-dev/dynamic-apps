@@ -1831,7 +1831,7 @@ fn mapped_runtime_host_path(
             ))
         })
         .collect::<Vec<_>>();
-    sorted_mappings.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    sorted_mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.0.len()));
     let readable_roots = runtime_host_access_roots(process, "AGENT_OS_EXTRA_FS_READ_PATHS")?;
     let writable_roots = writable
         .then(|| runtime_host_access_roots(process, "AGENT_OS_EXTRA_FS_WRITE_PATHS"))

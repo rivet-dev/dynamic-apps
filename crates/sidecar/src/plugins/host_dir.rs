@@ -986,7 +986,7 @@ impl HostDirModuleReader {
         if entries.is_empty() {
             return None;
         }
-        entries.sort_by(|left, right| right.guest_prefix.len().cmp(&left.guest_prefix.len()));
+        entries.sort_by_key(|entry| std::cmp::Reverse(entry.guest_prefix.len()));
         entries.dedup_by(|left, right| left.guest_prefix == right.guest_prefix);
         Some(Self { mounts: entries })
     }

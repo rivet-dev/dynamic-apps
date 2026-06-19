@@ -4730,7 +4730,7 @@ fn wasm_guest_path_mappings(request: &StartWasmExecutionRequest) -> Vec<WasmGues
         String::from("/workspace"),
         request.cwd.clone(),
     );
-    mappings.sort_by(|left, right| right.guest_path.len().cmp(&left.guest_path.len()));
+    mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.guest_path.len()));
     mappings
 }
 

@@ -714,7 +714,7 @@ impl MountTable {
             filesystem,
         });
         self.mounts
-            .sort_by(|left, right| right.path.len().cmp(&left.path.len()));
+            .sort_by_key(|mount| std::cmp::Reverse(mount.path.len()));
         Ok(())
     }
 

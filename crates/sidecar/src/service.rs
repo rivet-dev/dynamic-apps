@@ -61,7 +61,7 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Component, Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::task::{Context, Poll, Wake, Waker};
+use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 use tokio::time;
@@ -766,22 +766,11 @@ where
 }
 
 fn poll_future_once<F: std::future::Future>(future: std::pin::Pin<&mut F>) -> Option<F::Output> {
-    let waker = noop_waker();
-    let mut context = Context::from_waker(&waker);
+    let mut context = Context::from_waker(Waker::noop());
     match future.poll(&mut context) {
         Poll::Ready(output) => Some(output),
         Poll::Pending => None,
     }
-}
-
-fn noop_waker() -> Waker {
-    Waker::from(Arc::new(NoopWake))
-}
-
-struct NoopWake;
-
-impl Wake for NoopWake {
-    fn wake(self: Arc<Self>) {}
 }
 
 // ConnectionState, SessionState, VmConfiguration, VmState moved to crate::state

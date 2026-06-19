@@ -3705,10 +3705,7 @@ where
 
         let vm_ids = self.vm_ids_for_scope(ownership)?;
         for vm_id in vm_ids {
-            loop {
-                let Some(vm) = self.vms.get(&vm_id) else {
-                    break;
-                };
+            while let Some(vm) = self.vms.get(&vm_id) {
                 let connection_id = vm.connection_id.clone();
                 let session_id = vm.session_id.clone();
                 let process_ids = self
@@ -8906,7 +8903,7 @@ fn runtime_guest_path_mappings(vm: &VmState) -> Vec<RuntimeGuestPathMapping> {
         host_path: vm.cwd.to_string_lossy().into_owned(),
         read_only: false,
     });
-    mappings.sort_by(|left, right| right.guest_path.len().cmp(&left.guest_path.len()));
+    mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.guest_path.len()));
     mappings.dedup_by(|left, right| {
         left.guest_path == right.guest_path && left.host_path == right.host_path
     });
@@ -10882,7 +10879,7 @@ fn host_mount_path_for_guest_path(vm: &VmState, guest_path: &str) -> Option<Path
                 .flatten()
         })
         .collect::<Vec<_>>();
-    mounts.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    mounts.sort_by_key(|mount| std::cmp::Reverse(mount.0.len()));
 
     for (guest_root, host_root) in mounts {
         if normalized != guest_root && !normalized.starts_with(&format!("{guest_root}/")) {
@@ -10967,7 +10964,7 @@ pub(crate) fn host_path_from_runtime_guest_mappings(
             ))
         })
         .collect::<Vec<_>>();
-    sorted_mappings.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    sorted_mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.0.len()));
 
     for (guest_root, mut host_root) in sorted_mappings {
         if guest_root != "/"
@@ -11069,7 +11066,7 @@ fn guest_path_from_runtime_host_mappings(
             ))
         })
         .collect::<Vec<_>>();
-    sorted_mappings.sort_by(|left, right| right.1.as_os_str().len().cmp(&left.1.as_os_str().len()));
+    sorted_mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.1.as_os_str().len()));
 
     for (guest_root, host_root) in sorted_mappings {
         if !path_is_within_root(&normalized, &host_root) {
@@ -11112,7 +11109,7 @@ fn host_mount_path_for_guest_path_from_mounts(
                 .flatten()
         })
         .collect::<Vec<_>>();
-    host_mounts.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    host_mounts.sort_by_key(|mount| std::cmp::Reverse(mount.0.len()));
 
     for (guest_root, host_root) in host_mounts {
         if normalized != guest_root && !normalized.starts_with(&format!("{guest_root}/")) {
@@ -16052,7 +16049,7 @@ fn parse_http_header_collection(
         normalized
             .entry(normalized_name)
             .or_default()
-            .extend(values.into_iter());
+            .extend(values);
     }
 
     Ok(HttpHeaderCollection {
