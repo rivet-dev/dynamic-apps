@@ -894,7 +894,6 @@ fn dispose_vm_surfaces_s3_flush_failures_as_structured_events() {
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
-                allowed_node_builtins: Vec::new(),
                 loopback_exempt_ports: Vec::new(),
             }),
         ))

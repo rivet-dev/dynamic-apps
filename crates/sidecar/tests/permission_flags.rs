@@ -217,7 +217,6 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
-                allowed_node_builtins: Vec::new(),
                 loopback_exempt_ports: Vec::new(),
             }),
         ))
@@ -256,7 +255,6 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
-                allowed_node_builtins: Vec::new(),
                 loopback_exempt_ports: Vec::new(),
             }),
         ))
@@ -295,7 +293,6 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
-                allowed_node_builtins: Vec::new(),
                 loopback_exempt_ports: Vec::new(),
             }),
         ))

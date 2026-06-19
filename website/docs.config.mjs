@@ -80,6 +80,7 @@ export const siteConfig = {
 				{ slug: "docs/features/virtual-filesystem", attrs: { "data-icon": "folderTree" } },
 				{ slug: "docs/features/networking", attrs: { "data-icon": "network" } },
 				{ slug: "docs/features/module-loading", attrs: { "data-icon": "package" } },
+				{ slug: "docs/features/runtime-platform", attrs: { "data-icon": "code" } },
 				{ slug: "docs/features/output-capture", attrs: { "data-icon": "scroll" } },
 				{ slug: "docs/features/resource-limits", attrs: { "data-icon": "gauge" } },
 				{ slug: "docs/features/child-processes", attrs: { "data-icon": "split" } },

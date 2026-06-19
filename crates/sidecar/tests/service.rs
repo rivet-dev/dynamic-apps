@@ -1484,18 +1484,8 @@ ykAheWCsAteSEWVc0w==\n\
             vm_id: &str,
             cwd: &Path,
             process_id: &str,
-            allowed_node_builtins: &str,
         ) -> (String, String, Option<i32>) {
-            run_javascript_entry_with_env(
-                sidecar,
-                vm_id,
-                cwd,
-                process_id,
-                BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
-                    allowed_node_builtins.to_owned(),
-                )]),
-            )
+            run_javascript_entry_with_env(sidecar, vm_id, cwd, process_id, BTreeMap::new())
         }
 
         fn run_javascript_entry_with_env(
@@ -1931,7 +1921,6 @@ ykAheWCsAteSEWVc0w==\n\
             vm_id: &str,
             cwd: &Path,
             process_id: &str,
-            allowed_node_builtins: &str,
         ) {
             let context =
                 sidecar
@@ -1947,10 +1936,7 @@ ykAheWCsAteSEWVc0w==\n\
                     vm_id: vm_id.to_owned(),
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
-                    env: BTreeMap::from([(
-                        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
-                        allowed_node_builtins.to_owned(),
-                    )]),
+                    env: BTreeMap::new(),
                     cwd: cwd.to_path_buf(),
                     inline_code: None,
                 })
@@ -2105,13 +2091,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-kernel-socket-query-state");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-kernel-query",
-                "[\"dgram\",\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-kernel-query");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -2278,13 +2258,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-inspect-listener");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-inspect-listener",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-inspect-listener");
 
             call_javascript_sync_rpc(
                 &mut sidecar,
@@ -2374,13 +2348,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-inspect-udp");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-inspect-udp",
-                "[\"dgram\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-inspect-udp");
 
             let udp_socket = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -2484,13 +2452,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-inspect-processes");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-inspect-processes",
-                "[]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-inspect-processes");
 
             let response = sidecar
                 .dispatch_blocking(request(
@@ -2529,13 +2491,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-kernel-network-counts");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-kernel-counts",
-                "[\"dgram\",\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-kernel-counts");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3031,13 +2987,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-net-wait-connect-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-net-wait-connect",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-net-wait-connect");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3171,13 +3121,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-net-read-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-net-read",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-net-read");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3408,13 +3352,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-upgrade-socket-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-upgrade-socket",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-upgrade-socket");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3598,13 +3536,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-dgram-options-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-dgram-options",
-                "[\"dgram\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-dgram-options");
 
             let socket = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3776,13 +3708,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-tls-client-rpc-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-tls-client",
-                "[\"net\",\"tls\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-tls-client");
 
             let ciphers = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -3971,13 +3897,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-tls-server-rpc-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-tls-server",
-                "[\"net\",\"tls\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-tls-server");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -4341,13 +4261,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-server-accept-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-server-accept",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-server-accept");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -5542,7 +5456,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5614,7 +5527,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5688,7 +5600,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5760,7 +5671,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5816,7 +5726,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5867,7 +5776,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -5933,7 +5841,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6067,7 +5974,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6154,7 +6060,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6270,7 +6175,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6365,7 +6269,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6462,7 +6365,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -6874,7 +6776,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7092,7 +6993,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7139,7 +7039,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7196,7 +7095,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7396,7 +7294,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7460,7 +7357,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7612,7 +7508,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -7756,7 +7651,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: Vec::new(),
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -8016,7 +7910,6 @@ ykAheWCsAteSEWVc0w==\n\
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: vec![String::from("child_process")],
                         loopback_exempt_ports: Vec::new(),
                     }),
                 ))
@@ -8217,13 +8110,7 @@ ykAheWCsAteSEWVc0w==\n\
 
             let cwd = temp_dir("secure-exec-sidecar-tool-command-child-process");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-tool-child",
-                "[\"child_process\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-tool-child");
 
             let spawned = sidecar
                 .spawn_javascript_child_process(
@@ -8340,13 +8227,7 @@ ykAheWCsAteSEWVc0w==\n\
 
             let cwd = temp_dir("secure-exec-sidecar-tool-command-sync-rpc");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-tool-rpc",
-                "[\"child_process\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-tool-rpc");
 
             let spawned = sidecar
                 .spawn_javascript_child_process(
@@ -9066,11 +8947,6 @@ process.stdout.write(`${JSON.stringify({
                         instructions: Vec::new(),
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
-                        allowed_node_builtins: vec![
-                            String::from("fs"),
-                            String::from("path"),
-                            String::from("path"),
-                        ],
                         loopback_exempt_ports: vec![4312],
                     }),
                 ))
@@ -11087,13 +10963,8 @@ console.log("sqlite-ok");
 "#,
             );
 
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-sqlite-builtins",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"path\",\"querystring\",\"sqlite\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-sqlite-builtins");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             assert!(stderr.trim().is_empty(), "stderr: {stderr}");
@@ -11193,13 +11064,8 @@ console.log(JSON.stringify(summary));
 "#,
             );
 
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-net",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-net");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             assert!(
@@ -11286,13 +11152,8 @@ if (summary.rinfo.address !== "127.0.0.1" || summary.rinfo.port !== summary.rece
 console.log(JSON.stringify(summary));
 "#,
             );
-            let (_stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-dgram",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dgram\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (_stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-dgram");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
         }
@@ -11737,13 +11598,8 @@ const socketSummary = await new Promise((resolve, reject) => {
 console.log(JSON.stringify({ lookup, resolved, socketSummary }));
 "#,
             );
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-dns-override",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-dns-override");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse dns JSON");
@@ -11839,13 +11695,8 @@ try {
 console.log(JSON.stringify(data));
 "#,
             );
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-dns-rrtype",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-dns-rrtype");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse dns rrtype JSON");
@@ -12010,7 +11861,6 @@ process.exit(0);
                 &vm_id,
                 &cwd,
                 "proc-js-network-permission-callbacks",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
             );
 
             server.join().expect("join tcp server");
@@ -12123,7 +11973,6 @@ process.exit(0);
                 &vm_id,
                 &cwd,
                 "proc-js-network-permission-denials",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
             );
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
@@ -12349,7 +12198,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http-listen");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http-listen", "[]");
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http-listen");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -12421,7 +12270,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http-respond");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http-respond", "[]");
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http-respond");
 
             let response_json = String::from(
                 "{\"status\":200,\"headers\":[[\"content-type\",\"text/plain\"]],\"body\":\"cG9uZw==\",\"bodyEncoding\":\"base64\"}",
@@ -12476,7 +12325,6 @@ console.log(JSON.stringify(summary));
                 &vm_id,
                 &cwd,
                 "proc-js-http-respond-oversized",
-                "[]",
             );
 
             let oversized_body = "a".repeat(crate::wire::DEFAULT_MAX_FRAME_BYTES);
@@ -12577,13 +12425,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http2-round-trip");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-http2",
-                "[\"buffer\",\"stream\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http2");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -12802,13 +12644,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http2-surfaces");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-http2-surfaces",
-                "[\"buffer\",\"stream\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http2-surfaces");
             sidecar
                 .vms
                 .get_mut(&vm_id)
@@ -13116,13 +12952,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http2-secure-round-trip");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-http2-secure",
-                "[\"buffer\",\"stream\",\"tls\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http2-secure");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -13318,13 +13148,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-http2-respond");
             write_fixture(&cwd.join("entry.mjs"), "");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-http2-respond",
-                "[]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http2-respond");
 
             let response_json = String::from(
                 "{\"status\":200,\"headers\":[[\"content-type\",\"text/plain\"]],\"body\":\"c2VjdXJlLXBvbmc=\",\"bodyEncoding\":\"base64\"}",
@@ -13447,13 +13271,8 @@ console.log(JSON.stringify(summary));
 "#,
             );
 
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-http",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"http\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-http");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse http JSON");
@@ -13533,13 +13352,8 @@ console.log(JSON.stringify(summary));
 "#,
             );
 
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-fetch-loopback",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"http\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-fetch-loopback");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse fetch JSON");
@@ -13628,13 +13442,8 @@ console.log(JSON.stringify(summary));
             );
             write_fixture(&cwd.join("entry.mjs"), &entry);
 
-            let (stdout, stderr, exit_code) = run_javascript_entry(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-https",
-                "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"https\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
-            );
+            let (stdout, stderr, exit_code) =
+                run_javascript_entry(&mut sidecar, &vm_id, &cwd, "proc-js-https");
 
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse https JSON");
@@ -13663,13 +13472,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-net-server-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-server",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-server");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -13880,13 +13683,7 @@ console.log(JSON.stringify(summary));
             let cwd = temp_dir("secure-exec-sidecar-js-net-backlog-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
 
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-backlog",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-backlog");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -14084,13 +13881,7 @@ console.log(JSON.stringify(summary));
             let cwd = temp_dir("secure-exec-sidecar-js-net-poll-clamp-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
 
-            start_fake_javascript_process(
-                &mut sidecar,
-                &poll_vm_id,
-                &cwd,
-                "proc-js-poll",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &poll_vm_id, &cwd, "proc-js-poll");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -14291,13 +14082,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-bind-policy-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-bind-policy",
-                "[\"dgram\",\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-bind-policy");
 
             let unspecified = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -14461,13 +14246,7 @@ console.log(JSON.stringify(summary));
             .expect("create vm");
             let cwd = temp_dir("secure-exec-sidecar-js-privileged-listen-cwd");
             write_fixture(&cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(
-                &mut sidecar,
-                &vm_id,
-                &cwd,
-                "proc-js-privileged",
-                "[\"net\"]",
-            );
+            start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-privileged");
 
             let listen = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -14510,8 +14289,8 @@ console.log(JSON.stringify(summary));
             let cwd_b = temp_dir("secure-exec-sidecar-js-net-isolation-b");
             write_fixture(&cwd_a.join("entry.mjs"), "setInterval(() => {}, 1000);");
             write_fixture(&cwd_b.join("entry.mjs"), "setInterval(() => {}, 1000);");
-            start_fake_javascript_process(&mut sidecar, &vm_a, &cwd_a, "proc-a", "[\"net\"]");
-            start_fake_javascript_process(&mut sidecar, &vm_b, &cwd_b, "proc-b", "[\"net\"]");
+            start_fake_javascript_process(&mut sidecar, &vm_a, &cwd_a, "proc-a");
+            start_fake_javascript_process(&mut sidecar, &vm_b, &cwd_b, "proc-b");
 
             let listen_a = call_javascript_sync_rpc(
                 &mut sidecar,

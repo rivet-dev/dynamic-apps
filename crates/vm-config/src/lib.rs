@@ -40,6 +40,9 @@ pub struct CreateVmConfig {
         skip_serializing_if = "Vec::is_empty"
     )]
     pub loopback_exempt_ports: Vec<u16>,
+    #[serde(default, rename = "jsRuntime", skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub js_runtime: Option<JsRuntimeConfig>,
 }
 
 impl Default for CreateVmConfig {
@@ -54,6 +57,7 @@ impl Default for CreateVmConfig {
             native_root: None,
             listen: None,
             loopback_exempt_ports: Vec::new(),
+            js_runtime: None,
         }
     }
 }
@@ -81,8 +85,163 @@ impl CreateVmConfig {
         if let Some(limits) = &self.limits {
             limits.validate(max_frame_bytes)?;
         }
+        if let Some(js_runtime) = &self.js_runtime {
+            js_runtime.validate()?;
+        }
         Ok(())
     }
+}
+
+/// Guest JavaScript host-environment configuration.
+///
+/// Selects which globals/builtins/module-resolution surface guest JS sees,
+/// modeled on esbuild's `platform`. Omitting this preserves full Node.js
+/// emulation (`platform = node`).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(export, export_to = "../../../packages/core/src/generated/")]
+pub struct JsRuntimeConfig {
+    /// Which host environment to emulate for guest JS. Default `node`.
+    #[serde(default)]
+    pub platform: JsRuntimePlatform,
+    /// How bare import specifiers resolve. Independent of `platform`.
+    /// Default `node`.
+    #[serde(default, rename = "moduleResolution")]
+    pub module_resolution: JsModuleResolution,
+    /// Node builtin-module allow-list. Only valid when `platform = node`.
+    /// `None` => engine default allow-list. `Some([])` => deny all builtins.
+    /// `Some([..])` => exactly those.
+    #[serde(
+        default,
+        rename = "allowedBuiltins",
+        skip_serializing_if = "Option::is_none"
+    )]
+    #[ts(optional)]
+    pub allowed_builtins: Option<Vec<String>>,
+}
+
+impl JsRuntimeConfig {
+    fn validate(&self) -> Result<(), VmConfigError> {
+        if let Some(allowed) = &self.allowed_builtins {
+            if self.platform != JsRuntimePlatform::Node {
+                return Err(VmConfigError::new(
+                    "jsRuntime.allowedBuiltins is only valid when jsRuntime.platform is \"node\"",
+                ));
+            }
+            for name in allowed {
+                if !is_known_node_builtin(name) {
+                    return Err(VmConfigError::new(format!(
+                        "jsRuntime.allowedBuiltins contains unknown builtin {name:?}"
+                    )));
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, export_to = "../../../packages/core/src/generated/")]
+pub enum JsRuntimePlatform {
+    /// Full Node.js host surface (process/Buffer/require, `node:*`, npm
+    /// resolution, virtual Node identity). Default.
+    Node,
+    /// Web-platform globals (fetch/URL/WebCrypto/...), no Node surface.
+    Browser,
+    /// Universal primitives only (console, timers, queueMicrotask) — no web
+    /// platform, no Node surface.
+    Neutral,
+    /// Language-only: ECMAScript spec globals + WebAssembly. Nothing host-provided.
+    Bare,
+}
+
+impl Default for JsRuntimePlatform {
+    fn default() -> Self {
+        Self::Node
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export, export_to = "../../../packages/core/src/generated/")]
+pub enum JsModuleResolution {
+    /// node_modules ancestor-walk + exports/imports/conditions + realpath. Default.
+    Node,
+    /// Relative/absolute ESM from the VFS only; bare specifiers do not resolve.
+    Relative,
+    /// No resolution: any import/require (even relative) fails.
+    None,
+}
+
+impl Default for JsModuleResolution {
+    fn default() -> Self {
+        Self::Node
+    }
+}
+
+/// Canonical set of recognized Node builtin module names (without the `node:`
+/// prefix), kept in sync with `normalize_builtin_specifier` in
+/// `crates/execution/src/javascript.rs`. Used to validate
+/// `jsRuntime.allowedBuiltins` entries.
+const KNOWN_NODE_BUILTINS: &[&str] = &[
+    "assert",
+    "async_hooks",
+    "buffer",
+    "child_process",
+    "cluster",
+    "console",
+    "constants",
+    "crypto",
+    "dgram",
+    "diagnostics_channel",
+    "dns",
+    "dns/promises",
+    "domain",
+    "events",
+    "fs",
+    "fs/promises",
+    "http",
+    "http2",
+    "https",
+    "inspector",
+    "module",
+    "net",
+    "os",
+    "path",
+    "path/posix",
+    "path/win32",
+    "perf_hooks",
+    "process",
+    "punycode",
+    "querystring",
+    "readline",
+    "repl",
+    "sqlite",
+    "stream",
+    "stream/consumers",
+    "stream/promises",
+    "stream/web",
+    "string_decoder",
+    "sys",
+    "timers",
+    "timers/promises",
+    "tls",
+    "trace_events",
+    "tty",
+    "url",
+    "util",
+    "util/types",
+    "v8",
+    "vm",
+    "wasi",
+    "worker_threads",
+    "zlib",
+];
+
+fn is_known_node_builtin(name: &str) -> bool {
+    let bare = name.strip_prefix("node:").unwrap_or(name);
+    KNOWN_NODE_BUILTINS.contains(&bare)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -648,5 +807,101 @@ mod tests {
             ..CreateVmConfig::default()
         };
         assert!(config.validate(1024).is_err());
+    }
+
+    fn js_runtime_config(value: serde_json::Value) -> Result<CreateVmConfig, serde_json::Error> {
+        serde_json::from_value(serde_json::json!({ "jsRuntime": value }))
+    }
+
+    #[test]
+    fn js_runtime_defaults_to_node() {
+        let config: CreateVmConfig =
+            serde_json::from_value(serde_json::json!({ "jsRuntime": {} })).expect("decode");
+        let js = config.js_runtime.expect("jsRuntime present");
+        assert_eq!(js.platform, JsRuntimePlatform::Node);
+        assert_eq!(js.module_resolution, JsModuleResolution::Node);
+        assert!(js.allowed_builtins.is_none());
+    }
+
+    #[test]
+    fn js_runtime_all_platform_resolution_combos_round_trip() {
+        for platform in ["node", "browser", "neutral", "bare"] {
+            for resolution in ["node", "relative", "none"] {
+                let config = js_runtime_config(serde_json::json!({
+                    "platform": platform,
+                    "moduleResolution": resolution,
+                }))
+                .unwrap_or_else(|err| panic!("decode {platform}/{resolution}: {err}"));
+                let json = serde_json::to_string(&config).expect("serialize");
+                let decoded: CreateVmConfig = serde_json::from_str(&json).expect("re-decode");
+                assert_eq!(decoded, config);
+                assert!(config.validate(usize::MAX).is_ok());
+            }
+        }
+    }
+
+    #[test]
+    fn js_runtime_allowed_builtins_tri_state() {
+        // None => omitted.
+        let none = js_runtime_config(serde_json::json!({ "platform": "node" })).unwrap();
+        assert!(none.js_runtime.unwrap().allowed_builtins.is_none());
+        // Some([]) => deny all (representable, distinct from None).
+        let empty =
+            js_runtime_config(serde_json::json!({ "allowedBuiltins": [] })).unwrap();
+        assert_eq!(
+            empty.js_runtime.unwrap().allowed_builtins,
+            Some(Vec::new())
+        );
+        // Some([..]) => explicit.
+        let some =
+            js_runtime_config(serde_json::json!({ "allowedBuiltins": ["path", "node:fs"] }))
+                .unwrap();
+        assert_eq!(
+            some.js_runtime.unwrap().allowed_builtins,
+            Some(vec!["path".to_owned(), "node:fs".to_owned()])
+        );
+    }
+
+    #[test]
+    fn js_runtime_rejects_allowed_builtins_under_non_node_platform() {
+        for platform in ["browser", "neutral", "bare"] {
+            let config = js_runtime_config(serde_json::json!({
+                "platform": platform,
+                "allowedBuiltins": ["path"],
+            }))
+            .unwrap();
+            let error = config
+                .validate(usize::MAX)
+                .expect_err("allowedBuiltins under non-node must reject");
+            assert!(error.to_string().contains("allowedBuiltins"));
+        }
+    }
+
+    #[test]
+    fn js_runtime_rejects_unknown_builtin_names() {
+        let config = js_runtime_config(serde_json::json!({
+            "platform": "node",
+            "allowedBuiltins": ["path", "totally_not_a_builtin"],
+        }))
+        .unwrap();
+        let error = config
+            .validate(usize::MAX)
+            .expect_err("unknown builtin must reject");
+        assert!(error.to_string().contains("unknown builtin"));
+    }
+
+    #[test]
+    fn js_runtime_accepts_empty_allow_list_under_node() {
+        let config =
+            js_runtime_config(serde_json::json!({ "platform": "node", "allowedBuiltins": [] }))
+                .unwrap();
+        assert!(config.validate(usize::MAX).is_ok());
+    }
+
+    #[test]
+    fn js_runtime_rejects_unknown_fields() {
+        let error = js_runtime_config(serde_json::json!({ "surprise": true }))
+            .expect_err("unknown jsRuntime field should fail");
+        assert!(error.to_string().contains("unknown field"));
     }
 }

@@ -1230,7 +1230,6 @@ export type ConfigureVmRequest = {
     readonly instructions: readonly string[]
     readonly projectedModules: readonly ProjectedModuleDescriptor[]
     readonly commandPermissions: ReadonlyMap<string, WasmPermissionTier>
-    readonly allowedNodeBuiltins: readonly string[]
     readonly loopbackExemptPorts: Uint16Array
 }
 
@@ -1243,7 +1242,6 @@ export function readConfigureVmRequest(bc: bare.ByteCursor): ConfigureVmRequest 
         instructions: read6(bc),
         projectedModules: read15(bc),
         commandPermissions: read16(bc),
-        allowedNodeBuiltins: read6(bc),
         loopbackExemptPorts: bare.readU16Array(bc),
     }
 }
@@ -1256,7 +1254,6 @@ export function writeConfigureVmRequest(bc: bare.ByteCursor, x: ConfigureVmReque
     write6(bc, x.instructions)
     write15(bc, x.projectedModules)
     write16(bc, x.commandPermissions)
-    write6(bc, x.allowedNodeBuiltins)
     bare.writeU16Array(bc, x.loopbackExemptPorts)
 }
 

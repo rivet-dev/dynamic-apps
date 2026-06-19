@@ -380,7 +380,6 @@ export class NativeSidecarProcessClient {
 			instructions?: string[];
 			projectedModules?: SidecarProjectedModuleDescriptor[];
 			commandPermissions?: Record<string, WasmPermissionTier>;
-			allowedNodeBuiltins?: string[];
 			loopbackExemptPorts?: number[];
 		},
 	): Promise<void> {
@@ -402,9 +401,6 @@ export class NativeSidecarProcessClient {
 					toWireProjectedModuleDescriptor,
 				),
 				command_permissions: options.commandPermissions ?? {},
-				...(options.allowedNodeBuiltins
-					? { allowed_node_builtins: options.allowedNodeBuiltins }
-					: {}),
 				...(options.loopbackExemptPorts
 					? { loopback_exempt_ports: options.loopbackExemptPorts }
 					: {}),

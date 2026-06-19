@@ -876,7 +876,6 @@ fn schema_supports_configuration_and_structured_events() {
                 entrypoint: "/workspace/index.ts".to_string(),
             }],
             command_permissions: std::collections::HashMap::new(),
-            allowed_node_builtins: Vec::new(),
             loopback_exempt_ports: Vec::new(),
         }),
     ));

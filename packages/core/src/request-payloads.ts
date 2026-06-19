@@ -75,7 +75,6 @@ export type LiveRequestPayload =
 			instructions: string[];
 			projected_modules: LiveProjectedModuleDescriptor[];
 			command_permissions: Record<string, LiveWasmPermissionTier>;
-			allowed_node_builtins?: string[];
 			loopback_exempt_ports?: number[];
 	  }
 	| {
@@ -251,7 +250,6 @@ export function toGeneratedRequestPayload(
 							([name, tier]) => [name, toGeneratedWasmPermissionTier(tier)],
 						),
 					),
-					allowedNodeBuiltins: payload.allowed_node_builtins ?? [],
 					loopbackExemptPorts: new Uint16Array(
 						payload.loopback_exempt_ports ?? [],
 					),

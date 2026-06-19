@@ -81,7 +81,6 @@ describe("request payload conversion", () => {
 					{ package_name: "@acme/tool", entrypoint: "dist/index.js" },
 				],
 				command_permissions: { node: "read-only" },
-				allowed_node_builtins: ["fs"],
 				loopback_exempt_ports: [8080],
 			}),
 		).toMatchObject({
@@ -92,7 +91,6 @@ describe("request payload conversion", () => {
 				commandPermissions: new Map([
 					["node", protocol.WasmPermissionTier.ReadOnly],
 				]),
-				allowedNodeBuiltins: ["fs"],
 			},
 		});
 	});

@@ -1,5 +1,7 @@
 //! Process execution, networking, and runtime event handling extracted from service.rs.
 
+use secure_exec_vm_config as vm_config;
+
 use crate::filesystem::{
     handle_python_vfs_rpc_request as filesystem_handle_python_vfs_rpc_request,
     service_javascript_fs_sync_rpc, service_javascript_module_sync_rpc,
@@ -8636,6 +8638,32 @@ fn prepare_guest_runtime_env(
             SidecarError::InvalidState(format!("failed to encode allowed builtins: {error}"))
         })?,
     );
+    // The guest JS host platform drives subtractive global scrubbing in the
+    // per-execution runtime shim (see prepend_v8_runtime_shim).
+    env.insert(
+        String::from("AGENT_OS_JS_PLATFORM"),
+        js_runtime_platform_env(vm).to_owned(),
+    );
+    // Module-resolution mode (omitted when full Node resolution / the default).
+    if let Some(resolution) = js_runtime_module_resolution_env(vm) {
+        env.insert(
+            String::from("AGENT_OS_JS_MODULE_RESOLUTION"),
+            resolution.to_owned(),
+        );
+    }
+    // Builtin allow-list gate for the live resolver. Present only when builtins
+    // should be restricted (non-node platform => deny all; node + explicit
+    // allow-list => exactly those). Absent => unrestricted (node default).
+    if let Some(allowlist) = js_runtime_enforced_builtins(vm) {
+        env.insert(
+            String::from("AGENT_OS_JS_BUILTIN_ALLOWLIST"),
+            serde_json::to_string(&allowlist).map_err(|error| {
+                SidecarError::InvalidState(format!(
+                    "failed to encode jsRuntime builtin allow-list: {error}"
+                ))
+            })?,
+        );
+    }
     env.insert(
         String::from("AGENT_OS_VIRTUAL_OS_USER"),
         user.username.clone(),
@@ -8715,14 +8743,74 @@ fn virtual_os_freemem_bytes(resource_limits: &ResourceLimits) -> u64 {
         .unwrap_or(512 * 1024 * 1024)
 }
 
+/// The guest JavaScript host platform configured for this VM, defaulting to
+/// full Node.js emulation when no `jsRuntime` config was supplied at create.
+fn js_runtime_platform(vm: &VmState) -> vm_config::JsRuntimePlatform {
+    vm.configuration
+        .js_runtime
+        .as_ref()
+        .map(|cfg| cfg.platform)
+        .unwrap_or(vm_config::JsRuntimePlatform::Node)
+}
+
+/// Lowercase wire name for the configured platform, mirroring the serde
+/// representation of `vm_config::JsRuntimePlatform`.
+fn js_runtime_platform_env(vm: &VmState) -> &'static str {
+    match js_runtime_platform(vm) {
+        vm_config::JsRuntimePlatform::Node => "node",
+        vm_config::JsRuntimePlatform::Browser => "browser",
+        vm_config::JsRuntimePlatform::Neutral => "neutral",
+        vm_config::JsRuntimePlatform::Bare => "bare",
+    }
+}
+
+/// Wire name for the configured module-resolution mode, or `None` when it is the
+/// full-Node default (which the live resolver also assumes when the env is unset).
+fn js_runtime_module_resolution_env(vm: &VmState) -> Option<&'static str> {
+    let resolution = vm
+        .configuration
+        .js_runtime
+        .as_ref()
+        .map(|cfg| cfg.module_resolution)
+        .unwrap_or(vm_config::JsModuleResolution::Node);
+    match resolution {
+        vm_config::JsModuleResolution::Node => None,
+        vm_config::JsModuleResolution::Relative => Some("relative"),
+        vm_config::JsModuleResolution::None => Some("none"),
+    }
+}
+
+/// The builtin allow-list the live resolver should enforce, or `None` to leave
+/// builtins unrestricted (full Node default — preserving today's behavior).
+/// Non-node platforms enforce an empty list (deny all builtins).
+fn js_runtime_enforced_builtins(vm: &VmState) -> Option<Vec<String>> {
+    if js_runtime_platform(vm) != vm_config::JsRuntimePlatform::Node {
+        return Some(Vec::new());
+    }
+    vm.configuration
+        .js_runtime
+        .as_ref()
+        .and_then(|cfg| cfg.allowed_builtins.clone())
+}
+
 fn configured_allowed_node_builtins(vm: &VmState) -> Vec<String> {
-    let configured = if vm.configuration.allowed_node_builtins.is_empty() {
-        DEFAULT_ALLOWED_NODE_BUILTINS
+    // Non-node platforms expose no Node builtin modules at all.
+    if js_runtime_platform(vm) != vm_config::JsRuntimePlatform::Node {
+        return Vec::new();
+    }
+    // Under the node platform an explicit allow-list wins — including an explicit
+    // empty list, which means deny all. Absence falls back to the engine default.
+    let configured = match vm
+        .configuration
+        .js_runtime
+        .as_ref()
+        .and_then(|cfg| cfg.allowed_builtins.as_ref())
+    {
+        Some(list) => list.clone(),
+        None => DEFAULT_ALLOWED_NODE_BUILTINS
             .iter()
             .map(|value| (*value).to_owned())
-            .collect::<Vec<_>>()
-    } else {
-        vm.configuration.allowed_node_builtins.clone()
+            .collect::<Vec<_>>(),
     };
     dedupe_strings(&configured)
 }

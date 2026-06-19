@@ -108,7 +108,6 @@ fn live_bare_codec_matches_generated_request_bytes() {
                 "cat".to_string(),
                 live_protocol::WasmPermissionTier::ReadOnly,
             )]),
-            allowed_node_builtins: vec!["fs".to_string()],
             loopback_exempt_ports: vec![3000],
         }),
     ));
@@ -269,7 +268,6 @@ fn generated_configure_frame() -> ProtocolFrame {
                 entrypoint: "/workspace/index.js".to_string(),
             }],
             command_permissions: HashMap::from([("cat".to_string(), WasmPermissionTier::ReadOnly)]),
-            allowed_node_builtins: vec!["fs".to_string()],
             loopback_exempt_ports: vec![3000],
         }),
     })

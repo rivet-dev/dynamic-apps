@@ -4072,7 +4072,11 @@ var __bridge = (() => {
     Object.defineProperty(target, name, {
       value,
       writable: mutable,
-      configurable: mutable,
+      // Always configurable so the per-execution jsRuntime shim can scrub
+      // host globals for non-node platforms (see prepend_v8_runtime_shim).
+      // This only affects the guest's own realm; the kernel boundary lives in
+      // the bridge RPC layer, not these property descriptors.
+      configurable: true,
       enumerable
     });
   }
@@ -26593,10 +26597,28 @@ ${headerLines}\r
   function normalizeBuiltinRequest(request) {
     return String(request).replace(/^node:/, "");
   }
+  let __jsRuntimeBuiltinAllowlist = null;
   function rejectRestrictedBuiltinRequest(request) {
     const normalized = normalizeBuiltinRequest(request);
+    // jsRuntime builtin allow-list gate. When the per-execution shim installed an
+    // allow-list (non-node platforms => empty => deny all; node + explicit list),
+    // deny any builtin whose root name is not permitted. Absent => unrestricted.
+    const allow = __jsRuntimeBuiltinAllowlist;
+    if (Array.isArray(allow)) {
+      const root = String(normalized == null ? request : normalized)
+        .replace(/^node:/, "")
+        .split("/")[0];
+      if (!allow.includes(root)) {
+        throw createAccessDeniedBuiltinError(request);
+      }
+    }
     return normalized;
   }
+  exposeCustomGlobal("__agentOsInitJsRuntime", function (allowlist) {
+    __jsRuntimeBuiltinAllowlist = Array.isArray(allowlist)
+      ? allowlist.map((name) => String(name).replace(/^node:/, "").split("/")[0])
+      : null;
+  });
   function loadBuiltinModule(request) {
     const normalized = rejectRestrictedBuiltinRequest(request);
     switch (normalized) {

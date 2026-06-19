@@ -267,6 +267,7 @@ where
                 loaded_snapshot,
                 configuration: VmConfiguration {
                     permissions: permissions_policy,
+                    js_runtime: create_config.js_runtime.clone(),
                     ..VmConfiguration::default()
                 },
                 layers: VmLayerStore::default(),
@@ -402,7 +403,8 @@ where
                 instructions: payload.instructions.clone(),
                 projected_modules: payload.projected_modules.clone(),
                 command_permissions: payload.command_permissions.clone().into_iter().collect(),
-                allowed_node_builtins: payload.allowed_node_builtins.clone(),
+                // jsRuntime is create-time only; preserve what create_vm stored.
+                js_runtime: vm.configuration.js_runtime.clone(),
                 loopback_exempt_ports: payload.loopback_exempt_ports.clone(),
             };
             Ok(())

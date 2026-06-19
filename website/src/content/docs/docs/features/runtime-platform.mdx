@@ -1,0 +1,136 @@
+---
+title: Runtime & Platform
+description: Configure which JavaScript host environment guest code sees — node, browser, neutral, or bare — plus module resolution and the Node builtin allow-list.
+---
+
+By default, guest JavaScript runs with the full Node.js emulation surface: the
+`process` and `Buffer` globals, `require`, the `node:*` builtin modules, npm
+module resolution, and a virtualized Node process identity.
+
+The `jsRuntime` option on `CreateVmConfig` lets you choose a **different host
+environment** for guest JS — the same idea as esbuild's `platform`. You can run
+code as a browser-like runtime, a minimal universal runtime, or pure
+ECMAScript with nothing host-provided. This only changes *which globals,
+builtins, and module resolution are exposed*; guest code still runs inside the
+same kernel-backed V8 isolate with zero host escapes.
+
+```ts
+await client.createVm(session, {
+  runtime: "java_script",
+  config: {
+    jsRuntime: {
+      platform: "browser",          // node | browser | neutral | bare
+      moduleResolution: "node",     // node | relative | none
+      // allowedBuiltins: ["path"], // node platform only
+    },
+  },
+});
+```
+
+Omitting `jsRuntime` entirely is identical to the previous behavior
+(`platform: "node"`, full Node resolution).
+
+## `platform` — the host environment
+
+The four platforms form a ladder from "full Node" down to "language only".
+Values match esbuild (`node` / `browser` / `neutral`), plus `bare` for the
+language-only tier esbuild has no name for.
+
+| Capability | `node` | `browser` | `neutral` | `bare` |
+|---|:---:|:---:|:---:|:---:|
+| Node globals | ✅ | — | — | — |
+| `node:*` builtins | ✅ | — | — | — |
+| Node identity | ✅ | — | — | — |
+| Web platform | ✅ | ✅ | — | — |
+| Universal primitives | ✅ | ✅ | ✅ | — |
+| Language + Wasm | ✅ | ✅ | ✅ | ✅ |
+
+Where each row means:
+
+- **Node globals** — `process`, `Buffer`, `require`, `module`, `__dirname`, `__filename`.
+- **`node:*` builtins** — the Node builtin modules (`fs`, `path`, `crypto`, …).
+- **Node identity** — virtualized `process.versions`, `execPath`, pid/ppid/uid/gid.
+- **Web platform** — `fetch`, `URL`, `TextEncoder`, WebCrypto, `structuredClone`, `Blob`, `AbortController`, …
+- **Universal primitives** — `console`, timers (`setTimeout`/`setInterval`/…), `queueMicrotask`.
+- **Language + Wasm** — the ECMAScript spec globals plus `WebAssembly`.
+
+- **`node`** (default) — full Node.js compatibility. Nothing is removed.
+- **`browser`** — a browser/Deno-like runtime. The Node surface is gone;
+  web-standard globals remain. `crypto` is the WebCrypto object (`crypto.subtle`,
+  `crypto.getRandomValues`) — *not* the `node:crypto` module, so
+  `crypto.randomBytes` / `crypto.createHash` are absent.
+- **`neutral`** — universal primitives only (`console`, timers,
+  `queueMicrotask`) plus the language. No `fetch`/`URL`/WebCrypto, no Node.
+- **`bare`** — language only: the ECMAScript spec globals plus `WebAssembly`.
+  No `console`, no timers, no `fetch`. The caller is expected to provide any host
+  functionality the guest needs.
+
+`WebAssembly` stays available on every platform — compilation happens inside the
+isolate and is not a host escape.
+
+## `moduleResolution` — how imports resolve
+
+An independent axis (any combination with `platform` is valid). Like esbuild,
+the default is full Node resolution even for non-`node` platforms.
+
+| `moduleResolution` | `import "pkg"` | `import "./x.js"` | `node:*` |
+|---|:---:|:---:|:---:|
+| `node` (default) | ✅ | ✅ | ✅ |
+| `relative` | — | ✅ | — |
+| `none` | — | — | — |
+
+(`import "pkg"` = bare/`node_modules` specifier; `import "./x.js"` = relative or
+absolute path; `node:*` follows the platform / `allowedBuiltins`.)
+
+- **`node`** — standard Node resolution: the `node_modules` ancestor walk,
+  `exports`/`imports`/conditions, and `realpath`/symlink following.
+- **`relative`** — only relative and absolute paths resolve from the VFS; bare
+  package specifiers and `node:*` builtins do not.
+- **`none`** — nothing resolves. Any `import` or `require` (including relative)
+  fails. Produces a single self-contained entrypoint module — useful for
+  locked-down evaluation of one script.
+
+## `allowedBuiltins` — restrict Node builtins (node platform only)
+
+When `platform` is `node`, you can narrow which `node:*` builtin modules guest
+code may import:
+
+- **omitted** — the engine default allow-list (current behavior).
+- **`[]`** — deny **all** builtins.
+- **`["path", "fs"]`** — allow exactly these (a root name like `fs` also covers
+  `node:fs/promises`).
+
+`allowedBuiltins` is only meaningful under `platform: "node"` — the other
+platforms deny all `node:*` builtins regardless. Supplying it under any other
+platform is a configuration error (rejected at VM creation). Unknown builtin
+names are rejected too.
+
+## Worked examples
+
+**Deno / browser-like sandbox** — web APIs, still resolves npm packages:
+
+```ts
+config: { jsRuntime: { platform: "browser" } }
+// fetch/URL/crypto.subtle available; no process/Buffer/require;
+// `import "some-pkg"` still resolves from node_modules.
+```
+
+**Locked-down single-script eval** — nothing host-provided, no imports at all:
+
+```ts
+config: { jsRuntime: { platform: "bare", moduleResolution: "none" } }
+// Only ECMAScript + WebAssembly; every import/require throws.
+```
+
+**Node, but only a few builtins**:
+
+```ts
+config: { jsRuntime: { platform: "node", allowedBuiltins: ["path", "url"] } }
+// `import "node:path"` works; `import "node:fs"` is denied.
+```
+
+## Notes
+
+- `jsRuntime` is fixed at VM creation; it cannot be changed via reconfigure.
+- The setting applies to every JavaScript execution in the VM, including nested
+  `child_process` JavaScript launches, which inherit the same platform.

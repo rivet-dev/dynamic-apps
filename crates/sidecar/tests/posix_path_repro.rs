@@ -67,10 +67,6 @@ fn configure_mounts(
     include_registry_commands: bool,
     mut mounts: Vec<MountDescriptor>,
 ) {
-    let allowed_node_builtins = ALLOWED_NODE_BUILTINS
-        .iter()
-        .map(|builtin| (*builtin).to_owned())
-        .collect::<Vec<_>>();
     if include_registry_commands {
         let command_root = registry_command_root();
         mounts.insert(
@@ -102,7 +98,6 @@ fn configure_mounts(
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
-                allowed_node_builtins,
                 loopback_exempt_ports: Vec::new(),
             }),
         ))

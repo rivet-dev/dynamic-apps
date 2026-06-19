@@ -371,10 +371,38 @@ pub trait ModuleFsReader {
     fn path_exists(&mut self, guest_path: &str) -> bool;
 }
 
+/// Guest JavaScript module-resolution mode (the `moduleResolution` axis of
+/// `jsRuntime`). Defaults to full Node.js resolution.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+enum GuestModuleResolution {
+    /// node_modules ancestor-walk + exports/conditions + realpath.
+    #[default]
+    Node,
+    /// Relative/absolute ESM only; bare specifiers do not resolve.
+    Relative,
+    /// No resolution at all; every specifier (relative included) is denied.
+    None,
+}
+
+impl GuestModuleResolution {
+    fn from_env(env: &BTreeMap<String, String>) -> Self {
+        match env
+            .get("AGENT_OS_JS_MODULE_RESOLUTION")
+            .map(String::as_str)
+        {
+            Some("relative") => Self::Relative,
+            Some("none") => Self::None,
+            _ => Self::Node,
+        }
+    }
+}
+
 #[derive(Default)]
 struct LocalBridgeState {
     translator: GuestPathTranslator,
     resolution_cache: LocalModuleResolutionCache,
+    /// jsRuntime module-resolution mode for this execution.
+    module_resolution: GuestModuleResolution,
     handle_descriptions: HashMap<String, String>,
     next_timer_id: u64,
     timers: Arc<Mutex<HashMap<u64, LocalTimerEntry>>>,
@@ -1725,6 +1753,7 @@ impl JavascriptExecutionEngine {
                 kernel_stdin: kernel_stdin.clone(),
                 v8_session: Some(v8_session.clone()),
                 module_reader,
+                module_resolution: GuestModuleResolution::from_env(&request.env),
                 ..Default::default()
             },
         );
@@ -2397,6 +2426,78 @@ fn prepend_v8_runtime_shim(
     globalThis.require =
       globalThis._moduleModule.createRequire(requireEntryFile);
   }}
+
+  // jsRuntime platform tiering: the guest JS host surface is baked into the
+  // shared V8 snapshot, so non-node platforms are produced by subtractively
+  // scrubbing baked globals here, per execution.
+  const __jsPlatform = nextEnv.AGENT_OS_JS_PLATFORM || "node";
+  // Install the builtin allow-list gate consulted by the bridge's
+  // rejectRestrictedBuiltinRequest (covers require + ESM builtin loads). Present
+  // for non-node platforms (empty => deny all) and node + explicit allow-list;
+  // absent => unrestricted (node default).
+  {{
+    const __builtinAllowRaw = nextEnv.AGENT_OS_JS_BUILTIN_ALLOWLIST;
+    if (typeof __builtinAllowRaw === "string") {{
+      let __allowList = [];
+      try {{ __allowList = JSON.parse(__builtinAllowRaw); }} catch (_e) {{ __allowList = []; }}
+      if (typeof globalThis.__agentOsInitJsRuntime === "function") {{
+        globalThis.__agentOsInitJsRuntime(Array.isArray(__allowList) ? __allowList : []);
+      }}
+      try {{ delete globalThis.__agentOsInitJsRuntime; }} catch (_e) {{}}
+    }}
+  }}
+  if (__jsPlatform !== "node") {{
+    const __dropGlobal = (name) => {{
+      try {{ delete globalThis[name]; }} catch (_e) {{}}
+      if (
+        Object.prototype.hasOwnProperty.call(globalThis, name) ||
+        typeof globalThis[name] !== "undefined"
+      ) {{
+        try {{ globalThis[name] = undefined; }} catch (_e) {{}}
+        try {{
+          Object.defineProperty(globalThis, name, {{
+            value: undefined,
+            configurable: true,
+            writable: true,
+          }});
+        }} catch (_e) {{}}
+        try {{ delete globalThis[name]; }} catch (_e) {{}}
+      }}
+    }};
+    // Node host surface + identity channels — removed on every non-node platform.
+    [
+      "process", "Buffer", "require", "module", "exports",
+      "__dirname", "__filename", "global",
+      "_processConfig", "__agentOsProcessConfigEnv",
+    ].forEach(__dropGlobal);
+    if (__jsPlatform === "browser") {{
+      // Narrow `crypto` from the full node:crypto module to the WebCrypto object
+      // (drops randomBytes/createHash/... while keeping subtle/getRandomValues).
+      try {{
+        const __wc = globalThis.crypto && globalThis.crypto.webcrypto;
+        if (__wc) {{ globalThis.crypto = __wc; }}
+      }} catch (_e) {{}}
+    }}
+    if (__jsPlatform === "neutral" || __jsPlatform === "bare") {{
+      // Web-platform globals removed at neutral and below.
+      [
+        "fetch", "Headers", "Request", "Response", "FormData",
+        "URL", "URLSearchParams", "Blob", "File", "crypto",
+        "atob", "btoa", "structuredClone", "performance",
+        "AbortController", "AbortSignal", "Event", "EventTarget",
+        "MessageChannel", "MessagePort", "MessageEvent",
+        "ReadableStream", "WritableStream", "TransformStream",
+      ].forEach(__dropGlobal);
+    }}
+    if (__jsPlatform === "bare") {{
+      // Universal host primitives removed only at the language-only tier.
+      [
+        "console", "queueMicrotask",
+        "setTimeout", "clearTimeout", "setInterval", "clearInterval",
+        "setImmediate", "clearImmediate",
+      ].forEach(__dropGlobal);
+    }}
+  }}
 }})();
 {user_code}"#
     )
@@ -2885,7 +2986,32 @@ impl LocalBridgeState {
         from_dir: &str,
         mode: ModuleResolveMode,
     ) -> Option<String> {
+        if self.js_runtime_denies_specifier(specifier) {
+            return None;
+        }
         self.with_module_resolver(|resolver| resolver.resolve_module(specifier, from_dir, mode))
+    }
+
+    /// jsRuntime resolution gate. Denies builtin and bare/relative imports per the
+    /// configured `moduleResolution` and builtin allow-list, before the resolver
+    /// touches the VFS. This is the authoritative chokepoint for the live
+    /// shared-V8 path (both `import`/`import()` and `require`/`createRequire`
+    /// route through `_resolveModule` -> here).
+    fn js_runtime_denies_specifier(&self, specifier: &str) -> bool {
+        let is_local = specifier.starts_with("./")
+            || specifier.starts_with("../")
+            || specifier == "."
+            || specifier == ".."
+            || specifier.starts_with('/')
+            || specifier.starts_with("file:");
+        match self.module_resolution {
+            GuestModuleResolution::Node => false,
+            // Relative permits local files only; bare specifiers and package
+            // imports (`#...`) do not resolve.
+            GuestModuleResolution::Relative => !is_local,
+            // None denies every specifier, local included.
+            GuestModuleResolution::None => true,
+        }
     }
 
     fn module_format(&mut self, path: &str) -> Option<LocalResolvedModuleFormat> {

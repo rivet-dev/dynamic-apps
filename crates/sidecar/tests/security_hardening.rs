@@ -493,7 +493,6 @@ fn execute_rejects_host_only_absolute_command_path() {
                 instructions: Vec::new(),
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
-                allowed_node_builtins: Vec::new(),
                 loopback_exempt_ports: Vec::new(),
             }),
         ))

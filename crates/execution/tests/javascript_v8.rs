@@ -4015,6 +4015,306 @@ console.log(JSON.stringify({
     );
 }
 
+// ---------------------------------------------------------------------------
+// jsRuntime platform / module-resolution coverage
+// ---------------------------------------------------------------------------
+
+fn js_runtime_env(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
+    pairs
+        .iter()
+        .map(|(key, value)| (String::from(*key), String::from(*value)))
+        .collect()
+}
+
+fn run_js_runtime_guest(env: BTreeMap<String, String>, inline_code: &str) -> JavascriptExecutionResult {
+    let temp = tempdir().expect("create temp dir");
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env,
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(inline_code.to_owned()),
+        })
+        .expect("start JavaScript execution");
+    assert!(
+        execution.uses_shared_v8_runtime(),
+        "guest JS must run inside the shared V8 runtime"
+    );
+    execution.wait().expect("wait for JavaScript execution")
+}
+
+/// Run guest code that throws on any policy violation; a clean exit means every
+/// assertion held. (Lower tiers have no `console`, so guest code signals failure
+/// by throwing, not by printing.)
+fn assert_js_runtime_guest_ok(env: BTreeMap<String, String>, inline_code: &str) {
+    let result = run_js_runtime_guest(env, inline_code);
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(
+        result.exit_code, 0,
+        "guest jsRuntime assertion failed\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+}
+
+fn js_runtime_node_platform_keeps_full_node_surface() {
+    // No jsRuntime env == node platform: the full Node surface stays intact and
+    // builtins remain importable (positive control for the scrub tests below).
+    assert_js_runtime_guest_ok(
+        BTreeMap::new(),
+        r#"
+        if (typeof process === "undefined") throw new Error("process missing");
+        if (typeof Buffer === "undefined") throw new Error("Buffer missing");
+        if (typeof require === "undefined") throw new Error("require missing");
+        if (typeof fetch === "undefined") throw new Error("fetch missing");
+        const fs = await import("node:fs");
+        if (typeof fs.readFileSync !== "function") throw new Error("node:fs not usable");
+        "#,
+    );
+}
+
+fn js_runtime_bare_platform_strips_all_host_globals() {
+    // Pentest: nothing host-provided survives, and it cannot be reconstructed via
+    // constructors / property-name tricks. Language + WebAssembly remain.
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[
+            ("AGENT_OS_JS_PLATFORM", "bare"),
+            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+        ]),
+        r#"
+        const banned = [
+          "process","Buffer","require","module","exports","__dirname","__filename","global",
+          "fetch","Headers","Request","Response","URL","URLSearchParams","crypto","structuredClone",
+          "console","setTimeout","setInterval","setImmediate","queueMicrotask",
+          "_processConfig","__agentOsProcessConfigEnv",
+        ];
+        for (const name of banned) {
+          if (typeof globalThis[name] !== "undefined") throw new Error("leaked global: " + name);
+          if (Object.prototype.hasOwnProperty.call(globalThis, name) && globalThis[name] !== undefined) {
+            throw new Error("leaked own prop: " + name);
+          }
+        }
+        // process must not be reachable through the Function constructor either.
+        try {
+          const f = (function(){}).constructor("return typeof process")();
+          if (f !== "undefined") throw new Error("process reachable via Function ctor");
+        } catch (e) { if (String(e).includes("reachable")) throw e; }
+        for (const g of ["JSON","Math","Promise","WebAssembly","Object","Array","Reflect"]) {
+          if (typeof globalThis[g] === "undefined") throw new Error("language global missing: " + g);
+        }
+        // The allow-list plumbing must leave no reachable global: the shim calls the
+        // one-shot init fn and deletes it, and the old reachable allow-list is gone.
+        if (typeof globalThis.__agentOsBuiltinAllowlist !== "undefined") {
+          throw new Error("__agentOsBuiltinAllowlist is still reachable");
+        }
+        if (typeof globalThis.__agentOsInitJsRuntime !== "undefined") {
+          throw new Error("__agentOsInitJsRuntime is still reachable");
+        }
+        "#,
+    );
+}
+
+fn js_runtime_browser_platform_exposes_web_without_node() {
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[
+            ("AGENT_OS_JS_PLATFORM", "browser"),
+            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+        ]),
+        r#"
+        for (const name of ["process","Buffer","require","module","_processConfig","__agentOsProcessConfigEnv"]) {
+          if (typeof globalThis[name] !== "undefined") throw new Error("node global leaked: " + name);
+        }
+        for (const name of ["fetch","URL","TextEncoder","TextDecoder","structuredClone","console","setTimeout"]) {
+          if (typeof globalThis[name] === "undefined") throw new Error("web/universal global missing: " + name);
+        }
+        if (typeof crypto === "undefined" || typeof crypto.subtle === "undefined") {
+          throw new Error("WebCrypto missing");
+        }
+        // crypto must be WebCrypto, not the node:crypto module.
+        if (typeof crypto.randomBytes === "function" || typeof crypto.createHash === "function") {
+          throw new Error("node:crypto leaked through globalThis.crypto");
+        }
+        // node:* builtins are denied under browser by the bridge gate, which throws
+        // an error with code === "ERR_ACCESS_DENIED".
+        let code = null;
+        try { await import("node:fs"); } catch (e) { code = e && e.code; }
+        if (code !== "ERR_ACCESS_DENIED") {
+          throw new Error("expected ERR_ACCESS_DENIED, got " + code);
+        }
+        "#,
+    );
+}
+
+fn js_runtime_neutral_platform_drops_web_keeps_universal() {
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[
+            ("AGENT_OS_JS_PLATFORM", "neutral"),
+            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+        ]),
+        r#"
+        for (const name of ["process","Buffer","require","fetch","URL","crypto","structuredClone"]) {
+          if (typeof globalThis[name] !== "undefined") throw new Error("global leaked at neutral: " + name);
+        }
+        for (const name of ["console","setTimeout","queueMicrotask","TextEncoder","WebAssembly"]) {
+          if (typeof globalThis[name] === "undefined") throw new Error("universal global missing: " + name);
+        }
+        "#,
+    );
+}
+
+fn js_runtime_module_resolution_none_denies_all_imports() {
+    // AGENT_OS_JS_BUILTIN_ALLOWLIST=[] denies builtins; moduleResolution=none denies
+    // bare AND relative specifiers via static import, dynamic import, and require.
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[
+            ("AGENT_OS_JS_MODULE_RESOLUTION", "none"),
+            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+        ]),
+        r#"
+        let n = 0;
+        try { await import("node:fs"); } catch { n++; }
+        try { await import("lodash"); } catch { n++; }
+        try { await import("./local.mjs"); } catch { n++; }
+        if (n !== 3) throw new Error("expected all imports denied, denied=" + n);
+        "#,
+    );
+}
+
+fn js_runtime_module_resolution_relative_allows_local_denies_bare() {
+    // Write a local module into the guest cwd, then assert relative resolves while
+    // bare + builtin do not.
+    let temp = tempdir().expect("create temp dir");
+    std::fs::write(temp.path().join("local.mjs"), "export const ok = 42;\n")
+        .expect("write local module");
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: js_runtime_env(&[
+                ("AGENT_OS_JS_MODULE_RESOLUTION", "relative"),
+                ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                r#"
+                const local = await import("./local.mjs");
+                if (local.ok !== 42) throw new Error("relative import failed");
+                let bareDenied = false;
+                try { await import("lodash"); } catch { bareDenied = true; }
+                if (!bareDenied) throw new Error("bare specifier was not denied under relative");
+                let builtinDenied = false;
+                try { await import("node:fs"); } catch { builtinDenied = true; }
+                if (!builtinDenied) throw new Error("node:fs was not denied under relative");
+                "#,
+            )),
+        })
+        .expect("start JavaScript execution");
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(result.exit_code, 0, "relative-resolution test failed\nstderr:\n{stderr}");
+}
+
+fn js_runtime_node_platform_allow_list_restricts_builtins() {
+    // platform=node with an explicit allow-list of just "path": node:path resolves,
+    // node:fs is denied.
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[\"path\"]")]),
+        r#"
+        const path = await import("node:path");
+        if (typeof path.join !== "function") throw new Error("node:path should be allowed");
+        let denied = false;
+        try { await import("node:fs"); } catch { denied = true; }
+        if (!denied) throw new Error("node:fs should be denied when not in the allow-list");
+        "#,
+    );
+}
+
+fn js_runtime_browser_loads_cjs_npm_package() {
+    // Regression guard: the per-execution shim must NOT scrub the internal CJS
+    // helpers under browser, so an npm CommonJS package still loads via the
+    // ESM->CJS interop path. node resolution is the browser default (do not set
+    // AGENT_OS_JS_MODULE_RESOLUTION).
+    let temp = tempdir().expect("create temp dir");
+    let pkg_dir = temp.path().join("node_modules").join("demo-pkg");
+    std::fs::create_dir_all(&pkg_dir).expect("create demo-pkg dir");
+    std::fs::write(
+        pkg_dir.join("package.json"),
+        r#"{"name":"demo-pkg","version":"1.0.0","main":"index.js"}"#,
+    )
+    .expect("write package.json");
+    std::fs::write(pkg_dir.join("index.js"), "module.exports = { answer: 42 };\n")
+        .expect("write index.js");
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: js_runtime_env(&[
+                ("AGENT_OS_JS_PLATFORM", "browser"),
+                ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ]),
+            cwd: temp.path().to_path_buf(),
+            inline_code: Some(String::from(
+                r#"
+                const pkg = await import("demo-pkg");
+                const v = pkg.answer ?? pkg.default?.answer;
+                if (v !== 42) throw new Error("npm CJS import failed: " + JSON.stringify(v));
+                "#,
+            )),
+        })
+        .expect("start JavaScript execution");
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(
+        result.exit_code, 0,
+        "browser npm CJS load test failed\nstderr:\n{stderr}"
+    );
+}
+
+fn js_runtime_browser_fetch_is_callable() {
+    // fetch must survive the browser scrub and be wired to the kernel socket
+    // table: calling it returns a thenable that rejects on an unreachable host
+    // rather than throwing synchronously or being undefined.
+    assert_js_runtime_guest_ok(
+        js_runtime_env(&[
+            ("AGENT_OS_JS_PLATFORM", "browser"),
+            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+        ]),
+        r#"
+        if (typeof fetch !== "function") throw new Error("fetch missing");
+        let threwSync = false, settled = "none";
+        let p;
+        try { p = fetch("http://127.0.0.1:1/"); } catch { threwSync = true; }
+        if (threwSync) throw new Error("fetch threw synchronously");
+        if (!p || typeof p.then !== "function") throw new Error("fetch did not return a promise");
+        try { await p; settled = "resolved"; } catch { settled = "rejected"; }
+        if (settled !== "rejected") {
+          throw new Error("expected fetch to reject on unreachable host, got " + settled);
+        }
+        "#,
+    );
+}
+
 #[test]
 fn javascript_v8_suite() {
     // Keep V8-backed integration coverage inside one top-level libtest case.
@@ -4073,4 +4373,13 @@ fn javascript_v8_suite() {
     javascript_execution_v8_dynamic_import_accepts_file_urls();
     javascript_execution_v8_wasm_instantiate_streaming_never_hangs();
     javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm();
+    js_runtime_node_platform_keeps_full_node_surface();
+    js_runtime_bare_platform_strips_all_host_globals();
+    js_runtime_browser_platform_exposes_web_without_node();
+    js_runtime_neutral_platform_drops_web_keeps_universal();
+    js_runtime_module_resolution_none_denies_all_imports();
+    js_runtime_module_resolution_relative_allows_local_denies_bare();
+    js_runtime_node_platform_allow_list_restricts_builtins();
+    js_runtime_browser_loads_cjs_npm_package();
+    js_runtime_browser_fetch_is_callable();
 }

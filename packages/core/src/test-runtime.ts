@@ -2840,7 +2840,6 @@ class NativeKernel implements Kernel {
 		const vm = await client.createVm(session, {
 			runtime: "java_script",
 			config: {
-				version: 1,
 				env: createVmEnv,
 				rootFilesystem,
 				...(bootstrapPermissions ? { permissions: bootstrapPermissions } : {}),

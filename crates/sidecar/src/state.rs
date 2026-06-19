@@ -21,6 +21,7 @@ use secure_exec_kernel::kernel::{KernelProcessHandle, KernelVm};
 use secure_exec_kernel::mount_table::MountTable;
 use secure_exec_kernel::root_fs::{RootFileSystem, RootFilesystemMode, RootFilesystemSnapshot};
 use secure_exec_kernel::socket_table::SocketId;
+use secure_exec_vm_config as vm_config;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -249,7 +250,10 @@ pub(crate) struct VmConfiguration {
     pub(crate) instructions: Vec<String>,
     pub(crate) projected_modules: Vec<ProjectedModuleDescriptor>,
     pub(crate) command_permissions: BTreeMap<String, WasmPermissionTier>,
-    pub(crate) allowed_node_builtins: Vec<String>,
+    /// Guest JavaScript host-environment config (platform / module resolution /
+    /// builtin allow-list). Set at `create_vm` from `CreateVmConfig.jsRuntime`
+    /// and preserved across `configure_vm`. `None` => full Node.js emulation.
+    pub(crate) js_runtime: Option<vm_config::JsRuntimeConfig>,
     pub(crate) loopback_exempt_ports: Vec<u16>,
 }
 

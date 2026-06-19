@@ -216,7 +216,6 @@ type ConfigureVmRequest struct {
   instructions: list<str>
   projectedModules: list<ProjectedModuleDescriptor>
   commandPermissions: map<str><WasmPermissionTier>
-  allowedNodeBuiltins: list<str>
   loopbackExemptPorts: list<u16>
 }
 
