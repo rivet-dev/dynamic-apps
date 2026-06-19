@@ -8768,6 +8768,39 @@ const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
   ? Math.max(0, Math.floor(maxMemoryBytesValue / WASM_PAGE_BYTES))
   : null;
+const maxStackBytesValue = Number(process.env.AGENT_OS_WASM_MAX_STACK_BYTES);
+const maxStackBytes =
+  Number.isFinite(maxStackBytesValue) && maxStackBytesValue > 0
+    ? Math.floor(maxStackBytesValue)
+    : null;
+
+// A guest can drive WebAssembly into never-returning recursion. V8's default
+// native stack guard already traps that as a generic `RangeError`, but the
+// operator-configured `AGENT_OS_WASM_MAX_STACK_BYTES` budget was previously
+// never consulted, so the cap was dead. When a stack byte budget is set, treat
+// a stack-exhaustion trap as enforcement of THAT budget: terminate the guest
+// nonzero and attribute the failure to the configured limit instead of leaking
+// the engine's generic default-guard message.
+function isWasmStackExhaustionTrap(error) {
+  const message = typeof error?.message === 'string' ? error.message : '';
+  // V8 raises `RangeError: Maximum call stack size exceeded` when its native
+  // stack guard fires on runaway recursion (the WebAssembly call stack is
+  // mapped onto V8's). Match that explicitly rather than treating every
+  // `RangeError` as stack exhaustion, so unrelated range failures still
+  // surface with their own message.
+  return /maximum call stack size exceeded/i.test(message);
+}
+
+function reportConfiguredStackLimitExceeded(error) {
+  const detail = typeof error?.message === 'string' && error.message.length > 0
+    ? ` (${error.message})`
+    : '';
+  if (typeof process?.stderr?.write === 'function') {
+    process.stderr.write(
+      `WebAssembly guest exceeded the configured stack byte limit of ${maxStackBytes} bytes${detail}\n`,
+    );
+  }
+}
 const frozenTimeValue = Number(process.env.AGENT_OS_FROZEN_TIME_MS);
 const frozenTimeMs = Number.isFinite(frozenTimeValue) ? Math.trunc(frozenTimeValue) : Date.now();
 const frozenTimeNs = BigInt(frozenTimeMs) * 1000000n;
@@ -13442,7 +13475,16 @@ if (typeof instance.exports._start === 'function') {
   // `poll_oneoff` still routes readiness probes through `__kernel_poll`.
   // That preserves the expected startup ordering so guest `_start` checks can
   // observe the ready event before we exit the runner.
-  const exitCode = wasi.start(instance);
+  let exitCode;
+  try {
+    exitCode = wasi.start(instance);
+  } catch (error) {
+    if (maxStackBytes !== null && isWasmStackExhaustionTrap(error)) {
+      reportConfiguredStackLimitExceeded(error);
+      process.exit(1);
+    }
+    throw error;
+  }
   process.exit(typeof exitCode === 'number' ? exitCode : 0);
 } else if (typeof instance.exports.run === 'function') {
   const result = await instance.exports.run();

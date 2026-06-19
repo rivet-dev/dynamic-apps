@@ -769,6 +769,11 @@ impl WasmExecutionEngine {
         }
         let frozen_time_ms = frozen_time_ms();
         validate_module_limits(&resolved_module, &request)?;
+        // Surfaces a typed error for a malformed stack byte budget instead of
+        // silently dropping it; the parsed value is consumed by the runner's
+        // stack-overflow guard (see `AGENT_OS_WASM_MAX_STACK_BYTES` handling in
+        // the WASM runner) so the operator-configured cap is no longer dead.
+        wasm_stack_limit_bytes(&request)?;
         let execution_timeout = resolve_wasm_execution_timeout(&request)?;
         let import_cache = self
             .import_caches
@@ -4946,6 +4951,12 @@ fn wasm_memory_limit_bytes(
     request: &StartWasmExecutionRequest,
 ) -> Result<Option<u64>, WasmExecutionError> {
     wasm_limit_u64(&request.env, WASM_MAX_MEMORY_BYTES_ENV)
+}
+
+fn wasm_stack_limit_bytes(
+    request: &StartWasmExecutionRequest,
+) -> Result<Option<u64>, WasmExecutionError> {
+    wasm_limit_u64(&request.env, WASM_MAX_STACK_BYTES_ENV)
 }
 
 #[cfg(test)]
