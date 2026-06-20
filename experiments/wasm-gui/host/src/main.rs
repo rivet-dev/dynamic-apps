@@ -430,6 +430,7 @@ async fn run_xdemo(
     timeout_s: u64,
     fonts_dir: Option<&str>,
     locale_dir: Option<&str>,
+    inject: &[(String, String)],
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let server_abs = abs_path(server)?;
@@ -595,6 +596,21 @@ async fn run_xdemo(
         client_specs.len()
     );
 
+    // Host-driven input injection (SPEC M6.1): once the desktop is up, write input commands to a
+    // client's stdin (kernel pipe). The target is an XTEST agent guest that turns each command into a
+    // real X input event. This is exactly how the native window would forward a user's keystrokes /
+    // clicks. We then give the guests a moment to deliver + repaint before reading back the frame.
+    if !inject.is_empty() {
+        for (pid, cmd) in inject {
+            let line = format!("{cmd}\n");
+            match s.write_stdin(pid, line.as_bytes()).await {
+                Ok(()) => eprintln!("secure-exec: injected to {pid} stdin: {cmd}"),
+                Err(e) => eprintln!("secure-exec: inject to {pid} failed: {e}"),
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(2500)).await;
+    }
+
     // Read the server framebuffer directly from the host-backed VM shadow filesystem.
     //
     // /data is shadowed by the sidecar to <tmp>/secure-exec-sidecar-shadow-<vm_id>-<nonce>/data,
@@ -661,6 +677,7 @@ struct Args {
     fb_out: Option<String>,
     fonts_dir: Option<String>,
     locale_dir: Option<String>,
+    inject: Vec<(String, String)>,
 }
 
 fn parse_args() -> Args {
@@ -679,6 +696,7 @@ fn parse_args() -> Args {
         fb_out: None,
         fonts_dir: None,
         locale_dir: None,
+        inject: Vec::new(),
     };
     let mut i = 1;
     while i < argv.len() {
@@ -707,6 +725,16 @@ fn parse_args() -> Args {
             "--locale-dir" => {
                 i += 1;
                 a.locale_dir = argv.get(i).cloned();
+            }
+            // --inject "<process_id>=<command>"  (e.g. --inject "xclient2=key 38")
+            // After the desktop is up, the host writes "<command>\n" to that client's stdin.
+            "--inject" => {
+                i += 1;
+                if let Some(spec) = argv.get(i) {
+                    if let Some((pid, cmd)) = spec.split_once('=') {
+                        a.inject.push((pid.to_string(), cmd.to_string()));
+                    }
+                }
             }
             "--capture" => {
                 i += 1;
@@ -760,6 +788,7 @@ async fn main() {
             args.timeout,
             args.fonts_dir.as_deref(),
             args.locale_dir.as_deref(),
+            &args.inject,
         )
         .await
         {

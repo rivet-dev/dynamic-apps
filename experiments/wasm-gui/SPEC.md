@@ -307,6 +307,16 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      continuously (not a one-shot PNG), and inject host mouse/keyboard back through the client as X
      input events (so you can actually click/type into the wasm desktop). Replace `xdemo`'s PNG
      read-back with a live loop.
+     **INPUT half DONE (2026-06-20):** input injection through the wasm X server is proven headlessly.
+     `guest-xclient/xtest-agent.c` (XTEST, libXtst) synthesizes X input events; `xinput-target.c`
+     repaints green on KeyPress / orange on ButtonPress. `test-m6-input.sh` injects a ButtonPress and
+     asserts the target turns orange == the event was delivered to a real libX11 client. Proof:
+     `~/tmp/gui-progress/m6-input-button.png` (orange window + pointer at the injection point). The host
+     drives the agent (it launches it with the injection as args, or via `--inject "<pid>=<cmd>"`).
+     Note: the dynamic `--inject` (host→agent **stdin** at runtime) is currently blocked by a separate
+     WASM-guest stdin-delivery gap (the guest's `fgets(stdin)` doesn't receive host `write_stdin`); the
+     argv path proves the X/XTEST input chain regardless. The **live winit blit** half still needs a
+     machine with a display to verify (this box is headless).
   2. **Real fonts.** Cross-compile `fontconfig` (+ `expat`) and `libXft`/`libXrender`, install a base
      set of font files (e.g. DejaVu/Liberation) into the VM, and verify crisp antialiased text. This is
      a hard dependency for xterm and every real DE.
