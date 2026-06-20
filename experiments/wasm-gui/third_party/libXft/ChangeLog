@@ -1,0 +1,1695 @@
+commit c532908f5fdd3aee9d88d9704aedbe3be82c7ce5
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Mon Apr 17 15:23:49 2023 -0400
+
+    libXft 2.3.8
+    
+    Signed-off-by: Matt Turner <mattst88@gmail.com>
+
+commit d587bbef21f5b6137508883f2be0e91fc5132a62
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 4 10:44:45 2023 -0800
+
+    configure: Use LT_INIT from libtool 2 instead of deprecated AC_PROG_LIBTOOL
+    
+    AC_PROG_LIBTOOL was replaced by LT_INIT in libtool 2 in 2008,
+    so it's time to rely on it.
+    
+    Clears autoconf warnings:
+    
+    configure.ac:39: warning: The macro `AC_PROG_LIBTOOL' is obsolete.
+    configure.ac:39: You should run autoupdate.
+    aclocal.m4:3465: AC_PROG_LIBTOOL is expanded from...
+    configure.ac:39: the top level
+    
+    libtoolize: Consider adding 'AC_CONFIG_MACRO_DIRS([m4])' to configure.ac,
+    libtoolize: and rerunning libtoolize and aclocal.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c1f79c998b36d95778e433f396e19eff7402cf7a
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jan 18 19:17:43 2023 -0500
+
+    issue 18: Problems with rotated text (monospace font only)
+    
+    Updates for version 2.3.5 included improvements for font rotation.
+    One of the minus-signs was dropped, causing a change to the orientation
+    of strings.  Restore the minus-sign.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 28b2983e684dbbfd5fa3636997fa671acb3703eb
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Nov 27 17:26:51 2022 -0500
+
+    issue 17: libxft-2.3.7: Bold fonts in urxvt missing leftmost pixels
+    
+    Update for issue 16 replaced maximum advance with truncated offsets.
+    However, in some cases (e.g., server providing a fake bold version
+    of a font), the result may extend outside the bounding box for the
+    glyph.  To work around this, use the minimum of old/new values.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 309c2da98a4c739bcdabc3a80610d86a40ce12e6
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Nov 20 13:56:15 2022 -0500
+
+    add check for missing glyph in XftFontCheckGlyph()
+    
+    This check is needed when updating the linked list of glyphs, since the
+    older/newer links are not set, causing an xterm crash for certain fonts
+    which have holes (e.g., Kochi Mincho).
+    
+    reported by Jeff Chua
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 1463255cd4f537baabf8f2c65270e4924d4ed656
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Nov 15 03:39:55 2022 -0500
+
+    libXft 2.3.7
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4f704b700beb6486213e1096b0e702f4a9067184
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Nov 14 18:42:47 2022 -0500
+
+    libxft issue #16
+    
+            https://gitlab.freedesktop.org/xorg/lib/libxft/-/issues/16
+    
+    Stack gets smashed in fonts with colors when calling XftGlyphRender
+    
+            BGRA changes made incorrect comparison for local vs allocated
+            buffer in XftGlyphSpecRender
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit de4592a18bba0bfc88232f6f4ecad7c2fa5e616e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Nov 13 05:56:12 2022 -0500
+
+    fix compiler warning
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 98e27ba4b2c3a4825a3497cd481992374a9c9e98
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 12 12:48:08 2022 -0500
+
+    libxft issue #15
+    
+            https://gitlab.freedesktop.org/xorg/lib/libxft/-/issues/15
+    
+    XftFontLoadGlyphs for mono font returns wrong info in extents from
+    XftTextExtentsUtf8 for variable chars
+    
+    Patch by Scott Mcdermott, based on
+    
+            https://github.com/googlefonts/Inconsolata/issues/42
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 6d246534bd156e5cb901b2cc9e2b9d473cf73506
+Author: ericLemanissier <eric.lemanissier@gmail.com>
+Date:   Fri Sep 23 07:59:55 2022 +0000
+
+    stdint.h header is needed for SIZE_MAX
+
+commit 7d3bcd3b9ae3ffbfcd4f31c8f1db2254df90bc33
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Sep 10 09:59:49 2022 -0400
+
+    libXft 2.3.6
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5e0ed11a43e37e50ba0937beaa40851c2d864981
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Sep 7 19:25:06 2022 -0400
+
+    fix gcc12 warning about malloc size
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit ab2df0af3dc7c594d44ccccfa0e7ddeeefb1e70e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Sep 7 19:21:38 2022 -0400
+
+    revised fix for gcc 12 compiler warnings in xftextent.c
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 95284856783b824a714b7506762f4adce3bb17ce
+Author: Adam Sampson <ats@offog.org>
+Date:   Wed Sep 7 00:31:10 2022 +0100
+
+    Fix length check in XftTextExtents*.
+    
+    Commit 06a3c0ab6520e368ac936cb1ef172f19957db0fa added length checks of
+    the form "if (len <= 0) return;" to various Xft functions. However,
+    while rendering an empty string is equivalent to doing nothing, asking
+    for the extents of an empty string isn't -- it still needs to fill in
+    the extents structure. This broke text rendering in some applications
+    (e.g. xpdf's Motif GUI).
+    
+    Check for len < 0 in XftTextExtents* instead.
+
+commit c6309d4c8fcb5f4879cc25cf81b649f5eb665413
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Sep 5 15:23:18 2022 -0400
+
+    libXft 2.3.5
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4356b583f8c23575a9ac25d49e7d224930107ef5
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jul 9 12:25:28 2022 -0400
+
+    update copyright notice
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 1f610967afc221b296036849d0c17aea495ab50c
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jul 9 12:23:57 2022 -0400
+
+    add a null-pointer check
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 16b87600d545b7c0e8f4b6629f553eb235f19f0c
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jul 9 09:58:58 2022 -0400
+
+    fix new gcc warnings
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a87be5ae94148f163a7b009df3d41a26a478d800
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jul 9 09:28:29 2022 -0400
+
+    build-fix
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 3ca7a7c375a8c022c068e2534c5a6861e547eaef
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jul 9 09:04:18 2022 -0400
+
+    merge changes by Christian Werner
+    
+    see note in libXft merge-request #1 at #note_1222314
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c53a1bc27c11e0c3cdf54e2beffd6cc220703a0b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 20:11:14 2022 -0400
+
+    cleanup new compiler warnings
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 68c6a862409028d9b62ca601df02f345d60f969e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 18:30:55 2022 -0400
+
+    build-fix for c89
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 6a08279ee80dbd1a226592d7f18c862c2e4a7d3a
+Author: Maxime Coste <mawww@kakoune.org>
+Date:   Tue Oct 22 22:46:49 2019 +1100
+
+    Add support for BGRA glyphs display and scaling
+    
+    Display is done using an XRender Picture, as XRender
+    glyphs are incompatible with BGRA rendering due to
+    their use of the glyph bitmap as a mask.
+    
+    Scaling is done by averaging all relevant pixel, which gives
+    much better result than nearest pixel sampling while staying
+    simple enough and not too computationally expensive.
+    
+    This enables color emoji rendering support.
+    
+    Fixes: #6
+    
+    Signed-off-by: Maxime Coste <mawww@kakoune.org>
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 2cbb9597e0b10d87fa9fc506910f69b9199320f0
+Author: Maxime Coste <mawww@kakoune.org>
+Date:   Thu Jan 28 20:05:13 2021 +1100
+
+    Introduce a _XftCompositeText helper function
+    
+    Dispatch to XRenderCompositeText{8,16,32} based off the given width.
+    
+    Signed-off-by: Maxime Coste <mawww@kakoune.org>
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit cac2fd528dd0ba9ed2308f6dda4598993c51cf64
+Author: Maxime Coste <mawww@kakoune.org>
+Date:   Thu Jan 28 19:59:10 2021 +1100
+
+    Introduce a _XftCompositeString helper function
+    
+    Dispatch to XRenderCompositeString{8,16,32} based off the given width.
+    
+    Signed-off-by: Maxime Coste <mawww@kakoune.org>
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 10b53d1fa37615e81d1e3b6e4d2d2e25e4342c15
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 5 20:13:42 2022 -0400
+
+    errata (cppcheck, clang --analyze, manpage credit)
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 6fc03611ed2b103b6b5a2f0c6b610087879325e4
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 5 04:14:07 2022 -0400
+
+    document new features for glyph memory-tracking
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 36a8474813aba2be263f9de88ad9adfe85c0daf1
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 20:08:58 2022 -0400
+
+    improve glyph management by relinking to unload least-recently used glyphs
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 01d44d70e9bd770ac365c88e09c5e432d2e517ad
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 18:31:24 2022 -0400
+
+    when tracking glyph memory usage, unload the oldest glyph rather than randomly
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 698e205b657f9192df07962e7823a2eae80e1c17
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 18:10:32 2022 -0400
+
+    cppcheck/gcc-stricter warnings about printf-formats and operator precedence
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 949295d665b030eb451fa590940293ada84c9bfe
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 15:30:24 2022 -0400
+
+    fix delinkage of last glyph in font, improve debug-trace
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 058d7237068b2a698098c68c171bbbfd04a51b48
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 07:56:46 2022 -0400
+
+    add asserts (to help with debugging), update copyright notices
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 318c6984baba0ea02147dc72a97e331234b6baf7
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 4 07:41:12 2022 -0400
+
+    refactor _XftFontUncacheGlyph, separate the two types of loop for readability
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 33c1e1e3a5c08b690e145cc193d52fc13869af7b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jul 3 20:53:23 2022 -0400
+
+    validate linked-list updates with _XftValidateGlyphUsage
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 114db90eac2c0f32f6b662d916a5af6a8990bf36
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jul 1 04:25:10 2022 -0400
+
+    add option for tracking glyph memory-usage on a linked list
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 442bbb084a1316aa6b25b29e17889bc71c1e4235
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jun 27 03:54:58 2022 -0400
+
+    add "trackmemusage" property to use in improved _XftFontUncacheGlyph
+    
+    The linear search used for randomly selecting a glyph to discard is
+    inefficient.  This commit provides for a doubly-linked list which
+    could be maintained by the library to quickly discard the least
+    recently used glyph.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit d4a554c9795b109085ec31eedacba6532c18d802
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jun 24 20:26:31 2022 -0400
+
+    reduce clutter with macros for allocating arrays
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 42c6616499e6ca193a0b764576a6ed8650dd3d7b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 21 20:29:05 2022 -0400
+
+    add debugging trace for XftDefaultSet()
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 908a5e43bc37ea3b80985683369a27b4e607aecf
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jun 13 15:59:12 2022 -0400
+
+    add section of functions managing XftColor
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5f809521ad2d1080710670602619582de8fd6b0c
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jun 11 10:55:40 2022 -0400
+
+    add a section on the XFT_DEBUG environment variable
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5a1768ac1071bd05a731d9e744dbf8bb20ccf2b0
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jun 11 10:24:26 2022 -0400
+
+    add a table of the "families" of functions
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 936bbafb612c5fb2ac838e94fb4e9a92da1d600c
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jun 11 09:50:28 2022 -0400
+
+    document XftGlyphFontSpecRender() and related functions.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c76339229144ab6342315a27ee67a7ade1f43464
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jun 10 10:08:10 2022 -0400
+
+    reduce clutter for external data-types by documenting them one time
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 58b1fed139c6dfd1a20a8b6090181f43aaffcc59
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jun 10 09:27:36 2022 -0400
+
+    document the clipping-functions
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 73e1c4dc886079e87b0aaa6e3b6fa468b9ba2af2
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 8 20:11:25 2022 -0400
+
+    add section on manipulating font data
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5ac7ca85151515f5f03f5c0389f96f202e9cd6bb
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 8 04:27:48 2022 -0400
+
+    add section on manipulating font patterns
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 57892d1b735dcb5e019790b271df79d7a4b89e61
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 8 04:01:50 2022 -0400
+
+    remove remaining internal prototypes for obsolete xftcompat.c
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 81944f3796dc1cc1a9529233cec3f3b2c2d546b3
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 8 03:52:47 2022 -0400
+
+    move prototype for XftNameUnparse to Xft.h
+    
+    This entrypoint has "always" been exported, but not declared publicly.
+    It is used for debugging in xterm.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5b191b7db9e6a785ed566c82419b11540c240423
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 7 18:45:55 2022 -0400
+
+    document XftFontOpenXlfd and XftXlfdParse
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit b22b2b73ed1c9ed216b98ec33c3258030a34d0d2
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 7 04:18:48 2022 -0400
+
+    add overview for text-extents section
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c3fc93be50d2f7e5c197afd47928d9338fca1618
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jun 6 20:18:07 2022 -0400
+
+    change data-types to subsections to help with readability
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 04d5b339f42d90f51b9294552558fae181bc48d8
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jun 6 04:14:55 2022 -0400
+
+    consistently bold "Xft"
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 18c74d39dd202e385d57415007ba6e803ac6f89a
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 5 20:28:07 2022 -0400
+
+    initial draft of initialization-functions documentation
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 48eb5a7cb0a7aaacfcb77eba035c5c47d082ab88
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 5 12:25:38 2022 -0400
+
+    amend rule for creating manpage aliases
+    
+    eliminate too-specific gzip step, rely upon packaging system to do this.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 765e2d2154946a6a9422c0470d6e57fbaf64182b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jun 4 06:15:39 2022 -0400
+
+    cleanup manpage comments
+    
+    cleanup comments used as reminders to mention functions,
+    leaving comments used as reminders to add new paragraphs.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 48d2353317db2b16b68633c88d5ecd4a583b234e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Thu Jun 2 20:35:28 2022 -0400
+
+    install man-aliases for all of the exported symbols
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 724978961ff3b6e4f5043be07160487bc681fda1
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Thu Jun 2 18:37:09 2022 -0400
+
+    corrected prototypes in manpage, matching Xft.h
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4591cdd1c0f0c8afb8eac9cc908aa7c7d141dc6d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Thu Jun 2 18:28:07 2022 -0400
+
+    reuse macros from Xcursor.man to fix ragged layout of typedefs and prototypes
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 06a3c0ab6520e368ac936cb1ef172f19957db0fa
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 15:15:11 2022 -0400
+
+    fix warnings by gcc 11; check if length <= zero
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4342ea4b4b87790004f6883a0d5b36fdff7c0443
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 10:39:39 2022 -0400
+
+    formatting fix, for clarity (no object change)
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit b4ed18f1dc398ea39d9f76da556306fe02f26c97
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 09:23:37 2022 -0400
+
+    quiet compiler warning with cast
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit f2583758d3e5c65f372387d1c67433856682c3fb
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon May 30 09:21:28 2022 -0400
+
+    quiet compiler warning with cast
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c3ad9cf5b11772fbc9ff4dd793f0a7e897b5df5a
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 20:37:26 2022 -0400
+
+    change the internal memory-allocator to use size_t
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a9ce40d7f51dd20533d25e2a252afb1d09194d3f
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 19:44:16 2022 -0400
+
+    quiet warnings with casts
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4edfca0cb839e51bca29f5c382c311c08db49b33
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 18:26:13 2022 -0400
+
+    promote font->num_glyphs to FT_UInt or Glyph to fix warnings
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit ef896b2106fa171707a4087be506259f578ff3a5
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 18:05:10 2022 -0400
+
+    fix missing-initializer warning
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 768f43c04b5587d3b49ccd2d2f0133630c6a093b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 17:51:07 2022 -0400
+
+    cleanup warnings about discarding const
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 4dadf0ed93624a09b4a2f7403b79103b50681391
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun May 29 17:40:25 2022 -0400
+
+    quiet unused-parameter warnings with _X_UNUSED
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit bafdc86cf32af60448db28ed03aa8230e7a14019
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jun 3 11:32:55 2022 -0700
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6cf073c11705cf576c3b7618a32ae121eaf14579
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jun 3 11:24:18 2022 -0700
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0dd423a89305e040ed20a8f449203ef091507790
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jun 3 11:22:22 2022 -0700
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 98b121f22c3477b508dd17aa5db99f2ebf36ade4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 1 17:49:42 2021 -0700
+
+    libXft 2.3.4
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit dcd637d0f162e177a73a121feeb9d9e4fd69d4bb
+Author: Samanta Navarro <ferivoz@riseup.net>
+Date:   Sat Oct 3 11:51:35 2020 +0000
+
+    Fix typo in manual
+
+commit 6e7da3c7c40deed551d14b6bab6f3d1ac256509f
+Author: Keith Packard <keithp@keithp.com>
+Date:   Fri Apr 3 17:53:33 2020 -0700
+
+    Remove call to FcNameRegisterObjectTypes
+    
+    This fontconfig function has been deprecated and no longer does
+    anything.
+    
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+
+commit 26a3a497409279d74827f374e65ae4b8d3c1f1f7
+Author: Keith Packard <keithp@keithp.com>
+Date:   Fri Apr 3 17:43:04 2020 -0700
+
+    Skip 'render' pattern elements with invalid type
+    
+    Fontconfig no longer supports the FcNameRegisterObjectTypes API, which
+    means that any Xft custom fields cannot be specified in a fontconfig
+    name as those will always be set to FcTypeUnknown in the pattern.
+    
+    The only one of those we care about is XFT_RENDER, which was used to
+    disable the Render extension, something most apps probably don't need
+    to support in names anyways. Allow the call requesting this value to
+    return FcResultTypeMismatch and pretend that XFT_RENDER is missing
+    from the pattern.
+    
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+
+commit 972fa05c3df73fd3c99c409c0ac2225a58f76d09
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Apr 1 20:57:52 2020 -0400
+
+    build-fix for c89
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 86c2355b116fd9febe2ac7f577e7c12e069d3986
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Apr 1 20:53:30 2020 -0400
+
+    minor typography fix
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit ed8bb9667ac1e0f0863a03a44962be9654c4d04e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Apr 1 20:52:25 2020 -0400
+
+    fix most type-conversion warnings from gcc-normal, without object-file changes
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a266847d3c17dcdfcac719a1aa970ad54f4b545a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 16 11:03:38 2019 -0700
+
+    libXft 2.3.3
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit fab5adf8fa3073862267e14aece1adf9eed0541c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 16 11:03:17 2019 -0700
+
+    Add description of libXft to README.md
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b397ffb23f02389b6c6168e7826605789907d740
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Dec 7 19:42:33 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bdfb2b0e0fbf02ae69fe6cb2fbe352c4231e5c54
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Nov 19 22:20:38 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c418dc7594f98359ae10815f62ee3efc0a511cf8
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 13:52:49 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit 6a12debafe35963d205e0dc78eb742ad898312b7
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 0d3402d1138afe9854452eb494acc649faa0dc9e
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit e8a83226bc10afb587f6f34daac44d2ef809c85e
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sun Oct 19 18:00:26 2014 -0500
+
+    XftDrawSrcPicture: Use XRenderCreateSolidFill when available
+    
+    Instead of creating 1x1 pictures, use the solid pictures added in
+    Render version 0.10
+    
+    Signed-off-by: Keith Packard <keithp@keithp.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+
+commit 214f9b5306d833e2787c75fe41dfdc9228fcb738
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jun 5 23:04:54 2014 -0700
+
+    libXft 2.3.2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4acfdaf95adb0a05c2a25550bdde036c865902f4
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Mon Dec 2 16:26:24 2013 +0100
+
+    Use FT_*_H macros instead of including <freetype/*.h>
+    
+    freetype moved its headers around in 2.5.1.
+    
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+commit c5e760a239afc62a1c75e0509868e35957c8df52
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 9fa39862224b7e1b7873336cbf718db0d58f6b4b
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 835cd2a6cb4aa8f89e6e7dead66483643a6e7ee8
+Author: Alexander Polakov <plhk@sdf.org>
+Date:   Sat Dec 1 02:53:23 2012 +0400
+
+    Fix man page to match include
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0847b64af14acefaa7aa86b3cec8632497babe73
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 2 09:36:29 2012 -0700
+
+    libXft 2.3.1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1066d2b34db6124fbb0105f5d30f560217fd2a5a
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Sat Mar 10 23:09:21 2012 -0800
+
+    Dead code removal
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 84b8b5b46773f9b686d57f28092824b86bffed9d
+Author: Mikael Magnusson <mikachu@gmail.com>
+Date:   Sun Mar 11 02:41:55 2012 +0100
+
+    Fixup for 550b2f76401c2 which broke bold fonts
+    
+    The commit removed the line
+    AC_CHECK_FUNCS(FT_Get_Next_Char FT_Get_BDF_Property FT_Get_PS_Font_Info FT_Has_PS_Glyph_Names FT_GlyphSlot_Embolden)
+    but failed to remove the #if lines that this commit removes, resulting
+    in that code never being executed.
+    
+    Fixes: https://bugs.freedesktop.org/attachment.cgi?id=58280
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit b543efafefb71fb1f87ee9c1c261e86c8ca29e76
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Mar 7 20:12:27 2012 -0800
+
+    libXft 2.3.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 301029c9a1d9429009eaf08bb726357d4e94780d
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Mon Oct 24 23:39:25 2011 -0700
+
+    Fix undefined ftbit in XftFontLoadGlyphs
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=42173
+    
+    Fixes regression from: 6f1d7bcdd461b1f6cc64370793f52d7c170187d0
+    
+    Fixed by examining original patch before rebase from:
+    https://bugs.freedesktop.org/show_bug.cgi?id=29151
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 550b2f76401c292d982700b60326e0a837e391b4
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Mon Oct 10 13:00:35 2011 -0700
+
+    Remove fontconfig and freetype ifdef-fu and instead require non-ancinet versions of both
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 21a59c10803582c8f90d3b5f32e8f0240c050adf
+Author: Tom \"spot\" Callaway <tcallawa@redhat.com>
+Date:   Thu Oct 6 15:58:29 2011 -0400
+
+    compiler noise cleanups related to subpixel LCD support
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 6f1d7bcdd461b1f6cc64370793f52d7c170187d0
+Author: Tom \"spot\" Callaway <tcallawa@redhat.com>
+Date:   Thu Oct 6 15:41:10 2011 -0400
+
+    Subpixel LCD text rendering improvements
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 0e0efb8b26a241f8370053bc3686f7abc69357c1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Sep 26 15:41:49 2011 -0700
+
+    Add const attributes to fix gcc -Wwrite-strings warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Aaron Plattner <aplattner@nvidia.com>
+
+commit df353cc7fe40fadc6e48586e95a0cbf1d2e33cfa
+Author: Ross Burton <ross@burtonini.com>
+Date:   Sun Sep 25 17:47:15 2011 -0700
+
+    constify some bits
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=2658
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 5cac9764a55c96fee64f63748c054be81fcaadf4
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Sun Sep 25 11:11:01 2011 -0700
+
+    Remove dependency on libXext
+    
+    ldd -r -u reports:
+    Unused direct dependencies:
+         .../lib/libXext.so.6
+    
+    Reported-by: Gaetan Nadon <memsize@videotron.ca>
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit d39337048d31245b69e1b72b98beb957f52ba4e6
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Sat Sep 24 21:05:27 2011 -0700
+
+    Remove broken fallback on non-pkg-config search for libXrender
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=5425
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3ad77b636978746786546ab2b779730997839f63
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 16 22:42:59 2011 -0700
+
+    Strip trailing whitespace
+    
+    Performed with: find * -type f | xargs perl -i -p -e 's{[ \t]+$}{}'
+    git diff -w & git diff -b show no diffs from this change
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d274ffc91b22bb8f3a2447237491cbe04f2ee0c3
+Author: Derek Wang <Derek.Wang@sun.com>
+Date:   Wed Feb 2 22:15:13 2011 -0800
+
+    XftGlyphFontSpecCore: check to make sure glyphs are in range
+    
+    This fixes a crash reported when selecting "View Page Source" in Mozilla
+    on Solaris 10, due to invalid parameters being given to XPutImage.
+    
+    http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6261221
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 652d9b47fc902e12c8e28481742c382676f1d035
+Author: Jay Cotton <jay.cotton@oracle.com>
+Date:   Wed Feb 2 22:09:34 2011 -0800
+
+    XftDrawSrcPicture: fail if info->solidFormat is NULL
+    
+    Fixed a core dump in x11perf render tests when a driver was returning
+    incorrect information due to a bug in the driver.
+    
+    http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6872780
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1e03ac60d1221d5c16b7f4797ab0c461f13b123a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 11:43:42 2011 -0500
+
+    config: comment, minor upgrade, quote and layout configure.ac
+    
+    Group statements per section as per Autoconf standard layout
+    Quote statements where appropriate.
+    Autoconf recommends not using dnl instead of # for comments
+    
+    Use AC_CONFIG_FILES to replace the deprecated AC_OUTPUT with parameters.
+    Add AC_CONFIG_SRCDIR([Makefile.am])
+    
+    This helps automated maintenance and release activities.
+    Details can be found in http://wiki.x.org/wiki/NewModuleGuidelines
+
+commit bcc24bf5bd4141cf5ca62bdd2c52d971ea88d421
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 19:41:37 2011 -0500
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 791d10dbac030d6a164f54a7adb9b6c816c68930
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 16:34:14 2011 -0500
+
+    config: remove unrequired AC_CONFIG_AUX_DIR
+    
+    The default location for the generation of configuation files is the current
+    package root directory. These files are config.* and friends.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 28d61e969800820b1483d41445befcd1bf35fa85
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Jan 27 16:12:55 2011 -0500
+
+    config: remove already included AC_PROG_SED
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    Use the appropriate platform version of sed
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 0e3c21ab0aeb99ca76ac2535f4618cb1949b7f40
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Jan 27 16:09:03 2011 -0500
+
+    config: remove AC_PROG_CC as it overrides AC_PROG_C_C99
+    
+    XORG_STRICT_OPTION from XORG_DEFAULT_OPTIONS calls
+    AC_PROG_C_C99. This sets gcc with -std=gnu99.
+    If AC_PROG_CC macro is called afterwards, it resets CC to gcc.
+    
+    Reported-by: Roberto Branciforti <rbbrnc@gmail.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9c23173cf1ff861bdb8538e3aa21ec509b0d87d8
+Author: Roberto Branciforti <rbbrnc@gmail.com>
+Date:   Mon Jan 17 22:32:15 2011 +0100
+
+    libXft: Fix variable assignment.
+    
+    Signed-off-by: Roberto Branciforti <rbbrnc@gmail.com>
+    Reviewed-by: Mikhail Gusarov <dottedmag@dottedmag.net>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b9d4a2b5be71ca883f5a876500edb0a1a9add0cf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 29 16:21:18 2010 -0700
+
+    libXft 2.2.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8751e341bcc29952b4603e18767ab994653c6b01
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 21 22:00:33 2010 -0700
+
+    xft.pc.in: Requires.private entries should not be duplicated in Requires
+    
+    Users of libXft don't need to link with fontconfig, freetype and
+    Xrender directly if they don't use them.
+    
+    This may cause issues for users of pkg-config versions older than 0.22.
+    Please upgrade to the 2007 version of pkg-config before trying to build
+    the 2010 version of libXft.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit ca575f9c9cbb11b122e676424a93da3eb0284be5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Oct 17 20:42:41 2010 -0400
+
+    config: upgrade to util-macros 1.8 for additional man page support
+    
+    Use MAN_SUBST now supplied in XORG_MANPAGE_SECTIONS
+    The value of MAN_SUBST is the same for all X.Org packages.
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    Use the appropriate platform version of sed
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 6d220e32c1e336292cac125515f04bcbdb65322d
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Mar 31 10:03:03 2010 -0400
+
+    man: build man pages the standard way
+    
+    Using macro substitution.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f2bd643475a555949558ff6f889c575da33c28a4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Mar 30 14:01:31 2010 -0400
+
+    config: remove deprecated xft-config script and man page
+    
+    This was put in place early 2000 when pkg-config was not used.
+    
+    Reviewed-by: Rémi Cardona <remi@gentoo.org>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a33850fe1af31cf672e448a3c86ac5afb9fee06c
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Mar 30 09:44:47 2010 -0400
+
+    config: remove the xft-config.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b443002c146569077394675c9e784b173d48c6e6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 16:50:34 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 26dc5b0f626615156ca8a317f428ebc7c2d50498
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 14:53:48 2010 -0400
+
+    config: remove the pkgconfig pc.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 78ed756a343c37acb38cc230d03c334845553ab6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Dec 8 11:13:11 2009 -0500
+
+    Xft.h.in: remove comments which prevents Xft.h generation #25104
+    
+    With automake prior to 2.62, commnents placed beside a #undef line
+    prevent that statement to be substituted by config.status.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@sun.com>
+    Tested-by: Adrian Bunk <bunk@stusta.de>
+
+commit ad762b61d79e1848ef0751d0b970f4f7660a886e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Nov 27 20:56:04 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit f6bab0a9abbaf4c2381c790372c830e0c8d78df4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:10 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit cf899b63a331b908a2d4027354ce0d7c13528638
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:25 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit f0f9ad0cb2d66d35f522fa9ec19974500b3955ab
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:43 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit 80e41cb93d0100a767aa8d630240440090937712
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:19 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit cf6372a5dd9dd4086ed243d3f6c7e5fe693594b0
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 21 21:45:46 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit 6f756640698b8f7bbada91999b4e30a0851bb6f4
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:25 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit 906259ecc70dd4d0ef91f4582bd2a035d094831e
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Oct 13 10:31:58 2009 -0700
+
+    Set libtool version-number automatically from package version
+    
+    Since we've forgotten to manually update in most libXft releases so far,
+    might as well just automate it.
+    
+    Reported by: Paulo Ricardo Zanoni <pzanoni@mandriva.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit fc248fb44413d11fed288793d0d8c2af76aeeb40
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Oct 9 16:45:25 2009 -0700
+
+    libXft 2.1.14
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 0f2a55b55d18272824444071f71473d988112465
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Oct 8 09:18:43 2009 -0700
+
+    Add generated Xft.h to .gitignore
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit c36e28b3ed913d2dcb5c7876e49ccf2631a11df4
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Tue Oct 6 15:00:04 2009 -0700
+
+    Fix install of generated Xft.h when builddir != srcdir
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit c498ec3e4fb8e07bad7b053535d832273ac9b402
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Oct 6 01:01:07 2009 -0700
+
+    Split NEWS & README, update both
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit dac73a51981632908ce86cff26af5b0bcfcdd770
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Oct 6 00:39:14 2009 -0700
+
+    Set Xft.h version numbers from configure.ac
+    
+    Keep the two in sync automatically instead of manually
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit cfa048b4aa351068415c5e2711731246a9c19322
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Oct 5 23:53:33 2009 -0700
+
+    Migrate to xorg macros 1.3 & XORG_DEFAULT_OPTIONS
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 5957fdd9ba2aba60e90a30bc3744f76ddb27b8d2
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Thu Jan 29 18:45:48 2009 -0200
+
+    Janitor: Correct make distcheck and sparse warnings.
+    
+      Use only one toplevel .gitignore file.
+    
+      It was tempting to also modify the code to not, first check if
+    xrender is >= 0.8.2, and then, if failing, check for libXrender
+    functions with different build options, but left as is, as it
+    could be somehow useful at least as an example of being backwards
+    compatible.
+
+commit cb80b4493e116229d8cc46507dec0fed6febd949
+Author: Stefan Dirsch <sndirsch@suse.de>
+Date:   Sat Nov 22 20:45:02 2008 +0100
+
+    Added fake bold support (#1579, Novell #38202/223682).
+
+commit 60bb5229f0fb16cee27077552fbc35d53c94f031
+Author: Erik Andren <erik.andren@gmail.com>
+Date:   Sat Oct 25 20:34:27 2008 +0200
+
+    Header cleanup (bug#4703)
+    
+    Remove prototypes for nonexistent functions from Xft.h, and add missing
+    include in xftglyphs.c
+    
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+commit 1a34928cd823ef1452b973bd7c4c1d12cd976bba
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Wed Jul 2 15:42:37 2008 -0400
+
+    libXft 2.1.13
+
+commit 19240d3605b5f1e88ca5509afffd48acdb7e1c5f
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Wed Jun 11 02:12:05 2008 +0200
+
+    Revert "Drop Requires, use Requires.private instead."
+    
+    This reverts commit a1c78ce68c5f2106c38b6cb93a6b22420e1a80ab.
+    
+    Unfortunately this doesn't work on old pkg-config, which made
+    Requires.private completely useless.  That's fixed in 0.22, but...
+
+commit a1c78ce68c5f2106c38b6cb93a6b22420e1a80ab
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Tue Jun 10 17:29:27 2008 +0200
+
+    Drop Requires, use Requires.private instead.
+    
+    Users of libXft don't need to link with fontconfig, freetype and
+    Xrender directly if they don't use them.
+
+commit 541c6194d986e7849ee9541a9fd60b0724647a44
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Mon Mar 24 12:10:19 2008 -0400
+
+    Bug #14232: Fix XftDrawRect when Render not supported.
+
+commit 8661a88789dce4fe06d45faec70f8e74834abdd6
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Mar 9 08:28:43 2008 +0100
+
+    nuke RCS Ids
+
+commit 9e25c9019bd6788076c12cb4356c7d27d6c7d9af
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 16:38:28 2007 -0500
+
+    Replace static ChangeLog with dist-hook to generate from git log
+
+commit 8a7f3d450c1f339f429dbce55df523d026c92375
+Author: Stefan Dirsch <sndirsch@suse.de>
+Date:   Sun Nov 4 11:31:44 2007 -0800
+
+    Register objects used by libXft.
+    
+    libXft uses XFT_MAX_GLYPH_MEMORY without first registering with fontconfig.
+
+commit 8ae5ea8c75a7850fa0aca0acc3962b6263f55094
+Author: Karl Tomlinson <bugs.freedesktop@karlt.net>
+Date:   Wed Sep 12 12:00:43 2007 +0100
+
+    XftFontOpenInfo: Use of uninitialised value of size 8 (bug 11200)
+    
+    This is due to XftFontInfoFill using the binary representation of the
+    XftFontInfo to generate fi->hash.
+    
+    With 64-bit pointers there is padding between .hash and .file in struct
+    _XftFontInfo.  This padding is not initialized, and the hash uses these
+    bytes.
+    
+    This will interfere with finding "a matching previously opened font" in
+    XftFontOpenInfo, and XftFontInfoEqual, which uses memcmp, will have similar
+    problems.
+    
+    This fix makes no assumptions about the sizes and alignment of members of
+    struct _XftFontInfo by using memset.  (It also makes no assumptions about
+    what FcPatternGet* does to its output parameter when it returns
+    FcResultNoMatch.)
+
+commit a782fe3fbed05344e2a12f53ede6101e120ed485
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Mon Sep 3 05:53:39 2007 -0400
+
+    Add *~ to .gitignore to skip patch/emacs droppings
+
+commit 3c68c68fc20b875b405f2640778e32a41a807e27
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Dec 7 12:20:44 2006 +0200
+
+    bump to 2.1.12
+
+commit 22112a0ee3bd16b40e414bac32c532a73cbabbcb
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Dec 7 12:20:05 2006 +0200
+
+    XftNameUnparse: re-export to public API (bug #8900)
+    Fix botched git import, which reverted some changes from CVS, by
+    re-exporting XftNameUnparse.
+
+commit 6159d185048fbbb67627667d60dcd475def5bb44
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 17:08:55 2006 -0400
+
+    Bump to 2.1.11
+
+commit 661199d47ff8e9842542f9e407da50629c8a17b6
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 16:18:47 2006 -0400
+
+    Bump to 2.1.10
+
+commit 5e5d0c7597e7f494ad3010f6d4656c5209b09f88
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jul 13 14:58:58 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit 8fc012344f8f072ee3bd1b09c336fed8d47826c5
+Author: Kjartan Maraas <kmaraas@gnome.org>
+Date:   Thu Jul 13 10:28:30 2006 -0400
+
+    Bug #7259: Various Coverity fixes.
+
+commit 824f87ba102e36808c59e92d7f527ca2f8b00026
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Jun 3 10:41:03 2006 +0000
+
+    Bug #4711: Don't export unnecessary symbols. (Alan Coopersmith). Bump to
+        2.1.9.
+
+commit 250b95f857cdd7fadab9e06f1a6f69706467aac2
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:30 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 2a43efac053b9fa0a460d47f5154511cfaf4f2ba
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:44 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit 88a1de23e126cde06bf4136b56007dc24ad991e8
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Sun Nov 20 23:17:41 2005 +0000
+
+    Add/improve libs .cvsignores.
+
+commit bcbcdcdb0f41b61351454db5032a514215f2f089
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:49 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit 143f9e1b8d328ebc806067fb44809a8a8fd419e4
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:48:10 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 34dc7dbd584f2bbef39248c26236186e08c79a25
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:46:56 2005 +0000
+
+    lib/Xcomposite/Xcomposite.h
+    lib/Xft/Imakefile
+    lib/Xft/Xft.h Update library version numbers to match updated package
+        versions.
+    Update driver version numbers for RC1.
+
+commit 11bc8208939991e9cd3eba2900827fd2e37b04a5
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 5 19:46:16 2005 +0000
+
+    Clean up generated files
+
+commit edfb44c93c03c41f13240af318a45f0f04dde6d1
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Thu Aug 4 16:15:48 2005 +0000
+
+    If --with-freetype-config is not specified, try pkgconfig freetype2, then
+        fall back to freetype-config if pkgconfig fails.
+
+commit a09401affaf007aef2585711cd5eb499f554be9b
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:51 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit 0dd89a9e7ba09ed0c3f90a415b506a4ed89b91bb
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Wed Jul 27 21:48:38 2005 +0000
+
+    Build system for Xft
+
+commit db7a51a120898eda2824ec15d55641589571ed5d
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sun Jul 3 07:00:57 2005 +0000
+
+    Add Xtrans definitions (FONT_t, TRANS_CLIENT) to clean up warnings.
+    Add XSERV_t, TRANS_SERVER, TRANS_REOPEN to quash warnings.
+    Add #include <dix-config.h> or <xorg-config.h>, as appropriate, to all
+        source files in the xserver/xorg tree, predicated on defines of
+        HAVE_{DIX,XORG}_CONFIG_H. Change all Xfont includes to
+        <X11/fonts/foo.h>.
+
+commit 403c9f9886cea9fd390a242e7c031ba2cc26217f
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Fri Jun 24 22:43:20 2005 +0000
+
+    Sync with Xft from xlibs CVS (2.1.7 plus man page updates from Branden
+        Robinson) - see lib/Xft/ChangeLog for full details
+
+commit 1d14cc37d43bf349ee18e748f62913a0963f6e85
+Author: Egbert Eich <eich@suse.de>
+Date:   Tue May 17 08:10:10 2005 +0000
+
+    gcc4 allows to check if sentinels are correct (a sentinel is the
+        terminating element in a varargs list). A sentinel needs to be NULL,
+        not 0 - which doesn't make a difference on 32bit but matters on 64bit.
+        Furthermore it can be told that functions have a printf-like format
+        string and argument list so that they can verify that both match. To
+        use these features certain attributes need to be set - which are
+        compiler specific. To do this we define macros which are expanded
+        depending on the compiler version. For now we put those in
+        include/Xfuncproto.h (the XFree86 DDX layer contains a file compiler.h
+        which however is not visible outside the DDX) (Bugzilla #3268).
+
+commit 0161d08ecd543c80e5625bf63d0091dbccd95f4e
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Fri Aug 13 19:03:15 2004 +0000
+
+    Fri Aug 13 21:01:34 2004 Soeren Sandmann <sandmann@daimi.au.dk>
+    Fix the build
+
+commit 0641e99b21eead5aaee0c1136dd2d640028f6783
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Fri Aug 13 18:24:06 2004 +0000
+
+    Fri Aug 13 19:53:10 2004 Soeren Sandmann <sandmann@redhat.com>
+    Fix for lockups on some versions of Matrox Mystique. #687, Patch from Mike
+        Harris.
+    Call xf86EnableDisableFBAccess though the function pointer instead of
+        directly. #1041, Patch from Aaron Plattner.
+    Swap the phsyical size of the screen when rotiation. #1050, Patch from
+        Aaron Plattner.
+    Fri Aug 13 19:47:12 2004 Soeren Sandmann <sandmann@redhat.com>
+    Make HAVE_FT_BITMAP_SIZE_Y_PPEM conditional on the FreeType version instead
+        of proping it. This way it will work with the monolithic version too.
+        #1062, Patch by Owen Taylor.
+
+commit 14c188e8b0a0d88f97bcde21c8e1b1da8541bdf8
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Aug 11 23:37:34 2004 +0000
+
+    Called strlen with (f->file) without checking for NULL (which happens when
+        directly using FT_Face objects) (Bug #1047, Keith Packard).
+
+commit 591dcad65f73450a07ac7477a3a827d95eb6f726
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 18:43:42 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit c7e70c7e31897e00caaeb177176a8c24b834bc78
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:32:10 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit 113366a92f315a2178d19c6bb9bed54109697864
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Mar 11 14:16:10 2004 +0000
+
+    file Xft.3.in was initially added on branch XORG-RELEASE-1.
+
+commit 30761fcb5a6f3f2f23466f1b0ec1d290b5002e4e
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Mar 11 14:16:09 2004 +0000
+
+    file NEWS was initially added on branch XORG-RELEASE-1.
+
+commit be5842a55ddd89141de2f238e9b41541a247d13b
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Mar 11 14:16:09 2004 +0000
+
+    file AUTHORS was initially added on branch XORG-RELEASE-1.
+
+commit 4214b9fb11baea4347bb2279b800819ee9792c46
+Author: Egbert Eich <eich@suse.de>
+Date:   Tue Mar 9 16:52:30 2004 +0000
+
+    file README was initially added on branch XORG-RELEASE-1.
+
+commit 14f8861ef153e64359e062a96212eb5358a32fd4
+Author: Egbert Eich <eich@suse.de>
+Date:   Tue Mar 9 16:52:30 2004 +0000
+
+    file INSTALL was initially added on branch XORG-RELEASE-1.
+
+commit fabef42954896dca3d43fb414c564e9750112bf5
+Author: Egbert Eich <eich@suse.de>
+Date:   Tue Mar 9 16:52:30 2004 +0000
+
+    file COPYING was initially added on branch XORG-RELEASE-1.
+
+commit 3ff3e952c6095488466f71da06c6664a056e4c03
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:11:28 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit 00bdde8b2e4521b5058ee988c32dd814b852813d
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:35:33 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit f328c0a0fff3ec647c3f1d7c06b3d701850eb955
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:22:43 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit 1781965aa5fac8f0737251ca883301e1aec7b12b
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:28:09 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit ac1033d4dc0ff95ab31dd2eb4752e7b4520fe819
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:48 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit 52a3d6a04aa1a18223059334f8d5ed2955461b7d
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:48 2003 +0000
+
+    Initial revision

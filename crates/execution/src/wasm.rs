@@ -3339,9 +3339,10 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsWasiModule =
             typeof globalThis?.__agentOsSyncRpc?.callSync === "function"
               ? globalThis.__agentOsSyncRpc
               : null;
-          const sidecarManagedProcess =
-            typeof process?.env?.AGENT_OS_SANDBOX_ROOT === "string" &&
-            process.env.AGENT_OS_SANDBOX_ROOT.length > 0;
+          // AGENT_OS_SANDBOX_ROOT is scrubbed from the public process.env, so check the hidden
+          // internal env too (via _sidecarManagedProcess) — otherwise sidecar-managed guests fall to
+          // the passthrough stdin read, which never receives host write_stdin (kernel pipe) data.
+          const sidecarManagedProcess = this._sidecarManagedProcess();
           if (syncRpc && (sidecarManagedProcess || __agentOsKernelStdioSyncRpcEnabled())) {{
             try {{
               let chunk = null;

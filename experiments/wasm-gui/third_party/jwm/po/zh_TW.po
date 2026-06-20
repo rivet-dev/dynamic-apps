@@ -1,0 +1,508 @@
+# Translators:
+# Jim Tsai <poormusic2001@gmail.com>, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: jwm 2.3.0\n"
+"Report-Msgid-Bugs-To: joewing@joewing.net\n"
+"POT-Creation-Date: 2024-10-05 01:37+0000\n"
+"PO-Revision-Date: 2016-03-30 16:11+0800\n"
+"Last-Translator: Jim Tsai <poormusic2001@gmail.com>\n"
+"Language-Team: \n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.4\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/action.c:44
+#, c-format
+msgid "invalid action: \"%s\""
+msgstr "動作無效：\"%s\""
+
+#: src/action.c:211
+#, c-format
+msgid "action: root menu \"%s\" not defined"
+msgstr "動作：主選項單 \"%s\" 未定義"
+
+#: src/background.c:137
+msgid "no value specified for background"
+msgstr "沒有指定數值給背景"
+
+#: src/background.c:149
+#, c-format
+msgid "invalid background type: \"%s\""
+msgstr "無效的背景格式：\"%s\""
+
+#: src/background.c:306
+#, c-format
+msgid "background image not found: \"%s\""
+msgstr "未找到背景圖片：\"%s\""
+
+#: src/binding.c:329
+msgid "Specified KeySym is not defined for any KeyCode"
+msgstr "指定的KeySym沒有被定義給任何KeyCode"
+
+#: src/binding.c:337
+#, c-format
+msgid "modifier not found for keysym 0x%0x"
+msgstr "keysym  0x%0x 的修改者沒有找到 "
+
+#: src/binding.c:365
+#, c-format
+msgid "invalid modifier: \"%c\""
+msgstr "無效的修改者: \"%c\""
+
+#: src/binding.c:379
+#, c-format
+msgid "invalid key symbol: \"%s\""
+msgstr "無效的key符號: \"%s\""
+
+#: src/binding.c:488
+msgid "neither key nor keycode specified for Key"
+msgstr "key和keycode都不是指定給Key"
+
+#: src/binding.c:526
+#, c-format
+msgid "key binding: root menu \"%s\" not defined"
+msgstr "key的繫結: 主選項單\"%s\"未定義"
+
+#: src/client.c:904
+msgid "Kill this window?"
+msgstr "強制關閉該視窗？"
+
+#: src/client.c:905
+msgid "This may cause data to be lost!"
+msgstr "這可能會導致資料不見！"
+
+#: src/command.c:142 src/command.c:176 src/main.c:209
+#, c-format
+msgid "exec failed: (%s) %s"
+msgstr "執行失敗：(%s) %s"
+
+#: src/command.c:156
+#, fuzzy
+msgid "could not create pipe"
+msgstr "無法載入字體:%s"
+
+#: src/command.c:162
+msgid "could not set O_NONBLOCK"
+msgstr ""
+
+#: src/command.c:212
+#, c-format
+msgid "timeout: %s did not complete in %u milliseconds"
+msgstr ""
+
+#: src/confirm.c:69
+msgid "OK"
+msgstr "確定"
+
+#: src/confirm.c:74
+msgid "Cancel"
+msgstr "取消"
+
+#: src/confirm.c:308
+msgid "Confirm"
+msgstr "確認"
+
+#: src/desktop.c:340
+msgid "empty Desktops Name tag"
+msgstr "空的Desktops名稱標籤"
+
+#: src/dock.c:155
+msgid "only one Dock allowed"
+msgstr "只允許一個Dock工具列"
+
+#: src/dock.c:237
+msgid "could not acquire system tray selection"
+msgstr "無法取得系統tray的選項"
+
+#: src/error.c:22
+#, c-format
+msgid "JWM: error: "
+msgstr "JWM: 錯誤:"
+
+#: src/error.c:51
+#, c-format
+msgid "JWM: warning: "
+msgstr "JWM: 警告:"
+
+#: src/error.c:77
+msgid "display is already managed"
+msgstr "顯示已經被控制"
+
+#: src/font.c:138 src/font.c:174
+#, c-format
+msgid "could not load font: %s"
+msgstr "無法載入字體:%s"
+
+#: src/font.c:182
+#, c-format
+msgid "could not load the default font: %s"
+msgstr "無法載入預設字體:%s"
+
+#: src/font.c:355
+msgid "empty Font tag"
+msgstr "空的字體標籤"
+
+#: src/group.c:118
+msgid "invalid group class"
+msgstr "無效的群組類別"
+
+#: src/group.c:129 src/group.c:140
+msgid "invalid group name"
+msgstr "無效的群組名稱"
+
+#: src/group.c:151
+#, fuzzy
+#| msgid "invalid group name"
+msgid "invalid group type"
+msgstr "無效的群組名稱"
+
+#: src/group.c:162
+#, fuzzy
+#| msgid "invalid group name"
+msgid "invalid group machine"
+msgstr "無效的群組名稱"
+
+#: src/group.c:367
+#, c-format
+msgid "invalid group desktop: %d"
+msgstr "無效的群組桌面: %d"
+
+#: src/image.c:147
+#, c-format
+msgid "unrecognized extension for \"%s\", expected \"%s\""
+msgstr ""
+
+#: src/image.c:234
+#, c-format
+msgid "could not create read struct for PNG image: %s"
+msgstr "無法建立PNG圖片的讀取結構: %s"
+
+#: src/image.c:247
+#, c-format
+msgid "error reading PNG image: %s"
+msgstr "讀取 PNG圖片發生錯誤：%s"
+
+#: src/image.c:255
+#, c-format
+msgid "could not create info struct for PNG image: %s"
+msgstr "無法產生PNG圖片的資訊結構: %s"
+
+#: src/lex.c:208
+#, c-format
+msgid "%s[%u]: close tag \"%s\" does not match open tag \"%s\""
+msgstr "%s[%u]: 關閉的標籤 \"%s\" 沒有配對到開啟的標籤 \"%s\""
+
+#: src/lex.c:214
+#, c-format
+msgid "%s[%u]: unexpected and invalid close tag"
+msgstr "%s[%u]: 無預期且無效的標籤"
+
+#: src/lex.c:220
+#, c-format
+msgid "%s[%u]: close tag \"%s\" without open tag"
+msgstr "%s[%u]: 關閉標籤 \"%s\" 不要開啟標籤"
+
+#: src/lex.c:223
+#, c-format
+msgid "%s[%u]: invalid close tag"
+msgstr "%s[%u]: 無效的關閉標籤"
+
+#: src/lex.c:271
+#, c-format
+msgid "%s[%u]: invalid open tag"
+msgstr "%s[%u]: 無效的開啟標籤"
+
+#: src/lex.c:287
+#, c-format
+msgid "%s[%u]: invalid tag"
+msgstr "%s[%u]: 無效的標籤"
+
+#: src/lex.c:345
+#, c-format
+msgid "%s[%u]: unexpected text: \"%s\""
+msgstr "%s[%u]: 無預期的文字: \"%s\""
+
+#: src/lex.c:404
+#, c-format
+msgid "%s[%d]: invalid entity: \"%.8s\""
+msgstr "%s[%d]: 無效的實體: \"%.8s\""
+
+#: src/lex.c:510
+msgid "out of memory"
+msgstr "記憶體不足"
+
+#: src/parse.c:285
+#, fuzzy, c-format
+#| msgid "could not open %s or %s"
+msgid "could not open %s"
+msgstr "無法開啟 %s 或 %s"
+
+#: src/parse.c:295
+#, c-format
+msgid "could not open %s or %s"
+msgstr "無法開啟 %s 或 %s"
+
+#: src/parse.c:314
+#, c-format
+msgid "include depth (%d) exceeded"
+msgstr "包含深度 (%d) 超過"
+
+#: src/parse.c:473
+#, c-format
+msgid "invalid start tag: %s"
+msgstr "無效的開啟標籤: %s"
+
+#: src/parse.c:865
+#, c-format
+msgid "invalid include: %s"
+msgstr "無效的包含: %s"
+
+#: src/parse.c:951
+msgid "no action specified for Key"
+msgstr "此Key沒有指定的操作"
+
+#: src/parse.c:958
+#, c-format
+msgid "invalid Key action: \"%s\""
+msgstr "無效的Key操作 %s"
+
+#: src/parse.c:984
+#, fuzzy
+#| msgid "no action specified for Key"
+msgid "no action specified for Mouse"
+msgstr "此Key沒有指定的操作"
+
+#: src/parse.c:989
+#, fuzzy, c-format
+#| msgid "invalid Key action: \"%s\""
+msgid "invalid Mouse action: \"%s\""
+msgstr "無效的Key操作 %s"
+
+#: src/parse.c:995
+#, fuzzy, c-format
+#| msgid "invalid Key action: \"%s\""
+msgid "invalid Mouse context: \"%s\""
+msgstr "無效的Key操作 %s"
+
+#: src/parse.c:1016
+#, c-format
+msgid "invalid text alignment: \"%s\""
+msgstr "無效的文字對齊: \"%s\""
+
+#: src/parse.c:1116
+msgid "no include file specified"
+msgstr "沒有被包含的檔案被指定"
+
+#: src/parse.c:1127
+#, c-format
+msgid "could not process include: %s"
+msgstr "無法處理包含: %s"
+
+#: src/parse.c:1131
+#, c-format
+msgid "could not open included file: %s"
+msgstr "無法開啟包含的檔案: %s"
+
+#: src/parse.c:1845
+#, c-format
+msgid "invalid value for 'enabled': \"%s\""
+msgstr "無效的數值給'啟用的': \"%s\""
+
+#: src/parse.c:1995
+#, c-format
+msgid "invalid Group Option: %s"
+msgstr "無效的群組選項: %s"
+
+#: src/parse.c:2010
+#, c-format
+msgid "invalid decorations: %s"
+msgstr "無效的裝飾; %s"
+
+#: src/parse.c:2078
+#, c-format
+msgid "%s is empty"
+msgstr "%s 是空"
+
+#: src/parse.c:2085
+#, c-format
+msgid "invalid %s: \"%s\""
+msgstr "無效的 %s: \"%s\""
+
+#: src/parse.c:2103
+#, fuzzy, c-format
+msgid "invalid value for %s: \"%s\""
+msgstr "%s: \"%s\"的無效數值"
+
+#: src/parse.c:2173 src/parse.c:2190 src/parse.c:2218
+#, fuzzy
+msgid "no value specified"
+msgstr "未設定任何數值"
+
+#: src/parse.c:2178 src/parse.c:2195
+#, c-format
+msgid "invalid setting: %s"
+msgstr "無效的設定值:\"%s\""
+
+#: src/parse.c:2223
+#, c-format
+msgid "invalid opacity: %s"
+msgstr "無效的透明度:\"%s\""
+
+#: src/parse.c:2244
+#, fuzzy, c-format
+msgid "invalid layer: %s"
+msgstr "無效的層次:\"%s\""
+
+#: src/parse.c:2265
+#, c-format
+msgid "invalid tag in %s: %s"
+msgstr " %s: %s 的無效標籤"
+
+#: src/parse.c:2286
+msgid "configuration error"
+msgstr "設定錯誤"
+
+#: src/root.c:129
+#, c-format
+msgid "invalid root menu specified: \"%c\""
+msgstr "無效的指定主選項單 \"%c\""
+
+#: src/root.c:223
+msgid "Exit JWM"
+msgstr "退出 JWM"
+
+#: src/root.c:224
+msgid "Are you sure?"
+msgstr "您確定嗎？"
+
+#: src/swallow.c:85
+msgid "cannot swallow a client with no name"
+msgstr "無法消掉沒有名字的客戶端"
+
+#: src/taskbar.c:513 src/winmenu.c:48
+msgid "Close"
+msgstr "關閉"
+
+#: src/taskbar.c:520 src/winmenu.c:68
+msgid "Minimize"
+msgstr "最小化"
+
+#: src/taskbar.c:527 src/winmenu.c:97 src/winmenu.c:99 src/winmenu.c:101
+#: src/winmenu.c:108
+msgid "Restore"
+msgstr "回復"
+
+#: src/taskbar.c:534 src/winmenu.c:181
+msgid "Send To"
+msgstr "傳送到"
+
+#: src/taskbar.c:1053
+#, c-format
+msgid "invalid maxwidth for TaskList: %s"
+msgstr "任務列表無效的最大寬度:%s"
+
+#: src/taskbar.c:1067
+#, fuzzy, c-format
+msgid "invalid height for TaskList: %s"
+msgstr "任務列表無效的高度:%s"
+
+#: src/taskbar.c:1095
+#, fuzzy, c-format
+msgid "invalid labelpos for TaskList: %s"
+msgstr "任務列表無效的高度:%s"
+
+#: src/tray.c:1082
+#, c-format
+msgid "invalid tray layout: \"%s\""
+msgstr "無效的tray層次: \"%s\" "
+
+#: src/tray.c:1109
+#, c-format
+msgid "invalid tray horizontal alignment: \"%s\""
+msgstr "無效的水平tray對齊: \"%s\""
+
+#: src/tray.c:1132
+#, c-format
+msgid "invalid tray vertical alignment: \"%s\""
+msgstr "無效的垂直tray對齊: \"%s\""
+
+#: src/traybutton.c:91
+#, c-format
+msgid "could not load tray icon: \"%s\""
+msgstr "無法載入tray圖示：\"%s\""
+
+#: src/traybutton.c:132
+msgid "no icon or label for TrayButton"
+msgstr "未找到TrayButton的icon或是標籤"
+
+#: src/winmenu.c:50
+msgid "Kill"
+msgstr "強制結束"
+
+#: src/winmenu.c:59
+msgid "Resize"
+msgstr "改變大小"
+
+#: src/winmenu.c:62
+msgid "Move"
+msgstr "移動"
+
+#: src/winmenu.c:74
+msgid "Unshade"
+msgstr "向下展開"
+
+#: src/winmenu.c:76
+msgid "Shade"
+msgstr "向上收起"
+
+#: src/winmenu.c:83
+msgid "Maximize-y"
+msgstr "垂直最大化"
+
+#: src/winmenu.c:88
+msgid "Maximize-x"
+msgstr "水平最大化"
+
+#: src/winmenu.c:92
+msgid "Maximize"
+msgstr "最大化"
+
+#: src/winmenu.c:114
+msgid "Unstick"
+msgstr "解除固定"
+
+#: src/winmenu.c:116
+msgid "Stick"
+msgstr "固定"
+
+#: src/winmenu.c:141
+msgid "Layer"
+msgstr "層"
+
+#: src/winmenu.c:150
+msgid "[Above]"
+msgstr "[置頂]"
+
+#: src/winmenu.c:152
+msgid "Above"
+msgstr "置頂"
+
+#: src/winmenu.c:155
+msgid "[Normal]"
+msgstr "[正常]"
+
+#: src/winmenu.c:157
+msgid "Normal"
+msgstr "正常"
+
+#: src/winmenu.c:160
+msgid "[Below]"
+msgstr "[置底]"
+
+#: src/winmenu.c:162
+msgid "Below"
+msgstr "置底"

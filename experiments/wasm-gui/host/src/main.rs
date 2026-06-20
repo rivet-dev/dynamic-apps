@@ -47,6 +47,25 @@ struct Session {
     connection_id: String,
     session_id: String,
     vm_id: String,
+    /// The host-backed shadow dir this VM created (for direct framebuffer readback). Identified at
+    /// create time so concurrent sessions' same-named (vm-1) shadow dirs don't get mixed up.
+    shadow_dir: Option<std::path::PathBuf>,
+}
+
+/// List all current sidecar VM shadow dirs under the system temp dir.
+fn list_shadow_dirs() -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(rd) = std::fs::read_dir(std::env::temp_dir()) {
+        for e in rd.flatten() {
+            if e.file_name()
+                .to_string_lossy()
+                .starts_with("secure-exec-sidecar-shadow-")
+            {
+                out.push(e.path());
+            }
+        }
+    }
+    out
 }
 
 impl Session {
@@ -94,6 +113,11 @@ impl Session {
             other => return Err(format!("expected SessionOpened, got {other:?}")),
         };
 
+        // Snapshot pre-existing sidecar shadow dirs so we can identify the one OUR CreateVm makes.
+        // Multiple concurrent sidecar processes each assign vm ids like "vm-1", so matching on vm_id
+        // alone is ambiguous; the dir that newly appears after our CreateVm is unambiguously ours.
+        let pre_shadows = list_shadow_dirs();
+
         // Create a WebAssembly VM with the default (bundled base) filesystem.
         let vm = request(
             &t,
@@ -115,7 +139,20 @@ impl Session {
             other => return Err(format!("expected VmCreated, got {other:?}")),
         };
 
-        Ok(Session { t, connection_id, session_id, vm_id })
+        // The shadow dir that appeared after CreateVm (matching our vm_id) is ours; pick the newest
+        // such new one. This is robust to other sessions' concurrently-active vm-1 shadow dirs.
+        let shadow_dir = list_shadow_dirs()
+            .into_iter()
+            .filter(|p| !pre_shadows.contains(p))
+            .filter(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.starts_with(&format!("secure-exec-sidecar-shadow-{vm_id}-")))
+                    .unwrap_or(false)
+            })
+            .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok());
+
+        Ok(Session { t, connection_id, session_id, vm_id, shadow_dir })
     }
 
     fn vm_scope(&self) -> wire::OwnershipScope {
@@ -333,6 +370,146 @@ async fn wait_for_exit(
     }
 }
 
+// ---- host-side X11 + XTEST input ---------------------------------------------------------------
+// The host connects DIRECTLY to the wasm X server's host-backed AF_UNIX socket and injects real input
+// via the XTEST extension. This is the working input path: host->guest stdin/file delivery does not
+// propagate live data, but the X server's listening socket is a real host unix socket the host can
+// speak X11 to. Cross-platform (pure-Rust x11rb; unix sockets on macOS + Linux).
+mod xinput {
+    use std::os::unix::net::UnixStream;
+    use std::path::Path;
+
+    use x11rb::connection::Connection;
+    use x11rb::protocol::xproto::{ConfigureWindowAux, ConnectionExt as _, Window};
+    use x11rb::protocol::xtest::ConnectionExt as _;
+    use x11rb::rust_connection::{DefaultStream, RustConnection};
+
+    // XTEST event types (xproto): KeyPress=2, KeyRelease=3, ButtonPress=4, ButtonRelease=5, Motion=6.
+    const KEY_PRESS: u8 = 2;
+    const KEY_RELEASE: u8 = 3;
+    const BUTTON_PRESS: u8 = 4;
+    const BUTTON_RELEASE: u8 = 5;
+    const MOTION: u8 = 6;
+
+    pub struct XInput {
+        conn: RustConnection,
+        root: Window,
+        last: (i16, i16),
+        // While a host-side window drag is active: (frame window, cursor->frame offset x, y).
+        drag: Option<(Window, i16, i16)>,
+    }
+
+    impl XInput {
+        pub fn connect(socket_path: &Path) -> Result<Self, String> {
+            let us = UnixStream::connect(socket_path)
+                .map_err(|e| format!("connect X socket {}: {e}", socket_path.display()))?;
+            let (stream, _peer_auth) =
+                DefaultStream::from_unix_stream(us).map_err(|e| format!("x stream: {e}"))?;
+            let conn = RustConnection::connect_to_stream(stream, 0)
+                .map_err(|e| format!("X11 handshake: {e}"))?;
+            let root = conn.setup().roots[0].root;
+            // Confirm XTEST is present (Xvfb builds it in).
+            conn.xtest_get_version(2, 2)
+                .map_err(|e| format!("xtest query: {e}"))?
+                .reply()
+                .map_err(|e| format!("xtest version: {e}"))?;
+            Ok(Self { conn, root, last: (0, 0), drag: None })
+        }
+
+        fn fake(&self, ty: u8, detail: u8, x: i16, y: i16) -> Result<(), String> {
+            self.conn
+                .xtest_fake_input(ty, detail, 0, self.root, x, y, 0)
+                .map_err(|e| format!("xtest_fake_input: {e}"))?;
+            self.conn.flush().map_err(|e| format!("x flush: {e}"))?;
+            Ok(())
+        }
+
+        pub fn motion(&self, x: i16, y: i16) -> Result<(), String> {
+            self.fake(MOTION, 0, x, y)
+        }
+        pub fn button(&self, n: u8, press: bool) -> Result<(), String> {
+            self.fake(if press { BUTTON_PRESS } else { BUTTON_RELEASE }, n, 0, 0)
+        }
+        pub fn key(&self, code: u8, press: bool) -> Result<(), String> {
+            self.fake(if press { KEY_PRESS } else { KEY_RELEASE }, code, 0, 0)
+        }
+
+        /// The top-level window (twm frame) directly under the pointer, with its root-relative origin.
+        fn frame_under_pointer(&self) -> Option<(Window, i16, i16)> {
+            let qp = self.conn.query_pointer(self.root).ok()?.reply().ok()?;
+            let child = qp.child;
+            if child == 0 || child == self.root {
+                return None;
+            }
+            let g = self.conn.get_geometry(child).ok()?.reply().ok()?;
+            Some((child, g.x, g.y))
+        }
+
+        fn move_window(&self, w: Window, x: i16, y: i16) -> Result<(), String> {
+            self.conn
+                .configure_window(w, &ConfigureWindowAux::new().x(x as i32).y(y as i32))
+                .map_err(|e| format!("configure_window: {e}"))?;
+            self.conn.flush().map_err(|e| format!("x flush: {e}"))?;
+            Ok(())
+        }
+
+        /// Run one agent-vocabulary command line (motion/button/buttondn/buttonup/key). Button 1
+        /// presses begin a host-side opaque window drag (the frame under the pointer follows the
+        /// cursor on subsequent motions) so dragging works without relying on the WM's own move grab
+        /// — XTEST FakeMotion does not warp the pointer while the WM holds a pointer grab in our Xvfb.
+        pub fn run(&mut self, line: &str) -> Result<(), String> {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            let Some(&cmd) = parts.first() else { return Ok(()) };
+            let num = |i: usize| -> i32 { parts.get(i).and_then(|s| s.parse().ok()).unwrap_or(0) };
+            match cmd {
+                "motion" => {
+                    let (x, y) = (num(1) as i16, num(2) as i16);
+                    self.last = (x, y);
+                    self.motion(x, y)?;
+                    if let Some((w, ox, oy)) = self.drag {
+                        self.move_window(w, x - ox, y - oy)?;
+                    }
+                    Ok(())
+                }
+                "button" => {
+                    let (x, y) = (num(2) as i16, num(3) as i16);
+                    self.last = (x, y);
+                    self.motion(x, y)?;
+                    self.button(num(1) as u8, true)?;
+                    self.button(num(1) as u8, false)
+                }
+                "buttondn" => {
+                    let n = num(1) as u8;
+                    self.button(n, true)?;
+                    if n == 1 {
+                        if let Some((frame, fx, fy)) = self.frame_under_pointer() {
+                            self.drag = Some((frame, self.last.0 - fx, self.last.1 - fy));
+                        }
+                    }
+                    Ok(())
+                }
+                "buttonup" => {
+                    let n = num(1) as u8;
+                    if n == 1 {
+                        self.drag = None;
+                    }
+                    self.button(n, false)
+                }
+                "key" => {
+                    self.key(num(1) as u8, true)?;
+                    self.key(num(1) as u8, false)
+                }
+                _ => Ok(()),
+            }
+        }
+    }
+
+    /// Find the X server's host-backed unix socket inside a VM shadow dir.
+    pub fn server_socket(shadow_dir: &Path) -> std::path::PathBuf {
+        shadow_dir.join("tmp/.X11-unix/X0")
+    }
+}
+
 // ---- capture mode (headless, automated proof) --------------------------------------------------
 
 async fn run_capture(sidecar: Option<String>, guest: &str, out: &str) -> Result<()> {
@@ -430,6 +607,7 @@ async fn run_xdemo(
     timeout_s: u64,
     fonts_dir: Option<&str>,
     locale_dir: Option<&str>,
+    vm_trees: &[String],
     inject: &[(String, String)],
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
@@ -445,12 +623,16 @@ async fn run_xdemo(
     }
     s.mkdir("/data").await.ok();
     s.mkdir("/tmp/.X11-unix").await.ok();
+    // Pre-create the input-command file BEFORE any client launches. Guests can read /data files that
+    // existed when they started (e.g. the X server's Xvfb_screen0) but not ones the host write_file's
+    // afterwards, so the XTEST agent's `follow` mode only sees /data/input-cmds if it predates it.
+    s.write_file("/data/input-cmds", b"").await.ok();
     // Provide a twm config that auto-places windows (twm's default placement is interactive and
     // would never map a window without user input). Harmless for non-twm runs.
     s.mkdir("/root").await.ok();
     s.write_file(
         "/root/.twmrc",
-        b"RandomPlacement\nUsePPosition \"on\"\nNoGrabServer\nNoTitleFocus\n",
+        b"RandomPlacement\nUsePPosition \"on\"\nNoGrabServer\nOpaqueMove\nNoTitleFocus\nButton1 = : title : f.move\nButton1 = : frame : f.move\n",
     )
     .await
     .ok();
@@ -484,6 +666,13 @@ async fn run_xdemo(
             s.install_tree(std::path::Path::new(ldir), compiled).await?;
         }
         eprintln!("secure-exec: installed {n} locale files into /locale (+ compiled libX11 paths)");
+    }
+
+    // Install arbitrary host trees at the VM root (e.g. /etc/fonts + /usr/share/fonts for Xft, or
+    // theme/config data later). Each tree mirrors the in-VM layout it should land at.
+    for tree in vm_trees {
+        let n = s.install_tree(std::path::Path::new(tree), "").await?;
+        eprintln!("secure-exec: installed {n} files from {tree} into the VM root");
     }
 
     let mut events = s.t.subscribe_wire_events();
@@ -538,6 +727,15 @@ async fn run_xdemo(
                 cenv.insert("HOME".to_string(), "/root".to_string());
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                }
+                // Point fontconfig at the in-VM config we may have staged via --vm-tree, so Xft
+                // clients resolve fontconfig patterns to the installed TTFs.
+                if !vm_trees.is_empty() {
+                    cenv.insert("FONTCONFIG_PATH".to_string(), "/etc/fonts".to_string());
+                    cenv.insert("FONTCONFIG_FILE".to_string(), "/etc/fonts/fonts.conf".to_string());
+                    if let Ok(dbg) = std::env::var("WASMGUI_FC_DEBUG") {
+                        cenv.insert("FC_DEBUG".to_string(), dbg);
+                    }
                 }
                 s.execute_env(&id, path, &argv, cenv).await?;
                 eprintln!("secure-exec: launched {id} ({path})");
@@ -596,19 +794,32 @@ async fn run_xdemo(
         client_specs.len()
     );
 
-    // Host-driven input injection (SPEC M6.1): once the desktop is up, write input commands to a
-    // client's stdin (kernel pipe). The target is an XTEST agent guest that turns each command into a
-    // real X input event. This is exactly how the native window would forward a user's keystrokes /
-    // clicks. We then give the guests a moment to deliver + repaint before reading back the frame.
+    // Host-driven input injection (SPEC M6.1): the host connects DIRECTLY to the X server's
+    // host-backed AF_UNIX socket and injects via XTEST. This is the working path (host->guest stdin /
+    // file delivery does not propagate live data). The `pid` of each --inject entry is ignored.
     if !inject.is_empty() {
-        for (pid, cmd) in inject {
-            let line = format!("{cmd}\n");
-            match s.write_stdin(pid, line.as_bytes()).await {
-                Ok(()) => eprintln!("secure-exec: injected to {pid} stdin: {cmd}"),
-                Err(e) => eprintln!("secure-exec: inject to {pid} failed: {e}"),
+        match s.shadow_dir.as_ref() {
+            Some(dir) => {
+                let sock = xinput::server_socket(dir);
+                match xinput::XInput::connect(&sock) {
+                    Ok(mut xi) => {
+                        for (_, cmd) in inject {
+                            if let Err(e) = xi.run(cmd) {
+                                eprintln!("secure-exec: XTEST inject '{cmd}' failed: {e}");
+                            } else {
+                                eprintln!("secure-exec: XTEST injected: {cmd}");
+                            }
+                            // Pace events so the WM/clients process each one (a real drag needs the
+                            // buttondn -> motion -> buttonup sequence spaced out, not instantaneous).
+                            tokio::time::sleep(std::time::Duration::from_millis(120)).await;
+                        }
+                        tokio::time::sleep(std::time::Duration::from_millis(800)).await;
+                    }
+                    Err(e) => eprintln!("secure-exec: XTEST connect failed: {e}"),
+                }
             }
+            None => eprintln!("secure-exec: no shadow dir; cannot connect for XTEST inject"),
         }
-        tokio::time::sleep(std::time::Duration::from_millis(2500)).await;
     }
 
     // Read the server framebuffer directly from the host-backed VM shadow filesystem.
@@ -619,7 +830,17 @@ async fn run_xdemo(
     // keep the single sidecar service thread busy, so a wire readback gets starved and never returns.
     // A direct host-fs read needs no wire round-trip and so cannot be starved by the live guests.
     if let Some(hpath) = fb_out {
-        match read_shadow_framebuffer(&s.vm_id, "data/Xvfb_screen0") {
+        // Prefer the exact shadow dir this VM created (robust under concurrent same-id sessions);
+        // fall back to the vm_id glob if it wasn't captured.
+        let read = s
+            .shadow_dir
+            .as_ref()
+            .and_then(|d| {
+                let p = d.join("data/Xvfb_screen0");
+                std::fs::read(&p).ok().map(|b| (p, b))
+            })
+            .or_else(|| read_shadow_framebuffer(&s.vm_id, "data/Xvfb_screen0"));
+        match read {
             Some((src, bytes)) => {
                 let _ = std::fs::write(hpath, &bytes);
                 eprintln!(
@@ -665,6 +886,7 @@ fn read_shadow_framebuffer(vm_id: &str, rel: &str) -> Option<(std::path::PathBuf
 
 struct Args {
     mode_window: bool,
+    mode_desktop: bool,
     capture_out: Option<String>,
     guest: String,
     sidecar: Option<String>,
@@ -677,6 +899,7 @@ struct Args {
     fb_out: Option<String>,
     fonts_dir: Option<String>,
     locale_dir: Option<String>,
+    vm_trees: Vec<String>,
     inject: Vec<(String, String)>,
 }
 
@@ -684,6 +907,7 @@ fn parse_args() -> Args {
     let argv: Vec<String> = std::env::args().collect();
     let mut a = Args {
         mode_window: false,
+        mode_desktop: false,
         capture_out: None,
         guest: "target/wasm32-wasip1/release/guest.wasm".into(),
         sidecar: std::env::var("SECURE_EXEC_SIDECAR_BIN").ok(),
@@ -696,12 +920,14 @@ fn parse_args() -> Args {
         fb_out: None,
         fonts_dir: None,
         locale_dir: None,
+        vm_trees: Vec::new(),
         inject: Vec::new(),
     };
     let mut i = 1;
     while i < argv.len() {
         match argv[i].as_str() {
             "--window" => a.mode_window = true,
+            "--desktop" => a.mode_desktop = true,
             "--exec" => a.exec = true,
             "--xdemo" => a.xdemo = true,
             "--server" => {
@@ -725,6 +951,13 @@ fn parse_args() -> Args {
             "--locale-dir" => {
                 i += 1;
                 a.locale_dir = argv.get(i).cloned();
+            }
+            // --vm-tree <hostdir>: install that host directory tree at the VM root (repeatable).
+            "--vm-tree" => {
+                i += 1;
+                if let Some(d) = argv.get(i) {
+                    a.vm_trees.push(d.clone());
+                }
             }
             // --inject "<process_id>=<command>"  (e.g. --inject "xclient2=key 38")
             // After the desktop is up, the host writes "<command>\n" to that client's stdin.
@@ -770,6 +1003,42 @@ fn parse_args() -> Args {
 async fn main() {
     let args = parse_args();
 
+    if args.mode_desktop {
+        let server = args.server.clone().unwrap_or_else(|| {
+            eprintln!("--desktop requires --server <Xvfb.wasm>");
+            std::process::exit(2);
+        });
+        #[cfg(feature = "window")]
+        {
+            if let Err(e) = window::run_desktop(
+                args.sidecar.clone(),
+                server,
+                args.clients.clone(),
+                args.exec_args.clone(),
+                args.fonts_dir.clone(),
+                args.locale_dir.clone(),
+                args.vm_trees.clone(),
+                640,
+                480,
+            )
+            .await
+            {
+                eprintln!("desktop failed: {e}");
+                std::process::exit(1);
+            }
+            return;
+        }
+        #[cfg(not(feature = "window"))]
+        {
+            let _ = server;
+            eprintln!(
+                "built without the `window` feature.\n\
+                 Build the interactive desktop with:  cargo run -p wasm-gui-host --features window -- --desktop ..."
+            );
+            std::process::exit(0);
+        }
+    }
+
     if args.xdemo {
         let server = args.server.clone().unwrap_or_else(|| {
             eprintln!("--xdemo requires --server <Xvfb.wasm>");
@@ -788,6 +1057,7 @@ async fn main() {
             args.timeout,
             args.fonts_dir.as_deref(),
             args.locale_dir.as_deref(),
+            &args.vm_trees,
             &args.inject,
         )
         .await
@@ -963,6 +1233,213 @@ mod window {
             window: None,
             surface: None,
             last: None,
+            cursor: (0, 0),
+            _session: s,
+        };
+        event_loop
+            .run_app(&mut app)
+            .map_err(|e| format!("run_app: {e}"))
+    }
+
+    /// Read the X server's framebuffer (BGRX, with a small leading header) from the host-backed VM
+    /// shadow file and convert it to an RGBA Frame the winit blit understands. Returns None until the
+    /// server has produced a full screen's worth of pixels.
+    fn read_x_frame(path: &std::path::Path, w: u32, h: u32) -> Option<Frame> {
+        let bytes = std::fs::read(path).ok()?;
+        let need = (w as usize) * (h as usize) * 4;
+        if bytes.len() < need {
+            return None;
+        }
+        let pix = &bytes[bytes.len() - need..]; // skip the leading header; pixels are the tail
+        let mut rgba = vec![0u8; need];
+        for i in (0..need).step_by(4) {
+            // X dumps BGRX; the blit reads rgba[s], [s+1], [s+2] as R,G,B.
+            rgba[i] = pix[i + 2];
+            rgba[i + 1] = pix[i + 1];
+            rgba[i + 2] = pix[i];
+            rgba[i + 3] = 0xff;
+        }
+        Some(Frame { w, h, rgba })
+    }
+
+    /// Interactive desktop window: runs the X server + window manager + apps in one VM, streams the
+    /// live framebuffer into a native winit window, and forwards mouse/keyboard back through the XTEST
+    /// `follow` agent (via the /data/input-cmds file the agent tails). Cross-platform (winit +
+    /// softbuffer build on macOS and Linux); the .wasm guests are platform-independent.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn run_desktop(
+        sidecar: Option<String>,
+        server: String,
+        clients: Vec<String>,
+        server_args: Vec<String>,
+        fonts_dir: Option<String>,
+        locale_dir: Option<String>,
+        vm_trees: Vec<String>,
+        width: u32,
+        height: u32,
+    ) -> Result<()> {
+        let s = Session::connect(sidecar).await?;
+        // --- VM setup (mirrors the headless xdemo path) ---
+        s.mkdir("/data").await.ok();
+        s.mkdir("/tmp/.X11-unix").await.ok();
+        s.write_file("/data/input-cmds", b"").await.ok(); // must predate the agent (see findings)
+        s.mkdir("/root").await.ok();
+        s.write_file(
+            "/root/.twmrc",
+            b"RandomPlacement\nUsePPosition \"on\"\nNoGrabServer\nOpaqueMove\nNoTitleFocus\nButton1 = : title : f.move\nButton1 = : frame : f.move\n",
+        )
+        .await
+        .ok();
+        if let Some(fdir) = fonts_dir.as_deref() {
+            s.mkdir("/fonts").await.ok();
+            if let Ok(entries) = std::fs::read_dir(fdir) {
+                for entry in entries.flatten() {
+                    if entry.path().is_file() {
+                        if let Ok(bytes) = std::fs::read(entry.path()) {
+                            let name = entry.file_name();
+                            let _ = s
+                                .write_file(&format!("/fonts/{}", name.to_string_lossy()), &bytes)
+                                .await;
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(ldir) = locale_dir.as_deref() {
+            let _ = s.install_tree(std::path::Path::new(ldir), "/locale").await;
+            for compiled in LIBX11_COMPILED_LOCALE_DIRS {
+                let _ = s.install_tree(std::path::Path::new(ldir), compiled).await;
+            }
+        }
+        for tree in &vm_trees {
+            let _ = s.install_tree(std::path::Path::new(tree), "").await;
+        }
+
+        let shadow_fb = s
+            .shadow_dir
+            .clone()
+            .map(|d| d.join("data/Xvfb_screen0"))
+            .ok_or_else(|| "no shadow dir captured for framebuffer streaming".to_string())?;
+
+        let mut events = s.t.subscribe_wire_events();
+        let server_abs = abs_path(&server)?;
+        let srv_argv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
+        s.execute("xserver", &server_abs, &srv_argv).await?;
+
+        let s = Arc::new(s);
+
+        // --- background launcher: wait for the server, then launch clients sequentially ---
+        let (input_tx, mut input_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+        let s_launch = s.clone();
+        let clients_owned = clients.clone();
+        tokio::spawn(async move {
+            let mut server_ready = false;
+            let mut wm_ready = false;
+            let mut launched = 0usize;
+            let mut last_launch = tokio::time::Instant::now();
+            loop {
+                let timed = tokio::time::timeout(std::time::Duration::from_millis(300), events.recv());
+                match timed.await {
+                    Ok(Ok((_, wire::EventPayload::ProcessOutputEvent(o)))) => {
+                        let txt = String::from_utf8_lossy(&o.chunk);
+                        if !server_ready && o.process_id == "xserver" && txt.contains("m_pre_dispatch") {
+                            server_ready = true;
+                        }
+                        if !wm_ready && o.process_id == "xclient0" && txt.contains("handleevents") {
+                            wm_ready = true;
+                        }
+                    }
+                    Ok(Ok(_)) | Err(_) => {}
+                    Ok(Err(_)) => break,
+                }
+                // Gate first app on the WM; fall back after 12s like the headless path.
+                if server_ready && launched > 0 && !wm_ready
+                    && last_launch.elapsed() >= std::time::Duration::from_secs(12)
+                {
+                    wm_ready = true;
+                }
+                let can = launched == 0 || wm_ready;
+                if server_ready && launched < clients_owned.len() && can
+                    && last_launch.elapsed() >= std::time::Duration::from_millis(1500)
+                {
+                    let spec = &clients_owned[launched];
+                    let mut parts = spec.split_whitespace();
+                    if let Some(path) = parts.next() {
+                        if let Ok(path_abs) = abs_path(path) {
+                            let cargs: Vec<String> = parts.map(|x| x.to_string()).collect();
+                            let argv: Vec<&str> = cargs.iter().map(|x| x.as_str()).collect();
+                            let mut cenv = HashMap::new();
+                            cenv.insert("DISPLAY".to_string(), ":0".to_string());
+                            cenv.insert("HOME".to_string(), "/root".to_string());
+                            cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                            let id = format!("xclient{launched}");
+                            let _ = s_launch.execute_env(&id, &path_abs, &argv, cenv).await;
+                            eprintln!("secure-exec: launched {id} ({path})");
+                            launched += 1;
+                            last_launch = tokio::time::Instant::now();
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- input forwarder: host speaks X11+XTEST directly to the server's host-backed socket ---
+        // A blocking thread owns the (sync) x11rb connection; a tokio task bridges winit tokens to it.
+        let x_socket = s
+            .shadow_dir
+            .clone()
+            .map(|d| crate::xinput::server_socket(&d))
+            .ok_or_else(|| "no shadow dir for X11 input socket".to_string())?;
+        let (xtx, xrx) = std_mpsc::channel::<String>();
+        tokio::spawn(async move {
+            while let Some(line) = input_rx.recv().await {
+                if xtx.send(line).is_err() {
+                    break;
+                }
+            }
+        });
+        std::thread::spawn(move || {
+            // The server may not be accepting yet; retry the connect for a few seconds.
+            let mut xi = None;
+            for _ in 0..200 {
+                match crate::xinput::XInput::connect(&x_socket) {
+                    Ok(c) => {
+                        eprintln!("secure-exec: XTEST input connected to {}", x_socket.display());
+                        xi = Some(c);
+                        break;
+                    }
+                    Err(_) => std::thread::sleep(std::time::Duration::from_millis(100)),
+                }
+            }
+            let Some(mut xi) = xi else {
+                eprintln!("secure-exec: could not connect XTEST input to {}", x_socket.display());
+                return;
+            };
+            while let Ok(tok) = xrx.recv() {
+                let _ = xi.run(&tok);
+            }
+        });
+
+        // --- framebuffer streamer: read the shadow file ~30fps and push frames to the window ---
+        let (frame_tx, frame_rx) = std_mpsc::channel::<Frame>();
+        std::thread::spawn(move || loop {
+            if let Some(frame) = read_x_frame(&shadow_fb, width, height) {
+                if frame_tx.send(frame).is_err() {
+                    return;
+                }
+            }
+            std::thread::sleep(std::time::Duration::from_millis(33));
+        });
+
+        // --- winit takes the main thread ---
+        let event_loop = EventLoop::new().map_err(|e| format!("event loop: {e}"))?;
+        let mut app = App {
+            frame_rx,
+            input_tx,
+            window: None,
+            surface: None,
+            last: None,
+            cursor: (0, 0),
             _session: s,
         };
         event_loop
@@ -976,6 +1453,7 @@ mod window {
         window: Option<Rc<Window>>,
         surface: Option<Surface<Rc<Window>, Rc<Window>>>,
         last: Option<Frame>,
+        cursor: (i32, i32),
         _session: Arc<Session>,
     }
 
@@ -1017,23 +1495,41 @@ mod window {
 
         fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
             match event {
-                WindowEvent::CloseRequested => {
-                    let _ = self.input_tx.send("q".into());
-                    event_loop.exit();
-                }
+                WindowEvent::CloseRequested => event_loop.exit(),
+                // Emit the XTEST agent's command vocabulary (see xtest-agent.c `follow` mode):
+                // pointer motion, button down/up (so window drags work), and key press by keycode.
                 WindowEvent::CursorMoved { position, .. } => {
+                    self.cursor = (position.x as i32, position.y as i32);
                     let _ = self
                         .input_tx
-                        .send(format!("p {} {}", position.x as i32, position.y as i32));
-                    if let Some(w) = self.window.as_ref() {
-                        w.request_redraw();
-                    }
+                        .send(format!("motion {} {}", self.cursor.0, self.cursor.1));
+                }
+                WindowEvent::MouseInput { state, button, .. } => {
+                    let n = match button {
+                        winit::event::MouseButton::Left => 1,
+                        winit::event::MouseButton::Middle => 2,
+                        winit::event::MouseButton::Right => 3,
+                        _ => 1,
+                    };
+                    // Move the pointer to the current spot first so the press lands where expected.
+                    let _ = self
+                        .input_tx
+                        .send(format!("motion {} {}", self.cursor.0, self.cursor.1));
+                    let verb = if state == ElementState::Pressed { "buttondn" } else { "buttonup" };
+                    let _ = self.input_tx.send(format!("{verb} {n}"));
                 }
                 WindowEvent::KeyboardInput { event, .. } => {
                     if event.state == ElementState::Pressed {
                         if let Key::Named(NamedKey::Escape) = event.logical_key {
-                            let _ = self.input_tx.send("q".into());
                             event_loop.exit();
+                            return;
+                        }
+                        // X keycode = evdev/winit scancode + 8 (the standard Xorg offset).
+                        if let winit::keyboard::PhysicalKey::Code(_) = event.physical_key {
+                            let scancode = winit_scancode(&event);
+                            if let Some(sc) = scancode {
+                                let _ = self.input_tx.send(format!("key {}", sc + 8));
+                            }
                         }
                     }
                 }
@@ -1046,5 +1542,30 @@ mod window {
                 _ => {}
             }
         }
+    }
+
+    /// Best-effort winit -> evdev scancode for the X keycode mapping (keycode = scancode + 8). winit
+    /// 0.30 doesn't expose the raw scancode portably, so map the common KeyCode variants we care about.
+    fn winit_scancode(event: &winit::event::KeyEvent) -> Option<u32> {
+        use winit::keyboard::{KeyCode, PhysicalKey};
+        let code = match event.physical_key {
+            PhysicalKey::Code(c) => c,
+            _ => return None,
+        };
+        // evdev scancodes (linux input-event-codes.h); X keycode adds 8.
+        Some(match code {
+            KeyCode::KeyA => 30, KeyCode::KeyB => 48, KeyCode::KeyC => 46, KeyCode::KeyD => 32,
+            KeyCode::KeyE => 18, KeyCode::KeyF => 33, KeyCode::KeyG => 34, KeyCode::KeyH => 35,
+            KeyCode::KeyI => 23, KeyCode::KeyJ => 36, KeyCode::KeyK => 37, KeyCode::KeyL => 38,
+            KeyCode::KeyM => 50, KeyCode::KeyN => 49, KeyCode::KeyO => 24, KeyCode::KeyP => 25,
+            KeyCode::KeyQ => 16, KeyCode::KeyR => 19, KeyCode::KeyS => 31, KeyCode::KeyT => 20,
+            KeyCode::KeyU => 22, KeyCode::KeyV => 47, KeyCode::KeyW => 17, KeyCode::KeyX => 45,
+            KeyCode::KeyY => 21, KeyCode::KeyZ => 44,
+            KeyCode::Digit1 => 2, KeyCode::Digit2 => 3, KeyCode::Digit3 => 4, KeyCode::Digit4 => 5,
+            KeyCode::Digit5 => 6, KeyCode::Digit6 => 7, KeyCode::Digit7 => 8, KeyCode::Digit8 => 9,
+            KeyCode::Digit9 => 10, KeyCode::Digit0 => 11,
+            KeyCode::Enter => 28, KeyCode::Space => 57, KeyCode::Backspace => 14, KeyCode::Tab => 15,
+            _ => return None,
+        })
     }
 }

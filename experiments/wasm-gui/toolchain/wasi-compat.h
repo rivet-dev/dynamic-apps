@@ -4,6 +4,17 @@
 #ifndef F_DUPFD
 #define F_DUPFD 0
 #endif
+/* wasi has no POSIX record locking (F_SETLK/struct flock). Define the constants + struct so code that
+ * does best-effort cache-file locking (e.g. fontconfig fccache.c) compiles; the wasi fcntl() ignores
+ * these commands, which is fine in the single-process sandbox where nothing else contends. */
+#ifndef F_SETLK
+#define F_RDLCK 0
+#define F_WRLCK 1
+#define F_UNLCK 2
+#define F_GETLK 5
+#define F_SETLK 6
+#define F_SETLKW 7
+#endif
 /* The patched wasi-libc gates struct rlimit behind __wasilibc_unmodified_upstream (disabled), so it
  * is absent. Provide it + the resource limits the xserver references (no core dumps on wasi). */
 #ifndef RLIMIT_CORE

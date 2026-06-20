@@ -1,0 +1,70 @@
+%{
+%}
+%struct-type
+%language=ANSI-C
+%includes
+%enum
+%readonly-tables
+%define slot-name name
+%define hash-function-name FcObjectTypeHash
+%define lookup-function-name FcObjectTypeLookup
+%pic
+%define string-pool-name FcObjectTypeNamePool
+struct FcObjectTypeInfo {
+int name;
+int id;
+};
+%%
+"family",FC_FAMILY_OBJECT
+"familylang",FC_FAMILYLANG_OBJECT
+"style",FC_STYLE_OBJECT
+"stylelang",FC_STYLELANG_OBJECT
+"fullname",FC_FULLNAME_OBJECT
+"fullnamelang",FC_FULLNAMELANG_OBJECT
+"slant",FC_SLANT_OBJECT
+"weight",FC_WEIGHT_OBJECT
+"width",FC_WIDTH_OBJECT
+"size",FC_SIZE_OBJECT
+"aspect",FC_ASPECT_OBJECT
+"pixelsize",FC_PIXEL_SIZE_OBJECT
+"spacing",FC_SPACING_OBJECT
+"foundry",FC_FOUNDRY_OBJECT
+"antialias",FC_ANTIALIAS_OBJECT
+"hintstyle",FC_HINT_STYLE_OBJECT
+"hinting",FC_HINTING_OBJECT
+"verticallayout",FC_VERTICAL_LAYOUT_OBJECT
+"autohint",FC_AUTOHINT_OBJECT
+"globaladvance",FC_GLOBAL_ADVANCE_OBJECT
+"file",FC_FILE_OBJECT
+"index",FC_INDEX_OBJECT
+"rasterizer",FC_RASTERIZER_OBJECT
+"outline",FC_OUTLINE_OBJECT
+"scalable",FC_SCALABLE_OBJECT
+"dpi",FC_DPI_OBJECT
+"rgba",FC_RGBA_OBJECT
+"scale",FC_SCALE_OBJECT
+"minspace",FC_MINSPACE_OBJECT
+"charwidth",FC_CHARWIDTH_OBJECT
+"charheight",FC_CHAR_HEIGHT_OBJECT
+"matrix",FC_MATRIX_OBJECT
+"charset",FC_CHARSET_OBJECT
+"lang",FC_LANG_OBJECT
+"fontversion",FC_FONTVERSION_OBJECT
+"capability",FC_CAPABILITY_OBJECT
+"fontformat",FC_FONTFORMAT_OBJECT
+"embolden",FC_EMBOLDEN_OBJECT
+"embeddedbitmap",FC_EMBEDDED_BITMAP_OBJECT
+"decorative",FC_DECORATIVE_OBJECT
+"lcdfilter",FC_LCD_FILTER_OBJECT
+"namelang",FC_NAMELANG_OBJECT
+"fontfeatures",FC_FONT_FEATURES_OBJECT
+"prgname",FC_PRGNAME_OBJECT
+"hash",FC_HASH_OBJECT
+"postscriptname",FC_POSTSCRIPT_NAME_OBJECT
+"color",FC_COLOR_OBJECT
+"symbol",FC_SYMBOL_OBJECT
+"fontvariations",FC_FONT_VARIATIONS_OBJECT
+"variable",FC_VARIABLE_OBJECT
+"fonthashint",FC_FONT_HAS_HINT_OBJECT
+"order",FC_ORDER_OBJECT
+"desktop",FC_DESKTOP_NAME_OBJECT

@@ -7,6 +7,8 @@ void funlockfile(FILE *f) { (void)f; }
 int ftrylockfile(FILE *f) { (void)f; return 0; }
 int getpgrp(void) { return 1; }
 int setpgid(int p, int g) { (void)p; (void)g; return 0; }
+int setsid(void) { return 1; }              /* no process sessions on wasi (JWM/WMs call it once) */
+void tzset(void) {}                          /* no timezone db on wasi; localtime stays UTC */
 unsigned umask(unsigned m) { (void)m; return 0; }
 int pthread_sigmask(int how, const void *set, void *old) { (void)how; (void)set; (void)old; return 0; }
 #include <string.h>

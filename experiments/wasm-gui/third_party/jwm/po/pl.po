@@ -1,0 +1,521 @@
+# Polish translations for jwm package.
+# Copyright (C) 2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the jwm package.
+# Miś Uszatek <adres.email@ymail.com>, 2012
+# Faalagorn, 2022
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 2.1.0+svn579-1\n"
+"Report-Msgid-Bugs-To: joewing@joewing.net\n"
+"POT-Creation-Date: 2024-10-05 01:37+0000\n"
+"PO-Revision-Date: 2022-05-15 14:46+0200\n"
+"Last-Translator: Faalagorn, 2022\n"
+"Language-Team: Polish <debian-l10n-polish@lists.debian.org>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: src/action.c:44
+#, c-format
+msgid "invalid action: \"%s\""
+msgstr "nieprawidłowa akcja: \"%s\""
+
+#: src/action.c:211
+#, c-format
+msgid "action: root menu \"%s\" not defined"
+msgstr "akcja: nie zdefiniowano menu głównego \"%s\""
+
+#: src/background.c:137
+msgid "no value specified for background"
+msgstr "nie określono wartości dla tła"
+
+#: src/background.c:149
+#, c-format
+msgid "invalid background type: \"%s\""
+msgstr "nieprawidłowy typ tła: \"%s\""
+
+#: src/background.c:306
+#, c-format
+msgid "background image not found: \"%s\""
+msgstr "nie znaleziono obrazu tła: \"%s\""
+
+#: src/binding.c:329
+msgid "Specified KeySym is not defined for any KeyCode"
+msgstr "Określony KeySym nie jest zdefiniowany dla żadego KeyCode"
+
+#: src/binding.c:337
+#, c-format
+msgid "modifier not found for keysym 0x%0x"
+msgstr "nie znaleziono modyfikatora dla keysym 0x%0x"
+
+#: src/binding.c:365
+#, c-format
+msgid "invalid modifier: \"%c\""
+msgstr "nieprawidłowy modyfikator: \"%c\""
+
+#: src/binding.c:379
+#, c-format
+msgid "invalid key symbol: \"%s\""
+msgstr "nieprawidłowy symbol klawisza: \"%s\""
+
+#: src/binding.c:488
+msgid "neither key nor keycode specified for Key"
+msgstr "nie ma klawisza ani kodu klawisza określonego dla Key"
+
+#: src/binding.c:526
+#, c-format
+msgid "key binding: root menu \"%s\" not defined"
+msgstr "przypisanie klawisza: nie zdefiniowano menu głównego \"%s\""
+
+#: src/client.c:904
+msgid "Kill this window?"
+msgstr "Zabić to okno?"
+
+#: src/client.c:905
+msgid "This may cause data to be lost!"
+msgstr "Może to spowodować utratę danych!"
+
+#: src/command.c:142 src/command.c:176 src/main.c:209
+#, c-format
+msgid "exec failed: (%s) %s"
+msgstr "exec nie powiodło się: (%s) %s"
+
+#: src/command.c:156
+msgid "could not create pipe"
+msgstr "nie można utworzyć połączenia"
+
+#: src/command.c:162
+msgid "could not set O_NONBLOCK"
+msgstr "nie można ustawić O_NONBLOCK"
+
+#: src/command.c:212
+#, c-format
+msgid "timeout: %s did not complete in %u milliseconds"
+msgstr "przekoroczono czas: %s nie skończył się w %u milisekund"
+
+#: src/confirm.c:69
+msgid "OK"
+msgstr "OK"
+
+#: src/confirm.c:74
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: src/confirm.c:308
+msgid "Confirm"
+msgstr "Potwierdź"
+
+#: src/desktop.c:340
+msgid "empty Desktops Name tag"
+msgstr "pusty znacznik nazwy pulpitów"
+
+#: src/dock.c:155
+msgid "only one Dock allowed"
+msgstr "tylko jeden dozwolony dock"
+
+#: src/dock.c:237
+msgid "could not acquire system tray selection"
+msgstr "nie można dostać wyboru w zasobniku systemowym"
+
+#: src/error.c:22
+#, c-format
+msgid "JWM: error: "
+msgstr "JWM: błąd: "
+
+#: src/error.c:51
+#, c-format
+msgid "JWM: warning: "
+msgstr "JWM: ostrzeżenie: "
+
+#: src/error.c:77
+msgid "display is already managed"
+msgstr "ekran jest już zarządzany"
+
+#: src/font.c:138 src/font.c:174
+#, c-format
+msgid "could not load font: %s"
+msgstr "nie można załadować czcionki: %s"
+
+#: src/font.c:182
+#, c-format
+msgid "could not load the default font: %s"
+msgstr "nie można załadować domyślnej czcionki: %s"
+
+#: src/font.c:355
+msgid "empty Font tag"
+msgstr "pusty znacznik czcionki"
+
+#: src/group.c:118
+msgid "invalid group class"
+msgstr "nieprawidłowa klasa grupy"
+
+#: src/group.c:129 src/group.c:140
+msgid "invalid group name"
+msgstr "nieprawidłowa nazwa grupy"
+
+#: src/group.c:151
+msgid "invalid group type"
+msgstr "nieprawidłowy typ grupy"
+
+#: src/group.c:162
+msgid "invalid group machine"
+msgstr "nieprawidłowa maszyna grupy"
+
+#: src/group.c:367
+#, c-format
+msgid "invalid group desktop: %d"
+msgstr "nieprawidłowy pulpit grupy: %d"
+
+#: src/image.c:147
+#, c-format
+msgid "unrecognized extension for \"%s\", expected \"%s\""
+msgstr "nierozpoznane rozszerzenie dla \"%s\", oczekiwane \"%s\""
+
+#: src/image.c:234
+#, c-format
+msgid "could not create read struct for PNG image: %s"
+msgstr "nie można utworzyć struktury read dla obrazu PNG: %s"
+
+#: src/image.c:247
+#, c-format
+msgid "error reading PNG image: %s"
+msgstr "błąd odczytu obrazu PNG: %s"
+
+#: src/image.c:255
+#, c-format
+msgid "could not create info struct for PNG image: %s"
+msgstr "nie można utworzyć struktur informacji dla obrazu PNG: %s"
+
+#: src/lex.c:208
+#, c-format
+msgid "%s[%u]: close tag \"%s\" does not match open tag \"%s\""
+msgstr ""
+"%s[%u]: znacznik zamknięcia \"%s\" nie pasuje do znacznika otwarcia \"%s\""
+
+#: src/lex.c:214
+#, c-format
+msgid "%s[%u]: unexpected and invalid close tag"
+msgstr "%s[%u]: nieoczekiwany i nieprawidłowo zamknięty znacznik"
+
+#: src/lex.c:220
+#, c-format
+msgid "%s[%u]: close tag \"%s\" without open tag"
+msgstr "%s[%u]: zamknij znacznik \"%s\" bez otwartego znacznika"
+
+#: src/lex.c:223
+#, c-format
+msgid "%s[%u]: invalid close tag"
+msgstr "%s[%u]: nieprawidłowo zamknięty znacznik"
+
+#: src/lex.c:271
+#, c-format
+msgid "%s[%u]: invalid open tag"
+msgstr "%s[%u]: nieprawidłowo otwarty znacznik"
+
+#: src/lex.c:287
+#, c-format
+msgid "%s[%u]: invalid tag"
+msgstr "%s[%u]: nieprawidłowy znacznik"
+
+#: src/lex.c:345
+#, c-format
+msgid "%s[%u]: unexpected text: \"%s\""
+msgstr "%s[%u]: nieoczekiwany tekst: \"%s\""
+
+#: src/lex.c:404
+#, c-format
+msgid "%s[%d]: invalid entity: \"%.8s\""
+msgstr "%s[%d]: nieprawidłowa wartość: \"%.8s\""
+
+#: src/lex.c:510
+msgid "out of memory"
+msgstr "brak pamięci"
+
+#: src/parse.c:285
+#, c-format
+msgid "could not open %s"
+msgstr "nie można otworzyć %s"
+
+#: src/parse.c:295
+#, c-format
+msgid "could not open %s or %s"
+msgstr "nie można otworzyć %s lub %s"
+
+#: src/parse.c:314
+#, c-format
+msgid "include depth (%d) exceeded"
+msgstr "przekroczono głębokość załączenia (%d)"
+
+#: src/parse.c:473
+#, c-format
+msgid "invalid start tag: %s"
+msgstr "nieprawidłowy znacznik startu: %s"
+
+#: src/parse.c:865
+#, c-format
+msgid "invalid include: %s"
+msgstr "nieprawidłowy załącznik: %s"
+
+#: src/parse.c:951
+msgid "no action specified for Key"
+msgstr "brak określonej akcji dla Key"
+
+#: src/parse.c:958
+#, c-format
+msgid "invalid Key action: \"%s\""
+msgstr "nieprawidłowa akcja dla Key: \"%s\""
+
+#: src/parse.c:984
+msgid "no action specified for Mouse"
+msgstr "brak określonej akcji dla Mouse"
+
+#: src/parse.c:989
+#, c-format
+msgid "invalid Mouse action: \"%s\""
+msgstr "nieprawidłowa akcja Mouse: \"%s\""
+
+#: src/parse.c:995
+#, c-format
+msgid "invalid Mouse context: \"%s\""
+msgstr "nieprawidłowy kontekst Mouse: \"%s\""
+
+#: src/parse.c:1016
+#, c-format
+msgid "invalid text alignment: \"%s\""
+msgstr "nieprawidłowe wypionowanie zasobnika: \"%s\""
+
+#: src/parse.c:1116
+msgid "no include file specified"
+msgstr "nie odkreślonu pliku do załączenia"
+
+#: src/parse.c:1127
+#, c-format
+msgid "could not process include: %s"
+msgstr "nie można przetworzyć załączonego: %s"
+
+#: src/parse.c:1131
+#, c-format
+msgid "could not open included file: %s"
+msgstr "nie można otworzyć załączonego pliku: %s"
+
+#: src/parse.c:1845
+#, c-format
+msgid "invalid value for 'enabled': \"%s\""
+msgstr "nieprawidłowa wartość dla 'enabled': \"%s\""
+
+#: src/parse.c:1995
+#, c-format
+msgid "invalid Group Option: %s"
+msgstr "nieprawidłowa opcja grupy: %s"
+
+#: src/parse.c:2010
+#, c-format
+msgid "invalid decorations: %s"
+msgstr "nieprawidłowe dekoracje: %s"
+
+#: src/parse.c:2078
+#, c-format
+msgid "%s is empty"
+msgstr "%s jest puste"
+
+#: src/parse.c:2085
+#, c-format
+msgid "invalid %s: \"%s\""
+msgstr "nieprawidłowa %s: \"%s\""
+
+#: src/parse.c:2103
+#, c-format
+msgid "invalid value for %s: \"%s\""
+msgstr "nieprawidłowa wartość dla %s: \"%s\""
+
+#: src/parse.c:2173 src/parse.c:2190 src/parse.c:2218
+msgid "no value specified"
+msgstr "nie określono wartości"
+
+#: src/parse.c:2178 src/parse.c:2195
+#, c-format
+msgid "invalid setting: %s"
+msgstr "nieprawidłowe ustawienie: %s"
+
+#: src/parse.c:2223
+#, c-format
+msgid "invalid opacity: %s"
+msgstr "nieprawidłowa nieprzezroczystość: %s"
+
+#: src/parse.c:2244
+#, c-format
+msgid "invalid layer: %s"
+msgstr "nieprawidłowa warstwa: %s"
+
+#: src/parse.c:2265
+#, c-format
+msgid "invalid tag in %s: %s"
+msgstr "nieprawidłowy znacznik w %s: %s"
+
+#: src/parse.c:2286
+msgid "configuration error"
+msgstr "błąd konfiguracji"
+
+#: src/root.c:129
+#, c-format
+msgid "invalid root menu specified: \"%c\""
+msgstr "nieprawidłowo określono menu główne: \"%c\""
+
+#: src/root.c:223
+msgid "Exit JWM"
+msgstr "Zakończ JWM"
+
+#: src/root.c:224
+msgid "Are you sure?"
+msgstr "Na pewno?"
+
+#: src/swallow.c:85
+msgid "cannot swallow a client with no name"
+msgstr "nie może połknąć klienta bez nazwy"
+
+#: src/taskbar.c:513 src/winmenu.c:48
+msgid "Close"
+msgstr "Zamknij"
+
+#: src/taskbar.c:520 src/winmenu.c:68
+msgid "Minimize"
+msgstr "Zminimalizuj"
+
+#: src/taskbar.c:527 src/winmenu.c:97 src/winmenu.c:99 src/winmenu.c:101
+#: src/winmenu.c:108
+msgid "Restore"
+msgstr "Przywróć"
+
+#: src/taskbar.c:534 src/winmenu.c:181
+msgid "Send To"
+msgstr "Wyślij do"
+
+#: src/taskbar.c:1053
+#, c-format
+msgid "invalid maxwidth for TaskList: %s"
+msgstr "nieprawidłowa maksymalna szerokość TaskList: %s"
+
+#: src/taskbar.c:1067
+#, c-format
+msgid "invalid height for TaskList: %s"
+msgstr "nieprawidłowa wysokość TaskList: %s"
+
+#: src/taskbar.c:1095
+#, fuzzy, c-format
+#| msgid "invalid height for TaskList: %s"
+msgid "invalid labelpos for TaskList: %s"
+msgstr "nieprawidłowa wysokość TaskList: %s"
+
+#: src/tray.c:1082
+#, c-format
+msgid "invalid tray layout: \"%s\""
+msgstr "nieprawidłowy układ zasobnika: \"%s\""
+
+#: src/tray.c:1109
+#, c-format
+msgid "invalid tray horizontal alignment: \"%s\""
+msgstr "nieprawidłowe wypoziomowanie zasobnika: \"%s\""
+
+#: src/tray.c:1132
+#, c-format
+msgid "invalid tray vertical alignment: \"%s\""
+msgstr "nieprawidłowe wypionowanie zasobnika: \"%s\""
+
+#: src/traybutton.c:91
+#, c-format
+msgid "could not load tray icon: \"%s\""
+msgstr "nie można załadować ikon w zasobniku: \"%s\""
+
+#: src/traybutton.c:132
+msgid "no icon or label for TrayButton"
+msgstr "brak ikony lub etykiety dla TrayButton"
+
+#: src/winmenu.c:50
+msgid "Kill"
+msgstr "Zabij"
+
+#: src/winmenu.c:59
+msgid "Resize"
+msgstr "Zmień rozmiar"
+
+#: src/winmenu.c:62
+msgid "Move"
+msgstr "Przenieś"
+
+#: src/winmenu.c:74
+msgid "Unshade"
+msgstr "Rozwiń"
+
+#: src/winmenu.c:76
+msgid "Shade"
+msgstr "Zwiń"
+
+#: src/winmenu.c:83
+msgid "Maximize-y"
+msgstr "Zmaksymalizuj pio."
+
+#: src/winmenu.c:88
+msgid "Maximize-x"
+msgstr "Zmaksymalizuj poz."
+
+#: src/winmenu.c:92
+msgid "Maximize"
+msgstr "Zmaksymalizuj"
+
+#: src/winmenu.c:114
+msgid "Unstick"
+msgstr "Odepnij"
+
+#: src/winmenu.c:116
+msgid "Stick"
+msgstr "Przypnij"
+
+#: src/winmenu.c:141
+msgid "Layer"
+msgstr "Warstwa"
+
+#: src/winmenu.c:150
+msgid "[Above]"
+msgstr "[Powyżej]"
+
+#: src/winmenu.c:152
+msgid "Above"
+msgstr "Powyżej"
+
+#: src/winmenu.c:155
+msgid "[Normal]"
+msgstr "[Normalny]"
+
+#: src/winmenu.c:157
+msgid "Normal"
+msgstr "Normalny"
+
+#: src/winmenu.c:160
+msgid "[Below]"
+msgstr "[Poniżej]"
+
+#: src/winmenu.c:162
+msgid "Below"
+msgstr "Poniżej"
+
+#~ msgid "invalid tray width: %d"
+#~ msgstr "nieprawidłowa szerokość zasobnika: %d"
+
+#~ msgid "invalid tray height: %d"
+#~ msgstr "nieprawidłowa wysokość zasobnika: %d"
+
+#~ msgid "invalid insert mode: \"%s\""
+#~ msgstr "nieprawidłowy tryb edycji: \"%s\""
+
+#~ msgid "invalid status window type: %s"
+#~ msgstr "nieprawidłowy typ tła: %s"
+
+#~ msgid "cannot swallow the same client multiple times"
+#~ msgstr "nie można połknąć tego samego klienta wiele razy"
+
+#~ msgid "Fullscreen state will be shaped!"
+#~ msgstr "Pełnoekranowy stan będzie kształtowany!"

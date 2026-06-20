@@ -1,0 +1,63 @@
+
+This file describes configuration changes required for upgrading to newer
+versions of JWM.  In general, JWM revisions (changes to the third number)
+will not contain changes that break a configuration, though minor
+modifications may be included if using an old configuration with the new 
+version will not cause problems.  New configuration options are not
+described.  See the release notes at http://joewing.net/projects/jwm/ for
+more information.
+
+Changes from 2.3.7 to 2.4.0
+==============================================================================
+ * Mouse bindings must now be specified explicitly.
+ * The group and list attributes on TrayStyle have been moved to
+   TaskListStyle.
+
+Changes from 2.3.6 to 2.3.7
+==============================================================================
+ * No breaking changes.
+
+Changes from 2.3.5 to 2.3.6
+==============================================================================
+ * No breaking changes.
+ * TaskListStyle and TrayButtonStyle are back (removed in v2.3.2).
+
+
+Changes from 2.3.4 to 2.3.5
+==============================================================================
+ * No breaking changes.
+ * ClockStyle is back (removed in v2.3.2).
+
+
+Changes from 2.3.3 to 2.3.4
+==============================================================================
+ * No breaking changes.
+
+
+Changes from 2.3.2 to 2.3.3
+==============================================================================
+ * No breaking changes.
+
+
+Changes from 2.3.1 to 2.3.2
+==============================================================================
+ * The TaskListStyle, TrayButtonStyle, and ClockStyle tags have been removed.
+   These options are now set from TrayStyle.
+
+
+Changes from 2.3.0 to 2.3.1
+==============================================================================
+ * No breaking changes.
+
+
+Changes from 2.2.x to 2.3.0
+==============================================================================
+ * The ActiveBackground and ActiveForeground tags have been replaced by
+   Background and Foreground nested under the Active tag.  This applies
+   to TrayStyle, TaskListStyle, TrayButtonStyle, PagerStyle, and MenuStyle.
+ * The Inactive tag under WindowStyle has been removed.  The tags that
+   used to go within this tag now go directly under the WindowStyle tag.
+ * The autohide attribute in Tray now selects where the tray should be
+   hidden (left, right, top, bottom, or off) instead of true or false.
+ * Now actions in the Clock tag must be prefixed with "exec:" to run
+   an external program.

@@ -27,3 +27,8 @@ base64 = "0.22"
 
 winit = { version = "0.30", optional = true }
 softbuffer = { version = "0.4", optional = true }
+
+# Host-side X11 + XTEST client: the host connects DIRECTLY to the wasm X server's host-backed AF_UNIX
+# socket (<vm-shadow>/tmp/.X11-unix/X0) and injects real input via the XTEST extension. This bypasses
+# the (broken) host->guest stdin/file delivery path. Pure-Rust, builds on macOS and Linux.
+x11rb = { version = "0.13", features = ["xtest"] }

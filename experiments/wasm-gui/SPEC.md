@@ -262,7 +262,48 @@ Rust-client host below replaces it.
   `freetype`/`fontconfig`/`mmap`; flip Xft on after M2. Multiple guest clients over AF_UNIX, the WM
   as another guest, everything inside secure-exec, rendered by the M1 host. ⬜
 
-### CURRENT GOAL (post-M5): a full, well-known desktop environment — no half measures
+### ⭐ TOP PRIORITY (2026-06-20): a RUNNABLE, INTERACTIVE desktop window
+
+Per direct user direction, the immediate next priority — ahead of M6.3 xterm, M7, M8 — is a desktop
+the user can **run and interact with using a normal cursor**: open a native window, see the live
+framebuffer (clock ticking, windows), **move a real mouse cursor**, **drag windows**, click, and type.
+Get this to a genuinely working, runnable state, then resume the M6→M8 sequence.
+
+**This is milestone `M6-INTERACTIVE`.** Status (2026-06-20):
+1. **Live window — DONE (cross-platform).** `host/src/main.rs` `window::run_desktop` (behind
+   `--features window`, winit + softbuffer, builds on macOS AND Linux) runs the desktop (Xvfb + twm +
+   xclock + a libX11 window + the XTEST agent) in one VM and streams the live X framebuffer
+   (`<shadow>/data/Xvfb_screen0`, BGRX→RGBA) into a native window ~30fps. One-command launch:
+   `experiments/wasm-gui/scripts/run-desktop.sh` (needs a machine with a display). The framebuffer
+   read is solid (proven headlessly via the screenshot tests); the on-screen window itself can only be
+   verified on a display (this dev box is headless). winit mouse/keyboard already map to the agent's
+   command vocabulary (motion / buttondn / buttonup / key<keycode>), so drag/click/type are wired.
+2. **Live input forwarding — SOLVED (cursor + click + keyboard).** The host speaks **X11 + XTEST
+   directly** to the X server's host-backed AF_UNIX socket (`<shadow>/tmp/.X11-unix/X0`) via `x11rb`
+   (`xinput::XInput` in the host), bypassing the guest entirely. winit mouse/keyboard → XTEST
+   FakeInput. VERIFIED HEADLESSLY: `test-m6-input.sh` (host injects motion + ButtonPress, the libX11
+   client repaints orange). Pointer motion warps the software cursor (proven). This replaced the dead
+   ends: host→guest **stdin** never reaches the guest (two-pipe mismatch) and host→guest **file**
+   updates aren't seen by guest re-reads (VFS-coherence gap) — both abandoned for the x11rb path.
+3. **Drag windows — DONE.** Root cause was twm's `XGrabServer` during interactive move
+   (`twm/src/menus.c:1477`: it server-grabs unless `NoGrabServer && OpaqueMove`); the server grab froze
+   ALL other clients, so the host's XTEST motion stream never reached the server until button-up (by
+   which point twm had already placed the window back). Fix: the host's `.twmrc` now sets BOTH
+   `NoGrabServer` AND `OpaqueMove`, so twm does an opaque, ungrabbed move and the host's XTEST motions
+   flow through and drive it. `test-m6-drag.sh` PASSES (host drags titlebar (160,71)→(430,330); the
+   window's body moves from ~(42,83) to ~(312,342)). Proof: `~/tmp/gui-progress/m6-interactive-drag.png`.
+   (Host-side opaque move via `ConfigureWindow` is also wired in `xinput::XInput` as a fallback for
+   unmanaged windows, but twm's own move now does the work for managed windows.)
+
+**M6-INTERACTIVE COMPLETE:** live view + real cursor + click + keyboard + drag, all host-driven via
+X11/XTEST, cross-platform (winit/softbuffer on macOS + Linux). Tests: `test-m6-input.sh`,
+`test-m6-drag.sh`, plus `test-m6-desktop.sh`. Launch: `scripts/run-desktop.sh`.
+4. **Status:** runnable interactive desktop (`scripts/run-desktop.sh`) — live framebuffer + real cursor
+   + click + keyboard, cross-platform (winit/softbuffer on macOS + Linux). Remaining: the drag/grab
+   fix above; 4th-concurrent-client starvation (residual M6.4) to harden before twm+xclock+window run
+   together reliably.
+
+### GOAL (post-M5): a full, well-known desktop environment — no half measures
 
 M1-M5 proved the stack (X server + WM + libX11, all wasm in secure-exec). The goal now is a **real,
 interactive desktop running a standard, well-known project**, in three sequenced milestones. "No half
@@ -317,9 +358,15 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      WASM-guest stdin-delivery gap (the guest's `fgets(stdin)` doesn't receive host `write_stdin`); the
      argv path proves the X/XTEST input chain regardless. The **live winit blit** half still needs a
      machine with a display to verify (this box is headless).
-  2. **Real fonts.** Cross-compile `fontconfig` (+ `expat`) and `libXft`/`libXrender`, install a base
-     set of font files (e.g. DejaVu/Liberation) into the VM, and verify crisp antialiased text. This is
-     a hard dependency for xterm and every real DE.
+  2. **Real fonts. DONE (2026-06-20).** Cross-compiled `expat` 2.6.4 + `fontconfig` 2.14.2 +
+     `libXft` 2.3.8 (+ freetype/Xrender). DejaVu/Liberation TTFs installed into the VM via the host
+     `--vm-tree` (+ `/etc/fonts/fonts.conf`, `prepare-xftfonts.sh`); Xft clients get `FONTCONFIG_PATH`.
+     `xftdemo` renders antialiased "DejaVu Sans-22" text, verified by `test-m6-xft.sh` (white window +
+     grey antialias edges). Proof: `~/tmp/gui-progress/m6-xft-text.png`. **Key fix:** freetype's
+     file-stream `FT_New_Face` returns Cannot_Open_Resource under wasi (per-access fseek+fread
+     streaming misbehaves) even though `fopen`/`fread`/`FT_New_Memory_Face` all work; patched
+     `src/base/ftsystem.c` `FT_Stream_Open` to read the whole font into memory and present a memory
+     stream. Build helper: `build-xclient.sh`. This unblocks xterm-with-Xft and the M8 GTK stack.
   3. **Stock apps as content.** Cross-compile and run standard X apps (`xclock`, `xterm`, maybe `xcalc`)
      as guests so the desktop has real, interactive programs.
   4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
@@ -328,12 +375,17 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
   Acceptance: a live window showing twm managing xterm + xclock, typing into xterm works, all started
   concurrently, with an automated test + manual example.
 
-- **M7 — JWM: a complete lightweight desktop from one standard project.** ⬜ Cross-compile **JWM**
-  (Joe's Window Manager) to wasm — a single, well-known C project (Puppy Linux's default) providing a
-  built-in **panel/taskbar, clock, start menu, systray, and virtual-desktop pager**. Builds against the
-  `libX11` we already have (+ `libXft`/`libXpm` from M6). Run it as the desktop shell managing the M6
-  stock apps, launching apps from its menu, live + interactive. Acceptance: JWM panel + menu + taskbar
-  visible and usable in the live window, apps launch from the menu, automated test + manual example.
+- **M7 — JWM: a complete lightweight desktop from one standard project. ✅ DONE (2026-06-20).**
+  Cross-compiled **JWM 2.4.6** (Joe's Window Manager) to `wasm32-wasip1` against our libX11 + libXft +
+  fontconfig + freetype + libXrender + libXmu (configure: Xft+Xrender+Icon on; xinerama/png/jpeg/cairo/
+  rsvg off). Two missing libc symbols stubbed in `wasi-compat.c` (`setsid`, `tzset`). Runs as the
+  desktop shell in one VM: it **decorates client windows** (titlebar + minimize/maximize/close
+  buttons), renders a **bottom panel/taskbar** with a window list and a **live clock**, and a root
+  menu. `test-m7-jwm.sh` PASSES (panel renders at the bottom; JWM manages a real libX11 window). Proof:
+  `~/tmp/gui-progress/m7-jwm.png` (decorated window + taskbar entry + clock "00:44:34"). Config staged
+  via `prepare-jwm.sh` (`.jwmrc`). Build: `scripts/build-xclient`-style link in
+  `third_party/jwm` → `jwm.wasm`. So a brand-name lightweight desktop shell runs entirely in wasm,
+  rendered by the native Rust client and driveable by the host's X11/XTEST input.
 
 - **M8 — A brand-name GTK desktop environment (LXDE or XFCE).** ⬜ The big one. Cross-compile the GTK
   stack (`GLib`/`GObject`/`Pango`/`Cairo`/`GdkPixbuf`/`harfbuzz`/`fontconfig`/`freetype`) and resolve

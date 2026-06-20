@@ -1,0 +1,99 @@
+			Xft
+		X FreeType library
+		  Version 2.3.6
+		    2022-09-10
+
+Xft version 2.1 was the first stand alone release of Xft, a library that
+connects X applications with the FreeType font rasterization library. Xft
+uses fontconfig to locate fonts so it has no configuration files.
+
+Version 2.3.6
+
+Fixes a regression in 2.3.5 for XftTextExtents* length-checks.
+
+Version 2.3.5
+
+Add support for BGRA glyphs display and scaling
+Add "trackmemusage" property to use in improved _XftFontUncacheGlyph
+Revised/completed manual page; all functions are documented.
+
+Version 2.3.4
+
+Handle deprecation of FcNameRegisterObjectTypes API by fontconfig.
+Minor cleanups for compiler warnings and man pages.
+
+Version 2.3.3
+
+Use XRenderCreateSolidFill when available (Render version 0.10 or later)
+in XftDrawSrcPicture.
+
+Version 2.3.2
+
+Build fix for freetype 2.5.1, man page fix for XftDrawString8 & XftDrawRect.
+
+Version 2.3.1
+
+Fix regression that broke bold fonts in 2.3.0, remove dead code.
+
+Version 2.3.0
+
+Subpixel LCD text rendering improvements
+
+Dropped support for versions of freetype2, fontconfig & libXrender that
+pre-dated pkgconfig support.
+
+Raised minimum required versions to freetype2 2.1.6 & fontconfig 2.5.92.
+
+
+Version 2.2.0
+
+Dropped xft-config, now that pkg-config is well established.
+
+Version 2.1.14
+
+Added fake bold support (#1579, Novell #38202/223682).
+
+Version 2.1.13
+
+Fix hashing in 64-bit versions.  Register objects with freetype.
+Fix XftDrawRect when Render not supported.
+
+Version 2.1.12
+
+Fix exporting of XftNameUnparse function.
+
+Version 2.1.9
+
+Stop exporting unnecessary symbols.
+
+Version 2.1.7
+
+Change FC_CHARCELL and FC_MONO interpretation.  FC_MONO no longer clips
+glyphs to charcell, you must specify FC_CHARCELL for that.
+
+Add support for FT_GlyphSlot_Embolden where it exists (which it usually
+doesn't).
+
+Avoid crashing when using FT_Face objects.
+
+Version 2.1.6
+
+Deal with broken FreeType 2.1.7 BDF/PCF loaders by trying both y_ppem/x_ppem
+and width/height values.
+
+Version 2.1.5
+
+Left some #warnings from testing in the 2.1.4 release.  Spin again.
+
+Version 2.1.4
+
+Work with older versions of Fontconfig by using various pattern elements
+only when defined.
+
+Version 2.1.3
+
+Change Freetype includes to new syntax.
+
+Search for nearest bitmap for bitmap-only fonts.
+
+Support fontconfig 2.2 release which doesn't include FC_HINT_STYLE.

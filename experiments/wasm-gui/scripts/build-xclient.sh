@@ -19,7 +19,7 @@ LIBC="$SYSROOT/lib/wasm32-wasip1/libc.a"
 COMPAT="$EXP/toolchain/wasi-compat.o"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
-"$CC" $CFLAGS -I"$EXP/third_party/wasm-prefix/include" $LDFLAGS -Wl,--allow-undefined \
+"$CC" $CFLAGS -I"$EXP/third_party/wasm-prefix/include" -I"$EXP/third_party/wasm-prefix/include/freetype2" $LDFLAGS -Wl,--allow-undefined \
   -o "$OUT" "$SRC" "$COMPAT" \
   -L"$P" $EXTRA -lXmu -lXt -lXext -lXrender -lX11 -lSM -lICE -lxcb -lXau -lXdmcp \
   "$SETJMP" "$LIBC" 2>&1 | grep -iE "error|undefined" | head -20
