@@ -1940,18 +1940,20 @@ fn javascript_heap_limit_mb(request: &StartJavascriptExecutionRequest) -> u32 {
         .unwrap_or(0)
 }
 
-/// Resolve the opt-in TRUE CPU-time budget (ms) for a JavaScript execution.
+/// Resolve the TRUE CPU-time budget (ms) for a JavaScript execution.
 ///
-/// Opt-in with NO default: read from `AGENT_OS_V8_CPU_TIME_LIMIT_MS`, falling
-/// back to `0` (no limit) when unset/unparsable. `0` is normalized to `None` by
-/// the V8 session, so the CPU-budget watchdog is NOT armed and the guest runs
-/// CPU-uncapped. The platform/operator must set this to cap a guest.
+/// Read from `AGENT_OS_V8_CPU_TIME_LIMIT_MS`, falling back to a bounded default
+/// when unset/unparsable. `0` remains an explicit trusted opt-out and is
+/// normalized to `None` by the V8 session.
 fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
     request
         .env
         .get(V8_CPU_TIME_LIMIT_MS_ENV)
         .and_then(|value| value.parse::<u32>().ok())
-        .unwrap_or(0)
+        // Generous active-CPU budget: long-lived adapters are still not capped
+        // on wall-clock, but CPU-bound runaways no longer pin a core forever by
+        // default.
+        .unwrap_or(30_000)
 }
 
 /// Resolve the opt-in WALL-CLOCK backstop (ms) for a JavaScript execution.
@@ -6777,6 +6779,26 @@ mod tests {
             .expect("failed registration should not leak the session output receiver");
         drop(receiver);
         host.unregister_session(&session_id);
+    }
+
+    #[test]
+    fn javascript_cpu_time_limit_defaults_to_bounded_value() {
+        let request = StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js-default-cpu"),
+            context_id: String::from("ctx-js-default-cpu"),
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: std::path::PathBuf::from("/tmp"),
+            inline_code: None,
+        };
+
+        assert_eq!(
+            javascript_cpu_time_limit_ms(&request),
+            30_000,
+            "unset JavaScript CPU budget must be bounded by default"
+        );
     }
 
     #[test]

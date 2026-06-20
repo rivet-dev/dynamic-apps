@@ -239,13 +239,19 @@ pub struct PythonExecutionResult {
 #[derive(Debug)]
 pub enum PythonExecutionError {
     MissingContext(String),
-    VmMismatch { expected: String, found: String },
+    VmMismatch {
+        expected: String,
+        found: String,
+    },
     /// Guest Python is unavailable because this build was compiled without the
     /// bundled Pyodide runtime assets (the published crate excludes them).
     RuntimeUnavailable,
     PrepareRuntime(std::io::Error),
     PrepareWarmPath(std::io::Error),
-    WarmupFailed { exit_code: i32, stderr: String },
+    WarmupFailed {
+        exit_code: i32,
+        stderr: String,
+    },
     Spawn(std::io::Error),
     StdinClosed,
     Stdin(std::io::Error),
@@ -253,7 +259,10 @@ pub enum PythonExecutionError {
     TimedOut(Duration),
     PendingVfsRpcRequest(u64),
     RpcResponse(String),
-    OutputBufferExceeded { stream: &'static str, limit: usize },
+    OutputBufferExceeded {
+        stream: &'static str,
+        limit: usize,
+    },
     EventChannelClosed,
 }
 
@@ -938,7 +947,7 @@ fn start_python_javascript_execution(
     // limits, not env — the JS engine reads them from `limits`, not `AGENT_OS_*`.
     let max_old_space_mb = python_max_old_space_mb(request);
     let runner_limits = JavascriptExecutionLimits {
-        v8_heap_limit_mb: (max_old_space_mb > 0).then(|| max_old_space_mb as u32),
+        v8_heap_limit_mb: (max_old_space_mb > 0).then_some(max_old_space_mb as u32),
         sync_rpc_wait_timeout_ms: Some(PYTHON_SYNC_RPC_WAIT_TIMEOUT_MS),
     };
 

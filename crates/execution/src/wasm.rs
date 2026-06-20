@@ -339,6 +339,8 @@ pub struct WasmExecution {
     child_pid: u32,
     inner: JavascriptExecution,
     execution_timeout: Option<Duration>,
+    execution_started_at: Instant,
+    timeout_reported: bool,
     internal_sync_rpc: WasmInternalSyncRpc,
     pending_events: VecDeque<WasmExecutionEvent>,
     stdout_stream_buffer: Vec<u8>,
@@ -437,9 +439,13 @@ impl WasmExecution {
                 self.enqueue_wasm_event(event)?;
                 continue;
             }
+            if let Some(event) = self.timeout_event_if_expired()? {
+                return Ok(Some(event));
+            }
+            let poll_timeout = self.deadline_capped_timeout(timeout);
             match self
                 .inner
-                .poll_event(timeout)
+                .poll_event(poll_timeout)
                 .await
                 .map_err(map_javascript_error)?
             {
@@ -454,6 +460,7 @@ impl WasmExecution {
                     }
                     self.enqueue_javascript_event(event)?;
                 }
+                None if poll_timeout < timeout => continue,
                 None => return Ok(None),
             }
         }
@@ -471,9 +478,13 @@ impl WasmExecution {
                 self.enqueue_wasm_event(event)?;
                 continue;
             }
+            if let Some(event) = self.timeout_event_if_expired()? {
+                return Ok(Some(event));
+            }
+            let poll_timeout = self.deadline_capped_timeout(timeout);
             match self
                 .inner
-                .poll_event_blocking(timeout)
+                .poll_event_blocking(poll_timeout)
                 .map_err(map_javascript_error)?
             {
                 Some(event) => {
@@ -487,6 +498,7 @@ impl WasmExecution {
                     }
                     self.enqueue_javascript_event(event)?;
                 }
+                None if poll_timeout < timeout => continue,
                 None => return Ok(None),
             }
         }
@@ -496,22 +508,9 @@ impl WasmExecution {
         self.close_stdin()?;
         let mut stdout = Vec::new();
         let mut stderr = Vec::new();
-        let started = Instant::now();
 
         loop {
-            let poll_timeout = self
-                .execution_timeout
-                .map(|limit| {
-                    let elapsed = started.elapsed();
-                    if elapsed >= limit {
-                        Duration::ZERO
-                    } else {
-                        limit.saturating_sub(elapsed).min(Duration::from_millis(50))
-                    }
-                })
-                .unwrap_or_else(|| Duration::from_millis(50));
-
-            match self.poll_event_blocking(poll_timeout)? {
+            match self.poll_event_blocking(Duration::from_millis(50))? {
                 Some(WasmExecutionEvent::Stdout(chunk)) => {
                     append_wasm_captured_output(&mut stdout, &chunk, "stdout")?;
                 }
@@ -538,24 +537,42 @@ impl WasmExecution {
                 }
                 None => {}
             }
-
-            if let Some(limit) = self.execution_timeout {
-                if started.elapsed() >= limit {
-                    let _ = self.inner.terminate();
-                    append_wasm_captured_output(
-                        &mut stderr,
-                        b"WebAssembly fuel budget exhausted\n",
-                        "stderr",
-                    )?;
-                    return Ok(WasmExecutionResult {
-                        execution_id: self.execution_id,
-                        exit_code: WASM_TIMEOUT_EXIT_CODE,
-                        stdout,
-                        stderr,
-                    });
-                }
-            }
         }
+    }
+
+    fn deadline_capped_timeout(&self, timeout: Duration) -> Duration {
+        self.execution_timeout
+            .map(|limit| {
+                let elapsed = self.execution_started_at.elapsed();
+                if elapsed >= limit {
+                    Duration::ZERO
+                } else {
+                    timeout.min(limit.saturating_sub(elapsed))
+                }
+            })
+            .unwrap_or(timeout)
+    }
+
+    fn timeout_event_if_expired(
+        &mut self,
+    ) -> Result<Option<WasmExecutionEvent>, WasmExecutionError> {
+        if self.timeout_reported {
+            return Ok(None);
+        }
+        let Some(limit) = self.execution_timeout else {
+            return Ok(None);
+        };
+        if self.execution_started_at.elapsed() < limit {
+            return Ok(None);
+        }
+
+        let _ = self.inner.terminate();
+        self.timeout_reported = true;
+        self.enqueue_wasm_event(WasmExecutionEvent::Stderr(
+            b"WebAssembly fuel budget exhausted\n".to_vec(),
+        ))?;
+        self.enqueue_wasm_event(WasmExecutionEvent::Exited(WASM_TIMEOUT_EXIT_CODE))?;
+        Ok(self.pending_events.pop_front())
     }
 
     fn handle_internal_sync_rpc(
@@ -847,6 +864,8 @@ impl WasmExecutionEngine {
             child_pid,
             inner: javascript_execution,
             execution_timeout,
+            execution_started_at: Instant::now(),
+            timeout_reported: false,
             pending_events: VecDeque::new(),
             stdout_stream_buffer: Vec::new(),
             stderr_stream_buffer: Vec::new(),
@@ -5428,12 +5447,14 @@ mod tests {
 
     #[test]
     fn wasm_limits_default_to_none_when_unset_even_with_env_present() {
-        // Same misleading env, but no typed limits: every limit must be absent.
+        // Same misleading env, but no typed limits: memory and stack remain absent.
+        // Execution time still gets the runtime default timeout so fuel-less
+        // infinite loops are bounded on the poll path.
         let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits::default());
 
         assert_eq!(
             resolve_wasm_execution_timeout(&request).expect("fuel"),
-            None
+            Some(Duration::from_millis(DEFAULT_WASM_EXECUTION_TIMEOUT_MS))
         );
         assert_eq!(wasm_memory_limit_bytes(&request).expect("memory"), None);
         assert_eq!(

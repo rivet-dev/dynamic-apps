@@ -1038,6 +1038,8 @@ fn javascript_execution_to_locale_date_string_does_not_crash_embedded_v8() {
 
     let execution = engine
         .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
@@ -4717,13 +4719,12 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
     }
 }
 
-// SE-EXEC-04 (F-001) OPT-IN: with NO `AGENT_OS_V8_CPU_TIME_LIMIT_MS` set, the
-// CPU-budget watchdog must NOT be armed (no default), so a short CPU-bound guest
-// runs to completion uninterrupted. This confirms the knob is strictly opt-in and
-// that there is no implicit (e.g. former 30s) limit. We deliberately use a SHORT,
-// self-terminating busy loop (not an infinite one) so the test cannot hang even
-// when there is no limit.
-fn javascript_no_cpu_budget_when_env_unset() {
+// SE-EXEC-04 (F-001): with NO `AGENT_OS_V8_CPU_TIME_LIMIT_MS` set, the
+// CPU-budget watchdog uses the bounded default. A short CPU-bound guest still
+// runs to completion because it stays below that generous active-CPU budget. We
+// deliberately use a SHORT, self-terminating busy loop (not an infinite one) so
+// the test cannot hang if the guard regresses.
+fn javascript_default_cpu_budget_allows_short_cpu_work() {
     let (tx, rx) = mpsc::channel::<(i32, String, String)>();
     thread::spawn(move || {
         let temp = match tempdir() {
@@ -4744,7 +4745,7 @@ fn javascript_no_cpu_budget_when_env_unset() {
             vm_id: String::from("vm-js-nolimit"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
-            // No CPU-limit env: watchdog must NOT arm (opt-in, no default).
+            // No CPU-limit env: the watchdog uses the bounded default.
             env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             // ~600ms busy loop: long enough to have tripped the old 30s default's
@@ -4782,17 +4783,17 @@ fn javascript_no_cpu_budget_when_env_unset() {
             assert!(
                 !stderr.contains("ERR_SCRIPT_CPU_BUDGET_EXCEEDED")
                     && !stderr.contains("CPU-time budget"),
-                "guest was CPU-limited despite no AGENT_OS_V8_CPU_TIME_LIMIT_MS set \
-                 (watchdog must be opt-in): exit_code={exit_code} stdout={stdout} stderr={stderr}"
+                "guest was CPU-limited despite staying below the default CPU budget: \
+                 exit_code={exit_code} stdout={stdout} stderr={stderr}"
             );
             assert_eq!(
                 exit_code, 0,
-                "unbounded short busy loop should exit cleanly when no CPU limit is set: \
+                "short busy loop should exit cleanly under the default CPU budget: \
                  stdout={stdout} stderr={stderr}"
             );
             assert!(
                 stdout.contains("busy-done true"),
-                "busy loop did not run to completion with no CPU limit set: \
+                "busy loop did not run to completion under the default CPU budget: \
                  stdout={stdout} stderr={stderr}"
             );
         }
@@ -4995,11 +4996,12 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
     }
 }
 
-// WALL-CLOCK OPT-IN: with NEITHER `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` nor
-// `AGENT_OS_V8_CPU_TIME_LIMIT_MS` set, there is NO time limit of any kind. A guest
-// that awaits well past any default a former wall-clock timer might have imposed
-// must run to completion. This guards the requirement that long-lived ACP adapters
-// (which run indefinitely on wall-clock) are never killed by a default.
+// WALL-CLOCK OPT-IN: with no `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` set, there is no
+// wall-clock limit. A guest that awaits well past any default a former
+// wall-clock timer might have imposed must run to completion. This guards the
+// requirement that long-lived ACP adapters (which run indefinitely on
+// wall-clock) are never killed by a wall-clock default. The default CPU budget
+// remains armed but excludes idle/await time.
 fn javascript_no_time_limit_when_neither_env_set() {
     let (tx, rx) = mpsc::channel::<(i32, String, String)>();
     thread::spawn(move || {
@@ -5021,7 +5023,8 @@ fn javascript_no_time_limit_when_neither_env_set() {
             vm_id: String::from("vm-js-notimelimit"),
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
-            // No time-limit env of any kind: no wall-clock and no CPU guard armed.
+            // No wall-clock env: no wall-clock guard is armed. The default CPU
+            // budget excludes this idle await.
             env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             // Awaits ~1.2s, then exits cleanly. Self-terminating so the test cannot
@@ -5058,17 +5061,17 @@ fn javascript_no_time_limit_when_neither_env_set() {
                     && !stderr.contains("wall-clock limit")
                     && !stderr.contains("ERR_SCRIPT_CPU_BUDGET_EXCEEDED")
                     && !stderr.contains("CPU-time budget"),
-                "a time limit fired despite no limit env being set (must be strictly opt-in): \
+                "a wall-clock or CPU limit fired despite this idle await staying below the default CPU budget: \
                  exit_code={exit_code} stdout={stdout} stderr={stderr}"
             );
             assert_eq!(
                 exit_code, 0,
-                "awaiting guest should complete cleanly when no time limit is set: \
+                "awaiting guest should complete cleanly when no wall-clock limit is set: \
                  stdout={stdout} stderr={stderr}"
             );
             assert!(
                 stdout.contains("no-limit-ok"),
-                "guest did not run to completion with no time limit set: \
+                "guest did not run to completion with no wall-clock limit set: \
                  stdout={stdout} stderr={stderr}"
             );
         }
@@ -5312,19 +5315,19 @@ fn javascript_v8_suite() {
     // behind worker-thread wall-clock watchdogs.
     javascript_heap_allocation_bomb_is_capped_by_oom_guard();
 
-    // SE-EXEC-04 (F-001): opt-in TRUE CPU-time budget. These run LAST because a
+    // SE-EXEC-04 (F-001): TRUE CPU-time budget. These run LAST because a
     // regression in the tight-loop case could leak a CPU-bound worker thread.
     //   1. budget SET  => tight busy loop terminated (cpu-budget reason)
     //   2. budget SET  => awaiting/idle guest NOT killed (idle excluded)  [critical negative]
-    //   3. budget UNSET => watchdog not armed; short busy loop runs free  [opt-in, no default]
+    //   3. budget UNSET => default watchdog allows short CPU work
     javascript_infinite_loop_is_terminated_by_cpu_watchdog();
     javascript_awaiting_guest_is_not_killed_by_cpu_budget();
-    javascript_no_cpu_budget_when_env_unset();
+    javascript_default_cpu_budget_allows_short_cpu_work();
 
     // WALL-CLOCK BACKSTOP (opt-in, complements the CPU-time budget):
     //   1. wall-clock SET  => awaiting guest terminated (wall-clock reason; idle counted)
     //   2. CPU budget only => no wall-clock limit imposed (knobs independent)
-    //   3. neither SET     => no time limit at all (strictly opt-in)
+    //   3. wall-clock unset => idle await completes; default CPU budget excludes idle
     javascript_awaiting_guest_is_terminated_by_wall_clock_backstop();
     javascript_cpu_budget_only_does_not_impose_wall_clock_limit();
     javascript_no_time_limit_when_neither_env_set();

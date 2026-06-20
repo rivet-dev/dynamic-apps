@@ -14,6 +14,16 @@ fn defaults_match_struct_default() {
     let parsed =
         vm_limits_from_config(None, SIDECAR_FRAME_CAP).expect("empty config parses to defaults");
     assert_eq!(parsed, VmLimits::default());
+    assert_eq!(
+        parsed.js_runtime.v8_heap_limit_mb,
+        Some(128),
+        "JavaScript heap must be bounded by default"
+    );
+    assert_eq!(
+        parsed.resources.max_wasm_memory_bytes,
+        Some(128 * 1024 * 1024),
+        "WASM memory must be bounded by default"
+    );
 }
 
 #[test]

@@ -279,8 +279,7 @@ impl GoogleDriveObjectStore {
         token_url: String,
         api_base_url: String,
     ) -> Result<Self, PluginError> {
-        let api_base_url =
-            validate_google_drive_url(&api_base_url, "apiBaseUrl", false)?;
+        let api_base_url = validate_google_drive_url(&api_base_url, "apiBaseUrl", false)?;
 
         Ok(Self {
             auth: GoogleServiceAccountAuth::new(credentials, token_url)?,
@@ -542,8 +541,7 @@ impl GoogleServiceAccountAuth {
                     "google_drive mount credentials.privateKey is not valid PEM: {error}"
                 ))
             })?;
-        let token_url =
-            validate_google_drive_url(&token_url, "tokenUrl", true)?;
+        let token_url = validate_google_drive_url(&token_url, "tokenUrl", true)?;
 
         Ok(Self {
             client_email: credentials.client_email,

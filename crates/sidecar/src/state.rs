@@ -913,7 +913,7 @@ pub(crate) struct ActiveUdpSocket {
 pub(crate) enum ActiveExecution {
     Javascript(JavascriptExecution),
     Python(PythonExecution),
-    Wasm(WasmExecution),
+    Wasm(Box<WasmExecution>),
     Tool(ToolExecution),
 }
 

@@ -25,6 +25,7 @@ pub const DEFAULT_MAX_PROCESS_ARGV_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_MAX_PROCESS_ENV_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_MAX_READDIR_ENTRIES: usize = 4_096;
 pub const DEFAULT_VIRTUAL_CPU_COUNT: usize = 1;
+pub const DEFAULT_MAX_WASM_MEMORY_BYTES: u64 = 128 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ResourceSnapshot {
@@ -89,7 +90,9 @@ impl Default for ResourceLimits {
             max_process_env_bytes: Some(DEFAULT_MAX_PROCESS_ENV_BYTES),
             max_readdir_entries: Some(DEFAULT_MAX_READDIR_ENTRIES),
             max_wasm_fuel: None,
-            max_wasm_memory_bytes: None,
+            // Match the Workers-style default memory envelope where sensible:
+            // guests are bounded unless the trusted VM config raises the cap.
+            max_wasm_memory_bytes: Some(DEFAULT_MAX_WASM_MEMORY_BYTES),
             max_wasm_stack_bytes: None,
         }
     }

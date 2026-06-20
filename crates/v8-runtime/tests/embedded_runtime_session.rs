@@ -491,12 +491,63 @@ fn assert_terminate_interrupts_sync_bridge_wait() -> io::Result<()> {
         "terminate() should interrupt a blocked sync bridge call instead of waiting for a host response"
     );
 
+    dispatch_execute(
+        runtime.as_ref(),
+        &session_id,
+        0,
+        "",
+        "globalThis.__afterExplicitTerminate = 'ok';",
+    )?;
+    assert_execution_ok(&receiver, &session_id);
+
     runtime.dispatch(RuntimeCommand::DestroySession {
         session_id: session_id.clone(),
     })?;
     runtime.unregister_session(&session_id);
     wait_until(
         "expected the terminated sync-bridge session to drain cleanly",
+        || runtime.session_count() == 0 && runtime.active_slot_count() == 0,
+    );
+    Ok(())
+}
+
+fn assert_cpu_terminated_session_can_execute_again() -> io::Result<()> {
+    let runtime = Arc::new(EmbeddedV8Runtime::new(Some(1))?);
+    let session_id = next_session_id();
+    let receiver =
+        register_and_create_session_with_cpu_time_limit(&runtime, &session_id, Some(25))?;
+
+    dispatch_execute(runtime.as_ref(), &session_id, 0, "", "while (true) {}")?;
+    let terminated = wait_for_execution_result(&receiver, &session_id);
+    assert!(
+        matches!(
+            terminated,
+            RuntimeEvent::ExecutionResult {
+                exit_code: 1,
+                ref error,
+                ..
+            } if error
+                .as_ref()
+                .is_some_and(|error| error.code == "ERR_SCRIPT_CPU_BUDGET_EXCEEDED")
+        ),
+        "CPU-budget termination should be attributed before reuse"
+    );
+
+    dispatch_execute(
+        runtime.as_ref(),
+        &session_id,
+        0,
+        "",
+        "globalThis.__afterCpuTerminate = 'ok';",
+    )?;
+    assert_execution_ok(&receiver, &session_id);
+
+    runtime.dispatch(RuntimeCommand::DestroySession {
+        session_id: session_id.clone(),
+    })?;
+    runtime.unregister_session(&session_id);
+    wait_until(
+        "expected CPU-terminated session to drain cleanly after reuse",
         || runtime.session_count() == 0 && runtime.active_slot_count() == 0,
     );
     Ok(())
@@ -514,5 +565,6 @@ fn embedded_runtime_session_consolidated_behaviors() -> io::Result<()> {
     assert_queued_work_waits_for_slot_release()?;
     assert_shared_runtime_handles_share_concurrency_quota()?;
     assert_terminate_interrupts_sync_bridge_wait()?;
+    assert_cpu_terminated_session_can_execute_again()?;
     Ok(())
 }

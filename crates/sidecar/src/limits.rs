@@ -34,6 +34,7 @@ pub const DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 pub const DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 pub const DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_V8_IPC_MAX_FRAME_BYTES: u32 = 64 * 1024 * 1024;
+pub const DEFAULT_V8_HEAP_LIMIT_MB: u32 = 128;
 
 pub const DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS: u64 = 5 * 60 * 1000;
@@ -170,7 +171,9 @@ impl Default for AcpLimits {
 impl Default for JsRuntimeLimits {
     fn default() -> Self {
         Self {
-            v8_heap_limit_mb: None,
+            // Workers-style 128 MiB heap cap by default. Operators can raise or
+            // clear this through trusted VM config when a VM needs more room.
+            v8_heap_limit_mb: Some(DEFAULT_V8_HEAP_LIMIT_MB),
             sync_rpc_wait_timeout_ms: None,
             captured_output_limit_bytes: DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES,
             stdin_buffer_limit_bytes: DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES,

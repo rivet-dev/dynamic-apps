@@ -1868,8 +1868,7 @@ mod tests {
             .write_file("/data/secret.txt", b"secret".to_vec())
             .expect("seed lower file");
 
-        let mut overlay =
-            OverlayFileSystem::with_upper(vec![lower], MemoryFileSystem::new());
+        let mut overlay = OverlayFileSystem::with_upper(vec![lower], MemoryFileSystem::new());
 
         // Delete a lower-layer file: a whiteout marker is written under the
         // reserved metadata root and the file disappears from the merged view.
@@ -1893,9 +1892,7 @@ mod tests {
         // Removing the whiteout marker through the symlink must be denied, so the
         // deleted lower-layer file cannot be resurrected.
         assert!(
-            overlay
-                .remove_file("/escape/anything")
-                .is_err(),
+            overlay.remove_file("/escape/anything").is_err(),
             "tampering with metadata via a symlink must be denied"
         );
         assert!(

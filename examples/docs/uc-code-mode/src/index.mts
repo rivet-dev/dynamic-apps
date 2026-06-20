@@ -23,12 +23,13 @@ const rt = await NodeRuntime.create({
         properties: { city: { type: "string" } },
         required: ["city"],
       },
-      handler: ({ city }: { city: string }) => {
-        const table: Record<string, { temp_f: number }> = {
-          "San Francisco": { temp_f: 61 },
-          Tokyo: { temp_f: 75 },
-        };
-        return table[city] ?? { temp_f: null };
+			handler: (input: unknown) => {
+				const { city } = input as { city: string };
+				const table: Record<string, { temp_f: number }> = {
+					"San Francisco": { temp_f: 61 },
+					Tokyo: { temp_f: 75 },
+				};
+				return table[city] ?? { temp_f: null };
       },
     },
     calculate: {
@@ -38,9 +39,10 @@ const rt = await NodeRuntime.create({
         properties: { expression: { type: "string" } },
         required: ["expression"],
       },
-      handler: ({ expression }: { expression: string }) => {
-        return { result: Number(eval(expression)) };
-      },
+			handler: (input: unknown) => {
+				const { expression } = input as { expression: string };
+				return { result: Number(eval(expression)) };
+			},
     },
   },
 });

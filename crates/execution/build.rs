@@ -96,5 +96,7 @@ fn stage_pyodide_assets(manifest_dir: &Path, out_dir: &Path) {
 /// build; treat it as missing so a later workspace build can replace it with the
 /// real in-tree asset.
 fn is_placeholder(path: &Path) -> bool {
-    fs::metadata(path).map(|meta| meta.len() == 0).unwrap_or(false)
+    fs::metadata(path)
+        .map(|meta| meta.len() == 0)
+        .unwrap_or(false)
 }

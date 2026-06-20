@@ -1845,6 +1845,68 @@ fn wasm_execution_times_out_when_fuel_budget_is_exhausted() {
     );
 }
 
+fn wasm_execution_poll_path_times_out_when_fuel_budget_is_exhausted() {
+    assert_node_available();
+
+    let temp = tempdir().expect("create temp dir");
+    write_fixture(
+        &temp.path().join("guest.wasm"),
+        &wasm_infinite_loop_module(),
+    );
+
+    let mut engine = WasmExecutionEngine::default();
+    let context = engine.create_context(CreateWasmContextRequest {
+        vm_id: String::from("vm-wasm"),
+        module_path: Some(String::from("./guest.wasm")),
+    });
+
+    let mut execution = engine
+        .start_execution(StartWasmExecutionRequest {
+            guest_runtime: Default::default(),
+            limits: WasmExecutionLimits {
+                max_fuel: Some(25),
+                ..Default::default()
+            },
+            vm_id: String::from("vm-wasm"),
+            context_id: context.context_id,
+            argv: Vec::new(),
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            permission_tier: WasmPermissionTier::Full,
+        })
+        .expect("start wasm execution");
+
+    let mut stderr = String::new();
+    let mut exit_code = None;
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while exit_code.is_none() {
+        let remaining = deadline
+            .checked_duration_since(std::time::Instant::now())
+            .expect("poll path did not time out within the bounded test window");
+        match execution
+            .poll_event_blocking(remaining.min(Duration::from_millis(250)))
+            .expect("poll wasm event")
+        {
+            Some(WasmExecutionEvent::Stderr(chunk)) => {
+                stderr.push_str(&String::from_utf8_lossy(&chunk));
+            }
+            Some(WasmExecutionEvent::Exited(code)) => {
+                exit_code = Some(code);
+            }
+            Some(WasmExecutionEvent::Stdout(_))
+            | Some(WasmExecutionEvent::SyncRpcRequest(_))
+            | Some(WasmExecutionEvent::SignalState { .. })
+            | None => {}
+        }
+    }
+
+    assert_eq!(exit_code, Some(124), "stderr={stderr}");
+    assert!(
+        stderr.contains("fuel budget exhausted"),
+        "stderr should mention the exhausted fuel budget: {stderr}"
+    );
+}
+
 fn wasm_execution_allows_prewarm_timeout_to_differ_from_execution_timeout() {
     assert_node_available();
 
@@ -2459,6 +2521,7 @@ fn wasm_suite() {
     wasm_execution_rewarms_when_symlink_target_changes_with_same_size_module();
     wasm_warmup_metrics_encode_emoji_module_paths_as_json();
     wasm_execution_times_out_when_fuel_budget_is_exhausted();
+    wasm_execution_poll_path_times_out_when_fuel_budget_is_exhausted();
     wasm_execution_allows_prewarm_timeout_to_differ_from_execution_timeout();
     wasm_execution_rejects_modules_whose_memory_cap_exceeds_limit();
     wasm_execution_enforces_runtime_memory_growth_limit_for_modules_without_declared_maximum();

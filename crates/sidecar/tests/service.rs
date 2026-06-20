@@ -1912,7 +1912,7 @@ ykAheWCsAteSEWVc0w==\n\
                     kernel_pid,
                     kernel_handle,
                     GuestRuntimeKind::WebAssembly,
-                    ActiveExecution::Wasm(execution),
+                    ActiveExecution::Wasm(Box::new(execution)),
                 )
                 .with_guest_cwd(String::from("/"))
                 .with_env(env)
@@ -3367,11 +3367,17 @@ ykAheWCsAteSEWVc0w==\n\
 
             // Two distinct guest exec processes in one VM.
             let server_cwd = temp_dir("secure-exec-sidecar-js-cross-exec-server-cwd");
-            write_fixture(&server_cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
+            write_fixture(
+                &server_cwd.join("entry.mjs"),
+                "setInterval(() => {}, 1000);",
+            );
             start_fake_javascript_process(&mut sidecar, &vm_id, &server_cwd, "proc-server");
 
             let client_cwd = temp_dir("secure-exec-sidecar-js-cross-exec-client-cwd");
-            write_fixture(&client_cwd.join("entry.mjs"), "setInterval(() => {}, 1000);");
+            write_fixture(
+                &client_cwd.join("entry.mjs"),
+                "setInterval(() => {}, 1000);",
+            );
             start_fake_javascript_process(&mut sidecar, &vm_id, &client_cwd, "proc-client");
 
             // Process A (server) listens on loopback.
@@ -7908,6 +7914,100 @@ ykAheWCsAteSEWVc0w==\n\
             assert_eq!(exit_code, Some(0), "stderr: {stderr}");
             assert!(stdout.contains("wasm:ready"), "stdout: {stdout}");
         }
+
+        fn wasm_command_timeout_is_enforced_by_sidecar_poll_path() {
+            let command_root = temp_dir("secure-exec-sidecar-command-resolution-wasm-timeout");
+            write_fixture(
+                &command_root.join("spin"),
+                wat::parse_str(
+                    r#"
+(module
+  (memory (export "memory") 1)
+  (func $_start (export "_start")
+    (loop $spin
+      br $spin
+    )
+  )
+)
+"#,
+                )
+                .expect("compile infinite-loop wasm fixture"),
+            );
+
+            let mut sidecar = create_test_sidecar();
+            let (connection_id, session_id) =
+                authenticate_and_open_session(&mut sidecar).expect("authenticate and open session");
+            let vm_id = create_vm_with_metadata(
+                &mut sidecar,
+                &connection_id,
+                &session_id,
+                PermissionsPolicy::allow_all(),
+                BTreeMap::from([(String::from("resource.max_wasm_fuel"), String::from("25"))]),
+            )
+            .expect("create vm");
+
+            sidecar
+                .dispatch_blocking(request(
+                    4,
+                    OwnershipScope::vm(&connection_id, &session_id, &vm_id),
+                    RequestPayload::ConfigureVm(ConfigureVmRequest {
+                        mounts: vec![MountDescriptor {
+                            guest_path: String::from("/__secure_exec/commands/0"),
+                            read_only: true,
+                            plugin: MountPluginDescriptor {
+                                id: String::from("host_dir"),
+                                config: json!({
+                                    "hostPath": command_root,
+                                    "readOnly": true,
+                                })
+                                .to_string(),
+                            },
+                        }],
+                        software: Vec::new(),
+                        permissions: None,
+                        module_access_cwd: None,
+                        instructions: Vec::new(),
+                        projected_modules: Vec::new(),
+                        command_permissions: std::collections::HashMap::new(),
+                        loopback_exempt_ports: Vec::new(),
+                    }),
+                ))
+                .expect("configure command mount");
+
+            let response = sidecar
+                .dispatch_blocking(request(
+                    5,
+                    OwnershipScope::vm(&connection_id, &session_id, &vm_id),
+                    RequestPayload::Execute(crate::protocol::ExecuteRequest {
+                        process_id: String::from("proc-command-wasm-timeout"),
+                        command: Some(String::from("spin")),
+                        runtime: None,
+                        entrypoint: None,
+                        args: Vec::new(),
+                        env: std::collections::HashMap::new(),
+                        cwd: None,
+                        wasm_permission_tier: None,
+                    }),
+                ))
+                .expect("dispatch wasm command execute");
+
+            match response.response.payload {
+                ResponsePayload::ProcessStarted(response) => {
+                    assert_eq!(response.process_id, "proc-command-wasm-timeout");
+                }
+                other => panic!("unexpected execute response: {other:?}"),
+            }
+
+            let (stdout, stderr, exit_code) =
+                drain_process_output(&mut sidecar, &vm_id, "proc-command-wasm-timeout");
+
+            assert_eq!(exit_code, Some(124), "stdout: {stdout} stderr: {stderr}");
+            assert!(
+                stderr.contains("fuel budget exhausted"),
+                "stderr should mention timeout: {stderr}"
+            );
+        }
+
         fn wasm_fd_write_sync_rpc_keeps_stdout_isolated_per_vm() {
             let cwd_a = temp_dir("secure-exec-sidecar-wasm-stdio-vm-a");
             let cwd_b = temp_dir("secure-exec-sidecar-wasm-stdio-vm-b");
@@ -15861,6 +15961,7 @@ console.log(JSON.stringify({
             configure_vm_host_dir_plugin_fails_closed_for_escape_symlinks();
             execute_starts_python_runtime_instead_of_rejecting_it();
             command_resolution_executes_wasm_command_from_sidecar_path();
+            wasm_command_timeout_is_enforced_by_sidecar_poll_path();
             wasm_fd_write_sync_rpc_keeps_stdout_isolated_per_vm();
             wasm_fd_write_sync_rpc_routes_stdout_into_kernel_pty();
             javascript_child_process_searches_path_for_mounted_wasm_commands();
@@ -15981,6 +16082,11 @@ console.log(JSON.stringify({
         }
 
         #[test]
+        fn aab_wasm_command_timeout_is_enforced_by_sidecar_poll_path() {
+            run_isolated_service_test("wasm-command-timeout");
+        }
+
+        #[test]
         fn __service_isolated_runner() {
             let Ok(test_name) = std::env::var(ISOLATED_SERVICE_TEST_ENV) else {
                 return;
@@ -15992,6 +16098,9 @@ console.log(JSON.stringify({
                 }
                 "http2-file-response" => {
                     javascript_http2_settings_pause_push_and_file_response_surfaces_work();
+                }
+                "wasm-command-timeout" => {
+                    wasm_command_timeout_is_enforced_by_sidecar_poll_path();
                 }
                 other => panic!("unknown isolated service test {other}"),
             }

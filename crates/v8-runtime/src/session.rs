@@ -907,6 +907,7 @@ fn session_thread(
                         }
 
                         let iso = v8_isolate.as_mut().unwrap();
+                        iso.cancel_terminate_execution();
 
                         // Create execution context: Context::new on a snapshot-restored
                         // isolate gives a fresh clone of the snapshot's default context
@@ -1357,6 +1358,9 @@ fn session_thread(
                             code = 1;
                             exports = None;
                             error = None;
+                        }
+                        if terminated || cpu_budget_exceeded || wall_clock_timed_out {
+                            iso.cancel_terminate_execution();
                         }
 
                         // Send ExecutionResult

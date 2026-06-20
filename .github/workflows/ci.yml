@@ -15,8 +15,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -30,6 +28,7 @@ jobs:
           key: ${{ runner.os }}-rusty-v8-${{ hashFiles('Cargo.lock', 'crates/v8-runtime/Cargo.toml', 'crates/v8-runtime/build.rs', 'crates/build-support/v8_bridge_build.rs', 'packages/build-tools/scripts/build-v8-bridge.mjs') }}
           restore-keys: |
             ${{ runner.os }}-rusty-v8-
+      - run: find . -name node_modules -prune -exec rm -rf {} +
       - run: bash scripts/ci.sh
         env:
           CI_FORK_PULL_REQUEST: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && '1' || '0' }}
