@@ -33,7 +33,11 @@ const LIBX11_COMPILED_LOCALE_DIRS: &[&str] = &[
 /// Trusted VM config: default bundled-base filesystem + allow-all permission policy (fs reads are
 /// denied by default, which would block loading the wasm from /tmp). `"allow"` maps to the untagged
 /// `FsPermissionScope::Mode(Allow)` etc.
-const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","tool":"allow"}}"#;
+// Trusted VM config. `maxWasmFuel` raises the per-WASM-execution budget (enforced as a wall-clock
+// timeout in ms) far above the 30s default: the X server and a desktop's clients are LONG-RUNNING
+// guests, so the default would kill the server ~30s in ("WebAssembly fuel budget exhausted") and the
+// desktop would collapse. 1 hour is generous for a session while still bounding a runaway guest.
+const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","tool":"allow"},"limits":{"resources":{"maxWasmFuel":3600000}}}"#;
 
 type Result<T> = std::result::Result<T, String>;
 
