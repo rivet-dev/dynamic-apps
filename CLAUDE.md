@@ -2,6 +2,25 @@
 
 secure-exec is the fully virtualized runtime extracted from Agent OS. The kernel provides a POSIX-like VM with a virtual filesystem, process table, socket table, pipes, PTYs, permission policy, and managed language runtimes.
 
+## Trust Model
+
+secure-exec is a sandbox: it runs untrusted code safely for a trusted caller. Decide which side of this boundary something is on before judging whether it is a security bug. Three components:
+
+- **Client** (trusted, *except for anything it submits for execution*). The party that speaks the sidecar wire protocol. The client process and every value it sends are trusted: `CreateVmConfig`, mount descriptors and their plugin configs (host_dir paths, S3 endpoints/credentials, Google Drive, sandbox-agent), the permission policy, network allowlist, resource limits, env, and DNS overrides. Configuration is **not** an attack surface. The one thing from the client that is *not* trusted is the code/payload it asks to run, because that runs in the executor.
+- **Sidecar** (trusted; the TCB and the enforcement point). Brokers client requests and owns the kernel, VFS, mount/plugin registry, socket table, and permission policy. It is responsible for enforcing the boundary against the executor.
+- **Executor** — V8 isolates or WASM (untrusted; the adversary). Runs guest JS/Python/WASM plus any third-party/npm/agent-generated code. Assume everything here is actively hostile. How code reached the executor never makes it trusted.
+
+**The security boundary is sidecar ↔ executor.** The runtime must stop guest code in the executor from: escaping the kernel boundary (real host fs/network/process/memory), bypassing the *applied* permission policy/allowlist/limits, exhausting host resources beyond configured bounds, or reading another VM's state.
+
+**A defect that requires the client to supply a malicious config/endpoint/credential/policy is NOT a sandbox vulnerability** — the client is configuring its own VM and already controls the host. Treat such hardening as defense-in-depth, not as an escape, and do not add validation that only guards trusted client-provided configuration.
+
+Two corollaries that are easy to get wrong:
+
+- *Trusted policy, untrusted subject.* The permission policy and limits are trusted input, but the guest executor is the subject they bind. "Guest bypasses an applied permission / egress rule / resource cap" is in-scope and serious. Trusted = who sets the rule; untrusted = who is bound by it.
+- *Trusted mount, untrusted traffic.* A host-backed mount (host_dir, s3, …) comes from trusted config, so its existence/target/credentials are not attack surface, but the guest drives I/O through it, so confining those guest operations to the mount root (symlink / `..` / TOCTOU / path-aliasing escapes) is in-scope.
+
+**Transport scope.** The wire protocol is same-version lockstep and single-client over stdio (one trusted client per sidecar process). There is no second, mutually-distrusting client, so wire-level authn/authz-between-clients and VM-to-VM access via forged connection ids are out of scope until a multi-client transport exists.
+
 ## Runtime Invariants
 
 - All guest code must execute inside the kernel isolation boundary with zero host escapes.
