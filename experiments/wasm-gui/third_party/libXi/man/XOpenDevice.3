@@ -1,0 +1,254 @@
+'\" t
+.\"     Title: xopendevice
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XOPENDEVICE" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XOpenDevice, XCloseDevice \- open or close an extension input device
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XDevice *XOpenDevice( Display *display,
+                      XID device_id);
+.fi
+.sp
+.nf
+XCloseDevice( Display *display,
+              XDevice *device);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device_id
+       Specifies the id of the device to be opened
+.fi
+.sp
+.nf
+device
+       Specifies the device to be closed
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XOpenDevice request makes an input device accessible to a
+client through input extension protocol requests\&. If
+successful, it returns a pointer to an XDevice structure\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XCloseDevice request makes an input device inaccessible to
+a client through input extension protocol requests\&. Before
+terminating, and client that has opened input devices through
+the input extension should close them via CloseDevice\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+When a client makes an XCloseDevice request, any active grabs
+that the client has on the device are released\&. Any event
+selections that the client has are deleted, as well as any
+passive grabs\&. If the requesting client is the last client
+accessing the device, the server may disable all access by X to
+the device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XOpenDevice and XCloseDevice can generate a BadDevice error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Structures
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XDevice structure returned by XOpenDevice contains:
+             typedef struct {
+             XID device_id;
+             int num_classes;
+             XInputClassInfo *classes;
+             } XDevice;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The classes field is a pointer to an array of XInputClassInfo
+structures\&. Each element of this array contains an event type
+base for a class of input supported by the specified device\&.
+The num_classes field indicates the number of elements in the
+classes array\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XInputClassInfo structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    unsigned char input_class;
+    unsigned char event_type_base;
+} XInputClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The input_class field identifies one class of input supported
+by the device\&. Defined types include KeyClass, ButtonClass,
+ValuatorClass, ProximityClass, FeedbackClass, FocusClass, and
+OtherClass\&. The event_type_base identifies the event type of
+the first event in that class\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The information contained in the XInputClassInfo structure is
+used by macros to obtain the event classes that clients use in
+making XSelectExtensionEvent requests\&. Currently defined macros
+include DeviceKeyPress, DeviceKeyRelease, DeviceButtonPress,
+DeviceButtonRelease, DeviceMotionNotify, DeviceFocusIn,
+DeviceFocusOut, ProximityIn, ProximityOut, DeviceStateNotify,
+DeviceMappingNotify, ChangeDeviceNotify,
+DevicePointerMotionHint, DeviceButton1Motion,
+DeviceButton2Motion, DeviceButton3Motion, DeviceButton4Motion,
+DeviceButton5Motion, DeviceButtonMotion, DeviceOwnerGrabButton,
+DeviceButtonPressGrab, and NoExtensionEvent\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+To obtain the proper event class for a particular device, one
+of the above macros is invoked using the XDevice structure for
+that device\&. For example,
+             DeviceKeyPress (*device, type, eventclass);
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+returns the DeviceKeyPress event type and the eventclass for
+DeviceKeyPress events from the specified device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This eventclass can then be used in an XSelectExtensionEvent
+request to ask the server to send DeviceKeyPress events from
+this device\&. When a selected event is received via XNextEvent,
+the type can be used for comparison with the type in the event\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist, or is the X keyboard or X pointer\&. This
+       error may also occur if some other client has caused the
+       specified device to become the X keyboard or X pointer
+       device via the XChangeKeyboardDevice or
+       XChangePointerDevice requests\&.
+.fi
+.if n \{\
+.RE
+.\}

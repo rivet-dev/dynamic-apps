@@ -1,0 +1,168 @@
+.\" Copyright (c) 1997  Silicon Graphics, Inc.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" SILICON GRAPHICS, INC. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from
+.\" Silicon Graphics, Inc.
+.\"
+.TH XEVI __libmansuffix__ 1997-12-24 __xorgversion__
+.SH NAME
+XeviQueryExtension, XeviQueryVersion, XeviGetVisualInfo \- X Extended
+Visual Information functions
+.SH SYNOPSIS
+.nf
+\&#include <X11/extensions/XEVI.h>
+.sp
+\fBBool\fP
+\fBXeviQueryExtension\fP (\fBDisplay *\fP\fIdpy\fP);
+.sp
+\fBBool\fP
+\fBXeviQueryVersion\fP (\fBDisplay *\fP\fIdpy\fP,
+    \fBint *\fP\fImajor_version_return\fP,
+    \fBint *\fP\fIminor_version_return\fP);
+.sp
+\fBint
+\fBXeviGetVisualInfo\fP (\fBDisplay *\fP\fIdpy\fP, \fBVisualID *\fP\fIvisual\fP,
+    \fBint\fP \fIn_visual\fP, \fBExtendedVisualInfo **\fP\fIevi_return\fP,
+    \fBint *\fP\fIn_info_return\fP);
+.fi
+.SH DESCRIPTION
+The
+X11 Extended Visual Information extension (EVI) allows a client to determine
+information about core X visuals beyond what the core protocol provides.
+.PP
+The EVI application programming library contains the interfaces described below.
+With the exception of
+.BR XeviQueryExtension ,
+if any of these routines are
+called with a display that does not support the extension,
+the ExtensionErrorHandler (which can be set with
+.B XSetExtensionErrorHandler
+and functions the same way as
+.BR XSetErrorHandler )
+will be called and the function will then return.
+.PP
+.B XeviQueryExtension
+returns
+.B True
+if the Extended Visual Information extension is available on the given display.
+A client must call
+.B XeviQueryExtension
+before calling any other EVI
+function in order to negotiate a compatible protocol version;
+otherwise the client will get undefined behavior
+(EVI may or may not work).
+.PP
+.B XeviQueryVersion
+returns
+.B True
+if the request succeeded; the values of the major and minor protocol
+version supported by the server are returned in
+.I major_version_return
+and
+.IR minor_version_return .
+.PP
+.B XeviGetVisualInfo
+returns a list of ExtendedVisualInfo structures that describe
+visual information beyond that supported by the core protocol.
+This includes layer information relevant for systems
+supporting overlays and/or underlay planes,
+and information that allows applications better to determine the level
+of hardware support for multiple colormaps.
+XeviGetVisualInfo returns
+.B Success
+if successful, or an X error otherwise.
+If the argument
+.I visual
+is NULL, then information for all visuals of all
+screens is returned.
+Otherwise, it's a pointer to a list of visuals for which
+extended visual information is desired.
+.I n_visual
+is the number of elements in the array visual.
+.I evi_return
+returns a pointer to a list of ExtendedVisualInfo.
+When done, the client
+should free the list using XFree.
+.I n_info_return
+returns the number of elements in the array evi_return.
+.LP
+The
+.B ExtendedVisualInfo
+structure has the following fields:
+.in +0.5i
+.nf
+.ta 1.6i
+VisualID	\fIcore_visual_id\fR
+int 	\fIscreen\fR
+int 	\fIlevel\fR
+unsigned int	\fItransparency_type\fR
+unsigned int	\fItransparency_value\fR
+unsigned int	\fImin_hw_colormaps\fR
+unsigned int	\fImax_hw_colormaps\fR
+unsigned int	\fInum_colormap_conflicts\fR
+VisualID *  	\fIcolormap_conflicts\fR
+.fi
+.LP
+The combination of
+.I core_visual_id
+and
+.I screen
+number uniquely specify the visual being described.
+.LP
+.I level
+returns the level number for the visual, 0 for normal planes,
+> 0 for overlays, < 0 for underlays.
+.LP
+.I
+transparency_type
+returns the type of transparency supported by the visual.
+XEVI_TRANSPARENCY_NONE if there are no transparent pixels,
+XEVI_TRANSPARENCY_PIXEL if the visual supports a transparent pixel,
+XEVI_TRANSPARENCY_MASK if the visual supports transparent plane(s).
+.LP
+.I transparency_value
+returns the pixel/plane value to set for transparency if transparency_type isn't
+XEVI_TRANSPARENCY_NONE.
+.LP
+.I min_hw_colormaps
+and
+.I max_hw_colormaps
+return the minimum and maximum number of hardware colormaps backing up the
+visual.
+.LP
+.I num_colormap_conflicts
+returns the number of elements in
+.IR colormap_conflicts .
+This array returns a list of visuals that may cause conflicts in the use of the
+hardware colormap.
+For example, if a 12-bit hardware colormap is overloaded to
+support 8-bit colormaps,
+the corresponding 8-bit visuals would conflict with the 12-bit visuals.
+.SH ERRORS
+.B XeviGetVisualInfo
+will return
+.I BadValue
+if passed an invalid visual ID,
+.I BadAccess
+if the X server does not respond,
+.I BadAlloc
+if there is a memory allocation failure.

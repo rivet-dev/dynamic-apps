@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="shapelib">
+
+<bookinfo>
+   <title>X Nonrectangular Window Shape Extension Library</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 1.0</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Keith</firstname><surname>Packard</surname>
+         <affiliation><orgname>MIT X Consortium</orgname></affiliation>
+      </author>
+   </authorgroup>
+   <copyright><year>1989</year><holder>X Consortium</holder></copyright>
+
+<legalnotice>
+
+<para>
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files
+(the &ldquo;Software&rdquo;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and
+to permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+</para>
+
+<para>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+</para>
+
+<para>
+THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+</para>
+
+<para>
+Except as contained in this notice, the name of the X Consortium shall not be
+used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization from the X Consortium.
+</para>
+<para>X Window System is a trademark of The OpenGroup.</para>
+</legalnotice>
+</bookinfo>
+
+<chapter id='overview'>
+<title>Overview</title>
+
+<para>This extension provides arbitrary window and border shapes within
+the X11 protocol.
+</para>
+
+<para>
+The restriction of rectangular windows within the X protocol is a significant
+limitation in the implementation of many styles of user interface.  For
+example, many transient windows would like to display a
+&ldquo;drop shadow&rdquo; to give the illusion of 3 dimensions.  As
+another example, some user interface style guides call for buttons with
+rounded corners; the full simulation of a nonrectangular shape,
+particularly with respect to event distribution and cursor shape, is not
+possible within the core X protocol.  As a final example, round clocks
+and nonrectangular icons are desirable visual addition to the desktop.
+</para>
+
+<para>
+This extension provides mechanisms for changing the visible shape of a
+window to an arbitrary, possibly disjoint, nonrectangular form.  The intent
+of the extension is to supplement the existing semantics, not replace them.
+In particular, it is desirable for clients that are unaware of the
+extension to still be able to cope reasonably with shaped windows.  For
+example, window managers should still be able to negotiate screen
+real estate in rectangular pieces.  Toward this end, any shape specified for
+a window is clipped by the bounding rectangle for the window as specified by
+the window's geometry in the core protocol.  An expected convention would be
+that client programs expand their shape to fill the area offered by the
+window manager.
+</para>
+</chapter>
+
+<chapter id='description'>
+<title>Description</title>
+
+<para>
+Each window (even with no shapes specified) is defined by two regions:  the
+<olink targetdoc='shapelib' targetptr='bounding_region'>bounding region</olink>
+and the
+<olink targetdoc='shapelib' targetptr='clip_region'>clip region</olink>.
+The bounding region is the
+area of the parent window that the window will occupy (including border).
+The clip region is the subset of the bounding region that is available for
+subwindows and graphics.  The area between the bounding region and the
+clip region is defined to be the border of the window.
+</para>
+
+<para>
+A nonshaped window will have a bounding region that is a rectangle spanning
+the window, including its border; the clip region will be a rectangle
+filling the inside dimensions (not including the border).  In this document,
+these areas are referred to as the
+<olink targetdoc='shapelib' targetptr='default_bounding_region'>
+default bounding region</olink> and the
+<olink targetdoc='shapelib' targetptr='default_clip_region'>
+default clip region</olink>.  For a window with
+inside size of <emphasis remap='I'>width</emphasis> by
+<emphasis remap='I'>height</emphasis> and border width
+<emphasis remap='I'>bwidth</emphasis>, the default bounding and clip
+regions are the rectangles (relative to the window origin):
+</para>
+
+<literallayout remap='Ds'>
+bounding.x = -<emphasis remap='I'>bwidth</emphasis>
+bounding.y = -<emphasis remap='I'>bwidth</emphasis>
+bounding.width = <emphasis remap='I'>width</emphasis> + 2 * <emphasis remap='I'>bwidth</emphasis>
+bounding.height = <emphasis remap='I'>height</emphasis> + 2 * <emphasis remap='I'>bwidth</emphasis>
+
+clip.x = 0
+clip.y = 0
+clip.width = <emphasis remap='I'>width</emphasis>
+clip.height = <emphasis remap='I'>height</emphasis>
+</literallayout>
+
+<para>
+This extension allows a client to modify either or both of the bounding or
+clip regions by specifying new regions that combine with the default
+regions.  These new regions are called the
+<olink targetdoc='shapelib' targetptr='client_bounding_region'>
+client bounding region</olink> and the
+<olink targetdoc='shapelib' targetptr='client_clip_region'>
+client clip region</olink>.  They are specified
+relative to the origin of the window and are always defined by offsets
+relative to the window origin (that is, region adjustments are not
+required when the window is moved).  Three mechanisms for specifying
+regions are provided:  a list of rectangles, a bitmap, and an existing
+bounding or clip region from a window.  This is modeled on the specification
+of regions in graphics contexts in the core protocol and allows a variety
+of different uses of the extension.
+</para>
+
+<para>
+When using an existing window shape as an operand in specifying a new shape,
+the client region is used, unless none has been set, in which case the
+default region is used instead.
+</para>
+
+<para>
+The <olink targetdoc='shapelib' targetptr='effective_bounding_region'>
+effective bounding region</olink> of a window is
+defined to be the intersection of the client bounding region with the default
+bounding region.  Any portion of the client bounding region that is not
+included in the default bounding region will not be included in the
+effective bounding region on the screen.  This means that window managers
+(or other geometry managers) used to dealing with rectangular client windows
+will be able to constrain the client to a rectangular area of the screen.
+</para>
+
+<para>
+Construction of the effective bounding region is dynamic; the client bounding
+region is not mutated to obtain the effective bounding region.  If a client
+bounding region is specified that extends beyond the current default bounding
+region, and the window is later enlarged, the effective bounding region will
+be enlarged to include more of the client bounding region.
+</para>
+
+<para>
+The <olink targetdoc='shapelib' targetptr='effective_clip_region'>
+effective clip region</olink> of a window is
+defined to be the intersection of the client clip region with both the
+default clip region and the client bounding region.  Any portion of the
+client clip region that is not included in both the default clip region
+and the client bounding region will not be included in the effective clip
+region on the screen.
+</para>
+
+<para>
+Construction of the effective clip region is dynamic; the client clip region is
+not mutated to obtain the effective clip region.  If a client clip region is
+specified that extends beyond the current default clip region and the
+window or its bounding region is later enlarged, the effective clip region will
+be enlarged to include more of the client clip region if it is included in
+the effective bounding region.
+</para>
+
+<para>
+The border of a window is defined to be the difference between the effective
+bounding region and the effective clip region.  If this region is empty, no
+border is displayed.  If this region is nonempty, the border is filled
+using the border-tile or border-pixel of the window as specified in the core
+protocol.  Note that a window with a nonzero border width will never be able
+to draw beyond the default clip region of the window.  Also note that a zero
+border width does not prevent a window from having a border, since the clip
+shape can still be made smaller than the bounding shape.
+</para>
+
+<para>
+All output to the window and visible regions of any subwindows will be
+clipped to the effective clip region.  The server must not retain window
+contents beyond the effective bounding region with backing store.  The window's
+origin (for graphics operations, background tiling, and subwindow placement)
+is not affected by the existence of a bounding region or clip region.
+</para>
+
+<para>
+Areas that are inside the default bounding region but outside the effective
+bounding region are not part of the window; these areas of the screen will
+be occupied by other windows.  Input events that occur within the default
+bounding region but outside the effective bounding region will be delivered as
+if the window was not occluding the event position.  Events that occur in
+a nonrectangular border of a window will be delivered to that window, just
+as for events that occur in a normal rectangular border.
+</para>
+
+<para>An
+<olink targetdoc='libX11' targetptr='glossary:InputOnly_window'>
+InputOnly</olink>
+window can have its bounding region set, but it is a
+<olink targetdoc='libX11' targetptr='BadMatch'>Match</olink>
+error to attempt to set a clip region on an
+<olink targetdoc='libX11' targetptr='glossary:InputOnly_window'>InputOnly</olink>
+window or to specify its clip region as a source to a request
+in this extension.
+</para>
+
+<para>
+The server must accept changes to the clip region of a root window, but
+the server is permitted to ignore requested changes to the bounding region
+of a root window.  If the server accepts bounding region changes, the contents
+of the screen outside the bounding region are implementation dependent.
+</para>
+</chapter>
+
+<chapter id='c_language_binding'>
+<title>C Language Binding</title>
+
+<para>
+The C functions provide direct access to the protocol and add no additional
+semantics.
+</para>
+
+<para>The include file for this extension is
+&lt;<symbol role='Pn'>X11/extensions/shape.h</symbol>&gt;.
+The defined shape kinds are
+<function>ShapeBounding</function>
+and
+<function>ShapeClip</function>
+The defined region operations are
+<function>ShapeSet</function>
+<function>ShapeUnion</function>
+<function>ShapeIntersect</function>
+<function>ShapeSubtract</function>
+and
+<function>ShapeInvert</function>.</para>
+
+<funcsynopsis id='xshapequeryextension'>
+<funcprototype>
+<funcdef>Bool<function> XShapeQueryExtension</function></funcdef>
+<paramdef>Display <parameter>*display</parameter></paramdef>
+<paramdef>int <parameter>*event_base</parameter></paramdef>
+<paramdef>int <parameter>*error_base</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XShapeQueryExtension</function>
+returns
+<function>True</function>
+if the specified display supports the SHAPE extension else
+<function>False</function>
+If the extension is supported, *event_base is set to the event number for
+<function>ShapeNotify</function>
+events and *error_base would be set to the error number for the first error for
+this extension.  Because no errors are defined for this version of
+the extension, the value returned here is not defined (nor useful).
+</para>
+
+<funcsynopsis id='xshapequeryversion'>
+<funcprototype>
+<funcdef>Status<function> XShapeQueryVersion</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>int<parameter> *major_version</parameter></paramdef>
+<paramdef>int<parameter> *minor_version</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeQueryVersion</function>
+sets the major and minor version numbers of the
+extension supported by the display and returns a nonzero value.
+Otherwise, the arguments are not set and zero is returned.
+</para>
+
+<funcsynopsis id='xshapecombineregion'>
+<funcprototype>
+<funcdef><function>XShapeCombineRegion</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> dest</parameter></paramdef>
+<paramdef>int<parameter> dest_kind</parameter></paramdef>
+<paramdef>int<parameter> x_off</parameter></paramdef>
+<paramdef>int<parameter> y_off</parameter></paramdef>
+<paramdef>int<parameter> region</parameter></paramdef>
+<paramdef>int<parameter> op</parameter></paramdef>
+<paramdef>REGION<parameter> *region</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XShapeCombineRegion</function>
+converts the specified region into a list of rectangles and calls
+<function>XShapeCombineRectangles</function>
+</para>
+
+<funcsynopsis id='xshapecombinerectangles'>
+<funcprototype>
+<funcdef><function>XShapeCombineRectangles</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> dest</parameter></paramdef>
+<paramdef>int<parameter> dest_kind</parameter></paramdef>
+<paramdef>int<parameter> x_off</parameter></paramdef>
+<paramdef>int<parameter> y_off</parameter></paramdef>
+<paramdef>XRectangle<parameter> *rectangles</parameter></paramdef>
+<paramdef>int<parameter> n_rects</parameter></paramdef>
+<paramdef>int<parameter> op</parameter></paramdef>
+<paramdef>int<parameter> ordering</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeCombineRectangles</function>
+performs a
+<function>ShapeRectangles</function>
+operation; otherwise, the request is ignored.
+</para>
+
+<funcsynopsis id='xshapecombinemask'>
+<funcprototype>
+<funcdef><function>XShapeCombineMask</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>int<parameter> dest</parameter></paramdef>
+<paramdef>int<parameter> dest_kind</parameter></paramdef>
+<paramdef>int<parameter> x_off</parameter></paramdef>
+<paramdef>int<parameter> y_off</parameter></paramdef>
+<paramdef>Pixmap<parameter> src</parameter></paramdef>
+<paramdef>int<parameter> op</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeCombineMask</function>
+performs a
+<function>ShapeMask</function>
+operation; otherwise, the request is ignored.
+</para>
+
+<funcsynopsis id='xshapecombineshape'>
+<funcprototype>
+<funcdef><function>XShapeCombineShape</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> dest</parameter></paramdef>
+<paramdef>int<parameter> dest_kind</parameter></paramdef>
+<paramdef>int<parameter> x_off</parameter></paramdef>
+<paramdef>int<parameter> y_off</parameter></paramdef>
+<paramdef>Window<parameter> src</parameter></paramdef>
+<paramdef>int<parameter> src_kind</parameter></paramdef>
+<paramdef>int<parameter> op</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeCombineShape</function>
+performs a
+<function>ShapeCombine</function>
+operation; otherwise, the request is ignored.
+</para>
+
+<funcsynopsis id='xshapeoffsetshape'>
+<funcprototype>
+<funcdef><function>XShapeOffsetShape</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>dest</parameter></paramdef>
+<paramdef><parameter>dest_kind</parameter></paramdef>
+<paramdef><parameter>x_off</parameter></paramdef>
+<paramdef><parameter>y_off</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeOffsetShape</function>
+performs a
+<function>ShapeOffset</function>
+operation; otherwise, the request is ignored.
+</para>
+
+<funcsynopsis id='xshapequeryextents'>
+<funcprototype>
+<funcdef>Status <function>XShapeQueryExtents</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> window</parameter></paramdef>
+<paramdef>Bool<parameter> *bounding_shaped</parameter></paramdef>
+<paramdef>int<parameter> *x_bounding</parameter></paramdef>
+<paramdef>int<parameter> *y_bounding</parameter></paramdef>
+<paramdef>unsigned int<parameter> *w_bounding</parameter></paramdef>
+<paramdef>unsigned int<parameter> *h_bounding</parameter></paramdef>
+<paramdef>Bool<parameter> *clip_shaped</parameter></paramdef>
+<paramdef>int<parameter> *x_clip</parameter></paramdef>
+<paramdef>int<parameter> *y_clip</parameter></paramdef>
+<paramdef>unsigned int<parameter> *w_clip</parameter></paramdef>
+<paramdef>unsigned int<parameter> *h_clip</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is supported,
+<function>XShapeQueryExtents</function>
+sets x_bounding, y_bounding, w_bounding, h_bounding to the extents of the
+bounding shape and sets x_clip, y_clip, w_clip, h_clip to the extents of
+the clip shape.  For unspecified client regions, the extents of the
+corresponding default region are used.
+</para>
+
+<para>
+If the extension is supported, a nonzero value is returned; otherwise,
+zero is returned.
+</para>
+
+<funcsynopsis id='xshapeselectinput'>
+<funcprototype>
+<funcdef><function>XShapeSelectInput</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> window</parameter></paramdef>
+<paramdef>unsigned long<parameter> mask</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+To make this extension more compatible with other interfaces, although
+only one event type can be selected via the extension,
+<function>XShapeSelectInput</function>
+provides a general mechanism similar to the standard Xlib binding for
+window events.  A mask value has been defined,
+<function>ShapeNotifyMask</function>
+that is the only valid bit in mask that may be specified.
+The structure for this event is defined as follows:
+</para>
+
+<literallayout remap='Ds'>
+typedef struct {
+    int type;     /* of event */
+    unsigned long serial;     /* # of last request processed by server */
+    Bool send_event;     /* true if this came from a SendEvent request */
+    Display *display;     /* Display the event was read from */
+    Window window;     /* window of event */
+    int kind;     /* ShapeBounding or ShapeClip */
+    int x, y;     /* extents of new region */
+    unsigned width, height;
+    Time time;     /* server timestamp when region changed */
+    Bool shaped;     /* true if the region exists */
+} XShapeEvent;
+</literallayout>
+
+<funcsynopsis id='xshapeinputselected'>
+<funcprototype>
+<funcdef>unsigned long <function>XShapeInputSelected</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> window</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XShapeInputSelected</function>
+returns the current input mask for extension events on the specified
+window; the value returned if
+<function>ShapeNotify</function>
+is selected for is
+<function>ShapeNotifyMask</function>
+otherwise, it returns zero.
+If the extension is not supported, it returns zero.
+</para>
+
+<funcsynopsis id='xshapegetrectangles'>
+<funcprototype>
+<funcdef>XRectangle<function> *XShapeGetRectangles</function></funcdef>
+<paramdef>Display<parameter> *display</parameter></paramdef>
+<paramdef>Window<parameter> window</parameter></paramdef>
+<paramdef>int<parameter> kind</parameter></paramdef>
+<paramdef>int<parameter> *count</parameter></paramdef>
+<paramdef>int<parameter> *ordering</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If the extension is not supported,
+<function>XShapeGetRectangles</function>
+returns NULL.  Otherwise, it returns a list of rectangles that describe the
+region specified by kind.
+</para>
+</chapter>
+
+<glossary id='glossary'>
+
+<glossentry id='bounding_region'>
+  <glossterm>bounding region</glossterm>
+  <glossdef><para>The area of the parent window that this window will occupy.
+This area is divided into two parts:  the border and the interior.</para>
+  </glossdef>
+</glossentry>
+
+<glossentry id='clip_region'>
+  <glossterm>clip region</glossterm>
+  <glossdef><para>The interior of the window, as a subset of the bounding
+region.  This region describes the area that will be painted with the
+window background when the window is cleared, will contain all graphics
+output to the window, and will clip any subwindows.</para></glossdef>
+</glossentry>
+
+<glossentry id='default_bounding_region'>
+  <glossterm>default bounding region</glossterm>
+  <glossdef><para>The rectangular area, as described by the core protocol
+window size, that covers the interior of the window and its border.</para>
+  </glossdef>
+</glossentry>
+
+<glossentry id='default_clip_region'>
+  <glossterm>default clip region</glossterm>
+  <glossdef><para>The rectangular area, as described by the core protocol
+window size, that covers the interior of the window and excludes the border.
+  </para></glossdef>
+</glossentry>
+
+<glossentry id='client_bounding_region'>
+  <glossterm>client bounding region</glossterm>
+  <glossdef><para>The region associated with a window that is directly
+modified via this extension when specified by
+<function>ShapeBounding</function>
+This region is used in conjunction with the default bounding region
+to produce the effective bounding region.</para></glossdef>
+</glossentry>
+
+<glossentry id='client_clip_region'>
+  <glossterm>client clip region</glossterm>
+  <glossdef><para>The region associated with a window that is directly
+modified via this extension when specified by
+<function>ShapeClip</function>
+This region is used in conjunction with the default clip region
+and the client bounding region to produce the effective clip region.</para>
+  </glossdef>
+</glossentry>
+
+<glossentry id='effective_bounding_region'>
+  <glossterm>effective bounding region</glossterm>
+  <glossdef><para>The actual shape of the window on the screen, including
+border and interior (but excluding the effects of overlapping windows).
+When a window has a client bounding region, the effective bounding region
+is the intersection of the default bounding region and the client bounding
+region.  Otherwise, the effective bounding region is the same as the
+default bounding region.</para>
+  </glossdef>
+</glossentry>
+
+<glossentry id='effective_clip_region'>
+  <glossterm>effective clip region</glossterm>
+  <glossdef><para>The actual shape of the interior of the window on the
+screen (excluding the effects of overlapping windows).  When a window
+has a client clip region or a client bounding region, the effective
+clip region is the intersection of the default clip region, the client
+clip region (if any) and the client bounding region (if any).  Otherwise,
+the effective clip region is the same as the default clip region.</para>
+  </glossdef>
+</glossentry>
+</glossary>
+</book>

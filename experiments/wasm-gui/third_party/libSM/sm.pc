@@ -1,0 +1,13 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SM
+Description: X Session Management Library
+Version: 1.2.4
+Requires:
+Requires.private: ice xproto 
+Cflags: -I${includedir}
+Libs: -L${libdir} -lSM
+Libs.private: 

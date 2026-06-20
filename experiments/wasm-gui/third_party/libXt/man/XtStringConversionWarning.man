@@ -1,0 +1,73 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.ie \n(.g .ds `` \(lq
+.el       .ds `` ``
+.ie \n(.g .ds '' \(rq
+.el       .ds '' ''
+.hw XtString-Conversion-Warning wid-get
+.na
+.TH XtStringConversionWarning __libmansuffix__ __xorgversion__ "XT COMPATIBILITY FUNCTIONS"
+.SH NAME
+XtStringConversionWarning \- issue a conversion warning message
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtStringConversionWarning(const char *\fIsrc\fP, const char *\fIdst_type\fP);
+.SH ARGUMENTS
+.IP \fIsrc\fP 1i
+Specifies the string that could not be converted.
+.IP \fIdst_type\fP 1i
+Specifies the name of the type to which the string could not be converted.
+.SH DESCRIPTION
+The
+.B XtStringConversionWarning
+function issues a warning message with name \*(``conversionError\*('',
+type \*(``string\*('',
+class \*(``XtToolkitError\*('',
+and the default message string
+\*(``Cannot convert "\fIsrc\fP" to type \fIdst_type\fP\*(''.
+.LP
+.B XtStringConversionWarning
+has been replaced by
+.BR XtDisplayStringConversionWarning .
+.SH "SEE ALSO"
+XtAppAddConverter(__libmansuffix__),
+XtAppErrorMsg(3t),
+XtConvert(__libmansuffix__),
+XtDisplayStringConversionWarning(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

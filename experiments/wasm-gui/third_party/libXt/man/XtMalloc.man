@@ -1,0 +1,156 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtNew-String wid-get
+.na
+.TH XtMalloc __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtMalloc, XtCalloc, XtRealloc, XtReallocArray, XtFree, XtNew, XtNewString \- memory management functions
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+char *XtMalloc(Cardinal \fIsize\fP);
+.HP
+char *XtCalloc(Cardinal \fInum\fP, Cardinal \fIsize\fP);
+.HP
+char *XtRealloc(char *\fIptr\fP, Cardinal \fIsize\fP);
+.HP
+void *XtReallocArray(void *\fIptr\fP, Cardinal \fInum\fP, Cardinal \fIsize\fP);
+.HP
+void XtFree(char *\fIptr\fP);
+.HP
+\fItype\fP *XtNew(\fItype\fP);
+.HP
+String XtNewString(String \fIstring\fP);
+.HP
+Cardinal XtAsprintf(char **\fInew_string\fP, const char *\fIformat\fP, ...);
+.SH ARGUMENTS
+.IP \fInum\fP 1i
+Specifies the number of array elements.
+.IP \fIptr\fP 1i
+Specifies a pointer to the old storage or to the block of storage that is to be freed.
+.IP \fIsize\fP 1i
+Specifies the size of an array element (in bytes) or the number of bytes
+desired.
+.IP \fIstring\fP 1i
+Specifies a previously declared string.
+.IP \fItype\fP 1i
+Specifies a previously declared data type.
+.IP \fInew_string\fP 1i
+Specifies a pointer to write a newly allocated string to.
+.IP \fIformat\fP 1i
+Specifies a formatting string as defined by sprintf(3c)
+.SH DESCRIPTION
+The
+.B XtMalloc
+functions returns a pointer to a block of storage of at least
+the specified size bytes.
+If there is insufficient memory to allocate the new block,
+.B XtMalloc
+calls
+.BR XtErrorMsg .
+.LP
+The
+.B XtCalloc
+function allocates space for the specified number of array elements
+of the specified size and initializes the space to zero.
+If there is insufficient memory to allocate the new block,
+.B XtCalloc
+calls
+.BR XtErrorMsg .
+.LP
+The
+.B XtRealloc
+and
+.B XtReallocArray
+functions change the size of a block of storage (possibly moving it).
+Then, they copy the old contents (or as much as will fit) into the new block
+and free the old block.
+If there is insufficient memory to allocate the new block,
+or the calculations for the size of the new block would cause an
+integer overflow, these functions call
+.BR XtErrorMsg .
+If ptr is NULL,
+these functions allocate the new storage without copying the old contents;
+that is, they simply call
+.BR XtMalloc .
+.LP
+The
+.B XtFree
+function returns storage and allows it to be reused.
+If ptr is NULL,
+.B XtFree
+returns immediately.
+.LP
+.B XtNew
+returns a pointer to the allocated storage.
+If there is insufficient memory to allocate the new block,
+.B XtNew
+calls
+.BR XtErrorMsg .
+.B XtNew
+is a convenience macro that calls
+.B XtMalloc
+with the following arguments specified:
+.LP
+.RS .5i
+.ft CW
+((type *) XtMalloc((unsigned) sizeof(type))
+.ft R
+.RE
+.LP
+.B XtNewString
+returns a pointer to a new string which is a duplicate of 
+.IR string .
+If there is insufficient memory to allocate the new block, or the argument is NULL
+.B XtNewString
+returns NULL. The memory can be freed with 
+.BR XtFree .
+.LP
+The
+.B XtAsprintf
+function allocates space for a string large enough to hold the string
+specified by the sprintf(3c) format pattern when used with the remaining
+arguments, and fills it with the formatted results.
+The address of the allocated string is placed into the pointer passed as ret.
+The length of the string (not including the terminating null byte) is returned.
+If there is insufficient memory to allocate the new block,
+.B XtAsprintf
+calls
+.BR XtErrorMsg .
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

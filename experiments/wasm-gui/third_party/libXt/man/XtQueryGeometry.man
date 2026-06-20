@@ -1,0 +1,79 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtQuery-Geometry wid-get
+.na
+.TH XtQueryGeometry __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtQueryGeometry \- query the preferred geometry of a child widget
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtGeometryResult XtQueryGeometry(Widget \fIw\fP\^, XtWidgetGeometry
+*\fIintended\fP, XtWidgetGeometry *\fIpreferred_return\fP\^);
+.SH ARGUMENTS
+.IP \fIintended\fP 1i
+Specifies any changes the parent plans to make to the child's geometry or
+NULL.
+.IP \fIpreferred_return\fP 1i
+Returns the child widget's preferred geometry.
+.IP \fIw\fP 1i
+Specifies the widget.
+.SH DESCRIPTION
+To discover a child's preferred geometry,
+the child's parent sets any changes
+that it intends to make to the child's geometry in the corresponding fields of
+the intended structure, sets the corresponding bits in intended.request_mode,
+and calls
+.BR XtQueryGeometry .
+.LP
+.B XtQueryGeometry
+clears all bits in the preferred_return->request_mode and checks the
+query_geometry field of the specified widget's class record.
+If query_geometry is not NULL,
+.B XtQueryGeometry
+calls the query_geometry procedure and passes as arguments the
+specified widget, intended, and preferred_return structures.
+If the intended argument is NULL,
+.B XtQueryGeometry
+replaces it with a pointer to an
+.B XtWidgetGeometry
+structure with request_mode=0 before calling query_geometry.
+.SH "SEE ALSO"
+XtConfigureWidget(__libmansuffix__),
+XtMakeGeometryRequest(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

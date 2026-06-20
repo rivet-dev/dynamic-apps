@@ -1,0 +1,129 @@
+.\" Copyright (c) 1995  Hewlett-Packard Company
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" HEWLETT-PACKARD COMPANY BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the Hewlett-Packard Company shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" Hewlett-Packard Company.
+.\"
+.TH XdbeGetVisualInfo __libmansuffix__ 1996-03-11 __xorgversion__
+.SH NAME
+XdbeGetVisualInfo - Get dbe Visual Information
+.SH SYNOPSIS
+.nf
+\&#include <X11/extensions/Xdbe.h>
+.sp
+XdbeScreenVisualInfo *XdbeGetVisualInfo(
+    Display  *dpy,
+    Drawable *screen_specifiers,
+    int      *num_screens)
+.fi
+.SH DESCRIPTION
+This function returns information about which visuals support double
+buffering.  The argument
+.I num_screens
+specifies how many elements there are
+in the
+.I screen_specifiers
+list.
+Each drawable in
+.I screen_specifiers
+designates a
+screen for which the supported visuals are being requested.
+If
+.I num_screens
+is zero, information for all screens is requested.
+In this case, upon return from this function,
+.I num_screens
+will be set to the number of screens that were found.
+If an error occurs, this function returns NULL, else it returns a
+pointer to a list of
+.B XdbeScreenVisualInfo
+structures of length
+.I num_screens.
+The nth
+element in the returned list corresponds to the nth drawable in the
+.I screen_specifiers
+list, unless
+.I num_screens
+was passed in with the value zero,
+in which case the nth element in the returned list corresponds to the nth screen
+of the server, starting with screen zero.
+The
+.B XdbeScreenVisualInfo
+structure has the following fields:
+.nf
+     int            count
+     XdbeVisualInfo *visinfo
+.fi
+.I count
+specifies the number of items in
+.I visinfo.
+.I visinfo
+specifies a list of visuals, depths, and performance hints for this screen.
+.PP
+The
+.B XdbeVisualInfo
+structure has the following fields:
+.nf
+     VisualID visual
+     int      depth
+     int      perflevel
+.fi
+.I visual
+specifies one visual ID that supports double-buffering.
+.I depth
+specifies the depth of the visual.
+.I perflevel
+is a performance hint.
+.PP
+The only operation defined on a
+.I perflevel
+is comparison to a
+.I perflevel
+of another visual on the same screen.
+The visual having the higher
+.I perflevel
+is likely to have better double-buffering graphics performance than the visual
+having the lower
+.IR perflevel .
+Nothing can be deduced from the following:
+the magnitude of the difference of two
+.IR perflevels ,
+a
+.I perflevel
+value in isolation, or comparing
+.I perflevels
+from different servers.
+.SH ERRORS
+.IP BadDrawable
+One or more values passed in
+.I screen_specifiers
+is not a valid drawable.
+.SH SEE ALSO
+.BR DBE (__libmansuffix__),
+.BR XdbeAllocateBackBufferName (__libmansuffix__),
+.BR XdbeBeginIdiom (__libmansuffix__),
+.BR XdbeDeallocateBackBufferName (__libmansuffix__),
+.BR XdbeEndIdiom (__libmansuffix__),
+.BR XdbeFreeVisualInfo (__libmansuffix__),
+.BR XdbeGetBackBufferAttributes (__libmansuffix__),
+.BR XdbeQueryExtension (__libmansuffix__),
+.BR XdbeSwapBuffers (__libmansuffix__).

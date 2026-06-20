@@ -1,0 +1,65 @@
+.\" Copyright (c) 1995  Hewlett-Packard Company
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" HEWLETT-PACKARD COMPANY BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the Hewlett-Packard Company shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" Hewlett-Packard Company.
+.\"
+.TH XdbeQueryExtension __libmansuffix__ 1996-03-11 __xorgversion__
+.SH NAME
+XdbeQueryExtension - returns the version of DBE supported by the server.
+.SH SYNOPSIS
+.nf
+\&#include <X11/extensions/Xdbe.h>
+.sp
+Status XdbeQueryExtension(
+    Display *dpy,
+    int     *major_version_return,
+    int     *minor_version_return)
+.fi
+.SH DESCRIPTION
+Sets
+.I major_version_return
+and
+.I minor_version_return
+to the major and minor
+DBE protocol version supported by the server.
+If the DBE library is compatible with the version returned by the server,
+this function returns non-zero.
+If
+.I dpy
+does not support the DBE extension,
+or if there was an error during communication with the server,
+or if the server and library protocol versions are incompatible,
+this function returns zero.
+No other Xdbe functions may be called before this function.
+If a client violates this rule,
+the effects of all subsequent Xdbe calls that it makes are undefined.
+.SH SEE ALSO
+.BR DBE (__libmansuffix__),
+.BR XdbeAllocateBackBufferName (__libmansuffix__),
+.BR XdbeBeginIdiom (__libmansuffix__),
+.BR XdbeDeallocateBackBufferName (__libmansuffix__),
+.BR XdbeEndIdiom (__libmansuffix__),
+.BR XdbeFreeVisualInfo (__libmansuffix__),
+.BR XdbeGetBackBufferAttributes (__libmansuffix__),
+.BR XdbeGetVisualInfo (__libmansuffix__),
+.BR XdbeSwapBuffers (__libmansuffix__).

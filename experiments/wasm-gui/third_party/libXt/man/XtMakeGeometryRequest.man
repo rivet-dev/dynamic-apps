@@ -1,0 +1,151 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtMake-Geometry-Request XtMake-Resize-Request wid-get
+.na
+.TH XtMakeGeometryRequest __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtMakeGeometryRequest, XtMakeResizeRequest \- make geometry manager request
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtGeometryResult XtMakeGeometryRequest(Widget \fIw\fP, XtWidgetGeometry
+*\fIrequest\fP, XtWidgetGeometry *\fIreply_return\fP);
+.HP
+XtGeometryResult XtMakeResizeRequest(Widget \fIw\fP,
+Dimension \fIwidth\fP,
+Dimension \fIheight\fP,
+Dimension *\fIwidth_return\fP,
+Dimension *\fIheight_return\fP);
+.SH ARGUMENTS
+.IP \fIreply_return\fP 1i
+Returns the allowed widget size or may be NULL
+if the requesting widget is not interested in handling
+.BR XtGeometryAlmost .
+.IP \fIrequest\fP 1i
+Specifies the desired widget geometry (size, position, border width,
+and stacking order).
+.IP \fIw\fP 1i
+Specifies the widget that is making the request.
+.IP \fIwidth_return\fP 1i
+.br
+.ns
+.IP \fIheight_return\fP 1i
+Return the allowed widget width and height.
+.SH DESCRIPTION
+Depending on the condition,
+.B XtMakeGeometryRequest
+performs the following:
+.IP \(bu 5
+If the widget is unmanaged or the widget's parent is not realized,
+it makes the changes and returns
+.BR XtGeometryYes .
+.IP \(bu 5
+If the parent is not a subclass of
+.B compositeWidgetClass
+or the parent's geometry_manager is NULL,
+it issues an error.
+.IP \(bu 5
+If the widget's being_destroyed field is
+.BR True ,
+it returns
+.BR XtGeometryNo .
+.IP \(bu 5
+If the widget x, y, width, height and border_width fields are
+all equal to the requested values,
+it returns
+.BR XtGeometryYes ;
+otherwise, it calls the parent's geometry_manager procedure
+with the given parameters.
+.IP \(bu 5
+If the parent's geometry manager returns
+.B XtGeometryYes
+and if
+.B XtCWQueryOnly
+is not set in the request_mode
+and if the widget is realized,
+.B XtMakeGeometryRequest
+calls the
+.B XConfigureWindow
+Xlib function to reconfigure the widget's window (set its size, location,
+and stacking order as appropriate).
+.IP \(bu 5
+If the geometry manager returns
+.BR XtGeometryDone ,
+the change has been approved and actually has been done.
+In this case,
+.B XtMakeGeometryRequest
+does no configuring and returns
+.BR XtGeometryYes .
+.B XtMakeGeometryRequest
+never returns
+.BR XtGeometryDone .
+.LP
+Otherwise,
+.B XtMakeGeometryRequest
+returns the resulting value from the parent's geometry manager.
+.LP
+Children of primitive widgets are always unmanaged; thus,
+.B XtMakeGeometryRequest
+always returns
+.B XtGeometryYes
+when called by a child of a primitive widget.
+.LP
+The
+.B XtMakeResizeRequest
+function, a simple interface to
+.BR XtMakeGeometryRequest ,
+creates a
+.B XtWidgetGeometry
+structure and specifies that width and height should change.
+The geometry manager is free to modify any of the other window attributes
+(position or stacking order) to satisfy the resize request.
+If the return value is
+.BR XtGeometryAlmost ,
+width_return and height_return contain a compromise width and height.
+If these are acceptable,
+the widget should immediately make an
+.B XtMakeResizeRequest
+and request that the compromise width and height be applied.
+If the widget is not interested in
+.B XtGeometryAlmost
+replies,
+it can pass NULL for width_return and height_return.
+.SH "SEE ALSO"
+XtConfigureWidget(__libmansuffix__),
+XtQueryGeometery(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

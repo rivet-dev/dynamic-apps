@@ -1,0 +1,741 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="dbelib">
+
+<bookinfo>
+   <title>Double Buffer Extension Library</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 1.0</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Ian</firstname><surname>Elliot</surname>
+         <affiliation><orgname>Hewlett-Packard Company</orgname></affiliation>
+      </author>
+      <othercredit>
+         <firstname>David</firstname><othername>P.</othername><surname>Wiggins</surname>
+         <affiliation><orgname>X Consortium, Inc</orgname></affiliation>
+      </othercredit>
+   </authorgroup>
+   <copyright><year>1989</year>
+     <holder>X Consortium Inc</holder>
+     <holder>Digital Equipment Corporation</holder>
+   </copyright>
+   <copyright><year>1992</year>
+     <holder>X Consortium Inc</holder>
+     <holder>Intergraph Corporation</holder>
+   </copyright>
+   <copyright><year>1993</year>
+     <holder>X Consortium Inc</holder>
+     <holder>Silicon Graphics, Inc.</holder>
+   </copyright>
+   <copyright><year>1994</year><year>1995</year>
+     <holder>X Consortium Inc</holder>
+     <holder>Hewlett-Packard Company</holder>
+   </copyright>
+
+<legalnotice>
+<para>
+Permission to use, copy, modify, and distribute this documentation for any
+purpose and without fee is hereby granted, provided that the above copyright
+notice and this permission notice appear in all copies. Digital Equipment
+Corporation, Intergraph Corporation, Silicon Graphics, Hewlett-Packard, and
+the X Consortium make no representations about the suitability for any
+purpose of the information in this document. This documentation is provided
+"as is" without express or implied warranty.
+</para>
+
+</legalnotice>
+
+</bookinfo>
+
+<chapter id='Introduction'>
+<title>Introduction</title>
+<para>
+The Double Buffer Extension (DBE) provides a standard way to utilize
+double-buffering within the framework of the X Window System.
+Double-buffering uses two buffers, called front and back, which hold images.
+The front buffer is visible to the user; the back buffer is not. Successive
+frames of an animation are rendered into the back buffer while the previously
+rendered frame is displayed in the front buffer. When a new frame is ready,
+the back and front buffers swap roles, making the new frame visible. Ideally,
+this exchange appears to happen instantaneously to the user and with no
+visual artifacts. Thus, only completely rendered images are presented to the
+user, and they remain visible during the entire time it takes to render a new
+frame. The result is a flicker-free animation.
+</para>
+
+</chapter>
+
+<chapter id='Goals'>
+<title>Goals</title>
+
+<para>
+This extension should enable clients to:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Allocate and deallocate double-buffering for a window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Draw to and read from the front and back buffers associated with a window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Swap the front and back buffers associated with a window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Specify a wide range of actions to be taken when a window is swapped.
+This includes explicit, simple swap actions (defined below), and more
+complex actions (for example, clearing ancillary buffers) that can be put
+together within explicit "begin" and "end" requests (defined below).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Request that the front and back buffers associated with multiple
+double-buffered windows be swapped simultaneously.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+In addition, the extension should:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Allow multiple clients to use double-buffering on the same window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Support a range of implementation methods that can capitalize on
+existing hardware features.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Add no new event types.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Be reasonably easy to integrate with a variety of direct graphics
+hardware access (DGHA) architectures.
+    </para>
+  </listitem>
+</itemizedlist>
+
+</chapter>
+
+<chapter id='Concepts'>
+<title>Concepts</title>
+<para>
+Normal windows are created using the core CreateWindow request, which
+allocates a set of window attributes and, for InputOutput windows, a front
+buffer, into which an image can be drawn. The contents of this buffer will be
+displayed when the window is visible.
+</para>
+<para>
+This extension enables applications to use double-buffering with a window.
+This involves creating a second buffer, called a back buffer, and associating
+one or more back buffer names (XIDs) with the window for use when referring
+to (that is, drawing to or reading from) the window’s back buffer. The back
+buffer name is a DRAWABLE of type BACKBUFFER.
+</para>
+<para>
+DBE provides a relative double-buffering model. One XID, the window,
+always refers to the front buffer. One or more other XIDs, the back buffer
+names, always refer to the back buffer. After a buffer swap, the window
+continues to refer to the (new) front buffer, and the back buffer name
+continues to refer to the (new) back buffer. Thus, applications and toolkits
+that want to just render to the back buffer always use the back buffer name
+for all drawing requests to the window. Portions of an application that want
+to render to the front buffer always use the window XID for all drawing
+requests to the window.
+</para>
+<para>
+Multiple clients and toolkits can all use double-buffering on the same window.
+DBE does not provide a request for querying whether a window has
+double-buffering support, and if so, what the back buffer name is. Given the
+asynchronous nature of the X Window System, this would cause race
+conditions. Instead, DBE allows multiple back buffer names to exist for the
+same window; they all refer to the same physical back buffer. The first time a
+back buffer name is allocated for a window, the window becomes
+double-buffered and the back buffer name is associated with the window.
+Subsequently, the window already is a double-buffered window, and nothing
+about the window changes when a new back buffer name is allocated, except
+that the new back buffer name is associated with the window. The window
+remains double-buffered until either the window is destroyed or until all of the
+back buffer names for the window are deallocated.
+</para>
+<para>
+In general, both the front and back buffers are treated the same.
+particular, here are some important characteristics:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Only one buffer per window can be visible at a time (the front buffer).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Both buffers associated with a window have the same visual type, depth,
+width, height, and shape as the window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Both buffers associated with a window are "visible" (or "obscured") in
+the same way. When an Expose event is generated for a window, both
+buffers should be considered to be damaged in the exposed area.
+Damage that occurs to either buffer will result in an Expose event on
+the window. When a double-buffered window is exposed, both buffers
+are tiled with the window background, exactly as stated by the core
+protocol. Even though the back buffer is not visible, terms such as
+obscure apply to the back buffer as well as to the front buffer.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+It is acceptable at any time to pass a BACKBUFFER in any request,
+notably any core or extension drawing request, that expects a
+DRAWABLE.  This enables an application to draw directly into
+BACKBUFFERs in the same fashion as it would draw into any other
+DRAWABLE.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+It is an error (Window) to pass a BACKBUFFER in a core request that
+expects a Window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A BACKBUFFER will never be sent by core X in a reply, event, or
+error where a Window is specified.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+If core X11 backing-store and save-under applies to a double-buffered
+window, it applies to both buffers equally.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+If the core ClearArea request is executed on a double-buffered window,
+the same area in both the front and back buffers is cleared.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+The effect of passing a window to a request that accepts a
+<function>DRAWABLE</function> is
+unchanged by this extension. The window and front buffer are synonymous
+with each other. This includes obeying the <function>GetImage</function>
+semantics and the
+subwindow-mode semantics if a core graphics context is involved. Regardless
+of whether the window was explicitly passed in a
+<function>GetImage</function> request, or
+implicitly referenced (that is, one of the window’s ancestors was passed in the
+request), the front (that is, visible) buffer is always referenced. Thus,
+DBE-naive screen dump clients will always get the front buffer.
+<function>GetImage</function> on
+a back buffer returns undefined image contents for any obscured regions of the
+back buffer that fall within the image.
+</para>
+<para>
+Drawing to a back buffer always uses the clip region that would be used to
+draw to the front buffer with a GC subwindow-mode of
+<function>ClipByChildren</function>. If
+an ancestor of a double-buffered window is drawn to with a core GC having a
+subwindow-mode of IncludeInferiors, the effect on the double-buffered
+window’s back buffer depends on the depth of the double-buffered window
+and the ancestor. If the depths are the same, the contents of the back buffer
+of the double-buffered window are not changed. If the depths are different,
+the contents of the back buffer of the double-buffered window are undefined
+for the pixels that the <function>IncludeInferiors</function> drawing touched.
+</para>
+
+
+<para>
+DBE adds no new events. DBE does not extend the semantics of any existing
+events with the exception of adding a new DRAWABLE type called
+BACKBUFFER. If events, replies, or errors that contain a DRAWABLE (for
+example, <function>GraphicsExpose</function>) are generated in response to
+a request, the
+DRAWABLE returned will be the one specified in the request.
+</para>
+<para>
+DBE advertises which visuals support double-buffering.
+</para>
+<para>
+DBE does not include any timing or synchronization facilities. Applications
+that need such facilities (for example, to maintain a constant frame rate)
+should investigate the Synchronization Extension, an X Consortium standard.
+</para>
+
+<sect1 id='Window_Management_Operations'>
+<title>Window Management Operations</title>
+
+<para>
+The basic philosophy of DBE is that both buffers are treated the same by core
+X window management operations.
+</para>
+<para>
+When the core <function>DestroyWindow</function> is executed on a
+double-buffered window, both buffers associated with the window are
+destroyed, and all back buffer names associated with the window are freed.
+</para>
+<para>
+If the core <function>ConfigureWindow</function> request changes the size
+of a window, both buffers assume the new size. If the window’s size
+increases, the effect on the buffers depends on whether the implementation
+honors bit gravity for buffers.
+If bit gravity is implemented, then the contents of both buffers are moved in
+accordance with the window’s bit gravity (see the core
+<function>ConfigureWindow</function>
+request), and the remaining areas are tiled with the window background. If
+bit gravity is not implemented, then the entire unobscured region of both
+buffers is tiled with the window background. In either case,
+<function>Expose</function> events are
+generated for the region that is tiled with the window background.
+If the core GetGeometry request is executed on a BACKBUFFER, the
+returned x, y, and border-width will be zero.
+</para>
+<para>
+If the Shape extension
+<function>ShapeRectangles</function>,
+<function>ShapeMask</function>,
+<function>ShapeCombine</function>, or
+<function>ShapeOffset</function>
+request is executed on a double-buffered window, both buffers
+are reshaped to match the new window shape. The region difference is the
+following:
+</para>
+
+<literallayout remap='Ds'>
+        D = newshape − oldshape
+</literallayout>
+
+<para>
+It is tiled with the window background in both buffers, and
+<function>Expose</function>
+events are generated for D.
+</para>
+
+</sect1>
+
+<sect1 id='Complex_Swap_Actions'>
+<title>Complex Swap Actions</title>
+<para>
+DBE has no explicit knowledge of ancillary buffers (for example, depth buffers
+or alpha buffers), and only has a limited set of defined swap actions. Some
+applications may need a richer set of swap actions than DBE provides. Some
+DBE implementations have knowledge of ancillary buffers, and/or can provide
+a rich set of swap actions. Instead of continually extending DBE to increase
+its set of swap actions, DBE provides a flexible "idiom" mechanism. If an
+application’s needs are served by the defined swap actions, it should use them;
+otherwise, it should use the following method of expressing a complex swap
+action as an idiom. Following this policy will ensure the best possible
+performance across a wide variety of implementations.
+</para>
+<para>
+As suggested by the term "idiom," a complex swap action should be expressed
+as a group/series of requests. Taken together, this group of requests may be
+combined into an atomic operation by the implementation, in order to
+maximize performance. The set of idioms actually recognized for optimization
+is implementation dependent.
+To help with idiom expression and
+interpretation, an idiom must be surrounded by two protocol requests:
+<function>DBEBeginIdiom</function> and <function>DBEEndIdiom</function>.
+Unless this begin-end pair surrounds the idiom, it may not be recognized
+by a given implementation, and performance will suffer.
+</para>
+<para>
+For example, if an application wants to swap buffers for two windows, and use
+core X to clear only certain planes of the back buffers, the application would
+issue the following protocol requests as a group, and in the following order:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+<function>DBEBeginIdiom</function> request.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>DBESwapBuffers</function> request with XIDs for two windows, each of which uses
+a swap action of Untouched.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Core X <function>PolyFillRectangle</function> request to the back buffer of one window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Core X <function>PolyFillRectangle</function> request to the back buffer of the other
+window.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>DBEEndIdiom</function> request.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+The <function>DBEBeginIdiom</function> and <function>DBEEndIdiom</function>
+requests do not perform any actions
+themselves. They are treated as markers by implementations that can
+combine certain groups/series of requests as idioms, and are ignored by other
+implementations or for nonrecognized groups/series of requests. If these
+requests are sent out of order, or are mismatched, no errors are sent, and the
+requests are executed as usual, though performance may suffer.
+</para>
+
+<para>
+
+An idiom need not include a <function>DBESwapBuffers</function> request.
+For example, if a swap action of <function>Copied</function> is desired,
+but only some of the planes should be copied, a core X
+<function>CopyArea</function> request may be used instead of
+<function>DBESwapBuffers</function>. If
+<function>DBESwapBuffers</function> is included in an idiom, it should
+immediately follow the
+<function>DBEBeginIdiom</function> request. Also, when the
+<function>DBESwapBuffers</function> is included in an idiom, that
+request’s swap action will still be valid, and if the swap action
+might overlap with another request, then the final result of the idiom must be
+as if the separate requests were executed serially. For example, if the
+specified swap action is <function>Untouched</function>, and if a
+<function>PolyFillRectangle</function> using a client clip
+rectangle is done to the window’s back buffer after the
+<function>DBESwapBuffers</function> request, then the contents of the new
+back buffer (after the idiom) will be the
+same as if the idiom was not recognized by the implementation.
+</para>
+<para>
+It is highly recommended that Application Programming Interface (API)
+providers define, and application developers use, "convenience" functions that
+allow client applications to call one procedure that encapsulates common
+idioms. These functions will generate the
+<function>DBEBeginIdiom</function> request, the idiom
+requests, and <function>DBEEndIdiom</function> request. Usage of these
+functions will ensure best possible performance across a wide
+variety of implementations.
+</para>
+
+</sect1>
+</chapter>
+
+<chapter id='C_Language_Binding'>
+<title>C Language Binding</title>
+<para>
+All identiﬁer The header for this extension is &lt;X11/extensions/Xdbe.h&gt;.
+names provided by this header begin with Xdbe.
+</para>
+
+<sect1 id='Types'>
+<title>Types</title>
+
+<para>
+The type <function>XdbeBackBuffer</function> is a <function>Drawable</function>.
+</para>
+
+<para>
+The type <function>XdbeSwapAction</function> can be one of the constants
+<function>XdbeUndefined</function>,
+<function>XdbeBackground</function>,
+<function>XdbeUntouched</function>, or
+<function>XdbeCopied</function>.
+</para>
+
+</sect1>
+
+<sect1 id='C_Functions'>
+<title>C Functions</title>
+<para>
+The C functions provide direct access to the protocol and add no additional
+semantics. For complete details on the effects of these functions, refer to the
+appropriate protocol request, which can be derived by replacing Xdbe at the
+start of the function name with DBE. All functions that have return type
+<function>Status</function> will return nonzero for success and
+zero for failure.
+</para>
+
+<funcsynopsis id='XdbeQueryExtension'>
+<funcprototype>
+  <funcdef>Status <function>XdbeQueryExtension</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>int <parameter> *major_version_return</parameter></paramdef>
+    <paramdef>int <parameter> *minor_version_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeQueryExtension'><function>XdbeQueryExtension</function></olink> sets major version return and minor
+version return to the major and minor DBE protocol version supported by
+the server. If the DBE library is compatible with the version returned by
+the server, it returns nonzero. If dpy does not support the DBE extension,
+or if there was an error during communication with the server, or if the
+server and library protocol versions are incompatible, it returns zero.
+No other Xdbe functions may be called before this function. If a client
+violates this rule, the effects of all subsequent Xdbe calls that it makes
+are undefined.
+</para>
+
+<funcsynopsis id='XdbeGetVisualInfo'>
+<funcprototype>
+  <funcdef>XdbeScreenVisualInfo *<function>XdbeGetVisualInfo</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>Drawable <parameter> *screen_specifiers</parameter></paramdef>
+    <paramdef>int <parameter> *num_screens</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+
+<olink targetdoc='dbelib' targetptr='XdbeGetVisualInfo'><function>XdbeGetVisualInfo</function></olink> returns information about which
+visuals support double buffering. The argument num_screens specifies how
+many elements there are in the screen_specifiers list. Each drawable in
+screen_specifiers designates a screen for which the supported visuals are
+being requested. If num_screens is zero, information for all screens is
+requested. In this case, upon return from this function, num_screens will
+be set to the number of screens that were found. If an error occurs,
+this function returns NULL; otherwise, it returns a pointer to a list of
+<function>XdbeScreenVisualInfo</function>
+structures of length num_screens.  The nth element in the returned list
+corresponds to the nth drawable in the screen_specifiers list, unless
+
+element in the returned list corresponds to the nth screen of the server,
+starting with screen zero.
+</para>
+
+
+<para>
+The XdbeScreenVisualInfo structure has the following fields:
+</para>
+<literallayout remap='Ds'>
+int                     count      number of items in visinfo
+XdbeVisualInfo*    visinfo     list of visuals and depths for this screen
+</literallayout>
+
+<para>
+The <function>XdbeVisualInfo</function> structure has the following fields:
+</para>
+
+<literallayout remap='Ds'>
+VisualID         visual    one visual ID that supports double-buffering
+int              depth     depth of visual in bits
+int              perflevel  performance level of visual
+</literallayout>
+
+
+<funcsynopsis>
+<funcprototype>
+  <funcdef>void XdbeFreeVisualInfo <function>XdbeGetVisualInfo</function></funcdef>
+    <paramdef>XdbeScreenVisualInfo <parameter> *visual_info</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XdbeFreeVisualInfo</function> frees the list of
+<function>XdbeScreenVisualInfo</function> returned by
+<olink targetdoc='dbelib' targetptr='XdbeGetVisualInfo'><function>XdbeGetVisualInfo</function></olink>.
+</para>
+
+
+<funcsynopsis id='XdbeAllocateBackBufferName'>
+<funcprototype>
+  <funcdef>XdbeBackBuffer <function>XdbeAllocateBackBufferName</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>Window <parameter> *window</parameter></paramdef>
+    <paramdef>XdbeSwapAction <parameter> swap_action</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeAllocateBackBufferName'><function>XdbeAllocateBackBufferName</function></olink> returns a drawable ID used
+to refer to the back buffer of the specified window. The swap_action is a
+hint to indicate the swap_action that will likely be used in subsequent
+calls to <olink targetdoc='dbelib' targetptr='XdbeSwapBuffers'><function>XdbeSwapBuffers</function></olink>.  The actual swap_action
+used in calls to <olink targetdoc='dbelib' targetptr='XdbeSwapBuffers'><function>XdbeSwapBuffers</function></olink> does not have to be
+the same as the swap_action passed to this function, though clients are
+encouraged to provide accurate information whenever possible.
+</para>
+
+<funcsynopsis id='XdbeDeallocateBackBufferName'>
+<funcprototype>
+  <funcdef>Status <function>XdbeDeallocateBackBufferName</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>XdbeBackBuffer <parameter> buffer</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeDeallocateBackBufferName'><function>XdbeDeallocateBackBufferName</function></olink> frees the specified
+drawable ID, buffer, that was obtained via
+<olink targetdoc='dbelib' targetptr='XdbeAllocateBackBufferName'><function>XdbeAllocateBackBufferName</function></olink>. The buffer must be a valid
+name for the back buffer of a window, or an
+<function>XdbeBadBuffer</function> error results.
+</para>
+
+<funcsynopsis id='XdbeSwapBuffers'>
+<funcprototype>
+  <funcdef>Status <function>XdbeSwapBuffers</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>XdbeSwapInfo <parameter> *swap_info</parameter></paramdef>
+    <paramdef>int <parameter> num_windows</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeSwapBuffers'><function>XdbeSwapBuffers</function></olink> swaps the front and back buffers
+for a list of windows. The argument num_windows specifies how many windows
+are to have their buffers swapped; it is the number of elements in the
+swap_info array. The argument swap_info specifies the information needed
+per window to do the swap.
+</para>
+<para>
+The XdbeSwapInfo structure has the following fields:
+</para>
+
+<literallayout remap='Ds'>
+Window              swap_window    window for which to swap buffers
+XdbeSwapAction      swap_action    swap action to use for this swap window
+</literallayout>
+
+<funcsynopsis id='XdbeBeginIdiom'>
+<funcprototype>
+  <funcdef>Status <function>XdbeBeginIdiom</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeBeginIdiom'><function>XdbeBeginIdiom</function></olink> marks the beginning of an idiom
+sequence. See
+<link linkend='Complex_Swap_Actions'>
+<xref linkend='Complex_Swap_Actions'></xref></link>
+for a complete discussion of idioms.
+</para>
+
+<funcsynopsis id='XdbeEndIdiom'>
+<funcprototype>
+  <funcdef>Status <function>XdbeEndIdiom</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeEndIdiom'><function>XdbeEndIdiom</function></olink> marks the end of an idiom sequence.
+</para>
+
+<funcsynopsis id='XdbeGetBackBufferAttributes'>
+<funcprototype>
+  <funcdef>XdbeBackBufferAttributes *<function>XdbeGetBackBufferAttributes</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>XdbeBackBuffer <parameter> buffer</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<olink targetdoc='dbelib' targetptr='XdbeGetBackBufferAttributes'><function>XdbeGetBackBufferAttributes</function></olink> returns the attributes associated with
+the specified buffer.
+</para>
+<para>
+The XdbeBackBufferAttributes structure has the following fields:
+</para>
+
+<literallayout remap='Ds'>
+Window           window           window that buffer belongs to
+</literallayout>
+
+<para>
+If buffer is not a valid <function>XdbeBackBuffer</function>, window is
+set to None.
+</para>
+<para>
+The returned <function>XdbeBackBufferAttributes</function> structure
+can be freed with the Xlib function <olink targetdoc='libX11' targetptr='XFree'><function>XFree</function></olink>.
+</para>
+</sect1>
+
+<sect1 id='Errors'>
+<title>Errors</title>
+<para>
+The <function>XdbeBufferError</function> structure has the following fields:
+</para>
+<literallayout remap='Ds'>
+int                 type
+Display *           display       Display the event was read from
+XdbeBackBuffer      buffer        resource id
+unsigned long       serial        serial number of failed request
+unsigned char       error code    error base + <function>XdbeBadBuffer</function>
+unsigned char       request code  Major op-code of failed request
+unsigned char       minor code    Minor op-code of failed request
+</literallayout>
+</sect1>
+</chapter>
+
+<chapter id='Acknowledgements'>
+<title>Acknowledgements</title>
+
+<para>
+We wish to thank the following individuals who have contributed their time
+and talent toward shaping the DBE specification:
+</para>
+<para>
+T. Alex Chen, IBM; Peter Daifuku, Silicon Graphics, Inc.; Ian Elliott,
+Hewlett-Packard Company; Stephen Gildea, X Consortium, Inc.; Jim Graham,
+Sun; Larry Hare, AGE Logic; Jay Hersh, X Consortium, Inc.; Daryl Huff,
+Sun; Deron Dann Johnson, Sun; Louis Khouw, Sun; Mark Kilgard, Silicon
+Graphics, Inc.; Rob Lembree, Digital Equipment Corporation; Alan Ricker,
+Metheus; Michael Rosenblum, Digital Equipment Corporation; Bob Scheifler,
+X Consortium, Inc.; Larry Seiler, Digital Equipment Corporation; Jeanne
+Sparlin Smith, IBM; Jeff Stevenson, Hewlett-Packard Company; Walter
+Strand, Metheus; Ken Tidwell, Hewlett-Packard Company; and David P.
+Wiggins, X Consortium, Inc.
+</para>
+<para>
+Mark provided the impetus to start the DBE project. Ian wrote the first draft
+of the specification. David served as architect.
+</para>
+
+</chapter>
+<chapter id='References'>
+<title>References</title>
+<para>
+Jeffrey Friedberg, Larry Seiler, and Jeff Vroom, "Multi-buffering Extension
+Specification Version 3.3."
+</para>
+<para>
+Tim Glauert, Dave Carver, Jim Gettys, and David P. Wiggins, "X
+Synchronization Extension Version 3.0."
+</para>
+</chapter>
+</book>

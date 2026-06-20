@@ -1,0 +1,773 @@
+<sect1 id="Toggle_Widget">
+<title>Toggle Widget</title>
+<literallayout class="monospaced">
+Application Header file     &lt;Xaw/Toggle.h&gt;
+Class Header file     &lt;Xaw/ToggleP.h&gt;
+Class          toggleWidgetClass
+Class Name     Toggle
+Superclass      Command
+</literallayout>
+
+<para>
+The Toggle widget is an area, often rectangular,
+that displays a graphic.  The graphic may be a text
+string containing multiple lines of characters in an 8
+bit or 16 bit character set (to be displayed with a
+<emphasis remap='I'>font</emphasis>), or in a multi-byte encoding (for use with
+a <emphasis remap='I'>fontset</emphasis>).  The graphic may also be a bitmap or
+pixmap.
+</para>
+
+<para>
+This widget maintains a Boolean state (e.g.
+True/False or On/Off) and changes state whenever it is selected.  When
+the pointer is on the Toggle widget, the Toggle widget may become highlighted by
+drawing a rectangle around its perimeter.  This highlighting indicates
+that the Toggle widget is ready for selection.  When pointer button 1 is
+pressed and released, the Toggle widget indicates that it has changed
+state by reversing its foreground and background colors, and its
+<function>notify</function> action is invoked, calling all functions on its callback
+list.  If the pointer is moved off of the widget before the pointer button is
+released, the Toggle widget reverts to its previous foreground and background
+colors, and releasing the pointer button has no effect.  This behavior allows
+the user to cancel the operation.
+</para>
+
+<para>
+Toggle widgets may also be part of a <quote>radio group.</quote>  A radio group is a
+list of at least two Toggle widgets in which no more than one Toggle may
+be set at
+any time.  A radio group is identified by the widget ID of any one of
+its members.  The convenience routine <xref linkend='XawToggleGetCurrent' xrefstyle='select: title'/> will
+return information about the Toggle widget in the radio group.
+</para>
+
+<para>
+Toggle widget state is preserved across changes in sensitivity.
+</para>
+
+<sect2 id='Toggle::Resources'>
+<title>Resources</title>
+<para>
+When creating a Toggle widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>bitmap</entry>
+      <entry>Bitmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cornerRoundPercent</entry>
+      <entry>CornerRoundPercent</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>25</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>encoding</entry>
+      <entry>Encoding</entry>
+      <entry>UnsignedChar</entry>
+      <entry></entry>
+      <entry>XawTextEncoding8bit</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>XFontStruct</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic height + 2 * <function>internalHeight</function></entry>
+    </row>
+    <row>
+      <entry>highlightThickness</entry>
+      <entry>Thickness</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>2 (0 if Shaped)</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>internalHeight</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>internalWidth</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>justify</entry>
+      <entry>Justify</entry>
+      <entry>Justify</entry>
+      <entry></entry>
+      <entry>XtJustifyCenter (center)</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>name of widget</entry>
+    </row>
+    <row>
+      <entry>leftBitmap</entry>
+      <entry>LeftBitmap</entry>
+      <entry>Bitmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>radioData</entry>
+      <entry>RadioData</entry>
+      <entry>Pointer</entry>
+      <entry></entry>
+      <entry>Name of widget</entry>
+    </row>
+    <row>
+      <entry>radioGroup</entry>
+      <entry>Widget</entry>
+      <entry>Widget</entry>
+      <entry></entry>
+      <entry>No radio group</entry>
+    </row>
+    <row>
+      <entry>resize</entry>
+      <entry>Resize</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>shapeStype</entry>
+      <entry>ShapeStyle</entry>
+      <entry>ShapeStyle</entry>
+      <entry></entry>
+      <entry>Rectangle</entry>
+    </row>
+    <row>
+      <entry>state</entry>
+      <entry>State</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>Off</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic width + 2 * <function>internalWidth</function></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>radioData</function>
+    </term>
+    <listitem>
+      <para>
+Specifies the data that will be returned by <xref linkend='XawToggleGetCurrent' xrefstyle='select: title'/>
+when this is the currently <emphasis remap='I'>set</emphasis> widget in the radio group.  This
+value is also used to identify the Toggle that will be set by a call to
+<xref linkend='XawToggleSetCurrent' xrefstyle='select: title'/>.  The value NULL will be returned by
+<xref linkend='XawToggleGetCurrent' xrefstyle='select: title'/> if no widget in a radio group is currently
+set.  Programmers must not specify NULL (or Zero) as <function>radioData</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>radioGroup</function>
+    </term>
+    <listitem>
+      <para>
+Specifies another Toggle widget that is in the radio group to which this
+Toggle widget should be added.  A radio group is a group of at least two Toggle
+widgets, only one of which may be <emphasis remap='I'>set</emphasis> at a time.  If this value is
+NULL (the default) then the Toggle will not be part of any radio group
+and can change state without affecting any other Toggle widgets.  If the
+widget specified in this resource is not already in a radio group then a
+new radio group will be created containing these two Toggle widgets.  No
+Toggle widget can be in multiple radio groups.  The behavior of a radio
+group of one toggle is undefined.  A converter is registered which will
+convert widget names to widgets without caching.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>state</function>
+    </term>
+    <listitem>
+      <para>
+Specifies whether the Toggle widget is set (<function>True</function>) or unset
+(<function>False</function>).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</sect2>
+
+<sect2 id="Toggle_Actions">
+<title>Toggle Actions</title>
+<para>
+The Toggle widget supports the following actions:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+Switching the Toggle widget between the foreground and background
+colors with <function>set</function> and <function>unset</function> and <function>toggle</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Processing application callbacks with <function>notify</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Switching the internal border between highlighted
+and unhighlighted states with <function>highlight</function> and <function>unhighlight</function>
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+The following are the default translation bindings used by the
+Toggle widget:
+</para>
+
+<literallayout class="monospaced">
+     &lt;EnterWindow&gt;:     highlight(Always)
+     &lt;LeaveWindow&gt;:     unhighlight()
+     &lt;Btn1Down&gt;,&lt;Btn1Up&gt;:     toggle() notify()
+</literallayout>
+</sect2>
+
+<sect2 id='Toggle_Actions_b'>
+<title>Toggle Actions</title>
+<para>
+The full list of actions supported by Toggle is:
+</para>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>highlight</function>(<emphasis remap='I'>condition</emphasis>)
+    </term>
+    <listitem>
+      <para>
+Displays the internal highlight border in the color (<function>foreground</function>
+or <function>background</function> ) that contrasts with the interior color of the
+Toggle widget.  The conditions <function>WhenUnset</function> and <function>Always</function> are
+understood by this action procedure.  If no argument is passed then
+<function>WhenUnset</function> is assumed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>unhighlight</function>()
+    </term>
+    <listitem>
+      <para>
+Displays the internal highlight border in the color (<function>foreground</function>
+or <function>background</function> ) that matches the interior color of the
+Toggle widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>set</function>()
+    </term>
+    <listitem>
+      <para>
+Enters the <emphasis remap='I'>set</emphasis> state, in which <function>notify</function> is possible.  This
+action causes the Toggle widget to display its interior in the
+<function>foreground</function> color.  The label or bitmap is displayed in the
+<function>background</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>unset</function>()
+    </term>
+    <listitem>
+      <para>
+Cancels the <emphasis remap='I'>set</emphasis> state and displays the interior of the Toggle widget in the
+<function>background</function> color.  The label or bitmap is displayed in the
+<function>foreground</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>toggle</function>()
+    </term>
+    <listitem>
+      <para>
+Changes the current state of the Toggle widget, causing to be set
+if it was previously unset, and unset if it was previously set.
+If the widget is to be set, and is in a radio group then this procedure may
+unset another Toggle widget causing all routines on its callback list
+to be invoked.  The callback routines for the Toggle that
+is to be unset will be called before the one that is to be set.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>reset</function>()
+    </term>
+    <listitem>
+      <para>
+Cancels any <function>set</function> or <function>highlight</function> and displays the interior of the
+Toggle widget in the <function>background</function> color, with the label displayed in the
+<function>foreground</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>notify</function>()
+    </term>
+    <listitem>
+      <para>
+When the Toggle widget is in the <function>set</function> state this action calls all functions in
+the callback list named by the <function>callback</function> resource.  The value of
+the call_data argument in these callback functions is undefined.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+When a bitmap of depth greater that one (1) is specified the
+<emphasis remap='I'>set</emphasis>(), <emphasis remap='I'>unset</emphasis>(), and <emphasis remap='I'>reset</emphasis>() actions have no effect,
+since there are no foreground and background colors used in a
+multi-plane pixmap.
+</para>
+</sect2>
+
+<sect2 id="Radio_Groups">
+<title>Radio Groups</title>
+<para>
+There are typically two types of radio groups desired by applications.
+The default translations for the Toggle widget implement a "zero or one
+<indexterm><primary>Radio groups</primary><secondary>zero or one of many</secondary></indexterm>
+of many" radio group.  This means that there may be no more than one
+Toggle widget active, but there need not be any Toggle widgets active.
+</para>
+
+<para>
+The other type of radio group is "one of many" and has the more strict
+policy that there will always be exactly one radio button active.
+Toggle widgets can be used to provide this interface with a slight
+modification to the translation table of each Toggle in the group.
+</para>
+
+<literallayout class="monospaced">
+     &lt;EnterWindow&gt;:     highlight(Always)
+     &lt;LeaveWindow&gt;:     unhighlight()
+     &lt;Btn1Down&gt;,&lt;Btn1Up&gt;:     set() notify()
+</literallayout>
+
+<para>
+This translation table will not allow any Toggle to be <emphasis remap='I'>unset</emphasis>
+except as a result of another Toggle becoming <emphasis remap='I'>set</emphasis>.  It is
+the application programmer's responsibility to choose an initial
+state for the radio group by setting the <function>state</function> resource of one of
+its member widgets to <function>True</function>.
+</para>
+</sect2>
+
+<sect2 id='Toggle::Convenience_Routines'>
+<title>Convenience Routines</title>
+<para>
+The following functions allow easy access to the Toggle widget's radio
+group functionality.
+</para>
+
+<sect3 id='Changing_the_Toggles_Radio_Group'>
+<title>Changing the Toggle's Radio Group.</title>
+<para>
+To enable an application to change the Toggle's radio group, add
+the Toggle to a radio group, or remove the Toggle from a radio group, use
+<xref linkend='XawToggleChangeRadioGroup' xrefstyle='select: title'/>.
+</para>
+
+<funcsynopsis id='XawToggleChangeRadioGroup'>
+<funcprototype>
+  <funcdef>void<function> XawToggleChangeRadioGroup</function></funcdef>
+  <paramdef>Widgetw,<parameter> radio_group</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Toggle widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>radio_group</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies any Toggle in the new radio group.  If NULL then the Toggle
+will be removed from any radio group of which it is a member.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+
+<para>
+If a Toggle is already <emphasis remap='I'>set</emphasis> in the new radio group,
+and the Toggle to be added is also <emphasis remap='I'>set</emphasis> then the previously
+<emphasis remap='I'>set</emphasis> Toggle in the radio group is <emphasis remap='I'>unset</emphasis> and its callback
+procedures are invoked.
+Finding the Currently selected Toggle in a radio group of Toggles
+</para>
+
+<para>
+To find the currently selected Toggle in a radio group of Toggle widgets
+use <xref linkend='XawToggleGetCurrent' xrefstyle='select: title'/>.
+</para>
+
+<funcsynopsis id='XawToggleGetCurrent'>
+<funcprototype>
+  <funcdef>XtPointer<function> XawToggleGetCurrent</function></funcdef>
+  <paramdef>XtPointer<parameter> XawToggleGetCurrent(radio_group)</parameter></paramdef>
+  <paramdef>Widget<parameter> radio_group</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>radio_group</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies any Toggle widget in the radio group.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The value returned by this function is the
+<function>radioData</function>
+of the Toggle in this radio group that is currently set.  The default
+value for <function>radioData</function>
+is the name of that Toggle widget.  If no Toggle is set in the radio
+group specified then NULL is returned.
+Changing the Toggle that is set in a radio group.
+</para>
+
+<para>
+To change the Toggle that is currently set in a radio group use
+<xref linkend='XawToggleSetCurrent' xrefstyle='select: title'/>.
+</para>
+
+<funcsynopsis id='XawToggleSetCurrent'>
+<funcprototype>
+  <funcdef>void<function> XawToggleSetCurrent</function></funcdef>
+  <paramdef>voidXawToggleSetCurrent(radio_group,<parameter> radio_data)</parameter></paramdef>
+  <paramdef>Widget<parameter> radio_group</parameter></paramdef>
+  <paramdef>XtPointer<parameter> radio_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>radio_group</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies any Toggle widget in the radio group.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>radio_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the
+<function>radioData</function>
+identifying the Toggle that should be set in the radio group specified
+by the <emphasis remap='I'>radio_group</emphasis> argument.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+<xref linkend='XawToggleSetCurrent' xrefstyle='select: title'/> locates the Toggle widget to be set by
+matching <emphasis remap='I'>radio_data</emphasis> against the <function>radioData</function> for each Toggle in
+the radio group.  If none match, <xref linkend='XawToggleSetCurrent' xrefstyle='select: title'/> returns
+without making any changes.  If more than one Toggle matches,
+<xref linkend='XawToggleSetCurrent' xrefstyle='select: title'/> will choose a Toggle to set arbitrarily.  If
+this causes any Toggle widgets to change state, all routines in their
+callback lists will be invoked.  The callback routines for a Toggle that
+is to be unset will be called before the one that is to be set.
+Unsetting all Toggles in a radio group.
+</para>
+
+<para>
+To unset all Toggle widgets in a radio group use
+<xref linkend='XawToggleUnsetCurrent' xrefstyle='select: title'/>.
+</para>
+
+<funcsynopsis id='XawToggleUnsetCurrent'>
+<funcprototype>
+  <funcdef>void<function> XawToggleUnsetCurrent</function></funcdef>
+  <paramdef>void<parameter> XawToggleUnsetCurrent(radio_group)</parameter></paramdef>
+  <paramdef>Widget<parameter> radio_group</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>radio_group</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies any Toggle widget in the radio group.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If this causes a Toggle widget to change state, all routines on its
+callback list will be invoked.
+</para>
+</sect3>
+</sect2>
+</sect1>

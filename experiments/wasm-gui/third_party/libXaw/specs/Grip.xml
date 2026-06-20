@@ -1,0 +1,358 @@
+<sect1 id="Grip_Widget">
+<title>Grip Widget</title>
+<!-- .XS -->
+<!-- 	Grip Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Grip widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application header file	&lt;X11/Xaw/Grip.h&gt;
+<indexterm><primary>Grip.h</primary></indexterm>
+Class header file	&lt;X11/Xaw/GripP.h&gt;
+<indexterm><primary>GripP.h</primary></indexterm>
+Class	gripWidgetClass
+<indexterm><primary>gripWidgetClass</primary></indexterm>
+Class Name	Grip
+<indexterm><primary>Grip widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Simple
+<!-- .sp -->
+</literallayout>
+<para>
+<!-- .LP -->
+The Grip widget provides a small rectangular region in which user input
+events (such as ButtonPress or ButtonRelease) may be handled.  The most
+common use for the Grip widget is as an attachment point for visually
+repositioning an object, such as the pane border in a Paned widget.
+</para>
+<sect2 id='Grip::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Grip widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Grip widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>8</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>8</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>callback</function>
+    </term>
+    <listitem>
+      <para>
+All routines on this list are called whenever the <function>GripAction</function>
+action routine is invoked.  The <emphasis remap='I'>call_data</emphasis> contains all
+information passed to the action routine.  A detailed description
+is given below in the <function>Grip Actions</function> section.
+<!-- .Cm -->
+<!-- .Cu -->
+<!-- .Cn -->
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>foreground</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+used to flood fill the entire Grip widget.
+<!-- .Hw -->
+<!-- .Ib -->
+<!-- .Ix -->
+<!-- .Mm -->
+<!-- .Pf -->
+<!-- .Pb -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Grip_Actions">
+<title>Grip Actions</title>
+<indexterm><primary>Grip widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Grip widget does not declare any default event translation bindings,
+but it does declare a single action routine named <function>GripAction</function>.  The
+<indexterm><primary>Grip widget</primary><secondary>GripAction routine</secondary></indexterm>
+client specifies an arbitrary event translation table, optionally giving
+parameters to the <function>GripAction</function> routine.
+</para>
+<para>
+<!-- .LP -->
+The <function>GripAction</function> routine executes the callbacks on the
+<function>callback</function> list, passing as <function>call_data</function> a pointer to a
+<function>XawGripCallData</function> structure, defined in the Grip widget's application
+header file.
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+<indexterm significance="preferred"><primary>XawGripCallData</primary></indexterm>
+<indexterm significance="preferred"><primary>XawGripCallDataRec</primary></indexterm>
+<!-- .sp -->
+typedef struct _XawGripCallData {
+	XEvent *event;
+	String *params;
+	Cardinal num_params;
+} XawGripCallDataRec, *XawGripCallData,
+  GripCallDataRec, *GripCallData; /* supported for R4 compatibility */
+<indexterm><primary>XawGripCallDataRec</primary></indexterm>
+<indexterm><primary>XawGripCallData</primary></indexterm>
+<indexterm><primary>GripCallData</primary></indexterm>
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+In this structure, the <emphasis remap='I'>event</emphasis> is a pointer to the input event that
+triggered the action.  <emphasis remap='I'>params</emphasis> and <emphasis remap='I'>num_params</emphasis> give the string
+parameters specified in the translation table for the particular event
+binding.
+<indexterm><primary>Grip widget</primary><secondary>GripAction table</secondary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+The following is an example of a translation table that uses the GripAction:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.5i -->
+<!-- .ta .5i 2.5i -->
+<!-- .sp -->
+	&lt;Btn1Down&gt;:	GripAction(press)
+	&lt;Btn1Motion&gt;:	GripAction(move)
+	&lt;Btn1Up&gt;:	GripAction(release)
+<!-- .sp -->
+</literallayout>
+For a complete description of the format of translation tables, see the
+<olink targetdoc='intrinsics' targetptr='Translation_Management'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+
+</para>
+</sect2>
+</sect1>

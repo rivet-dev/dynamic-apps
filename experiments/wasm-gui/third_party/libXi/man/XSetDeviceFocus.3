@@ -1,0 +1,297 @@
+'\" t
+.\"     Title: xsetdevicefocus
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XSETDEVICEFOCUS" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XSetDeviceFocus, XGetDeviceFocus \- control extension input device focus
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XSetDeviceFocus( Display *display,
+                 XDevice *device,
+                 Window focus,
+                 int revert_to,
+                 Time time);
+.fi
+.sp
+.nf
+XGetDeviceFocus( Display *display,
+                 XDevice *device,
+                 Window *focus_return,
+                 int *revert_to_return,
+                 int * time_return);
+.fi
+.sp
+Arguments
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose focus is to be queried or
+       changed\&.
+.fi
+.sp
+.nf
+focus
+       Specifies the window, PointerRoot, FollowKeyboard, or
+       None\&.
+.fi
+.sp
+.nf
+focus_return
+       Returns the focus window, PointerRoot, FollowKeyboard, or
+       None\&.
+.fi
+.sp
+.nf
+revert_to
+       Specifies where the input focus reverts to if the window
+       becomes not viewable\&. You can pass RevertToParent,
+       RevertToPointerRoot, RevertToFollowKeyboard, or
+       RevertToNone\&.
+.fi
+.sp
+.nf
+revert_to_return
+       Returns the current focus state RevertToParent,
+       RevertToPointerRoot, RevertToFollowKeyboard, or
+       RevertToNone\&.
+.fi
+.sp
+.nf
+time_return
+       Returns the last_focus_time for the device\&.
+.fi
+.sp
+.nf
+time
+       Specifies the time\&. You can pass either a timestamp or
+       CurrentTime\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XSetDeviceFocus request changes the focus of the specified
+device and its last\-focus\-change time\&. It has no effect if the
+specified time is earlier than the current last\-focus\-change
+time or is later than the current X server time\&. Otherwise, the
+last\-focus\-change time is set to the specified time CurrentTime
+is replaced by the current X server time)\&. XSetDeviceFocus
+causes the X server to generate DeviceFocusIn and
+DeviceFocusOut events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Depending on the focus argument, the following occurs:
+  * If focus is None , all device events are discarded until a
+    new focus window is set, and the revert_to argument is
+    ignored\&.
+  * If focus is a window, it becomes the device\*(Aqs focus window\&.
+    If a generated device event would normally be reported to
+    this window or one of its inferiors, the event is reported
+    as usual\&. Otherwise, the event is reported relative to the
+    focus window\&.
+  * If focus is PointerRoot, the focus window is dynamically
+    taken to be the root window of whatever screen the pointer
+    is on at each event from the specified device\&. In this
+    case, the revert_to argument is ignored\&.
+  * If focus is FollowKeyboard, the focus window is dynamically
+    taken to be the window to which the X keyboard focus is set
+    at each input event\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The specified focus window must be viewable at the time
+XSetDeviceFocus is called, or a BadMatch error results\&. If the
+focus window later becomes not viewable, the X server evaluates
+the revert_to argument to determine the new focus window as
+follows:
+  * If revert_to is RevertToParent, the focus reverts to the
+    parent (or the closest viewable ancestor), and the new
+    revert_to value is taken to be RevertToNone\&.
+  * If revert_to is RevertToPointerRoot,
+    RevertToFollowKeyboard, or RevertToNone, the focus reverts
+    to PointerRoot, FollowKeyboard, or None, respectively\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+When the focus reverts, the X server generates DeviceFocusIn
+and DeviceFocusOut events, but the last\-focus\-change time is
+not affected\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Input extension devices are not required to support the ability
+to be focused\&. Attempting to set the focus of a device that
+does not support this request will result in a BadMatch error\&.
+Whether or not given device can support this request can be
+determined by the information returned by XOpenDevice\&. For
+those devices that support focus, XOpenDevice will return an
+XInputClassInfo structure with the input_class field equal to
+the constant FocusClass (defined in the file XI\&.h)\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XSetDeviceFocus can generate BadDevice, BadMatch, BadValue, and
+BadWindow errors\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetDeviceFocus request returns the focus window and the
+current focus state\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Not all input extension devices can be focused\&. Attempting to
+query the focus state of a device that can\*(Aqt be focused results
+in a BadMatch error\&. A device that can be focused returns
+information for input Class Focus when an XOpenDevice request
+is made\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGetDeviceFocus can generate BadDevice, and BadMatch errors\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if the
+       specified device is the X keyboard or X pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the request\&. Unless a specific range is
+       specified for an argument, the full range defined by the
+       argument\*(Aqs type is accepted\&. Any argument defined as a
+       set of alternatives can generate this error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       A value for a Window argument does not name a defined
+       Window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XGetDeviceFocus or
+       XSetDeviceFocus request was made specifying a device
+       that the server implementation does not allow to be
+       focused\&.
+.fi
+.if n \{\
+.RE
+.\}

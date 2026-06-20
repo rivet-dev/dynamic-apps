@@ -1,0 +1,95 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtGet-Subresources XtVa-Get-Subresources wid-get
+.na
+.TH XtGetSubresources __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtGetSubresources, XtVaGetSubresources \- obtain subresources
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtGetSubresources(Widget \fIw\fP,
+XtPointer \fIbase\fP,
+const char *\fIname\fP,
+const char * \fIclass\fP,
+XtResourceList \fIresources\fP, Cardinal \fInum_resources\fP,
+ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+void XtVaGetSubresources(Widget \fIw\fP,
+XtPointer \fIbase\fP,
+const char *\fIname\fP,
+const char *\fIclass\fP,
+XtResourceList \fIresources\fP, Cardinal
+\fInum_resources\fP, ...);
+.SH ARGUMENTS
+.IP \fIargs\fP 1i
+Specifies the argument list to override resources obtained from the resource database.
+.IP \fIbase\fP 1i
+Specifies the base address of the subpart data structure where the resources
+should be written.
+.IP \fIclass\fP 1i
+Specifies the class of the subpart.
+.IP \fIname\fP 1i
+Specifies the name of the subpart.
+.IP \fInum_args\fP 1i
+Specifies the number of arguments in the argument list.
+.IP \fInum_resources\fP 1i
+Specifies the number of resources in the resource list.
+.IP \fIresources\fP 1i
+Specifies the resource list for the subpart.
+.IP \fIw\fP 1i
+Specifies the widget that wants resources for a subpart 
+or that identifies the resource database to search.
+.IP \fI...\fP 1i
+Specifies the variable arguments to override resources obtained from the resource database.
+.SH DESCRIPTION
+The
+.B XtGetSubresources
+function constructs a name/class list from the application name/class,
+the name/classes of all its ancestors, and the widget itself.
+Then, it appends to this list the name/class pair passed in.
+The resources are fetched from the argument list, the resource database,
+or the default values in the resource list.
+Then, they are copied into the subpart record.
+If args is NULL,
+num_args must be zero.
+However, if num_args is zero,
+the argument list is not referenced.
+.SH "SEE ALSO"
+XtGetApplicationResources, XtVaGetApplicationResources
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

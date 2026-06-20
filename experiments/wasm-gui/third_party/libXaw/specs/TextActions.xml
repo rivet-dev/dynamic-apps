@@ -1,0 +1,977 @@
+<sect2 id="Text_Widget_Actions">
+<title>Text Widget Actions</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Text widget</primary><secondary>actions</secondary></indexterm>
+<!-- .XS -->
+<!--      Actions Supported by all Text Widgets -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Text widget</primary><secondary>actions</secondary></indexterm>
+
+All editing functions are performed by translation manager actions that may
+be specified through the <function>translations</function> resource in the Text widget.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.5i 3i -->
+<!-- .ta .5i 2.5i 3i -->
+Insert Point Movement     Delete
+     forward-character         delete-next-character
+     backward-character        delete-previous-character
+     forward-word              delete-next-word
+     backward-word             delete-previous-word
+     forward-paragraph         delete-selection
+     backward-paragraph
+     beginning-of-line
+     end-of-line          Selection
+     next-line                 select-word
+     previous-line             select-all
+     next-page                 select-start
+     previous-page             select-adjust
+     beginning-of-file         select-end
+     end-of-file               extend-start
+     scroll-one-line-up        extend-adjust
+     scroll-one-line-down      extend-end
+                               insert-selection
+
+
+Miscellaneous             New Line
+     redraw-display            newline-and-indent
+     insert-file               newline-and-backup
+     insert-char               newline
+     insert-string
+     display-caret
+     focus-in             Kill
+     focus-in                  kill-word
+     search                    backward-kill-word
+     multiply                  kill-selection
+     form-paragraph            kill-to-end-of-line
+     transpose-characters      kill-paragraph
+     no-op                     kill-to-end-of-paragraph
+     XawWMProtocols
+     reconnect-im
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+Most of the actions take no arguments, and unless otherwise noted you
+may assume this to be the case.
+</para>
+<para>
+<!-- .LP -->
+</para>
+<sect3 id='Cursor_Movement_Actions'>
+<title>Cursor Movement Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<variablelist>
+  <varlistentry>
+    <term>
+      forward-character()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      backward-character()
+    </term>
+    <listitem>
+      <para>
+These actions move the insert point forward or backward one character in
+the buffer.  If the insert point is at the end or beginning of a line
+this action will move the insert point to the next (or previous) line.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      forward-word()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      backward-word()
+    </term>
+    <listitem>
+      <para>
+These actions move the insert point to the next or previous word boundary.
+A word boundary is defined as a Space, Tab or Carriage Return.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      forward-paragraph()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      backward-paragraph()
+    </term>
+    <listitem>
+      <para>
+These actions move the insert point to the next or previous paragraph boundary.
+A paragraph boundary is defined as two Carriage Returns in a row with only
+Spaces or Tabs between them.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      beginning-of-line()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      end-of-line()
+    </term>
+    <listitem>
+      <para>
+These actions move to the beginning or end of the current line.  If the
+insert point is already at the end or beginning of the line then no action is taken.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      next-line()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      previous-line()
+    </term>
+    <listitem>
+      <para>
+These actions move the insert point up or down one line.  If the insert
+point is currently N characters from the beginning of the line then it
+will be N characters from the beginning of the next or previous line.
+If N is past the end of the line, the insert point is placed at the end
+of the line.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      next-page()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      previous-page()
+    </term>
+    <listitem>
+      <para>
+These actions move the insert point up or down one page in the file.
+One page is defined as the current height of the text widget.  The
+insert point is always placed at the first character of the top line by
+this action.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      beginning-of-file()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      end-of-file()
+    </term>
+    <listitem>
+      <para>
+These actions place the insert point at the beginning or end of the
+current text buffer.  The text widget is then scrolled the minimum
+amount necessary to make the new insert point location visible.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      scroll-one-line-up()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      scroll-one-line-down()
+    </term>
+    <listitem>
+      <para>
+These actions scroll the current text field up or down by one line.
+They do not move the insert point.  Other than the scrollbars this is
+the only way that the insert point may be moved off of the visible text
+area.  The widget will be scrolled so that the insert point is back on
+the screen as soon as some other action is executed.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="Delete_Actions">
+<title>Delete Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<variablelist>
+  <varlistentry>
+    <term>
+      delete-next-character()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      delete-previous-character()
+    </term>
+    <listitem>
+      <para>
+These actions remove the character immediately before or after the
+insert point.  If a Carriage Return is removed then the next line is
+appended to the end of the current line.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      delete-next-word()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      delete-previous-word()
+    </term>
+    <listitem>
+      <para>
+These actions remove all characters between the insert point location and
+the next word boundary.  A word boundary is defined as a Space, Tab or
+Carriage Return.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      delete-selection()
+    </term>
+    <listitem>
+      <para>
+This action removes all characters in the current selection.
+The selection can be set with the selection actions.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="Selection_Actions">
+<title>Selection Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<variablelist>
+  <varlistentry>
+    <term>
+      select-word()
+    </term>
+    <listitem>
+      <para>
+This action selects the word in which the insert point is currently located.
+If the insert point is between words then it will select the previous word.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      select-all()
+    </term>
+    <listitem>
+      <para>
+This action selects the entire text buffer.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      select-start()
+    </term>
+    <listitem>
+      <para>
+This action sets the insert point to the current pointer location (if
+triggered by a button event) or text cursor location (if triggered by
+a key event).  It
+will then begin a selection at this location.  If many of these
+selection actions occur quickly in succession then the selection count
+mechanism will be invoked (see
+<xref linkend="Text_Selections_for_Application_Programmers"/> for details).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      select-adjust()
+    </term>
+    <listitem>
+      <para>
+This action allows a selection started with the <emphasis remap='I'>select-start</emphasis>
+action to be modified, as described above.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      select-end(<emphasis remap='I'>name</emphasis>[,<emphasis remap='I'>name</emphasis>,...])
+    </term>
+    <listitem>
+      <para>
+This action ends a text selection that began with the <emphasis remap='I'>select-start</emphasis>
+action, and asserts ownership of the selection or selections specified.
+A <emphasis remap='I'>name</emphasis> can be a selection (e.g., <function>PRIMARY</function>) or a cut buffer
+(e.g., <function>CUT_BUFFER0</function>).  Note that case is important.  If no
+<emphasis remap='I'>names</emphasis> are specified, <function>PRIMARY</function> is asserted.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      extend-start()
+    </term>
+    <listitem>
+      <para>
+This action finds the nearest end of the current selection, and moves it
+to the current pointer location (if triggered by a button event) or text
+cursor location (if triggered by a key event).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      extend-adjust()
+    </term>
+    <listitem>
+      <para>
+This action allows a selection started with an <emphasis remap='I'>extend-start</emphasis> action
+to be modified.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      extend-end(<emphasis remap='I'>name</emphasis>[,<emphasis remap='I'>name</emphasis>,...])
+    </term>
+    <listitem>
+      <para>
+This action ends a text selection that began with the <emphasis remap='I'>extend-start</emphasis>
+action, and asserts ownership of the selection or selections specified.
+A <emphasis remap='I'>name</emphasis> can be a selection (e.g. <function>PRIMARY</function>) or a cut buffer
+(e.g <function>CUT_BUFFER0</function>).  Note that case is important.  If no names are
+given, <function>PRIMARY</function> is asserted.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      insert-selection(<emphasis remap='I'>name</emphasis>[,<emphasis remap='I'>name</emphasis>,...])
+    </term>
+    <listitem>
+      <para>
+This action retrieves the value of the first (left-most) named selection
+that exists or the cut buffer that is not empty and inserts it into the
+Text widget at the current insert point location. A <emphasis remap='I'>name</emphasis> can be a
+selection (e.g. <function>PRIMARY</function>) or a cut buffer (e.g <function>CUT_BUFFER0</function>).
+Note that case is important.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="The_New_Line_Actions">
+<title>The New Line Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<variablelist>
+  <varlistentry>
+    <term>
+      newline-and-indent()
+    </term>
+    <listitem>
+      <para>
+This action inserts a newline into the text and adds spaces to
+that line to indent it to match the previous line.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      newline-and-backup()
+    </term>
+    <listitem>
+      <para>
+This action inserts a newline into the text <emphasis remap='I'>after</emphasis> the insert point.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      newline()
+    </term>
+    <listitem>
+      <para>
+This action inserts a newline into the text <emphasis remap='I'>before</emphasis> the insert point.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="Kill_and_Actions">
+<title>Kill and Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<variablelist>
+  <varlistentry>
+    <term>
+      kill-word()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      backward-kill-word()
+    </term>
+    <listitem>
+      <para>
+These actions act exactly like the <emphasis remap='I'>delete-next-word</emphasis> and
+<emphasis remap='I'>delete-previous-word</emphasis> actions, but they stuff the word that was
+killed into the kill buffer (<function>CUT_BUFFER_1</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      kill-selection()
+    </term>
+    <listitem>
+      <para>
+This action deletes the current selection and stuffs the deleted text into
+the kill buffer (<function>CUT_BUFFER_1</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      kill-to-end-of-line()
+    </term>
+    <listitem>
+      <para>
+This action deletes the entire line to the right of the insert point position,
+and stuffs the deleted text into the kill buffer (<function>CUT_BUFFER_1</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      kill-paragraph()
+    </term>
+    <listitem>
+      <para>
+This action deletes the current paragraph, if between paragraphs it deletes
+the paragraph above the insert point, and stuffs the deleted text into
+the kill buffer (<function>CUT_BUFFER_1</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      kill-to-end-of-paragraph()
+    </term>
+    <listitem>
+      <para>
+This action deletes everything between the current insert point location and
+the next paragraph boundary, and stuffs the deleted text into the kill
+buffer (<function>CUT_BUFFER_1</function>).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="Miscellaneous_Actions">
+<title>Miscellaneous Actions</title>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+<variablelist>
+  <varlistentry>
+    <term>
+      redraw-display()
+    </term>
+    <listitem>
+      <para>
+This action recomputes the location of all the text lines on the
+display, scrolls the text to vertically center the line containing the insert point
+on the screen, clears the entire screen, and redisplays it.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      insert-file([<emphasis remap='I'>filename</emphasis>])
+    </term>
+    <listitem>
+      <para>
+This action activates the insert file popup.  The <emphasis remap='I'>filename</emphasis>
+option specifies the default filename to put in the filename buffer of
+the popup.  If no <emphasis remap='I'>filename</emphasis> is specified the buffer is empty
+at startup.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      insert-char()
+    </term>
+    <listitem>
+      <para>
+This action may only be attached to a key event. When the
+<function>international</function> resource is <function>false</function>, this action
+calls XLookupString to translate the event into a (rebindable) Latin-1
+character (sequence) and inserts it into the text at the
+insert point.  When the <function>international</function> resource is <function>true</function>,
+characters are passed to the input method via XwcLookupString, and any
+committed string returned is inserted into the text at the insert point.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      insert-string(<emphasis remap='I'>string</emphasis>[,<emphasis remap='I'>string</emphasis>,...])
+    </term>
+    <listitem>
+      <para>
+This action inserts each <emphasis remap='I'>string</emphasis> into the text
+at the insert point location.  Any <emphasis remap='I'>string</emphasis>
+beginning with the characters "0x" followed by an even
+number of hexadecimal digits is
+interpreted as a hexadecimal constant and the
+corresponding string is inserted instead.  This
+hexadecimal string may represent up to 50 8-bit characters.
+ When the<function>international</function> resource is
+<function>true</function>, a hexadecimal string is intrepeted as
+being in a multi-byte encoding, and a hexadecimal
+or regular string will result in an error message
+if it is not legal in the current locale.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      display-caret(<emphasis remap='I'>state</emphasis>,<emphasis remap='I'>when</emphasis>)
+    </term>
+    <listitem>
+      <para>
+This action allows the insert point to be turned on and off.
+The <emphasis remap='I'>state</emphasis> argument specifies the desired state of the insert point.
+This value may be any of the string
+values accepted for Boolean resources (e.g. <function>on</function>, <function>True</function>,
+<function>off</function>, <function>False</function>, etc.).  If no arguments are specified, the
+default value is <function>True</function>.
+The <emphasis remap='I'>when</emphasis> argument specifies, for <function>EnterNotify</function> or <function>LeaveNotify</function>
+events whether or not the focus field in the event is to be examined.
+If the second argument is not specified, or specified as something other
+than <function>always</function> then if the action is bound to an  <function>EnterNotify</function>
+or <function>LeaveNotify</function> event, the action will be taken only if the focus
+field is <function>True</function>.  An augmented binding that might be useful is:
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i 2.5i 4.0i -->
+<!-- .ta 2.0i 2.5i 4.0i -->
+     *Text.Translations: #override \\
+          &lt;FocusIn&gt;:     display-caret(on) \\n\\
+          &lt;FocusOut&gt;:     display-caret(off)
+</literallayout>
+<variablelist>
+  <varlistentry>
+    <term>
+      focus-in()
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      focus-out()
+    </term>
+    <listitem>
+      <para>
+These actions do not currently do anything.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      search(<emphasis remap='I'>direction</emphasis>,[<emphasis remap='I'>string</emphasis>])
+    </term>
+    <listitem>
+      <para>
+This action activates the search popup.  The <emphasis remap='I'>direction</emphasis> must be
+specified as either <function>forward</function> or <function>backward</function>.  The string is
+optional and is used as an initial value for the <emphasis remap='I'>Search for</emphasis>: string.
+For further explanation of the search widget see the section on
+<function>Text Searches</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      multiply(<emphasis remap='I'>value</emphasis>)
+    </term>
+    <listitem>
+      <para>
+The multiply action allows the user to multiply the effects of many of
+the text actions.  Thus the following action sequence
+<emphasis remap='I'>multiply(10) delete-next-word()</emphasis> will delete 10 words.  It does not
+matter whether these actions take place in one event or many events.
+Using the default translations the key sequence
+<emphasis remap='I'>Control-u, Control-d</emphasis> will delete 4 characters.
+Multiply actions can be chained, thus
+<emphasis remap='I'>multiply(5) multiply(5)</emphasis> is the same as
+<emphasis remap='I'>multiply(25)</emphasis>.  If the string
+<function>reset</function> is passed to the multiply action the effects of all previous
+multiplies are removed and a beep is sent to the display.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      form-paragraph()
+    </term>
+    <listitem>
+      <para>
+This action removes all the Carriage Returns from the current
+paragraph and reinserts them so that each line is as long as possible, while
+still fitting on the current screen.  Lines are broken at word boundaries if
+at all possible.  This action currently works only on Text widgets
+that use ASCII text.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      transpose-characters()
+    </term>
+    <listitem>
+      <para>
+This action will swap the position of the character to the left of the
+insert point with the character to the right of the insert point.  The insert point will then
+be advanced one character.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      no-op([<emphasis remap='I'>action</emphasis>])
+    </term>
+    <listitem>
+      <para>
+The no-op action makes no change to the text widget, and is mainly used
+to override translations.  This action takes one optional argument.  If
+this argument is <emphasis remap='I'>RingBell</emphasis> then a beep is sent to the display.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      XawWMProtocols([<emphasis remap='I'>wm_protocol_name</emphasis>])
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>XawWMProtocols</primary></indexterm>
+<!-- .sp -->
+This action is written specifically for the file insertion and the search
+and replace
+dialog boxes.  This action is attached to those shells by the Text widget,
+in order to handle ClientMessage events with the WM_PROTOCOLS atom in the
+detail field.  This action supports WM_DELETE_WINDOW on the Text widget
+popups, and may support other window manager protocols if necessary in
+the future.  The popup will be dismissed if the window manager sends
+a WM_DELETE_WINDOW request and there are no parameters in the action
+call, which is the default.  The popup will also be dismissed if the
+parameters include the string <quote>wm_delete_window,</quote> and the event is a
+ClientMessage event requesting dismissal or is not a ClientMessage event.
+This action is not sensitive to the case of the strings passed as parameters.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      reconnect-im()
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>Input Method</primary></indexterm>
+When the <function>international</function> resource is <function>true</function>,
+input is usually passed to an input method, a separate
+process, for composing.  Sometimes the connection to
+this process gets severed; this action will attempt to
+reconnect it.  Causes for severage include network
+trouble, and the user explicitly killing one input
+method and starting a new one.  This action may also
+establish first connection when the application is
+started before the input method.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect3>
+<sect3 id="Text_Selections_for_Application_Programmers">
+<title>Text Selections for Application Programmers</title>
+<indexterm><primary>Text widget</primary><secondary>Text Selections for Application Programmers</secondary></indexterm>
+<para>
+<!-- .LP -->
+The default behavior of the text selection array is described in the
+section called <function>Text Selections for Users</function>.  To modify the selections
+a programmer must construct a <function>XawTextSelectType</function> array (called the
+selection array), containing the selections desired, and pass this as
+the new value for the <function>selectionTypes</function> resource.  The selection
+array may also be modified using the <xref linkend='XawTextSetSelectionArray' xrefstyle='select: title'/>
+<indexterm><primary>XawTextSetSelectionArray</primary></indexterm>
+function.  All selection arrays must end with the value
+<function>XawselectNull</function>.  The <function>selectionTypes</function> resource has no converter
+registered and cannot be modified through the resource manager.
+</para>
+<para>
+<!-- .LP -->
+The array contains a list of entries that will be called when the user
+attempts to select text in rapid succession with the <emphasis remap='I'>select-start</emphasis>
+action (usually by clicking a pointer button).  The first entry in the
+selection array will be used when the <emphasis remap='I'>select-start</emphasis> action is
+initially called.  The next entry will be used when <emphasis remap='I'>select-start</emphasis>
+is called again, and so on.  If a timeout value (1/10 of a second) is
+exceeded, the the next <emphasis remap='I'>select-start</emphasis> action will begin at the top
+of the selection array.  When <function>XawselectNull</function> is reached the array
+is recycled beginning with the first element.
+
+<informaltable>
+  <tgroup cols='2' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <tbody>
+    <row>
+      <entry><function>XawselectAll</function></entry>
+      <entry>Selects the contents of the entire buffer.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectChar</function></entry>
+      <entry>Selects text characters as the pointer moves over them.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectLine</function></entry>
+      <entry>Selects the entire line.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectNull</function></entry>
+      <entry>Indicates the end of the selection array.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectParagraph</function></entry>
+      <entry>Selects the entire paragraph.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectPosition</function></entry>
+      <entry>Selects the current pointer position.</entry>
+    </row>
+    <row>
+      <entry><function>XawselectWord</function></entry>
+      <entry>Selects whole words as the pointer moves onto them.</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+<para>
+<!-- .LP -->
+The default selectType array is:
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+{XawselectPosition, XawselectWord, XawselectLine, XawselectParagraph, XawselectAll, XawselectNull}
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+The selection array is not copied by the text widgets.  The
+application must allocate space for the array and cannot deallocate or
+change it until the text widget is destroyed or until a new selection
+array is set.
+</para>
+</sect3>
+</sect2>
+<sect2 id="Default_Translation_Bindings">
+<title>Default Translation Bindings</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!--      Default Translation Bindings -->
+<!-- .XE -->
+<indexterm><primary>Text widget</primary><secondary>default translations</secondary></indexterm>
+The following translations are defaults built into every Text widget.
+They can be overridden, or replaced by specifying a new value for the
+Text widget's <function>translations</function> resource.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.5i -->
+<!-- .ta .5i 2.5i -->
+     Ctrl&lt;Key&gt;A:     beginning-of-line() \\n\\
+     Ctrl&lt;Key&gt;B:     backward-character() \\n\\
+     Ctrl&lt;Key&gt;D:     delete-next-character() \\n\\
+     Ctrl&lt;Key&gt;E:     end-of-line() \\n\\
+     Ctrl&lt;Key&gt;F:     forward-character() \\n\\
+     Ctrl&lt;Key&gt;G:     multiply(Reset) \\n\\
+     Ctrl&lt;Key&gt;H:     delete-previous-character() \\n\\
+     Ctrl&lt;Key&gt;J:     newline-and-indent() \\n\\
+     Ctrl&lt;Key&gt;K:     kill-to-end-of-line() \\n\\
+     Ctrl&lt;Key&gt;L:     redraw-display() \\n\\
+     Ctrl&lt;Key&gt;M:     newline() \\n\\
+     Ctrl&lt;Key&gt;N:     next-line() \\n\\
+     Ctrl&lt;Key&gt;O:     newline-and-backup() \\n\\
+     Ctrl&lt;Key&gt;P:     previous-line() \\n\\
+     Ctrl&lt;Key&gt;R:     search(backward) \\n\\
+     Ctrl&lt;Key&gt;S:     search(forward) \\n\\
+     Ctrl&lt;Key&gt;T:     transpose-characters() \\n\\
+     Ctrl&lt;Key&gt;U:     multiply(4) \\n\\
+     Ctrl&lt;Key&gt;V:     next-page() \\n\\
+     Ctrl&lt;Key&gt;W:     kill-selection() \\n\\
+     Ctrl&lt;Key&gt;Y:     insert-selection(CUT_BUFFER1) \\n\\
+     Ctrl&lt;Key&gt;Z:     scroll-one-line-up() \\n\\
+     Ctrl&lt;Key&gt;\\:     reconnect-im() \\n\\
+     Meta&lt;Key&gt;B:     backward-word() \\n\\
+     Meta&lt;Key&gt;F:     forward-word() \\n\\
+     Meta&lt;Key&gt;I:     insert-file() \\n\\
+     Meta&lt;Key&gt;K:     kill-to-end-of-paragraph() \\n\\
+     Meta&lt;Key&gt;Q:     form-paragraph() \\n\\
+     Meta&lt;Key&gt;V:     previous-page() \\n\\
+     Meta&lt;Key&gt;Y:     insert-selection(PRIMARY, CUT_BUFFER0) \\n\\
+     Meta&lt;Key&gt;Z:     scroll-one-line-down() \\n\\
+     :Meta&lt;Key&gt;d:     delete-next-word() \\n\\
+     :Meta&lt;Key&gt;D:     kill-word() \\n\\
+     :Meta&lt;Key&gt;h:     delete-previous-word() \\n\\
+     :Meta&lt;Key&gt;H:     backward-kill-word() \\n\\
+     :Meta&lt;Key&gt;\\&lt;:     beginning-of-file() \\n\\
+     :Meta&lt;Key&gt;\\&gt;:     end-of-file() \\n\\
+     :Meta&lt;Key&gt;]:     forward-paragraph() \\n\\
+     :Meta&lt;Key&gt;[:     backward-paragraph() \\n\\
+     ~Shift Meta&lt;Key&gt;Delete:          delete-previous-word() \\n\\
+      Shift Meta&lt;Key&gt;Delete:          backward-kill-word() \\n\\
+     ~Shift Meta&lt;Key&gt;Backspace:     delete-previous-word() \\n\\
+      Shift Meta&lt;Key&gt;Backspace:     backward-kill-word() \\n\\
+     &lt;Key&gt;Right:     forward-character() \\n\\
+     &lt;Key&gt;Left:     backward-character() \\n\\
+     &lt;Key&gt;Down:     next-line() \\n\\
+     &lt;Key&gt;Up:     previous-line() \\n\\
+     &lt;Key&gt;Delete:     delete-previous-character() \\n\\
+     &lt;Key&gt;BackSpace:     delete-previous-character() \\n\\
+     &lt;Key&gt;Linefeed:     newline-and-indent() \\n\\
+     &lt;Key&gt;Return:     newline() \\n\\
+     &lt;Key&gt;:          insert-char() \\n\\
+     &lt;Key&gt;Kanji:     reconnect-im() \\n\\
+     &lt;FocusIn&gt;:     focus-in() \\n\\
+     &lt;FocusOut&gt;:     focus-out() \\n\\
+     &lt;Btn1Down&gt;:     select-start() \\n\\
+     &lt;Btn1Motion&gt;:     extend-adjust() \\n\\
+     &lt;Btn1Up&gt;:     extend-end(PRIMARY, CUT_BUFFER0) \\n\\
+     &lt;Btn2Down&gt;:     insert-selection(PRIMARY, CUT_BUFFER0) \\n\\
+     &lt;Btn3Down&gt;:     extend-start() \\n\\
+     &lt;Btn3Motion&gt;:     extend-adjust() \\n\\
+     &lt;Btn3Up&gt;:     extend-end(PRIMARY, CUT_BUFFER0) \\n
+</literallayout>
+
+
+</para>
+</sect2>

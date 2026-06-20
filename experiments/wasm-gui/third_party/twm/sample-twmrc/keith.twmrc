@@ -1,0 +1,223 @@
+#**********************************************************************
+#
+#    .twmrc
+#
+#**********************************************************************
+
+IconDirectory	"/users/keith/misc/bitmaps"
+
+#NoDefaults
+NoVersion
+NoGrabServer
+NoRaiseOnMove
+NoRaiseOnResize
+#NoMenuShadows
+NoTitleHighlight
+NoHighlight
+NoTitleFocus
+NoSaveUnders
+SqueezeTitle
+ConstrainedMoveTime 0
+DecorateTransients
+#TitleButtonBorderWidth 0
+#ButtonIndent 0
+#LeftTitleButton "iconify.bm" = f.iconify
+#RightTitleButton "resize.bm" = f.resize
+OpaqueMove
+#ClientBorderWidth
+BorderWidth	1
+RandomPlacement
+#IconRegion	"1024x250+0+600" NORTH WEST 1024 25
+IconRegion	"600x200-200+0" NORTH EAST 75 25
+#IconRegion	"200x100-0+200" WEST NORTH 25 50
+TitleFont	"-*-helvetica-bold-o-normal--*-140-*-*-*-*-iso8859-1"
+MenuFont	"-*-helvetica-bold-r-normal--*-140-*-*-*-*-iso8859-1"
+IconFont	"-*-helvetica-bold-r-normal--*-140-*-*-*-*-iso8859-1"
+ResizeFont	"-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1"
+IconManagerFont	"-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1"
+#ShowIconManager
+SortIconManager
+IconManagerGeometry	"=100x100-200+0"
+
+# nice colors:  background of wheat, foreground of #d36
+
+Cursors
+{
+	Button "left_ptr"
+	Menu "left_ptr"
+	Title "left_ptr"
+	Frame "left_ptr"
+	Icon "left_ptr"
+}
+
+Color
+{
+    BorderColor "black"
+    TitleBackground "CadetBlue"
+    TitleForeground "#fffff0"
+    MenuBackground "#fffff0"
+    MenuForeground "black"
+    MenuTitleBackground "CadetBlue"
+    MenuTitleForeground "#fffff0"
+    IconBackground "#fffff0"
+    IconForeground "black"
+    IconBorderColor "black"
+}
+
+Monochrome
+{
+	IconManagerHighlight	"white"
+}
+
+# define key bindings
+
+MoveDelta 3
+
+Function "move-or-raise"
+{
+	f.move
+	f.deltastop
+	f.raise
+}
+
+Function "move-or-raiselower"
+{
+	f.move
+	f.deltastop
+	f.raiselower
+}
+
+Function "move-or-iconify"
+{
+	f.move
+	f.deltastop
+	f.iconify
+}
+
+Function "next-window"
+{
+}
+
+Function "previous-window"
+{
+}
+
+DefaultFunction f.nop
+
+Button1	=	: title 	: f.function "move-or-raiselower"
+Button2 =	: title		: f.menu "Title Menu"
+Button3 =	: title		: f.resize
+Button1 = m	: window|icon	: f.iconify
+Button2 = m	: window|icon	: f.function "move-or-raiselower"
+Button3 = m	: window|icon	: f.resize
+Button3 = c m	: title		: f.destroy
+Button1 =	: root		: f.menu "Hosts"
+Button2 =	: root		: f.menu "Toys"
+Button3 =	: root		: f.menu "System"
+Button1 =	: icon		: f.function "move-or-iconify"
+
+#ForceIcons
+
+Icons
+{
+	"Xmh"		"mail-up.bm"	# from IconDirectory
+	"XTerm"		"xterm.bm"	# from IconDirectory
+}
+
+#UnknownIcon	"icon"
+
+NoTitle
+{
+  "clock"
+  "oclock"
+  "xclock"
+  "xbiff"
+  "xeyes"
+  "xload"
+}
+
+IconManagerDontShow {
+	"clock"
+	"oclock"
+	"xclock"
+	"xbiff"
+	"xeyes"
+	"xload"
+}
+
+menu "Hosts"
+{
+"Hosts"		f.title
+"xenon"		!"xenon &"
+"expo"		!"expo &"
+"kanga"		!"kanga &"
+"exile"		!"exile &"
+"expire"	!"expire &"
+"excalibur"	!"excalibur &"
+"hpx"		!"hpx &"
+"expo bugs"	!"expo -l bugs &"
+"extort"	!"extort &"
+"apx"		!"apx &"
+"mfb"		!"mfb &"
+"sushi"		!"sushi &"
+"tempura"	!"tempora &"
+}
+
+menu "Toys"
+{
+"Toys"		f.title
+"Jove"		!"xjove &"
+"Mail"		!"xmh &"
+"Manual"	!"xman &"
+"Troff Viewer"	!"xditview &"
+"Calculator"	!"xcalc &"
+"Mille Bornes"	!"xmille `path -n .mille` &"
+"Notepad"	!"xclipboard &"
+"Eyes"		!"xeyes &"
+"Lens"		!"xmag &"
+"expo jove"	!"expo xjove&"
+"expo mail"	!"expo xmh &"
+}
+
+menu "System"
+{
+	"System"		f.title
+	"Window ops"		f.menu "Window Ops"
+	"Windows"		f.menu "TwmWindows"
+	""			f.nop
+	"Refresh"		f.refresh
+	"Unfocus"		f.unfocus
+	"Show Icon Box"		f.showiconmgr
+	"Hide Icon Box"		f.hideiconmgr
+	"Version"		f.version
+	""			f.nop
+	"Restart"		f.restart
+	"Logout"		f.quit
+}
+
+menu "Window Ops"
+{
+	"Window Ops"		f.title
+	"Lower"			f.lower
+	"Raise"			f.raise
+	"Resize"		f.resize
+	"Move"			f.move
+	"Deiconify"		f.deiconify
+	"Iconify"		f.iconify
+	"Identify"		f.identify
+	"Focus"			f.focus
+	"Kill"			f.destroy
+}
+
+menu "Title Menu"
+{
+	"Lower"			f.lower
+	"Raise"			f.raise
+	"Resize"		f.resize
+	"Move"			f.move
+	"Iconify"		f.iconify
+	"Identify"		f.identify
+	"Focus"			f.focus
+	"Kill"			f.destroy
+	"Dismiss"		f.delete
+}

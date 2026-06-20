@@ -1,0 +1,191 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtSet-Values XtVa-Set-Values XtSet-Subvalues XtVa-Set-Subvalues
+.hw XtGet-Values XtVa-Get-Values XtGet-Subvalues XtVa-Get-Subvalues
+.hw constraint-Widget-Class wid-get
+.na
+.TH XtSetValues __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtSetValues, XtVaSetValues, XtSetSubvalues, XtVaSetSubvalues, XtGetValues, XtVaGetValues, XtGetSubvalues, XtVaGetSubvalues \- obtain and set widget resources
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtSetValues(Widget \fIw\fP, ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+void XtVaSetValues(Widget \fIw\fP, ...\^);
+.HP
+void XtSetSubvalues(XtPointer \fIbase\fP, XtResourceList \fIresources\fP,
+Cardinal \fInum_resources\fP, ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+void XtVaSetSubvalues(XtPointer \fIbase\fP, XtResourceList \fIresources\fP,
+Cardinal \fInum_resources\fP, ...\^);
+.HP
+void XtGetValues(Widget \fIw\fP, ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+void XtVaGetValues(Widget \fIw\fP, ...\^);
+.HP
+void XtGetSubvalues(XtPointer \fIbase\fP, XtResourceList \fIresources\fP,
+Cardinal \fInum_resources\fP, ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+void XtVaGetSubvalues(XtPointer \fIbase\fP, XtResourceList \fIresources\fP,
+Cardinal \fInum_resources\fP, ...\^);
+.SH ARGUMENTS
+.IP \fIargs\fP 1i
+Specifies the argument list of name/address pairs that contain the resource
+name 
+and either the address into which the resource value is to be stored 
+or their new values.
+.IP \fIbase\fP 1i
+Specifies the base address of the subpart data structure where the resources
+should be retrieved or written.
+.IP \fInum_args\fP 1i
+Specifies the number of arguments in the argument list.
+.IP \fIresources\fP 1i
+Specifies the nonwidget resource list or values.
+.IP \fInum_resources\fP 1i
+Specifies the number of resources in the resource list.
+.IP \fIw\fP 1i
+Specifies the widget.
+.IP \fI...\fP 1i
+Specifies the variable argument list of name/address pairs that contain the resource name 
+and either the address into which the resource value is to be stored 
+or their new values.
+.SH DESCRIPTION
+The
+.B XtSetValues
+function starts with the resources specified for the
+.B Core
+widget fields and proceeds down the subclass chain to the widget.
+At each stage,
+it writes the new value (if specified by one of the arguments) or the existing
+value (if no new value is specified) to a new widget data record.
+.B XtSetValues
+then calls the set_values procedures for the widget in superclass-to-subclass
+order.
+If the widget has any non-NULL set_values_hook fields,
+these are called immediately after the
+corresponding set_values procedure.
+This procedure permits subclasses to set nonwidget data for
+.BR XtSetValues .
+.LP
+If the widget's parent is a subclass of
+.BR constraintWidgetClass ,
+.B XtSetValues
+also updates the widget's constraints.
+It starts with the constraint resources specified for
+.B constraintWidgetClass
+and proceeds down the subclass chain to the parent's class.
+At each stage,
+it writes the new value or the existing value to a new constraint record.
+It then calls the constraint set_values procedures from
+.B constraintWidgetClass
+down to the parent's class.
+The constraint set_values procedures are called with widget arguments,
+as for all set_values procedures, not just the constraint record arguments,
+so that they can make adjustments to the desired values based
+on full information about the widget.
+.LP
+.B XtSetValues
+determines if a geometry request is needed by comparing the current widget to
+the new widget.
+If any geometry changes are required,
+it makes the request, and the geometry manager returns
+.BR XtGeometryYes ,
+.BR XtGeometryAlmost ,
+or
+.BR XtGeometryNo .
+If
+.BR XtGeometryYes ,
+.B XtSetValues
+calls the widget's resize procedure.
+If
+.BR XtGeometryNo ,
+.B XtSetValues
+resets the geometry fields to their original values.
+If
+.BR XtGeometryAlmost ,
+.B XtSetValues
+calls the set_values_almost procedure,
+which determines what should be done and writes new values for the
+geometry fields into the new widget.
+.B XtSetValues
+then repeats this process,
+deciding once more whether the geometry manager should be called.
+.LP
+Finally, if any of the set_values procedures returned
+.BR True ,
+.B XtSetValues
+causes the widget's expose procedure to be invoked by calling the Xlib
+.B XClearArea
+function on the widget's window.
+.LP
+The
+.B XtSetSubvalues
+function stores resources into the structure identified by base.
+.LP
+The
+.B XtGetValues
+function starts with the resources specified for the core widget fields
+and proceeds down the subclass chain to the widget.
+The value field of a passed argument list should contain the
+address into which to store the corresponding resource value.
+It is the caller's responsibility
+to allocate and deallocate this storage according to the size of the
+resource representation type used within the widget.
+.LP
+If the widget's parent is a subclass of
+.BR constraintWidgetClass ,
+.B XtGetValues
+then fetches the values for any constraint resources requested.
+It starts with the constraint resources specified for
+.B constraintWidgetClass
+and proceeds down to the subclass chain to the parent's constraint resources.
+If the argument list contains a resource name that is not found in any of the
+resource lists searched,
+the value at the corresponding address is not modified.
+Finally, if the get_values_hook procedures are non-NULL,
+they are called in superclass-to-subclass order after
+all the resource values have been fetched by
+.BR XtGetValues .
+This permits a subclass to provide nonwidget resource data to
+.BR XtGetValues .
+.LP
+The
+.B XtGetSubvalues
+function obtains resource values from the structure identified by base.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

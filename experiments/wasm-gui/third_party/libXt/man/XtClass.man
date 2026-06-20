@@ -1,0 +1,157 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtCheck-Subclass XtIs-Object XtIs-RectObj XtIs-Widget XtIs-Composite
+.hw XtIs-Constraint XtIs-Shell XtIs-Override-Shell XtIs-WM-Shell
+.hw XtIs-Vendor-Shell XtIs-Transient-Shell XtIs-Top-Level-Shell
+.hw XtIs-Application-Shell wid-get
+.na
+.TH XtClass __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtClass, XtSuperclass, XtIsSubclass, XtCheckSubclass, XtIsObject, XtIsRectObj, XtIsWidget, XtIsComposite, XtIsConstraint, XtIsShell, XtIsOverrideShell, XtIsWMShell, XtIsVendorShell, XtIsTransientShell, XtIsTopLevelShell, XtIsApplicationShell, XtIsSessionShell \- obtain and verify a widget's class
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+WidgetClass XtClass(Widget \fIw\fP);
+.HP
+WidgetClass XtSuperclass(Widget \fIw\fP);
+.HP
+Boolean XtIsSubclass(Widget \fIw\fP, WidgetClass \fIwidget_class\fP);
+.HP
+void XtCheckSubclass(Widget \fIwidget\fP, WidgetClass \fIwidget_class\fP,
+String \fImessage\fP);
+.HP
+Boolean XtIsObject(Widget \fIw\fP);
+.HP
+Boolean XtIsRectObj(Widget \fIw\fP);
+.HP
+Boolean XtIsWidget(Widget \fIw\fP);
+.HP
+Boolean XtIsComposite(Widget \fIw\fP);
+.HP
+Boolean XtIsConstraint(Widget \fIw\fP);
+.HP
+Boolean XtIsShell(Widget \fIw\fP);
+.HP
+Boolean XtIsOverrideShell(Widget \fIw\fP);
+.HP
+Boolean XtIsWMShell(Widget \fIw\fP);
+.HP
+Boolean XtIsVendorShell(Widget \fIw\fP);
+.HP
+Boolean XtIsTransientShell(Widget \fIw\fP);
+.HP
+Boolean XtIsTopLevelShell(Widget \fIw\fP);
+.HP
+Boolean XtIsApplicationShell(Widget \fIw\fP);
+.HP
+Boolean XtIsSessionShell(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fIw\fP 1i
+Specifies the widget.
+.IP \fIwidget_class\fP 1i
+Specifies the widget class.
+.IP \fImessage\fP 1i
+Specifies the message that is to be used.
+.SH DESCRIPTION
+The
+.B XtClass
+function returns a pointer to the widget's class structure.
+.LP
+The
+.B XtSuperclass
+function returns a pointer to the widget's superclass class structure.
+.LP
+The
+.B XtIsSubclass
+function returns
+.B True
+if the class of the specified widget is equal to or is a subclass of
+the specified class.
+The widget's class can be any number of subclasses
+down the chain and need not be an immediate subclass of the specified
+class.
+Composite widgets that need to restrict the class of the items
+they contain can use
+.B XtIsSubclass
+to find out if a widget belongs to the desired class of objects.
+.LP
+The
+.B XtCheckSubclass
+macro determines if the class of the specified widget is equal to
+or is a subclass of the specified widget class.
+The widget can be any number of subclasses down the chain
+and need not be an immediate subclass of the specified widget class.
+If the specified widget is not a subclass,
+.B XtCheckSubclass
+constructs an error message from the supplied message,
+the widget's actual class, and the expected class and calls
+.BR XtErrorMsg .
+.B XtCheckSubclass
+should be used at the entry point of exported routines to ensure
+that the client has passed in a valid widget class for the exported operation.
+.LP
+.B XtCheckSubclass
+is only executed when the widget has been compiled with the compiler symbol
+DEBUG defined; otherwise, it is defined as the empty string
+and generates no code.
+.LP
+To test if a given widget belongs to a subclass of an Intrinsics-defined
+class, the Intrinsics defines macros or functions equivalent to
+.B XtIsSubclass
+for each of the built-in classes.
+These procedures are
+.BR XtIsObject ,
+.BR XtIsRectObj ,
+.BR XtIsWidget ,
+.BR XtIsComposite ,
+.BR XtIsConstraint ,
+.BR XtIsShell ,
+.BR XtIsOverrideShell ,
+.BR XtIsWMShell ,
+.BR XtIsVendorShell ,
+.BR XtIsTransientShell ,
+.BR XtIsTopLevelShell ,
+.BR XtIsApplicationShell ,
+and
+.BR XtIsSessionShell .
+.LP
+The
+.SH "SEE ALSO"
+XtAppErrorMsg(__libmansuffix__),
+XtDisplay(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

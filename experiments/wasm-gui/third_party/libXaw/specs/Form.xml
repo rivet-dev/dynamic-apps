@@ -1,0 +1,531 @@
+<sect1 id="Form_Widget">
+<title>Form Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Form Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Form widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Form.h&gt;
+<indexterm><primary>Form.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/FormP.h&gt;
+<indexterm><primary>FormP.h</primary></indexterm>
+Class		formWidgetClass
+<indexterm><primary>formWidgetClass</primary></indexterm>
+Class Name	Form
+<indexterm><primary>Form widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Constraint
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Form widget can contain an arbitrary number of children or
+subwidgets.  The Form provides geometry management for its children,
+which allows individual control of the position of each child.  Any
+combination of children can be added to a Form.  The initial positions
+of the children may be computed relative to the positions of previously
+created children.  When the Form is resized, it computes new positions and
+sizes for its children.  This computation is based upon information
+provided when a child is added to the Form.
+</para>
+<para>
+<!-- .LP -->
+The default width of the Form is the minimum width needed to
+enclose the children after computing their initial layout, with a
+margin of <function>defaultDistance</function>
+at the right and bottom edges.  If a width and height is assigned
+to the Form that is too small for the layout, the children will
+be clipped by the right and bottom edges of the Form.
+</para>
+<sect2 id='Form::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Form widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Form widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>defaultDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain all children</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain all children</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<!-- .Dd Bold -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Hw -->
+<!-- .Mm -->
+<!-- .Nc -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+</para>
+</sect2>
+<sect2 id='Form::Constraint_Resources'>
+<title>Constraint Resources</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Form widget</primary><secondary>constraint resources</secondary></indexterm>
+Each child of the Form widget may request special layout resources
+be applied to it.  These <emphasis remap='I'>constraint</emphasis> resources allow the Form
+widget's children to specify individual layout requirements.
+</para>
+<para>
+<!-- .LP -->
+</para>
+<para>
+<!-- .LP -->
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>bottom</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>fromHoriz</entry>
+      <entry>Widget</entry>
+      <entry>Widget</entry>
+      <entry></entry>
+      <entry>NULL (left edge of Form)</entry>
+    </row>
+    <row>
+      <entry>fromVert</entry>
+      <entry>Widget</entry>
+      <entry>Widget </entry>
+      <entry></entry>
+      <entry>NULL (top edge of Form)</entry>
+    </row>
+    <row>
+      <entry>horizDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry><function>defaultDistance</function> resource</entry>
+    </row>
+    <row>
+      <entry>left</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>resizable</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>FALSE</entry>
+    </row>
+    <row>
+      <entry>right</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>top</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>vertDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry><function>defaultDistance</function> resource</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Bt Bold -->
+<!-- .Fh Bold -->
+<!-- .Hd Bold -->
+<!-- .Rl Bold -->
+</para>
+<literallayout class="monospaced">
+bottom
+left
+right
+top            What to do with this edge of the child when
+               the parent is resized.  This resource may be
+               any edgeType.  See Layout Semantics for
+               details.
+
+fromHoriz
+fromVert       Which widget this child should be placed
+               underneath (or to the right of).  If a value
+               of NULL is specified then this widget will be
+               positioned relative to the edge of the par-
+               ent.
+
+horizDistance
+vertDistance   The amount of space, in pixels, between this
+               child and its left or upper neighbor.
+
+resizable      If this resource is False then the parent
+               widget will ignore all geometry request made
+               by this child.  The parent may still resize
+               this child itself, however.
+</literallayout>
+<!-- .Bt -->
+</sect2>
+<sect2 id='Form::Layout_Semantics'>
+<title>Layout Semantics</title>
+<para>
+The Form widget uses two different sets of layout semantics.
+One is used when initially laying out the children.  The
+other is used when the Form is resized.
+</para>
+<para>
+The first layout method uses the <function>fromVert</function>
+and <function>fromHoriz</function>
+resources to place the children of the Form.  A single pass
+is made through the Form widget's children in the order that
+they were created.  Each child is then placed in the Form
+widget below or to the right of the widget specified by the
+<function>fromVert</function> and <function>fromHoriz</function>
+resources.  The distance the new
+child is placed from its left or upper neighbor is deter-
+mined by the <function>horizDistance</function> and
+<function>vertDistance</function> resources.  This
+implies some things about how the order of creation affects
+the possible placement of the children.  The Form widget
+registers a string to widget converter which does not post-
+pone conversion and does not cache conversion results.
+</para>
+<para>
+The second layout method is used when the Form is resized.
+It does not matter what causes this resize, and it is possi-
+ble for a resize to happen before the widget becomes visible
+(due to constraints imposed by the parent of the Form).
+This layout method uses the <function>bottom</function>,
+<function>top</function>, <function>left</function>, and
+<function>right</function>
+resources.  These resources are used to determine what will
+happen to each edge of the child when the Form is resized.
+If a value of <function>XawChain</function>
+&lt;<emphasis remap='I'>something</emphasis>&gt; is specified, the the edge
+of the child will remain a fixed distance from the
+<emphasis remap='I'>chain</emphasis>
+edge of the Form.  For example if <function>XawChainLeft</function> is specified
+for the <function>right</function> resource of a child then the right edge of
+that child will remain a fixed distance from the left edge
+of the Form widget.  If a value of <function>XawRubber</function> is specified,
+that edge will grow by the same percentage that the Form
+grew.  For instance if the Form grows by 50% the left edge
+of the child (if specified as <function>XawRubber</function> will be 50% farther
+from the left edge of the Form).  One must be very careful
+when specifying these resources, for when they are specified
+incorrectly children may overlap or completely occlude other
+children when the Form widget is resized.
+<!-- .LP -->
+<!-- .Lt Form -->
+</para>
+<para>
+<!-- .LP -->
+<informaltable>
+  <tgroup cols='3' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <thead>
+    <row>
+      <entry>Edge Type</entry>
+      <entry>Resource Name</entry>
+      <entry>Description</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>XawChainBottom</entry>
+      <entry>ChainBottom</entry>
+      <entry>Edge remains a fixed distance from bottom of Form</entry>
+    </row>
+    <row>
+      <entry>XawChainLeft</entry>
+      <entry>ChainLeft</entry>
+      <entry>Edge remains a fixed distance from left of Form</entry>
+    </row>
+    <row>
+      <entry>XawChainRight</entry>
+      <entry>ChainRight</entry>
+      <entry>Edge remains a fixed distance from right of Form</entry>
+    </row>
+    <row>
+      <entry>XawChainTop</entry>
+      <entry>ChainTop</entry>
+      <entry>Edge remains a fixed distance from top of Form</entry>
+    </row>
+    <row>
+      <entry>XawRubber</entry>
+      <entry>Rubber</entry>
+      <entry>Edges will move a proportional distance</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+<sect3 id='Form::Example'>
+<title>Example</title>
+<para>
+<!-- .LP -->
+If you wish to force the Form to never resize one or more of its
+children, then set <function>left</function> and <function>right</function> to <function>XawChainLeft</function> and
+<function>top</function> and <function>bottom</function> to <function>XawChainTop</function>.  This will cause the
+child to remain a fixed distance from the top and left edges of the
+Form, and never to resize.
+</para>
+</sect3>
+</sect2>
+<sect2 id='Form::Convenience_Routines'>
+<title>Convenience Routines</title>
+<para>
+<!-- .LP -->
+To force or defer a re-layout of the Form, use
+<!-- .PN XawFormDoLayout . -->
+<indexterm><primary>Form widget</primary><secondary>re-layout</secondary></indexterm>
+<indexterm significance="preferred"><primary>XawFormDoLayout</primary></indexterm>
+<funcsynopsis id='XawFormDoLayout'>
+<funcprototype>
+  <funcdef>void<function> XawFormDoLayout</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Boolean<parameter> do_layout</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Form widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>do_layout</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether the layout of the Form widget is enabled (<function>True</function>)
+or disabled (<function>False</function>).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+When making several changes to the children of a Form widget
+after the Form has been realized, it is a good idea to disable
+relayout until after all changes have been made.
+
+</para>
+</sect2>
+</sect1>

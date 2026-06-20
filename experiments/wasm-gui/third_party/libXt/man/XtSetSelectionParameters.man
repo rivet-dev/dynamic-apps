@@ -1,0 +1,103 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtSet-Selection-Parameters XtGet-Selection-Parameters wid-get
+.na
+.TH XtSetSelectionParameters __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtSetSelectionParameters \- specify target parameters for a selection request with a single target
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtSetSelectionParameters(Widget \fIrequestor\fP, Atom \fIselection\fP,
+Atom \fItype\fP, XtPointer \fIvalue\fP, unsigned long \fIlength\fP, int
+\fIformat\fP);
+.SH ARGUMENTS
+.IP \fIrequestor\fP 1i
+Specifies the widget making the request.
+Must be of class Core or any
+subclass thereof.
+.IP \fIselection\fP 1i
+Specifies the atom that names the selection.
+.IP \fItype\fP 1i
+Specifies the type of the property in which the parameters will be passed.
+.IP \fIvalue\fP 1i
+Specifies a pointer to the parameters.
+.IP \fIlength\fP 1i
+Specifies the number of elements containing data in \fIvalue\fP, each
+element of a sized indicated by \fIformat\fP.
+.IP \fIformat\fP 1i
+Specifies the size in bits of the data in the elements of \fIvalue\fP.
+.SH DESCRIPTION
+The specified parameters will be copied and stored in a new property of
+the specified type and format on the requestor's window.
+To initiate a
+selection request with a target and these parameters, a subsequent call to
+.B XtGetSelectionValue
+or to
+.B XtGetSelectionValueIncremental
+specifying the same requestor widget and selection atom will generate a
+.B ConvertSelection
+request referring referring to the property containing the parameters.
+If
+.B XtSetSelectionParameters
+is called more than once with the same widget and selection without a
+call to specify a request, the most recently specified parameters are
+used in the subsequent request.
+.LP
+The possible values of \fIformat\fP may be 8, 16, or 32.
+If the \fIformat\fP
+is 8, the elements of \fIvalue\fP are assumed to be sizeof(char); if 16,
+sizeof(short); if 32, sizeof(long).
+.LP
+To generate a MULTIPLE target request with parameters for any of the
+multiple targets of the selection request, precede individual calls to
+.B XtGetSelectionValue
+and
+.B XtGetSelectionValueIncremental
+with corresponding individual calls to
+.BR XtSetSelectionParameters ,
+and enclose these all within
+.B XtCreateSelectionRequest
+and
+.BR XtSendSelectionRequest .
+.B XtGetSelectionValues
+and
+.B XtGetSelectionValuesIncremental
+cannot be used  to make selection requests with parameterized targets.
+.SH "SEE ALSO"
+XtGetSelectionParameters(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

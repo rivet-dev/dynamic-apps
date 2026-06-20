@@ -1,0 +1,148 @@
+<sect1 id="SmeLine_Object">
+<title>SmeLine Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	SmeLine Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>SmeLine object</primary></indexterm>
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/SmeLine.h&gt;
+<indexterm><primary>SmeLine.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/SmeLineP.h&gt;
+<indexterm><primary>SmeLineP.h</primary></indexterm>
+Class		smeLineObjectClass
+<indexterm><primary>smeLineObjectClass</primary></indexterm>
+Class Name	SmeLine
+<indexterm><primary>SmeLine object</primary><secondary>class name</secondary></indexterm>
+Superclass	Sme
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+The SmeLine object is used to add a horizontal line or menu separator to
+a menu.  Since each SmeLine is an independent object, the application
+is able to change the color, height, and other attributes of the SmeLine
+objects on an entry by entry basis.  This object is not selectable, and
+will not highlight when the pointer cursor is over it.
+</para>
+<sect2 id='SmeLine::Resources'>
+<title>Resources</title>
+<indexterm><primary>SmeLine object</primary><secondary>resources</secondary></indexterm>
+<para>
+<!-- .LP -->
+The resources associated with the SmeLine object are defined in this section,
+and affect only the single menu entry specified by this object.
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry><function>lineWidth</function></entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>lineWidth</entry>
+      <entry>LineWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>stipple</entry>
+      <entry>Stipple</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Dc -->
+<variablelist>
+  <varlistentry>
+    <term>foreground</term>
+    <listitem>
+      <para>
+A pixel value which indexes the SimpleMenu's colormap to derive the
+foreground color used to draw the separator line.
+<!-- .Hw -->
+Keep in mind that the SimpleMenu widget will force all menu items to
+be the width of the widest entry.  Thus, setting the width is generally not
+very important.
+<!-- .Ix -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>lineWidth</term>
+    <listitem>
+      <para>
+The width of the horizontal line that is to be displayed.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term>stipple</term>
+    <listitem>
+      <para>
+If a bitmap is specified for this resource, the line will be stippled
+through it.  This allows the menu separator to be rendered as something
+more exciting than just a line.  For instance, if you define a stipple
+that is a chain link, then your menu separators will look like chains.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+</sect1>

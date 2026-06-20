@@ -1,0 +1,257 @@
+'\" t
+.\"     Title: xgetdevicemodifiermapping
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XGETDEVICEMODIFIERMA" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XGetDeviceModifierMapping, XSetDeviceModifierMapping \- query or change device modifier mappings
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+int XSetDeviceModifierMapping( Display *display,
+                               XDevice *device,
+                               XModifierKeymap *modmap);
+.fi
+.sp
+.nf
+XModifierKeymap *XGetDeviceModifierMapping( Display *display,
+                                            XDevice *device);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose modifier mapping is to be
+       queried or modified\&.
+.fi
+.sp
+.nf
+modmap
+       Specifies a pointer to the XModifierKeymap structure\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XSetDeviceModifierMapping request specifies the KeyCodes of
+the keys (if any) that are to be used as modifiers for the
+specified device\&. If it succeeds, the X server generates a
+DeviceMappingNotify event, and XSetDeviceModifierMapping
+returns MappingSuccess\&. X permits at most eight modifier keys\&.
+If more than eight are specified in the XModifierKeymap
+structure, a BadLength error results\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The modifiermap member of the XModifierKeymap structure
+contains eight sets of max_keypermod KeyCodes, one for each
+modifier in the order Shift, Lock, Control, Mod1, Mod2, Mod3,
+Mod4, and Mod5\&. Only nonzero KeyCodes have meaning in each set,
+and zero KeyCodes are ignored\&. In addition, all of the nonzero
+KeyCodes must be in the range specified by min_keycode and
+max_keycode as returned by XListInputDevices, or a BadValue
+error results\&. No KeyCode may appear twice in the entire map,
+or a BadValue error results\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+An X server can impose restrictions on how modifiers can be
+changed, for example, if certain keys do not generate up
+transitions in hardware, if auto\-repeat cannot be disabled on
+certain keys, or if multiple modifier keys are not supported\&.
+If some such restriction is violated, the status reply is
+MappingFailed, and none of the modifiers are changed\&. If the
+new KeyCodes specified for a modifier differ from those
+currently defined and any (current or new) keys for that
+modifier are in the logically down state,
+XSetDeviceModifierMapping returns MappingBusy, and none of the
+modifiers is changed\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XSetDeviceModifierMapping can generate BadLength, BadDevice,
+BadMatch, BadAlloc, and BadValue errors\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetDeviceModifierMapping request returns a pointer to a
+newly created XModifierKeymap structure that contains the keys
+being used as modifiers\&. The structure should be freed after
+use by calling XFreeModifierMapping \&. If only zero values
+appear in the set for any modifier, that modifier is disabled\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGetDeviceModifierMapping can generate BadDevice and BadMatch
+errors\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Structures
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XModifierKeymap structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+int max_keypermod;
+KeyCode *modifiermap;
+} XModifierKeymap;
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadLength
+       More than eight keys were specified in the
+       XModifierKeymap structure\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadAlloc
+       The server failed to allocate the requested resource or
+       server memory\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if the
+       specified device is the X keyboard or X pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XGetDeviceModifierMapping or
+       XChangeDeviceModifierMapping request was made specifying
+       a device that has no keys\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the request\&. Unless a specific range is
+       specified for an argument, the full range defined by the
+       argument\*(Aqs type is accepted\&. Any argument defined as a
+       set of alternatives can generate this error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XSetDeviceKeyMapping(3), XSetDeviceButtonMapping(3)
+.fi
+.if n \{\
+.RE
+.\}

@@ -1,0 +1,4581 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<book id="ICElib">
+
+<bookinfo>
+   <title>Inter-Client Exchange Library</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 1.0</releaseinfo>
+   <authorgroup>
+     <author>
+       <firstname>Ralph</firstname><surname>Mor</surname>
+       <affiliation><orgname>X Consortium</orgname></affiliation>
+     </author>
+   </authorgroup>
+   <copyright>
+     <year>1993</year><year>1994</year><year>1996</year>
+     <holder>X Consortium</holder>
+   </copyright>
+
+<legalnotice>
+<para>
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and
+to permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+</para>
+
+<para>The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+</para>
+
+<para>
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+</para>
+
+<para>
+Except as contained in this notice, the name of the X Consortium shall not be
+used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization from the X Consortium.
+</para>
+
+</legalnotice>
+</bookinfo>
+
+<chapter id='Overview_of_ICE'>
+<title>Overview of ICE</title>
+
+<para>
+There are numerous possible inter-client protocols, with many similarities
+and common needs - authentication, version negotiation, byte
+order negotiation, and so on.
+The Inter-Client Exchange (ICE) protocol is intended to provide a framework
+for building such protocols, allowing them to make use of common negotiation
+mechanisms and to be multiplexed over a single transport connection.
+</para>
+</chapter>
+
+<chapter id='The_ICE_Library___C_Language_Interface_to_ICE'>
+<title>The ICE Library - C Language Interface to ICE</title>
+
+<para>
+A client that wishes to utilize ICE must first register the protocols it
+understands with the ICE library.  Each protocol is dynamically assigned
+a major opcode ranging from 1-255 (two clients can use different
+major opcodes for the same protocol).  The next step for the client is either
+to open a connection with another client or to wait for connections made
+by other clients.  Authentication may be required.  A client can both
+initiate connections with other clients and be
+waiting for clients to connect to itself (a nested session manager is an
+example).  Once an ICE connection is established between the two clients, one
+of the clients needs to initiate a
+<function>ProtocolSetup</function>
+in order to
+"activate" a given protocol.  Once the other client accepts the
+<function>ProtocolSetup</function>
+(once again, authentication may be required), the
+two clients are ready to start passing messages specific to that protocol to
+each other.  Multiple protocols may be active on a single ICE connection.
+Clients are responsible for notifying the ICE library when a protocol is no
+longer active on an ICE connection, although ICE does not define how each
+subprotocol triggers a protocol shutdown.
+</para>
+
+<para>
+The ICE library utilizes callbacks to process incoming messages.  Using
+callbacks allows
+<function>ProtocolSetup</function>
+messages and authentication to happen
+behind the scenes.  An additional benefit is that messages never need
+to be buffered up by the library when the client blocks waiting for a
+particular message.
+</para>
+</chapter>
+
+<chapter id='Intended_Audience'>
+<title>Intended Audience</title>
+
+<para>This document is intended primarily for implementors of protocol libraries
+layered on top of ICE.  Typically, applications that wish to utilize ICE
+will make calls into individual protocol libraries rather than directly
+make calls into the ICE library.  However, some applications will have to
+make some initial calls into the ICE library in order to accept ICE
+connections (for example, a session manager accepting connections from
+clients).  But in general, protocol libraries should be designed to hide
+the inner details of ICE from applications.</para>
+</chapter>
+
+<chapter id='Header_Files_and_Library_Name'>
+<title>Header Files and Library Name</title>
+
+
+<para>The header file
+&lt;<symbol role='Pn'>X11/ICE/ICElib.h</symbol>&gt;
+defines all of the ICElib data structures and function prototypes.
+<function>ICElib.h</function>
+includes the header file
+&lt;<symbol role='Pn'>X11/ICE/ICE.h</symbol>&gt;,
+which defines all of the ICElib constants.
+Protocol libraries that need to read and write messages should include
+the header file
+&lt;<symbol role='Pn'>X11/ICE/ICEmsg.h</symbol>&gt;.</para>
+
+<para>Applications should link against ICElib using -lICE.</para>
+</chapter>
+
+<chapter id='Note_on_Prefixes'>
+<title>Note on Prefixes</title>
+
+
+<para>The following name prefixes are used in the library to distinguish between
+a client that initiates a
+<function>ProtocolSetup</function>
+and a client that
+responds with a
+<function>ProtocolReply</function></para>
+
+<itemizedlist>
+  <listitem>
+<para><function>IcePo</function>
+- Ice Protocol Originator</para>
+  </listitem>
+  <listitem>
+<para><function>IcePa</function>
+- Ice Protocol Acceptor</para>
+  </listitem>
+</itemizedlist>
+</chapter>
+
+<chapter id='Protocol_Registration'>
+<title>Protocol Registration</title>
+
+<para>
+In order for two clients to exchange messages for a given protocol, each
+side must register the protocol with the ICE library.  The purpose of
+registration is for each side to obtain a major opcode for the protocol
+and to provide callbacks for processing messages and handling authentication.
+There are two separate registration functions:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+One to handle the side that does a
+<function>ProtocolSetup</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+One to handle the side that responds with a
+<function>ProtocolReply</function>
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+It is recommended that protocol registration occur before the two clients
+establish an ICE connection.  If protocol registration occurs after an
+ICE connection is created, there can be a brief interval of time in which a
+<function>ProtocolSetup</function>
+is received, but the protocol is not registered.
+If it is not possible to register a protocol before the creation of an
+ICE connection, proper precautions should be taken to avoid the above race
+condition.
+</para>
+
+
+<para>
+The <xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/>
+function should be called for the client that initiates a
+<function>ProtocolSetup</function>
+</para>
+
+<funcsynopsis id='IceRegisterForProtocolSetup'>
+<funcprototype>
+  <funcdef>int <function>IceRegisterForProtocolSetup</function></funcdef>
+    <paramdef>const char<parameter> *protocol_name</parameter></paramdef>
+    <paramdef>const char<parameter> *vendor</parameter></paramdef>
+    <paramdef>const char<parameter> *release</parameter></paramdef>
+    <paramdef>int<parameter> version_count</parameter></paramdef>
+    <paramdef>IcePoVersionRec<parameter> *version_recs</parameter></paramdef>
+    <paramdef>int<parameter> auth_count</parameter></paramdef>
+    <paramdef>char<parameter> **auth_names</parameter></paramdef>
+    <paramdef>IcePoAuthProc<parameter> *auth_procs</parameter></paramdef>
+    <paramdef>IceIOErrorProc<parameter> io_error_proc</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>protocol_name</emphasis></term>
+    <listitem>
+      <para>
+A string specifying the name of the protocol to register.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor</emphasis></term>
+    <listitem>
+      <para>A vendor string with semantics specified by the protocol.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release</emphasis></term>
+    <listitem>
+      <para>A release string with semantics specified by the protocol.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>version_count</emphasis></term>
+    <listitem>
+      <para>The number of different versions of the protocol supported.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>version_recs</emphasis></term>
+    <listitem>
+      <para>List of versions and associated callbacks.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_count</emphasis></term>
+    <listitem>
+      <para>The number of authentication methods supported.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_names</emphasis></term>
+    <listitem>
+      <para>The list of authentication methods supported.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_procs</emphasis></term>
+    <listitem>
+      <para>
+The list of authentication callbacks, one for each authentication method.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>io_error_proc</emphasis></term>
+    <listitem>
+      <para>IO error handler, or NULL.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+<xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/> returns the major
+opcode reserved or -1 if an error occurred.  In order to actually activate
+the protocol, the <xref linkend='IceProtocolSetup' xrefstyle='select: title'/>
+function needs to be called with this major opcode.  Once the protocol is
+activated, all messages for the protocol should be sent using this major
+opcode.
+</para>
+
+<para>
+A protocol library may support multiple versions of the same protocol.
+The version_recs argument specifies a list of supported versions of the
+protocol, which are prioritized in decreasing order of preference.
+Each version record consists of a major and minor version of the protocol
+as well as a callback to be used for processing incoming messages.
+</para>
+
+
+<literallayout remap='Ds'>
+typedef struct {
+	int major_version;
+	int minor_version;
+	IcePoProcessMsgProc process_msg_proc;
+} IcePoVersionRec;
+</literallayout>
+
+<para>The
+<function>IcePoProcessMsgProc</function>
+callback is responsible for processing the set of messages that can be
+received by the client that initiated the
+<function>ProtocolSetup</function>
+For further information,
+see
+<xref linkend='Callbacks_for_Processing_Messages' xrefstyle='select: title'/>
+</para>
+
+<para>Authentication may be required before the protocol can become active.
+The protocol library must register the authentication methods that it
+supports with the ICE library.
+The auth_names and auth_procs arguments are a list of authentication names
+and callbacks that are  prioritized in decreasing order of preference.
+For information on the
+<function>IcePoAuthProc</function>
+callback, see
+<xref linkend='Authentication_Methods' xrefstyle='select: title'/>
+</para>
+
+<para>The
+<xref linkend='IceIOErrorProc' xrefstyle='select: title'/>
+callback is invoked if the ICE connection unexpectedly breaks.
+You should pass NULL for io_error_proc if not interested in being notified.
+For further information,
+<xref linkend='Error_Handling' xrefstyle='select: title'/>
+</para>
+
+
+<para>The
+<xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+function should be called for the client that responds to a
+<function>ProtocolSetup</function>
+with a
+<function>ProtocolReply</function></para>
+
+
+<funcsynopsis id='IceRegisterForProtocolReply'>
+<funcprototype>
+  <funcdef>Bool <function>IceRegisterForProtocolReply</function></funcdef>
+    <paramdef>const char<parameter> *protocol_name</parameter></paramdef>
+    <paramdef>const char<parameter> *vendor</parameter></paramdef>
+    <paramdef>const char<parameter> *release</parameter></paramdef>
+    <paramdef>int<parameter> version_count</parameter></paramdef>
+    <paramdef>IcePoVersionRec<parameter> *version_recs</parameter></paramdef>
+    <paramdef>int<parameter> auth_count</parameter></paramdef>
+    <paramdef>const char<parameter> **auth_names</parameter></paramdef>
+    <paramdef>IcePoAuthProc<parameter> *auth_procs</parameter></paramdef>
+    <paramdef>IceHostBasedAuthProc<parameter> host_based_auth_proc</parameter></paramdef>
+    <paramdef>IceProtocolSetupProc<parameter> protocol_setup_proc</parameter></paramdef>
+    <paramdef>IceProtocolActivateProc<parameter> protocol_activate_proc</parameter></paramdef>
+    <paramdef>IceIOErrorProc<parameter> io_error_proc</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>protocol_name</emphasis></term>
+    <listitem><para>A string specifying the name of the protocol to register.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>vendor</emphasis></term>
+  <listitem>
+<para>A vendor string with semantics specified by the protocol.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>release</emphasis></term>
+  <listitem>
+<para>A release string with semantics specified by the protocol.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>version_count</emphasis></term>
+  <listitem>
+<para>The number of different versions of the protocol supported.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>version_recs</emphasis></term>
+  <listitem>
+<para>List of versions and associated callbacks.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_count</emphasis></term>
+  <listitem>
+<para>The number of authentication methods supported.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_names</emphasis></term>
+  <listitem>
+<para>The list of authentication methods supported.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_procs</emphasis></term>
+  <listitem>
+<para>The list of authentication callbacks, one for each authentication method.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>host_based_auth_proc</emphasis></term>
+  <listitem>
+<para>Host based authentication callback.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>protocol_setup_proc</emphasis></term>
+  <listitem>
+<para>A callback to be invoked when authentication has succeeded for a
+<function>ProtocolSetup</function>
+but before the
+<function>ProtocolReply</function>
+is sent.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>protocol_activate_proc</emphasis></term>
+  <listitem>
+<para>A callback to be invoked after the
+<function>ProtocolReply</function>
+is sent.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>io_error_proc</emphasis></term>
+  <listitem>
+<para>IO error handler, or NULL.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para><xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+returns the major opcode reserved or -1 if an error occurred.  The major
+opcode should be used in all subsequent messages sent for this protocol.</para>
+
+<para>A protocol library may support multiple versions of the same protocol.
+The version_recs argument specifies a list of supported versions of the protocol,
+which are prioritized in decreasing order of preference.
+Each version record consists of a major and minor version of the protocol
+as well as a callback to be used for processing incoming messages.</para>
+
+
+<literallayout remap='Ds'>
+typedef struct {
+	int major_version;
+	int minor_version;
+	IcePaProcessMsgProc process_msg_proc;
+} IcePaVersionRec;
+</literallayout>
+
+
+<para>The
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+callback is responsible for processing the set of messages that can be
+received by the client that accepted the
+<function>ProtocolSetup</function>
+For further information,
+see
+<xref linkend='Callbacks_for_Processing_Messages' xrefstyle='select: title'/>
+</para>
+
+<para>Authentication may be required before the protocol can become active.
+The protocol library must register the authentication methods that it
+supports with the ICE library.
+The auth_names and auth_procs arguments are a list of authentication names
+and callbacks that are prioritized in decreasing order of preference.
+For information on the
+<function>IcePaAuthProc</function>,
+See
+<xref linkend='Authentication_Methods' xrefstyle='select: title'/>
+
+</para>
+
+<para>If authentication fails and the client attempting to initiate
+the
+<function>ProtocolSetup</function>
+has not required authentication, the
+<function>IceHostBasedAuthProc</function>
+callback is invoked with the host name of the originating client.
+If the callback returns
+<function>True</function>
+the
+<function>ProtocolSetup</function>
+will succeed, even though the original
+authentication failed.
+Note that authentication can effectively be disabled by registering an
+<function>IceHostBasedAuthProc</function>
+which always returns
+<function>True</function>
+If no host based
+authentication is allowed, you should pass NULL for host_based_auth_proc.</para>
+
+<funcsynopsis>
+<funcprototype>
+  <funcdef>Bool <function>HostBasedAuthProc</function></funcdef>
+    <paramdef>char<parameter> *host_name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>protocol_name</emphasis></term>
+    <listitem><para>The host name of the client that sent the <function>ProtocolSetup</function></para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The host_name argument is a string of the form <emphasis remap='I'>protocol</emphasis>/<emphasis remap='I'>hostname</emphasis>,
+where <emphasis remap='I'>protocol</emphasis> is one of {tcp, decnet, local}.</para>
+
+<para>Because
+<function>ProtocolSetup</function>
+messages and authentication happen behind the scenes
+via callbacks, the protocol library needs some way of being notified when the
+<function>ProtocolSetup</function>
+has completed.
+This occurs in two phases.
+In the first phase, the
+<function>IceProtocolSetupProc</function>
+callback is invoked after authentication has
+successfully completed but before the ICE library sends a
+<function>ProtocolReply</function>
+Any resources required for this protocol should be allocated at this time.
+If the
+<function>IceProtocolSetupProc</function>
+returns a successful status, the ICE library will
+send the
+<function>ProtocolReply</function>
+and then invoke the
+<function>IceProtocolActivateProc</function>
+callback.  Otherwise, an error will be sent to the
+other client in response to the
+<function>ProtocolSetup</function></para>
+
+<para>The
+<function>IceProtocolActivateProc</function>
+is an optional callback and should be registered only if the protocol
+library intends to generate a message immediately following the
+<function>ProtocolReply</function>
+You should pass NULL for protocol_activate_proc if not interested
+in this callback.</para>
+
+<funcsynopsis id='ProtocolSetupProc'>
+<funcprototype>
+  <funcdef>Status <function>ProtocolSetupProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> major_version</parameter></paramdef>
+    <paramdef>int<parameter> minor_version</parameter></paramdef>
+    <paramdef>char<parameter> *vendor</parameter></paramdef>
+    <paramdef>char<parameter> *release</parameter></paramdef>
+    <paramdef>IcePointer<parameter> *client_data_ret</parameter></paramdef>
+    <paramdef>char<parameter> **failure_reason_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>protocol_name</emphasis></term>
+    <listitem>
+<para>The ICE connection object.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>major_version</emphasis></term>
+  <listitem>
+<para>The major version of the protocol.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>minor_version</emphasis></term>
+  <listitem>
+<para>The minor version of the protocol.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>vendor</emphasis></term>
+  <listitem>
+<para>The vendor string registered by the protocol originator.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>release</emphasis></term>
+  <listitem>
+<para>The release string registered by the protocol originator.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>client_data_ret</emphasis></term>
+  <listitem>
+<para>Client data to be set by callback.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>failure_reason_ret</emphasis></term>
+  <listitem>
+<para>Failure reason returned.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>The pointer stored in the client_data_ret argument will be passed
+to the
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+callback whenever a message has arrived for this protocol on the
+ICE connection.</para>
+
+<para>The vendor and release strings should be freed with
+<function>free</function>
+when they are no longer needed.</para>
+
+<para>If a failure occurs, the
+<function>IceProtocolSetupProc</function>
+should return a zero status as well as allocate and return a failure
+reason string in failure_reason_ret.
+The ICE library will be responsible for freeing this memory.</para>
+
+<para>The
+<function>IceProtocolActivateProc</function>
+callback is defined as follows:</para>
+
+<funcsynopsis id='ProtocolActivateProc'>
+<funcprototype>
+  <funcdef>void <function>ProtocolActivateProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+    <para>
+The client data set in the <function>IceProtocolSetupProc</function> callback.
+    </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The
+<xref linkend='IceIOErrorProc' xrefstyle='select: title'/>
+callback is invoked if the ICE connection unexpectedly breaks.
+You should pass NULL for io_error_proc if not interested in being notified.
+For further information,
+see
+<xref linkend='Error_Handling' xrefstyle='select: title'/>
+</para>
+
+<sect1 id='Callbacks_for_Processing_Messages'>
+<title>Callbacks for Processing Messages</title>
+
+<para>When an application detects that there is new data to read on an ICE
+connection (via
+<function>select</function>
+it calls the
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+function
+<xref linkend='Processing_Messages' xrefstyle='select: title'/>
+
+When
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+reads an ICE message header with a major opcode other than
+zero (reserved for the ICE protocol), it needs to call a function that will
+read the rest of the message, unpack it, and process it accordingly.</para>
+
+<para>If the message arrives at the client that initiated the
+<function>ProtocolSetup</function>
+the
+<function>IcePoProcessMsgProc</function>
+callback is invoked.</para>
+
+<funcsynopsis id='PoProcessMsgProc'>
+<funcprototype>
+  <funcdef>void <function>PoProcessMsgProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+    <paramdef>int<parameter> opcode</parameter></paramdef>
+    <paramdef>unsigned long<parameter> length</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+    <paramdef>IceReplyWaitInfo<parameter> *reply_wait</parameter></paramdef>
+    <paramdef>Bool<parameter> *reply_ready_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>client_data</emphasis></term>
+  <listitem>
+<para>Client data associated with this protocol on the ICE connection.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>opcode</emphasis></term>
+  <listitem>
+<para>The minor opcode of the message.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>length</emphasis></term>
+  <listitem>
+<para>The length (in 8-byte units) of the message beyond the ICE header.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>swap</emphasis></term>
+  <listitem>
+<para>A flag that indicates if byte swapping is necessary.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>reply_wait</emphasis></term>
+  <listitem>
+<para>Indicates if the invoking client is waiting for a reply.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>reply_ready_ret</emphasis></term>
+  <listitem>
+<para>If set to
+<function>True</function>
+a reply is ready.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>If the message arrives at the client that accepted the
+<function>ProtocolSetup</function>
+the
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+callback is invoked.</para>
+
+
+<funcsynopsis id='IcePaProcessMsgProc'>
+<funcprototype>
+  <funcdef>void <function>IcePaProcessMsgProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+    <paramdef>int<parameter> opcode</parameter></paramdef>
+    <paramdef>unsigned long<parameter> length</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>client_data</emphasis></term>
+  <listitem>
+<para>Client data associated with this protocol on the ICE connection.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>opcode</emphasis></term>
+  <listitem>
+<para>The minor opcode of the message.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>length</emphasis></term>
+  <listitem>
+<para>The length (in 8-byte units) of the message beyond the ICE header.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>swap</emphasis></term>
+  <listitem>
+<para>A flag that indicates if byte swapping is necessary.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>In order to read the message, both of these callbacks should use the
+macros defined for this purpose (see
+<xref linkend='Reading_ICE_Messages' xrefstyle='select: title'/>.).
+Note that byte swapping may be necessary.
+As a convenience, the length field in the ICE header will be swapped by ICElib
+if necessary.</para>
+
+<para>In both of these callbacks, the client_data argument is a pointer to client
+data that was registered at
+<function>ProtocolSetup</function>
+time.
+In the case of
+<function>IcePoProcessMsgProc</function>
+the client data was set in the call to
+<xref linkend='IceProtocolSetup' xrefstyle='select: title'/>
+In the case of
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+the client data was set in the
+<function>IceProtocolSetupProc</function>
+callback.</para>
+
+<para>The
+<function>IcePoProcessMsgProc</function>
+callback needs to check the reply_wait argument.
+If reply_wait is NULL ,
+the ICE library expects the function to
+pass the message to the client via a callback.
+For example, if this is a Session Management "Save Yourself" message,
+this function should notify the client of the "Save Yourself" via a callback.
+The details of how such a callback would be defined
+are implementation-dependent.</para>
+
+<para>However, if reply_wait is not NULL ,
+then the client is waiting for
+a reply or an error for a message it previously sent.
+The reply_wait is of type
+<function>IceReplyWaitInfo</function></para>
+
+
+<literallayout remap='Ds'>
+typedef struct {
+	unsigned long sequence_of_request;
+	int major_opcode_of_request;
+	int minor_opcode_of_request;
+	IcePointer reply;
+} IceReplyWaitInfo;
+</literallayout>
+
+<para><function>IceReplyWaitInfo</function>
+contains the major/minor opcodes and sequence number of
+the message for which a reply is being awaited.
+It also contains a pointer to the reply message to be filled in
+(the protocol library should cast this
+<function>IcePointer</function>
+to the appropriate reply type).
+In most cases, the reply will have some fixed-size part, and the client waiting
+for the reply will have provided a pointer to a structure to hold
+this fixed-size data.  If there is variable-length data, it would be
+expected that the
+<function>IcePoProcessMsgProc</function>
+callback will have to allocate additional
+memory and store pointer(s) to that memory in the fixed-size
+structure.  If the entire data is variable length (for example., a single
+variable-length string), then the client waiting for the reply would probably
+just pass a pointer to fixed-size space to hold a pointer, and the
+<function>IcePoProcessMsgProc</function>
+callback would allocate the storage and store the pointer.
+It is the responsibility of the client receiving the reply to
+free any memory allocated on its behalf.</para>
+
+<para>If reply_wait is not NULL and
+<function>IcePoProcessMsgProc</function>
+has a reply or error to return in response to this reply_wait
+(that is, no callback was generated), then the reply_ready_ret argument
+should be set to
+<function>True</function>
+Note that an error should only be returned
+if it corresponds to the reply being waited for.  Otherwise, the
+<function>IcePoProcessMsgProc</function>
+should either handle the error internally or invoke an error handler
+for its library.</para>
+
+<para>If reply_wait is NULL,
+then care must be taken not to store any value in reply_ready_ret,
+because this pointer may also be NULL.</para>
+
+<para>The
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+callback, on the other hand, should always pass
+the message to the client via a callback.  For example, if this is a Session
+Management "Interact Request" message, this function should notify the
+client of the "Interact Request" via a callback.</para>
+
+<para>The reason the
+<xref linkend='IcePaProcessMsgProc' xrefstyle='select: title'/>
+callback does not have a reply_wait, like
+<function>IcePoProcessMsgProc</function>
+does, is because a process that is acting as
+a server should never block for a reply (infinite blocking can
+occur if the connecting client does not act properly, denying access
+to other clients).</para>
+</sect1>
+
+<sect1 id='Authentication_Methods'>
+<title>Authentication Methods</title>
+
+<para>As already stated, a protocol library must register the authentication
+methods that it supports with the ICE library.  For each authentication
+method, there are two callbacks that may be registered:</para>
+<itemizedlist>
+  <listitem>
+    <para>
+One to handle the side that initiates a <function>ProtocolSetup</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+One to handle the side that accepts or rejects this request
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para><function>IcePoAuthProc</function>
+is the callback invoked for the client that initiated the
+<function>ProtocolSetup</function>
+This callback must be able to respond
+to the initial "Authentication Required" message or subsequent
+"Authentication Next Phase" messages sent by the other client.</para>
+
+
+<funcsynopsis id='IcePoAuthStatus'>
+<funcprototype>
+  <funcdef>IcePoAuthStatus <function>IcePoAuthStatus </function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+    <paramdef>int<parameter> opcode</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_state_ptr</emphasis></term>
+  <listitem>
+<para>A pointer to state for use by the authentication callback procedure.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>clean_up</emphasis></term>
+  <listitem>
+<para>If
+<function>True</function>
+authentication is over, and the function
+should clean up any state it was maintaining.  The
+last 6 arguments should be ignored.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>swap</emphasis></term>
+  <listitem>
+<para>If
+<function>True</function>
+the auth_data may have to be byte swapped
+(depending on its contents).</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_datalen</emphasis></term>
+  <listitem>
+<para>The length (in bytes) of the authenticator data.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>auth_data</emphasis></term>
+  <listitem>
+<para>The data from the authenticator.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>reply_datalen_ret</emphasis></term>
+  <listitem>
+<para>The length (in bytes) of the reply data returned.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>reply_data_ret</emphasis></term>
+  <listitem>
+<para>The reply data returned.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>error_string_ret</emphasis></term>
+  <listitem>
+<para>If the authentication procedure encounters an error during
+authentication, it should allocate and return
+an error string.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>Authentication may require several phases, depending on the authentication
+method.  As a result, the
+<function>IcePoAuthProc</function>
+may be called more than once when authenticating a client, and
+some state will have to be maintained between each invocation.
+At the start of each
+<function>ProtocolSetup</function>
+*auth_state_ptr is NULL,
+and the function should initialize its state and set
+this pointer.  In subsequent invocations of the callback, the pointer
+should be used to get at any state previously stored by the callback.</para>
+
+<para>If needed, the network ID of the client accepting the
+<function>ProtocolSetup</function>
+can be obtained by calling the
+<function>IceConnectionString</function>
+function.</para>
+
+<para>ICElib will be responsible for freeing the reply_data_ret and
+error_string_ret pointers with
+<function>free</function></para>
+
+<para>The auth_data pointer may point to a volatile block of memory.
+If the data must be kept beyond this invocation of the callback, be sure
+to make a copy of it.</para>
+
+<para>The
+<function>IcePoAuthProc</function>
+should return one of four values:</para>
+<itemizedlist>
+  <listitem>
+<para><function>IcePoAuthHaveReply</function>
+- a reply is available.</para>
+  </listitem>
+  <listitem>
+<para><function>IcePoAuthRejected</function>
+- authentication rejected.</para>
+  </listitem>
+  <listitem>
+<para><function>IcePoAuthFailed</function>
+- authentication failed.</para>
+  </listitem>
+  <listitem>
+<para><function>IcePoAuthDoneCleanup</function>
+- done cleaning up.</para>
+  </listitem>
+</itemizedlist>
+
+<para><function>IcePaAuthProc</function>
+is the callback invoked for the client that received the
+<function>ProtocolSetup</function></para>
+
+<funcsynopsis id='PoAuthStatus'>
+<funcprototype>
+  <funcdef>IcePoAuthStatus <function>PoAuthStatus </function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> *auth_state_ptr</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+    <paramdef>int<parameter> auth_datalen</parameter></paramdef>
+    <paramdef>IcePointer<parameter> auth_data</parameter></paramdef>
+    <paramdef>int<parameter> *reply_datalen_ret</parameter></paramdef>
+    <paramdef>IcePointer<parameter> *reply_data_ret</parameter></paramdef>
+    <paramdef>char<parameter> **error_string_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_state_ptr</emphasis></term>
+    <listitem>
+<para>A pointer to state for use by the authentication callback procedure.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>swap</emphasis></term>
+    <listitem>
+<para>If
+<function>True</function>
+auth_data may have to be byte swapped
+(depending on its contents).</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_datalen</emphasis></term>
+    <listitem>
+<para>The length (in bytes) of the protocol originator authentication data.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_data</emphasis></term>
+    <listitem>
+<para>The authentication data from the protocol originator.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>reply_datalen_ret</emphasis></term>
+    <listitem>
+<para>The length of the authentication data returned.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>reply_data_ret</emphasis></term>
+    <listitem>
+<para>The authentication data returned.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_string_ret</emphasis></term>
+    <listitem>
+<para>If authentication is rejected or fails, an error
+string is returned.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>Authentication may require several phases, depending on the authentication
+method.  As a result, the
+<function>IcePaAuthProc</function>
+may be called more than once when authenticating a client, and
+some state will have to be maintained between each invocation.
+At the start of each
+<function>ProtocolSetup</function>
+auth_datalen is zero,
+*auth_state_ptr is NULL,
+and the function should initialize its state and set
+this pointer.  In subsequent invocations of the callback, the pointer
+should be used to get at any state previously stored by the callback.</para>
+
+<para>If needed, the network ID of the client accepting the
+<function>ProtocolSetup</function>
+can be obtained by calling the
+<function>IceConnectionString</function>
+function.</para>
+
+<para>The auth_data pointer may point to a volatile block of memory.
+If the data must be kept beyond this invocation of the callback, be sure
+to make a copy of it.</para>
+
+<para>ICElib will be responsible for transmitting and freeing the reply_data_ret and
+error_string_ret pointers with
+<function>free</function></para>
+
+<para>
+The <function>IcePaAuthProc</function> should return one of four values:
+</para>
+
+
+<itemizedlist>
+  <listitem>
+    <para>
+<function>IcePaAuthContinue</function> - continue (or start) authentication.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IcePaAuthAccepted</function> - authentication accepted.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IcePaAuthRejected</function> - authentication rejected.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IcePaAuthFailed</function> - authentication failed.
+    </para>
+  </listitem>
+</itemizedlist>
+</sect1>
+
+</chapter>
+
+<chapter id='ICE_Connections'>
+<title>ICE Connections</title>
+
+<para>
+In order for two clients to establish an ICE connection, one client has to be
+waiting for connections, and the other client has to initiate the connection.
+Most clients will initiate connections, so we discuss that first.
+</para>
+
+<sect1 id='Opening_an_ICE_Connection'>
+<title>Opening an ICE Connection</title>
+
+
+<para>
+To open an ICE connection with another client (that is, waiting
+for connections), use <xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceOpenConnection'>
+<funcprototype>
+  <funcdef>IceConn <function>IceOpenConnection</function></funcdef>
+    <paramdef>char<parameter> *network_ids_list</parameter></paramdef>
+    <paramdef>IcePointer<parameter> context</parameter></paramdef>
+    <paramdef>Bool<parameter> must_authenticate</parameter></paramdef>
+    <paramdef>int<parameter> major_opcode_check</parameter></paramdef>
+    <paramdef>int<parameter> error_length</parameter></paramdef>
+    <paramdef>char<parameter> *error_string_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>network_ids_list</emphasis></term>
+    <listitem>
+      <para>
+Specifies the network ID(s) of the other client.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>context</emphasis></term>
+    <listitem>
+      <para>
+A pointer to an opaque object or NULL.  Used to determine if an
+ICE connection can be shared (see below).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>must_authenticate</emphasis></term>
+    <listitem>
+      <para>
+If <function>True</function> the other client may not bypass authentication.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_opcode_check</emphasis></term>
+    <listitem>
+      <para>
+Used to force a new ICE connection to be created (see below).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_length</emphasis></term>
+    <listitem>
+      <para>Length of the error_string_ret argument passed in.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_string_ret</emphasis></term>
+    <listitem>
+      <para>
+Returns a null-terminated error message, if any.  The error_string_ret
+argument points to user supplied memory.  No more than error_length bytes
+are used.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+returns an opaque ICE connection object if it succeeds;
+otherwise, it returns NULL.
+</para>
+
+<para>
+The network_ids_list argument contains a list of network IDs separated
+by commas.  An attempt will be made to use the first network ID.  If
+that fails, an attempt will be made using the second network ID, and so on.
+Each network ID has the following format:
+</para>
+
+<informaltable frame='none'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='2.0*'/>
+    <tbody>
+      <row>
+        <entry>tcp/&lt;hostname&gt;:&lt;portnumber&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>decnet/&lt;hostname&gt;::&lt;objname&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>local/&lt;hostname&gt;:&lt;path&gt;</entry>
+        <entry></entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<para>Most protocol libraries will have some sort of open function that should
+internally make a call into
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+When
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+is called, it may be possible to use a previously opened ICE connection (if
+the target client is the same).  However, there are cases in which shared
+ICE connections are not desired.</para>
+
+<para>The context argument is used to determine if an ICE connection can
+be shared.
+If context is NULL,
+then the caller is always willing to share the connection.
+If context is not NULL,
+then the caller is not willing to use a previously opened ICE connection
+that has a different non-NULL context associated with it.</para>
+
+<para>In addition, if major_opcode_check contains a nonzero major opcode value,
+a previously created ICE connection will be used only if the major opcode
+is not active on the connection.  This can be used to force multiple ICE
+connections between two clients for the same protocol.</para>
+
+<para>Any authentication requirements are handled internally by the ICE library.
+The method by which the authentication data is obtained
+is implementation-dependent.
+  <footnote remap='FS'>
+<para>The X Consortium's ICElib implementation uses an .ICEauthority file (see
+Appendix A).
+  </para></footnote> </para>
+
+<para>After
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+is called, the client is ready to send a
+<function>ProtocolSetup</function>
+(provided that
+<xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/>
+was called) or receive a
+<function>ProtocolSetup</function>
+(provided that
+<xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+was called).</para>
+</sect1>
+
+<sect1 id='Listening_for_ICE_Connections'>
+<title>Listening for ICE Connections</title>
+
+<para>Clients wishing to accept ICE connections must first call
+<xref linkend='IceListenForConnections' xrefstyle='select: title'/>
+or
+<xref linkend='IceListenForWellKnownConnections' xrefstyle='select: title'/>
+so that they can listen for connections.  A list of opaque "listen" objects are
+returned, one for each type of transport method that is available
+(for example, Unix Domain, TCP, DECnet, and so on).</para>
+
+<para>Normally clients will let ICElib allocate an available name in each
+transport and return listen objects.  Such a client will then use
+<xref linkend='IceComposeNetworkIdList' xrefstyle='select: title'/>
+to extract the chosen names and make them
+available to other clients for opening the connection.  In certain
+cases it may be necessary for a client to listen for connections
+on pre-arranged transport object names.  Such a client may use
+<xref linkend='IceListenForWellKnownConnections' xrefstyle='select: title'/>
+to specify the names for the listen objects.</para>
+
+<funcsynopsis id='IceListenForConnections'>
+<funcprototype>
+  <funcdef>Status <function>IceListenForConnections</function></funcdef>
+    <paramdef>int<parameter> *count_ret</parameter></paramdef>
+    <paramdef>IceListenObj<parameter> **listen_objs_ret</parameter></paramdef>
+    <paramdef>int<parameter> error_length</parameter></paramdef>
+    <paramdef>char<parameter> *error_string_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>count_ret</emphasis></term>
+    <listitem><para>Returns the number of listen objects created.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_objs_ret</emphasis></term>
+    <listitem><para>Returns a list of pointers to opaque listen objects.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>error_length</emphasis></term>
+  <listitem>
+<para>The length of the error_string_ret argument passed in.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>error_string_ret</emphasis></term>
+  <listitem>
+<para>Returns a null-terminated error message, if any.
+The error_string_ret points to user supplied memory.
+No more than error_length bytes are used.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The return value of
+<xref linkend='IceListenForConnections' xrefstyle='select: title'/>
+is zero for failure and a positive value for success.</para>
+
+<funcsynopsis id='IceListenForWellKnownConnections'>
+<funcprototype>
+  <funcdef>Status <function>IceListenForWellKnownConnections</function></funcdef>
+    <paramdef>char<parameter> *port_id</parameter></paramdef>
+    <paramdef>int<parameter> *count_ret</parameter></paramdef>
+    <paramdef>IceListenObj<parameter> **listen_objs_ret</parameter></paramdef>
+    <paramdef>int<parameter> error_length</parameter></paramdef>
+    <paramdef>char<parameter> *error_string_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>port_id</emphasis></term>
+    <listitem>
+      <para>
+Specifies the port identification for the address(es) to be opened.  The
+value must not contain the slash ("/"> or comma (".") character; thse are
+reserved for future use.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>count_ret</emphasis></term>
+    <listitem>
+      <para>Returns the number of listen objects created.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_objs_ret</emphasis></term>
+    <listitem>
+      <para>
+Returns a list of pointers to opaque listen objects.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_objs_ret</emphasis></term>
+    <listitem>
+      <para>
+Returns a list of pointers to opaque listen objects.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_length</emphasis></term>
+    <listitem>
+      <para>
+The length of the error_string_ret argument passed in.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_string_ret</emphasis></term>
+    <listitem>
+      <para>
+Returns a null-terminated error message, if any.  The error_string_ret
+points to user supplied memory.  No more than error_length bytes are used.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceListenForWellKnownConnections' xrefstyle='select: title'/> constructs a list
+of network IDs by prepending each known transport to port_id and then
+attempts to create listen objects for the result.  Port_id is the portnumber,
+objname, or path portion of the ICE network ID. If a listen object for
+a particular network ID cannot be created the network ID is ignored.
+If no listen objects are created
+<xref linkend='IceListenForWellKnownConnections' xrefstyle='select: title'/>
+returns failure.
+</para>
+
+<para>
+The return value of <xref linkend='IceListenForWellKnownConnections' xrefstyle='select: title'/>
+is zero for failure and a positive value for success.
+</para>
+
+<para>
+To close and free the listen objects, use
+<xref linkend='IceFreeListenObjs' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceFreeListenObjs'>
+<funcprototype>
+  <funcdef>void <function>IceFreeListenObjs</function></funcdef>
+    <paramdef>int<parameter> count</parameter></paramdef>
+    <paramdef>IceListenObj<parameter> *listen_objs</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>count</emphasis></term>
+    <listitem>
+      <para>The number of listen objects.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_objs</emphasis></term>
+    <listitem>
+      <para>The listen objects.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To detect a new connection on a listen object, use
+<function>select</function> on the descriptor associated with
+the listen object.
+</para>
+
+<para>
+To obtain the descriptor, use
+<xref linkend='IceGetListenConnectionNumber' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceGetListenConnectionNumber'>
+<funcprototype>
+  <funcdef>int <function>IceGetListenConnectionNumber</function></funcdef>
+    <paramdef>IceListenObj<parameter> *listen_objs</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>listen_obj</emphasis></term>
+    <listitem>
+      <para>The listen objects.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+To obtain the network ID string associated with a listen object, use
+<xref linkend='IceGetListenConnectionString' xrefstyle='select: title'/>
+</para>
+
+
+<funcsynopsis id='IceGetListenConnectionString'>
+<funcprototype>
+  <funcdef>char <function>IceGetListenConnectionString</function></funcdef>
+    <paramdef>IceListenObj<parameter> listen_obj</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_obj</emphasis></term>
+    <listitem>
+      <para>The listen objects.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>A network ID has the following format:</para>
+
+<informaltable frame='none'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='2.0*'/>
+    <tbody>
+      <row>
+        <entry>tcp/&lt;hostname&gt;:&lt;portnumber&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>decnet/&lt;hostname&gt;::&lt;objname&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>local/&lt;hostname&gt;:&lt;path&gt;</entry>
+        <entry></entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+<para>
+To compose a string containing a list of network IDs separated by commas
+(the format recognized by <xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+use <xref linkend='IceComposeNetworkIdList' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceComposeNetworkIdList'>
+<funcprototype>
+  <funcdef>char <function>IceComposeNetworkIdList</function></funcdef>
+    <paramdef>int<parameter> count</parameter></paramdef>
+    <paramdef>IceListenObj<parameter> *listen_objs</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>count</emphasis></term>
+    <listitem>
+      <para>The number of listen objects.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>listen_objs</emphasis></term>
+    <listitem>
+      <para>The listen objects.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect1>
+
+<sect1 id='Host_Based_Authentication_for_ICE_Connections'>
+<title>Host Based Authentication for ICE Connections</title>
+
+<para>
+If authentication fails when a client attempts to open an
+ICE connection and the initiating client has not required authentication,
+a host based authentication procedure may be invoked to provide
+a last chance for the client to connect.  Each listen object has such a
+callback associated with it, and this callback is set using the
+<xref linkend='IceSetHostBasedAuthProc' xrefstyle='select: title'/>
+function.
+</para>
+
+<funcsynopsis id='IceSetHostBasedAuthProc'>
+<funcprototype>
+  <funcdef>void <function>IceSetHostBasedAuthProc</function></funcdef>
+    <paramdef>IceListenObj<parameter> listen_obj</parameter></paramdef>
+    <paramdef>IceHostBasedAuthProc<parameter> host_based_auth_proc</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>IceListenObj</emphasis></term>
+    <listitem>
+      <para>The listen object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>host_based_auth_proc</emphasis></term>
+    <listitem>
+      <para>The host based authentication procedure.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+By default, each listen object has no host based authentication procedure
+associated with it.  Passing NULL for host_based_auth_proc turns off
+host based authentication if it was previously set.
+</para>
+
+
+<funcsynopsis id='HostBasedAuthProc'>
+<funcprototype>
+  <funcdef>Bool <function>HostBasedAuthProc</function></funcdef>
+    <paramdef>char<parameter> *host_name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>host_name</emphasis></term>
+    <listitem>
+      <para>
+The host name of the client that tried to open an ICE connection.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+The host_name argument is a string in the form
+<emphasis remap='I'>protocol</emphasis>/
+<emphasis remap='I'>hostname</emphasis>,
+where <emphasis remap='I'>protocol</emphasis> is one of
+{tcp, decnet, local}.
+</para>
+
+<para>
+If <function>IceHostBasedAuthProc</function> returns
+<function>True</function>
+access will be granted, even though the original authentication failed.
+Note that authentication can effectively be disabled by registering an
+<function>IceHostBasedAuthProc</function>
+which always returns <function>True</function>
+</para>
+
+<para>
+Host based authentication is also allowed at
+<function>ProtocolSetup</function> time.
+The callback is specified in the
+<xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+function (see
+<xref linkend='Protocol_Registration' xrefstyle='select: title'/>).
+</para>
+</sect1>
+
+<sect1 id='Accepting_ICE_Connections'>
+<title>Accepting ICE Connections</title>
+
+
+<para>
+After a connection attempt is detected on a listen object returned by
+<xref linkend='IceListenForConnections' xrefstyle='select: title'/>
+you should call <xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+This returns a new opaque ICE connection object.
+</para>
+
+<funcsynopsis id='IceAcceptConnection'>
+<funcprototype>
+  <funcdef>IceConn <function>IceAcceptConnection</function></funcdef>
+    <paramdef>IceListenObj<parameter> listen_obj</parameter></paramdef>
+    <paramdef>IceAcceptStatus<parameter> *status_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>listen_obj</emphasis></term>
+  <listitem>
+<para>The listen object on which a new connection was detected.</para>
+  </listitem>
+  </varlistentry>
+  </variablelist>
+  <variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>status_ret</emphasis></term>
+  <listitem>
+<para>Return status information.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The status_ret argument is set to one of the following values:</para>
+<itemizedlist>
+  <listitem>
+<para><function>IceAcceptSuccess</function>
+- the accept operation succeeded,
+and the function returns a new connection object.</para>
+  </listitem>
+  <listitem>
+<para><function>IceAcceptFailure</function>
+- the accept operation failed, and the function returns NULL.</para>
+  </listitem>
+  <listitem>
+<para><function>IceAcceptBadMalloc</function>
+- a memory allocation failed, and the function returns NULL.</para>
+  </listitem>
+</itemizedlist>
+
+<para>In general, to detect new connections, you should call
+<function>select</function>
+on the file descriptors associated with the listen objects.
+When a new connection is detected, the
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+function should be called.
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+may return a new ICE connection that is in a pending state.  This is because
+before the connection can become valid, authentication may be necessary.
+Because the ICE library cannot block and wait for the connection to
+become valid (infinite blocking can occur if the connecting client
+does not act properly), the application must wait for the connection status
+to become valid.</para>
+
+<para>The following pseudo-code demonstrates how connections are accepted:</para>
+
+<literallayout class="monospaced">
+new_ice_conn = IceAcceptConnection (listen_obj, &amp;accept_status);
+if (accept_status != IceAcceptSuccess)
+{
+     close the file descriptor and return
+}
+
+status = IceConnectionStatus (new_ice_conn);
+time_start = time_now;
+
+while (status == IceConnectPending)
+{
+     select() on {new_ice_conn, all open connections}
+
+     for (each ice_conn in the list of open connections)
+          if (data ready on ice_conn)
+          {
+               status = IceProcessMessages (ice_conn, NULL, NULL);
+               if (status == IceProcessMessagesIOError)
+                    IceCloseConnection(ice_conn);
+          }
+     if data ready on new_ice_conn
+     {
+          /*
+          * IceProcessMessages is called until the connection
+          * is non-pending.  Doing so handles the connection
+          * setup request and any authentication requirements.
+          */
+
+          IceProcessMessages ( new_ice_conn, NULL, NULL);
+          status = IceConnectionStatus (new_ice_conn);
+     }
+     else
+     {
+          if (time_now - time_start &gt; MAX_WAIT_TIME)
+               status = IceConnectRejected;
+     }
+}
+
+if (status == IceConnectAccepted)
+{
+     Add new_ice_conn to the list of open connections
+}
+else
+{
+     IceCloseConnection
+     new_ice_conn
+}
+</literallayout>
+
+<para>After
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+is called and the connection has been
+validated, the client is ready to receive a
+<function>ProtocolSetup</function>
+(provided
+that
+<xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+was called) or send a
+<function>ProtocolSetup</function>
+(provided that
+<xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/>
+was called).</para>
+</sect1>
+
+<sect1 id='Closing_ICE_Connections'>
+<title>Closing ICE Connections</title>
+
+<para>To close an ICE connection created with
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+or
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+use
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/></para>
+
+<funcsynopsis id='IceCloseConnection'>
+<funcprototype>
+  <funcdef>IceCloseStatus <function>IceCloseConnection</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>ice_conn</emphasis></term>
+  <listitem>
+  <para>The ICE connection to close.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>To actually close an ICE connection, the following conditions
+must be met:</para>
+
+<itemizedlist>
+  <listitem>
+<para>The <emphasis remap='I'>open reference count</emphasis> must have reached zero on this ICE connection.
+When
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+is called, it tries to use a previously opened
+ICE connection.  If it is able to use an existing connection, it increments
+the open reference count on the connection by one.
+So, to close an ICE connection, each call to
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+must be matched with a call to
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+The connection can be closed only
+on the last call to
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/></para>
+  </listitem>
+  <listitem>
+<para>The <emphasis remap='I'>active protocol count</emphasis> must have reached zero.  Each time a
+<function>ProtocolSetup</function>
+succeeds on the connection, the active protocol count
+is incremented by one.  When the client no longer expects to use the
+protocol on the connection, the
+<xref linkend='IceProtocolShutdown' xrefstyle='select: title'/>
+function should be called, which decrements the active protocol count
+by one (see
+<xref linkend='Protocol_Setup_and_Shutdown' xrefstyle='select: title'/>).
+</para>
+  </listitem>
+  <listitem>
+<para>If shutdown negotiation is enabled on the connection, the client on the other
+side of the ICE connection must agree to have the connection closed.</para>
+
+<para><xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+returns one of the following values:</para>
+  </listitem>
+  <listitem>
+<para><function>IceClosedNow</function>
+- the ICE connection was closed at this time.  The watch procedures were
+invoked and the connection was freed.</para>
+  </listitem>
+  <listitem>
+<para><function>IceClosedASAP</function>
+- an IO error had occurred on the connection, but
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+is being called within a nested
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+The watch procedures have been invoked at this time, but the connection
+will be freed as soon as possible (when the nesting level reaches zero and
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+returns a status of
+<function>IceProcessMessagesConnectionClosed</function></para>
+  </listitem>
+  <listitem>
+<para><function>IceConnectionInUse</function>
+- the connection was not closed at this time, because it is being used by
+other active protocols.</para>
+  </listitem>
+  <listitem>
+<para><function>IceStartedShutdownNegotiation</function>
+- the connection was not closed at this time and shutdown negotiation started
+with the client on the other side of the ICE connection.  When the connection
+is actually closed,
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+will return a status of
+<function>IceProcessMessagesConnectionClosed</function></para>
+  </listitem>
+</itemizedlist>
+
+<para>When it is known that the client on the other side of the ICE connection
+has terminated the connection without initiating shutdown negotiation, the
+<xref linkend='IceSetShutdownNegotiation' xrefstyle='select: title'/>
+function should be called to turn off shutdown negotiation.  This will prevent
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+from writing to a broken connection.</para>
+
+<funcsynopsis id='IceSetShutdownNegotiation'>
+<funcprototype>
+  <funcdef>void <function>IceSetShutdownNegotiation</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>Bool<parameter> negotiate</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>ice_conn</emphasis></term>
+  <listitem>
+  <para>A valid ICE connection object.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>negotiate</emphasis></term>
+  <listitem>
+<para>If
+<function>False</function>
+shutdown negotiating will be turned off.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>To check the shutdown negotiation status of an ICE connection, use
+<xref linkend='IceCheckShutdownNegotiation' xrefstyle='select: title'/></para>
+
+<funcsynopsis id='IceCheckShutdownNegotiation'>
+<funcprototype>
+  <funcdef>Bool <function>IceCheckShutdownNegotiation</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>ice_conn</emphasis></term>
+  <listitem>
+  <para>A valid ICE connection object.</para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para><xref linkend='IceCheckShutdownNegotiation' xrefstyle='select: title'/>
+returns
+<function>True</function>
+if shutdown negotiation will take place on the connection;
+otherwise, it returns
+<function>False</function>
+Negotiation is on by default for a connection.  It
+can only be changed with the
+<xref linkend='IceSetShutdownNegotiation' xrefstyle='select: title'/>
+function.</para>
+</sect1>
+
+<sect1 id='Connection_Watch_Procedures'>
+<title>Connection Watch Procedures</title>
+
+<para>To add a watch procedure that will be called
+each time ICElib opens a new connection via
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+or
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/>
+or closes a connection via
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+use
+<xref linkend='IceAddConnectionWatch' xrefstyle='select: title'/></para>
+
+<funcsynopsis id='IceAddConnectionWatch'>
+<funcprototype>
+  <funcdef>Status <function>IceAddConnectionWatch</function></funcdef>
+    <paramdef>IceWatchProc<parameter> watch_proc</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>watch_proc</emphasis></term>
+    <listitem>
+      <para>
+The watch procedure to invoke when ICElib opens or closes a connection.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+      <para>This pointer will be passed to the watch procedure.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+The return value of <xref linkend='IceAddConnectionWatch' xrefstyle='select: title'/>
+is zero for failure, and a positive value for success.
+</para>
+
+<para>
+Note that several calls to <xref linkend='IceOpenConnection' xrefstyle='select: title'/>
+might share the same ICE connection.  In such a case, the watch procedure
+is only invoked when the connection is first created (after authentication
+succeeds).  Similarly, because connections might be shared, the
+watch procedure is called only if <xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+actually closes the connection (right before the IceConn is freed).
+</para>
+
+<para>
+The watch procedures are very useful for applications that
+need to add a file descriptor to a select mask when a new connection
+is created and remove the file descriptor when the connection is destroyed.
+Because connections are shared, knowing when to add and remove the file
+descriptor from the select mask would be difficult without the watch
+procedures.
+</para>
+
+<para>
+Multiple watch procedures may be registered with the ICE library.
+No assumptions should be made about their order of invocation.
+</para>
+
+<para>
+If one or more ICE connections were already created by the ICE library at the
+time the watch procedure is registered, the watch procedure will instantly
+be invoked for each of these ICE connections (with the opening argument
+set to <function>True</function>
+</para>
+
+<para>
+The watch procedure is of type <function>IceWatchProc</function>
+</para>
+
+<funcsynopsis id='WatchProc'>
+<funcprototype>
+  <funcdef>void <function>WatchProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+    <paramdef>Bool<parameter> opening</parameter></paramdef>
+    <paramdef>IcePointer<parameter> *watch_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>
+The opened or closed ICE connection.  Call
+<function>IceConnectionNumber</function>
+to get the file descriptor associated with this connection.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+      <para>
+Client data specified in the call to
+<xref linkend='IceAddConnectionWatch' xrefstyle='select: title'/>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>opening</emphasis></term>
+    <listitem>
+      <para>
+If <function>True</function> the connection is being opened.  If
+<function>False</function> the connection is being closed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>watch_data</emphasis></term>
+    <listitem>
+      <para>Can be used to save a pointer to client data.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If opening is <function>True</function> the client should set the
+*watch_data pointer to any data it may need to save until the connection
+is closed and the watch procedure is invoked again with opening set to
+<function>False</function>
+</para>
+
+<para>
+To remove a watch procedure, use
+<xref linkend='IceRemoveConnectionWatch' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceRemoveConnectionWatch'>
+<funcprototype>
+  <funcdef>void <function>IceRemoveConnectionWatch</function></funcdef>
+    <paramdef>IceWatchProc<parameter> watch_proc</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>watch_proc</emphasis></term>
+    <listitem>
+      <para>
+The watch procedure that was passed to
+<xref linkend='IceAddConnectionWatch' xrefstyle='select: title'/>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+      <para>
+The client_data pointer that was passed to
+<xref linkend='IceAddConnectionWatch' xrefstyle='select: title'/>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect1>
+</chapter>
+
+<chapter id='Protocol_Setup_and_Shutdown'>
+<title>Protocol Setup and Shutdown</title>
+
+<para>
+To activate a protocol on a given ICE connection, use
+<xref linkend='IceProtocolSetup' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceProtocolSetup'>
+<funcprototype>
+  <funcdef>IceProtocolSetupStatus <function>IceProtocolSetup</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> my_opcode</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+    <paramdef>Bool<parameter> must_authenticate</parameter></paramdef>
+    <paramdef>int<parameter> *major_version_ret</parameter></paramdef>
+    <paramdef>int<parameter> *minor_version_ret</parameter></paramdef>
+    <paramdef>char<parameter> **vendor_ret</parameter></paramdef>
+    <paramdef>char<parameter> **release_ret</parameter></paramdef>
+    <paramdef>int<parameter> error_length</parameter></paramdef>
+    <paramdef>char<parameter> *error_string_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>my_opcode</emphasis></term>
+    <listitem>
+      <para>
+The major opcode of the protocol to be set up, as returned by
+<xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+      <para>
+The client data stored in this pointer will be passed to the
+<function>IcePoProcessMsgProc</function> callback.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>must_authenticate</emphasis></term>
+    <listitem>
+      <para>
+If <function>True</function> the other client may
+not bypass authentication.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_version_ret</emphasis></term>
+    <listitem>
+      <para>The major version of the protocol to be used is returned.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>minor_version_ret</emphasis></term>
+    <listitem>
+      <para>The minor version of the protocol to be used is returned.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor_ret</emphasis></term>
+    <listitem>
+      <para>The vendor string specified by the protocol acceptor.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release_ret</emphasis></term>
+    <listitem>
+      <para>The release string specified by the protocol acceptor.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_length</emphasis></term>
+    <listitem>
+      <para>
+Specifies the length of the error_string_ret argument passed in.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_string_ret</emphasis></term>
+    <listitem>
+      <para>
+Returns a null-terminated error message, if any.
+The error_string_ret argument points to user supplied memory.
+No more than error_length bytes are used.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The vendor_ret and release_ret strings should be freed with
+<function>free</function> when no longer needed.
+</para>
+
+<para>
+<xref linkend='IceProtocolSetup' xrefstyle='select: title'/> returns one of the following values:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+<function>IceProtocolSetupSuccess</function> - the major_version_ret,
+minor_version_ret, vendor_ret, release_ret are set.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceProtocolSetupFailure</function> or
+<function>IceProtocolSetupIOError</function>
+- check error_string_ret for failure reason.  The major_version_ret,
+minor_version_ret, vendor_ret, release_ret are not set.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceProtocolAlreadyActive</function>
+- this protocol is already active on this connection.
+The major_version_ret, minor_version_ret, vendor_ret, release_ret
+are not set.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+To notify the ICE library when a given protocol will no longer be used
+on an ICE connection, use <xref linkend='IceProtocolShutdown' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceProtocolShutdown'>
+<funcprototype>
+  <funcdef>Status <function>IceProtocolShutdown</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> major_opcode</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_opcode</emphasis></term>
+    <listitem>
+      <para>The major opcode of the protocol to shut down.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+The return value of <xref linkend='IceProtocolShutdown' xrefstyle='select: title'/>
+is zero for failure and a positive value for success.
+</para>
+
+<para>
+Failure will occur if the major opcode was never registered OR the protocol
+of the major opcode was never activated on the connection.  By activated,
+we mean that a <function>ProtocolSetup</function> succeeded on the connection.
+Note that ICE does not define how each sub-protocol triggers a
+protocol shutdown.
+</para>
+</chapter>
+
+<chapter id='Processing_Messages'>
+<title>Processing Messages</title>
+
+
+<para>To process incoming messages on an ICE connection, use
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/></para>
+
+<funcsynopsis id='IceProcessMessages'>
+<funcprototype>
+  <funcdef>IceProcessMessagesStatus <function>IceProcessMessages</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IceReplyWaitInfo<parameter> *reply_wait</parameter></paramdef>
+    <paramdef>Bool<parameter> *reply_ready_ret</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>reply_wait</emphasis></term>
+    <listitem>
+      <para>Indicates if a reply is being waited for.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>reply_ready_ret</emphasis></term>
+    <listitem>
+      <para>
+If set to <function>True</function> on return, a reply is ready.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/> is used in two ways:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+In the first, a client may generate a message and block by calling
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/> repeatedly until it gets its reply.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+In the second, a client calls <xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+with reply_wait set to NULL in response to <function>select</function>
+showing that there is data to read on the ICE connection.
+The ICE library may process zero or more complete messages.
+Note that messages that are not blocked for are always processed by
+invoking callbacks.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+<function>IceReplyWaitInfo</function> contains the major/minor opcodes
+and sequence number of the message for which a reply is being awaited.
+It also contains a pointer to the reply message to be filled in (the
+protocol library should cast this <function>IcePointer</function>
+to the appropriate reply type).  In most
+cases, the reply will have some fixed-size part, and the client waiting
+for the reply will have provided a pointer to a structure to hold
+this fixed-size data.  If there is variable-length data, it would be
+expected that the
+<function>IcePoProcessMsgProc</function>
+callback will have to allocate additional
+memory and store pointer(s) to that memory in the fixed-size
+structure.  If the entire data is variable length (for example, a single
+variable-length string), then the client waiting for the reply would probably
+just pass a pointer to fixed-size space to hold a pointer, and the
+<function>IcePoProcessMsgProc</function>
+callback would allocate the storage and store the pointer.
+It is the responsibility of the client receiving the reply to
+free up any memory allocated on its behalf.
+</para>
+
+<literallayout class="monospaced">
+typedef struct {
+     unsigned long sequence_of_request;
+     int major_opcode_of_request;
+     int minor_opcode_of_request;
+     IcePointer reply;
+} IceReplyWaitInfo;
+</literallayout>
+
+<para>
+If reply_wait is not NULL and
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+has a reply or error to return in response to this reply_wait
+(that is, no callback was generated), then the reply_ready_ret argument
+will be set to <function>True</function>
+</para>
+
+<para>
+If reply_wait is NULL, then the caller may also pass NULL for
+reply_ready_ret and be guaranteed that no value will be stored in
+this pointer.
+</para>
+
+<para>
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/> returns one of the following values:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+<function>IceProcessMessagesSuccess</function> - no error occurred.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceProcessMessagesIOError</function> - an IO error occurred,
+and the caller must explicitly close the connection by calling
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceProcessMessagesConnectionClosed</function>
+- the ICE connection has been closed (closing of the connection was deferred
+because of shutdown negotiation, or because the
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+nesting level was not zero).  Do not attempt
+to access the ICE connection at this point, since it has been freed.
+    </para>
+  </listitem>
+</itemizedlist>
+
+</chapter>
+
+<chapter id='Ping'>
+<title>Ping</title>
+
+<para>
+To send a "Ping" message to the client on the other side of the
+ICE connection, use <xref linkend='IcePing' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IcePing'>
+<funcprototype>
+  <funcdef>Status <function>IcePing</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePingReplyProc<parameter> ping_reply_proc</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>ping_reply_proc</emphasis></term>
+    <listitem>
+      <para>The callback to invoke when the Ping reply arrives.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>client_data</emphasis></term>
+    <listitem>
+      <para>
+This pointer will be passed to the <olink targetdoc='SMlib' targetptr='IcePingReplyProc'><function>IcePingReplyProc</function></olink>
+callback.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para><xref linkend='IcePing' xrefstyle='select: title'/>
+returns zero for failure and a positive value for success.</para>
+
+<para>When
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+processes the Ping reply, it will invoke the
+<olink targetdoc='SMlib' targetptr='IcePingReplyProc'><function>IcePingReplyProc</function></olink>
+callback.</para>
+
+<funcsynopsis id='PingReplyProc'>
+<funcprototype>
+  <funcdef>void <function>PingReplyProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>IcePointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='I'>ice_conn</emphasis></term>
+  <listitem>
+<para>A valid ICE connection object.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>client_data</emphasis></term>
+  <listitem>
+<para>The client data specified in the call to
+<xref linkend='IcePing' xrefstyle='select: title'/></para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+</chapter>
+
+<chapter id='Using_ICElib_Informational_Functions'>
+<title>Using ICElib Informational Functions</title>
+
+<funcsynopsis id='IceConnectionStatus'>
+<funcprototype>
+  <funcdef>IceConnectStatus <function>IceConnectionStatus</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><xref linkend='IceConnectionStatus' xrefstyle='select: title'/>
+returns the status of an ICE connection.  The possible return values are:</para>
+
+<itemizedlist>
+  <listitem>
+<para><function>IceConnectPending</function>
+- the connection is not valid yet (that is, authentication is taking place).
+This is only relevant to connections created by
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/></para>
+  </listitem>
+  <listitem>
+<para><function>IceConnectAccepted</function>
+- the connection has been accepted.
+This is only relevant to connections created by
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/></para>
+  </listitem>
+  <listitem>
+<para><function>IceConnectRejected</function>
+- the connection had been rejected  (that is, authentication failed).
+This is only relevant to connections created by
+<xref linkend='IceAcceptConnection' xrefstyle='select: title'/></para>
+  </listitem>
+  <listitem>
+<para><function>IceConnectIOError</function>
+- an IO error has occurred on the connection.</para>
+  </listitem>
+</itemizedlist>
+
+<funcsynopsis id='IceVendor'>
+<funcprototype>
+  <funcdef>char <function> *IceVendor</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><function>IceVendor</function>
+returns the ICE library vendor identification
+for the other side of the connection.
+The string should be freed with a call to
+<function>free</function>
+when no longer needed.</para>
+
+<funcsynopsis id='IceRelease'>
+<funcprototype>
+  <funcdef>char <function> *IceRelease</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><function>IceRelease</function>
+returns the release identification of the ICE library
+on the other side of the connection.
+The string should be freed with a call to
+<function>free</function>
+when no longer needed.</para>
+
+<funcsynopsis id='IceProtocolVersion'>
+<funcprototype>
+  <funcdef>int <function> IceProtocolVersion</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><xref linkend='IceProtocolVersion' xrefstyle='select: title'/>
+returns the major version of the ICE protocol on this connection.</para>
+
+<funcsynopsis id='IceProtocolRevision'>
+<funcprototype>
+  <funcdef>int <function> IceProtocolRevision</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para><xref linkend='IceProtocolRevision' xrefstyle='select: title'/>
+returns the minor version of the ICE protocol on this connection.</para>
+
+<funcsynopsis>
+<funcprototype>
+  <funcdef>int <function> IceConnectionNumber</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para><function>IceConnectionNumber</function>
+returns the file descriptor of this ICE connection.</para>
+
+<funcsynopsis id='IceConnectionString'>
+<funcprototype>
+  <funcdef>char <function> *IceConnectionString</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><function>IceConnectionString</function>
+returns the network ID of the client that
+accepted this connection.  The string should be freed with a call to
+<function>free</function>
+when no longer needed.</para>
+
+<funcsynopsis id='IceLastSentSequenceNumber'>
+<funcprototype>
+  <funcdef>unsigned long <function> IceLastSentSequenceNumber</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para><xref linkend='IceLastSentSequenceNumber' xrefstyle='select: title'/>
+returns the sequence number of the last message sent on this ICE connection.</para>
+
+<funcsynopsis>
+<funcprototype>
+  <funcdef>unsigned long <function> IceLastReceivedSequenceNumber</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><function>IceLastReceivedSequenceNumber</function>
+returns the sequence number of the last message received on this
+ICE connection.</para>
+
+<funcsynopsis id='IceSwapping'>
+<funcprototype>
+  <funcdef>Bool <function> IceSwapping</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para><xref linkend='IceSwapping' xrefstyle='select: title'/>
+returns
+<function>True</function>
+if byte swapping is necessary when reading messages on the ICE connection.</para>
+
+<funcsynopsis id='IceGetContext'>
+<funcprototype>
+  <funcdef>IcePointer <function> IceGetContext</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para><xref linkend='IceGetContext' xrefstyle='select: title'/>
+returns the context associated with a connection created by
+<xref linkend='IceOpenConnection' xrefstyle='select: title'/></para>
+</chapter>
+
+<chapter id='ICE_Messages'>
+<title>ICE Messages</title>
+
+<para>
+All ICE messages have a standard 8-byte header.  The ICElib macros that
+read and write messages rely on the following naming convention for message
+headers:
+</para>
+
+<literallayout class='monospaced'>
+     CARD8	major_opcode;
+     CARD8	minor_opcode;
+     CARD8	data[2];
+     CARD32	length;
+</literallayout>
+
+<para>
+The 3rd and 4th bytes of the message header can be used as needed.
+The length field is specified in units of 8 bytes.
+</para>
+
+<sect1 id='Sending_ICE_Messages'>
+<title>Sending ICE Messages</title>
+
+<para>
+The ICE library maintains an output buffer used for generating messages.
+Protocol libraries layered on top of ICE may choose to batch messages
+together and flush the output buffer at appropriate times.
+</para>
+
+<para>
+If an IO error has occurred on an ICE connection, all write operations
+will be ignored.  For further information, see
+<xref linkend='Error_Handling' xrefstyle='select: title'/>.
+</para>
+
+
+<para>
+To get the size of the ICE output buffer, use
+<xref linkend='IceGetOutBufSize' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceGetOutBufSize'>
+<funcprototype>
+  <funcdef>int <function> IceGetOutBufSize</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To flush the ICE output buffer, use <xref linkend='IceFlush' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceFlush'>
+<funcprototype>
+  <funcdef>int <function> IceFlush</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Note that the output buffer may be implicitly flushed if there is
+insufficient space to generate a message.
+</para>
+
+<para>The following macros can be used to generate ICE messages:</para>
+
+<funcsynopsis id='IceGetHeader'>
+<funcprototype>
+  <funcdef><function> IceGetHeader</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> major_opcode</parameter></paramdef>
+    <paramdef>int<parameter> minor_opcode</parameter></paramdef>
+    <paramdef>int<parameter> header_size</parameter></paramdef>
+    <paramdef>&lt;C_data_type&gt;<parameter> *pmsg</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_opcode</emphasis></term>
+    <listitem>
+      <para>The major opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>minor_opcode</emphasis></term>
+    <listitem>
+      <para>The minor opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>header_size</emphasis></term>
+    <listitem>
+      <para>The size of the message header (in bytes).</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>&lt;C_data_type&gt;</emphasis></term>
+    <listitem>
+      <para>The actual C data type of the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pmsg</emphasis></term>
+    <listitem>
+      <para>
+The message header pointer.  After this macro is called, the
+library can store data in the message header.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+<xref linkend='IceGetHeader' xrefstyle='select: title'/>
+is used to set up a message header on an ICE connection.
+It sets the major and minor opcodes of the message, and initializes
+the message's length to the length of the header.  If additional
+variable length data follows, the message's length field should be
+updated.
+</para>
+
+
+<funcsynopsis id='IceGetHeaderExtra'>
+<funcprototype>
+  <funcdef><function> IceGetHeaderExtra</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> major_opcode</parameter></paramdef>
+    <paramdef>int<parameter> minor_opcode</parameter></paramdef>
+    <paramdef>int<parameter> header_size</parameter></paramdef>
+    <paramdef>int<parameter> extra</parameter></paramdef>
+    <paramdef>&lt;C_data_type&gt;<parameter> *pmsg</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_opcode</emphasis></term>
+    <listitem>
+      <para>The major opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>minor_opcode</emphasis></term>
+    <listitem>
+      <para>The minor opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>header_size</emphasis></term>
+    <listitem>
+      <para>The size of the message header (in bytes).</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>extra</emphasis></term>
+    <listitem>
+      <para>
+The size of the extra data beyond the header (in 8-byte units).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>&lt;C_data_type&gt;</emphasis></term>
+    <listitem>
+      <para>The actual C data type of the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pmsg</emphasis></term>
+    <listitem>
+      <para>
+The message header pointer.  After this macro is called, the
+library can store data in the message header.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>
+Returns a pointer to the ICE output buffer that points
+immediately after the message header.  The variable length
+data should be stored here.  If there was not enough room
+in the ICE output buffer, pdata is set to NULL.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+<xref linkend='IceGetHeaderExtra' xrefstyle='select: title'/>
+is used to generate a message with a fixed (and relatively small) amount
+of variable length data.  The complete message must fit in the ICE output
+buffer.
+</para>
+
+<funcsynopsis id='IceSimpleMessage'>
+<funcprototype>
+  <funcdef><function> IceSimpleMessage</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> major_opcode</parameter></paramdef>
+    <paramdef>int<parameter> minor_opcode</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_opcode</emphasis></term>
+    <listitem>
+      <para>The major opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>minor_opcode</emphasis></term>
+    <listitem>
+      <para>The minor opcode of the message.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceSimpleMessage' xrefstyle='select: title'/>
+is used to generate a message that is identical
+in size to the ICE header message, and has no additional data.
+</para>
+
+<funcsynopsis id='IceErrorHeader'>
+<funcprototype>
+  <funcdef><function> IceErrorHeader</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> offending_major_opcode</parameter></paramdef>
+    <paramdef>int<parameter> offending_minor_opcode</parameter></paramdef>
+    <paramdef>int<parameter> offending_sequence_num</parameter></paramdef>
+    <paramdef>int<parameter> severity</parameter></paramdef>
+    <paramdef>int<parameter> error_class</parameter></paramdef>
+    <paramdef>int<parameter> data_length</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>offending_major_opcode</emphasis></term>
+    <listitem>
+      <para>
+The major opcode of the protocol in which an error was detected.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>offending_minor_opcode</emphasis></term>
+    <listitem>
+      <para>
+The minor opcode of the protocol in which an error was detected.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>offending_sequence_num</emphasis></term>
+    <listitem>
+      <para>The sequence number of the message that caused the error.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis></term>
+    <listitem>
+      <para>
+<function>IceCanContinue</function>
+<function>IceFatalToProtocol</function>
+or
+<function>IceFatalToConnection</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_class</emphasis></term>
+    <listitem>
+      <para>The error class.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data_length</emphasis></term>
+    <listitem>
+      <para>
+Length of data (in 8-byte units) to be written after the header.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceErrorHeader' xrefstyle='select: title'/> sets up an error message header.
+</para>
+
+<para>
+Note that the two clients connected by ICE may be using different
+major opcodes for a given protocol.  The offending_major_opcode passed
+to this macro is the major opcode of the protocol for the client
+sending the error message.
+</para>
+
+<para>
+Generic errors, which are common to all protocols, have classes
+in the range 0x8000..0xFFFF.
+See the <emphasis remap='I'>Inter-Client Exchange Protocol</emphasis>
+standard for more details.
+</para>
+
+<informaltable frame='none'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='2.0*'/>
+    <tbody>
+      <row>
+        <entry>IceBadMinor</entry>
+        <entry>0x8000</entry>
+      </row>
+      <row>
+        <entry>IceBadState</entry>
+        <entry>0x8001</entry>
+      </row>
+      <row>
+        <entry>IceBadLength</entry>
+        <entry>0x8002</entry>
+      </row>
+      <row>
+        <entry>IceBadValue</entry>
+        <entry>0x8003</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+<para>Per-protocol errors have classes in the range 0x0000-0x7fff.</para>
+
+<para>
+To write data to an ICE connection, use the
+<xref linkend='IceWriteData' xrefstyle='select: title'/> macro.  If the data fits into the
+ICE output buffer, it is copied there.  Otherwise, the ICE output buffer
+is flushed and the data is directly sent.
+</para>
+
+<para>
+This macro is used in conjunction with
+<xref linkend='IceGetHeader' xrefstyle='select: title'/> and
+<xref linkend='IceErrorHeader' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceWriteData'>
+<funcprototype>
+  <funcdef><function> IceWriteData</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to write.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis></term>
+    <listitem>
+      <para>The data to write.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To write data as 16-bit quantities, use <xref linkend='IceWriteData16' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceWriteData16'>
+<funcprototype>
+  <funcdef><function> IceWriteData16</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to write.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis></term>
+    <listitem>
+      <para>The data to write.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+To write data as 32-bit quantities, use <xref linkend='IceWriteData32' xrefstyle='select: title'/>
+</para>
+
+
+<funcsynopsis id='IceWriteData32'>
+<funcprototype>
+  <funcdef><function> IceWriteData32</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to write.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis></term>
+    <listitem>
+      <para>The data to write.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+To write data as 32-bit quantities, use <xref linkend='IceWriteData32' xrefstyle='select: title'/>
+</para>
+
+<para>
+To bypass copying data to the ICE output buffer, use
+<xref linkend='IceSendData' xrefstyle='select: title'/> to directly send data over the network
+connection.  If necessary, the ICE output buffer is first flushed.
+</para>
+
+<funcsynopsis id='IceSendData'>
+<funcprototype>
+  <funcdef><function> IceSendData</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to send.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis></term>
+    <listitem>
+      <para>The data to send.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To force 32-bit or 64-bit alignment, use <xref linkend='IceWritePad' xrefstyle='select: title'/>
+A maximum of 7 pad bytes can be specified.
+</para>
+
+<funcsynopsis id='IceWritePad'>
+<funcprototype>
+  <funcdef><function> IceWritePad</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to write.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis></term>
+    <listitem>
+      <para>The number of pad bytes to write.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect1>
+
+<sect1 id='Reading_ICE_Messages'>
+<title>Reading ICE Messages</title>
+
+
+<para>
+The ICE library maintains an input buffer used for reading messages.
+If the ICE library chooses to perform nonblocking reads (this is
+implementation-dependent), then for every read operation that it makes,
+zero or more complete messages may be read into the input buffer.  As
+a result, for all of the macros described in this section that read
+messages, an actual read operation will occur on the connection only if
+the data is not already present in the input buffer.
+</para>
+
+
+<para>
+To get the size of the ICE input buffer, use
+<xref linkend='IceGetInBufSize' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceGetInBufSize'>
+<funcprototype>
+  <funcdef>int<function> IceGetInBufSize</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+When reading messages, care must be taken to check for IO errors.  If
+any IO error occurs in reading any part of a message, the message should
+be thrown out.  After using any of the macros described below for reading
+messages, the <xref linkend='IceValidIO' xrefstyle='select: title'/>
+macro can be used to check if an IO error occurred on the
+connection.  After an IO error has occurred on an ICE connection, all
+read operations will be ignored.  For further information, see
+<xref linkend='Error_Handling' xrefstyle='select: title'/>.
+</para>
+
+
+<funcsynopsis id='IceValidIO'>
+<funcprototype>
+  <funcdef>Bool<function> IceValidIO</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>The following macros can be used to read ICE messages.</para>
+
+<funcsynopsis id='IceReadSimpleMessage'>
+<funcprototype>
+  <funcdef><function> IceReadSimpleMessage</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>&lt;C_data_type&gt;<parameter> *pmsg</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>&lt;C_data_type&gt;</emphasis></term>
+    <listitem>
+      <para>The actual C data type of the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pmsg</emphasis></term>
+    <listitem>
+      <para>This pointer is set to the message header.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceReadSimpleMessage' xrefstyle='select: title'/>
+is used for messages that are identical in size to the 8-byte ICE header, but
+use the spare 2 bytes in the header to encode additional data.  Note that the
+ICE library always reads in these first 8 bytes, so it can obtain the major
+opcode of the message.  <xref linkend='IceReadSimpleMessage' xrefstyle='select: title'/>
+simply returns a pointer to these 8 bytes; it does not actually read any data
+into the input buffer.
+</para>
+
+<para>
+For a message with variable length data, there are two ways of reading
+the message.  One method involves reading the complete message in one
+pass using <xref linkend='IceReadCompleteMessage' xrefstyle='select: title'/>
+The second method involves reading the message header (note that this may
+be larger than the 8-byte ICE header), then reading
+the variable length data in chunks (see
+<xref linkend='IceReadMessageHeader' xrefstyle='select: title'/> and
+<xref linkend='IceReadData' xrefstyle='select: title'/>
+</para>
+
+
+<funcsynopsis id='IceReadCompleteMessage'>
+<funcprototype>
+  <funcdef><function> IceReadCompleteMessage</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> header_size</parameter></paramdef>
+    <paramdef>&lt;C_data_type&gt;<parameter> *pmsg</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>header_size</emphasis></term>
+    <listitem>
+      <para>The size of the message header (in bytes).</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>&lt;C_data_type&gt;</emphasis></term>
+    <listitem>
+      <para>The actual C data type of the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pmsg</emphasis></term>
+    <listitem>
+      <para>This pointer is set to the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>
+This pointer is set to the variable length data of the message.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If the ICE input buffer has sufficient space,
+<xref linkend='IceReadCompleteMessage' xrefstyle='select: title'/>
+will read the complete message into the
+ICE input buffer.  Otherwise, a buffer will be allocated to hold the
+variable length data.  After the call, the pdata argument should
+be checked against NULL to make sure that there was sufficient memory
+to allocate the buffer.
+</para>
+
+<para>
+After calling <xref linkend='IceReadCompleteMessage' xrefstyle='select: title'/>
+and processing the message, <xref linkend='IceDisposeCompleteMessage' xrefstyle='select: title'/>
+should be called.
+</para>
+
+
+<funcsynopsis id='IceDisposeCompleteMessage'>
+<funcprototype>
+  <funcdef><function> IceDisposeCompleteMessage</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>
+The pointer to the variable length data returned in
+<xref linkend='IceReadCompleteMessage' xrefstyle='select: title'/>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If a buffer had to be allocated to hold the variable length data (because
+it did not fit in the ICE input buffer), it is freed here by ICElib.
+</para>
+
+
+<funcsynopsis id='IceReadMessageHeader'>
+<funcprototype>
+  <funcdef><function> IceReadMessageHeader</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> header_size</parameter></paramdef>
+    <paramdef>&lt;C_data_type&gt;<parameter> *pmsg</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>header_size</emphasis></term>
+    <listitem>
+      <para>The size of the message header (in bytes).</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>&lt;C_data_type&gt;</emphasis></term>
+    <listitem>
+      <para>The actual C data type of the message header.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pmsg</emphasis></term>
+    <listitem>
+      <para>This pointer is set to the message header.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceReadMessageHeader' xrefstyle='select: title'/> reads just the message header.
+The rest of the data should be read with the
+<xref linkend='IceReadData' xrefstyle='select: title'/>
+family of macros.  This method of reading a message should be used when the
+variable length data must be read in chunks.
+</para>
+
+
+<para>
+To read data directly into a user supplied buffer, use
+<xref linkend='IceReadData' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceReadData'>
+<funcprototype>
+  <funcdef><function> IceReadData</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to read.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>The data is read into this user supplied buffer.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To read data as 16-bit quantities, use <xref linkend='IceReadData16' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceReadData16'>
+<funcprototype>
+  <funcdef><function> IceReadData16</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>swap</emphasis></term>
+    <listitem>
+      <para>
+If <function>True,</function> the values will be byte swapped.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to read.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>The data is read into this user supplied buffer.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+To read data as 32-bit quantities, use <xref linkend='IceReadData32' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceReadData32'>
+<funcprototype>
+  <funcdef><function> IceReadData32</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+    <paramdef>char<parameter> *pdata</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>swap</emphasis></term>
+    <listitem>
+      <para>
+If <function>True,</function> the values will be byte swapped.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of bytes to read.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>pdata</emphasis></term>
+    <listitem>
+      <para>The data is read into this user supplied buffer.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>To force 32-bit or 64-bit alignment, use
+<xref linkend='IceReadPad' xrefstyle='select: title'/>
+A maximum of 7 pad bytes can be specified.</para>
+
+<funcsynopsis id='IceReadPad'>
+<funcprototype>
+  <funcdef><function> IceReadPad</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem>
+      <para>A valid ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>bytes</emphasis></term>
+    <listitem>
+      <para>The number of pad bytes.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect1>
+</chapter>
+
+<chapter id='Error_Handling'>
+<title>Error Handling</title>
+
+
+<para>There are two default error handlers in ICElib:</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+One to handle typically fatal conditions (for example,
+a connection dying because a machine crashed)
+    </para>
+  </listitem>
+  <listitem>
+    <para>One to handle ICE-specific protocol errors</para>
+  </listitem>
+</itemizedlist>
+
+<para>
+These error handlers can be changed to user-supplied routines if you
+prefer your own error handling and can be changed as often as you like.
+</para>
+
+
+<para>
+To set the ICE error handler, use <xref linkend='IceSetErrorHandler' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceSetErrorHandler'>
+<funcprototype>
+  <funcdef><function> IceSetErrorHandler</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>int<parameter> bytes</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>handler</emphasis></term>
+    <listitem>
+      <para>
+The ICE error handler.  You should pass NULL to restore the default handler.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceSetErrorHandler' xrefstyle='select: title'/> returns the previous error handler.
+</para>
+
+<para>
+The ICE error handler is invoked when an unexpected ICE protocol
+error (major opcode 0) is encountered.  The action of the default
+handler is to print an explanatory message to
+<function>stderr</function>
+and if the severity is fatal, call
+<function>exit</function>
+with a nonzero value.  If exiting
+is undesirable, the application should register its own error handler.
+</para>
+
+<para>
+Note that errors in other protocol
+domains should be handled by their respective libraries (these libraries
+should have their own error handlers).
+</para>
+
+<para>
+An ICE error handler has the type of <xref linkend='IceErrorHandler' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceErrorHandler'>
+<funcprototype>
+  <funcdef>void<function> IceErrorHandler</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>Bool<parameter> swap</parameter></paramdef>
+    <paramdef>int<parameter> offending_minor_opcode</parameter></paramdef>
+    <paramdef>unsigned long<parameter> offending_sequence_num</parameter></paramdef>
+    <paramdef>int<parameter> error_class</parameter></paramdef>
+    <paramdef>int<parameter> severity</parameter></paramdef>
+    <paramdef>IcePointer<parameter> values</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>handler</emphasis></term>
+    <listitem>
+      <para>The ICE connection object.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>swap</emphasis></term>
+    <listitem>
+      <para>A flag that indicates if the values need byte swapping.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>offending_minor_opcode</emphasis></term>
+    <listitem>
+      <para>The ICE minor opcode of the offending message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>offending_sequence_num</emphasis></term>
+    <listitem>
+      <para>The sequence number of the offending message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_class</emphasis></term>
+    <listitem>
+      <para>The error class of the offending message.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis></term>
+    <listitem>
+      <para>
+<function>IceCanContinue</function>
+<function>IceFatalToProtocol</function>
+or
+<function>IceFatalToConnection</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis></term>
+    <listitem>
+      <para>
+Any additional error values specific to the minor opcode and class.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The following error classes are defined at the ICE level:</para>
+
+<literallayout remap='Ds'>
+<function>IceBadMinor</function>
+<function>IceBadState</function>
+<function>IceBadLength</function>
+<function>IceBadValue</function>
+<function>IceBadMajor</function>
+<function>IceNoAuth</function>
+<function>IceNoVersion</function>
+<function>IceSetupFailed</function>
+<function>IceAuthRejected</function>
+<function>IceAuthFailed</function>
+<function>IceProtocolDuplicate</function>
+<function>IceMajorOpcodeDuplicate</function>
+<function>IceUnknownProtocol</function>
+</literallayout>
+
+<para>
+For further information, see
+the <emphasis remap='I'>Inter-Client Exchange Protocol</emphasis> standard.
+</para>
+
+
+<para>
+To handle fatal I/O errors, use <xref linkend='IceSetIOErrorHandler' xrefstyle='select: title'/>
+</para>
+
+
+<funcsynopsis id='IceSetIOErrorHandler'>
+<funcprototype>
+  <funcdef>IceIOErrorHandler<function> IceSetIOErrorHandler</function></funcdef>
+    <paramdef>IceIOErrorHandler<parameter> handler</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>handler</emphasis></term>
+    <listitem>
+      <para>
+The I/O error handler.  You should pass NULL to restore the default handler.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<xref linkend='IceSetIOErrorHandler' xrefstyle='select: title'/> returns the previous
+IO error handler.
+</para>
+
+<para>
+An ICE I/O error handler has the type of
+<xref linkend='IceIOErrorHandler' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceIOErrorHandler'>
+<funcprototype>
+  <funcdef>void<function> IceIOErrorHandler</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para> There are two ways of handling IO errors in ICElib:</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+In the first, the IO error handler does whatever is necessary
+to respond to the IO error and then returns, but it does not call
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+The ICE connection is given a "bad IO" status, and all future reads
+and writes to the connection are ignored.  The next time
+<xref linkend='IceProcessMessages' xrefstyle='select: title'/>
+is called it will return a status of
+<function>IceProcessMessagesIOError</function>
+At that time, the application should call
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+In the second, the IO error handler does call
+<xref linkend='IceCloseConnection' xrefstyle='select: title'/>
+and then uses the <function>longjmp</function>
+call to get back to the application's main event loop.  The
+<function>setjmp</function> and
+<function>longjmp</function>
+calls may not work properly on all platforms,
+and special care must be taken to avoid memory leaks.
+Therefore, this second model is less desirable.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+Before the application I/O error handler is invoked, protocol libraries
+that were interested in being notified of I/O errors will have their
+<xref linkend='IceIOErrorProc' xrefstyle='select: title'/>
+handlers invoked.  This handler is set up in the protocol registration
+functions (see <xref linkend='IceRegisterForProtocolSetup' xrefstyle='select: title'/> and
+<xref linkend='IceRegisterForProtocolReply' xrefstyle='select: title'/>
+and could be used to clean up state specific to the protocol.
+</para>
+
+
+<funcsynopsis id='IceIOErrorProc'>
+<funcprototype>
+  <funcdef>void<function> IceIOErrorProc</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Note that every <xref linkend='IceIOErrorProc' xrefstyle='select: title'/>
+callback must return.  This is required
+because each active protocol must be notified of the broken connection,
+and the application IO error handler must be invoked afterwards.
+</para>
+</chapter>
+
+<chapter id='Multi_Threading_Support'>
+<title>Multi-Threading Support</title>
+
+
+<para>To declare that multiple threads in an application will be using the ICE
+library, use
+<function>IceInitThreads</function></para>
+
+<literallayout remap='FD'>
+Status IceInitThreads()
+</literallayout>
+
+
+<para>The
+<function>IceInitThreads</function>
+function must be the first ICElib function a
+multi-threaded program calls.  It must complete before any other ICElib
+call is made.
+<function>IceInitThreads</function>
+returns a nonzero status if and only if it was able
+to initialize the threads package successfully.
+It is safe to call
+<function>IceInitThreads</function>
+more than once, although the threads package will only be initialized once.</para>
+
+<para>Protocol libraries layered on top of ICElib will have to lock critical
+sections of code that access an ICE connection (for example, when
+generating messages).  Two calls, which are generally implemented as
+macros, are provided:</para>
+
+<funcsynopsis id='IceLockConn'>
+<funcprototype>
+  <funcdef>void<function> IceLockConn</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<funcsynopsis id='IceUnlockConn'>
+<funcprototype>
+  <funcdef>void<function> IceUnlockConn</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>To keep an ICE connection locked across several ICElib calls, applications use
+<xref linkend='IceAppLockConn' xrefstyle='select: title'/>
+and
+<xref linkend='IceAppUnlockConn' xrefstyle='select: title'/></para>
+
+<funcsynopsis id='IceAppLockConn'>
+<funcprototype>
+  <funcdef>void<function> IceAppLockConn</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The
+<xref linkend='IceAppLockConn' xrefstyle='select: title'/>
+function completely locks out other threads using the connection
+until
+<xref linkend='IceAppUnlockConn' xrefstyle='select: title'/>
+is called.  Other threads attempting to use ICElib
+calls on the connection will block.
+If the program has not previously called
+<function>IceInitThreads</function>
+<xref linkend='IceAppLockConn' xrefstyle='select: title'/>
+has no effect.</para>
+
+<funcsynopsis id='IceAppUnlockConn'>
+<funcprototype>
+  <funcdef>void<function> IceAppUnlockConn</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>The
+<xref linkend='IceAppUnlockConn' xrefstyle='select: title'/>
+function allows other threads to complete ICElib
+calls on the connection that were blocked by a previous call to
+<xref linkend='IceAppLockConn' xrefstyle='select: title'/>
+from this thread.  If the program has not previously called
+<function>IceInitThreads</function>
+<xref linkend='IceAppUnlockConn' xrefstyle='select: title'/>
+has no effect.</para>
+</chapter>
+
+<chapter id='Miscellaneous_Functions'>
+<title>Miscellaneous Functions</title>
+
+
+
+
+<para>To allocate scratch space (for example, when generating
+messages with variable data), use
+<function>IceAllocScratch</function>
+Each ICE connection has one scratch space associated with it.
+The scratch space starts off as empty and grows as needed.
+The contents of the scratch space is not guaranteed to be preserved
+after any ICElib function is called.</para>
+
+
+<funcsynopsis id='IceAllocScratch'>
+<funcprototype>
+  <funcdef>char<function> *IceAllocScratch</function></funcdef>
+    <paramdef>IceConn<parameter> ice_conn</parameter></paramdef>
+    <paramdef>unsigned long<parameter> size</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>ice_conn</emphasis></term>
+    <listitem><para>The ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>size</emphasis></term>
+    <listitem><para>The number of bytes required.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>Note that the memory returned by
+<function>IceAllocScratch</function>
+should not be freed by the caller.
+The ICE library will free the memory when the ICE connection is closed.</para>
+</chapter>
+
+<chapter id='Acknowledgements'>
+<title>Acknowledgements</title>
+
+
+<para>
+Thanks to Bob Scheifler for his thoughtful input on the design
+of the ICE library.  Thanks also to Jordan Brown, Larry Cable, Donna Converse,
+Clive Feather, Stephen Gildea, Vania Joloboff, Kaleb Keithley,
+Stuart Marks, Hiro Miyamoto, Ralph Swick, Jim VanGilder, and Mike Wexler.
+</para>
+</chapter>
+
+<appendix id="authentication_utility_functions">
+<title>Authentication Utility Functions</title>
+
+
+<para>
+As discussed in this document, the means by which authentication data
+is obtained by the ICE library (for
+<function>ConnectionSetup</function>
+messages or
+<function>ProtocolSetup</function>
+messages) is implementation-dependent.&dagger;
+<footnote remap='FS'>
+<para>The X Consortium's ICElib implementation assumes the presence of an
+ICE authority file.
+</para></footnote>
+</para>
+
+<para>
+This appendix describes some utility functions that manipulate an
+ICE authority file.  The authority file can be used to pass authentication
+data between clients.
+</para>
+
+<para>The basic operations on the .ICEauthority file are:</para>
+
+<itemizedlist>
+  <listitem>
+    <para>Get file name</para>
+  </listitem>
+  <listitem>
+    <para>Lock</para>
+  </listitem>
+  <listitem>
+    <para>Unlock</para>
+  </listitem>
+  <listitem>
+    <para>Read entry</para>
+  </listitem>
+  <listitem>
+    <para>Write entry</para>
+  </listitem>
+  <listitem>
+    <para>Search for entry</para>
+  </listitem>
+</itemizedlist>
+
+<para>
+These are fairly low-level operations, and it is expected that a program,
+like "iceauth", would exist to add, remove, and display entries in the file.
+</para>
+
+<para>
+In order to use these utility functions, the
+&lt;<symbol role='Pn'>X11/ICE/ICEutil.h</symbol>&gt;
+header file must be included.
+</para>
+
+<para>
+An entry in the .ICEauthority file is defined by the following data structure:
+</para>
+
+
+<literallayout class="monospaced">
+typedef struct {
+     char *protocol_name;
+     unsigned short protocol_data_length;
+     char *protocol_data;
+     char *network_id;
+     char *auth_name;
+     unsigned short auth_data_length;
+     char *auth_data;
+} IceAuthFileEntry;
+</literallayout>
+
+
+<para>
+The protocol_name member is either "ICE" for connection setup authentication
+or the subprotocol name, such as "XSMP".  For each entry, protocol specific
+data can be specified in the protocol_data member.  This can be used
+to search for old entries that need to be removed from the file.
+</para>
+
+<para>
+The network_id member is the network ID of the client accepting
+authentication (for example, the network ID of a session manager).
+A network ID has the following form:
+</para>
+
+<informaltable frame='none'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='2.0*'/>
+    <tbody>
+      <row>
+        <entry>tcp/&lt;hostname&gt;:&lt;portnumber&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>decnet/&lt;hostname&gt;::&lt;objname&gt;</entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry>local/&lt;hostname&gt;:&lt;path&gt;</entry>
+        <entry></entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+<para>
+The auth_name member is the name of the authentication method.
+The auth_data member is the actual authentication data,
+and the auth_data_length member is the number of bytes in the data.
+</para>
+
+<para>
+To obtain the default authorization file name, use
+<function>IceAuthFileName</function>
+</para>
+
+<literallayout remap='FD'>
+char *IceAuthFileName()
+</literallayout>
+
+<para>
+If the ICEAUTHORITY environment variable if set, this value is returned.
+Otherwise, the default authorization file name is $HOME/.ICEauthority.
+This name is statically allocated and should not be freed.
+</para>
+
+<para>
+To synchronously update the authorization file, the file must
+be locked with a call to
+<xref linkend='IceLockAuthFile' xrefstyle='select: title'/>
+This function takes advantage of the fact that the
+<function>link</function>
+system call will fail if the name of the new link already exists.
+</para>
+
+<funcsynopsis id='IceLockAuthFile'>
+<funcprototype>
+  <funcdef>int<function> IceLockAuthFile</function></funcdef>
+    <paramdef>char<parameter> *file_name</parameter></paramdef>
+    <paramdef>int<parameter> retries</parameter></paramdef>
+    <paramdef>int<parameter> timeout</parameter></paramdef>
+    <paramdef>long<parameter> dead</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>file_name</emphasis></term>
+    <listitem><para>The authorization file to lock.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>retries</emphasis></term>
+    <listitem>
+      <para>The number of retries.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>timeout</emphasis></term>
+    <listitem>
+      <para>The number of seconds before each retry.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>dead</emphasis></term>
+    <listitem>
+      <para>
+If a lock already exists that is the specified dead seconds old,
+it is broken.
+A value of zero is used to unconditionally break an old lock.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>One of three values is returned:</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+<function>IceAuthLockSuccess</function> - the lock succeeded.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceAuthLockError</function> - a system error occurred, and
+<function>errno</function> may prove useful.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<function>IceAuthLockTimeout</function> - the specified number of
+retries failed.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+To unlock an authorization file, use <xref linkend='IceUnlockAuthFile' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceUnlockAuthFile'>
+<funcprototype>
+  <funcdef>int<function> IceUnlockAuthFile</function></funcdef>
+    <paramdef>char<parameter> *file_name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>file_name</emphasis></term>
+    <listitem><para>The authorization file to unlock.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+To read the next entry in an authorization file, use
+<function>IceReadAuthFileEntry</function>
+</para>
+
+<funcsynopsis id='IceReadAuthFileEntry'>
+<funcprototype>
+  <funcdef>IceAuthFileEntry<function> *IceReadAuthFileEntry</function></funcdef>
+    <paramdef>FILE<parameter> *auth_file</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_file</emphasis></term>
+    <listitem><para>The authorization file.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Note that it is the responsibility of the application to open the file
+for reading before calling this function.  If an error is encountered,
+or there are no more entries to read, NULL is returned.
+</para>
+
+<para>
+Entries should be free with a call to
+<xref linkend='IceFreeAuthFileEntry' xrefstyle='select: title'/>
+</para>
+
+<para>
+To write an entry in an authorization file, use
+<xref linkend='IceWriteAuthFileEntry' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceWriteAuthFileEntry'>
+<funcprototype>
+  <funcdef>Status<function> IceWriteAuthFileEntry</function></funcdef>
+    <paramdef>FILE<parameter> *auth_file</parameter></paramdef>
+    <paramdef>IceAuthFileEntry<parameter> *entry</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_file</emphasis></term>
+    <listitem><para>The authorization file.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>entry</emphasis></term>
+    <listitem><para>The entry to write.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Note that it is the responsibility of the application to open the file
+for writing before calling this function.  The function returns a nonzero
+status if the operation was successful.
+</para>
+
+
+<para>
+To search the default authorization file for an entry that matches a given
+protocol_name/network_id/auth_name tuple, use
+<function>IceGetAuthFileEntry</function>
+</para>
+
+<funcsynopsis id='IceGetAuthFileEntry'>
+<funcprototype>
+  <funcdef>IceAuthFileEntry<function> *IceGetAuthFileEntry</function></funcdef>
+    <paramdef>const char *<parameter>protocol_name</parameter></paramdef>
+    <paramdef>const char *<parameter>network_id</parameter></paramdef>
+    <paramdef>const char *<parameter>auth_name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_file</emphasis></term>
+    <listitem><para>The name of the protocol to search on.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>network_id</emphasis></term>
+    <listitem>
+      <para>The network ID to search on.</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>auth_name</emphasis></term>
+    <listitem>
+      <para>The authentication method to search on.</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If <function>IceGetAuthFileEntry</function>
+fails to find such an entry, NULL is returned.
+</para>
+
+
+<para>
+To free an entry returned by
+<function>IceReadAuthFileEntry</function> or
+<function>IceGetAuthFileEntry</function> use
+<xref linkend='IceFreeAuthFileEntry' xrefstyle='select: title'/>
+</para>
+
+<funcsynopsis id='IceFreeAuthFileEntry'>
+<funcprototype>
+  <funcdef>void<function> IceFreeAuthFileEntry</function></funcdef>
+    <paramdef>IceAuthFileEntry<parameter> *entry</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>entry</emphasis></term>
+    <listitem><para>The entry to free.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+</appendix>
+
+<appendix id="mit_magic_cookie_1_authentication">
+<title>MIT-MAGIC-COOKIE-1 Authentication</title>
+
+
+<para>The X Consortium's ICElib implementation supports a simple
+MIT-MAGIC-COOKIE-1 authentication scheme using the authority file utilities
+described in Appendix A.</para>
+
+<para>In this model, an application, such as a session manager, obtains a
+magic cookie by calling
+<function>IceGenerateMagicCookie</function>
+and then stores it in the user's local .ICEauthority file
+so that local clients can connect.  In order to allow remote clients to
+connect, some remote execution mechanism should be used to store the
+magic cookie in the user's .ICEauthority file on a remote machine.</para>
+
+<para>In addition to storing the magic cookie in the .ICEauthority file, the
+application needs to call the
+<xref linkend='IceSetPaAuthData' xrefstyle='select: title'/>
+function in order to store the magic cookie in memory.  When it comes time
+for the MIT-MAGIC-COOKIE-1 authentication procedure to accept or reject the
+connection, it will compare the magic cookie presented by the requestor to
+the magic cookie in memory.</para>
+
+<funcsynopsis id='IceGenerateMagicCookie'>
+<funcprototype>
+  <funcdef>char<function> *IceGenerateMagicCookie</function></funcdef>
+    <paramdef>int<parameter> length</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>length</emphasis></term>
+    <listitem><para>The desired length of the magic cookie.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>The magic cookie returned will be null-terminated.  If memory can not be
+allocated for the magic cookie, the function will return NULL.
+Otherwise, the magic cookie should be freed with a call to
+<function>free</function></para>
+
+
+<para>To store the authentication data in memory, use
+<xref linkend='IceSetPaAuthData' xrefstyle='select: title'/>
+Currently, this function is only used for MIT-MAGIC-COOKIE-1
+authentication, but it may be used for additional authentication
+methods in the future.</para>
+
+<funcsynopsis id='IceSetPaAuthData'>
+<funcprototype>
+  <funcdef>void<function> IceSetPaAuthData</function></funcdef>
+    <paramdef>int<parameter> num_entries</parameter></paramdef>
+    <paramdef>IceAuthDataEntry<parameter> *entries</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>num_entries</emphasis></term>
+    <listitem><para>The number of authentication data entries.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>entries</emphasis></term>
+    <listitem><para>The list of authentication data entries.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>Each entry has associated with it a protocol name
+(for example, "ICE" for ICE connection setup authentication,
+"XSMP" for session management authentication), a network ID for the
+"accepting" client, an authentication name (for example, MIT-MAGIC-COOKIE-1),
+and authentication data.  The ICE library
+will merge these entries with previously set entries, based on the
+(protocol_name, network_id, auth_name) tuple.</para>
+
+
+
+<literallayout class="monospaced">
+typedef struct {
+	char *protocol_name;
+	char *network_id;
+	char *auth_name;
+	unsigned short auth_data_length;
+	char *auth_data;
+} IceAuthDataEntry;
+</literallayout>
+
+</appendix>
+</book>
+

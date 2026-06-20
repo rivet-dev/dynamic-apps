@@ -1,0 +1,82 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtRegister-Drawable XtUnregister-Drawable XtWindow-To-Widget wid-get
+.na
+.TH XtRegisterDrawable __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtRegisterDrawable \- register a drawable with the Intrinsics event dispatcher
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtRegisterDrawable(Display* \fIdisplay\fP, Drawable \fIdrawable\fP,
+Widget \fIwidget\fP);
+.HP
+void XtUnregisterDrawable(Display* \fIdisplay\fP, Drawable \fIdrawable\fP);
+.SH ARGUMENTS
+.IP \fIdisplay\fP 1i
+Specifies the drawable's display.
+.IP \fIdrawable\fP 1i
+Specifies the drawable to register.
+.IP \fIwidget\fP 1i
+Specifies the widget to register the drawable for.
+.SH DESCRIPTION
+.B XtRegisterDrawable
+associates the specified drawable with the specified widget so that
+future calls to
+.B XtWindowToWidget
+with the drawable will return the widget.
+The default event dispatcher
+will dispatch future core events that arrive with the drawable to the
+widget as though the event contained the widget's window, but the event
+itself will not be changed in any way when being passed to even handler
+or action procedures.
+.LP
+If the drawable is already registered with another widget, or if the
+drawable is the window of a widget in the client's widget tree, the
+results of calling
+.B XtRegisterDrawable
+are undefined.
+.LP
+.B XtUnregisterDrawable
+removes an association created with
+.BR XtRegisterDrawable .
+If the drawable is the window of a widget in the client's widget tree
+the results of calling
+.B XtUnregisterDrawable
+are undefined.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

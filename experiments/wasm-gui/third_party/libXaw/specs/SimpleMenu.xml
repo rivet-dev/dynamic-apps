@@ -1,0 +1,791 @@
+<sect1 id="SimpleMenu_Widget">
+<title>SimpleMenu Widget</title>
+<!-- .XS -->
+<!-- 	SimpleMenu Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>SimpleMenu widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/SimpleMenu.h&gt;
+<indexterm><primary>SimpleMenu.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/SimpleMenP.h&gt;
+<indexterm><primary>SimpleMenP.h</primary></indexterm>
+Class		simpleMenuWidgetClass
+<indexterm><primary>simpleMenuWidgetClass</primary></indexterm>
+Class Name	SimpleMenu
+<indexterm><primary>SimpleMenu widget</primary><secondary>class name</secondary></indexterm>
+Superclass	OverrideShell
+<!-- .sp -->
+</literallayout>
+<para>
+<!-- .LP -->
+The SimpleMenu widget is a container for the menu entries.  It is a
+direct subclass of shell, and is should be created with
+<function>XtCreatePopupShell</function>, not <xref linkend='XtCreateManagedWidget' xrefstyle='select: title'/>.  This is the
+only part of the menu that
+actually is associated with a window.  The SimpleMenu serves as the glue to bind
+the individual menu entries together into a menu.
+</para>
+<sect2 id="SimpleMenu::Resources">
+<title>Resources</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>SimpleMenu widget</primary><secondary>resources</secondary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+The resources associated with the SimpleMenu widget control aspects
+that will affect the entire menu.
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>allowShellResize</entry>
+      <entry>AllowShellResize</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>backingStore</entry>
+      <entry>BackingStore</entry>
+      <entry>BackingStore</entry>
+      <entry></entry>
+      <entry>see below</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>bottomMargin</entry>
+      <entry>VerticalMargins</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>createPopupChildProc</entry>
+      <entry>CreatePopupChildProc</entry>
+      <entry>Function</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>geometry</entry>
+      <entry>Geometry</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>Enough space to contain all entries</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>labelClass</entry>
+      <entry>LabelClass</entry>
+      <entry>Pointer</entry>
+      <entry></entry>
+      <entry>SmeBSBObjectClass</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>menuOnScreen</entry>
+      <entry>MenuOnScreen</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>overrideRedirect</entry>
+      <entry>OverrideRedirect</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>popdownCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>popupCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>popupOnEntry</entry>
+      <entry>PopupOnEntry</entry>
+      <entry>Widget</entry>
+      <entry>A</entry>
+      <entry>Label or first entry</entry>
+    </row>
+    <row>
+      <entry>rowHeight</entry>
+      <entry>RowHeight</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>saveUnder</entry>
+      <entry>SaveUnder</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>topMargin</entry>
+      <entry>VerticalMargins</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>visual</entry>
+      <entry>Visual</entry>
+      <entry>Visual</entry>
+      <entry></entry>
+      <entry>CopyFromParent</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>Width of widest entry</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>backingStore</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>conversions</primary><secondary>BackingStore</secondary></indexterm>
+Determines what type of backing store will be used for the menu.  Legal
+values for this resource are <function>NotUseful</function>, <function>WhenMapped</function>, and
+<function>Always</function>.  These values are the backing-store integers defined in
+&lt;X11/X.h&gt;.
+<!-- .Rs "notUseful, whenMapped, always, \fPand\fP default" -->
+If <function>default</function> is specified (the default behavior) the server will use
+whatever it thinks is appropriate.
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>bottomMargin</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>topMargin</function>
+    </term>
+    <listitem>
+      <para>
+The amount of space between the top or bottom of the menu and the menu entry
+closest to that edge.
+<!-- .Ch -->
+<!-- .Cm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>cursor</function>
+    </term>
+    <listitem>
+      <para>
+The shape of the mouse pointer whenever it is in this widget.
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      geometry
+    </term>
+    <listitem>
+      <para>
+If this resource is specified it will override the x, y, width and
+height of this widget.  The format of this string is
+[&lt;<emphasis remap='I'>width</emphasis>&gt;x&lt;<emphasis remap='I'>height</emphasis>&gt;][{+ -} &lt;<emphasis remap='I'>xoffset</emphasis>&gt; {+ -}&lt;<emphasis remap='I'>yoffset</emphasis>&gt;].
+<!-- .Hw -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>label</function>
+    </term>
+    <listitem>
+      <para>
+This label will be placed at the top of the SimpleMenu, and may not be
+highlighted.  The name of the
+label object is <function>menuLabel</function>.  Using this name it is possible to
+modify the label's attributes through the resource database.  When the label
+is created, the <function>label</function> is hard coded to the value of <function>label</function>, and
+<function>justify</function> is hard coded as <function>XtJustifyCenter</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>labelClass</function>
+    </term>
+    <listitem>
+      <para>
+Specifies the type of Sme object created as the menu label.
+<!-- .Mm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>menuOnScreen</function>
+    </term>
+    <listitem>
+      <para>
+If the menu is automatically positioned under the cursor with the
+<function>XawPositionSimpleMenu</function> action, and this resource is <function>True</function>,
+then the menu will always be fully visible on the screen.
+<!-- .Nc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      overrideRedirect
+    </term>
+    <listitem>
+      <para>
+Determines the value of the override_redirect attribute of the
+SimpleMenu's window.  The override_redirect attribute of a window
+determines whether or not a window manager may interpose itself between
+this window and the root window of the display.  For more information
+see the <olink targetdoc='icccm' targetptr='icccm'
+><citetitle>Interclient Communications Conventions Manual</citetitle></olink>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      popdownCallback
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      popupCallback
+    </term>
+    <listitem>
+      <para>
+These callback functions are called by the Xt Intrinsics whenever the
+shell is popped up or down (See <emphasis remap='I'>(xT</emphasis> for details).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>popupOnEntry</function>
+    </term>
+    <listitem>
+      <para>
+The <function>XawPositionSimpleMenu</function> action will, by default, popup the
+SimpleMenu with its label (or first entry) directly under the
+pointer.  To popup the menu under
+another entry, set this resource to the menu entry that should be
+under the pointer, when the menu is popped up.  This allows the
+application to offer the user a default menu entry that can be selected
+with out moving the pointer.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>rowHeight</function>
+    </term>
+    <listitem>
+      <para>
+If this resources is zero (the default) then each menu entry will be
+given its desired height.  If this resource has any other value then
+all menu entries will be forced to be <function>rowHeight</function> pixels high.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      saveUnder
+    </term>
+    <listitem>
+      <para>
+If this is <function>True</function> then save unders will be active on the menu's window.
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="SimpleMenu_Actions">
+<title>SimpleMenu Actions</title>
+<indexterm><primary>SimpleMenu widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The SimpleMenu widget supports the following actions:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Switching the entry under the mouse pointer between
+the foreground and background colors with <function>highlight</function>
+and <function>unhighlight</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Processing menu entry callbacks with <function>notify</function>
+<!-- .sp -->
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+<indexterm><primary>SimpleMenu widget</primary><secondary>default translations</secondary></indexterm>
+The following are the default translation bindings used
+by the SimpleMenu widget:
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+	&lt;EnterWindow&gt;:	highlight(&#x2006;)
+	&lt;LeaveWindow&gt;:	unhighlight(&#x2006;)
+	&lt;BtnMotion&gt;:	highlight(&#x2006;)
+	&lt;BtnUp&gt;:	MenuPopdown(&#x2006;) notify(&#x2006;) unhighlight(&#x2006;)
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>SimpleMenu widget</primary><secondary>MenuPopdown routine</secondary></indexterm>
+The user can pop down the menu without activating any of the callback
+functions by releasing the pointer button when no menu item is
+highlighted.
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+The full list of actions supported by SimpleMenu is:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>highlight</function>()
+    </term>
+    <listitem>
+      <para>
+Highlight the menu entry that is currently under the pointer.
+Only a item that is highlighted will be notified when the <function>notify</function>
+action is invoked.  The look of a highlighted entry is determined by
+the menu entry.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>unhighlight</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Unhighlights the currently highlighted menu item, and returns it to
+its normal look.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>notify</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Notifies the menu entry that is currently highlighted that is has been
+selected.  It is the responsibility of the menu entry to take the
+appropriate action.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>MenuPopdown</function>(<emphasis remap='I'>menu</emphasis>)
+    </term>
+    <listitem>
+      <para>
+This action is defined in <emphasis remap='I'>(xT</emphasis>.
+<indexterm><primary>SimpleMenu widget</primary><secondary>MenuPopdown routine</secondary></indexterm>
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Positioning_the_SimpleMenu">
+<title>Positioning the SimpleMenu</title>
+<indexterm significance="preferred"><primary>XawPositionSimpleMenu</primary></indexterm>
+<indexterm significance="preferred"><primary>SimpleMenu widget</primary><secondary>positioning</secondary></indexterm>
+<para>
+<!-- .LP -->
+If the SimpleMenu widget is to be used as a pulldown menu then the
+MenuButton widget, or some other outside means should be used to place
+the menu when it is popped up.
+</para>
+<para>
+<!-- .LP -->
+If popup menus are desired it will be necessary to add the
+<function>XawPositionSimpleMenu</function> and <function>MenuPopup</function> actions to the
+translation table of the widget that will be popping up the menu.  The
+<function>MenuPopup</function> action is described in <emphasis remap='I'>(xT</emphasis>.
+<function>XawPositionSimpleMenu</function> is a global action procedure registered by
+the SimpleMenu widget when the first one is created or the convenience
+routine <xref linkend='XawSimpleMenuAddGlobalActions' xrefstyle='select: title'/> is called.
+</para>
+<para>
+<!-- .LP -->
+Translation writers should be aware that Xt does not register grabs on
+<quote>don't care</quote> modifiers, and therefore the left hand side of the
+production should be written to exclude unspecified modifiers.
+For example these are the translations needed to popup some of
+<function>xterm's</function> menus:
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+	!Ctrl&lt;Btn1Down&gt;: XawPositionSimpleMenu(xterm) MenuPopup(xterm)
+	!Ctrl&lt;Btn2Down&gt;: XawPositionSimpleMenu(modes) MenuPopup(modes)
+</literallayout>
+<!-- .sp 1 -->
+</para>
+<para>
+<!-- .LP -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>XawPositionSimpleMenu</function>(<emphasis remap='I'>menu</emphasis>)
+    </term>
+    <listitem>
+      <para>
+The <function>XawPositionSimpleMenu</function> routine will search for the menu name
+passed to it using <function>XtNameToWidget</function> starting with the widget
+invoking the action as the reference widget.  If it is unsuccessful it
+will continue up the widget tree using each of the invoking widget's
+ancestors as the reference widget.  If it is still unsuccessful it will
+print a warning message and give up.  <function>XawPositionSimpleMenu</function> will
+position the menu directly under the pointer cursor.  The menu will be
+placed so that the pointer cursor is centered on the entry named by the
+<function>popupOnEntry</function> resource.  If the <function>menuOnScreen</function> resource is
+<function>True</function> then the menu will always be fully visible on the screen.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="SimpleMenu::Convenience_Routines">
+<title>Convenience Routines</title>
+<sect3 id="Registering_the_Global_Action_Routines">
+<title>Registering the Global Action Routines</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>XawPositionSimpleMenu</primary></indexterm>
+The <function>XawPositionSimpleMenu</function> action routine may often be invoked
+before any menus have been created.  This can occur when an
+application uses dynamic menu creation.  In these cases an application will
+need to register this global action routine by calling
+<xref linkend='XawSimpleMenuAddGlobalActions' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawSimpleMenuAddGlobalActions</primary></indexterm>
+<funcsynopsis id='XawSimpleMenuAddGlobalActions'>
+<funcprototype>
+  <funcdef>void<function> XawSimpleMenuAddGlobalActions</function></funcdef>
+  <paramdef>XtAppContext<parameter> app_con</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>app_con</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the application context in which this action should be registered.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function need only be called once per application and must be
+called before any widget that uses <function>XawPositionSimpleMenu</function> action
+is realized.
+</para>
+</sect3>
+<sect3 id="Getting_and_Clearing_the_Current_Menu_Entry">
+<title>Getting and Clearing the Current Menu Entry</title>
+<para>
+<!-- .LP -->
+To get the currently highlighted menu entry use
+<xref linkend='XawSimpleMenuGetActiveEntry' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawSimpleMenuGetActiveEntry</primary></indexterm>
+<funcsynopsis id='XawSimpleMenuGetActiveEntry'>
+<funcprototype>
+  <funcdef>Widget<function> XawSimpleMenuGetActiveEntry</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the SimpleMenu widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function returns the menu entry that is
+currently highlighted, or NULL if no entry is highlighted.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+To clear the SimpleMenu widget's internal information about the
+currently highlighted menu entry use
+<xref linkend='XawSimpleMenuClearActiveEntry' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawSimpleMenuClearActiveEntry</primary></indexterm>
+<funcsynopsis id='XawSimpleMenuClearActiveEntry'>
+<funcprototype>
+  <funcdef>Widget<function> XawSimpleMenuClearActiveEntry</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the SimpleMenu widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function unsets all internal references to the currently
+highlighted menu entry.  It does not <emphasis remap='I'>unhighlight</emphasis> or otherwise
+alter the appearance of the active entry.  This function is primarily
+for use by implementors of menu entries.
+
+</para>
+</sect3>
+</sect2>
+</sect1>

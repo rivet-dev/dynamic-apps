@@ -1,0 +1,111 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtApp-Add-Input wid-get
+.na
+.TH XtAppAddInput __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtAppAddInput, XtRemoveInput \- register and remove an input source
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtInputId XtAppAddInput(XtAppContext \fIapp_context\fP, int \fIsource\fP,
+XtPointer \fIcondition\fP, XtInputCallbackProc \fIproc\fP, XtPointer
+\fIclient_data\fP);
+.HP
+void XtRemoveInput(XtInputId \fIid\fP);
+.SH ARGUMENTS
+.IP \fIapp_context\fP 1i
+Specifies the application context that identifies the application.
+.IP \fIclient_data\fP 1i
+Specifies the argument that is to be passed to the specified procedure
+when input is available.
+.IP \fIcondition\fP 1i
+Specifies the mask that indicates a read, write, or exception condition
+or some operating system dependent condition.
+.IP \fIid\fP 1i
+Specifies the ID returned from the corresponding
+.B XtAppAddInput
+call.
+.IP \fIproc\fP 1i
+Specifies the procedure that is to be called when input is available.
+.IP \fIsource\fP 1i
+Specifies the source file descriptor on a UNIX-based system
+or other operating system dependent device specification.
+.SH DESCRIPTION
+The
+.B XtAppAddInput
+function registers with the \*(xI read routine a new source of events,
+which is usually file input but can also be file output.
+Note that file should be loosely interpreted to mean any sink
+or source of data.
+.B XtAppAddInput
+also specifies the conditions under which the source can generate events.
+When input is pending on this source,
+the callback procedure is called.
+.LP
+The legal values for the condition argument are operating-system dependent.
+On a UNIX-based system,
+the condition is some union of
+.BR XtInputReadMask ,
+.BR XtInputWriteMask ,
+and
+.BR XtInputExceptMask .
+The
+.B XtRemoveInput
+function causes the \*(xI read routine to stop watching for input
+from the input source.
+.SH "SEE ALSO"
+XtAppAddTimeOut(__libmansuffix__),XtAppAddSignal(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP
+.LP
+.SH "BUGS"
+In ANSI C it is necessary to cast the condition to an XtPointer, e.g.:
+.RS 4
+.ft CW
+XtAppAddInput(app_context,
+.RS 4
+.br
+source,
+.br
+\fB(XtPointer)\fP (XtInputReadMask | XtInputWriteMask),
+.br
+proc,
+.br
+client_data);
+.ft R
+.RE

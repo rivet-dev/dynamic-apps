@@ -1,0 +1,181 @@
+'\" t
+.\"     Title: xiqueryversion
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XIQUERYVERSION" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIQueryVersion \- announce and query the support XI2 version\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+Status XIQueryVersion( Display *display,
+                       int *major_version_inout,
+                       int *minor_version_inout);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+major_version_inout
+       Specifies the client\*(Aqs supported XI2 version, and
+       returns the server\*(Aqs supported version\&.
+.fi
+.sp
+.nf
+minor_version_inout
+       Specifies the client\*(Aqs supported XI2 version, and
+       returns the server\*(Aqs supported version\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryVersion announces the client\*(Aqs supported XI2 version to
+the server and returns server\*(Aqs supported X Input version\&. Clients
+are required to use XIQueryVersion instead of XGetExtensionVersion
+if they use XI2 calls\&. The server may treat a client differently
+depending on the supported version announced by the client\&.
+The major_version_inout must be 2 or greater, otherwise a BadValue
+error occurs\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the server does not support XI2, XIQueryVersion returns BadRequest
+to the client\&. Otherwise, XIQueryVersion returns Success\&. In both
+cases major_version_inout and minor_version_inout are set to the
+server\*(Aqs supported version\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the client has previously called XIQueryVersion, then the result
+depends on the previously requested version and the currently
+requested version\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If either the previous or current requested versions is less than
+2\&.2, or if the requested major version numbers do not match, then
+consecutive calls to XIQueryVersion by the same client always
+return the first returned major\&.minor version\&. If the client
+requests a version lower than the first returned major\&.minor
+version in a subsequent call, a BadValue error occurs\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If all of the requested versions are 2\&.2 or greater, then
+consecutive calls to XIQueryVersion by the same client with the
+same major version will return the requested version, but the server
+will operate according to the highest requested version number or
+the highest supported version, whichever is lower\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryVersion can generate a BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+int rc;
+int major = 2;
+int minor = 0;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+rc = XIQueryVersion(dpy, &major, &minor);
+if (rc == Success)
+    printf("XI2 supported\&. (%d\&.%d)\en", major, minor);
+else if (rc == BadRequest)
+    printf("No XI2 support\&. (%d\&.%d only)\en", major, minor);
+else
+    printf("Internal error\en");
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       A value is outside of the permitted range\&.
+.fi
+.if n \{\
+.RE
+.\}

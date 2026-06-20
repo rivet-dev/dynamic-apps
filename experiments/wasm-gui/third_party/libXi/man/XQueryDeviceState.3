@@ -1,0 +1,205 @@
+'\" t
+.\"     Title: xquerydevicestate
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XQUERYDEVICESTATE" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XQueryDeviceState \- query the state of an extension input device\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XDeviceState* XQueryDeviceState( Display *display,
+                                 XDevice *device);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose state is to be queried\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XQueryDeviceState request queries the state of an input
+device\&. The current state of keys and buttons (up or down), and
+valuators (current value) on the device is reported by this
+request\&. Each key or button is represented by a bit in the
+XDeviceState structure that is returned\&. Valuators on the
+device report 0 if they are reporting relative information, and
+the current value if they are reporting absolute information\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XQueryDeviceState can generate a BadDevice error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Structures:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XDeviceState structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    XID device_id;
+    int num_classes;
+    XInputClass *data;
+} XDeviceState;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XValuatorState structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    unsigned char class;
+    unsigned char length;
+    unsigned char num_valuators;
+    unsigned char mode;
+    int *valuators;
+} XValuatorState;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XKeyState structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    unsigned char class;
+    unsigned char length;
+    short     num_keys;
+    char keys[32];
+} XKeyState;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XButtonState structure contains:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    unsigned char class;
+    unsigned char length;
+    short     num_buttons;
+    char buttons[32];
+} XButtonState;
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if some
+       other client has caused the specified device to become
+       the X keyboard or X pointer device via the
+       XChangeKeyboardDevice or XChangePointerDevice requests\&.
+.fi
+.if n \{\
+.RE
+.\}

@@ -1,0 +1,104 @@
+<chapter id='Menus'>
+<title>Menus</title>
+<para>
+The Athena widget set provides support for single paned non-hierarchical
+popup and pulldown menus.  Since menus are such a common user interface
+tool, support for them must be provided in even the most basic widget
+sets.  In menuing as in other areas, the Athena Widget Set provides only
+basic functionality.
+</para>
+<para>
+Menus in the Athena widget set are implemented as a menu container (the
+SimpleMenu widget) and a collection of objects that comprise the
+menu entries.  The SimpleMenu widget is itself a direct subclass of the
+OverrideShell widget class, so no other shell is necessary when
+creating a menu.  The managed children of a SimpleMenu must be
+subclasses of the Sme (Simple Menu Entry) object.
+</para>
+<para>
+The Athena widget set provides three classes of Sme objects that may be
+used to build menus.
+</para>
+<para>
+<variablelist>
+  <varlistentry>
+    <term>Sme</term>
+    <listitem>
+      <para>
+The base class of all menu entries.  It may be used as a menu entry
+itself to provide blank space in a menu.  "Sme" means "Simple Menu
+Entry."
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>SmeBSB</term>
+    <listitem>
+      <para>
+This menu entry provides a selectable entry containing a text string.
+A bitmap may also be placed in the left and right margins.  "BSB" means
+"Bitmap String Bitmap."
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>SmeLine</term>
+    <listitem>
+      <para>
+This menu entry provides an unselectable entry containing a separator line.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+The SimpleMenu widget informs the window manager that it should ignore
+its window by setting the <function>Override Redirect</function> flag.  This is the
+correct behavior for the press-drag-release style of menu operation.  If
+click-move-click or "pinable" menus are desired it is the
+responsibility of the application programmer, using the SimpleMenu
+resources, to inform the window manager of the menu.
+</para>
+<para>
+To allow easy creation of pulldown menus, a MenuButton widget is
+also provided as part of the Athena widget set.
+</para>
+<sect1 id="Using_the_Menus">
+<title>Using the Menus</title>
+<!-- .XS -->
+<!-- 	Using the Menus -->
+<!-- .XE -->
+<indexterm><primary>Menus</primary><secondary>using</secondary></indexterm>
+<para>
+<!-- .LP -->
+The default configuration for the menus is press-drag-release.
+The menus will typically be
+activated by clicking a pointer button while the pointer is over a
+MenuButton, causing the menu to appear in a fixed location relative to
+that button; this is a <function>pulldown</function> menu.  Menus may also be activated
+<indexterm><primary>Menus</primary><secondary>pulldown</secondary></indexterm>
+when a specific pointer and/or key sequence is used anywhere in the
+application; this is a <function>popup</function> menu (e.g. clicking Ctrl-&lt;pointer
+<indexterm><primary>Menus</primary><secondary>popup</secondary></indexterm>
+button 1&gt; in the common application <function>xterm</function>).  In this
+case the menu should be positioned under
+the cursor. Typically menus will be placed so the pointer cursor is on
+the first menu entry, or the last entry selected by the user.
+</para>
+<para>
+<!-- .LP -->
+The menu remains on the screen as long as the pointer button is held
+down.  Moving the pointer will highlight different menu items.
+If the pointer leaves the menu, or moves over an entry that cannot
+be selected then no menu entry will highlighted.  When the desired menu
+entry has been highlighted, releasing the pointer button removes the menu,
+and causes any mechanism associated with this entry to be invoked.
+
+</para>
+</sect1>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="SimpleMenu.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="SmeBSB.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="SmeLine.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Sme.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="MenuButton.xml"/>
+</chapter>

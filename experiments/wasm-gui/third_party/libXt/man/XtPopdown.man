@@ -1,0 +1,145 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtCallback-Popdown wid-get
+.na
+.TH XtPopdown __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtPopdown, XtCallbackPopdown \- unmap a pop-up
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtPopdown(Widget \fIpopup_shell\fP);
+.HP
+void XtCallbackPopdown(Widget \fIw\fP, XtPointer \fIclient_data\fP, XtPointer
+\fIcall_data\fP);
+.SH ACTIONS
+.HP
+void XtMenuPopdown(String \fIshell_name\fP);
+.SH ARGUMENTS
+.IP \fIcall_data\fP 1i
+Specifies the callback data,
+which is not used by this procedure.
+.IP \fIclient_data\fP 1i
+Specifies a pointer to the
+.B XtPopdownID
+structure.
+.IP \fIpopup_shell\fP 1i
+Specifies the widget shell to pop down.
+.IP \fIshell_name\fP 1i
+Specifies the name of the widget shell to pop down.
+.IP \fIw\fP 1i
+Specifies the widget.
+.SH DESCRIPTION
+The
+.B XtPopdown
+function performs the following:
+.IP \(bu 5
+Calls
+.B XtCheckSubclass
+.\".ZN XtCheckSubclass(popup_shell, popupShellWidgetClass)
+to ensure popup_shell is a subclass of
+.BR Shell .
+.IP \(bu 5
+Checks that popup_shell is currently popped_up;
+otherwise, it generates an error.
+.IP \(bu 5
+Unmaps popup_shell's window.
+.IP \(bu 5
+If popup_shell's grab_kind is either
+.B XtGrabNonexclusive
+or
+.BR XtGrabExclusive ,
+it calls
+.BR XtRemoveGrab .
+.\".ZN XtRemoveGrab(popup_shell)
+.IP \(bu 5
+Sets pop-up shell's popped_up field to
+.BR False .
+.IP \(bu 5
+Calls the callback procedures on the shell's popdown_callback list.
+.LP
+The
+.B XtCallbackPopdown
+function casts the client data parameter to an
+.B XtPopdownID
+pointer:
+.LP
+.RS
+.nf
+.ft CW
+typedef struct {
+        Widget shell_widget;
+        Widget enable_widget;
+} XtPopdownIDRec, *XtPopdownID;
+.ft R
+.fi
+.RE
+.LP
+The shell_widget is the pop-up shell to pop down,
+and the enable_widget is the widget that was used to pop it up.
+.LP
+.B XtCallbackPopdown
+calls
+.B XtPopdown
+with the specified shell_widget
+and then calls
+.B XtSetSensitive
+to resensitize the enable_widget.
+.LP
+If a shell name is not given,
+.B XtMenuPopdown
+calls
+.B XtPopdown
+with the widget for which the translation is specified.
+If a shell_name is specified in the translation table,
+.B XtMenuPopdown
+tries to find the shell by looking up the widget tree starting at the
+parent of the widget in which it is invoked.
+If it finds a shell with the specified name in the pop-up children
+of that parent,
+it pops down the shell;
+otherwise, it moves up the parent chain as needed.
+If
+.B XtMenuPopdown
+gets to the application top-level shell widget
+and cannot find a matching shell,
+it generates an error.
+.SH "SEE ALSO"
+XtCreatePopupShell(__libmansuffix__),
+XtPopup(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

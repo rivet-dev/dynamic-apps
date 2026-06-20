@@ -1,0 +1,125 @@
+'\" t
+.\"     Title: xsetdevicemode
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XSETDEVICEMODE" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XSetDeviceMode \- change the mode of a device
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XSetDeviceMode( Display *display,
+                XDevice *device,
+                int mode);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose mode is to be changed\&.
+.fi
+.sp
+.nf
+mode
+       Specifies the mode\&. You can pass Absolute, or Relative\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XSetDeviceMode request changes the mode of an input device
+that is capable of reporting either absolute positional
+information or relative motion information\&. Not all input
+devices are capable of reporting motion data, and not all are
+capable of changing modes from Absolute to Relative\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XSetDeviceMode can generate a BadDevice or BadMode error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if some
+       other client has caused the specified device to become
+       the X keyboard or X pointer device via the
+       XChangeKeyboardDevice or XChangePointerDevice requests\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XSetDeviceMode request is
+       made specifying a device that has no valuators and
+       reports no axes of motion\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMode
+       An invalid mode was specified\&. This error will also be
+       returned if the specified device is not capable of
+       supporting the XSetDeviceMode request\&.
+.fi
+.if n \{\
+.RE
+.\}

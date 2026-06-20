@@ -1,0 +1,85 @@
+.\" Copyright \(co Digital Equipment Corporation, 1996
+.\"
+.\" Permission to use, copy, modify, distribute, and sell this
+.\" documentation for any purpose is hereby granted without fee,
+.\" provided that the above copyright notice and this permission
+.\" notice appear in all copies.  Digital Equipment Corporation
+.\" makes no representations about the suitability for any purpose
+.\" of the information in this document.  This documentation is
+.\" provided ``as is'' without express or implied warranty.
+.\"
+.\" Copyright (c) 1999, 2005, Oracle and/or its affiliates.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice (including the next
+.\" paragraph) shall be included in all copies or substantial portions of the
+.\" Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+.\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+.\" DEALINGS IN THE SOFTWARE.
+.\"
+.\" X Window System is a trademark of The Open Group.
+.\"
+.TH DPMSInfo __libmansuffix__ 2005-06-28 __xorgversion__
+.SH NAME
+DPMSInfo \- returns information about the current DPMS state
+.SH SYNOPSIS
+.nf
+\fBcc\fR [ \fIflag\fR \&.\&.\&. ] \fIfile\fR \&.\&.\&. -\fBlXext\fR [ \fIlibrary\fR \&.\&.\&. ]
+\&#include <X11/extensions/dpms.h>
+.sp
+.B Status DPMSInfo (
+      Display \fI*display\fP\^,
+      CARD16 \fI*power_level\fP\^,
+      BOOL \fI*state\fP\^
+);
+.if n .ti +5n
+.if t .ti +.5i
+.SH ARGUMENTS
+.TP 15
+.I display
+Specifies the connection to the X server
+.TP 15
+.I power_level
+Specifies the current power level
+.TP 15
+.I state
+Specifies the current DPMS state
+.SH DESCRIPTION
+The
+.B DPMSInfo
+function returns information about the current Display Power Management
+Signaling (DPMS) state.
+The \fIstate\fP return parameter indicates whether or not DPMS is
+enabled \^(TRUE\^) or disabled \^(FALSE\^).
+The \fIpower_level\fP return parameter indicates the
+current power level \^(one of
+.BR DPMSModeOn ,
+.BR DPMSModeStandby ,
+.BR DPMSModeSuspend ,
+or
+.BR DPMSModeOff .\^)
+.SH "RETURN VALUES"
+.TP 15
+.B TRUE
+The
+.I DPMSInfo
+function returns TRUE, if values are returned.
+.TP 15
+.B FALSE
+The
+.I DPMSInfo
+function returns FALSE, if no values are returned.
+.SH "SEE ALSO"
+.BR DPMSEnable (__libmansuffix__)

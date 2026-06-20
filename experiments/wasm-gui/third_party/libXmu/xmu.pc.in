@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Xmu
+Description: Xmu Library
+Version: @PACKAGE_VERSION@
+Requires: xproto x11 xt
+Requires.private: x11 xt xext
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXmu

@@ -1,0 +1,102 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtParse-Translation-Table XtAugment-Translations XtOverride-Translations
+.hw XtUninstall-Translations wid-get
+.na
+.TH XtParseTranslationTable __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtParseTranslationTable, XtAugmentTranslations, XtOverrideTranslations, XtUninstallTranslations \- manage translation tables
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtTranslations XtParseTranslationTable(const char *\fItable\fP);
+.HP
+void XtAugmentTranslations(Widget \fIw\fP, XtTranslations \fItranslations\fP);
+.HP
+void XtOverrideTranslations(Widget \fIw\fP, XtTranslations
+\fItranslations\fP);
+.HP
+void XtUninstallTranslations(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fItable\fP 1i
+Specifies the translation table to compile.
+.IP \fItranslations\fP 1i
+Specifies the compiled translation table to merge in (must not be NULL).
+.IP \fIw\fP 1i
+Specifies the widget into which the new translations are to be merged or removed.
+.SH DESCRIPTION
+The
+.B XtParseTranslationTable
+function compiles the translation table into the opaque internal representation
+of type
+.BR XtTranslations .
+Note that if an empty translation table is required for any purpose,
+one can be obtained by calling
+.B XtParseTranslationTable
+and passing an empty string.
+.LP
+The
+.B XtAugmentTranslations
+function nondestructively merges the new translations into the existing widget
+translations.
+If the new translations contain an event or event sequence that
+already exists in the widget's translations,
+the new translation is ignored.
+.LP
+The
+.B XtOverrideTranslations
+function destructively merges the new translations into the existing widget
+translations.
+If the new translations contain an event or event sequence that
+already exists in the widget's translations,
+the new translation is merged in and override the widget's translation.
+.LP
+To replace a widget's translations completely, use
+.B XtSetValues
+on the XtNtranslations resource and specify a compiled translation table
+as the value.
+.LP
+The
+.B XtUninstallTranslations
+function causes the entire translation table for widget to be removed.
+.SH "SEE ALSO"
+XtAppAddActions(__libmansuffix__),
+XtCreatePopupShell(__libmansuffix__),
+XtParseAcceleratorTable(__libmansuffix__),
+XtPopup(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

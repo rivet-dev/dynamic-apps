@@ -1,0 +1,139 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtOwn-Selection XtOwn-Selection-Incremental XtDisown-Selection wid-get
+.na
+.TH XtOwnSelection __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtOwnSelection, XtOwnSelectionIncremental, XtDisownSelection \- set selection owner
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+Boolean XtOwnSelection(Widget \fIw\fP, Atom \fIselection\fP, Time \fItime\fP,
+XtConvertSelectionProc \fIconvert_proc\fP, XtLoseSelectionProc
+\fIlose_selection\fP, XtSelectionDoneProc \fIdone_proc\fP);
+.HP
+Boolean XtOwnSelectionIncremental(Widget \fIw\fP, Atom \fIselection\fP, Time
+\fItime\fP, XtConvertSelectionIncrProc \fIconvert_callback\fP,
+XtLoseSelectionIncrProc \fIlose_callback\fP, XtSelectionDoneIncrProc
+\fIdone_callback\fP, XtCancelConvertSelectionProc \fIcancel_callback\fP,
+XtPointer \fIclient_data\fP);
+.HP
+void XtDisownSelection(Widget \fIw\fP, Atom \fIselection\fP, Time \fItime\fP);
+.SH ARGUMENTS
+.IP \fIconvert_proc\fP 1i
+Specifies the procedure that is to be called whenever someone requests the
+current value of the selection.
+.IP \fIdone_proc\fP 1i
+Specifies the procedure that is called
+after the requestor has received the selection or NULL if the owner is not
+interested in being called back.
+.IP \fIlose_selection\fP 1i
+Specifies the procedure that is to be called whenever the widget has
+lost selection ownership or NULL if the owner is not interested in being
+called back.
+.IP \fIselection\fP 1i
+Specifies an atom that describes the type of the selection (for example,
+.BR XA_PRIMARY ,
+.BR XA_SECONDARY ,
+or
+.BR XA_CLIPBOARD ).
+.IP \fItime\fP 1i
+Specifies the timestamp that indicates when the selection 
+ownership should commence or is to be relinquished.
+.IP \fIw\fP 1i
+Specifies the widget that wishes to become the owner or to relinquish ownership.
+.SH DESCRIPTION
+The
+.B XtOwnSelection
+function informs the \*(xI selection mechanism that a
+widget believes it owns a selection.
+It returns
+.B True
+if the widget has successfully become the owner and
+.B False
+otherwise.
+The widget may fail to become the owner if some other widget
+has asserted ownership at a time later than this widget.
+Note that widgets can lose selection ownership either
+because someone else asserted later ownership of the selection
+or because the widget voluntarily gave up ownership of the selection.
+Also note that the lose_selection procedure is not called
+if the widget fails to obtain selection ownership in the first place.
+.LP
+The
+.B XtOwnSelectionIncremental
+procedure informs the Intrinsics incremental selection mechanism that
+the specified widget wishes to own the selection.
+It returns
+.B True
+if the specified widget successfully becomes the selection owner or
+.B False
+otherwise.
+For more information about \fIselection\fP, \fItarget\fP,
+and \fItime\fP, see Section 2.6 of the \fIInter-Client Communication
+Conventions Manual\fP.
+.LP
+A widget that becomes the selection owner using
+.B XtOwnSelectionIncremental
+may use
+.B XtDisownSelection
+to relinquish selection ownership.
+.LP
+The
+.B XtDisownSelection
+function informs the \*(xI selection mechanism that
+the specified widget is to lose ownership of the selection.
+If the widget does not currently own the selection either
+because it lost the selection
+or because it never had the selection to begin with,
+.B XtDisownSelection
+does nothing.
+.LP
+After a widget has called
+.BR XtDisownSelection ,
+its convert procedure is not called even if a request arrives later
+with a timestamp during the period that this widget owned the selection.
+However, its done procedure will be called if a conversion that started
+before the call to
+.B XtDisownSelection
+finishes after the call to
+.BR XtDisownSelection .
+.SH "SEE ALSO"
+XtAppGetSelectionTimeout(__libmansuffix__),
+XtGetSelectionValue(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

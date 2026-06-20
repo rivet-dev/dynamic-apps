@@ -1,0 +1,1541 @@
+.\" Copyright 1993, 1994, 1998  The Open Group
+.\" Portions copyright 1988 Evans & Sutherland Computer Corporation.
+.\" Portions copyright 1989 Hewlett-Packard Company
+.\"
+.\" Permission to use, copy, modify, distribute, and sell this software and its
+.\" documentation for any purpose is hereby granted without fee, provided that
+.\" the above copyright notice appear in all copies and that both that
+.\" copyright notice and this permission notice appear in supporting
+.\" documentation.
+.\"
+.\" The above copyright notice and this permission notice shall be included
+.\" in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of The Open Group shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from The Open Group.
+.\"
+.de Ex
+.RS +7
+.PP
+.nf
+.ft CW
+..
+.de Ee
+.fi
+.ft R
+.RE
+..
+.ie \n(.g .ds `` \(lq
+.el       .ds `` ``
+.ie \n(.g .ds '' \(rq
+.el       .ds '' ''
+.TH TWM 1 __xorgversion__
+.SH NAME
+twm \- Tab Window Manager for the X Window System
+.SH SYNTAX
+\fBtwm \fP[ \fIoptions\fP ]
+.SH DESCRIPTION
+\fITwm\fP is a window manager for the X Window System.
+It provides
+titlebars, shaped windows,
+several forms of icon management, user-defined macro functions,
+click-to-type and pointer-driven keyboard focus, and user-specified
+key and pointer button bindings.
+.PP
+This program is usually started by the user's session manager or
+startup script.
+When used
+from \fBxdm\fP(__appmansuffix__)
+or \fBxinit\fP(__appmansuffix__) without a session manager,
+\fItwm\fP is frequently executed in the foreground
+as the last client.
+When run this way, exiting \fItwm\fP causes the
+session to be terminated (i.e., logged out).
+.PP
+By default, application windows are surrounded by a \*(``frame\*('' with a
+titlebar at the top and a special border around the window.
+The titlebar
+contains the window's name, a rectangle that is lit when the window is
+receiving keyboard input, and function boxes known as \*(``titlebuttons\*('' at
+the left and right edges of the titlebar.
+.PP
+Pressing pointer Button1 (usually the left-most
+button unless it has been changed with \fIxmodmap\fP) on a
+titlebutton will invoke the function associated with the button.
+In the default interface, windows are iconified by clicking (pressing
+and then immediately releasing) the left titlebutton (which looks
+like a Dot).
+Conversely, windows are deiconified by clicking in the
+associated icon or entry in the icon manager
+(see description of the variable
+\fBShowIconManager\fP and of the function \fBf.showiconmgr\fP).
+.PP
+Windows are resized by pressing the right titlebutton (which resembles a
+group of nested squares), dragging the pointer over edge that is to be
+moved, and releasing the pointer when the outline of the window is the desired
+size.
+Similarly, windows are moved by pressing in the title or highlight
+region, dragging a window outline to the new location, and then releasing
+when the outline is in the desired position.
+Just
+clicking in the title or highlight region raises the window without moving it.
+.PP
+When new windows are created, \fItwm\fP will honor any size and location
+information requested by the user (usually through \fI\-geometry\fP
+command line argument or resources for the individual applications).
+Otherwise, an outline of the window's default size, its titlebar, and lines
+dividing the
+window into a 3x3 grid that track the pointer are displayed.
+Clicking pointer Button1
+will position the window at the current position and give it the default
+size.
+Pressing pointer Button2 (usually the middle pointer button)
+and dragging the outline
+will give the window its current position but allow the sides to be resized as
+described above.
+Clicking pointer Button3 (usually the right pointer button)
+will give the window its current position but attempt to make it long enough
+to touch the bottom the screen.
+.SH OPTIONS
+\fITwm\fP accepts several command line options,
+which may be abbreviated, e.g.,
+\*(``\fB\-d\fP\*('' for
+\*(``\fB\-display\fP\*(''
+(but upper/lower-case are different):
+.TP 8
+.B \-clientId \fIID\fP
+Each time \fItwm\fP starts, it calls
+\fBSmcOpenConnection\fP
+to establish a new session.
+It can be told to restart from a previous session by giving the previous
+session's client-identifier.
+.TP 8
+.B \-display \fIdpy\fP
+Specify the X server to use.
+.TP 8
+.B \-file \fIfilename\fP
+Specify the name of the startup file to use.
+By default,
+\fItwm\fP will look in the user's home directory for files
+named \fI.twmrc.num\fP (where \fInum\fP is a screen number) or \fI.twmrc\fP.
+.TP 8
+.B \-quiet
+Tells \fItwm\fP that it should not print error messages when
+it receives unexpected X Error events.
+.IP
+Besides X Error events, \fItwm\fP also reports its own warnings.
+The \fB\-quiet\fP option suppresses those.
+.TP 8
+.B \-restore \fIfilename\fP
+When \fItwm\fP's session is stopped, it attempts to save the current
+window configuration.
+Use this option to tell \fItwm\fP to read this file for that information
+when starting (or restarting) a session.
+.TP 8
+.B \-single
+Tells \fItwm\fP that only the default screen (as specified by
+\fB\-display\fP or by the \fBDISPLAY\fP environment variable) should be
+managed.
+By default, \fItwm\fP will attempt to manage
+all screens on the display.
+.TP 8
+.B \-verbose
+Tells \fItwm\fP that it should print error messages whenever
+it receives an unexpected X Error event.
+This can be useful when debugging
+applications but can be distracting in regular use.
+.IP
+The \fB\-verbose\fP and \fB\-quiet\fP options increment and decrement
+the message level, cancelling each other.
+.TP 8
+.B \-V
+Tell \fItwm\fP to print its version to the standard output, and exit.
+.SH CUSTOMIZATION
+Much of \fItwm\fP's appearance and behavior can be controlled by providing
+a startup file in one of the following locations (searched in order for
+each screen being managed when \fItwm\fP begins):
+.TP 8
+.B $HOME/.twmrc.\fIscreennumber\fP
+The \fIscreennumber\fP is a small positive number (e.g., 0, 1, etc.)
+representing the screen number
+(e.g., the last number in the DISPLAY environment
+variable \fIhost:displaynum.screennum\fP) that would be used to contact that
+screen of the display.
+This is intended for displays with multiple screens of
+differing visual types.
+.TP 8
+.B $HOME/.twmrc
+This is the usual name for an individual user's startup file.
+.TP 8
+.B __datadir__/X11/twm/system.twmrc
+If neither of the preceding files are found, \fItwm\fP will look in this
+file for a
+default configuration.
+This is often tailored by the site administrator to
+provide convenient menus or familiar bindings for novice users.
+.PP
+If no startup files are found, \fItwm\fP will use the built-in defaults
+described above.
+The only resource used by \fItwm\fP is
+\fIbitmapFilePath\fP for a colon-separated list of directories to search
+when looking for bitmap files (for more information,
+see the \fIAthena Widgets\fP manual and \fBxrdb\fP(__appmansuffix__)).
+.PP
+\fITwm\fP startup files are logically broken up into three types of
+specifications: \fIVariables\fP, \fIBindings\fP, \fIMenus\fP.
+The
+\fIVariables\fP section must come first and is used to describe the
+fonts, colors, cursors, border widths, icon and window placement, highlighting,
+autoraising, layout of titles, warping, use of the icon manager.
+The \fIBindings\fP section usually comes second and is used to specify
+the functions that should be
+to be invoked when keyboard and pointer buttons are pressed in
+windows, icons, titles, and frames.
+The \fIMenus\fP section gives any
+user-defined menus (containing functions to be invoked or
+commands to be executed).
+.PP
+Variable names and keywords are case-insensitive.
+Strings must be surrounded
+by double quote characters (e.g., "blue") and are case-sensitive.
+A pound sign (#) outside
+of a string causes the remainder of the line in which the character appears to
+be treated as a comment.
+.SH VARIABLES
+Many of the aspects of \fItwm\fP's user interface are controlled by variables
+that may be set in the user's startup file.
+Some of the options are
+enabled or disabled simply by the presence of a particular keyword.
+Other
+options require keywords, numbers, strings, or lists of all of these.
+.PP
+Lists are surrounded by braces and are usually separated by
+whitespace or a newline.
+For example:
+.Ex 0
+\fBAutoRaise\fP { "emacs" "XTerm" "Xmh" }
+.Ee
+.LP
+or
+.Ex 0
+\fBAutoRaise\fP
+{
+        "emacs"
+        "XTerm"
+        "Xmh"
+}
+.Ee
+.LP
+When a variable containing a list of strings representing windows is searched
+(e.g., to determine whether or not to enable autoraise as shown above), a string
+must be an exact, case-sensitive match to
+the window's name (given by the WM_NAME window property), resource name
+or class name (both given by the WM_CLASS window property).
+The preceding
+example would enable autoraise on windows named \*(``emacs\*('' as well as any
+\fIxterm\fP (since they are of class \*(``XTerm\*('') or xmh windows
+(which are of class \*(``Xmh\*('').
+.PP
+String arguments that are interpreted as filenames (see the \fBPixmaps\fP,
+\fBCursors\fP, and \fBIconDirectory\fP below) will
+prepend the user's directory
+(specified by the \fBHOME\fP environment variable) if the first character is a
+tilde (~).
+If, instead, the first character is a colon (:), the name is
+assumed to refer to one of the internal bitmaps that are used to
+create the default titlebars symbols: \fB:xlogo\fP
+or \fB:delete\fP (both refer to the X logo),
+\fB:dot\fP or \fB:iconify\fP (both refer to the dot),
+\fB:resize\fP (the nested squares used by the resize button),
+\fB:menu\fP (a page with lines),
+and \fB:question\fP (the question mark used for non-existent
+bitmap files).
+.PP
+The following variables may be specified at the top of a \fItwm\fP startup
+file.
+Lists of Window name prefix strings are indicated by \fIwin-list\fP.
+Optional arguments are shown in square brackets:
+.IP "\fBAutoRaise\fP { \fIwin-list\fP }" 8
+This variable specifies a list of windows that should automatically be
+raised whenever the pointer enters the window.
+This action can be
+interactively
+enabled or disabled on individual windows using the function \fBf.autoraise\fP.
+.IP "\fBAutoRelativeResize\fP" 8
+This variable indicates that dragging out a window size (either when
+initially sizing the window with pointer Button2 or when resizing it)
+should not wait until the pointer has crossed the window edges.
+Instead, moving
+the pointer automatically causes the nearest edge or edges to move by the
+same amount.
+This allows the resizing of windows that extend off
+the edge of the screen.
+If the pointer is
+in the center of the window, or if the resize is begun by pressing a
+titlebutton, \fItwm\fP will still wait for the pointer to cross a window
+edge (to prevent accidents).
+This option is
+particularly useful for people who like the press-drag-release method of
+sweeping out window sizes.
+.IP "\fBBorderColor\fP \fIstring\fP [{ \fIwincolorlist\fP }]" 8
+This variable specifies the default color of the border to be placed around
+all
+non-iconified windows, and may only be given within a \fBColor\fP,
+\fBGrayscale\fP or
+\fBMonochrome\fP list.
+The optional \fIwincolorlist\fP specifies a list
+of window and color name pairs for specifying particular border colors for
+different types of windows.
+For example:
+.RS 5
+.Ex 0
+\fBBorderColor\fP "gray50"
+{
+        "XTerm" "red"
+        "xmh"   "green"
+}
+.Ee
+.RE
+.IP
+The default is "black".
+.IP "\fBBorderTileBackground\fP \fIstring\fP [{ \fIwincolorlist\fP }]" 8
+This variable specifies the default background color in the gray pattern
+used in unhighlighted borders (only if \fBNoHighlight\fP hasn't been set),
+and may only be given within a
+\fBColor\fP,
+\fBGrayscale\fP or
+\fBMonochrome\fP list.
+The optional \fIwincolorlist\fP allows per-window colors to be specified.
+The default is "white".
+.IP "\fBBorderTileForeground\fP \fIstring\fP [{ \fIwincolorlist\fP }]" 8
+This variable specifies the default foreground color in the gray pattern
+used in unhighlighted borders (only
+if \fBNoHighlight\fP hasn't been set), and may only be given within a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwincolorlist\fP allows
+per-window colors to be specified.
+The default is "black".
+.IP "\fBBorderWidth\fP \fIpixels\fP" 8
+This variable specifies the width in pixels of the border surrounding
+all client window frames if \fBClientBorderWidth\fP has not been specified.
+This value is also used to set the border size of windows created by \fItwm\fP
+(such as the icon manager).
+The default is 2.
+.IP "\fBButtonIndent\fP \fIpixels\fP" 8
+This variable specifies the amount by which titlebuttons should be
+indented on all sides.
+Positive values cause the buttons to be smaller than
+the window text and highlight area so that they stand out.
+Setting this
+and the \fBTitleButtonBorderWidth\fP variables to 0 makes titlebuttons be as
+tall and wide as possible.
+The default is 1.
+.IP "\fBClientBorderWidth\fP" 8
+This variable indicates that border width of a window's frame should be set to
+the initial border width of the window, rather than to the value of
+\fBBorderWidth\fP.
+.IP "\fBColor\fP { \fIcolors-list\fP }" 8
+This variable specifies a list of color assignments to be made if the default
+display is capable of displaying more than simple black and white.
+The
+\fIcolors-list\fP is made up of the following color variables and their values:
+\fBDefaultBackground\fP,
+\fBDefaultForeground\fP,
+\fBMenuBackground\fP,
+\fBMenuForeground\fP,
+\fBMenuTitleBackground\fP,
+\fBMenuTitleForeground\fP,
+\fBMenuShadowColor\fP,
+\fBMenuBorderColor\fP,
+\fBPointerForeground\fP, and
+\fBPointerBackground\fP.
+The following
+color variables may also be given a list of window and color name pairs to
+allow per-window colors to be specified (see \fBBorderColor\fP for details):
+\fBBorderColor\fP,
+\fBIconManagerHighlight\fP,
+\fBBorderTitleBackground\fP,
+\fBBorderTitleForeground\fP,
+\fBTitleBackground\fP,
+\fBTitleForeground\fP,
+\fBIconBackground\fP,
+\fBIconForeground\fP,
+\fBIconBorderColor\fP,
+\fBIconManagerBackground\fP, and
+\fBIconManagerForeground\fP.
+For example:
+.RS 5
+.Ex 0
+\fBColor\fP
+{
+        MenuBackground          "gray50"
+        MenuForeground          "blue"
+        BorderColor             "red" { "XTerm" "yellow" }
+        TitleForeground         "yellow"
+        TitleBackground         "blue"
+}
+.Ee
+.RE
+.IP
+All of these color variables may also be specified for the \fBMonochrome\fP
+variable, allowing the same initialization file to be used on both color and
+monochrome displays.
+.IP "\fBConstrainedMoveTime\fP \fImilliseconds\fP" 8
+This variable specifies the length of time between button clicks needed to
+begin
+a constrained move operation.
+Double clicking within this amount
+of time when invoking \fBf.move\fP will cause the window to be moved only
+in a horizontal or vertical direction.
+Setting this value to 0 will disable
+constrained moves.
+The default is 400 milliseconds.
+.IP "\fBCursors\fP { \fIcursor-list\fP }" 8
+This variable specifies the glyphs that \fItwm\fP should use for various
+pointer cursors.
+Each cursor
+may be defined either from the \fBcursor\fP font or from two bitmap files.
+Shapes from the \fBcursor\fP font may be specified directly as:
+.Ex 0
+        \fIcursorname\fP        "\fIstring\fP"
+.Ee
+.IP
+where \fIcursorname\fP is one of the cursor names listed below, and
+\fIstring\fP is the name of a glyph as found in the file
+.I __projectroot__/include/X11/cursorfont.h
+(without the \*(``XC_\*('' prefix).
+If the cursor is to be defined
+from bitmap files, the following syntax is used instead:
+.Ex 0
+        \fIcursorname\fP        "\fIimage\fP"   "\fImask\fP"
+.Ee
+.IP
+The \fIimage\fP and \fImask\fP strings specify the names of files containing
+the glyph image and mask in \fBbitmap\fP(__appmansuffix__) form.
+The bitmap files are located in the same manner as icon bitmap files.
+The following example shows the default cursor definitions:
+.RS 5
+.Ex 0
+\fBCursors\fP
+{
+        Frame           "top_left_arrow"
+        Title           "top_left_arrow"
+        Icon            "top_left_arrow"
+        IconMgr         "top_left_arrow"
+        Move            "fleur"
+        Resize          "fleur"
+        Menu            "sb_left_arrow"
+        Button          "hand2"
+        Wait            "watch"
+        Select          "dot"
+        Destroy         "pirate"
+}
+.Ee
+.RE
+.IP "\fBDecorateTransients\fP" 8
+This variable indicates that transient windows (those containing a
+WM_TRANSIENT_FOR property) should have titlebars.
+By default, transients
+are not reparented.
+.IP "\fBDefaultBackground\fP \fIstring\fP" 8
+This variable specifies the background color to be used for sizing and
+information windows.
+The default is "white".
+.IP "\fBDefaultForeground\fP \fIstring\fP" 8
+This variable specifies the foreground color to be used for sizing and
+information windows.
+The default is "black".
+.IP "\fBDontIconifyByUnmapping\fP { \fIwin-list\fP }" 8
+This variable specifies a list of windows that should not be iconified by
+simply unmapping the window (as would be the case if \fBIconifyByUnmapping\fP
+had been set).
+This is frequently used to force some windows to be treated
+as icons while other windows are handled by the icon manager.
+.IP "\fBDontMoveOff\fP" 8
+This variable indicates that windows should not be allowed to be moved off the
+screen.
+It can be overridden by the \fBf.forcemove\fP function.
+.IP "\fBDontSqueezeTitle\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that titlebars should not be squeezed to their
+minimum size as described under \fBSqueezeTitle\fP below.
+If the optional window list is supplied, only those windows will be
+prevented from being squeezed.
+.IP "\fBForceIcons\fP" 8
+This variable indicates that icon pixmaps specified in the \fBIcons\fP
+variable should override any client-supplied pixmaps.
+.IP "\fBFramePadding\fP \fIpixels\fP" 8
+This variable specifies the distance between the titlebar decorations (the
+button and text) and the window frame.
+The default is 2 pixels.
+.IP "\fBGrayscale\fP { \fIcolors\fP }" 8
+This variable specifies a list of color assignments that should be made if
+the screen has a GrayScale default visual.
+See the description of \fBColors\fP.
+.IP "\fBIconBackground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the background color of icons, and may
+only be specified inside of a
+\fBColor\fP,
+\fBGrayscale\fP or
+\fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "white".
+.IP "\fBIconBorderColor\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the color of the border used for icon windows, and
+may only be specified inside of a
+\fBColor\fP,
+\fBGrayscale\fP or
+\fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "black".
+.IP "\fBIconBorderWidth\fP \fIpixels\fP" 8
+This variable specifies the width in pixels of the border surrounding
+icon windows.
+The default is 2.
+.IP "\fBIconDirectory\fP \fIstring\fP" 8
+This variable specifies the directory that should be searched if
+a bitmap file cannot be found in any of the directories
+in the \fBbitmapFilePath\fP resource.
+.IP "\fBIconFont\fP \fIstring\fP" 8
+This variable specifies the font to be used to display icon names within
+icons.
+The default is "variable".
+.IP "\fBIconForeground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the foreground color to be used when displaying icons,
+and may only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "black".
+.IP "\fBIconifyByUnmapping [{ \fIwin-list\fP }]\fP" 8
+This variable indicates that windows should be iconified by being unmapped
+without trying to map any icons.
+This assumes that the user will
+remap the window through the icon manager, the \fBf.warpto\fP function, or
+the \fITwmWindows\fP menu.
+If the optional \fIwin-list\fP is provided, only those windows will be
+iconified by simply unmapping.
+Windows that have both this and the
+\fBIconManagerDontShow\fP options set may not be accessible if no binding
+to the \fITwmWindows\fP menu is set in the user's startup file.
+.IP "\fBIconManagerBackground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the background color to use for icon manager entries,
+and may only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "white".
+.IP "\fBIconManagerDontShow\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that the icon manager should not display any
+windows.
+If the optional \fIwin-list\fP is given, only those windows will
+not be displayed.
+This variable is used to prevent windows that are rarely
+iconified (such as \fIxclock\fP or \fIxload\fP) from taking up space in
+the icon manager.
+.IP "\fBIconManagerFont\fP \fIstring\fP" 8
+This variable specifies the font to be used when displaying icon manager
+entries.
+The default is "variable".
+.IP "\fBIconManagerForeground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the foreground color to be used when displaying
+icon manager entries, and may only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "black".
+.IP "\fBIconManagerGeometry\fP \fIstring\fP [ \fIcolumns\fP ]" 8
+This variable specifies the geometry of the icon manager window.
+The
+\fIstring\fP argument is standard geometry specification that indicates
+the initial full size of the icon manager.
+The icon manager window is
+then broken into \fIcolumns\fP pieces and scaled according to the number
+of entries in the icon manager.
+Extra entries are wrapped to form
+additional rows.
+The default number of columns is 1.
+.IP "\fBIconManagerHighlight\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the border color to be used when highlighting
+the icon manager entry that currently has the focus,
+and can only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+See the \fBBorderColor\fP
+variable for a complete description of the \fIwin-list\fP.
+The default is "black".
+.IP "\fBIconManagers\fP { \fIiconmgr-list\fP }" 8
+This variable specifies a list of icon managers to create.
+Each item in the
+\fIiconmgr-list\fP has the following format:
+.Ex 0
+        "\fIwinname\fP" ["\fIiconname\fP"]      "\fIgeometry\fP" \fIcolumns\fP
+.Ee
+.IP
+where \fIwinname\fP is the name of the windows that should be put into this
+icon manager, \fIiconname\fP is the name of that icon manager window's icon,
+\fIgeometry\fP is a standard geometry specification, and \fIcolumns\fP is
+the number of columns in this icon manager as described in
+\fBIconManagerGeometry\fP.
+For example:
+.RS 5
+.Ex 0
+\fBIconManagers\fP
+{
+        "XTerm"         "=300x5+800+5"  5
+        "myhost"        "=400x5+100+5"  2
+}
+.Ee
+.RE
+.IP
+Clients whose name or class is \*(``XTerm\*('' will have an entry created
+in the \*(``XTerm\*('' icon manager.
+Clients whose name was \*(``myhost\*('' would
+be put into the \*(``myhost\*('' icon manager.
+.IP "\fBIconManagerShow\fP { \fIwin-list\fP }" 8
+This variable specifies a list of windows that should appear in the icon
+manager.
+When used in conjunction with the \fBIconManagerDontShow\fP
+variable, only the windows in this list will be shown in the icon manager.
+.IP "\fBIconRegion\fP \fIgeomstring\fP \fIvgrav hgrav gridwidth gridheight\fP"
+This variable specifies an area on the root window in which icons are placed
+if no specific icon location is provided by the client.
+The \fIgeomstring\fP
+is a quoted string containing a standard geometry specification.
+If more than one
+\fBIconRegion\fP lines are given,
+icons will be put into the succeeding icon regions when the first is full.
+The \fIvgrav\fP argument should be either \fBNorth\fP or \fBSouth\fP and
+control and is used to control whether icons are first filled in from the
+top or bottom of the icon region.
+Similarly, the \fIhgrav\fP argument should
+be either \fBEast\fP or \fBWest\fP and is used to control whether icons should
+be filled in from left from the right.
+Icons are laid out within the region
+in a grid with cells \fIgridwidth\fP pixels wide and \fIgridheight\fP pixels
+high.
+.IP "\fBIcons\fP { \fIwin-list\fP }" 8
+This variable specifies a list of window names and the bitmap filenames that
+should be used as their icons.
+For example:
+.RS 5
+.Ex 0
+\fBIcons\fP
+{
+        "XTerm"         "xterm.icon"
+        "xfd"           "xfd_icon"
+}
+.Ee
+.RE
+.IP
+Windows that match \*(``XTerm\*('' and would not be iconified by unmapping, and
+would try to use
+the icon bitmap in the file \*(``xterm.icon\*(''.
+If \fBForceIcons\fP is
+specified, this bitmap will be used even if the client has requested its
+own icon pixmap.
+.IP "\fBInterpolateMenuColors\fP" 8
+This variable indicates that menu entry colors should be interpolated between
+entry specified colors.
+In the example below:
+.RS 5
+.Ex 0
+\fBMenu\fP "mymenu"
+{
+        "Title"         ("black":"red")         f.title
+        "entry1"                                f.nop
+        "entry2"                                f.nop
+        "entry3"        ("white":"green")       f.nop
+        "entry4"                                f.nop
+        "entry5"        ("red":"white")         f.nop
+}
+.Ee
+.RE
+.IP
+the foreground colors for
+\*(``entry1\*('' and
+\*(``entry2\*('' will be interpolated
+between black and white, and the background colors between red and green.
+Similarly, the foreground for \*(``entry4\*(''
+will be half-way between white and red,
+and the background will be half-way between green and white.
+.IP "\fBMakeTitle\fP { \fIwin-list\fP }" 8
+This variable specifies a list of windows on which a titlebar should be placed
+and is used to request titles on specific windows when \fBNoTitle\fP has been
+set.
+.IP "\fBMaxWindowSize\fP \fIstring\fP" 8
+This variable specifies a geometry in which the width and height
+give the maximum size for a given window.
+This is typically used to
+restrict windows to the size of the screen.
+The default width is 32767 -
+screen width.
+The default height is 32767 - screen height.
+.IP "\fBMenuBackground\fP \fIstring\fP" 8
+This variable specifies the background color used for menus,
+and can only be specified inside of a
+\fBColor\fP or \fBMonochrome\fP list.
+The default is "white".
+.IP "\fBMenuBorderColor\fP \fIstring\fP" 8
+This variable specifies the color of the menu border and can only be specified
+inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The default is "black".
+.IP "\fBMenuBorderWidth\fP \fIpixels\fP" 8
+This variable specifies the width in pixels of the border surrounding
+menu windows.
+The default is 2.
+.IP "\fBMenuFont\fP \fIstring\fP" 8
+This variable specifies the font to use when displaying menus.
+The default
+is "variable".
+.IP "\fBMenuForeground\fP \fIstring\fP" 8
+This variable specifies the foreground color used for menus,
+and can only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The default is "black".
+.IP "\fBMenuShadowColor\fP \fIstring\fP" 8
+This variable specifies the color of the shadow behind pull-down menus
+and can only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The default is "black".
+.IP "\fBMenuTitleBackground\fP \fIstring\fP" 8
+This variable specifies the background color for \fBf.title\fP entries in
+menus, and
+can only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The default is "white".
+.IP "\fBMenuTitleForeground\fP \fIstring\fP" 8
+This variable specifies the foreground color for \fBf.title\fP entries in
+menus and
+can only be specified inside of a
+\fBColor\fP or \fBMonochrome\fP list.
+The default is "black".
+.IP "\fBMonochrome\fP { \fIcolors\fP }" 8
+This variable specifies a list of color assignments that should be made if
+the screen has a depth of 1.
+See the description of \fBColors\fP.
+.IP "\fBMoveDelta\fP \fIpixels\fP" 8
+This variable specifies the number of pixels the pointer
+must move before the \fBf.move\fP function starts working.
+Also
+see the \fBf.deltastop\fP function.
+The default is zero pixels.
+.IP "\fBNoBackingStore\fP" 8
+This variable indicates that \fItwm\fP's menus should not request backing
+store to minimize repainting of menus.
+This is typically
+used with servers that can repaint faster than they can handle backing store.
+.IP "\fBNoCaseSensitive\fP" 8
+This variable indicates that case should be ignored when sorting icon names
+in an icon manager.
+This option is typically used with applications that
+capitalize the first letter of their icon name.
+.IP "\fBNoDefaults\fP" 8
+This variable indicates that \fItwm\fP should not supply the default
+titlebuttons and bindings.
+This option should only be used if the startup
+file contains a completely new set of bindings and definitions.
+.IP "\fBNoGrabServer\fP" 8
+This variable indicates that \fItwm\fP should not grab the server
+when popping up menus and moving opaque windows.
+.IP "\fBNoHighlight\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that borders should not be highlighted to track the
+location of the pointer.
+If the optional \fIwin-list\fP is given, highlighting
+will only be disabled for those windows.
+When the border is highlighted, it will
+be drawn in the current \fBBorderColor\fP.
+When the border is not
+highlighted, it will be stippled with a gray pattern using the
+current \fBBorderTileForeground\fP and \fBBorderTileBackground\fP colors.
+.IP "\fBNoIconManagers\fP" 8
+This variable indicates that no icon manager should be created.
+.IP "\fBNoMenuShadows\fP" 8
+This variable indicates that menus should not have drop shadows drawn behind
+them.
+This is typically used with slower servers since it speeds up menu
+drawing at the expense of making the menu slightly harder to read.
+.IP "\fBNoRaiseOnDeiconify\fP" 8
+This variable indicates that windows that are deiconified should not be
+raised.
+.IP "\fBNoRaiseOnMove\fP" 8
+This variable indicates that windows should not be raised when moved.
+This
+is typically used to allow windows to slide underneath each other.
+.IP "\fBNoRaiseOnResize\fP" 8
+This variable indicates that windows should not be raised when resized.
+This
+is typically used to allow windows to be resized underneath each other.
+.IP "\fBNoRaiseOnWarp\fP" 8
+This variable indicates that windows should not be raised when the pointer
+is warped into them with the \fBf.warpto\fP function.
+If this option is set,
+warping to an occluded window may result in the pointer ending up in the
+occluding window instead the desired window (which causes unexpected behavior
+with \fBf.warpring\fP).
+.IP "\fBNoSaveUnders\fP" 8
+This variable indicates that menus should not request save-unders to minimize
+window repainting following menu selection.
+It is typically used with displays
+that can repaint faster than they can handle save-unders.
+.IP "\fBNoStackMode\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that client window requests to change stacking order
+should be ignored.
+If the optional \fIwin-list\fP is given, only requests on
+those windows will be ignored.
+This is typically used to prevent applications
+from relentlessly popping themselves to the front of the window stack.
+.IP "\fBNoTitle\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that windows should not have titlebars.
+If the
+optional \fIwin-list\fP is given, only those windows will not have titlebars.
+\fBMakeTitle\fP may be used with this option to force titlebars to be put
+on specific windows.
+.IP "\fBNoTitleFocus\fP" 8
+This variable indicates that \fItwm\fP should not set keyboard input focus to
+each window as it is entered.
+Normally, \fItwm\fP sets the focus
+so that focus and key events from the titlebar and
+icon managers are delivered to the application.
+If the pointer is moved
+quickly and \fItwm\fP is slow to respond, input can be directed to the old
+window instead of the new.
+This option is typically
+used to prevent this \*(``input lag\*('' and to
+work around bugs in older applications that have problems with focus events.
+.IP "\fBNoTitleHighlight\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that the highlight area of the titlebar, which is
+used to indicate the window that currently has the input focus, should not
+be displayed.
+If the optional \fIwin-list\fP is given, only those windows
+will not have highlight areas.
+This and the \fBSqueezeTitle\fP options
+can be set to substantially reduce the amount of screen space required by
+titlebars.
+.IP "\fBOpaqueMove\fP" 8
+This variable indicates that the \fBf.move\fP function should actually move
+the window instead of just an outline so that the user can immediately see
+what the window will look like in the new position.
+This option is typically
+used on fast displays (particularly if \fBNoGrabServer\fP is set).
+.IP "\fBPixmaps\fP { \fIpixmaps\fP }" 8
+This variable specifies a list of pixmaps that define the appearance of various
+images.
+Each entry is a keyword indicating the pixmap to set, followed by a
+string giving the name of the bitmap file.
+The following pixmaps
+may be specified:
+.RS 5
+.Ex 0
+\fBPixmaps\fP
+{
+        TitleHighlight  "gray1"
+}
+.Ee
+.RE
+.IP
+The default for \fITitleHighlight\fP is to use an even stipple pattern.
+.IP "\fBPriority\fP \fIpriority\fP" 8
+This variable sets \fItwm\fP's priority.
+\fIpriority\fP should be an
+unquoted, signed number (e.g., 999).
+This variable has an effect only
+if the server supports the SYNC extension.
+.IP "\fBRandomPlacement\fP" 8
+This variable indicates that windows with no specified geometry should
+be placed in a pseudo-random location instead of having the user drag out
+an outline.
+.IP "\fBResizeFont\fP \fIstring\fP" 8
+This variable specifies the font to be used for in the dimensions window when
+resizing windows.
+The default is "fixed".
+.IP "\fBRestartPreviousState\fP" 8
+This variable indicates that
+\fItwm\fP should attempt to use the WM_STATE property on client windows
+to tell which windows should be iconified and which should be left visible.
+This is typically used to try to regenerate the state that the screen
+was in before the previous window manager was shutdown.
+.IP "\fBSaveColor\fP { \fIcolors-list\fP }" 8
+This variable indicates a list of color assignments to be stored as pixel
+values in the root window property _MIT_PRIORITY_COLORS.
+Clients may elect
+to preserve these values when installing their own colormap.
+Note that
+use of this mechanism is a way an for application to avoid the "technicolor"
+problem, whereby useful screen objects such as window borders and titlebars
+disappear when a programs custom colors are installed by the window
+manager.
+For example:
+.RS 5
+.Ex 0
+\fBSaveColor\fP
+{
+        BorderColor
+        TitleBackground
+        TitleForeground
+        "red"
+        "green"
+        "blue"
+}
+.Ee
+.RE
+.IP
+This would place on the root window 3 pixel values for borders and titlebars,
+as well as the three color strings, all taken from the default colormap.
+.IP "\fBShowIconManager\fP" 8
+This variable indicates that the icon manager window should be displayed when
+\fItwm\fP is started.
+It can always be brought up using the
+\fBf.showiconmgr\fP function.
+.IP "\fBSortIconManager\fP" 8
+This variable indicates that entries in the icon manager should be
+sorted alphabetically rather than by simply appending new windows to
+the end.
+.IP "\fBSqueezeTitle\fP [{ \fIsqueeze-list\fP }]" 8
+This variable indicates that \fItwm\fP should attempt to use the SHAPE
+extension to make titlebars occupy only as much screen space as they need,
+rather than extending all the way across the top of the window.
+The optional \fIsqueeze-list\fP
+may be used to control the location of the squeezed titlebar along the
+top of the window.
+It contains entries of the form:
+.Ex 0
+        "\fIname\fP"            \fIjustification\fP     \fInum\fP       \fIdenom\fP
+.Ee
+.IP
+where \fIname\fP is a window name, \fIjustification\fP is either \fBleft\fP,
+\fBcenter\fP, or \fBright\fP, and \fInum\fP and \fIdenom\fP
+are numbers specifying a ratio giving the relative position about which
+the titlebar is justified.
+The ratio is measured from left to right if
+the numerator is positive, and right to left if negative.
+A denominator
+of 0 indicates that the numerator should be measured in pixels.
+For
+convenience, the ratio 0/0 is the same as 1/2 for \fBcenter\fP and \-1/1
+for \fBright\fP.
+For example:
+.RS 5
+.Ex 0
+\fBSqueezeTitle\fP
+{
+        "XTerm"         left            0       0
+        "xterm1"        left            1       3
+        "xterm2"        left            2       3
+        "oclock"        center          0       0
+        "emacs"         right           0       0
+}
+.Ee
+.RE
+.IP
+The \fBDontSqueezeTitle\fP list can be used to turn off squeezing on
+certain titles.
+.IP "\fBStartIconified\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that client windows should initially be left as
+icons until explicitly deiconified by the user.
+If the optional \fIwin-list\fP
+is given, only those windows will be started iconic.
+This is useful for
+programs that do not support an \fI\-iconic\fP command line option or
+resource.
+.IP "\fBTitleBackground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the background color used in titlebars,
+and may only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+The default is "white".
+.IP "\fBTitleButtonBorderWidth\fP \fIpixels\fP" 8
+This variable specifies the width in pixels of the border surrounding
+titlebuttons.
+This is typically set to 0 to allow titlebuttons to take up as
+much space as possible and to not have a border.
+The default is 1.
+.IP "\fBTitleFont\fP \fIstring\fP" 8
+This variable specifies the font to be used for displaying window names in
+titlebars.
+The default is "variable".
+.IP "\fBTitleForeground\fP \fIstring\fP [{ \fIwin-list\fP }]" 8
+This variable specifies the foreground color used in titlebars, and
+may only be specified inside of a
+\fBColor\fP, \fBGrayscale\fP or \fBMonochrome\fP list.
+The optional \fIwin-list\fP is a list of window names and colors so that
+per-window colors may be specified.
+The default is "black".
+.IP "\fBTitlePadding\fP \fIpixels\fP" 8
+This variable specifies the distance between the various buttons, text, and
+highlight areas in the titlebar.
+The default is 8 pixels.
+.IP "\fBUnknownIcon\fP \fIstring\fP" 8
+This variable specifies the filename of a bitmap file to be
+used as the default icon.
+This bitmap will be used as the icon of all
+clients which do not provide an icon bitmap and are not listed
+in the \fBIcons\fP list.
+.IP "\fBUsePPosition\fP \fIstring\fP" 8
+This variable specifies whether or not \fItwm\fP should honor
+program-requested locations (given by the \fBPPosition\fP flag in the
+WM_NORMAL_HINTS property) in the absence of a user-specified position.
+The argument \fIstring\fP may have one of three values: \fB"off"\fP
+(the default)
+indicating that \fItwm\fP
+should ignore the program-supplied position,
+\fB"on"\fP indicating that the position
+should be used, and
+\fB"non-zero"\fP indicating that the position should used if
+it is other than (0,0).
+The latter option is for working around a bug in
+older toolkits.
+.IP "\fBWarpCursor\fP [{ \fIwin-list\fP }]" 8
+This variable indicates that the pointer should be warped into windows when
+they are deiconified.
+If the optional \fIwin-list\fP is given, the pointer
+will only be warped when those windows are deiconified.
+.IP "\fBWindowRing\fP { \fIwin-list\fP }" 8
+This variable specifies a list of windows along which the \fBf.warpring\fP
+function cycles.
+.IP "\fBWarpUnmapped\fP" 8
+This variable indicates that the \fBf.warpto\fP function should deiconify
+any iconified windows it encounters.
+This is typically used to make a key
+binding that will pop a particular window (such as \fIxmh\fP), no matter
+where it is.
+The default is for \fBf.warpto\fP to ignore iconified windows.
+.IP "\fBXorValue\fP \fInumber\fP" 8
+This variable specifies the value to use when drawing window outlines for
+moving and resizing.
+This should be set to a value that will result in a
+variety of
+distinguishable colors when exclusive-or'ed with the contents of the
+user's typical screen.
+Setting this variable to 1 often gives nice results
+if adjacent colors in the default colormap are distinct.
+By default,
+\fItwm\fP will attempt to cause temporary lines to appear at the opposite
+end of the colormap from the graphics.
+.IP "\fBZoom\fP [ \fIcount\fP ]" 8
+This variable indicates that outlines suggesting movement of a window
+to and from its iconified state should be displayed whenever a window is
+iconified or deiconified.
+The optional \fIcount\fP argument specifies the
+number of outlines to be drawn.
+The default count is 8.
+.PP
+The following variables must be set after the fonts have been
+assigned, so it is usually best to put them at the end of the variables
+or beginning of the bindings sections:
+.IP "\fBDefaultFunction\fP \fIfunction\fP" 8
+This variable specifies the function to be executed when a key or button
+event is received for which no binding is provided.
+This is typically
+bound to \fBf.nop\fP, \fBf.beep\fP, or a menu containing window operations.
+.IP "\fBWindowFunction\fP \fIfunction\fP" 8
+This variable specifies the function to execute when a window is selected
+from the \fBTwmWindows\fP menu.
+If this variable is not set, the window
+will be deiconified and raised.
+.SH BINDINGS
+After the desired variables have been set, functions may be attached
+titlebuttons and key and pointer buttons.
+Titlebuttons may be added
+from the left or right side and appear in the titlebar from left-to-right
+according to the
+order in which they are specified.
+Key and pointer button
+bindings may be given in any order.
+.PP
+Titlebuttons specifications must include the name of the pixmap to use in
+the button box and the function to be invoked when a pointer button is
+pressed within them:
+.Ex 0
+\fBLeftTitleButton\fP "\fIbitmapname\fP"  = \fIfunction\fP
+.Ee
+.LP
+or
+.Ex 0
+\fBRightTitleButton\fP "\fIbitmapname\fP" = \fIfunction\fP
+.Ee
+.LP
+The \fIbitmapname\fP may refer to one of the built-in bitmaps
+(which are scaled to match \fBTitleFont\fP) by using the appropriate
+colon-prefixed name described above.
+.PP
+Key and pointer button specifications must give the modifiers that must
+be pressed, over which parts of the screen the pointer must be, and what
+function is to be invoked.
+Keys are given as strings containing the
+appropriate
+keysym name; buttons are given as the keywords \fBButton1\fP-\fBButton5\fP:
+.Ex 0
+"FP1"     = \fImodlist\fP : \fIcontext\fP : \fIfunction\fP
+\fBButton1\fP   = \fImodlist\fP : \fIcontext\fP : \fIfunction\fP
+.Ee
+.LP
+The \fImodlist\fP is any combination of the modifier names \fBshift\fP,
+\fBcontrol\fP, \fBlock\fP, \fBmeta\fP, \fBmod1\fP, \fBmod2\fP, \fBmod3\fP,
+\fBmod4\fP, or \fBmod5\fP (which may be abbreviated as
+\fBs\fP, \fBc\fP, \fBl\fP, \fBm\fP, \fBm1\fP, \fBm2\fP, \fBm3\fP, \fBm4\fP,
+\fBm5\fP, respectively) separated by a vertical bar (\(or).
+Similarly, the \fIcontext\fP is any combination of
+\fBwindow\fP,
+\fBtitle\fP,
+\fBicon\fP,
+\fBroot\fP,
+\fBframe\fP,
+\fBiconmgr\fP, their first letters (\fBiconmgr\fP abbreviation is \fBm\fP),
+or \fBall\fP,
+separated by a vertical bar.
+The \fIfunction\fP is any of the \fBf.\fP
+keywords described below.
+For example, the default startup
+file contains the following bindings:
+.Ex 0
+Button1 =       : root          : f.menu "TwmWindows"
+Button1 = m     : window | icon : f.function "move-or-lower"
+Button2 = m     : window | icon : f.iconify
+Button3 = m     : window | icon : f.function "move-or-raise"
+Button1 =       : title         : f.function "move-or-raise"
+Button2 =       : title         : f.raiselower
+Button1 =       : icon          : f.function "move-or-iconify"
+Button2 =       : icon          : f.iconify
+Button1 =       : iconmgr       : f.iconify
+Button2 =       : iconmgr       : f.iconify
+.Ee
+.LP
+A user who wanted to be able to manipulate windows from the keyboard could
+use the following bindings:
+.Ex 0
+"F1"    =       : all           : f.iconify
+"F2"    =       : all           : f.raiselower
+"F3"    =       : all           : f.warpring "next"
+"F4"    =       : all           : f.warpto "xmh"
+"F5"    =       : all           : f.warpto "emacs"
+"F6"    =       : all           : f.colormap "next"
+"F7"    =       : all           : f.colormap "default"
+"F20"   =       : all           : f.warptoscreen "next"
+"Left"  = m     : all           : f.backiconmgr
+"Right" = m | s : all           : f.forwiconmgr
+"Up"    = m     : all           : f.upiconmgr
+"Down"  = m | s : all           : f.downiconmgr
+.Ee
+.LP
+\fITwm\fP provides many more window manipulation primitives than can be
+conveniently stored in a titlebar, menu, or set of key bindings.
+Although
+a small set of defaults are supplied (unless the \fBNoDefaults\fP is
+specified), most users will want to have their most common operations
+bound to key and button strokes.
+To do this, \fItwm\fP associates names
+with each of the primitives and provides \fIuser-defined functions\fP for
+building higher level primitives and \fImenus\fP for interactively selecting
+among groups of functions.
+.PP
+User-defined functions contain the name by which they are referenced in
+calls to \fBf.function\fP and a list of other functions to execute.
+For
+example:
+.Ex 0
+Function "move-or-lower"        { f.move f.deltastop f.lower }
+Function "move-or-raise"        { f.move f.deltastop f.raise }
+Function "move-or-iconify"      { f.move f.deltastop f.iconify }
+Function "restore-colormap"     { f.colormap "default" f.lower }
+.Ee
+.LP
+The function name must be used in \fBf.function\fP exactly as it appears in
+the function specification.
+.PP
+In the descriptions below, if the function is said to operate on the selected
+window, but is invoked from a root menu, the cursor will be changed to
+the \fBSelect\fP cursor and the next window to receive a button press will
+be chosen:
+.IP "\fB!\fP \fIstring\fP" 8
+This is an abbreviation for \fBf.exec\fP \fIstring\fP.
+.\"OBSOLETE - use a clipboard client
+.\".IP "\fB^\fP \fIstring\fP" 8
+.\"This is an abbreviation for \fBf.cut\fP \fIstring\fP.
+.IP "\fBf.autoraise\fP" 8
+This function toggles whether or not the selected window is raised whenever
+entered by the pointer.
+See the description of the variable \fBAutoRaise\fP.
+.IP "\fBf.backiconmgr\fI" 8
+This function warps the pointer to the previous column in the
+current icon manager, wrapping back to the previous row if necessary.
+.IP "\fBf.beep\fP" 8
+This function sounds the keyboard bell.
+.IP "\fBf.bottomzoom\fP" 8
+This function is similar to the \fBf.fullzoom\fP function, but
+resizes the window to fill only the bottom half of the screen.
+.IP "\fBf.circledown\fP" 8
+This function lowers the top-most window that occludes another window.
+.IP "\fBf.circleup\fP" 8
+This function raises the bottom-most window that is occluded by another window.
+.IP "\fBf.colormap\fP \fIstring\fP" 8
+This function rotates the colormaps (obtained from the WM_COLORMAP_WINDOWS
+property on the window) that \fItwm\fP will display when the pointer
+is in this window.
+The argument \fIstring\fP may have one of the following
+values: \fB"next"\fP, \fB"prev"\fP, and \fB"default"\fP.
+It should be noted
+here that in general, the installed colormap is determined by keyboard focus.
+A pointer driven keyboard focus will install a private colormap upon entry
+of the window owning the colormap.
+Using the click to type model, private
+colormaps will not be installed until the user presses a mouse button on
+the target window.
+.\"OBSOLETE - should go away and use a clipboard.
+.\".IP "\fBf.cut\fP \fIstring\fP" 8
+.\"This function places the specified \fIstring\fP (followed by a newline
+.\"character) into the root window property CUT_BUFFER0.
+.\".IP "\fBf.cutfile\fP" 8
+.\"This function reads the file indicated by the contents of the CUT_BUFFER0
+.\"window property and replaces the cut buffer.
+.IP "\fBf.deiconify\fP" 8
+This function deiconifies the selected window.
+If the window is not an icon,
+this function does nothing.
+.IP "\fBf.delete\fP" 8
+This function sends the WM_DELETE_WINDOW message to the selected window if
+the client application has requested it through the WM_PROTOCOLS window
+property.
+The application is supposed to respond to the message by removing
+the indicated window.
+If the window has not requested
+WM_DELETE_WINDOW messages, the keyboard bell will be rung indicating that
+the user should choose an alternative method.
+Note this is very different
+from \fBf.destroy\fP.
+The intent here is to delete a single window, not
+necessarily the entire application.
+.IP "\fBf.deltastop\fP" 8
+This function allows a user-defined function to be aborted if the pointer has
+been moved more than \fIMoveDelta\fP pixels.
+See the example definition
+given for \fBFunction "move-or-raise"\fP at the beginning of the section.
+.IP "\fBf.destroy\fP" 8
+This function instructs the X server to close the display connection of the
+client that created the selected window.
+This should only be used as a last
+resort for shutting down runaway clients.
+See also \fBf.delete\fP.
+.IP "\fBf.downiconmgr\fI" 8
+This function warps the pointer to the next row in the current icon manager,
+wrapping to the beginning of the next column if necessary.
+.IP "\fBf.exec\fP \fIstring\fP" 8
+This function passes the argument \fIstring\fP to /bin/sh for execution.
+In multiscreen mode, if \fIstring\fP starts a new X client without
+giving a display argument, the client will appear on the screen from
+which this function was invoked.
+.\".IP "\fBf.file\fP \fIstring\fP" 8
+.\"This function assumes \fIstring\fP is a file name.  This file is read into
+.\"the window server's cut buffer.
+.IP "\fBf.focus\fP" 8
+This function toggles the keyboard focus of the server to the
+selected window, changing the focus rule from pointer-driven if necessary.
+If the selected window already was focused, this function executes an
+\fBf.unfocus\fP.
+.IP "\fBf.forcemove\fP" 8
+This function is like \fBf.move\fP except that it ignores the \fBDontMoveOff\fP
+variable.
+.IP "\fBf.forwiconmgr\fI" 8
+This function warps the pointer to the next column in the current icon
+manager, wrapping to the beginning of the next row if necessary.
+.IP "\fBf.fullzoom\fP" 8
+This function resizes the selected window to the full size of the display or
+else restores the original size if the window was already zoomed.
+.IP "\fBf.function\fP \fIstring\fP" 8
+This function executes the user-defined function whose name is specified
+by the argument \fIstring\fP.
+.IP "\fBf.hbzoom\fP" 8
+This function is a synonym for \fBf.bottomzoom\fP.
+.IP "\fBf.hideiconmgr\fP" 8
+This function unmaps the current icon manager.
+.IP "\fBf.horizoom\fP" 8
+This variable is similar to the \fBf.zoom\fP function except that the
+selected window is resized to the full width of the display.
+.IP "\fBf.htzoom\fP" 8
+This function is a synonym for \fBf.topzoom\fP.
+.IP "\fBf.hzoom\fP" 8
+This function is a synonym for \fBf.horizoom\fP.
+.IP "\fBf.iconify\fP" 8
+This function iconifies or deiconifies the selected window or icon,
+respectively.
+.IP "\fBf.identify\fP" 8
+This function displays a summary of the name and geometry of the
+selected window.
+If the server supports the SYNC extension, the priority
+of the client owning the window is also displayed.
+Clicking the pointer or pressing a key in the window
+will dismiss it.
+.IP "\fBf.lefticonmgr\fI" 8
+This function similar to \fBf.backiconmgr\fP except that wrapping does not
+change rows.
+.IP "\fBf.leftzoom\fP" 8
+This variable is similar to the \fBf.bottomzoom\fP function but causes
+the selected window is only resized to the left half of the display.
+.IP "\fBf.lower\fP" 8
+This function lowers the selected window.
+.IP "\fBf.menu\fP \fIstring\fP" 8
+This function invokes the menu specified by the argument \fIstring\fP.
+Cascaded menus may be built by nesting calls to \fBf.menu\fP.
+.IP "\fBf.move\fP" 8
+This function drags an outline of the selected window (or the window itself
+if the \fBOpaqueMove\fP variable is set) until the invoking pointer button
+is released.
+Double clicking within the number of milliseconds given by
+\fBConstrainedMoveTime\fP warps
+the pointer to the center of the window and
+constrains the move to be either horizontal or vertical depending on which
+grid line is crossed.
+To abort a move, press another button before releasing the
+first button.
+.IP "\fBf.nexticonmgr\fI" 8
+This function warps the pointer to the next icon manager containing any windows
+on the current or any succeeding screen.
+.IP "\fBf.nop\fP" 8
+This function does nothing and is typically used with the \fBDefaultFunction\fP
+or \fBWindowFunction\fP variables or to introduce blank lines in menus.
+.IP "\fBf.previconmgr\fI" 8
+This function warps the pointer to the previous icon manager containing any
+windows on the current or preceding screens.
+.IP "\fBf.priority\fP \fIstring\fP" 8
+This function sets the priority of the client owning the selected window to
+the numeric value of the argument \fIstring\fP, which should be a signed
+integer in double quotes (e.g., "999" ).
+This function has an effect only
+if the server supports the SYNC extension.
+.IP "\fBf.quit\fP" 8
+This function causes \fItwm\fP to restore the window's borders and exit.
+If
+\fItwm\fP is the first client invoked from \fIxdm\fP, this will result in a
+server reset.
+.IP "\fBf.raise\fP" 8
+This function raises the selected window.
+.IP "\fBf.raiselower\fP" 8
+This function raises the selected window to the top of the stacking order if
+it is occluded by any windows, otherwise the window will be lowered.
+.IP "\fBf.refresh\fP" 8
+This function causes all windows to be refreshed.
+.IP "\fBf.resize\fP" 8
+This function displays an outline of the selected window.
+Crossing a border
+(or setting \fBAutoRelativeResize\fP) will cause the outline to begin to
+rubber band until the invoking button is released.
+To abort a resize,
+press another button before releasing the first button.
+.IP "\fBf.restart\fP" 8
+This function kills and restarts \fItwm\fP.
+.IP "\fBf.startwm\fP \fIstring\fP" 8
+This function kills \fItwm\fP and starts another window manager, as
+specified by \fIstring\fP.
+.IP "\fBf.righticonmgr\fI" 8
+This function is similar to \fBf.nexticonmgr\fP except that wrapping does
+not change rows.
+.IP "\fBf.rightzoom\fP" 8
+This variable is similar to the \fBf.bottomzoom\fP function except that
+the selected window is only resized to the right half of the display.
+.IP "\fBf.saveyourself\fP" 8
+This function sends a WM_SAVEYOURSELF message to the selected window if it
+has requested the message in its WM_PROTOCOLS window property.
+Clients that
+accept this message are supposed to checkpoint all state associated with the
+window and update the WM_COMMAND property as specified in the ICCCM.
+If
+the selected window has not selected for this message, the keyboard bell
+will be rung.
+.IP "\fBf.showiconmgr\fP" 8
+This function maps the current icon manager.
+.IP "\fBf.sorticonmgr\fP" 8
+This function sorts the entries in the current icon manager alphabetically.
+See the variable \fBSortIconManager\fP.
+.\".IP "\fBf.source\fP \fIstring\fP" 8
+.\"This function assumes \fIstring\fP is a file name.  The file is read
+.\"and parsed as a \fItwm\fP startup file.
+.\"This
+.\"function is intended to be used only to re-build pull-down menus.  None
+.\"of the \fItwm\fP variables are changed.
+.IP "\fBf.title\fP" 8
+This function provides a centered, unselectable item in a menu definition.
+It
+should not be used in any other context.
+.IP "\fBf.topzoom\fP" 8
+This variable is similar to the \fBf.bottomzoom\fP function except that
+the selected window is only resized to the top half of the display.
+.\".IP "\fBf.twmrc\fP" 8
+.\"This function causes the startup customization file to be re-read.  This
+.\"function is exactly like the \fBf.source\fP function without having to
+.\"specify the filename.
+.IP "\fBf.unfocus\fP" 8
+This function resets the focus back to pointer-driven.
+This should be used
+when a focused window is no longer desired.
+.IP "\fBf.upiconmgr\fI" 8
+This function warps the pointer to the previous row in the current icon
+manager, wrapping to the last row in the same column if necessary.
+.\".IP "\fBf.version\fI" 8
+.\"This function causes the \fItwm\fP version window to be displayed.  This
+.\"window will be displayed until a pointer button is pressed or the
+.\"pointer is moved from one window to another.
+.IP "\fBf.vlzoom\fP" 8
+This function is a synonym for \fBf.leftzoom\fP.
+.IP "\fBf.vrzoom\fP" 8
+This function is a synonym for \fBf.rightzoom\fP.
+.IP "\fBf.warpring\fP \fIstring\fP" 8
+This function warps the pointer to the next or previous window (as indicated
+by the argument \fIstring\fP, which may be \fB"next"\fP or \fB"prev"\fP)
+specified in the \fBWindowRing\fP variable.
+.IP "\fBf.warpto\fP \fIstring\fP" 8
+This function warps the pointer to the window which has a name or class
+that matches \fIstring\fP.
+If the window is iconified, it will be deiconified
+if the variable \fBWarpUnmapped\fP is set or else ignored.
+.IP "\fBf.warptoiconmgr\fP \fIstring\fP" 8
+This function warps the pointer to the icon manager entry
+associated with the window containing the pointer in the icon manager
+specified by the argument \fIstring\fP.
+If \fIstring\fP is empty (i.e., ""),
+the current icon manager is chosen.
+.IP "\fBf.warptoscreen\fP \fIstring\fP" 8
+This function warps the pointer to the screen specified by the
+argument \fIstring\fP.
+\fIString\fP may be a number (e.g., \fB"0"\fP or
+\fB"1"\fP), the word \fB"next"\fP (indicating the current screen plus 1,
+skipping over any unmanaged screens),
+the word \fB"back"\fP (indicating the current screen minus 1, skipping over
+any unmanaged screens), or the word
+\fB"prev"\fP (indicating the last screen visited.
+.IP "\fBf.winrefresh\fP" 8
+This function is similar to the \fBf.refresh\fP function except that only the
+selected window is refreshed.
+.IP "\fBf.zoom\fP" 8
+This function is similar to the \fBf.fullzoom\fP function, except that
+the only the height of the selected window is changed.
+.SH MENUS
+Functions may be grouped and interactively selected using pop-up
+(when bound to a pointer button) or pull-down (when associated
+with a titlebutton) menus.
+Each menu specification contains the name of the
+menu as it will be referred to by \fBf.menu\fP, optional default
+foreground and background colors, the list of item names and the functions
+they should invoke, and optional foreground and background colors for
+individual items:
+.Ex 0
+\fBMenu\fP "\fImenuname\fP" [ ("\fIdeffore\fP":"\fIdefback\fP") ]
+{
+        \fIstring1\fP   [ ("\fIfore1\fP":"\fIbackn\fP")]        \fIfunction1\fP
+        \fIstring2\fP   [ ("\fIfore2\fP":"\fIbackn\fP")]        \fIfunction2\fP
+                .
+                .
+                .
+        \fIstringN\fP   [ ("\fIforeN\fP":"\fIbackN\fP")]        \fIfunctionN\fP
+}
+.Ee
+.PP
+The \fImenuname\fP is case-sensitive.
+The optional \fIdeffore\fP and \fIdefback\fP arguments specify the foreground
+and background colors used on a color display
+to highlight menu entries.
+The \fIstring\fP portion
+of each menu entry will be the text which will appear in the menu.
+The optional \fIfore\fP and \fIback\fP arguments specify the foreground
+and background colors of the menu entry when the pointer is not in
+the entry.
+These colors will only be used on a color display.
+The
+default is to use the colors specified by the
+\fBMenuForeground\fP and \fBMenuBackground\fP variables.
+The \fIfunction\fP portion of the menu entry is one of the functions,
+including any user-defined functions, or additional menus.
+.PP
+There is a special menu named \fBTwmWindows\fP which contains the names of
+all of the client and \fItwm\fP-supplied windows.
+Selecting an entry will
+cause the
+\fBWindowFunction\fP to be executed on that window.
+If \fBWindowFunction\fP
+hasn't been set, the window will be deiconified and raised.
+.SH ICONS
+\fITwm\fP supports several different ways of manipulating iconified windows.
+The common pixmap-and-text style may be laid out by hand or automatically
+arranged as described by the \fBIconRegion\fP variable.
+In addition, a
+terse grid of icon names, called an icon manager, provides a more efficient
+use of screen space as well as the ability to navigate among windows from
+the keyboard.
+.PP
+An icon manager is a window that contains names of selected or all
+windows currently on the display.
+In addition to the window name,
+a small button using the default iconify symbol will be displayed to the
+left of the name when the window is iconified.
+By default, clicking on an
+entry in the icon manager performs \fBf.iconify\fP.
+To change the actions taken in the icon manager, use the
+\fBiconmgr\fP context when specifying button and keyboard bindings.
+.PP
+Moving the pointer into the icon manager also directs keyboard focus to
+the indicated window (setting the focus explicitly or else sending synthetic
+events \fBNoTitleFocus\fP is set).
+Using the \fBf.upiconmgr\fP, \fBf.downiconmgr\fP
+\fBf.lefticonmgr\fP, and
+\fBf.righticonmgr\fP functions,
+the input focus can be changed between windows directly from the keyboard.
+.SH BUGS
+The resource manager should have been used instead of all of the window
+lists.
+.PP
+The \fBIconRegion\fP variable should take a list.
+.PP
+Double clicking very fast to get the constrained move function will sometimes
+cause the window to move, even though the pointer is not moved.
+.PP
+If \fBIconifyByUnmapping\fP is on and windows are listed in
+\fBIconManagerDontShow\fP but not in \fBDontIconifyByUnmapping\fP,
+they may be lost if they are iconified and no bindings to
+\fBf.menu "TwmWindows"\fP or \fBf.warpto\fP are setup.
+.SH FILES
+.nf
+.I $HOME/.twmrc.<screen number>
+.I $HOME/.twmrc
+.I __datadir__/X11/twm/system.twmrc
+.fi
+.SH "ENVIRONMENT VARIABLES"
+.IP "DISPLAY" 8
+This variable is used to determine which X server to use.
+It is also set
+during \fBf.exec\fP so that programs come up on the proper screen.
+.IP "HOME" 8
+This variable is used as the prefix for files that begin with a tilde and
+for locating the \fItwm\fP startup file.
+.SH "SEE ALSO"
+.PP
+\fBX\fP(__miscmansuffix__),
+\fBXserver\fP(__appmansuffix__),
+\fBxdm\fP(__appmansuffix__),
+\fBxrdb\fP(__appmansuffix__)
+.SH AUTHORS
+Tom LaStrange, Solbourne Computer; Jim Fulton, MIT X Consortium;
+Steve Pitschke, Stardent Computer; Keith Packard, MIT X Consortium;
+Dave Sternlicht, MIT X Consortium; Dave Payne, Apple Computer.

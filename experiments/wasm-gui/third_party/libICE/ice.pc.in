@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: ICE
+Description: X Inter Client Exchange Library
+Version: @PACKAGE_VERSION@
+Requires: xproto
+Cflags: -I${includedir}
+Libs: -L${libdir} -lICE
+Libs.private: @LIBBSD_LIBS@

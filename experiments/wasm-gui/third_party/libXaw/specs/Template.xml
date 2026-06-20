@@ -1,0 +1,407 @@
+<sect2 id="Public_Header_File">
+<title>Public Header File</title>
+<para>
+The public header file contains declarations that will be required by any
+application module that needs to refer to the widget; whether to create
+an instance of the class, to perform an
+<xref linkend='XtSetValues' xrefstyle='select: title'/>
+operation, or to call a public routine implemented by the widget class.
+</para>
+<para>
+<!-- .LP -->
+The contents of the Template public header file,
+<filename class="headerfile">&lt;X11/Xaw/Template.h&gt;</filename>,
+are:
+</para>
+<literallayout class="monospaced">
+..
+<!-- .CB -->
+<!-- .\".so ../../lib/Xaw/Template.h -->
+/* Copyright (c) X Consortium 1987, 1988 */
+
+#ifndef _Template_h
+#define _Template_h
+
+/****************************************************************
+ *
+ * Template widget
+ *
+ ****************************************************************/
+
+/* Resources:
+
+ Name	Class		RepType	Default Value
+ ----		-----		-------	-------------
+ background	Background		Pixel	XtDefaultBackground
+ border	BorderColor		Pixel	XtDefaultForeground
+ borderWidth	BorderWidth		Dimension	1
+ destroyCallback	Callback		Pointer	NULL
+ height	Height		Dimension	0
+ mappedWhenManaged	MappedWhenManaged	Boolean	True
+ sensitive	Sensitive		Boolean	True
+ width	Width		Dimension	0
+ x		Position		Position	0
+ y		Position		Position	0
+
+*/
+
+/* define any special resource names here that are not in &lt;X11/StringDefs.h&gt; */
+
+#define XtNtemplateResource "templateResource"
+
+#define XtCTemplateResource "TemplateResource"
+
+/* declare specific TemplateWidget class and instance datatypes */
+
+typedef struct _TemplateClassRec*	TemplateWidgetClass;
+typedef struct _TemplateRec*	TemplateWidget;
+
+/* declare the class constant */
+
+extern WidgetClass templateWidgetClass;
+
+#endif /* _Template_h */
+<!-- .CE -->
+</literallayout>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+You will notice that most of this file is documentation.  The crucial
+parts are the last 8 lines where macros for any private resource names
+and classes are defined and where the widget class datatypes and class
+record pointer are declared.
+</para>
+<para>
+<!-- .LP -->
+For the "WindowWidget", we want 2 drawing colors, a callback list for
+user input and an
+<function>exposeCallback</function> callback list, and we will declare three
+convenience procedures, so we need to add
+</para>
+<literallayout class="monospaced">
+<!-- .LP -->
+<!-- .sp -->
+<!-- .CB -->
+/* Resources:
+	...
+ callback	Callback	Callback	NULL
+ drawingColor1	Color	Pixel		XtDefaultForeground
+ drawingColor2	Color	Pixel		XtDefaultForeground
+ exposeCallback	Callback	Callback	NULL
+ font		Font	XFontStruct*	XtDefaultFont
+	...
+ */
+
+#define XtNdrawingColor1 "drawingColor1"
+#define XtNdrawingColor2 "drawingColor2"
+#define XtNexposeCallback "exposeCallback"
+
+extern Pixel WindowColor1(&#x2006;/* Widget */&#x2006;);
+extern Pixel WindowColor2(&#x2006;/* Widget */&#x2006;);
+extern Font  WindowFont(&#x2006;/* Widget */&#x2006;);
+<!-- .CE -->
+</literallayout>
+<para>
+<!-- .LP -->
+Note that we have chosen to call the input callback list by the generic
+name, <function>callback</function>, rather than a specific name.  If widgets that define
+a single user-input action all choose the same resource name then there
+is greater possibility for an application to switch between widgets of
+different types.
+</para>
+</sect2>
+<sect2 id="Private_Header_File">
+<title>Private Header File</title>
+<para>
+<!-- .LP -->
+The private header file contains the complete declaration of the class
+and instance structures for the widget and any additional private data
+that will be required by anticipated subclasses of the widget.
+Information in the private header file is normally hidden from the
+application and is designed to be accessed only through other public
+procedures; e.g.
+<function>XtSetValues</function>.
+</para>
+<para>
+<!-- .LP -->
+The contents of the Template private header file,
+<filename class="headerfile">&lt;X11/Xaw/TemplateP.h&gt;</filename>,
+are:
+</para>
+<!-- .CB -->
+<!-- .\".so ../../lib/Xaw/TemplateP.h -->
+<literallayout class="monospaced">
+/* Copyright (c) X Consortium 1987, 1988
+ */
+
+#ifndef _TemplateP_h
+#define _TemplateP_h
+
+#include &lt;X11/Xaw/Template.h&gt;
+/* include superclass private header file */
+#include &lt;X11/CoreP.h&gt;
+
+/* define unique representation types not found in &lt;X11/StringDefs.h&gt; */
+
+#define XtRTemplateResource "TemplateResource"
+
+typedef struct {
+	int empty;
+} TemplateClassPart;
+
+typedef struct _TemplateClassRec {
+	CoreClassPart	core_class;
+	TemplateClassPart	template_class;
+} TemplateClassRec;
+
+extern TemplateClassRec templateClassRec;
+
+typedef struct {
+	/* resources */
+	char* resource;
+	/* private state */
+} TemplatePart;
+
+typedef struct _TemplateRec {
+	CorePart	core;
+	TemplatePart	template;
+} TemplateRec;
+
+#endif /* _TemplateP_h */
+<!-- .CE -->
+</literallayout>
+<para>
+The private header file includes the private header file of its
+superclass, thereby exposing the entire internal structure of the widget.
+It may not always be advantageous to do this; your own project
+development style will dictate the appropriate level of detail to expose
+in each module.
+</para>
+<para>
+The "WindowWidget" needs to declare two fields in its instance structure to
+hold the drawing colors, a resource field for the font and a field for the
+expose and user input callback lists:
+</para>
+
+<literallayout class="monospaced">
+typedef struct {
+	/* resources */
+	Pixel color_1;
+	Pixel color_2;
+	XFontStruct* font;
+	XtCallbackList expose_callback;
+	XtCallbackList input_callback;
+	/* private state */
+	/* (none) */
+} WindowPart;
+</literallayout>
+
+</sect2>
+<sect2 id="Widget_Source_File">
+<title>Widget Source File</title>
+<para>
+<!-- .LP -->
+The source code file implements the widget class itself.  The unique
+part of this file is the declaration and initialization of the
+widget class record structure and the declaration of all resources and
+action routines added by the widget class.
+</para>
+<para>
+<!-- .LP -->
+The contents of the Template implementation file,
+<filename class="headerfile">&lt;X11/Xaw/Template.c&gt;</filename>,
+are:
+</para>
+<!-- .CB -->
+<!-- .\".so ../../lib/Xaw/Template.c -->
+<literallayout class="monospaced">
+/* Copyright (c) X Consortium 1987, 1988
+ */
+
+#include &lt;X11/IntrinsicP.h&gt;
+#include &lt;X11/StringDefs.h&gt;
+#include "TemplateP.h"
+
+static XtResource resources[] = {
+#define offset(field) XtOffsetOf(TemplateRec, template.field)
+	/* {name, class, type, size, offset, default_type, default_addr}, */
+    { XtNtemplateResource, XtCTemplateResource, XtRTemplateResource,
+	  sizeof(char*), offset(resource), XtRString, (XtPointer) "default" },
+#undef offset
+};
+
+static void TemplateAction(/* Widget, XEvent*, String*, Cardinal* */);
+
+static XtActionsRec actions[] =
+{
+	/* {name,	procedure}, */
+	{"template",	TemplateAction},
+};
+
+static char translations[] =
+"	&lt;Key&gt;:	template(&#x2006;) \\n\\
+";
+
+TemplateClassRec templateClassRec = {
+  { /* core fields */
+        /* superclass           */      (WidgetClass) &amp;widgetClassRec,
+        /* class_name           */      "Template",
+        /* widget_size          */      sizeof(TemplateRec),
+        /* class_initialize     */      NULL,
+        /* class_part_initialize */     NULL,
+        /* class_inited         */      FALSE,
+        /* initialize           */      NULL,
+        /* initialize_hook      */      NULL,
+        /* realize              */      XtInheritRealize,
+        /* actions              */      actions,
+        /* num_actions          */      XtNumber(actions),
+        /* resources            */      resources,
+        /* num_resources        */      XtNumber(resources),
+        /* xrm_class            */      NULLQUARK,
+        /* compress_motion      */      TRUE,
+        /* compress_exposure    */      TRUE,
+        /* compress_enterleave  */      TRUE,
+        /* visible_interest     */      FALSE,
+        /* destroy              */      NULL,
+        /* resize               */      NULL,
+        /* expose               */      NULL,
+        /* set_values           */      NULL,
+        /* set_values_hook      */      NULL,
+        /* set_values_almost    */      XtInheritSetValuesAlmost,
+        /* get_values_hook      */      NULL,
+        /* accept_focus         */      NULL,
+        /* version              */      XtVersion,
+        /* callback_private     */      NULL,
+        /* tm_table             */      translations,
+        /* query_geometry       */      XtInheritQueryGeometry,
+        /* display_accelerator  */      XtInheritDisplayAccelerator,
+        /* extension            */      NULL
+  },
+  { /* template fields */
+        /* empty                */      0
+  }
+};
+
+WidgetClass templateWidgetClass = (WidgetClass)&amp;templateClassRec;
+</literallayout>
+<!-- .CE -->
+<para>
+The resource list for the "WindowWidget" might look like the following:
+</para>
+<!-- .CB -->
+<literallayout class="monospaced">
+static XtResource resources[] = {
+#define offset(field) XtOffsetOf(WindowWidgetRec, window.field)
+	/* {name, class, type, size, offset, default_type, default_addr}, */
+	{ XtNdrawingColor1, XtCColor, XtRPixel, sizeof(Pixel),
+		  offset(color_1), XtRString, XtDefaultForeground },
+	{ XtNdrawingColor2, XtCColor, XtRPixel, sizeof(Pixel),
+		  offset(color_2), XtRString, XtDefaultForeground },
+	{ XtNfont, XtCFont, XtRFontStruct, sizeof(XFontStruct*),
+		  offset(font), XtRString, XtDefaultFont },
+	{ XtNexposeCallback, XtCCallback, XtRCallback, sizeof(XtCallbackList),
+		  offset(expose_callback), XtRCallback, NULL },
+	{ XtNcallback, XtCCallback, XtRCallback, sizeof(XtCallbackList),
+		  offset(input_callback), XtRCallback, NULL },
+#undef offset
+};
+</literallayout>
+<!-- .CE -->
+<para>
+<!-- .LP -->
+The user input callback will be implemented by an action procedure which
+passes the event pointer as call_data.  The action procedure
+is declared as:
+<!-- .CB -->
+</para>
+<literallayout class="monospaced">
+/* ARGSUSED */
+static void InputAction(w, event, params, num_params)
+	Widget w;
+	XEvent *event;
+	String *params;		/* unused */
+	Cardinal *num_params;	/* unused */
+{
+	XtCallCallbacks(w, XtNcallback, (XtPointer)event);
+}
+
+static XtActionsRec actions[] =
+{
+	/* {name,	procedure}, */
+	{"input",	InputAction},
+};
+</literallayout>
+<!-- .CE -->
+<para>
+<!-- .LP -->
+and the default input binding will be to execute the input callbacks on
+<function>KeyPress</function> and <function>ButtonPress : </function>
+</para>
+<literallayout class="monospaced">
+static char translations[] =
+"	&lt;Key&gt;:	input(&#x2006;) \\n\\
+ 	&lt;BtnDown&gt;:	input(&#x2006;) \\
+";
+</literallayout>
+<!-- .CE -->
+<para>
+In the class record declaration and initialization, the only field that
+is different from the Template is the expose procedure:
+</para>
+<!-- .CB -->
+<literallayout class="monospaced">
+/* ARGSUSED */
+static void Redisplay(w, event, region)
+	Widget w;
+	XEvent *event;	/* unused */
+	Region region;
+{
+	XtCallCallbacks(w, XtNexposeCallback, (XtPointer)region);
+}
+
+WindowClassRec windowClassRec = {
+
+	...
+
+	/* expose	*/	Redisplay,
+</literallayout>
+<!-- .CE -->
+<para>
+<!-- .LP -->
+<!-- .sp -->
+The "WindowWidget" will also declare three public procedures to return the
+drawing colors and the font id, saving the application the effort of
+constructing an argument list for a call to
+<function>XtGetValues :</function>
+</para>
+<!-- .LP -->
+<!-- .CB -->
+<literallayout class="monospaced">
+Pixel WindowColor1(w)
+        Widget w;
+{
+        return ((WindowWidget)w)->window.color_1;
+}
+
+Pixel WindowColor2(w)
+        Widget w;
+{
+        return ((WindowWidget)w)->window.color_2;
+}
+
+Font WindowFont(w)
+        Widget w;
+{
+        return ((WindowWidget)w)->window.font->fid;
+}
+</literallayout>
+
+<para>
+The "WindowWidget" is now complete.  The application can retrieve the two
+drawing colors from the widget instance by calling either
+<function>XtGetValues</function>,
+or the <function>WindowColor</function> functions.  The actual window created for the
+"WindowWidget" is available by calling the
+<function>XtWindow</function> function.
+</para>
+</sect2>

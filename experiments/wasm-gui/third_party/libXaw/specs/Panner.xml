@@ -1,0 +1,734 @@
+<sect1 id="Panner_Widget">
+<title>Panner Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Panner Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Panner widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application header file	&lt;X11/Xaw/Panner.h&gt;
+<indexterm><primary>Panner.h</primary></indexterm>
+Class header file	&lt;X11/Xaw/PannerP.h&gt;
+<indexterm><primary>PannerP.h</primary></indexterm>
+Class		pannerWidgetClass
+<indexterm><primary>pannerWidgetClass</primary></indexterm>
+Class Name	Panner
+<indexterm><primary>Panner widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Simple
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+A Panner widget is a rectangle, called the
+<quote>canvas,</quote> on which another rectangle, the <quote>slider,</quote> moves in two
+dimensions.  It is often used with a Porthole widget to move, or
+<quote>scroll,</quote> a third widget in two dimensions, in which case the
+slider's size and position gives feedback as to what portion of
+the third widget is visible.
+</para>
+<para>
+<!-- .LP -->
+The slider may be scrolled around the canvas by pressing,
+dragging, and releasing Button1; the default translation also
+enables scrolling via arrow keys and some other keys.  While
+scrolling is in progress, the application receives notification
+through callback procedures.  Notification may be done either
+continuously whenever the slider moves or discretely whenever the
+slider has been given a new location.
+</para>
+<sect2 id='Panner::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Panner widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Panner widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>allowOff</entry>
+      <entry>AllowOff</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>backgroundStipple</entry>
+      <entry>BackgroundStipple</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>canvasHeight</entry>
+      <entry>CanvasHeight</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>canvasWidth</entry>
+      <entry>CanvasWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>defaultScale</entry>
+      <entry>DefaultScale</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>8</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>depends on orientation</entry>
+    </row>
+    <row>
+      <entry>internalSpace</entry>
+      <entry>InternalSpace</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>lineWidth</entry>
+      <entry>LineWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>reportCallback</entry>
+      <entry>ReportCallback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>resize</entry>
+      <entry>Resize</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>rubberBand</entry>
+      <entry>RubberBand</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>shadowColor</entry>
+      <entry>ShadowColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>shadowThickness</entry>
+      <entry>ShadowThickness</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>sliderX</entry>
+      <entry>SliderX</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>sliderY</entry>
+      <entry>SliderY</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>sliderHeight</entry>
+      <entry>SliderHeight</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>sliderWidth</entry>
+      <entry>SliderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>depends on orientation</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+<!-- .Ac -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>allowOff</function>
+    </term>
+    <listitem>
+      <para>
+Whether to allow the edges of the slider to go off the edges of the canvas.
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>backgroundStipple</function>
+    </term>
+    <listitem>
+      <para>
+The name of a bitmap pattern to be used as the background for
+the area representing the canvas.
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>canvasHeight</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>canvasWidth</function>
+    </term>
+    <listitem>
+      <para>
+The size of the canvas.
+<!-- .Cm -->
+<!-- .Cu -->
+<!-- .Cn -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>defaultScale</function>
+    </term>
+    <listitem>
+      <para>
+The percentage size that the Panner widget should have relative
+to the size of the canvas.
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>foreground</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+used to draw the slider.
+<!-- .Hw -->
+    </para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>internalSpace</function>
+    </term>
+    <listitem>
+      <para>
+The width of internal border in pixels between a slider representing the
+full size of the canvas
+and the edge of the Panner widget.
+<!-- .Ix -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>lineWidth</function>
+    </term>
+    <listitem>
+      <para>
+The width of the lines in the rubberbanding rectangle when rubberbanding
+is in effect instead of continuous scrolling.  The default is 0.
+<!-- .Mm -->
+<!-- .Pf -->
+<!-- .Pb -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>reportCallback</function>
+    </term>
+    <listitem>
+      <para>
+All functions on this callback list are called when the
+<function>notify</function> action is invoked.  See the <function>Panner Actions</function> section
+for details.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>resize</function>
+    </term>
+    <listitem>
+      <para>
+Whether or not to resize the panner whenever the canvas size is changed so
+that the <function>defaultScale</function> is maintained.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>rubberBand</function>
+    </term>
+    <listitem>
+      <para>
+Whether or not scrolling should be discrete (only moving a rubberbanded
+rectangle until the scrolling is done) or continuous (moving the slider
+itself).  This controls whether or not the <function>move</function> action procedure also
+invokes the <function>notify</function> action procedure.
+<!-- .Sc -->
+<!-- .Se -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>shadowColor</function>
+    </term>
+    <listitem>
+      <para>
+The color of the shadow underneath the slider.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>shadowThickness</function>
+    </term>
+    <listitem>
+      <para>
+The width of the shadow underneath the slider.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>sliderX</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>sliderY</function>
+    </term>
+    <listitem>
+      <para>
+The location of the slider in the coordinates of the canvas.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>sliderHeight</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>sliderWidth</function>
+    </term>
+    <listitem>
+      <para>
+The size of the slider.
+<!-- .Tr -->
+<!-- .Xy -->
+     </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</sect2>
+<sect2 id="Panner_Actions">
+<title>Panner Actions</title>
+<indexterm><primary>Panner widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The actions supported by the Panner widget are:
+</para>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>start</function>()
+    </term>
+    <listitem>
+      <para>
+This action begins movement of the slider.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>stop</function>()
+    </term>
+    <listitem>
+      <para>
+This action ends movement of the slider.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>abort</function>()
+    </term>
+    <listitem>
+      <para>
+This action ends movement of the slider and restores it to the position it
+held when the <function>start</function> action was invoked.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>move</function>()
+    </term>
+    <listitem>
+      <para>
+This action moves the outline of the slider (if the <function>rubberBand</function> resource
+is True) or the slider itself (by invoking the <function>notify</function>
+action procedure).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>page</function>(<function>xamount</function>,<function>yamount</function>)
+    </term>
+    <listitem>
+      <para>
+This action moves the slider by the specified amounts.  The format
+for the amounts is a signed or unsigned floating-point number (e.g., +1.0
+or -.5) followed
+by either <function>p</function> indicating pages (slider sizes), or <function>c</function> indicating
+canvas sizes.  Thus, <emphasis remap='I'>page(+0,+.5p)</emphasis> represents vertical movement down
+one-half the height of the slider and <emphasis remap='I'>page(0,0)</emphasis> represents moving to
+the upper left corner of the canvas.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>notify</function>()
+    </term>
+    <listitem>
+      <para>
+This action informs the application of the slider's current position by
+invoking the <function>reportCallback</function> functions registered by the application.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>set</function>(<function>what</function>,<function>value</function>)
+    </term>
+    <listitem>
+      <para>
+This action changes the behavior of the Panner.  The <emphasis remap='I'>what</emphasis> argument
+must currently be the string <function>rubberband</function> and controls the value of
+the <function>rubberBand</function> resource.  The <function>value</function> argument
+may have one of the values <function>on</function>, <function>off</function>, or <function>toggle</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<!-- .LP -->
+<!-- .sp -->
+The default bindings for Panner are:
+<indexterm><primary>Panner widget</primary><secondary>default translation table</secondary></indexterm>
+</para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 1.75i -->
+<!-- .ta .5i 1.75i -->
+	&lt;Btn1Down&gt;:	start(&#x2006;)
+	&lt;Btn1Motion&gt;:	move(&#x2006;)
+	&lt;Btn1Up&gt;:	notify(&#x2006;) stop(&#x2006;)
+	&lt;Btn2Down&gt;:	abort(&#x2006;)
+	&lt;Key&gt;KP_Enter:	set(rubberband,toggle)
+	&lt;Key&gt;space:	page(+1p,+1p)
+	&lt;Key&gt;Delete:	page(-1p,-1p)
+	&lt;Key&gt;BackSpace:	page(-1p,-1p)
+	&lt;Key&gt;Left:	page(-.5p,+0)
+	&lt;Key&gt;Right:	page(+.5p,+0)
+	&lt;Key&gt;Up:	page(+0,-.5p)
+	&lt;Key&gt;Down:	page(+0,+.5p)
+	&lt;Key&gt;Home:	page(0,0)
+</literallayout>
+</sect2>
+
+<sect2 id="Panner_Callbacks">
+<title>Panner Callbacks</title>
+<indexterm><primary>Panner widget</primary><secondary>callbacks</secondary></indexterm>
+<para>
+<!-- .LP -->
+The functions registered on the <function>reportCallback</function> list are invoked by
+the <function>notify</function> action as follows:
+<indexterm significance="preferred"><primary>ReportProc</primary></indexterm>
+<funcsynopsis id='Panner::ReportProc'>
+<funcprototype>
+  <funcdef>void<function> ReportProc</function></funcdef>
+  <paramdef>Widget<parameter> panner</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> report</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+    </para>
+<para>
+<variablelist>
+  <varlistentry>
+    <term>panner</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>panner</emphasis> 1i -->
+Specifies the Panner widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>panner</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>client_data</emphasis> 1i -->
+Specifies the client data.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>panner</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>report</emphasis> 1i -->
+Specifies a pointer to an <function>XawPannerReport</function> structure containing
+the location and size of the slider and the size of the canvas.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+</sect1>

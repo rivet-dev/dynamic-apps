@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xfixes
+Description: X Fixes  Library
+Version: 6.0.1
+Requires: xproto fixesproto >= 6.0
+Requires.private: x11
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXfixes

@@ -1,0 +1,137 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtConvert-And-Store XtCall-Converter wid-get
+.na
+.TH XtConvertAndStore __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtConvertAndStore, XtCallConverter \- invoke resource converters
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+Boolean XtConvertAndStore(Widget \fIwidget\fP,
+const char *\fIfrom_type\fP, XrmValuePtr \fIfrom\fP,
+const char *\fIto_type\fP, XrmValuePtr \fIto_in_out\fP);
+.HP
+Boolean XtCallConverter(Display* \fIdpy\fP, XtTypeConverter \fIconverter\fP,
+XrmValuePtr \fIargs\fP, Cardinal \fInum_args\fP, XrmValuePtr \fIfrom\fP,
+XrmValuePtr \fIto_in_out\fP, XtCacheRef* \fIcache_ref_return\fP);
+.SH ARGUMENTS
+.IP \fIargs\fP 1i
+Specifies the argument list that contains the additional arguments needed
+to perform the conversion, or NULL.
+.IP \fIconverter\fP 1i
+Specifies the conversion procedure that is to be called.
+.IP \fIfrom\fP 1i
+Specifies the value to be converted.
+.IP \fIfrom_type\fP 1i
+Specifies the source type.
+.IP \fInum_args\fP 1i
+Specifies the number of additional arguments (often zero).
+.IP \fIto_type\fP 1i
+Specifies the destination type.
+.IP \fIto_in_out\fP 1i
+Returns the converted value.
+.IP \fIwidget\fP 1i
+Specifies the widget to use for additional arguments, if any are needed,
+and the destroy callback list.
+.IP \fIdpy\fP 1i
+Specifies the display with which the conversion is to be associated.
+.SH DESCRIPTION
+The
+.B XtConvertAndStore
+function looks up the type converter registered to convert from_type
+to to_type, computes any additional arguments needed, and then calls
+.BR XtCallConverter .
+(or
+.B XtDirectConvert
+if an old-style converter was registered with
+.B XtAddConverter
+or
+.BR XtAppAddConverter .
+) with the from and to_in_out arguments.
+.LP
+The
+.B XtCallConverter
+function looks up the specified type converter in the application
+context associated with the display and, if the converter was not
+registered or was registered with cache type
+.B XtCacheAll
+or
+.B XtCacheByDisplay
+looks in the conversion cache to see if this conversion procedure
+has been called with the specified conversion arguments.
+If so, it
+checks the success status of the prior call, and if the conversion
+failed,
+.B XtCallConverter
+returns
+.B False
+immediately; otherwise it checks the size specified in the \fIto\fP
+argument and, if it is greater than or equal to the size stored in the
+cache, copies the information stored in the cache into the location
+specified by \fIto->addr\fP, stores the cache size into \fIto->size\fP,
+and returns
+.BR True .
+If the size specified in the \fIto\fP argument is smaller than the size
+stored in the cache,
+.B XtCallConverter
+copies the cache size into the \fIto->size\fP and returns
+.BR False .
+If the converter was registered with cache type
+.B XtCacheNone
+or no value was found in the conversion cache,
+.B XtCallConverter
+calls the converter and, if it was not registered with cache type
+.BR XtCacheNone ,
+enters the result into the cache.
+.B XtCallConverter
+then returns what the converter returned.
+.LP
+The \fIcache_ref_return\fP field specifies storage allocated by the
+caller in which an opaque value will be stored.
+If the type converter
+has been registered with the
+.B XtCacheRefCount
+modifier and if the value returned in in \fIcache_ref_return\fP is
+non-NULL, then the call should store the \fIcache_ref_return\fP value
+in order to decrement the reference count when the converted value
+is no longer required.
+The \fIcache_ref_return\fP argument should be
+NULL if the caller is unwilling or unable to store the value.
+.SH "SEE ALSO"
+XtAppReleaseCacheRefs(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

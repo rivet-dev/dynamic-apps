@@ -1,0 +1,197 @@
+'\" t
+.\"     Title: xchangedevicedontpropagatelist
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XCHANGEDEVICEDONTPRO" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XChangeDeviceDontPropagateList, XGetDeviceDontPropagateList \- query or change the dont\-propagate\-list for extension devices
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+int XChangeDeviceDontPropagateList( Display *display,
+                                    Window window,
+                                    int count,
+                                    XEventClass *event_list,
+                                    int mode);
+.fi
+.sp
+.nf
+XEventClass* XGetDeviceDontPropagateList( Display *display,
+                                          Window window,
+                                          int *count);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+window
+       Specifies the window whose dont\-propagate\-list is to be
+       queried or modified\&.
+.fi
+.sp
+.nf
+event_list
+       Specifies a pointer to a list of event classes\&.
+.fi
+.sp
+.nf
+mode
+       Specifies the mode\&. You can pass AddToList, or
+       DeleteFromList\&.
+.fi
+.sp
+.nf
+count
+       Specifies the number of event classes in the list\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XChangeDeviceDontPropagateList request modifies the list of
+events that should not be propagated to ancestors of the event
+window\&. This request allows extension events to be added to or
+deleted from that list\&. By default, all events are propagated
+to ancestor windows\&. Once modified, the list remains modified
+for the life of the window\&. Events are not removed from the
+list because the client that added them has terminated\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Suppression of event propagation is not allowed for all input
+extension events\&. If a specified event class is one that cannot
+be suppressed, a BadClass error will result\&. Events that can be
+suppressed include DeviceKeyPress, DeviceKeyRelease,
+DeviceButtonPress, DeviceButtonRelease, DeviceMotionNotify,
+ProximityIn, and ProximityOut\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XChangeDeviceDontPropagateList can generate a BadDevice,
+BadClass, or BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetDeviceDontPropagateList request queries the list of
+events that should not be propagated to ancestors of the event
+window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGetDeviceDontPropagateList can generate a BadClass or
+BadWindow error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if some
+       other client has caused the specified device to become
+       the X keyboard or X pointer device via the
+       XChangeKeyboardDevice or XChangePointerDevice requests\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the request\&. Unless a specific range is
+       specified for an argument, the full range defined by the
+       argument\*(Aqs type is accepted\&. Any argument defined as a
+       set of alternatives can generate this error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       An invalid window id was specified\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadClass
+       An invalid event class was specified\&.
+.fi
+.if n \{\
+.RE
+.\}

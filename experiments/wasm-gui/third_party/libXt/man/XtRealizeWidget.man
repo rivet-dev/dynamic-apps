@@ -1,0 +1,123 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtRealize-Widget XtIs-Realized XtUnrealize-Widget wid-get
+.na
+.TH XtRealizeWidget __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtRealizeWidget, XtIsRealized, XtUnrealizeWidget \- realize and unrealize widgets
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtRealizeWidget(Widget \fIw\fP);
+.HP
+Boolean XtIsRealized(Widget \fIw\fP);
+.HP
+void XtUnrealizeWidget(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fIw\fP 1i
+Specifies the widget.
+.SH DESCRIPTION
+If the widget is already realized,
+.B XtRealizeWidget
+simply returns.
+Otherwise, it performs the following:
+.IP \(bu 5
+Binds all action names in the widget's
+translation table to procedures (see Section 10.1.2).
+.IP \(bu 5
+Makes a post-order traversal of the widget tree rooted
+at the specified widget and calls the change_managed procedure
+of each composite widget that has one or more managed children.
+.IP \(bu 5
+Constructs an
+.B XSetWindowAttributes
+structure filled in with information derived from the
+.B Core
+widget fields and calls the realize procedure for the widget,
+which adds any widget-specific attributes and creates the X window.
+.IP \(bu 5
+If the widget is
+not a subclass of
+.BR compositeWidgetClass ,
+.B XtRealizeWidget
+returns; otherwise, it continues and performs the following:
+.RS
+.IP \- 5
+Descends recursively to each of the widget's
+managed children and calls the realize procedures.
+Primitive widgets that instantiate children are responsible for realizing
+those children themselves.
+.IP \- 5
+Maps all of the managed children windows that have mapped_when_managed
+.BR True .
+(If a widget is managed but mapped_when_managed is
+.BR False ,
+the widget is allocated visual space but is not displayed.
+Some people seem to like this to indicate certain states.)
+.RE
+.LP
+If the widget is a top-level shell widget (that is, it has no parent), and
+mapped_when_managed is
+.BR True ,
+.B XtRealizeWidget
+maps the widget window.
+.LP
+The
+.B XtIsRealized
+function returns
+.B True
+if the widget has been realized,
+that is, if the widget has a nonzero X window ID.
+.LP
+Some widget procedures (for example, set_values) might wish to
+operate differently
+after the widget has been realized.
+.LP
+The
+.B XtUnrealizeWidget
+function destroys the windows of an existing widget and all of its
+children (recursively down the widget tree).
+To recreate the windows at a later time,
+call
+.B XtRealizeWidget
+again.
+If the widget was managed,
+it will be unmanaged automatically before its window is freed.
+.SH "SEE ALSO"
+XtManageChildren(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

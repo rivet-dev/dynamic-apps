@@ -1,0 +1,13 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xfont2
+Description: X font Library version 2
+Version: 2.0.6
+Requires: xproto fontsproto
+Requires.private: fontenc freetype2 zlib
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXfont2
+Libs.private:  -lm

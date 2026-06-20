@@ -1,0 +1,164 @@
+'\" t
+.\"     Title: xibarrierreleasepointer
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XIBARRIERRELEASEPOIN" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIBarrierReleasePointer, XIBarrierReleasePointers \- allow pointer movement across a pointer barrier
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+int XIBarrierReleasePointer( Display *display,
+                             int deviceid,
+                             PointerBarrier barrier,
+                             BarrierEventID eventid);
+.fi
+.sp
+.nf
+int XIBarrierReleasePointers( Display *display,
+                              XIBarrierReleasePointerInfo *barriers,
+                              int num_barriers);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+deviceid
+       Specifies the device allowed to move across the barrier\&.
+.fi
+.sp
+.nf
+barrier
+       Specifies the barrier\&.
+.fi
+.sp
+.nf
+eventid
+       Specifies the unique event ID for this barrier event sequence\&.
+.fi
+.sp
+.nf
+barriers
+       List of deviceid, barrier, eventid triplets\&.
+.fi
+.sp
+.nf
+num_barriers
+       Number of elements in barriers\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If a pointer is constrained by a pointer barrier, release the pointer
+from the barrier and allow it to cross the barrier with the next motion\&.
+If the pointer moves away from the barrier, this request does nothing\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This request only releases the pointer for the given barrier event
+sequence\&. If the pointer moves away from or through the barrier, a
+XI_BarrierLeave event is generated\&. Future pointer movement constrained
+by this barrier will assign a new eventid and require a new
+XIBarrierReleasePointer request\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the pointer is not currently blocked by the barrier or the barrier
+event sequence has ended, this request does nothing\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIBarrierReleasePointer and XIBarrierReleasePointers can generate a
+BadDevice or BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist or is not a master pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       A value for a PointerBarrier argument does not name a defined
+       pointer barrier\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XFixesCreatePointerBarrier(3)
+.fi
+.if n \{\
+.RE
+.\}

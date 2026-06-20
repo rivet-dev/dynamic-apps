@@ -1,0 +1,223 @@
+'\" t
+.\"     Title: xiselectevents
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XISELECTEVENTS" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XISelectEvents, XIGetSelectedEvents \- select for or get selected XI2 events on the window\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+Status XISelectEvents( Display *display,
+                       Window win,
+                       XIEventMask *masks,
+                       int num_masks);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+masks
+       Device event mask\&.
+.fi
+.sp
+.nf
+num_masks
+       Number of masks in masks\&.
+.fi
+.sp
+.nf
+win
+       Specifies the window\&.
+.fi
+.sp
+.nf
+XIEventMask *XIGetSelectedEvents( Display *display,
+                                  Window win,
+                                  int *num_masks_return);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+num_masks_return
+       Number of masks in the return value\&.
+.fi
+.sp
+.nf
+win
+       Specifies the window\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XI2 events must be selected using XISelectEvents\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XISelectEvents sets the event mask for this client on win\&.
+Further events are only reported to this client if the event
+type matches the selected event mask\&. The masks overrides the
+previously selected event mask for the given device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If deviceid is a valid device, the event mask is selected only
+for this device\&. If deviceid is XIAllDevices or
+XIAllMasterDevices, the event mask is selected for all devices
+or all master devices, respectively\&. The effective event mask
+is the bit\-wise OR of the XIAllDevices, XIAllMasterDevices and
+the respective device\*(Aqs event mask\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int deviceid;
+    int mask_len;
+    unsigned char* mask;
+} XIEventMask;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The mask_len specifies the length of mask in bytes\&. mask is a
+binary mask in the form of (1 << event type)\&. deviceid must be
+either a device or XIAllDevices or XIAllMasterDevices\&. A client
+may submit several masks with the same deviceid in one request
+but only the last mask will be effective\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XISelectEvents can generate a BadValue, a BadDevice, and a
+BadWindow error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIGetSelectedEvents returns the events selected by this client on the given
+window\&. If no events were selected on this window, XIGetSelectedEvents
+returns NULL and num_masks_return is set to 0\&. If an internal error occurs,
+XIGetSelectedEvents returns NULL and num_masks_return is set to \-1\&.
+Otherwise, XIGetSelectedEvent returns the selected event masks for all
+devices including the masks for XIAllDevices and XIAllMasterDevices
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The caller must free the returned data using XFree()\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       A value is outside of the permitted range\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       A value for a Window argument does not name a defined
+       window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist\&.
+.fi
+.if n \{\
+.RE
+.\}

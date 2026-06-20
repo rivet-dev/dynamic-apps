@@ -1,0 +1,1646 @@
+commit 792f80402ee06ce69bca3a8f2a84295999c3a170
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Tue Apr 16 15:54:52 2024 -0400
+
+    libXmu 1.2.1
+
+commit 41548e8322062540cce4670c2b7a8ef75b130d82
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Tue Apr 16 13:44:21 2024 -0400
+
+    test: Add prototype for Xmureallocarray to silence warning
+    
+    In file included from reallocarray.c:50:
+    ../src/reallocarray.c:35:1: warning: no previous prototype for ‘Xmureallocarray’ [-Wmissing-prototypes]
+       35 | Xmureallocarray(void *optr, size_t nmemb, size_t size)
+          | ^~~~~~~~~~~~~~~
+    
+    Part-of: <https://gitlab.freedesktop.org/xorg/lib/libxmu/-/merge_requests/14>
+
+commit 9329cf7611284fe7e68a67aef852c76ad30e9ebd
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Tue Apr 16 13:40:40 2024 -0400
+
+    test: Add missing setjmp()
+    
+    Bug: https://bugs.gentoo.org/928419
+    Closes: https://gitlab.freedesktop.org/xorg/lib/libxmu/-/issues/2
+    Fixes: d729c59 ("test: Add simple test cases for functions in src/StrToShap.c")
+    Part-of: <https://gitlab.freedesktop.org/xorg/lib/libxmu/-/merge_requests/12>
+
+commit cc378e4f0cc2ab5b66d378050ba4956612a01197
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 24 15:27:24 2024 -0700
+
+    libXmu 1.2.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 117f425f68a087c833ee5ad17e3b17094360b184
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 17 13:45:24 2024 -0800
+
+    Use XtAsprintf to simplify os_name string generation
+    
+    Raises minimum libXt requirement to 1.1.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1c4827041087c539af3261b6947b2fd4db26f9d7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 17 13:35:29 2024 -0800
+
+    unifdef SYSV
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7d3ce8808355a1850620dd290a0e5a7cf7a583fe
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 17 13:32:59 2024 -0800
+
+    Remove "#ifndef notdef" checks
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c85d4dd1eca410bd1b97823ebde88de85a665ca7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 17 13:30:14 2024 -0800
+
+    unifdef Lynx
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e0c9afd60eaa2209930e7a93f1d27d219a790e80
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 17 13:29:09 2024 -0800
+
+    unifdef hpux
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 017d1deaf923887df74b068c33d080008b0c25cf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 27 16:23:55 2023 -0700
+
+    XmuReadBitmapDataFromFile: set close-on-exec when opening files
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 35eb34a9513467a88bf5e59f5cb44beb993753db
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 27 13:34:27 2023 -0700
+
+    test: Add simple test cases for functions in src/reallocarray.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d729c59e46a939f5179e711dec9a53ef1e9cd1b4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 27 09:06:08 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToShap.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 73764fa6f672a2aa540cae72155ba4ebfa1bcf4f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 27 08:47:44 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToOrnt.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a5db0a3c95fbcc0ac3bf1711f9b28e5b76dcb49c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 27 08:30:18 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToLong.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4335c55ea6848665969c17a8bf19bdf39be3758b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 17:58:47 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToJust.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 18c9c8968c91224df16cb06cd798a4ba6893b632
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 17:28:48 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToGrav.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3078ccc44c25a1e96c7cd48961092931f583525e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 16:54:34 2023 -0700
+
+    test: Add simple test cases for functions in src/StrToBS.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f7ad1689cbdf8b026b57844d584fdd7b5df3700b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 15:35:12 2023 -0700
+
+    test: Add simple test cases for functions in src/Lower.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b6f70b5167557c8aa845feb53209d5b6ce58ce09
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 12:25:48 2023 -0700
+
+    test: Add simple test cases for functions in src/CursorName.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b08c297a37c2b061de783b1954bb908796fe91b0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 11:33:06 2023 -0700
+
+    test: Add simple test cases for functions in src/RdBitF.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f3d7d1f96fba76c275df990b97d4c0995a70ee4b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 26 10:03:05 2023 -0700
+
+    test: Convert test code to use glib test helpers
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 171ec5c8cc463e0160d90d05865df9ee4fd1861e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 6 16:25:28 2023 -0800
+
+    configure: Use LT_INIT from libtool 2 instead of deprecated AC_PROG_LIBTOOL
+    
+    AC_PROG_LIBTOOL was replaced by LT_INIT in libtool 2 in 2008,
+    so it's time to rely on it.
+    
+    Clears autoconf warnings:
+    
+    configure.ac:13: warning: The macro `AC_PROG_LIBTOOL' is obsolete.
+    configure.ac:13: You should run autoupdate.
+    aclocal.m4:3465: AC_PROG_LIBTOOL is expanded from...
+    configure.ac:13: the top level
+    
+    libtoolize: Consider adding 'AC_CONFIG_MACRO_DIRS([m4])' to configure.ac,
+    libtoolize: and rerunning libtoolize and aclocal.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e1843320680f13de5571d9f704ce2161c224a23e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Feb 16 19:19:39 2023 -0800
+
+    src/Makefile.am: Remove hardcoded -D_BSD_SOURCE
+    
+    Not needed now that AC_USE_SYSTEM_EXTENSIONS is in configure.ac
+    
+    Avoids compiler warning of:
+    /usr/include/features.h:194:3: warning: #warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use _DEFAULT_SOURCE" [-Wcpp]
+      194 | # warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use _DEFAULT_SOURCE"
+          |   ^~~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ba551e9b92e2d11547abbf23f1d799749f4b2d04
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Feb 16 19:11:24 2023 -0800
+
+    configure: raise minimum autoconf requirement to 2.70
+    
+    Needed for builds on NetBSD to work correctly, since it depends on
+    AC_USE_SYSTEM_EXTENSIONS defining _OPENBSD_SOURCE to expose the
+    prototype for reallocarray() in the system headers.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b29c739b577ee142877e69eb3fb07c7312d81557
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Oct 17 14:05:25 2022 -0700
+
+    libXmu 1.1.4
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 52db31f9e388cf9781a68e5e7d33c3cbb22d412c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 17 08:48:08 2022 -0700
+
+    Add .git-blame-ignore-revs to hide whitespace commits from git blame
+    
+    To use this in your local repo clone, you will need to either run
+    `git blame --ignore-revs-file .git-blame-ignore-revs`
+    or set it permanently with
+    `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 749d9bb10245985a25ee2a6a3262b8d882b8a889
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 18:46:43 2022 -0700
+
+    Add simple test cases for _XEditRes{Put,Get}* functions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 35831b86d10dfbe7af05040fae1fa4a6181ebfc0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 18:45:25 2022 -0700
+
+    _XEditResGet32: Fix casts to avoid unexpected sign extension in 64-bit
+    
+    Like _XEditResGet16 we need to cast to our destination type, not
+    the source type, before combining the upper & lower halves.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit fe87eb4099416be52b0fc9a0a1e8a52b65dfa23c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 16:31:40 2022 -0700
+
+    Handle -Wmissing-field-initializers warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7185a8a484de41c878149e23848c903893936e14
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 16:28:37 2022 -0700
+
+    Handle -Wsign-compare warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7b63db9adf687e360a1e348aabbbc16265104fc2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 16:20:53 2022 -0700
+
+    Clear some more -Wdiscarded-qualifiers warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d35c1ce67641e9b6ab2c329570a8270b5c73d255
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 16:11:14 2022 -0700
+
+    Use _CONST_X_STRING to make libXt declare String as const char *
+    
+    Clears 11 out of 58 -Wdiscarded-qualifiers warnings from gcc
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1d85b2960cd4bf761cc359db61f2727f19b1560c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 13:33:22 2022 -0700
+
+    Use memcpy instead of memmove when buffers are known not to overlap
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit eb9adbd41bbd200be1a6baa1e05cecd41dd89f46
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Sep 13 12:58:29 2022 -0700
+
+    More typo fixes
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b4e47d3807da4f204dbee8682dac98318f913bd0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 21 11:21:52 2022 -0700
+
+    get_os_name: Use autoconf to detect uname() support
+    
+    Stop maintaining a list of #ifdefs for ancient platforms
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bcc112ca1ba3505899d97ef0502fcb0fb4d6e0a0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Aug 15 15:56:32 2022 -0700
+
+    XmuGetHostname: Drop support for ancient USG systems
+    
+    USG was defined for a handful of pre-SVR4 systems based on
+    AT&T's Unix System Group releases in the old imake configs
+    and has never been defined in X11R7 modular builds.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e3cad27560774ca1a5587d26900c1bd09bad7dfc
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Tue Jan 14 22:23:15 2020 +0100
+
+    Remove support for XA_IP_ADDRESS
+    
+    This code has a number of issues:
+    - It doesn't support IPv6 https://bugs.freedesktop.org/show_bug.cgi?id=7611
+    - The IP address is set by the selection owner so it doesn't bring any
+      security for anyone querying the selection
+    - The extra DNS query that it does is problematic in some sandboxed
+      environments (like OpenBSD's pledge
+      https://marc.info/?l=openbsd-bugs&m=157842725819911&w=2)
+    
+    Signed-off-by: Matthieu Herrb <matthieu@herrb.eu>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 71f24beca39c957c9f54e77b3d2fc54cd89400b1
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Tue Jan 14 23:32:46 2020 +0100
+
+    Fix OWNER_OS in XmuConvertStandardSelection() on Linux
+    
+    It used to return BSD
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6b4f114d4cc76c0f3b1a49ed05db305f0b96bdfe
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Tue Jan 14 22:23:16 2020 +0100
+
+    Unifdef SYSVNET
+    
+    This has not been set by configure since the switch to autotools.
+    
+    Signed-off-by: Matthieu Herrb <matthieu@herrb.eu>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0fa4a55d396201974177735cb736a607596130e2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 6 16:15:52 2022 -0700
+
+    Convert code to use Xmumallocarray() & reallocarray()
+    
+    Provides automatic integer overflow checking in allocation size calculations
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 621f61f7d3f5955a84e6aa8b7458699870fdee45
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 6 15:38:58 2022 -0700
+
+    Import reallocarray() from libX11 (originally from OpenBSD)
+    
+    Wrapper for realloc() that checks for overflow when multiplying
+    arguments together, so we don't have to add overflow checks to
+    every single call.  For documentation on usage, see:
+    http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man3/calloc.3
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 05ee465685aba409800523c6615392a867366818
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 6 15:17:27 2022 -0700
+
+    Remove unnnecessary casts from *alloc() and free() calls
+    
+    These are not needed in C89 and later.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f84dcc7fef5e0842e6408f059c13d73975114ec4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 6 16:20:28 2022 -0700
+
+    COPYING: correct source file path names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ba043b0cac8b675f72825606702ccdc97b5beaa5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 15:59:53 2022 -0700
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 25053af7cc9307090fa1a444d9679ad729ce6f50
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 15:56:49 2022 -0700
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit fa9b4d7d144c6ddd989b40c826c4bee9808f6cba
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 15:52:16 2022 -0700
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e9efe2d027b4c46cf6834cc532222f8ad1d1d3c3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 16 11:40:41 2019 -0700
+
+    libXmu 1.1.3
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9469d3593c9fb1b60cac0602d97f274e209163d7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Dec 7 19:46:09 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3e706ded2e46464732170ae06bdc9e9d286179ed
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Nov 19 22:26:50 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5bd4eb821bd9e88c3a131de9a8b781f5184e22b1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat May 5 11:32:12 2018 -0700
+
+    Apply standard X.Org formatting & bracketing to StrToWidg.c
+    
+    Makes code easier for humans to read and gets rid of gcc warning:
+    
+    StrToWidg.c: In function ‘XmuCvtStringToWidget’:
+    StrToWidg.c:107:3: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+       for (widgetP = parent->core.popup_list; i; i--, widgetP++)
+       ^~~
+    StrToWidg.c:114:5: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+         XtStringConversionWarning(fromVal->addr, XtRWidget);
+         ^~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bc78541e9a9a95bbd5413d62bfc114ddc9265c36
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat May 5 11:26:17 2018 -0700
+
+    Convert tabs to spaces in StrToWidg.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4f0939d69a17d37be414d0de7ff717e92e7e2b11
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 13:52:49 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit 99265d50e4c100182f1375b59c5ecf3e5732356d
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 6a79027955dc7f10569ac6e904844624224d5c60
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 4459e6940fe3fdf26a8d5d4c71989498bc400a62
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 21:57:39 2014 +0100
+
+    Include <direct.h> for _getdrives() on Win32
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: David Macek <david.macek.0@gmail.com>
+
+commit 24bcdbd17913a1ca39c975113767aa2c556b69cc
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 21:57:17 2014 +0100
+
+    Remove pointless X_NOT_POSIX
+    
+    Both stdlib.h (only included for prototype of atoi()), and limits.h (only
+    included for PATH_MAX) are in C89, so putting this under X_NOT_POSIX seems a
+    little excessive.
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 22d9c590901e121936f50dee97dc60c4f7defb63
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Dec 2 13:00:05 2013 -0800
+
+    ShapeEllipseOrRoundedRectangle: Check height AND width, not width twice
+    
+    Fixed to match check in ShapeOval()
+    https://bugs.freedesktop.org/show_bug.cgi?id=72245
+    
+    Fixes cppcheck warning:
+    [ShapeWidg.c:204]: (style) Same expression on both sides of '||'.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e02c30fac32e4873240e507cadc416f710188feb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 17 09:41:14 2013 -0800
+
+    Remove SUNSHLIB support for SunOS 4.x shared libraries
+    
+    Never enabled in modular builds, was only enabled for SunOS 4.x in imake.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+
+commit 2539e539eafdac88177c8ee30b043c5d52f017e4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 7 21:28:14 2013 -0700
+
+    libXmu 1.1.2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 54043bd96cc474b8f96d64a46cf99d76aac8206d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 7 21:27:41 2013 -0700
+
+    Add missing copyright notices to COPYING file
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d5dac08d65c4865f311cb62c161dbb1300eecd11
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Jul 22 18:05:02 2013 -0700
+
+    Preserve constness when casting const pointers in various functions
+    
+    Fixes gcc warnings:
+    
+    CrCmap.c: In function 'compare':
+    CrCmap.c:499:18: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    CrCmap.c:499:32: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    
+    LocBitmap.c: In function 'XmuLocatePixmapFile':
+    LocBitmap.c:161:11: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    LocBitmap.c:178:11: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    
+    Lower.c: In function 'XmuCopyISOLatin1Lowered':
+    Lower.c:65:46: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    Lower.c: In function 'XmuCopyISOLatin1Uppered':
+    Lower.c:77:46: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    Lower.c: In function 'XmuCompareISOLatin1':
+    Lower.c:89:13: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    Lower.c:89:42: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    Lower.c: In function 'XmuNCopyISOLatin1Lowered':
+    Lower.c:104:50: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    Lower.c: In function 'XmuNCopyISOLatin1Uppered':
+    Lower.c:119:50: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    
+    WidgetNode.c: In function 'compare_resource_entries':
+    WidgetNode.c:89:21: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    WidgetNode.c:90:7: warning: cast discards '__attribute__((const))' qualifier from pointer target type [-Wcast-qual]
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e46ecb4e02b7f919b11efa79448d4db71d1deb69
+Author: Thomas Klausner <wiz@NetBSD.org>
+Date:   Sun Jun 2 21:10:27 2013 +0200
+
+    Fix a const issue.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 474d22468c90f99104873b4c5fd7b0f0d2cbf823
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 2f66383e79b9d2fae79d49cf0b1b3a3811c6d47e
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 9b253d99d5b4f3fbb681c2cb1b84f8f9acfee528
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jan 4 19:46:16 2013 -0800
+
+    unifdef -U__UNIXOS2__
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5d0ae34fb30ae1e4795f93561235fd2c72f0cc47
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Dec 26 23:32:03 2012 -0800
+
+    Remove unused DECnet ("DNETCONN") code from XmuConvertStandardSelection
+    
+    Has never been converted to build in modular builds, so has been unusable
+    since X11R7.0 release in 2005.  DNETCONN support was removed from xtrans
+    back in 2008.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6437d834cd66621e4e9f4decf7341b6d7ff45556
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Mar 5 23:00:10 2012 -0800
+
+    libXmu 1.1.1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ccd9e64515d6fc7b5367d6d98ecd3abf5b084026
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Nov 10 20:34:03 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings (some, not all)
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 72ac4c4a464b3aec21cdbe367c9d465cbe0f3ff1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Nov 10 09:55:07 2011 -0800
+
+    Drop support for pre-ANSI-C89 preprocessors
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 004d535c707251bd4fb47426f90712c195c6dfc7
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue Oct 4 20:51:48 2011 -0600
+
+    Cleanup IDs and links in doc
+    
+    1 - fix the capitalization of the ID attributes to match either the
+         <title> or <funcdef> string it goes with.
+    2 - fix any <linkend>'s that were affected by 1.
+    3 - any <function> in the docs that has an actual funcdef,
+    will become an olink.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit d7d2ad7dde7b2653aa1e08e9339674bc40f1560a
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Sat Sep 24 17:00:09 2011 -0700
+
+    Fix build with -DDEBUG
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=1069
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 66492163cb244fbe22c67bebb14c0918dd11eab6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 16 22:46:25 2011 -0700
+
+    Strip trailing whitespace
+    
+    Performed with: find * -type f | xargs perl -i -p -e 's{[ \t]+$}{}'
+    git diff -w & git diff -b show no diffs from this change
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6ffa7e4bb1e7efdad4dd987e1fe27cdee96f7063
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 14 14:33:24 2011 -0400
+
+    docs: use appropriate markup for copyright statement
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 7b2589d66d672d2585d3df4074ce64443f7e4b71
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Sep 12 11:01:19 2011 -0400
+
+    docs: use the &fullrelvers; entity to set X11 release information
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 46cc8a399aa16d145a9141d2fa8172282e4b7211
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Sep 8 20:00:00 2011 -0400
+
+    docbook.am: embed css styles inside the HTML HEAD element
+    
+    Rather than referring to the external xorg.css stylesheet, embed the content
+    of the file in the html output produced. This is accomplished by using
+    version 1.10 of xorg-xhtml.xsl.
+    
+    This makes the whole html docs tree much more relocatable.
+    In addition, it eliminates xorg.css as a runtime file which makes
+    xorg-sgml-doctools a build time only package.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 01d2a55b4fd8e3743b1f396f81be6a06f6345ac5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 7 10:31:04 2011 -0400
+
+    docbook.am: global maintenance update - entities, images and olinking
+    
+    Adding support in libX11 for html chunking caused a reorg of docbook.am
+    as well as the xorg-sgml-doctools masterdb for olinking.
+    The parameter img.src.path is added for pdf images.
+    A searchpath to the root builddir is added for local entities, if present.
+    
+    The docbook.am makefile hides all the details and is identical for
+    all 22 modules having DocBook documentation. It is included by a thin
+    Makefile.am which requires no docbook knowledge.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 888135ef815766f0421438430ca40809e4f7e411
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Aug 7 21:20:26 2011 -0400
+
+    docbook pdf: add xsl parameter to locate images
+    
+    Unlike html, pdf/ps requires a full path name to find images,
+    but only needs it to make an internal copy of it at build time.
+    The image can later be removed and the image still shows up in the pdf doc.
+    This allows us to use the absolute builddir.
+    
+    This parameter must not be used for html which loads the image from disk
+    at user read time. The image is removed from builddir after build is done,
+    and we do not know where the image will be installed by the distro.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 5ba82aec6547513ea182cbc6cb95b472bbfb9dc5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Aug 7 20:30:58 2011 -0400
+
+    Xmu.xml: Change layout of the X Logo figure
+    
+    The floating does not come up right, the figure caption is in the way.
+    Move the figure out of the paragraph and below the text.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 08fb51c1db9c9693125f4c093d07abc94d6ce0f6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 12 18:39:46 2011 -0400
+
+    Install xml versions of specs even if HAVE_XMLTO is false
+    
+    DocBook/XML input source is also a usefull output format that can be viewed
+    with an XML viewer or editor and by some O/S help system.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a70bedc470f5482dc64b947057e5120c2f322177
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 5 16:27:37 2011 -0400
+
+    Install target dbs alongside generated documents
+    
+    This matches a change in xorg-sgml-docs whereby the masterdb will look for
+    the target dbs into the same location as the generated documents.
+    
+    The target dbs are now installed alongside the generated documents.
+    Previously they are installed in $prefix/sgml/X11/dbs alongside masterdb which
+    has the potential of installing outside the package prefix and cause
+    distcheck to fail when user does not have write permission in this package.
+    
+    Requires XORG_CHECK_SGML_DOCTOOLS(1.8) which was released 2011-06-11
+
+commit 3f3c9a60381371f60a174497ea6d5d90abea4261
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue May 31 20:03:23 2011 -0600
+
+    Add id attributes to funcsynopsis to allow other docs to olink to them.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 4000666e864e477e712caa0f0c0a5d09006c7752
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Feb 27 15:06:18 2011 -0500
+
+    Documentation: add Docbook external references support
+    
+    When writing technical documentation, it is often necessary to cross
+    reference to other information. When that other information is not in the
+    current document, additional support is needed, namely <olink>.
+    
+    A new feature with version 1.7 of xorg-sgml-doctools adds references to
+    other documents within or outside this package.
+    
+    This patch adds technical support for this feature but does not change
+    the content of the documentation as seen by the end user.
+    
+    Each book or article must generate a database containing the href
+    of sections that can be referred to from another document. This database
+    is installed in DATAROOTDIR/sgml/X11/dbs. There is a requirement that
+    the value of DATAROOTDIR for xorg-sgml-doctools and for the package
+    documentation is the same. This forms a virtual document tree.
+    
+    This database is consulted by other documents while they are being generated
+    in order to fulfill the missing information for linking.
+    Refer to the xorg-sgml-doctools for further technical information.
+    
+    Co-authored-by: Matt Dew <marcoz@osource.org>
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 6ab92082d5f6c842b578a9fe1f9888ed3339336a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Feb 10 22:06:52 2011 -0800
+
+    Make EditresCom.c identation a lot less random
+    
+    2 spaces!  No 4!  2!  3!  No, Blue!  Red!  Aughughurglrgll...
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 70ca0ef2cc0ec84308792a7b184e90c5cb358278
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 19:51:54 2011 -0500
+
+    config: remove config test for snprintf
+    
+    The macro HAS_SNPRINTF is hard coded to always be defined.
+    If it were not defined, Lower.c would include snprintf.c
+    which does not exist. Seems to be relics from IMakefile
+    
+    Other modules are using snprintf unconditionally.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9f57096dd0881651de3b710b182db59091e6f421
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 11:43:43 2011 -0500
+
+    config: comment, minor upgrade, quote and layout configure.ac
+    
+    Group statements per section as per Autoconf standard layout
+    Quote statements where appropriate.
+    Autoconf recommends not using dnl instead of # for comments
+    
+    Use AC_CONFIG_FILES to replace the deprecated AC_OUTPUT with parameters.
+    
+    This helps automated maintenance and release activities.
+    Details can be found in http://wiki.x.org/wiki/NewModuleGuidelines
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 1be35fb51871f314bef673975c2be94e5e427696
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 19:41:37 2011 -0500
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9bd47f1db85b0c997389609ad26a2766f5aeeff5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 16:34:14 2011 -0500
+
+    config: remove unrequired AC_CONFIG_AUX_DIR
+    
+    The default location for the generation of configuation files is the current
+    package root directory. These files are config.* and friends.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2f00ed22d17592b963fabd925dba90f2a003d801
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Dec 5 00:13:25 2010 -0800
+
+    XmuCvtStringToCursor: sprintf -> snprintf & check for XtMalloc failure
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 813ee0dcecc89d3f334d8747b171c71e34a7671e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 9 13:04:57 2010 -0500
+
+    config: HTML file generation: use the installed copy of xorg.css
+    
+    Currenlty the xorg.css file is copied in each location
+    where a DocBook/XML file resides. This produces about
+    70 copies in the $(docdir) install tree.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 5d9b0896bfdfe60656a2d806a06e17c7adf335b5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 29 16:52:54 2010 -0700
+
+    libXmu 1.1.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 28f4666ad88ab736f52c1cb16674226f14bc2a15
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 28 12:24:30 2010 -0700
+
+    Remove unnecessary calls from configure.ac
+    
+    AC_PROG_CC is handled by XORG_DEFAULT_OPTIONS
+    AC_SUBST of *_LIBS & *_CFLAGS are handled by PKG_CHECK_MODULES
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1ab19053c75b44be9c49700b1190dd5d8da152ce
+Author: Jesse Adkins <jesserayadkins@gmail.com>
+Date:   Tue Sep 28 13:30:03 2010 -0700
+
+    Purge cvs tags.
+    
+    Signed-off-by: Jesse Adkins <jesserayadkins@gmail.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 75a065b9b8145bac20d9080cb5237a25bb3ad190
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Aug 3 13:23:32 2010 -0400
+
+    specs: xsl stylesheet requires abs path to images
+    
+    Using abs_builddir requires automake 1.10 or later.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b56c3e61038c7cdb49bdb40455c2b3a12ae35d3c
+Author: Fernando Carrijo <fcarrijo@yahoo.com.br>
+Date:   Thu Jul 1 07:00:53 2010 -0300
+
+    Purge macro NEED_EVENTS
+    
+    Signed-off-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+    Acked-by: Tiago Vignatti <tiago.vignatti@nokia.com>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e721c444a8268db0406e26d65e0a4746c477750f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 25 15:06:39 2010 -0400
+
+    config: use HAVE_XMLTO_TEXT from XORG_WITH_XMLTO
+    
+    Skip text format when XMLTO dependencies for text format
+    are missing (lynx, links or w3m)
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 449bc79585f324c5695f379def1e57fe9fcec2e6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 25 15:02:59 2010 -0400
+
+    config: use HAVE_STYLESHEET now defined in XORG_CHECK_SGML_DOCTOOLS
+    
+    Also use STYLESHEET_SRCDIR XSL_STYLESHEET
+    
+    This requires version 1.10 of util-macros
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 167c191895d956831f76ece5f2bdbef8cea4ed45
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 25 14:10:58 2010 -0400
+
+    config: move docs ignore from toplevel .gitignore to /doc
+    
+    Also add missing *.css
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2d8fa1b7905bbbc37f42f651ed1f881359ac6a09
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 23 08:02:08 2010 -0700
+
+    Add xorg.css to CLEANFILES to pass make distcheck
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f7e752f3842fddff907901cccb45dde77c297d20
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 15 22:06:15 2010 -0700
+
+    Use shared stylesheets from xorg-sgml-doctools instead of a private copy
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ffef5f4ee489a7f2d228601ee351bc2445436304
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 19 22:34:50 2010 -0700
+
+    Add some cross-reference links and an index to the docs
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0a198dd15c7963f7b9be094370761cac368d9292
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 15:48:58 2010 -0700
+
+    Xmu.xml: Compilers that can't handle void are now ancient history
+    
+    Plus a bonus it's -> its typo fix
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit dc02453cde3047bce48a8ca23c27c807642b1670
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 11:30:17 2010 -0700
+
+    Use _X_ATTRIBUTE_PRINTF from Xfuncproto.h in Xmu headers
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mikhail Gusarov <dottedmag@dottedmag.net>
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+
+commit eb8ed42cc7f40d8dd506aeebb759dd99dac1552e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 11:25:12 2010 -0700
+
+    Document which functions are in libXmu vs. libXmuu
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bde1baeddb216b7ab6322646d9bdf3bb629c4c25
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 11:04:17 2010 -0700
+
+    Add XmuNCopyISOLatin1Lowered & XmuNCopyISOLatin1Uppered to doc/Xmu.xml
+    
+    Also add notes to the originals warning about buffer overflow
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6b98e89515ba0ee755bdc9c4783b84b464d2a10c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 10:50:23 2010 -0700
+
+    Update docs to match headers
+    
+    - caddr_t is now XPointer
+    - a number of char * arguments are now unsigned char * or constified
+    - XmuLookup* functions are in Lookup.h, so split into new section
+    
+    There are still a bunch of headers with undocumented functions/#defines:
+     - CvtCache.h
+     - EditresP.h
+     - ExtAgent.h
+     - Misc.h
+     - WhitePoint.h
+     - Xmu.h
+     - some of the functions in Converters.h
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 13409196c36151e4b5212ae08e6cfda6d7c93696
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 9 10:23:08 2010 -0700
+
+    Add XmuSnprintf to doc/Xmu.xml
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a4a87ddfa4948c3f5c210ab7a472b65569ae0e64
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 8 21:20:58 2010 -0700
+
+    Show X logo as a figure for XmuDrawLogo
+    
+    Because we can.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5e22a1fb7c2bae8d5b393b95b253c865c9eed309
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 8 16:51:41 2010 -0700
+
+    Fix distcheck (forgot to mark Xmu.xml as dist_*)
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f38c2c057ebca8ca4afc2cb8fb835702bdba4fc6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 8 16:25:49 2010 -0700
+
+    Correct some minor typos in original document
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 70596fce92bd58d46e19de63b6c3faca38cbc181
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 8 16:19:49 2010 -0700
+
+    Convert Xmu.ms to DocBook/xml
+    
+    Bumps xorg-macros requirement to 1.6 for XORG_ENABLE_DOCS & friends
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 868ed2d97150aed414a7fd8f5dc317b8f38b05fd
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Jun 7 15:51:32 2010 -0700
+
+    Move doc/Xmu.ms from xorg-docs module
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit af962b3bed9d3c42cf81946a5732f0d37d1843e8
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed May 26 17:01:57 2010 -0400
+
+    config: add WhitePoint.h to the include headers
+    
+    This file was added in commit 8c5b2278580193578cdd0da8c8e948e74f8a3f26
+    because it was missing from the tarball. It was added to
+    EXTRA_DIST so it never got installed in $includedir.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit bae14e85d90a4ea040cb1b25ba89c98a0ebe1670
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Apr 5 20:10:35 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a6210dd05cfe92d0af2e23358851c3a38c2aaca6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 14:53:49 2010 -0400
+
+    config: remove the pkgconfig pc.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 1de26ffbdec68f8ca6aa2448869a323bcceda26d
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Mar 27 16:19:35 2010 -0400
+
+    config: remove execute permission on source C file
+    
+    Introduced in 85f77401635dfa57d40de89aa2c9f39a344a8d3b
+    "Fix build problems on WIN32 platforms"
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d2702478f3d36fb3053b9796657310750e5e5738
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Nov 27 20:56:04 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit 8d5e9bd04c8cc90a262223f8a16c4ac7c0c66c2d
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:10 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit 80650c71c06b87e8a5ff0122c1f2bf7798ab2e96
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:25 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit 1dba944c770fcc4b276641e0ae01e2e4371dc101
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:43 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit 854456de21a1e722edd5e03ba8467107401fd7b6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:19 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit ab323caeb2b763abc8986fe71531dedb62ec9720
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:25 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit c2c76abe51878f55e22c44c747f1243e56a4344b
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Sep 23 17:53:41 2009 -0700
+
+    libXmu 1.0.5
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 5b31bee92b56147e2c17d19e46e09145d765fdb4
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Sep 23 17:49:27 2009 -0700
+
+    Migrate to xorg macros 1.3 & XORG_DEFAULT_OPTIONS
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit fef063d82e332b96bcb12ce41abefce868821577
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Sep 23 17:47:16 2009 -0700
+
+    Add pointer to API docs in xorg-docs to README
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 88bd2d387fbb068339b65506331136085082def6
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Tue Mar 31 00:01:48 2009 +0200
+
+    libXmu: check for LONG64, not LONG_64
+    
+    The latter isn't defined anywhere, so editres hasn't been able to read a
+    pointer on 64bit since about 10 years.
+    Admittedly, this should be using stdint types, but...
+    
+    Debian bug#521887 <http://bugs.debian.org/521887>
+    
+    Reported-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+commit f1ccbcffc9171868256b5813aa558f6756aca508
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Feb 2 20:34:34 2009 -0800
+
+    Add README with pointers to mailing list, bugzilla & git repos
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 049534f4eb409bea62b590b436bef78e5eef5b8e
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Thu Jan 29 20:02:33 2009 -0200
+
+    Janitor: make distcheck, compiler warnings, .gitignore.
+
+commit fc2096538ff7424bfeb171b1a36e860070594627
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 4 19:42:22 2008 -0700
+
+    Add libX11 to libXmu dependencies
+
+commit 85f77401635dfa57d40de89aa2c9f39a344a8d3b
+Author: Colin Harrison <colin.harrison-at-virgin.net>
+Date:   Tue Apr 29 13:13:06 2008 +0100
+
+    Fix build problems on WIN32 platforms
+
+commit aa6e9793fbb8621ce1f1ed580298621e29638619
+Author: Colin Harrison <colin.harrison-at-virgin.net>
+Date:   Sat Apr 26 08:51:54 2008 +0100
+
+    Switch to winsock2
+
+commit cbfab9d91e17239084ab24b99751bdd1610fcc1b
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Mar 9 08:32:59 2008 +0100
+
+    nuke RCS Ids
+
+commit 3fe753215b6186e588246220a473417810f82b05
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Thu Feb 28 18:55:23 2008 -0300
+
+    Compile warning fix by using Cardinal instead of int.
+    
+    This also matches the function prototype.
+
+commit e2735131202e7801e72ce33def666b6a0a543e26
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Jan 14 14:11:43 2008 -0800
+
+    Version bump: 1.0.4
+
+commit f11b5a161944dc694ee059f88acb20826bd6d90b
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Jan 14 11:21:36 2008 -0800
+
+    Coverity #52: Dead code in get_os_name()
+
+commit 6f5ea6a2a0b56674f08f58d95085c0e9a8797fe2
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Sun Jan 13 01:58:12 2008 -0800
+
+    Clear sparse warnings: Using plain integer as NULL pointer
+
+commit 6f76ccc70a5f5ae834a3e63c9f4f35704837a4d1
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Jan 11 20:43:26 2008 -0800
+
+    Add hooks for checking sources with tools like lint & sparse
+
+commit 43ec402bcd6a2333a4e213de3a82d7e3392b0fb0
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 16:38:32 2007 -0500
+
+    Replace static ChangeLog with dist-hook to generate from git log
+
+commit 7e35135e9ad1ea2ef101402ea26bec62c3cbb69a
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Mon Sep 3 05:53:43 2007 -0400
+
+    Add *~ to .gitignore to skip patch/emacs droppings
+
+commit a3e01af0f4b56b3b8891040cf0f7208265bbea2a
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Wed Nov 8 20:01:35 2006 +0200
+
+    bump to 1.0.3
+
+commit 7beb4c2909af805e61d073a6f2b93234eb91834d
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 16:22:06 2006 -0400
+
+    Bump to 1.0.2
+
+commit 339368b404a807d1c494b260314da16d044986ff
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jul 13 14:59:01 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit 60620a4b7eeb004e55ba57aef8df33f6adc930f0
+Author: Matthias Hopf <mhopf@suse.de>
+Date:   Mon Jul 3 19:33:05 2006 +0200
+
+    Added README missing from CVS conversion.
+
+commit 05a5c96fcef9822ff3c0312427d2c2672f73b551
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Apr 30 14:22:53 2006 +0000
+
+    Define BITMAPDIR for the case where ${prefix} != /usr
+
+commit 0aa6a46099fb319c82da51b8a73566007ad5acbd
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu Apr 27 00:18:38 2006 +0000
+
+    Bump to 1.0.1
+
+commit 7bb6398aa024d782706125bebd93468f9cc8a0ec
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Mon Mar 20 19:57:04 2006 +0000
+
+    Bug #6276: Fix build on Cygwin. (Yaakov Selkowitz)
+
+commit 78ab364fec59fa84ac914d51628dfb8ac4a048a5
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:30 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 1d93f5a9968e6e9af8f15c60107b1691009d1bd8
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:44 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit 5a807bcce047a8072db2c0cef05a84aa6e6cd3ca
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:42 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit c50ca633b633d25ba672fb19ac182cea40242069
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:48:11 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 8c5b2278580193578cdd0da8c8e948e74f8a3f26
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 5 19:57:36 2005 +0000
+
+    Add missing file to EXTRA_DIST
+
+commit bf4087e453d8fd83630976cd6e7e31c63737a4a1
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Mon Oct 3 20:55:36 2005 +0000
+
+    Remvoe README file that is symlinked from monolith
+
+commit 82b5da0b34780df3fe91c4b617cb541ee767d794
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 30 19:15:16 2005 +0000
+
+    Add -D flags to clear various warnings (Stefan Dirsch)
+
+commit 43f43567e3c8c63f6b70d7e529827cd5f15e15d3
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:52 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit e9ee49d99a20458e5f36bba48a7ea65bb5230a8d
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Jul 16 07:16:27 2005 +0000
+
+    Set soversions to 6.2.0 and 1.0.0 with -version-number.
+
+commit 81f5815d0c42b7065eb8e5aeef8e115e7398128f
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Jul 9 06:43:26 2005 +0000
+
+    Add .cvsignore files
+
+commit 56ef5803a7def4f0d08ce8863e317b250c9c0ce4
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sun Jul 3 07:00:57 2005 +0000
+
+    Add Xtrans definitions (FONT_t, TRANS_CLIENT) to clean up warnings.
+    Add XSERV_t, TRANS_SERVER, TRANS_REOPEN to quash warnings.
+    Add #include <dix-config.h> or <xorg-config.h>, as appropriate, to all
+        source files in the xserver/xorg tree, predicated on defines of
+        HAVE_{DIX,XORG}_CONFIG_H. Change all Xfont includes to
+        <X11/fonts/foo.h>.
+
+commit 5a64c1de0a1d620039afbb0805ae23f10470e815
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun May 22 19:06:20 2005 +0000
+
+    Add XTRANS_CONNECTION_FLAGS to get network transport #defines for
+        CvdStdSel.c
+    Add libXmuu_la_LIBADD
+
+commit 506a8f64c84b3db3ad64d03ee698c1de227247de
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun May 22 04:36:38 2005 +0000
+
+    Move #ifdef HAVE_CONFIG_H outside of #ifdef SYSVNET
+
+commit 9ca353477c403ab1341e994a5a42a998d29e9a58
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:22:32 2005 +0000
+
+    revert last change, didn't do right thing at all, sorry for the noise
+
+commit 0a662934f050cff90e82d463ec809c3758b260b1
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:10:08 2005 +0000
+
+    Require automake 1.7 in AM_INIT_AUTOMAKE
+
+commit 2e403190ff21b0bb277391a73741cfc6d5005ac3
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Wed May 18 19:38:36 2005 +0000
+
+    - Add Xmu build system
+
+commit 7cea083d37cfaaad321bddca0fb75b3308956938
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Wed May 18 19:30:41 2005 +0000
+
+    - Add Xmu to symlink.sh
+    - Conditionally include config.h in Xmu sources
+
+commit ab0973b4595cfe27c81202bfb4a148780b05bb02
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Wed Dec 22 08:28:16 2004 +0000
+
+    Bug #2123 <https://bugs.freedesktop.org/show_bug.cgi?id=2123> Attachment
+        #1587 <https://bugs.freedesktop.org/attachment.cgi?id=1587> Call to
+        uname should not check for return == 0, but for >= 0 instead
+
+commit ece6cefc8e0238071f89de520d4a969fede53bd6
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Tue May 18 04:45:29 2004 +0000
+
+    Remove Xaw header dependency from Xmu library build.
+    http://freedesktop.org/cgi-bin/bugzilla/attachment.cgi?bugid=634
+
+commit 51156051e17f4ec53cbfe34f3a79f38d5884b78d
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 18:43:45 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit 832c5a7d7b07b88f6468daabae56d9daeeee0db8
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:32:24 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit 410cf462f4a8733c58303de686f07fbd98f2e30e
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:11:29 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit b00bc81852e56578939fb4d63796f8e0cd187cbf
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:35:33 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit aa59d04a1a50b5978e886c2e7248f77bea515ce0
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:22:44 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit 0d10732a71487293bd70c2675ced6bffb6093c8d
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Jan 29 08:08:06 2004 +0000
+
+    Importing vendor version xf86-012804-2330 on Thu Jan 29 00:06:33 PST 2004
+
+commit 6b975651aef1797eb795bd876486c565c52f66fd
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:28:15 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit 865329b4e079334b4cb846347ab9a572ac946228
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:49 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit 709dda59a506e0c4ad17b085aa381f35cd86176f
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:49 2003 +0000
+
+    Initial revision
+
+commit e3925d3087dc381a24b47c5602e086645e942fcf
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:39 2003 +0000
+
+    R6.6 is the Xorg base-line

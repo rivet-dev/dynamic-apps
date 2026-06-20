@@ -1,0 +1,97 @@
+.\" Copyright \(co Digital Equipment Corporation, 1996
+.\"
+.\" Permission to use, copy, modify, distribute, and sell this
+.\" documentation for any purpose is hereby granted without fee,
+.\" provided that the above copyright notice and this permission
+.\" notice appear in all copies.  Digital Equipment Corporation
+.\" makes no representations about the suitability for any purpose
+.\" of the information in this document.  This documentation is
+.\" provided ``as is'' without express or implied warranty.
+.\"
+.\" Copyright (c) 1999, 2005, Oracle and/or its affiliates.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice (including the next
+.\" paragraph) shall be included in all copies or substantial portions of the
+.\" Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+.\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+.\" DEALINGS IN THE SOFTWARE.
+.\"
+.\" X Window System is a trademark of The Open Group.
+.\"
+.TH DPMSQueryExtension __libmansuffix__ 2005-09-24 __xorgversion__
+.SH NAME
+DPMSQueryExtension \- queries the X server to determine the availability
+of the DPMS Extension
+.SH SYNOPSIS
+.nf
+\fBcc\fR [ \fIflag\fR \&.\&.\&. ] \fIfile\fR \&.\&.\&. -\fBlXext\fR [ \fIlibrary\fR \&.\&.\&. ]
+\&#include <X11/extensions/dpms.h>
+.sp
+.B Bool DPMSQueryExtension (
+      Display \fI*display\fP\^,
+      int \fI*event_base\fP\^,
+      int \fI*error_base\fP\^
+);
+.if n .ti +5n
+.if t .ti +.5i
+.SH ARGUMENTS
+.TP 15
+.I display
+Specifies the connection to the X server
+.TP 15
+.I event_base
+Specifies the return location for the assigned base event
+.TP 15
+.I error_base
+Specifies the return location for the assigned base error
+.SH DESCRIPTION
+The
+.B DPMSQueryExtension
+function queries the X server to determine the availability of the
+Display Power Management Signaling (DPMS) Extension.
+If the extension is available, it returns TRUE, and the
+.I event_base
+and
+.I error_base
+are set to the base event and error numbers, respectively.
+Otherwise, the return value is FALSE, and the values of
+.I event_base
+and
+.I error_base
+are undefined.
+.SH "RETURN VALUES"
+.TP 15
+.B TRUE
+The
+.B DPMSQueryExtension
+function returns TRUE if the extension is available,
+and
+.I event_base
+and
+.I error_base
+are set to the base event number and base error number for the extension,
+respectively.
+.TP 15
+.B FALSE
+The
+.B DPMSQueryExtension
+function returns FALSE if extension is not available, and the values of
+.I event_base
+and
+.I error_base
+are undefined.
+.SH "SEE ALSO"
+.BR DPMSGetVersion (__libmansuffix__)

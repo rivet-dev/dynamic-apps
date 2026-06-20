@@ -1,0 +1,119 @@
+<chapter id='Composite_and_Constraint_Widgets'>
+<title>Composite and Constraint Widgets</title>
+<para>
+These widgets may contain arbitrary widget children.  They implement a
+policy for the size and location of their children.
+</para>
+<para>
+<variablelist>
+  <varlistentry>
+    <term>Box</term>
+    <listitem>
+      <para>
+This widget will pack its children as tightly as possible in non-overlapping rows.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Dialog</term>
+    <listitem>
+      <para>
+An implementation of a commonly used interaction semantic to prompt for
+auxiliary input from the user, such as a filename.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Form</term>
+    <listitem>
+      <para>
+A more sophisticated layout widget that allows the children to specify
+their positions relative to the other children, or to the edges of the Form.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Paned</term>
+    <listitem>
+      <para>
+Allows children to be tiled vertically or horizontally.  Controls are
+also provided to allow the user to dynamically resize the individual panes.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Porthole</term>
+    <listitem>
+      <para>
+Allows viewing of a managed child which is as large as, or larger than its
+parent, typically under control of a Panner widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Tree</term>
+    <listitem>
+      <para>
+Provides geometry management of widgets arranged in a directed, acyclic graph.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Viewport</term>
+    <listitem>
+      <para>
+Consists of a frame, one or two scrollbars, and an inner window.  The
+inner window can contain all the data that is to be displayed.  This inner
+window will be clipped by the frame with the scrollbars controlling
+which section of the inner window is currently visible.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<note>
+<para>
+<!-- .LP -->
+The geometry management semantics provided by the X Toolkit give full
+control of the size and position of a widget to the parent of that
+widget.  While the children are allowed to request a certain size or
+location, it is the parent who makes the final decision.  Many of the
+composite widgets here will deny any geometry request from their
+children by default.  If a child widget is not getting the expected size
+or location, it is most likely the parent disallowing a request, or
+implementing semantics slightly different than those expected by the
+application programmer.
+</para>
+<para>
+<!-- .LP -->
+If the application wishes to change the size or location of
+any widget it should make a call to <xref linkend='XtSetValues' xrefstyle='select: title'/>.  This will
+<indexterm><primary>XtSetValues</primary></indexterm>
+allow the widget to ask its parent for the new size or location.
+As noted above the parent is allowed to refuse this request,
+and the child must live with the result.  If the
+application is unable to achieve the desired semantics, then perhaps it
+should use a different composite widget.  Under no circumstances
+should an application programmer resort to <function>XtMoveWidget</function> or
+<indexterm><primary>XtMoveWidget</primary></indexterm>
+<function>XtResizeWidget</function>; these functions are exclusively for the use of
+<indexterm><primary>XtResizeWidget</primary></indexterm>
+Composite widget implementors.
+</para>
+<para>
+<!-- .LP -->
+For more information on geometry management consult the
+<olink targetdoc='intrinsics' targetptr='Geometry_Management'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</note>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Box.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Dialog.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Form.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Paned.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Porthole.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Tree.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Viewport.xml"/>
+
+</chapter>

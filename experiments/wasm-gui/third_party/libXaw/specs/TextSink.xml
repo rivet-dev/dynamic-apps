@@ -1,0 +1,917 @@
+<sect1 id="TextSink_Object">
+<title>TextSink Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	TextSink Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>TextSink object</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/TextSink.h&gt;
+<indexterm><primary>TextSink.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/TextSinkP.h&gt;
+<indexterm><primary>TextSinkP.h</primary></indexterm>
+Class		textSinkObjectClass
+<indexterm><primary>textSinkObjectClass</primary></indexterm>
+Class Name	TextSink
+<indexterm><primary>TextSink object</primary><secondary>class name</secondary></indexterm>
+Superclass	Object
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The TextSink object is the root object for all text sinks.  Any new text
+sink objects should be subclasses of the TextSink Object.  The TextSink
+Class contains all methods that the Text widget expects a text sink to
+export.
+</para>
+<para>
+<!-- .LP -->
+Since all text sinks will have some resources in common, the TextSink
+defines a few new resources.
+</para>
+<sect2 id='TextSink::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating an TextSink object instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>AsciiSink object</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Bg Bold -->
+<!-- .Dc -->
+<!-- .Sg Bold -->
+</para>
+</sect2>
+<sect2 id="Subclassing_the_TextSink">
+<title>Subclassing the TextSink</title>
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>subclassing</secondary></indexterm>
+<para>
+<!-- .LP -->
+The only purpose of the TextSink Object is to be subclassed.  It
+contains the minimum set of class methods that all text sinks must have.
+While all may be inherited, the direct descendant of TextSink <function>must
+specify</function> some of them as TextSink does contain enough information to
+be a valid text sink by itself.  Do not try to use
+the TextSink as a valid sink for the Text widget; it is not intended
+to be used as a sink by itself.
+<informaltable>
+  <tgroup cols='4' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <thead>
+    <row>
+      <entry>Function</entry>
+      <entry>Inherit with</entry>
+      <entry>Public Interface</entry>
+      <entry>must specify</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>DisplayText</entry>
+      <entry>XtInheritDisplayText</entry>
+      <entry>XawTextSinkDisplayText</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>InsertCursor</entry>
+      <entry>XtInheritInsertCursor</entry>
+      <entry>XawTextSinkInsertCursor</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>ClearToBackground</entry>
+      <entry>XtInheritClearToBackground</entry>
+      <entry>XawTextSinkClearToBackground</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>FindPosition</entry>
+      <entry>XtInheritFindPosition</entry>
+      <entry>XawTextSinkFindPosition</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>FindDistance</entry>
+      <entry>XtInheritFindDistance</entry>
+      <entry>XawTextSinkFindDistance</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>Resolve</entry>
+      <entry>XtInheritResolve</entry>
+      <entry>XawTextSinkResolve</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>MaxLines</entry>
+      <entry>XtInheritMaxLines</entry>
+      <entry>XawTextSinkMaxLines</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>MaxHeight</entry>
+      <entry>XtInheritMaxHeight</entry>
+      <entry>XawTextSinkMaxHeight</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>SetTabs</entry>
+      <entry>XtInheritSetTabs</entry>
+      <entry>XawTextSinkSetTabs</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>GetCursorBounds</entry>
+      <entry>XtInheritGetCursorBounds</entry>
+      <entry>XawTextSinkGetCursorBounds</entry>
+      <entry>yes</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+<sect3 id="Displaying_Text">
+<title>Displaying Text</title>
+<para>
+<!-- .LP -->
+To display a section of the text buffer contained in the text source
+use the function <xref linkend='DisplayText' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>DisplayText</secondary></indexterm>
+<funcsynopsis id='DisplayText'>
+<funcprototype>
+  <funcdef>void<function> DisplayText</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Positionx,<parameter> y</parameter></paramdef>
+  <paramdef>XawTextPositionpos1,<parameter> pos2</parameter></paramdef>
+  <paramdef>Boolean<parameter> highlight</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>x</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the x location to start drawing the text.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>y</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the y location to start drawing text.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>pos1</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the location within the text source of the first character
+to be printed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>pos2</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the location within the text source of the last character
+to be printed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>highlight</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether or not to paint the text region highlighted.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The Text widget will only pass one line at a time to the text sink, so
+this function does not need to know how to line feed the text.  It is
+acceptable for this function to just ignore Carriage Returns.  <emphasis remap='I'>x</emphasis>
+and <emphasis remap='I'>y</emphasis> denote the upper left hand corner of the first character to
+be displayed.
+</para>
+</sect3>
+<sect3 id="Displaying_the_Insert_Point">
+<title>Displaying the Insert Point</title>
+<para>
+<!-- .LP -->
+The function that controls the display of the text cursor is
+<xref linkend='InsertCursor' xrefstyle='select: title'/>.  This function will be called whenever the text
+widget desires to change the state of, or move the insert point.
+<funcsynopsis id='InsertCursor'>
+<funcprototype>
+  <funcdef>void<function> InsertCursor</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Positionx,<parameter> y</parameter></paramdef>
+  <paramdef>XawTextInsertState<parameter> state</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>x</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the x location of the cursor in Pixels.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>y</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the y location of the cursor in Pixels.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>state</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the state of the cursor, may be one of <function>XawisOn</function> or
+<function>XawisOff</function>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<emphasis remap='I'>X</emphasis> and <emphasis remap='I'>y</emphasis> denote the upper left hand corner of the insert point.
+</para>
+</sect3>
+<sect3 id="Clearing_Portions_of_the_Text_window">
+<title>Clearing Portions of the Text window</title>
+<para>
+<!-- .LP -->
+To clear a portion of the Text window to its background color, the Text
+widget will call <xref linkend='ClearToBackground' xrefstyle='select: title'/>.  The TextSink object already
+defines this function as calling 
+<olink targetdoc='libX11' targetptr='XClearArea'><function>XClearArea</function></olink>
+on the region passed.
+This behavior will be used if you specify
+<function>XtInheritClearToBackground</function> for this method.
+<indexterm><primary>XtInheritClearToBackground</primary></indexterm>
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>ClearToBackground</secondary></indexterm>
+<funcsynopsis id='ClearToBackground'>
+<funcprototype>
+  <funcdef>void<function> ClearToBackground</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Positionx,<parameter> y</parameter></paramdef>
+  <paramdef>Dimensionwidth,<parameter> height</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>x</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the x location, in pixels, of the Region to clear.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>y</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the y location, in pixels, of the Region to clear.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>width</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the width, in pixels, of the Region to clear.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>height</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the height, in pixels, of the Region to clear.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<emphasis remap='I'>X</emphasis> and <emphasis remap='I'>y</emphasis> denote the upper left hand corner of region to clear.
+</para>
+</sect3>
+<sect3 id="Finding_a_Text_Position_Given_Pixel_Values">
+<title>Finding a Text Position Given Pixel Values</title>
+<para>
+<!-- .LP -->
+To find the text character position that will be rendered at a given x
+location the Text widget uses the function <xref linkend='FindPosition' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>FindPosition</secondary></indexterm>
+<funcsynopsis id='FindPosition'>
+<funcprototype>
+  <funcdef>void<function> FindPosition</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> fromPos</parameter></paramdef>
+  <paramdef>intfromX,<parameter> width</parameter></paramdef>
+  <paramdef>Boolean<parameter> stopAtWordBreak</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> *pos_return</parameter></paramdef>
+  <paramdef>int*width_return,<parameter> *height_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a reference position, usually the first character in this line.
+This character is always to the left of the desired character location.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromX</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the distance that the left edge of <emphasis remap='I'>fromPos</emphasis> is from the
+left edge of the window.  This is the reference x location for the
+reference position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>width</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the distance, in pixels, from the reference position to the
+desired character position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>stopAtWordBreak</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether or not the position that is returned should be forced
+to be on a word boundary.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>pos_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the character position that corresponds to the location that has
+been specified, or the work break immediately to the left of the
+position if <emphasis remap='I'>stopAtWordBreak</emphasis> is <function>True</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>width_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the actual distance between <emphasis remap='I'>fromPos</emphasis> and <emphasis remap='I'>pos_return</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>height_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the maximum height of the text between <emphasis remap='I'>fromPos</emphasis> and
+<emphasis remap='I'>pos_return</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function need make no attempt to deal with line feeds.  The text
+widget will only call it one line at a time.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+Another means of finding a text position is provided by the <xref linkend='Resolve' xrefstyle='select: title'/>
+function:
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>Resolve</secondary></indexterm>
+<funcsynopsis id='Resolve'>
+<funcprototype>
+  <funcdef>void<function> Resolve</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> fromPos</parameter></paramdef>
+  <paramdef>intfromX,<parameter> width</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> *pos_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a reference position, usually the first character in this line.
+This character is always to the left of the desired character location.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromX</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the distance that the left edge of <emphasis remap='I'>fromPos</emphasis> is from the
+left edge of the window.  This is the reference x location for the
+reference position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>width</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the distance, in pixels, from the reference position to the
+desired character position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>pos_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the character position that corresponds to the
+location that has been specified, or the word break immediately to the left
+if <emphasis remap='I'>stopAtWordBreak</emphasis> is <function>True</function>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function need make no attempt to deal with line feeds.  The text
+widget will only call it one line at a time.  This is a more convenient
+interface to the <xref linkend='FindPosition' xrefstyle='select: title'/> function, and provides a subset of its
+functionality.
+<indexterm><primary>FindPosition</primary></indexterm>
+</para>
+</sect3>
+<sect3 id="Finding_the_Distance_Between_two_Text_Positions">
+<title>Finding the Distance Between two Text Positions</title>
+<para>
+<!-- .LP -->
+To find the distance in pixels between two text positions on the same
+line use the function <xref linkend='FindDistance' xrefstyle='select: title'/>.
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>FindDistance</secondary></indexterm>
+<funcsynopsis id='FindDistance'>
+<funcprototype>
+  <funcdef>void<function> FindDistance</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionfromPos,<parameter> toPos</parameter></paramdef>
+  <paramdef>int<parameter> fromX</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> *pos_return</parameter></paramdef>
+  <paramdef>int*width_return,<parameter> *height_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the text buffer position, in characters, of the first position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fromX</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the distance that the left edge of <emphasis remap='I'>fromPos</emphasis> is from the
+left edge of the window.  This is the reference x location for the
+reference position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>toPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the text buffer position, in characters, of the second position.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>resWidth</emphasis>
+    </term>
+    <listitem>
+      <para>
+Return the actual distance between <emphasis remap='I'>fromPos</emphasis>
+and <emphasis remap='I'>pos_return</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>resPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the character position that corresponds to the actual character
+position used for <emphasis remap='I'>toPos</emphasis> in the calculations.  This may be
+different than <emphasis remap='I'>toPos</emphasis>, for example if <emphasis remap='I'>fromPos</emphasis> and <emphasis remap='I'>toPos</emphasis>
+are on different lines in the file.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>height_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the maximum height of the text between <emphasis remap='I'>fromPos</emphasis> and
+<emphasis remap='I'>pos_return</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function need make no attempt to deal with line feeds.  The Text
+widget will only call it one line at a time.
+</para>
+</sect3>
+<sect3 id="Finding_the_Size_of_the_Drawing_area">
+<title>Finding the Size of the Drawing area</title>
+<para>
+<!-- .LP -->
+To find the maximum number of lines that will fit into the current Text
+widget, use the function <xref linkend='MaxLines' xrefstyle='select: title'/>.  The TextSink already defines
+this function to compute the maximum number of lines by using the height
+of <function>font</function>.
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>MaxLines</secondary></indexterm>
+<funcsynopsis id='MaxLines'>
+<funcprototype>
+  <funcdef>int<function> MaxLines</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Dimension<parameter> height</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>height</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the height of the current drawing area.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+Returns the maximum number of lines that will fit in <emphasis remap='I'>height</emphasis>.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+To find the height required for a given number of text lines, use
+the function <xref linkend='MaxHeight' xrefstyle='select: title'/>.  The TextSink already defines this
+function to compute the maximum height of the window by using the
+height of <function>font</function>.
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>MaxHeight</secondary></indexterm>
+<funcsynopsis id='MaxHeight'>
+<funcprototype>
+  <funcdef>int<function> MaxHeight</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>int<parameter> lines</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>height</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the height of the current drawing area.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+Returns the height that will be taken up by the number of lines passed.
+</para>
+</sect3>
+<sect3 id="Setting_the_Tab_Stops">
+<title>Setting the Tab Stops</title>
+<para>
+<!-- .LP -->
+To set the tab stops for a text sink use the <xref linkend='SetTabs' xrefstyle='select: title'/> function.
+The TextSink already defines this function to set the tab x location in
+pixels to be the number of characters times the figure width of
+<function>font</function>.
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>SetTabs</secondary></indexterm>
+<funcsynopsis id='SetTabs'>
+<funcprototype>
+  <funcdef>void<function> SetTabs</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>inttab_count,<parameter> *tabs</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSink object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>tab_count</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of tabs passed in <emphasis remap='I'>tabs</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>tabs</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the position, in characters, of the tab stops.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function is responsible for the converting character positions passed
+to it into whatever internal positions the TextSink uses for tab placement.
+</para>
+</sect3>
+<sect3 id='Getting_the_Insert_Points_Size_and_Location'>
+<title>Getting the Insert Point's Size and Location</title>
+<para>
+<!-- .LP -->
+To get the size and location of the insert point use the
+<xref linkend='GetCursorBounds' xrefstyle='select: title'/> function.
+<indexterm significance="preferred"><primary>TextSink object</primary><secondary>GetCursorBounds</secondary></indexterm>
+<funcsynopsis id='GetCursorBounds'>
+<funcprototype>
+  <funcdef>void<function> GetCursorBounds</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XRectangle<parameter> *rect_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSinkObject.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>rect_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the location and size of the insert point.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<emphasis remap='I'>Rect</emphasis> will be filled with the current size and location of the
+insert point.
+
+</para>
+</sect3>
+</sect2>
+</sect1>

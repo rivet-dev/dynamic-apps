@@ -1,0 +1,642 @@
+<chapter id='Athena_Widgets_and_The_Intrinsics'>
+<title>Athena Widgets and The Intrinsics</title>
+<para>
+The X Toolkit is made up of two distinct pieces, the Xt Intrinsics and a
+widget set.  The Athena widget set is a sample implementation of a
+widget set built upon the Intrinsics.  In the X Toolkit, a widget is the
+combination of an X window or subwindow and its associated input and
+output semantics.
+</para>
+<para>
+Because the Intrinsics provide the same basic functionality to all widget
+sets it may be possible to use widgets from the Athena widget set with
+other widget sets based upon the Intrinsics.  Since widget sets may also
+implement private protocols, all functionality may not be available when
+mixing and matching widget sets.  For information about the Intrinsics, see
+the <olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+<para>
+The Athena widget set is a library package layered on top of the Intrinsics
+and Xlib that provides a set of user interface tools sufficient to build
+a wide variety of applications.  This layer extends the basic
+abstractions provided by X and provides the next layer of functionality
+primarily by supplying a cohesive set of sample widgets.  Although the
+Intrinsics are a Consortium standard, there is no standard widget set.
+</para>
+
+<para>
+To the extent possible, the Intrinsics are "policy-free".  The application
+environment and widget set, not the Intrinsics, define, implement, and
+enforce:
+</para>
+
+<itemizedlist>
+  <listitem><para>Policy</para></listitem>
+  <listitem><para>Consistency</para></listitem>
+  <listitem><para>Style</para></listitem>
+</itemizedlist>
+
+<para>
+Each individual widget implementation defines its own policy.  The X Toolkit
+design allows for, but does not necessarily encourage, the free mixing
+of radically differing widget implementations.
+</para>
+
+<sect1 id='Introduction_to_the_X_Toolkit'>
+<title>Introduction to the X Toolkit</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Introduction to the X Toolkit -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>introduction</primary></indexterm>
+The X Toolkit provides tools that simplify the design of
+application user interfaces in the X Window System programming environment.
+It assists application programmers by providing a set of common
+underlying user-interface functions.  It also lets widget programmers
+modify existing widgets, by subclassing, or add new widgets.  By using
+the X Toolkit in their applications, programmers can present a similar
+user interface across applications to all workstation users.
+</para>
+<para>
+<!-- .LP -->
+The X Toolkit consists of:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+A set of Intrinsics functions for building widgets
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+An architectural model for constructing widgets
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A widget set for application programming
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+While the majority of the Intrinsics functions are intended
+for the widget programmer,
+a subset of the Intrinsics functions are to be used by application programmers
+(see <olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>).
+The architectural model lets the widget programmer design new widgets
+by using the Intrinsics and by combining other widgets.
+The application interface layers built on top of the X Toolkit include a
+coordinated set of widgets and composition policies.
+Some of these widgets and policies are specific to a single
+application domain, and others are common to a variety of
+applications.
+</para>
+<para>
+<!-- .LP -->
+The remainder of this chapter discusses the X Toolkit and Athena widget set:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Terminology
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Model
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Conventions used in this manual
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Format of the Widget Reference Chapters
+    </para>
+  </listitem>
+</itemizedlist>
+</sect1>
+<sect1 id="Terminology">
+<title>Terminology</title>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Terminology -->
+<!-- .XE -->
+<para>
+<!-- .LP -->
+In addition to the terms already defined for X programming (see
+<olink targetdoc='libX11' targetptr='glossary'
+><citetitle>Xlib - C Language Interface</citetitle></olink>),
+the following terms are specific to the Intrinsics and Athena widget set
+and used throughout this document.
+</para>
+<glosslist>
+<glossentry>
+  <glossterm>Application programmer</glossterm>
+<indexterm significance="preferred"><primary>application programmer</primary></indexterm>
+  <glossdef>
+    <para>
+A programmer who uses the X Toolkit to produce an application user interface.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Child</glossterm>
+<indexterm significance="preferred"><primary>child</primary></indexterm>
+  <glossdef>
+    <para>
+A widget that is contained within another "parent" widget.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Class</glossterm>
+<indexterm significance="preferred"><primary>class</primary></indexterm>
+  <glossdef>
+    <para>
+The general group to which a specific object belongs.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Client</glossterm>
+<indexterm significance="preferred"><primary>client</primary></indexterm>
+  <glossdef>
+    <para>
+A function that uses a widget in an application or for composing
+other widgets.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>FullName</glossterm>
+<indexterm significance="preferred"><primary>FullName</primary></indexterm>
+  <glossdef>
+    <para>
+The name of a widget instance appended to the full name of its parent.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Instance</glossterm>
+<indexterm significance="preferred"><primary>instance</primary></indexterm>
+  <glossdef>
+    <para>
+A specific widget object as opposed to a general widget class.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Method</glossterm>
+<indexterm significance="preferred"><primary>method</primary></indexterm>
+  <glossdef>
+    <para>
+A function or procedure implemented by a widget class.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Name</glossterm>
+<indexterm significance="preferred"><primary>name</primary><secondary>widget</secondary></indexterm>
+  <glossdef>
+    <para>
+The name that is specific to an instance of a widget for a given client.
+This name is specified at creation time and cannot be modified.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Object</glossterm>
+<indexterm significance="preferred"><primary>object</primary></indexterm>
+  <glossdef>
+    <para>
+A data abstraction consisting of private data and private and public
+functions that operate on the private data.
+Users of the abstraction can interact with the object only through calls
+to the object's public functions.
+In the X Toolkit,
+some of the object's public functions are called directly by the application,
+while others are called indirectly when the application calls the common
+Intrinsics functions.
+In general, if a function is common to all widgets,
+an application uses a single Intrinsics function to invoke the function for all
+types of widgets.
+If a function is unique to a single widget type,
+the widget exports the function.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Parent</glossterm>
+<indexterm significance="preferred"><primary>parent</primary></indexterm>
+  <glossdef>
+    <para>
+A widget that contains at least one other ("child") widget.
+A parent widget is also known as a composite widget.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Resource</glossterm>
+<indexterm significance="preferred"><primary>resource</primary></indexterm>
+  <glossdef>
+    <para>
+A named piece of data in a widget that can be set by a client,
+by an application, or by user defaults.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Superclass</glossterm>
+<indexterm significance="preferred"><primary>superclass</primary></indexterm>
+  <glossdef>
+    <para>
+A larger class of which a specific class is a member.
+All members of a class are also members of the superclass.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>User</glossterm>
+<indexterm significance="preferred"><primary>user</primary></indexterm>
+  <glossdef>
+    <para>
+A person interacting with a workstation.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Widget</glossterm>
+<indexterm significance="preferred"><primary>widget</primary></indexterm>
+  <glossdef>
+    <para>
+An object providing a user-interface abstraction (for example, a Scrollbar
+widget).
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Widget class</glossterm>
+<indexterm significance="preferred"><primary>widget class</primary></indexterm>
+  <glossdef>
+    <para>
+The general group to which a specific widget belongs,
+otherwise known as the type of the widget.
+    </para>
+  </glossdef>
+</glossentry>
+<glossentry>
+  <glossterm>Widget programmer</glossterm>
+<indexterm significance="preferred"><primary>widget programmer</primary></indexterm>
+  <glossdef>
+    <para>
+A programmer who adds new widgets to the X Toolkit.
+    </para>
+  </glossdef>
+</glossentry>
+</glosslist>
+</sect1>
+<sect1 id="Underlying_Model">
+<title>Underlying Model</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Underlying Model -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>underlying model</primary></indexterm>
+The underlying architectural model is based on the following premises:
+<!-- .KS -->
+</para>
+<variablelist><?dbfo list-presentation="blocks"?>
+<varlistentry>
+  <term>Widgets are X windows</term>
+  <listitem>
+    <para>
+Every user-interface widget is associated with an X window.
+The X window ID for a widget is readily available from the widget.
+Standard Xlib calls can be used by widgets for many of their input and
+output operations.
+<!-- .KE -->
+<!-- .KS -->
+    </para>
+  </listitem>
+</varlistentry>
+<varlistentry>
+  <term>Information hiding</term>
+  <listitem>
+    <para>
+The data for every widget is private to the widget and its subclasses.
+That is, the data is neither directly accessible
+nor visible outside of the module implementing the widget.
+All program interaction with the widget is performed by a set of operations
+(methods) that are defined for the widget.
+<!-- .KE -->
+<!-- .KS -->
+    </para>
+  </listitem>
+</varlistentry>
+<varlistentry>
+  <term>Widget semantics and widget layout geometry</term>
+  <listitem>
+    <para>
+Widget semantics are clearly separated from widget layout geometry.
+Widgets are concerned with implementing specific user-interface
+semantics.  They have little control over issues such as their size or
+placement relative to other widget peers.  Mechanisms are provided for
+associating geometric managers with widgets and for widgets to make
+suggestions about their own geometry.
+<!-- .KE -->
+    </para>
+  </listitem>
+</varlistentry>
+</variablelist>
+</sect1>
+<sect1 id="Conventions_Used_in_this_Manual">
+<title>Conventions Used in this Manual</title>
+<itemizedlist>
+  <listitem>
+    <para>
+<indexterm significance="preferred"><primary>conventions</primary><secondary>used in manual</secondary></indexterm>
+All resources available to the widgets are listed with each widget.  Many
+of these are available to more than one widget class due to the object
+oriented nature of the Intrinsics.  The new resources for each widget are
+listed in bold text, and the inherited resources are listed in plain text.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Global symbols are printed in <function>bold</function> and can be function names,
+symbols defined in include files, or structure names.  Arguments are
+printed in <emphasis remap='I'>italics</emphasis>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Each function is introduced by a general discussion that distinguishes
+it from other functions.  The function declaration itself follows, and
+each argument is specifically explained.  General discussion of the
+function, if any is required, follows the arguments.  Where
+applicable, the last paragraph of the explanation lists the return values
+of the function.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+To eliminate any ambiguity between those arguments that you pass and
+those that a function returns to you, the explanations for all
+arguments that you pass start with the word <emphasis remap='I'>specifies</emphasis> or, in the
+case of multiple arguments, the word <emphasis remap='I'>specify</emphasis>. The explanations
+for all arguments that are returned to you start with the word
+<emphasis remap='I'>returns</emphasis> or, in the case of multiple arguments, the word
+<emphasis remap='I'>return</emphasis>.  The explanations for all arguments that you can pass
+and are returned start with the words <emphasis remap='I'>specifies and returns</emphasis>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Any pointer to a structure that is used to return a value is
+designated as such by the <emphasis remap='I'>_return</emphasis> suffix as part of its name.
+All other pointers passed to these functions are used for reading
+only.  A few arguments use pointers to structures that are used for
+both input and output and are indicated by using the <emphasis remap='I'>_in_out</emphasis>
+suffix.
+<indexterm significance="preferred"><primary>_return</primary></indexterm>
+<indexterm significance="preferred"><primary>_in_out</primary></indexterm>
+    </para>
+  </listitem>
+</itemizedlist>
+</sect1>
+<sect1 id="Format_of_the_Widget_Reference_Chapters">
+<title>Format of the Widget Reference Chapters</title>
+<para>
+<!-- .LP -->
+<indexterm significance="preferred"><primary>conventions</primary><secondary>chapter format</secondary></indexterm>
+<indexterm significance="preferred"><primary>chapter format</primary></indexterm>
+The majority of this document is a reference guide for the Athena
+widget set.  Chapters three through six give the programmer all
+information necessary to use the widgets.  The layout of the chapters
+follows a specific pattern to allow the programmer to easily find the
+desired information.
+</para>
+<para>
+<!-- .LP -->
+The first few pages of every chapter give an overview of the widgets
+in that section.  Widgets are grouped into chapters by functionality.
+<itemizedlist>
+  <listitem><para><xref linkend='Simple_Widgets'/></para></listitem>
+  <listitem><para><xref linkend='Menus'/></para></listitem>
+  <listitem><para><xref linkend='Text_Widgets'/></para></listitem>
+  <listitem><para><xref linkend='Composite_and_Constraint_Widgets'/></para></listitem>
+</itemizedlist>
+</para>
+<para>
+<!-- .LP -->
+Following the introduction will be a description of each widget in that
+chapter.  When no functional grouping is obvious the widgets are listed
+in alphabetical order, such as in chapters three and six.
+</para>
+<para>
+<!-- .LP -->
+The first section of each widget's description is a table that
+contains general information about this widget class.  Here is the
+table for the Box widget, and an explanation of all the entries.
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Box.h&gt;
+Class Header file	&lt;X11/Xaw/BoxP.h&gt;
+Class		boxWidgetClass
+Class Name	Box
+Superclass	Composite
+<!-- .sp -->
+</literallayout>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Application Header File</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm significance="preferred"><primary>application header file</primary></indexterm>
+This file must be included when an application uses this widget.
+It usually contains the class definition, and some resource macros.
+This is often called the <quote>public</quote> header file.
+<indexterm significance="preferred"><primary>class header file</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Class Header File</function>
+    </term>
+    <listitem>
+      <para>
+This file will only be used by widget programmers.  It will need to be
+included by any widget that subclasses this widget.  This is often
+called the <quote>private</quote> header file.
+<indexterm significance="preferred"><primary>class</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Class</function>
+    </term>
+    <listitem>
+      <para>
+This is the widget class of this widget.  This global symbol is passed to
+<function>XtCreateWidget</function> so that the Intrinsics will know which type of widget
+to create.
+<indexterm significance="preferred"><primary>class name</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Class Name</function>
+    </term>
+    <listitem>
+      <para>
+This is the resource name of this class.  This name can be used in
+a resource file to match any widget of this class.
+<indexterm><primary>superclass</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Superclass</function>
+    </term>
+    <listitem>
+      <para>
+This is the superclass that this widget class is descended from.  If
+you understand how the superclass works it will allow you to more quickly
+understand what this widget does, since much of its functionality may be
+inherited from its superclass.
+<!-- .sp -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+After this table follows a general description of the default behavior of
+this widget, as seen by the user.  In many cases this functionality
+may be overridden by the application programmer, or by the user.
+</para>
+<para>
+<!-- .LP -->
+The next section is a table showing the
+name, class, type and default value of each resource that is available
+to this widget.  There is also a column containing notes describing
+special restrictions placed upon individual resources.
+<indexterm significance="preferred"><primary>notes</primary></indexterm>
+<indexterm significance="preferred"><primary>A, note</primary></indexterm>
+<indexterm significance="preferred"><primary>D, note</primary></indexterm>
+<indexterm significance="preferred"><primary>C, note</primary></indexterm>
+<indexterm significance="preferred"><primary>R, note</primary></indexterm>
+<variablelist>
+  <varlistentry>
+    <term>
+      A
+    </term>
+    <listitem>
+      <para>
+This resource may be automatically adjusted when another
+resource is changed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      C
+    </term>
+    <listitem>
+      <para>
+This resource is only settable at widget creation time, and may not
+be modified with <xref linkend='XtSetValues' xrefstyle='select: title'/>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      D
+    </term>
+    <listitem>
+      <para>
+Do not modify this resource.  While setting this resource will
+work, it can cause unexpected behavior.  When this symbol appears
+there is another, preferred, interface provided by the X Toolkit.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      R
+    </term>
+    <listitem>
+      <para>
+This resource is READ-ONLY, and may not be modified.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+After the resource table is a detailed description of every resource
+available to that widget.  Many of these are redundant, but printing
+them with each widget saves page flipping.  The names of the resources
+that are inherited are printed in plain text, while the names of the
+resources that are new to this class are printed in <function>bold</function>.
+If you have already read the description of the superclass you need
+only pay attention to the resources printed in bold.
+</para>
+<para>
+<!-- .LP -->
+For each composite widget there is a section on layout semantics that
+follows the resource description.  This section will describe the
+effect of constraint resources on the layout of the children, as well
+as a general description of where it prefers to place its children.
+</para>
+<para>
+<!-- .LP -->
+Descriptions of default translations and action routines come next, for
+widgets to which they apply.  The last item in each widget's
+documentation is the description of all convenience routines provided by
+the widget.
+</para>
+</sect1>
+<sect1 id="Input_Focus">
+<title>Input Focus</title>
+<!-- .XS -->
+<!-- 	Input Focus -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>input focus</primary></indexterm>
+<indexterm significance="preferred"><primary>input</primary></indexterm>
+<indexterm significance="preferred"><primary>XtNinput</primary></indexterm>
+<para>
+<!-- .LP -->
+The Intrinsics define a resource on all Shell widgets that interact with
+the window manager called <function>input</function>.  This resource requests the
+assistance of window manager in acquiring the input focus.  The
+resource defaults to <function>False</function> in the Intrinsics, but is redefined to
+default to <function>True</function> when an application is using the Athena widget
+set.  An application programmer may override this default and set the
+resource back to <function>False</function> if the application does not need the window
+manager to give it the input focus.  See the
+<olink targetdoc='intrinsics' targetptr='Shell_Widgets'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink> for details
+on the <emphasis remap='I'>input</emphasis> resource.
+
+</para>
+</sect1>
+</chapter>

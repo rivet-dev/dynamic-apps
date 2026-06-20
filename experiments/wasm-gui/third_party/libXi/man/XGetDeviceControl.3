@@ -1,0 +1,295 @@
+'\" t
+.\"     Title: xgetdevicecontrol
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XGETDEVICECONTROL" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XGetDeviceControl, XChangeDeviceControl \- query and change input device controls
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XDeviceControl *XGetDeviceControl( Display *display,
+                                   XDevice *device,
+                                   int *controlType);
+.fi
+.sp
+.nf
+int XChangeDeviceControl( Display *display,
+                          XDevice *device,
+                          int controlType,
+                          XDeviceControl *control);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose control is to be interrogated
+       or modified\&.
+.fi
+.sp
+.nf
+controlType
+       Specifies the type of control to be interrogated or
+       changed\&.
+.fi
+.sp
+.nf
+control
+       Specifies the address of an XDeviceControl structure
+       that contains the new values for the Device\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+These requests are provided to manipulate those input devices
+that support device control\&. A BadMatch error will be generated
+if the requested device does not support any device controls\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Valid device control types that can be used with these requests
+include the following:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+DEVICE_RESOLUTION: Queries or changes the resolution of
+valuators on input devices\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetDeviceControl request returns a pointer to an
+XDeviceControl structure\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGetDeviceControl can generate a BadDevice or BadMatch error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XChangeDeviceControl request modifies the values of one
+control on the specified device\&. The control is identified by
+the id field of the XDeviceControl structure that is passed
+with the request\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XChangeDeviceControl can generate a BadDevice, BadMatch, or
+BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "STRUCTURES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Each control is described by a structure specific to that control\&.
+These structures are defined in the file XInput\&.h\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XDeviceControl is a generic structure that contains two fields
+that are at the beginning of each class of control:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    XID class;
+    int length;
+} XDeviceControl;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XDeviceResolutionState structure defines the information
+that is returned for device resolution for devices with
+valuators\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    XID control;
+    int length;
+    int num_valuators;
+    int* resolutions;
+    int* min_resolutions;
+    int* max_resolutions;
+} XDeviceResolutionState;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XDeviceResolutionControl structure defines the attributes
+that can be controlled for keyboard Devices\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    XID control;
+    int length;
+    int first_valuator;
+    int num_valuators;
+    int* resolutions;
+} XDeviceResolutionControl;
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if some
+       other client has caused the specified device to become
+       the X keyboard or X pointer device via the
+       XChangeKeyboardDevice or XChangePointerDevice requests\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XGetDeviceControl request was
+       made specifying a device that has no controls or an
+       XChangeDeviceControl request was made with an
+       XDeviceControl structure that contains an invalid Device
+       type\&. It may also occur if an invalid combination of
+       mask bits is specified ( DvKey but no DvAutoRepeatMode
+       for keyboard Devices), or if an invalid KeySym is
+       specified for a string Device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the XChangeDeviceControl request\&. Unless a
+       specific range is specified for an argument, the full
+       range defined by the argument\*(Aqs type is accepted\&. Any
+       argument defined as a set of alternatives can generate
+       this error\&.
+.fi
+.if n \{\
+.RE
+.\}

@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: SM
+Description: X Session Management Library
+Version: @PACKAGE_VERSION@
+Requires:
+Requires.private: ice xproto @UUID_PC@
+Cflags: -I${includedir}
+Libs: -L${libdir} -lSM
+Libs.private: @UUID_LIB_PRIVATE@

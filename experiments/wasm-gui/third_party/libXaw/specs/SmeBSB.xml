@@ -1,0 +1,310 @@
+<sect1 id="SmeBSB_Object">
+<title>SmeBSB Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	SmeBSB Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>SmeBSB object</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/SmeBSB.h&gt;
+<indexterm><primary>SmeBSB.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/SmeBSBP.h&gt;
+<indexterm><primary>SmeBSBP.h</primary></indexterm>
+Class		smeBSBObjectClass
+<indexterm><primary>smeBSBObjectClass</primary></indexterm>
+Class Name	SmeBSB
+<indexterm><primary>SmeBSB object</primary><secondary>class name</secondary></indexterm>
+Superclass	Sme
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The SmeBSB object is used to create a menu entry that contains a string,
+and optional bitmaps in its left and right margins.  Since each menu
+entry is an independent object, the application is able to change the
+font, color, height, and other attributes of the menu entries, on an
+entry by entry basis.  The format of the string may either be the encoding
+of the 8 bit <function>font</function> utilized, or in a multi-byte encoding for use with a
+<function>fontSet</function>.
+</para>
+<sect2 id='SmeBSB::Resources'>
+<title>Resources</title>
+<indexterm><primary>SmeBSB object</primary><secondary>resources</secondary></indexterm>
+<para>
+<!-- .LP -->
+The resources associated with the SmeBSB object are defined in this section,
+and affect only the single menu entry specified by this object.
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>FontStruct</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Font height + <function>vertSpace</function></entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>justify</entry>
+      <entry>Justify</entry>
+      <entry>Justify</entry>
+      <entry></entry>
+      <entry>XtjustifyLeft</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>leftBitmap</entry>
+      <entry>LeftBitmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>leftMargin</entry>
+      <entry>leftMargin</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>rightBitmap</entry>
+      <entry>RightBitmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>rightMargin</entry>
+      <entry>rightMargin</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>vertSpace</entry>
+      <entry>VertSpace</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>25</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>TextWidth + margins</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+<!-- .As -->
+<variablelist>
+  <varlistentry>
+    <term>callback</term>
+    <listitem>
+      <para>
+All callback functions on this list are called when the SimpleMenu
+<emphasis remap='I'>notifies</emphasis> this entry that the user has selected it.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>font</term>
+    <listitem>
+      <para>
+The text font to use when displaying the <function>label</function>, when the
+<function>international</function> resource is <function>false</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>fontSet</term>
+    <listitem>
+      <para>
+The text font set to use when displaying the <function>label</function>, when the
+<function>international</function> resource is <function>true</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>foreground</term>
+    <listitem>
+      <para>
+A pixel value which indexes the SimpleMenu's colormap to derive the
+foreground color of the menu entry's window.  This color is also
+used to render all 1's in the left and right <function>bitmaps</function>.
+<!-- .Hw -->
+Keep in mind that the SimpleMenu widget will force the width of all
+menu entries to be the width of the longest entry.
+<!-- .In -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>justify</term>
+    <listitem>
+      <para>
+<!-- .IP <function>justify</function> 1.5i -->
+How the label is to be rendered between the left and right margins when
+the space is wider than the actual text.  This resource may be
+specified with the values <function>XtJustifyLeft</function>, <function>XtJustifyCenter</function>,
+or <function>XtJustifyRight</function>.  When specifying the justification from a
+resource file the values <function>left</function>, <function>center</function>, or <function>right</function> may be
+used.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>label</term>
+    <listitem>
+      <para>
+This is a the string that will be displayed in the menu entry.  The
+exact location of this string within the bounds of the menu entry is
+controlled by the <function>leftMargin</function>, <function>rightMargin</function>, <function>vertSpace</function>,
+and <function>justify</function> resources.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>leftBitmap</term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>rightBitmap</term>
+    <listitem>
+      <para>
+<!-- .IP <function>rightBitmap</function> 1.5i -->
+This is a name of a bitmap to display in the left or right margin of the
+menu entry.  All 1's in the bitmap will be rendered in the foreground
+color, and all 0's will be drawn in the background color of the
+SimpleMenu widget.  It is the
+programmers' responsibility to make sure that the menu entry is tall
+enough, and the appropriate margin wide enough to accept the bitmap.
+If care is not taken the bitmap may extend into another menu entry, or
+into this entry's label.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>leftMargin</term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>rightMargin</term>
+    <listitem>
+      <para>
+This is the amount of space (in pixels) that will be left between the
+edge of the menu entry and the label string.
+<!-- .Se -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>vertSpace</term>
+    <listitem>
+      <para>
+This is the amount of vertical padding, expressed as a percentage of
+the height of the font, that is to be placed around the label of a
+menu entry.. The label and bitmaps are always centered vertically
+within the menu.  The default value for this
+resource (25) causes the default height to be 125% of the height of the
+font.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+</sect1>

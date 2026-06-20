@@ -1,0 +1,69 @@
+XISETCLIENTPOINTER(libmansuffix)
+================================
+
+NAME
+----
+
+   XISetClientPointer, XIGetClientPointer - set or get the
+   ClientPointer device.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   XISetClientPointer( Display *display,
+                       Window win,
+                       int deviceid);
+   
+   Bool XIGetClientPointer( Display *display,
+                            Window win,
+                            int *device);
+
+   display
+          Specifies the connection to the X server.
+
+   win
+          Specifies a window belonging to the client. May be None.
+
+   deviceid
+          Specifies the ClientPointer device.
+
+DESCRIPTION
+-----------
+
+   The ClientPointer is the device that is perceived to be the
+   core pointer for non-XI protocol requests and replies. Each
+   time a protocol message needs device-dependent data and the
+   device is not explicitly given, the ClientPointer device is
+   used to obtain the data. For example, a XQueryPointer request
+   will return the coordinates of the ClientPointer.
+
+   XISetClientPointer request sets the ClientPointer device for
+   the client that owns the given window. If win is None, the
+   requesting client's ClientPointer is set to the device
+   specified with deviceid. Only master pointer devices can be set
+   as ClientPointer.
+
+   XISetClientPointer and can generate a BadDevice and a BadWindow
+   error.
+
+   The XIGetClientPointer request returns the ClientPointer's
+   device ID for the client that owns the given window. If win is
+   None, the requesting client's ClientPointer is returned.
+
+   win may be a client ID instead of a window.
+
+   XIGetClientPointer can generate a BadWindow error.
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The device does not
+          exist or is not a master pointer device.
+
+   BadWindow
+          A value for a Window argument does not name a defined
+          window.
+

@@ -1,0 +1,219 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtCreate-Widget XtCreate-Managed-Widget XtDestroy-Widget
+.hw XtVa-Create-Widget XtVa-Create-Managed-Widget wid-get
+.na
+.TH XtCreateWidget __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtCreateWidget, XtVaCreateWidget, XtCreateManagedWidget, XtVaCreateManagedWidget, XtDestroyWidget \- create and destroy widgets
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+Widget XtCreateWidget(const char *\fIname\fP, WidgetClass \fIwidget_class\fP,
+Widget \fIparent\fP, ArgList \fIargs\fP, Cardinal \fInum_args\fP);
+.HP
+Widget XtVaCreateWidget(const char *\fIname\fP, WidgetClass \fIwidget_class\fP,
+Widget \fIparent\fP, ...\^);
+.HP
+Widget XtCreateManagedWidget(const char *\fIname\fP, WidgetClass
+\fIwidget_class\fP, Widget \fIparent\fP, ArgList \fIargs\fP, Cardinal
+\fInum_args\fP);
+.HP
+Widget XtVaCreateManagedWidget(const char *\fIname\fP, WidgetClass
+\fIwidget_class\fP, Widget \fIparent\fP, ...\^);
+.HP
+void XtDestroyWidget(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fIargs\fP 1i
+Specifies the argument list to override the resource defaults.
+.IP \fIname\fP 1i
+Specifies the resource name for the created widget,
+which is used for retrieving resources
+and, for that reason, should not be the same as any other widget
+that is a child of same parent.
+.IP \fInum_args\fP 1i
+Specifies the number of arguments in the argument list.
+.IP \fIparent\fP 1i
+Specifies the parent widget.
+.IP \fIw\fP 1i
+Specifies the widget.
+.IP \fIwidget_class\fP 1i
+Specifies the widget class pointer for the created widget.
+.IP \fI...\fP
+Specifies the variable argument list to override the resource defaults.
+.SH DESCRIPTION
+The
+.B XtCreateWidget
+function performs much of the boilerplate operations of widget creation:
+.IP \(bu 5
+Checks to see if the class_initialize procedure has been called for this class
+and for all superclasses and, if not, calls those necessary in a
+superclass-to-subclass order.
+.IP \(bu 5
+Allocates memory for the widget instance.
+.IP \(bu 5
+If the parent is a subclass of
+.BR constraintWidgetClass ,
+it allocates memory for the parent's constraints
+and stores the address of this memory into the constraints field.
+.IP \(bu 5
+Initializes the core nonresource data fields
+(for example, parent and visible).
+.IP \(bu 5
+Initializes the resource fields (for example, background_pixel)
+by using the resource lists specified for this class and all superclasses.
+.IP \(bu 5
+If the parent is a subclass of
+.BR constraintWidgetClass ,
+it initializes the resource fields of the constraints record
+by using the constraint resource list specified for the parent's class
+and all superclasses up to
+.BR constraintWidgetClass .
+.IP \(bu 5
+Calls the initialize procedures for the widget by starting at the
+.B Core
+initialize procedure on down to the widget's initialize procedure.
+.IP \(bu 5
+If the parent is a subclass of
+.BR compositeWidgetClass ,
+it puts the widget into its parent's children list by calling its parent's
+insert_child procedure.
+For further information,
+see Section 3.5.
+.IP \(bu 5
+If the parent is a subclass of
+.BR constraintWidgetClass ,
+it calls the constraint initialize procedures,
+starting at
+.B constraintWidgetClass
+on down to the parent's constraint initialize procedure.
+.LP
+Note that you can determine the number of arguments in an argument list
+by using the
+.B  XtNumber
+macro.
+For further information, see Section 11.1.
+.LP
+The
+.B XtCreateManagedWidget
+function is a convenience routine that calls
+.B XtCreateWidget
+and
+.BR XtManageChild .
+.LP
+The
+.B XtDestroyWidget
+function provides the only method of destroying a widget,
+including widgets that need to destroy themselves.
+It can be called at any time,
+including from an application callback routine of the widget being destroyed.
+This requires a two-phase destroy process in order to avoid dangling
+references to destroyed widgets.
+.LP
+In phase one,
+.B XtDestroyWidget
+performs the following:
+.IP \(bu 5
+If the being_destroyed field of the widget is
+.BR True ,
+it returns immediately.
+.IP \(bu 5
+Recursively descends the widget tree and
+sets the being_destroyed field to
+.B True
+for the widget and all children.
+.IP \(bu 5
+Adds the widget to a list of widgets (the destroy list) that should be
+destroyed when it is safe to do so.
+.LP
+Entries on the destroy list satisfy the invariant that
+if w2 occurs after w1 on the destroy list then w2 is not a descendent of w1.
+(A descendant refers to both normal and pop-up children.)
+.LP
+Phase two occurs when all procedures that should execute as a result of
+the current event have been called (including all procedures registered with
+the event and translation managers),
+that is, when the current invocation of
+.B XtDispatchEvent
+is about to return or immediately if not in
+.BR XtDispatchEvent .
+.LP
+In phase two,
+.B XtDestroyWidget
+performs the following on each entry in the destroy list:
+.IP \(bu 5
+Calls the destroy callback procedures registered on the widget
+(and all descendants) in post-order (it calls children callbacks
+before parent callbacks).
+.IP \(bu 5
+If the widget's parent is a subclass of
+.B compositeWidgetClass
+and if the parent is not being destroyed,
+it calls
+.B XtUnmanageChild
+on the widget and then calls the widget's parent's delete_child procedure
+(see Section 3.4).
+.IP \(bu 5
+If the widget's parent is a subclass of
+.BR constraintWidgetClass ,
+it calls the constraint destroy procedure for the parent,
+then the parent's superclass,
+until finally it calls the constraint destroy procedure for
+.BR constraintWidgetClass .
+.IP \(bu 5
+Calls the destroy methods for the widget (and all descendants)
+in post-order.
+For each such widget,
+it calls the destroy procedure declared in the widget class,
+then the destroy procedure declared in its superclass,
+until finally it calls the destroy procedure declared in the Core
+class record.
+.IP \(bu 5
+Calls
+.B XDestroyWindow
+if the widget is realized (that is, has an X window).
+The server recursively destroys all descendant windows.
+.IP \(bu 5
+Recursively descends the tree and deallocates all pop-up widgets, constraint
+records, callback lists and, if the widget is a subclass of
+.BR compositeWidgetClass ,
+children.
+.SH "SEE ALSO"
+XtAppCreateShell(__libmansuffix__),
+XtCreatePopupShell(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

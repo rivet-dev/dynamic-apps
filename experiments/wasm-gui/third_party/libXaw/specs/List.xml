@@ -1,0 +1,872 @@
+<sect1 id="List_Widget">
+<title>List Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	List Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>List widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application header file	&lt;X11/Xaw/List.h&gt;
+<indexterm><primary>List.h</primary></indexterm>
+Class header file	&lt;X11/Xaw/ListP.h&gt;
+<indexterm><primary>ListP.h</primary></indexterm>
+Class	listWidgetClass
+<indexterm><primary>listWidgetClass</primary></indexterm>
+Class Name	List
+<indexterm><primary>List widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Simple
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+
+The List widget contains a list of strings formatted into rows and
+columns. When one of the strings is selected, it is highlighted, and the
+List widget's <function>Notify</function> action is invoked, calling all routines on
+its callback list.  Only one string may be selected at a time.
+</para>
+<sect2 id='List::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a List widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>List widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>columnSpacing</entry>
+      <entry>Spacing</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>6</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_left_ptr</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>defaultColumns</entry>
+      <entry>Columns</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>FontStruct</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>forceColumns</entry>
+      <entry>Columns</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain the list</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>internalHeight</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>internalWidth</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>list</entry>
+      <entry>List</entry>
+      <entry>Pointer</entry>
+      <entry></entry>
+      <entry>name of widget</entry>
+    </row>
+    <row>
+      <entry>longest</entry>
+      <entry>Longest</entry>
+      <entry>int</entry>
+      <entry>A</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numberStrings</entry>
+      <entry>NumberStrings</entry>
+      <entry>int</entry>
+      <entry>A</entry>
+      <entry>computed for NULL terminated list</entry>
+    </row>
+    <row>
+      <entry>pasteBuffer</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>rowSpacing</entry>
+      <entry>Spacing</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>verticalList</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain the list</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>callback</function>
+    </term>
+    <listitem>
+      <para>
+All functions on this list are called whenever the <function>notify</function> action is
+invoked.  The <emphasis remap='I'>call_data</emphasis> argument contains information about the element
+selected and is described in detail in the <function>List Callbacks</function> section.
+<!-- .Cm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>columnSpacing</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>rowSpacing</function>
+    </term>
+    <listitem>
+      <para>
+The amount of space, in pixels, between each of the rows and columns
+in the list.
+<!-- .Cu -->
+<!-- .Cn -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>defaultColumns</function>
+    </term>
+    <listitem>
+      <para>
+The default number of columns.  This value is used when neither the
+width nor the height of the List widget is specified or when
+<function>forceColumns</function> is <function>True</function>.
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>font</function>
+    </term>
+    <listitem>
+      <para>
+The text font to use when displaying the <function>list</function>, when the
+<function>international</function> resource is <function>false</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>fontSet</function>
+    </term>
+    <listitem>
+      <para>
+The text font set to use when displaying the <function>list</function>, when the
+<function>international</function> resource is <function>true</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>forceColumns</function>
+    </term>
+    <listitem>
+      <para>
+Forces the default number of columns to be used regardless of the
+List widget's current size.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>foreground</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+used to paint the text of the list elements.
+<!-- .Hw -->
+<!-- .Ib -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>internalHeight</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>internalWidth</function>
+    </term>
+    <listitem>
+      <para>
+The margin, in pixels, between the edges of the list and the
+corresponding edge of the List widget's window.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>list</function>
+    </term>
+    <listitem>
+      <para>
+An array of text strings displayed in the List widget.  If
+<function>numberStrings</function> is zero (the default) then the <function>list</function> must be
+NULL terminated.  If a value is not specified for the <function>list</function>, then
+<function>numberStrings</function> is set to 1, and the name of the widget is used as
+the <function>list</function>, and <function>longest</function> is set to the length of the name of the
+widget.  The <function>list</function> is used in place, and must be available
+to the List widget for the lifetime of this widget, or until it is
+changed with <xref linkend='XtSetValues' xrefstyle='select: title'/> or <xref linkend='XawListChange' xrefstyle='select: title'/>.
+<!-- .In -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>longest</function>
+    </term>
+    <listitem>
+      <para>
+Specifies the width, in pixels, of the longest string in the current
+list.  The List widget will compute this value if zero (the default)
+is specified.  If this resource is set by hand, entries longer than this
+will be clipped to fit.
+<!-- .Mm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>numberStrings</function>
+    </term>
+    <listitem>
+      <para>
+The number of strings in the current list.  If a value of zero (the
+default) is specified, the List widget will compute it.  When computing
+the number of strings the List widget assumes that the <function>list</function> is NULL
+terminated.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>pasteBuffer</function>
+    </term>
+    <listitem>
+      <para>
+If this resource is set to <function>True</function> then the name of the currently
+selected list element will be put into <function>CUT_BUFFER_0</function>.
+<!-- .Pf -->
+<!-- .Pb -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>verticalList</function>
+    </term>
+    <listitem>
+      <para>
+If this resource is set to <function>True</function> then the list elements will be
+presented in column major order.
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="List_Actions">
+<title>List Actions</title>
+<indexterm><primary>List widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The List widget supports the following actions:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Highlighting and unhighlighting the list element under the
+pointer with <function>Set</function> and <function>Unset</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Processing application callbacks with <function>Notify</function>
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+The following is the default translation table used by the List Widget:
+<indexterm><primary>List widget</primary><secondary>default translation table</secondary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+&lt;Btn1Down&gt;,&lt;Btn1Up&gt;:	Set(&#x2006;) Notify(&#x2006;)
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The full list of actions supported by List widget is:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Set</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+<emphasis remap='I'>Sets</emphasis> the list element that is currently under the pointer.  To
+inform the user that this element is currently set, it is drawn with
+foreground and background colors reversed.  If this action is called when
+there is no list element under the cursor, the currently <emphasis remap='I'>set</emphasis>
+element will be <emphasis remap='I'>unset</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Unset</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Cancels the <emphasis remap='I'>set</emphasis> state of the element under the pointer,
+and redraws it with normal foreground and background colors.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Notify</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Calls all callbacks on the List widget's callback list.  Information
+about the currently selected list element is passed in the
+<emphasis remap='I'>call_data</emphasis> argument (see <function>List Callbacks</function> below).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="List_Callbacks">
+<title>List Callbacks</title>
+<indexterm><primary>List widget</primary><secondary>callbacks</secondary></indexterm>
+<para>
+<!-- .LP -->
+All procedures on the List widget's callback list will have a
+<function>XawListReturnStruct</function> passed to them as <emphasis remap='I'>call_data</emphasis>.  The
+structure is defined in the List widget's application header file.
+</para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+<indexterm significance="preferred"><primary>XawListReturnStruct</primary></indexterm>
+typedef struct _XawListReturnStruct {
+	String string;	/* string shown in the list. */
+	int list_index;	/* index of the item selected. */
+} XawListReturnStruct;
+<indexterm><primary>XawListReturnStruct</primary></indexterm>
+<!-- .NT -->
+</literallayout>
+<note><para>
+The <emphasis remap='I'>list_index</emphasis> item used to be called simply <emphasis remap='I'>index</emphasis>.
+Unfortunately, this name collided with a global name defined on some
+operating systems, and had to be changed.
+</para></note>
+<!-- .NE -->
+</sect2>
+<sect2 id="Changing_the_List">
+<title>Changing the List</title>
+<para>
+<!-- .LP -->
+To change the list that is displayed, use
+<function>XawListChange</function>.
+<indexterm significance="preferred"><primary>XawListChange</primary></indexterm>
+<funcsynopsis id='XawListChange'>
+<funcprototype>
+  <funcdef>void<function> XawListChange</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>String*<parameter> list</parameter></paramdef>
+  <paramdef>intnitems,<parameter> longest</parameter></paramdef>
+  <paramdef>Boolean<parameter> resize</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the List widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>list</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the new list for the List widget to display.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>nitems</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of items in the <emphasis remap='I'>list</emphasis>.  If a value less than 1
+is specified, <emphasis remap='I'>list</emphasis> must be NULL terminated, and the number of
+items will be calculated by the List widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>longest</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the length of the longest item in the <emphasis remap='I'>list</emphasis> in pixels.
+If a value less than 1 is specified, the List widget will calculate the
+value.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>resize</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a Boolean value that if <function>True</function> indicates that the
+List widget should try to resize itself after making the change.
+The constraints of the List widget's parent are always enforced,
+regardless of the value specified here.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<xref linkend='XawListChange' xrefstyle='select: title'/>
+will <emphasis remap='I'>unset</emphasis> all list elements that are currently <function>set</function> before
+the list is actually changed.  The <emphasis remap='I'>list</emphasis> is used in place, and must
+remain usable for the lifetime of the List widget, or until <emphasis remap='I'>list</emphasis>
+has been changed again with this function or with <xref linkend='XtSetValues' xrefstyle='select: title'/>.
+</para>
+</sect2>
+<sect2 id="Highlighting_an_Item">
+<title>Highlighting an Item</title>
+<para>
+<!-- .LP -->
+To highlight an item in the list, use
+<function>XawListHighlight</function>.
+<indexterm significance="preferred"><primary>XawListHighlight</primary></indexterm>
+<funcsynopsis id='XawListHighlight'>
+<funcprototype>
+  <funcdef>void<function> XawListHighlight</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>int<parameter> item</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the List widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>item</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies an index into the current list that indicates the item to be
+highlighted.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+Only one item can be highlighted at a time.
+If an item is already highlighted when
+<xref linkend='XawListHighlight' xrefstyle='select: title'/>
+is called,
+the highlighted item is unhighlighted before the new item is highlighted.
+</para>
+</sect2>
+<sect2 id="Unhighlighting_an_Item">
+<title>Unhighlighting an Item</title>
+<para>
+<!-- .LP -->
+To unhighlight the currently highlighted item in the list, use
+<function>XawListUnhighlight</function>.
+<indexterm significance="preferred"><primary>XawListUnhighlight</primary></indexterm>
+<funcsynopsis id='XawListUnhighlight'>
+<funcprototype>
+  <funcdef>void<function> XawListUnhighlight</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the List widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Retrieving_the_Currently_Selected_Item">
+<title>Retrieving the Currently Selected Item</title>
+<para>
+<!-- .LP -->
+To retrieve the list element that is currently <emphasis remap='I'>set</emphasis>, use
+<function>XawListShowCurrent</function>.
+<indexterm significance="preferred"><primary>XawListShowCurrent</primary></indexterm>
+<funcsynopsis id='XawListShowCurrent'>
+<funcprototype>
+  <funcdef>XawListReturnStruct<function> *XawListShowCurrent</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the List widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<function>XawListShowCurrent</function>
+returns a pointer to an
+<function>XawListReturnStruct</function>
+structure,
+containing the currently highlighted item.
+If the value of the index member is XAW_LIST_NONE,
+<indexterm><primary>XAW_LIST_NONE</primary></indexterm>
+the string member is undefined, and no item is currently selected.
+</para>
+</sect2>
+<sect2 id="Restrictions">
+<title>Restrictions</title>
+<para>
+<!-- .LP -->
+Many programmers create a <quote>scrolled list</quote> by putting a List
+widget with many entries as a child of a Viewport widget.  The
+List continues to create a window as big as its contents, but
+that big window is only visible where it intersects the parent
+Viewport's window.  (I.e., it is <quote>clipped.</quote>)
+</para>
+<para>
+<!-- .LP -->
+While this is a useful technique, there is a serious drawback.
+X does not support windows above 32,767 pixels in width or
+height, but this height limit will be exceeded by a List's
+window when the List has many entries (i.e., with a 12 point
+font, about 3000 entries would be too many.)
+</para>
+<para>
+<!-- .LP -->
+
+</para>
+</sect2>
+</sect1>

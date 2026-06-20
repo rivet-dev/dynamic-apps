@@ -1,0 +1,1681 @@
+commit 3e1b80abc029e186a41acaddbb79c0a0e9a2f4ee
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 2 11:35:15 2022 -0700
+
+    twm 1.0.12
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 216d28095911507db38d8b15eaedd87fb3faa6d1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Dec 4 11:09:26 2021 -0800
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1ec1f06dafe5510426ba2d3396d65acfd49b347b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 28 12:10:01 2021 -0800
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 12ae76feef16024a0911b0e61e64266b449599e7
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 13:04:21 2020 -0400
+
+    quiet a misleading warning in grammar
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 58a64fd73dd7a840fadebbc81126282cf3979b30
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 12:15:01 2020 -0400
+
+    issue #8: twm displays all windows as "Untitled"
+    
+    adapt the suggestion to use XFetchName to work around a system whose locale
+    support is broken, but rather than break existing configurations, use that
+    call as a fallback when the existing/working calls fail.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a754e9f5c5735787a8e22839824a33546a9c43ef
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 11:37:21 2020 -0400
+
+    mention newer behavior of -q/-v options
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a4b14ca34b68f5a6a496aec53dafd4ee06222f83
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 11:31:27 2020 -0400
+
+    X11R5 change lost the update for yylineno needed to make parse messages
+    useful; a subsequent X11R6 change made the behavior a little worse.
+    This change repairs that old damage.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit ebaf16b08d739e798b36a0bc2ff139d068612d4d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 09:47:58 2020 -0400
+
+    include twm.h in header files which rely upon its definitions
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 68703413c5d6d800f0f79d08ad51a86dc53713ce
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 09:25:49 2020 -0400
+
+    indent lex/yacc files using xxx-indent (twm-indent uses GNU indent, which
+    does not handle those files).
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 8a43400ccf2b23f60d1101ea4d348058e7ad3c36
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sun Jun 21 09:18:27 2020 -0400
+
+    add/use new function parseWarning, which honors -v/-q options
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit fc19a82a10dc797605d6cb5d9028685644c6db3d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Jun 20 05:28:14 2020 -0400
+
+    make the "-V" version print less cluttered (and more like most programs)
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit d2690bc70d707b7a3a49839787d20eabc138e391
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jun 19 20:27:03 2020 -0400
+
+    use new warning-message functions in the remaining places where suitable,
+    since -q option can be used to silence those if wanted
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 248be9688c23f249f1ecf1860f6f4cb09e56fab2
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Fri Jun 19 20:23:42 2020 -0400
+
+    add/use functions to make warning messages more consistently use the program name as a prefix
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a9d6701d977700b18e31a70cc7982431bc702095
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Thu Jun 18 18:34:59 2020 -0400
+
+    fix the cppcheck style- and format-warnings
+    also bump version to 1.0.11.1, reflecting ongoing work since release
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit d2b4f0598086d4dd5caf3cdc218d0f97c37229ac
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Thu Jun 18 04:22:11 2020 -0400
+
+    remove clutter not needed with Xorg
+
+commit 54461320a78cb69b2a5fa3c3d27dd69d9cdd31da
+Merge: b356cd5 46e7ae0
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 16:54:32 2020 -0400
+
+    Merge branch 'master' into dickey
+
+commit 46e7ae05d6fdd700364cb48e27f57e249e958f95
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 16:50:52 2020 -0400
+
+    allow most options to be long/abbreviatable for consistency,
+    and document (except for the print-extension) all of the options
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 8f1b54ee608af86d448a9981257fa58727dfe6fc
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 15:56:04 2020 -0400
+
+    add "-V" version-message
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 2741e9b381570f362732061dbca7835c8c185e9b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 15:27:52 2020 -0400
+
+    eliminate some unnecessary(?) goto statements
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 49e2c2127743e702154bc4efc040be7bfaaf6433
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 15:07:37 2020 -0400
+
+    adapted/updated patch from Debian #956434
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit b356cd5684a2e6a3a8987390ceb99c67c2a91b5e
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Wed Jun 17 15:07:37 2020 -0400
+
+    adapted/updated patch from Debian #956434
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit b6311b0699992036e81a1ed58906114fc517ae7d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 16 20:42:13 2020 -0400
+
+    updated patch to work with code, reflect a change made in 2016...
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 60bbd1b24a640e26a3f71f8eb35b5c031642a5e5
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 16 20:25:31 2020 -0400
+
+    use Debian's package-files as starting point for test-packages
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 08f44086320c6bc5f2c7eb6457a0d53192832805
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jun 16 18:36:50 2020 -0400
+
+    eliminate a fixed-size buffer in Execute() function.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit ac802fe10221ef3c6426ac1ebf4a250f189d1228
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jun 15 20:05:53 2020 -0400
+
+    issue #1: twm random window placement handles large windows poorly
+    
+    report/patch by Preston Crow for improved window placement
+    (reindented to fit with current sources)
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c2859ef3eb3b9ab2747d74c7a5d0235f8622d23e
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Sun Jun 14 16:54:53 2020 -0700
+
+    twm 1.0.11
+    
+    Signed-off-by: Matt Turner <mattst88@gmail.com>
+
+commit f320e1bb447c01fc3e42ae3e350c69862b8795b8
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Sun Jun 14 16:54:42 2020 -0700
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Matt Turner <mattst88@gmail.com>
+
+commit c5df45a0721c75788cbdfe89992fdc97f1d47c34
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 15:53:12 2019 -0500
+
+    an error in the action for warp-to-ring would produce two error messages
+    because the case lacked a break-statement
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 35f696e8c51b3fa6b8f6f2e8baa038ae8f77bc2d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 15:50:54 2019 -0500
+
+    strict gcc-warning fixes, no object-change
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit fc3c537836adbe209ab98e08b345874f522027cc
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 15:48:02 2019 -0500
+
+    whitespace-fixes
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit eb98aefe4702310474ed11aefd3d50c4520ad0cd
+Merge: 077a496 f973b77
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 05:54:50 2019 -0500
+
+    Merge remote-tracking branch 'upstream/master'
+
+commit f973b774e8b1732afbe5a41543a2c7d556845c5d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 05:48:34 2019 -0500
+
+    Formatted most of the C files using "twm-indent", part of cindent at
+            https://invisible-island.net/cindent/
+    That is essentially a script which adds typedefs to the x-indent.sh script.
+    No object-code changed in this reformatting.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 077a496c38fc993d7691ce5aab1e9c2b4aee4b02
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Sat Nov 23 05:48:34 2019 -0500
+
+    Formatted most of the C files using "twm-indent", part of cindent at
+            https://invisible-island.net/cindent/
+    That is essentially a script which adds typedefs to the x-indent.sh script.
+    No object-code changed in this reformatting.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit e2a533d16e047af1c5db19aa9340414b33061d2d
+Author: Maya Rashish <maya@NetBSD.org>
+Date:   Fri Sep 13 13:01:00 2019 +0300
+
+    Correct system.twmrc location.
+
+commit 2e0923ba703d040160bac1deb05d5d6d4cbd62aa
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 20:43:14 2019 -0400
+
+    bump minor version for issue #2
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 98ff71aff13d9e35bb2436a15ea3fd38ea2fffa4
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 20:40:50 2019 -0400
+
+    issue 2: twm doesn't handle RandR screen size changes
+            patch submitted by Preston Crow
+            modified to check if xrandr development header/library is available
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 9f3f818068ba54ab2b46142e73100ef10a0bda0b
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 18:25:53 2019 -0400
+
+    bump minor version to reflect issues #4 and #7
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 5e1798773d837eabaa70d0fff5762397f540ee00
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 17:06:02 2019 -0400
+
+    caddr_t used to be used in X code before XPointer was established; it's obsolete and less portable
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit b09c794f975d4b11685ac31884b8a6fd73b1ff15
+Merge: 7545239 6b4b0fb
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 16:59:53 2019 -0400
+
+    Merge branch 'master' into dickey
+
+commit 6b4b0fb50a75d9336a123899138cc479d6d9765d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 16:55:25 2019 -0400
+
+    issue 4: twm makes windows too wide
+            https://gitlab.freedesktop.org/xorg/app/twm/issues/4
+            patch submitted by Jes Bodi Klinke
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 9cf220752302be2ac965cfefdd0a0c29b3db19e2
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 05:04:37 2019 -0400
+
+    fix const-warnings by making a copy of the data
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit a4659e5c49119bb3114ad18efffd945ec7bd5ba0
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:40:55 2019 -0400
+
+    fix const-warnings in grammar using a non-const initializer
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 99bad1baa20fafb47aa07925b3960b003aa160df
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:34:18 2019 -0400
+
+    constify deftwmrc[], to fix gcc-stricter warnings
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 43e36f1b95c40966c6e6e3ae4acd5c2974b1cc53
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:33:26 2019 -0400
+
+    gcc-stricter warnings, no object change
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 7545239de1666f9d1c2027ded3b3af053c1eb6f5
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 05:04:37 2019 -0400
+
+    fix const-warnings by making a copy of the data
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 87281920e1d15d4dc5c50f79750ab9ff173c0e8d
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:40:55 2019 -0400
+
+    fix const-warnings in grammar using a non-const initializer
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 58ec53e44bb2b00bc104324a0f32e19dcab2ad34
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:34:18 2019 -0400
+
+    constify deftwmrc[], to fix gcc-stricter warnings
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 05814df9c0be77ff0168a22415e2282d093df5d5
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 04:33:26 2019 -0400
+
+    gcc-stricter warnings, no object change
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit cb7840991612fbbe259bf07c53f34577c5b5c2b9
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Tue Jul 16 03:58:51 2019 -0400
+
+    ignore LOGS generated in test-builds
+
+commit 0c045ca14adb853932e39ae5c2d07f9008ab4ee8
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 15 20:42:52 2019 -0400
+
+    cleanup manual page, using check-manpage (xterm)
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit c3ff775bfe4556ffbe920cbfbc860e471dfc7f07
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 15 19:58:35 2019 -0400
+
+    fix gcc-normal compiler warnings, no object change
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit f7a9ead69089a862fbd9aab6995980d3ecd290bf
+Author: Thomas E. Dickey <dickey@invisible-island.net>
+Date:   Mon Jul 15 17:14:59 2019 -0400
+
+    issue 7: check if there are no fonts found for the fontset, and fallback to fixed in that case.
+    
+    Signed-off-by: Thomas E. Dickey <dickey@invisible-island.net>
+
+commit 55a26c49c8a976abb0ead8bd58da6260de61b739
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri May 31 12:43:04 2019 -0700
+
+    Make some char pointers const as necessary to clear some gcc warnings
+    
+    twm.c:544:20: warning: assignment discards ‘const’ qualifier from
+     pointer target type [-Wdiscarded-qualifiers]
+      Scr->iconmgr.name = "TWM";
+                        ^
+    twm.c:545:25: warning: assignment discards ‘const’ qualifier from
+     pointer target type [-Wdiscarded-qualifiers]
+      Scr->iconmgr.icon_name = "Icons";
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ee3dcf350b5621d7965a8b8185a3dc534bcc46c7
+Author: Bryan Kadzban <github@kadzban.net>
+Date:   Sun Sep 11 15:20:13 2016 -0700
+
+    Read system.twmrc from where it got installed
+    
+    ${rcdir} is ${datadir}/X11/twm by default, but can be overridden when
+    running make.  If it is overridden, then the code should read from the
+    same place as where "make rcdir=FOO install" puts the file.
+    
+    (Obviously overriding rcdir= for "make install" requires overriding it
+    for "make" as well.  But at least this way it's possible to get it to
+    work.  :-) )
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3045f271739da5068b1744f0dc4848d8a5ef7d06
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 21 16:58:08 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b78dccab895bb14f79b45d78ce70c4bcaf65738b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Nov 16 20:52:05 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 777236e942ae85bcacfdc2e086944a42cfed5b45
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Sep 30 14:35:15 2018 -0700
+
+    If we can't find a colormap to replace, insert new one instead of leaking it
+    
+    Found by Oracle's Parfait 2.2 static analyzer:
+    
+    Error: Memory leak
+       Memory leak [memory-leak] (CWE 401):
+          Memory leak of pointer sc allocated with malloc(32)
+            at line 421 of src/util.c in function 'InsertRGBColormap'.
+              sc allocated at line 397 with malloc(32)
+              sc leaks when replace != 0 at line 405.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4512f268c689db62b46c88e813935c66eda14742
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Sep 30 14:28:35 2018 -0700
+
+    When replacing a colormap, free old map, not new one
+    
+    Found by Oracle's Parfait 2.2 static analyzer:
+    
+    Error: Use after free
+       Use after free [use-after-free] (CWE 416):
+          Use after free of pointer Scr
+            at line 421 of src/util.c in function 'InsertRGBColormap'.
+            Invalid pointer accessible via global Scr at line 105 of src/twm.c
+              maps escapes to sc->maps at line 419 of src/util.c in function 'InsertRGBColormap'
+              maps freed with XFree at line 406
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ca032d147824861b2451c5b0ff715429f055cfe1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Mar 6 23:09:04 2018 -0800
+
+    twm 1.0.10
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9703527df12caf896963a0f39db79e58f2ab2bfa
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 14:00:20 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit d58f4564f5621ec6c0e7ea6ee9d647845ac11352
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ca0c7a4eee66c96e6d449a58742d749c20aa494d
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit c5abcb619eb0b01f074fd9acb9128f19af774834
+Author: Thomas Klausner <wiz@NetBSD.org>
+Date:   Wed Sep 23 20:53:24 2015 +0200
+
+    Adapt callers to ExpandFilename change.
+    
+    It now always allocates memory, so remove some unnecessary checks.
+    While here, improve handling of an error case.
+    
+    Signed-off-by: Thomas Klausner <wiz@NetBSD.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit cb5dc44303e8496450a649a97540e55887e1fe22
+Author: Christos Zoulas <christos@NetBSD.org>
+Date:   Wed Sep 23 10:57:44 2015 +0200
+
+    Add some const.
+    
+    Signed-off-by: Thomas Klausner <wiz@NetBSD.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c644db2c3a1b6c9e5e99da130493a978a7d08010
+Author: Michael van Elst <mlelstv@NetBSD.org>
+Date:   Sun Jul 19 12:04:52 2015 +0200
+
+    Do not try to extend the font-pattern with a wild-card.
+    
+    This will almost always select the wrong fontset and use wrong metrics.
+    
+    Signed-off-by: Thomas Klausner <wiz@NetBSD.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b52e4041054b580bace70d9db5e7e3d90b33ad6d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Apr 16 22:36:31 2015 -0700
+
+    twm 1.0.9
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8f68d82c5f6cff9b22dc3335f956453679b207ad
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Dec 31 09:50:11 2014 -0800
+
+    Remove custom version of system(3c) for Solaris
+    
+    Was originally added in 1993 with the comment:
+     make f.exec do the right thing to get working xterms under Solaris2.
+    
+    Doesn't seem to be needed any more on modern Solaris.
+    As a bonus, gets rid of error found by Oracle Parfait 1.5.1 that
+    if the execl() call fails, the function falls through and returns
+    an uninitialized value for status and then both parent & child
+    go back to running the same code.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 032fc6a734516189e11b43e0b4680d15b62c5e66
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Dec 31 00:49:34 2014 -0800
+
+    Only use results from GetWindowProperty if it returned success
+    
+    Since Xlib prior to 1.6 didn't always clear values on failure, don't
+    assume they're safe to use unless we succeeded.
+    
+    Reported by Oracle Parfait 1.5.1:
+    Error: Uninitialised memory (CWE 456)
+       Possible access to uninitialised memory '&nPixels'
+            at line 963 of src/parse.c in function 'put_pixel_on_root'.
+              &nPixels allocated at line 953.
+       Possible access to uninitialised memory '&retProp'
+            at line 962 of src/parse.c in function 'put_pixel_on_root'.
+              &retProp allocated at line 954.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 76f6ad6e96b1ce62a32767bc0478a17b8b9204d7
+Author: Laurent Carlier <lordheavym@gmail.com>
+Date:   Mon Aug 4 16:39:24 2014 +0200
+
+    Update manpage with the proper location of system.twmrc file
+    
+    Signed-off-by: Laurent Carlier <lordheavym@gmail.com>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0cb43e864b2e9972630556e98caa24abf8928122
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Jun 2 22:06:21 2014 -0700
+
+    autogen.sh: Honor NOCONFIGURE=1
+    
+    See http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c33c83fb83be7f6402b615b4b32b5dc2036b951d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Jun 2 22:06:21 2014 -0700
+
+    configure: Drop AM_MAINTAINER_MODE
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9c09c3e3577460fcef44e7abe51d22fcbda10ea8
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Oct 25 21:51:37 2013 -0400
+
+    config: replace deprecated use of AC_OUTPUT with AC_CONFIG_FILES
+    
+    Fix Automake warning: AC_OUTPUT should be used without arguments.
+    www.gnu.org/software/autoconf/manual/autoconf.html#Configuration-Files
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 46c4255ba661145df429d9dc190355a9661da3c1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 6 18:59:24 2013 -0700
+
+    twm 1.0.8
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 97b55a970dc5281c2d41500990d99fcd24d2dd5f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 18 10:50:01 2013 -0700
+
+    Replace malloc(strlen()+1); strcpy(); pairs with strdup()
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8b2a314c267071656ca4d86bae56c6d82bb8127a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 18 10:42:45 2013 -0700
+
+    AddWindow: Use NULL instead of 0 for null pointer check
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c2e232e6915356eba3edf2efea99720746694c52
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 18 10:28:21 2013 -0700
+
+    Stop casting return values from malloc & calloc
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 58f3c3b8d518786764f45ac2be1f1f0850129125
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Aug 18 10:18:21 2013 -0700
+
+    Stop casting pointers to (char *) when freeing them
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 2a637337713c5c92c44249b88e31696ce9efdf9b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 23:28:42 2013 -0700
+
+    Delete trailing whitespace in non *.[ch] source files
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ce4e11143f982234be1076e384b31228f1cc84ae
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 22:54:01 2013 -0700
+
+    Make more functions static that aren't called from other files
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8a3d3a58350506a99efd24f9856466a99bbb9c51
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 22:28:11 2013 -0700
+
+    Assume C89 signal handlers, returning void
+    
+    Removes old #ifdef SIGNALRETURNSINT check that was never defined in
+    autoconf builds, only old Imake builds.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit afcad0de54ecd1a8bfaf261e4e6882985a234963
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 22:24:22 2013 -0700
+
+    Make some more previously global variables into file-scoped statics
+    
+    Not used from other source files, so no need to export them
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4c2ff3f0a6bae8b369dfb74267f7fa52d511dfb2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 22:21:00 2013 -0700
+
+    Remove unused global variable gotFirstSave
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ca038999b5c1387f3aa19baeafc81a27563631b1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 31 22:04:39 2013 -0700
+
+    unifdef macII - drop support for A/UX 2.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 55681f9d66b788b2e86a5ad3c0722904fa020962
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jul 30 22:15:28 2013 -0700
+
+    Make various helper & callback functions private to session.c
+    
+    Nothing else ever called them, so no reason to export them.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by:  <wharms@bfs.de>
+
+commit cf88a8c16958ddfaeff6349d30c6c423fc4a7afa
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jul 30 22:11:51 2013 -0700
+
+    Convert remaining K&R function declarations to C89 style
+    
+    Many existing function declarations were C89, and headers all use C89
+    prototypes, but a few function declarations had been left in the old
+    style.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by:  <wharms@bfs.de>
+
+commit ea349d3c406695665322c71caf5ea3c970cb3155
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jul 30 21:57:04 2013 -0700
+
+    Use (void) to declare functions that take no arguments, instead of ()
+    
+    It's time for C89.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by:  <wharms@bfs.de>
+
+commit abb8b6198b639359f34ab6f0ab97039016d8b6db
+Author: Colin Harrison <colin.harrison@virgin.net>
+Date:   Fri Jul 19 00:48:09 2013 +0100
+
+    Syntax error in recent twm commit
+    
+    twm needs a typo/syntax correction following a recent commit.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e84f2e87222879ca667c1fb3d1cb3236a1159d12
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 18 00:24:30 2013 -0700
+
+    Constification cleanup - fix dozens of gcc warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b16ce9773e4da5897ab546de85e48a3ea58d0e00
+Author: Eric S. Raymond <esr@thyrsus.com>
+Date:   Wed Jun 19 05:39:10 2013 -0400
+
+    Don't rely on the ability to set tab stops.
+
+commit 07ed63f865f6fef4c14711063534b73eb33e0cdb
+Author: Egbert Eich <eich@freedesktop.org>
+Date:   Thu May 19 11:08:21 2011 +0200
+
+    Fix SEGV if CreateColormapWindow() returns NULL.
+    
+    twm can segfault when it cannot collect attribute information on
+    a window that has been destroyed before it got a chance to collect
+    it's attributes.
+    twm seems to assume that it is always able to collect this information
+    and disregards the error if the function that attempts to collect it
+    fails and CreateColormapWindow() returns NULL.
+    If this happens correct number_cmap_windows to prevent a SEGV later
+    on due to an incorrect setting.
+    
+    Signed-off-by: Egbert Eich <eich@freedesktop.org>
+
+commit b62e91790d1f07f729d4221c878a0847ff14ad82
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 11:38:33 2011 -0800
+
+    Terminate execl() arguments with NULL instead of 0
+    
+    Makes sure that a full 64-bits of 0 is passed in 64-bit builds, and
+    clears gcc warning of:
+    
+    menus.c: In function ‘System’:
+    menus.c:2344:2: warning: missing sentinel in function call
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4c5e72e9d8571bfb2a98d1ffc9724596764f5b0b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jul 27 20:33:13 2011 -0700
+
+    twm 1.0.7
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f21823506dcb956d62c260e6e207f1dc2ce7732a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 14 22:04:34 2011 -0700
+
+    Whitespace fixes in src files
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c6ade914363426facb01a954650b804657114012
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jul 12 22:30:41 2011 -0700
+
+    Replace most sprintf calls with snprintf
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ab689e1a711bbbdfcd6d3a8d2edebbc378ebccb7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 7 20:05:45 2011 -0500
+
+    config: layout the C flags for better readability
+    
+    Group pre-processor flags under AM_CPPFLAGS
+    Might as well do the rest of the file.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f048770b021d92780c754257c9c1efa7a769c69c
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 7 19:47:48 2011 -0500
+
+    man: use Autoconf provided $(SED)
+    
+    Use platform appropriate version of sed.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 356ca1db47be674aa9125b65668e8fe0573f7f69
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 7 19:37:48 2011 -0500
+
+    config: rm is about removal, not generation
+    
+    Automake:
+    AM_V_at as a prefix to commands that should not output anything in silent mode
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 6f362f8d962ff7054682cfb2d88e8603e1219492
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 7 16:43:59 2011 -0500
+
+    deftwmrc.c is not required in MAINTAINERCLEANFILES
+    
+    Automake takes care of that as it is part of BUILT_SOURCES
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 98e224e3da245f29d281df357d27b53acdccb5c7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 7 16:10:53 2011 -0500
+
+    lex & yacc: only header file needs to be in BUILT_SOURCES
+    
+    http://www.gnu.org/software/automake/manual/automake.html#Yacc-and-Lex
+    
+    This completes reversal of commit ea03b6bcd1045dfc0d6947e4858de8994d61170b
+    The Makefile generates a valid "gram.h: gram.c" rule.
+    The Makefile already has gram.c gram.h and lex.c in the
+    maintainer-clean-generic target.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 70a7f34dfc4d7ea4f7425b9a7359a08a35752bb0
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:41:56 2011 -0700
+
+    Add extra sanity checking to avoid possible NULL dereferences
+    
+    menus.c:569:10: warning: Access to field 'func' results in a dereference of a null pointer (loaded from variable 'ActiveItem')
+                if (ActiveItem->func != F_TITLE && !ActiveItem->state)
+                    ^~~~~~~~~~
+    
+    Found-by: clang static analyzer
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Acked-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a898b136729660a33d60b317ccb839f6e0428201
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:30:56 2011 -0700
+
+    Add sanity checking to avoid a possible NULL dereference
+    
+    menus.c:934:26: warning: Access to field 'fore' results in a dereference of a null pointer (loaded from variable 'cur')
+                cur->hi_back = cur->fore = f3.pixel;
+                               ~~~  ^
+    
+    Found-by: clang static analyzer
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Acked-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1061e063be78f4e233d550649ce297b639193a9f
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:27:21 2011 -0700
+
+    Address a possible NULL pointer dereference
+    
+    menus.c:523:24: warning: Access to field 'w' results in a dereference of a null pointer (loaded from variable 'ActiveMenu')
+            if (XFindContext(dpy, ActiveMenu->w, ScreenContext, &context_data) == 0)
+                                  ^~~~~~~~~~
+    
+    Found-by: clang static analyzer
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Acked-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit bde0b06b465adb868d38d3721b95ea337bad8eb9
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:22:25 2011 -0700
+
+    Mark Done() as _X_NORETURN
+    
+    list.c:103:11: warning: Access to field 'next' results in a dereference of a null pointer (loaded from variable 'nptr')
+        nptr->next = *list_head;
+        ~~~~  ^
+    
+    Found-by: clang static analyzer
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 2f5d1e29f5a803ba2417d6fe20782c05ed932612
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:17:54 2011 -0700
+
+    Silence uninitialized warning
+    
+    session.c: In function 'ReadWinConfigFile':
+    session.c:554: warning: 'version' may be used uninitialized in this function
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit ef39179b9fe6d13f7e81098edfc10711c8b40948
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Wed May 11 22:16:23 2011 -0700
+
+    LP64: Fix formatting for DEBUG printf
+    
+    add_window.c: In function 'AddWindow':
+    add_window.c:169: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'Window'
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 0f1ccd0b3409ab9b9fce1256fc59ad9bbe69a349
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue May 10 15:35:51 2011 -0700
+
+    Fix: menus.c:2374: warning: implicit declaration of function `putenv`
+    
+    Ensure _GNU_SOURCE is defined on Linux builds before including <stdlib.h>
+    so the prototype is exposed in the header properly.
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=32696
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+
+commit 75dd868133c5c12daa946468e7250d174f842281
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon May 9 22:46:03 2011 -0700
+
+    Remove unused fallback implementation of putenv()
+    
+    NOPUTENV was never defined in a modular build, probably because putenv()
+    is a standard function in Unix98 / SUSv2, and goes back to at least
+    SVR2 and 4.3BSD-Reno.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Matthieu Herrb <matthieu.herrb@laas.fr>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+
+commit 5b763259451b7798b1004c49775d1bd3df2f9d88
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Mar 4 20:57:30 2011 -0500
+
+    man: replace hard coded section number with __appmansuffix__
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 611f20e896aa533f0f3e5cd6c8fdd7c381963c95
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jan 5 16:12:42 2011 -0800
+
+    Fix many gcc strict-aliasing warnings
+    
+    menus.c:518: warning: dereferencing type-punned pointer will break strict-aliasing rules
+    
+    and many more of the same message at different lines
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b160f7bcb99111e631d6701b199f1dad1e40c80d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jan 5 14:09:15 2011 -0800
+
+    twm 1.0.6
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1347a210cafa75db40198f8f9e3ca36f8e627bf6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 24 15:28:47 2010 -0800
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Regroup AC statements under the Autoconf initialization section.
+    Regroup AM statements under the Automake initialization section.
+    Add missing AC_CONFIG_SRCDIR
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1ca7092e44e87038ba95a962a3c952ef72b4f146
+Author: Martin Jansa <Martin.Jansa@gmail.com>
+Date:   Mon Nov 1 09:54:44 2010 +0100
+
+    config: replace AC_CHECK_FILE with test -f
+    
+    * AC_CHECK_FILE doesn't work for cross compilation
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b3af92c7bca31b3bf73428d46291b88c3f86026e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Oct 30 15:03:50 2010 -0700
+
+    twm 1.0.5
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7f164a9631e4ec26657bedeb947409d0b484e967
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Oct 30 15:01:43 2010 -0700
+
+    Sun's copyrights now belong to Oracle
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 357d089016bd889f2f73349c3f977c6adccc85a6
+Author: Jesse Adkins <jesserayadkins@gmail.com>
+Date:   Tue Sep 28 13:29:49 2010 -0700
+
+    Purge cvs tags.
+    
+    Signed-off-by: Jesse Adkins <jesserayadkins@gmail.com>
+
+commit 4c7c2ece9e152358448406b759c30eb44eea13f9
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Sep 23 00:11:56 2010 -0700
+
+    config: upgrade to util-macros 1.8 for additional man page support
+    
+    Use MAN_SUBST now supplied in XORG_MANPAGE_SECTIONS
+    The value of MAN_SUBST is the same for all X.Org packages.
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    The existing statement can now be removed from the configuration file.
+    
+    Use automake provided $(AM_V_GEN) and XORG_DEFAULT_OPTIONS provided $(SED)
+    Enables silent rule and use platform appropriate version of sed.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3bcc18ca9968a33dbf3e8df920f08227f95d8a72
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 22 23:59:32 2010 -0700
+
+    Silence build of deftwmrc.c with AM_V_GEN
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 282060f633c1a0910522f64cf36222a27016bf77
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 22 23:37:21 2010 -0700
+
+    system.twmrc doesn't need to be in both EXTRA_DIST & dist_rc_DATA
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 810922b19b86c1ddd5ef9c9169d1328b3562af77
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 22 23:33:22 2010 -0700
+
+    config: Remove unnecessary calls from configure.ac
+    
+    AC_PROG_CC & AC_PROG_INSTALL are provided by XORG_DEFAULT_OPTIONS now
+    PKG_CONFIG_MODULES handles AC_SUBST of the CFLAGS & LIBS variables
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 79e3387e7a2d35f5895f813a4572a93457114e3c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 22 23:23:26 2010 -0700
+
+    Use AC_CHECK_FUNCS / default name for mkstemp
+    
+    No longer need to maintain #ifdef compatibility with the names used in
+    the monolith Imakefiles.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3bac463f63b4c1e667256c7d2d287b3567a7ff1c
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Jul 20 18:45:18 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 40480fdbe6c15076a2e734cae246c62c85862829
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Aug 6 08:27:35 2010 -0700
+
+    Fill in COPYING file with copyright notices from source code
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a9f315f32bcc0636ada7427be9e3c5e3810af05e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Jul 17 16:36:41 2010 -0400
+
+    config: allow to build tarball when yacc is missing
+    
+    Autoconf does not handle this scenario as well as Automake does.
+    If gram.c is already there, do not abort the configuration
+    if yacc is missing as it is not needed.
+    
+    If both gram.c and yacc are missing, abort configuration.
+    Yacc is a required tool to build the package.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 29a157f7f181ac02c88537032dbcca29880c3068
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 4 17:09:18 2010 -0400
+
+    config: add check for yacc to insure it is installed #27973
+    
+    Unlike other macros AC_PROG_YACC sets the YACC variable to "yacc"
+    as a last resort, even if no programs have been found. Improve error
+    checking by issuing an error message if yacc is not found. The module
+    cannot build anyway.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d0da74f035fd3595b5ddfb6ded29bdc5f9666ceb
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jan 14 21:40:48 2010 -0800
+
+    Update Sun license notices to current X.Org standard form
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 9adc93df944e203726d09716dc3bfbbc6cf304ae
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Nov 26 09:19:52 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit 2386d631c301233899bdcc6381203bcbd1139ab3
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:08 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit 7f4c2b588bc94702eb0df0618a97413b0e544879
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:24 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit 5c13f89a73f7b57dad9c9dcfd63e084077550c3e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:38 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit 3d6678095a3553b9ab36d60e6a254acfbdc831c1
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 16:25:53 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit a3f6e3cbd99b6394c3dc70d54f07f129b4ece70c
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:20 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit 06d15a482a596f1d846b97627badd28381c2e7b2
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Oct 1 14:54:20 2009 -0700
+
+    Add README with pointers to mailing lists, bugzilla, & git
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 4d9e3200b1625ad24053ce5f1ca816a03939c6d5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Jul 7 17:32:01 2009 -0400
+
+    twm: use XORG_CHANGELOG macro to create ChangeLog. #22611
+    
+    Build break: app/twm/Makefile.am: command not found: git-log
+    Adding the macro in configure.ac and use it in Makefile.am
+    Refer to: https://bugs.freedesktop.org/show_bug.cgi?id=22611
+    Tested: running autogen.sh, make and 'make dist'
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1fa03c39bddace4d787c55703f3081bcaf36511b
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Thu Mar 6 16:52:54 2008 -0500
+
+    twm 1.0.4
+
+commit d28dffd63bd5070445b15d1b9b70f3303ec5e333
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Feb 21 08:16:39 2008 -0800
+
+    Change twm_CFLAGS to AM_CFLAGS to make automake-1.10 happier
+    
+    src/Makefile.am:35: compiling `add_window.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
+
+commit ca9494bf50c9314597f4e88efa5bf5d66c1cd38f
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Feb 21 08:14:01 2008 -0800
+
+    Explicitly require libSM & libICE since twm calls them directly
+
+commit f0543e7ff17f6e8aefbd6cc003d0679a706a8535
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 16:37:07 2007 -0500
+
+    Replace static ChangeLog with dist-hook to generate from git log
+
+commit 44d51a2bc7d1e2fc5fcd3f729b6f0ca6e62e1f00
+Author: Wolfgang Rupprecht <wsr+xorg@wsrcc.com>
+Date:   Mon Jan 23 15:11:00 2006 -0800
+
+    X.Org Bug #5691: twm mouse button limit too low
+    
+    <https://bugs.freedesktop.org/show_bug.cgi?id=5691>
+
+commit 03a4e6c35161402d1477acb95723ab93eabde97e
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Mon Sep 3 05:51:13 2007 -0400
+
+    Add *~ to .gitignore to skip patch/emacs droppings
+
+commit 9ae787c9f0d02aeb4c67fd20cee08d3cccd99fb4
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Aug 23 19:24:38 2007 -0400
+
+    Rename .cvsignore to .gitignore
+
+commit 5f70aaffa0fa88a4b08ea40cfdbde5f34d20d366
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Thu Nov 30 19:56:29 2006 +0200
+
+    bump to 1.0.3
+
+commit f27c4a577f68673e5022db1a4db79da9a3d05502
+Author: Matthieu Herrb <matthieu@bluenote.herrb.com>
+Date:   Tue Nov 28 13:24:08 2006 +0000
+
+    Fix system.twmrc handling
+
+commit 6736d9094d2719f21e3ba0050aad88f3ffc78dc4
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 17:47:24 2006 -0400
+
+    Bump to 1.0.2
+
+commit 4bc5a25c21006e547ff7fce7fff7544acbb22174
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jun 3 07:06:42 2006 +0000
+
+    Coverity #369: If malloc of entry->wm_command fails, error cleanup was
+        still trying to read pointers from it to free.
+
+commit 9680fbed52e3af20d226040958f91502b6027d2d
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jun 3 06:54:20 2006 +0000
+
+    Coverity #1508: Variable "action" not freed or pointed-to
+
+commit ab7a497d995347e340c28c4eb0d1f0f9ee298e41
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Dec 21 02:29:47 2005 +0000
+
+    Update package version for X11R7 release.
+
+commit 4bd96f2d5d976dbd17bac563504985a1bc793ffe
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Mon Dec 19 16:22:41 2005 +0000
+
+    Stub COPYING files
+
+commit 2c1cd456efe91302b0de645ea36a84c49472f104
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:04 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 9f88f7db68e146c1d1b60a988f68f1528350a9a8
+Author: Kevin E Martin <kem@kem.org>
+Date:   Tue Dec 6 22:48:19 2005 +0000
+
+    Change *man_SOURCES ==> *man_PRE to fix autotools warnings.
+
+commit 466a35f33d48427d7f5a186cf60fddd070ce2d71
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:17 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit 81d2d1208b1445f60e10186b61e472b22ac47712
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Nov 28 22:01:39 2005 +0000
+
+    Change *mandir targets to use new *_MAN_DIR variables set by xorg-macros.m4
+        update to fix bug #5167 (Linux prefers *.1x man pages in man1 subdir)
+
+commit 6897ce2b13a0b651c8bb56b833e51125d678ea81
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Mon Nov 21 10:34:58 2005 +0000
+
+    Another pass at .cvsignores for apps.
+
+commit 3cf0d5d098a049e1113dad20699b07d1a91fd9ca
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Sun Nov 20 22:08:50 2005 +0000
+
+    Add/improve .cvsignore files for apps.
+
+commit d99f0e0b2577cbdfea2a51d8ca20aff080539b60
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:36 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit 6dfc0dee6645c7620cc2fb9a5d44b041cb6558b6
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:47:50 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 43fb7218e8723f6f3321ec406745971ca5fd0d00
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Oct 17 23:56:21 2005 +0000
+
+    Use @APP_MAN_SUFFIX@ instead of $(APP_MAN_SUFFIX) in macro substitutions to
+        work better with BSD make
+
+commit a85acab665c375d14ae15ef90f6baf8b47c7032b
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun Oct 16 22:32:51 2005 +0000
+
+    Capitalize O in "X.Org Foundation"
+    Use cpp to substitute variables in man pages
+
+commit a3bbaecf0502d58cf0bc7ff7db99e9239c6e822c
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Oct 15 19:19:03 2005 +0000
+
+    Have generated files be cleaned by maintainer to pass check-tarball test.
+
+commit 7ccfcb8e4f4caabba7c26de42ce2db252b5b0817
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun Oct 9 19:11:53 2005 +0000
+
+    Bug #3755 <https://bugs.freedesktop.org/show_bug.cgi?id=3755> twm can't
+        handle 8-bit characters in .twmrc (Tomohiro KUBOITA)
+
+commit b098cf784d34421de0ae51d8cd7090022d3b2600
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun Oct 9 19:10:58 2005 +0000
+
+    Bug #3755 <https://bugs.freedesktop.org/show_bug.cgi?id=3755> twm can't
+        handle 8-bit characters in .twmrc (Tomohiro KUBOITA)
+
+commit e2c423a32d8ba724e19e6db5b315ef9011d89488
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sun Oct 9 18:59:28 2005 +0000
+
+    Bug #3755 <https://bugs.freedesktop.org/show_bug.cgi?id=3755> twm can't
+        handle 8-bit characters in .twmrc (Tomohiro KUBOITA)
+
+commit ea03b6bcd1045dfc0d6947e4858de8994d61170b
+Author: Keith Packard <keithp@keithp.com>
+Date:   Tue Aug 2 18:08:48 2005 +0000
+
+    Mark generated files as BUILT_SOURCES and CLEANFILES to ensure they are
+        regenerated after 'make clean' and to make parallel builds work right.
+
+commit a12f281be43c1c86147fb89c99484ac558f64425
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Aug 1 20:25:28 2005 +0000
+
+    Install man pages to section 1 instead of section m (Patch from Donnie
+        Berkholz)
+
+commit 99c2e9865374605697c2a85099bbc56bf7853969
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 30 21:07:26 2005 +0000
+
+    Add prototypes of Xalloc/free functions.
+    Export ImUtil.h to match modular tree install.
+    Define SVR4 to 1 to avoid warning about redefining to different values.
+    Include missing headers to clear more compiler warnings.
+
+commit 5bf9409bc3c7e11d86bcd5b25760435e199b85c5
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:30 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit b2de9b16ae9b7bfce8e7cc36f20a38084fa25469
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Wed Jul 20 19:31:51 2005 +0000
+
+    Use a unique token for PKG_CHECK_MODULES. Otherwise, if you use a global
+        configure cache, you cache it, and the cached value is probably wrong.
+
+commit c0570ffdfa9ef913b5132b2069dd69491f77a8f8
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Jul 17 20:11:01 2005 +0000
+
+    fix rules to work with non-GNU make and outside of $srcdir
+
+commit 29fba3a480ab1b4168d75ed92c8150851dddd805
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 16 22:07:13 2005 +0000
+
+    Add #ifdef HAVE_CONFIG_H/#include "config.h" to files that need it to get
+        HAS_MKSTEMP defined in modular builds.
+
+commit 63e81296232ec5fdd6529a7d5d4342186bbec2f8
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 16 21:59:14 2005 +0000
+
+    Define HAS_MKSTEMP if mkstemp() is present (needed for improved protection
+        against tempfile race conditions in many places)
+
+commit 2e6a393e7b0f02e8f58a3005411ae22488965e28
+Author: Søren Sandmann Pedersen  <sandmann@daimi.au.dk>
+Date:   Thu Jul 14 22:36:06 2005 +0000
+
+    Add _BSD_SOURCE - patch from Stefan Dirsch
+
+commit 300a4fcbfaef76f78dbb98c9868fa85da1604ccf
+Author: Søren Sandmann Pedersen  <sandmann@daimi.au.dk>
+Date:   Thu Jul 14 22:35:37 2005 +0000
+
+    Add makefile that CVS ate - patch from Stefan Dirsch
+
+commit 1cb0150431562d729342c427129732b217526bab
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Mon Jul 11 22:51:03 2005 +0000
+
+    Bug #3754: Fix window misplacement in twm. (Christopher Mario Mae)
+
+commit 682eaa7cd21e32f70d909aae7d4828c9f4ea9dd1
+Author: Søren Sandmann Pedersen  <sandmann@daimi.au.dk>
+Date:   Wed Jun 29 19:15:03 2005 +0000
+
+    Add buildsystem for twm
+
+commit 718daab22b08a1ab10145f9284dedef069ffb758
+Author: Roland Mainz <roland.mainz@nrubsig.org>
+Date:   Fri Mar 11 21:18:12 2005 +0000
+
+    xc/programs/twm/Imakefile
+    xc/programs/twm/twm.c
+    //bugs.freedesktop.org/show_bug.cgi?id=2705) attachment #2087
+        (https://bugs.freedesktop.org/attachment.cgi?id=2087) Make twm ignore
+        print screens to avoid that users accidentally warp on a non-video
+        screen (which are not visible on any monitor) when the Xserver has both
+        video and print screens. (This includes also a small cleanup of
+        xdpyinfo where parts of the print screen test code comes from) Patch by
+        Julien Lafon <julien.lafon@gmail.com> (MIT/X.org license).
+
+commit 6e96bd376c916c150a055447d4badc1fae84e47a
+Author: Roland Mainz <roland.mainz@nrubsig.org>
+Date:   Fri Mar 11 16:23:00 2005 +0000
+
+    xc/programs/twm/add_window.c
+    xc/programs/twm/cursor.c
+    xc/programs/twm/events.c
+    xc/programs/twm/gc.c
+    xc/programs/twm/gram.y
+    xc/programs/twm/iconmgr.c
+    xc/programs/twm/icons.c
+    xc/programs/twm/list.c
+    xc/programs/twm/menus.c
+    xc/programs/twm/parse.c
+    xc/programs/twm/resize.c
+    xc/programs/twm/twm.c
+    //bugs.freedesktop.org/show_bug.cgi?id=2566) attachment #2083
+        (https://bugs.freedesktop.org/attachment.cgi?id=2083) ANSI-fy twm
+        window manager code. The conversion preserves the comments which
+        annotate variables and function arguments (these have been moved into
+        doxygen(esque?) "stubs" above each function. Patch by Mike Owens
+        <etc@filespanker.com>.
+
+commit d045cb62c62f09978798510deaec0acae0a6fb4d
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 19:54:37 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit f39f4c810b3c2071f8786abc32317149373a3e1d
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:34:58 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit 58d942b4a0b4ed9b99a4dd6501bf4facbcaca670
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:12:54 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit ee477f9d9c4aff3f52d9a65e3b11b55dd15b31d1
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:36:16 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit e8c79f538be77c2637e8d2e1ada443d9a2f0e262
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:23:58 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit e51f25fbe75b222b24f4628b2408e899fa4748d7
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:29:03 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit 4b339f0a4311b4db171584bc6671292a9052665a
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:58 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit cfa9fa24253b5ef8045172852509be413d7b00ca
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:58 2003 +0000
+
+    Initial revision
+
+commit 03cb750f7935722ab77b77128ca5221c5baf8818
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:53 2003 +0000
+
+    R6.6 is the Xorg base-line

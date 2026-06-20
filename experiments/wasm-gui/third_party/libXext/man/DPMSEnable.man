@@ -1,0 +1,76 @@
+.\" Copyright \(co Digital Equipment Corporation, 1996
+.\"
+.\" Permission to use, copy, modify, distribute, and sell this
+.\" documentation for any purpose is hereby granted without fee,
+.\" provided that the above copyright notice and this permission
+.\" notice appear in all copies.  Digital Equipment Corporation
+.\" makes no representations about the suitability for any purpose
+.\" of the information in this document.  This documentation is
+.\" provided ``as is'' without express or implied warranty.
+.\"
+.\" Copyright (c) 1999, 2005, Oracle and/or its affiliates.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice (including the next
+.\" paragraph) shall be included in all copies or substantial portions of the
+.\" Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+.\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+.\" DEALINGS IN THE SOFTWARE.
+.\"
+.\" X Window System is a trademark of The Open Group.
+.\"
+.TH DPMSEnable __libmansuffix__ 2005-06-28 __xorgversion__
+.SH NAME
+DPMSEnable \- enables DPMS on the specified display
+.SH SYNOPSIS
+.nf
+\fBcc\fR [ \fIflag\fR \&.\&.\&. ] \fIfile\fR \&.\&.\&. -\fBlXext\fR [ \fIlibrary\fR \&.\&.\&. ]
+\&#include <X11/extensions/dpms.h>
+.sp
+.BR "Status DPMSEnable" " ( Display *\fIdisplay\fP\^ );"
+.if n .ti +5n
+.if t .ti +.5i
+.SH ARGUMENTS
+.TP
+.I display
+Specifies the connection to the X server
+.SH DESCRIPTION
+The
+.B DPMSEnable
+function enables Display Power Management Signaling (DPMS) on the specified
+.IR display .
+When DPMS is enabled, DPMS will use the currently saved timeout values.
+It will trigger the appropriate DPMS power level based on the timeout values.
+Refer to
+.BR DPMSSetTimeouts (__libmansuffix__).
+All physical screens are affected by
+.B DPMSEnable
+at the same time.
+.PP
+If
+.B DPMSEnable
+is invoked on a display which has DPMS already enabled, or on a display which
+does not support DPMS, no change is made and no error is returned.
+.SH "RETURN VALUES"
+.TP 15
+.B TRUE
+The
+.B DPMSEnable
+function always returns TRUE.
+.SH "SEE ALSO"
+.BR DPMSCapable (__libmansuffix__),
+.BR DPMSDisable (__libmansuffix__),
+.BR DPMSGetTimeouts (__libmansuffix__),
+.BR DPMSSetTimeouts (__libmansuffix__)

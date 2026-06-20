@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xmuu
+Description: Mini Xmu Library
+Version: 1.2.1
+Requires: xproto x11
+Requires.private: x11
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXmuu

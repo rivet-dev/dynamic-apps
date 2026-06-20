@@ -1,0 +1,2601 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="ice">
+
+<bookinfo>
+   <title>Inter-Client Exchange (ICE) Protocol</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Robert</firstname><surname>Scheifler</surname>
+         <affiliation><orgname>X Consortium</orgname></affiliation>
+      </author>
+      <othercredit>
+         <firstname>Jordan</firstname><surname>Brown</surname>
+         <affiliation><orgname>Quarterdeck Office Systems</orgname></affiliation>
+      </othercredit>
+   </authorgroup>
+   <releaseinfo>Version 1.1</releaseinfo>
+   <copyright>
+     <year>1993</year><year>1994</year>
+     <holder>X Consortium</holder>
+   </copyright>
+
+<legalnotice>
+<para>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &ldquo;Software&rdquo;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</para>
+
+<para>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</para>
+
+<para>THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</para>
+
+<para>Except as contained in this notice, the name of the X Consortium shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the X Consortium.</para>
+
+<para>X Window System is a trademark of The Open Group.</para>
+</legalnotice>
+
+<abstract>
+<para>
+There are numerous possible protocols that can be used for communication
+among clients.  They have many similarities and common needs, including
+authentication, version negotiation, data typing, and connection management.  The <emphasis remap='I'> Inter-Client Exchange</emphasis> (ICE) protocol
+is intended to provide a framework for building such protocols.  Using
+ICE reduces the complexity of designing new protocols and
+allows the sharing of many aspects of the implementation.
+</para>
+</abstract>
+</bookinfo>
+
+<chapter id='Purpose_and_Goals'>
+<title>Purpose and Goals</title>
+
+<para>
+In discussing a variety of protocols -- existing, under development, and
+hypothetical -- it was noted that they have many elements in common.  Most
+protocols need mechanisms for authentication, for
+version negotiation,
+and for setting up and taking down connections.  There are also
+cases where the same two parties need to talk to each other using multiple
+protocols.  For example, an embedding relationship between two parties is
+likely to require the simultaneous use of session management, data transfer,
+focus negotiation, and command notification protocols.  While these are
+logically separate protocols, it is desirable for them to share as many
+pieces of implementation as possible.</para>
+
+<para>The
+<emphasis remap='I'>
+Inter-Client Exchange
+</emphasis>
+(ICE) protocol provides a generic framework for building protocols on top of
+reliable, byte-stream transport connections.  It provides basic mechanisms
+for setting up and shutting down connections, for performing authentication,
+for negotiating
+versions,
+and for reporting errors.  The
+protocols running within an ICE connection are referred to here as
+<emphasis remap='I'>subprotocols.</emphasis>
+ICE provides facilities for each subprotocol to do its own version
+negotiation, authentication, and error reporting.  In addition, if two
+parties are communicating using several different subprotocols, ICE will
+allow them to share the same transport layer connection.</para>
+
+</chapter>
+
+<chapter id='Overview_of_the_Protocol'>
+<title>Overview of the Protocol</title>
+
+
+<para>Through some mechanism outside ICE, two parties make themselves known to
+each other and agree that they would like to communicate using an ICE
+subprotocol.  ICE assumes that this negotiation includes some notion by which
+the parties will decide which is the <quote>originating</quote> party and which is
+the <quote>answering</quote> party.  The negotiation will also need to provide the
+originating party with a name or address of the answering party.  Examples
+of mechanisms by which parties can make themselves known to each other are
+the X selection mechanism, environment
+variables, and shared files.</para>
+
+<para>The originating party first determines whether there is an existing ICE
+connection between the two parties.  If there is, it can re-use the existing
+connection and move directly to the setup of the subprotocol.  If no ICE
+connection exists, the originating party will open a transport connection to
+the answering party and will start ICE connection setup.</para>
+
+<para>The ICE connection setup dialog consists of three major parts: byte order
+exchange, authentication, and connection information exchange.  The first
+message in each direction is a
+<function>ByteOrder</function>
+message telling which byte order will be used by the sending party in
+messages that it sends.  After that, the originating party sends a
+<function>ConnectionSetup</function>
+message giving information about itself (vendor name and release number) and
+giving a list of ICE version numbers it is capable of supporting and a list
+of authentication schemes it is willing to accept.  Authentication is
+optional.  If no authentication is required, the answering party responds
+with a
+<function>ConnectionReply</function>
+message giving information about itself, and the connection setup is complete.</para>
+
+<para>If the connection setup is to be authenticated, the answering party will
+respond with an
+<function>AuthenticationRequired</function>
+message instead of a
+<function>ConnectionReply</function>
+message.  The parties then exchange
+<function>AuthenticationReply</function>
+and
+<function>AuthenticationNextPhase</function>
+messages until authentication is complete, at which time the answering party
+finally sends its
+<function>ConnectionReply</function>
+message.</para>
+
+<para>Once an ICE connection is established (or an existing connection reused),
+the originating party starts subprotocol negotiation by sending a
+<function>ProtocolSetup</function>
+message.  This message gives the name of the subprotocol that the parties
+have agreed to use, along with the ICE major opcode that the originating
+party has assigned to that subprotocol.  Authentication can also occur for
+the subprotocol, independently of authentication for the connection.
+Subprotocol authentication is optional.  If there is no subprotocol
+authentication, the answering party responds with a
+<function>ProtocolReply</function>
+message, giving the ICE major opcode that it has assigned
+for the subprotocol.</para>
+
+<para>Subprotocols are authenticated independently of each other, because they may
+have differing security requirements.  If there is authentication for this
+particular subprotocol, it takes place before the answering party emits the
+<function>ProtocolReply</function>
+message, and it uses the
+<function>AuthenticationRequired</function>
+<function>AuthenticationReply</function>
+and
+<function>AuthenticationNextPhase</function>
+messages, just as for the connection authentication.  Only when subprotocol
+authentication is complete does the answering party send its
+<function>ProtocolReply</function>
+message.</para>
+
+<para>When a subprotocol has been set up and authenticated, the two parties can
+communicate using messages defined by the subprotocol.  Each message has two
+opcodes: a major opcode and a minor opcode.  Each party will send messages
+using the major opcode it has assigned in its
+<function>ProtocolSetup</function>
+or
+<function>ProtocolReply</function>
+message.  These opcodes will, in general, not be the same.  For a particular
+subprotocol, each party will need to keep track of two major opcodes: the
+major opcode it uses when it sends messages, and the major opcode it expects
+to see in messages it receives.  The minor opcode values and semantics are
+defined by each individual subprotocol.</para>
+
+<para>Each subprotocol will have one or more messages whose semantics are that the
+subprotocol is to be shut down.  Whether this is done unilaterally or is
+performed through negotiation is defined by each subprotocol.  Once a
+subprotocol is shut down, its major opcodes are removed from
+use; no further messages on this subprotocol should be sent until the
+opcode is reestablished with
+<function>ProtocolSetup</function>
+</para>
+
+<para>ICE has a facility to negotiate the closing of the connection when there are
+no longer any active subprotocols.  When either party decides that no
+subprotocols are active, it can send a
+<function>WantToClose</function>
+message.  If the other party agrees to close the connection, it can simply
+do so.  If the other party wants to keep the connection open, it can
+indicate its desire by replying with a
+<function>NoClose</function>
+message.</para>
+<!--  XXX \- Note that it's likely that both parties will WantToClose at once. -->
+
+<para>It should be noted that the party that initiates the connection isn't
+necessarily the same as the one that initiates setting up a subprotocol.
+For example, suppose party A connects to party B.  Party A will issue the
+<function>ConnectionSetup</function>
+message and party B will respond with a
+<function>ConnectionReply</function>
+message.  (The authentication steps are omitted here for brevity.)
+Typically, party A will also issue the
+<function>ProtocolSetup</function>
+message and expect a
+<function>ProtocolReply</function>
+from party B.  Once the connection is established, however, either party may
+initiate the negotiation of a subprotocol.  Continuing this example, party B
+may decide that it needs to set up a subprotocol for communication with
+party A.  Party B would issue the
+<function>ProtocolSetup</function>
+message and expect a
+<function>ProtocolReply</function>
+from party A.</para>
+<!--  .nH 1 "Data Types" -->
+</chapter>
+
+<chapter id='Data_Types'>
+<title>Data Types</title>
+
+<para>ICE messages contain several types of data.  Byte order is negotiated in
+the initial connection messages; in general data is sent in the sender's
+byte order and the receiver is required to swap it appropriately.
+In order to support 64-bit machines, ICE messages
+are padded to multiples of 8 bytes.  All messages are designed so that
+fields are <quote>naturally</quote> aligned on 16-, 32-, and 64-bit boundaries.
+The following formula gives the number of bytes necessary
+to pad <emphasis remap='I'>E</emphasis> bytes to the next multiple of
+<emphasis remap='I'>b</emphasis>:</para>
+<literallayout remap='DS'>
+
+pad(<emphasis remap='I'>E</emphasis>, <emphasis remap='I'>b</emphasis>) = (<emphasis remap='I'>b</emphasis> - (<emphasis remap='I'>E</emphasis> mod <emphasis remap='I'>b</emphasis>)) mod <emphasis remap='I'>b</emphasis>
+</literallayout>
+
+<sect1 id='Primitive_Types'>
+<title>Primitive Types</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>CARD8</entry>
+        <entry>8-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD16</entry>
+        <entry>16-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD32</entry>
+        <entry>32-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>BOOL</entry>
+        <entry><para><function>False</function>
+or
+<function>True</function></para></entry>
+      </row>
+      <row>
+        <entry>LPCE</entry>
+        <entry>A character from the X Portable Character Set in Latin Portable Character
+Encoding</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect1>
+
+<sect1 id='Complex_Types'>
+<title>Complex Types</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Type</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>VERSION</entry>
+        <entry>[Major, minor: CARD16]</entry>
+      </row>
+      <row>
+        <entry>STRING</entry>
+        <entry>LISTofLPCE</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<para>LISTof&lt;type&gt; denotes a counted collection of &lt;type&gt;.  The exact encoding
+varies depending on the context; see the encoding section.</para>
+<!--  .nH 1 "Message Format" -->
+</sect1>
+
+<sect1 id='Message_Format'>
+<title>Message Format</title>
+
+<para>All ICE messages include the following information:</para>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Field Type</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>CARD8</entry>
+        <entry>protocol major opcode</entry>
+      </row>
+      <row>
+        <entry>CARD8</entry>
+        <entry>protocol minor opcode</entry>
+      </row>
+      <row>
+        <entry>CARD32</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<para>The fields are as follows:</para>
+
+<variablelist>
+  <varlistentry>
+    <term>Protocol major opcode</term>
+    <listitem>
+      <para>
+This specifies what subprotocol the message is intended for.  Major opcode
+0 is reserved for ICE control messages.  The major opcodes of other
+subprotocols are dynamically assigned and exchanged at protocol
+negotiation time.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Protocol minor opcode</term>
+    <listitem>
+      <para>
+This specifies what protocol-specific operation is to be performed.
+Minor opcode 0 is reserved for Errors; other values are protocol-specific.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Length of data in 8-byte units</term>
+    <listitem>
+      <para>
+This specifies the length of the information following the first 8 bytes.
+Each message-type has a different format, and will need to be separately
+length-checked against this value.  As every data item has either an
+explicit length, or an implicit length, this can be easily accomplished.
+Messages that have too little or too much data indicate a serious
+protocol failure, and should result in a <function>BadLength</function>
+error.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</sect1>
+
+</chapter>
+
+<chapter id='Overall_Protocol_Description'>
+<title>Overall Protocol Description</title>
+
+<para>
+Every message sent in a given direction has an implicit sequence number,
+starting with 1.  Sequence numbers are global to the connection; independent
+sequence numbers are <emphasis remap='I'>not</emphasis> maintained for each protocol.</para>
+
+<para>Messages of a given major-opcode (i.e., of a given protocol) must be
+responded to (if a response is called for) in order by the receiving party.
+Messages from different protocols can be responded to in arbitrary order.</para>
+
+<para>Minor opcode 0 in every protocol is for reporting errors.  At most one error
+is generated per request.  If more than one error condition is encountered
+in processing a request, the choice of which error is returned is
+implementation-dependent.
+</para>
+
+<para><function>Error</function></para>
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+{<symbol role='Pn'>CanContinue</symbol>,
+<function>FatalToProtocol</function>
+<function>FatalToConnection</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>sequence-number</emphasis>:</term>
+    <listitem>
+      <para>CARD32</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>class</emphasis>:</term>
+    <listitem>
+      <para>CARD16</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>value(s)</emphasis>:</term>
+    <listitem>
+      <para>&lt;dependent on major/minor opcode and class&gt;</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent to report an error in response to a message
+from any protocol.  The <function>Error</function> message
+exists in all protocol major-opcode spaces; it
+is minor-opcode zero in every protocol.  The minor opcode of the
+message that caused the error is reported, as well as the sequence
+number of that message.
+The severity indicates the sender's behavior following
+the identification of the error.  <function>CanContinue</function>
+indicates the sender is willing to accept additional messages for this
+protocol.  <function>FatalToProcotol</function>
+indicates the sender is unwilling to accept further messages for this
+protocol but that messages for other protocols may be accepted.
+<function>FatalToConnection</function>
+indicates the sender is unwilling to accept any further
+messages for any protocols on the connection.  The sender
+is required to conform to specified severity conditions
+for generic and ICE (major opcode 0) errors; see
+<xref linkend='Generic_Error_Classes' xrefstyle='select: title'/>
+<xref linkend='ICE_Error_Classes' xrefstyle='select: title'/>
+.
+The class defines the generic class of
+error.  Classes are specified separately for each protocol (numeric
+values can mean different things in different protocols).  The error
+values, if any, and their types vary with the specific error class
+for the protocol.
+</para>
+</chapter>
+
+<chapter id='ICE_Control_Subprotocol____Major_Opcode_0_0'>
+<title>ICE Control Subprotocol -- Major Opcode 0</title>
+
+<para>
+Each of the ICE control opcodes is described below.
+Most of the messages have additional information included beyond the
+description above.  The additional information is appended to the message
+header and the length field is computed accordingly.
+</para>
+
+<para>
+In the following message descriptions, <quote>Expected errors</quote> indicates
+errors that may occur in the normal course of events.  Other errors
+(in particular
+<function>BadMajor</function>
+<function>BadMinor</function>
+<function>BadState</function>
+<function>BadLength</function>
+<function>BadValue</function>
+<function>ProtocolDuplicate</function> and
+<function>MajorOpcodeDuplicate</function>
+might occur, but generally indicate a serious implementation failure on
+the part of the errant peer.
+</para>
+<para><function>ByteOrder</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>byte-order</emphasis>:</term>
+    <listitem>
+      <para>
+{<symbol role='Pn'>MSBfirst</symbol>,
+<function>LSBfirst</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Both parties must send this message before sending any other,
+including errors.  This message specifies the byte order that
+will be used on subsequent messages sent by this party.
+</para>
+
+<note>
+<para>
+Note:  If the receiver detects an error in this message,
+it must be sure to send its own
+<function>ByteOrder</function> message before sending the
+<function>Error</function>.
+</para>
+</note>
+
+<para><function>ConnectionSetup</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>versions</emphasis>:</term>
+    <listitem>
+      <para>LISTofVERSION</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>must-authenticate</emphasis>:</term>
+    <listitem>
+      <para>BOOL</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>authentication-protocol-names</emphasis>:</term>
+    <listitem>
+      <para>LISTofSTRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Responses:</term>
+    <listitem>
+      <para>
+<function>ConnectionReply</function>,
+<function>AuthenticationRequired</function> (See note)
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Expected errors:</term>
+    <listitem>
+      <para>
+<function>NoVersion</function>,
+<function>SetupFailed</function>,
+<function>NoAuthentication</function>,
+<function>AuthenticationRejected</function>,
+<function>AuthenticationFailed</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The party that initiates the connection (the one that does the
+"connect()") must send this message as the second message (after
+<function>ByteOrder</function> on startup.
+</para>
+
+<para>
+Versions gives a list, in decreasing order of preference, of the
+protocol versions this party is capable of speaking.  This document
+specifies major version 1, minor version 0.
+</para>
+
+<para>
+If must-authenticate is <function>True</function> the initiating
+party demands authentication; the accepting party
+<emphasis remap='I'>must</emphasis> pick an authentication scheme
+and use it.  In this case, the only valid response is
+<function>AuthenticationRequired</function>
+</para>
+
+<para>
+If must-authenticate is <function>False</function> the accepting
+party may choose an authentication mechanism, use a host-address-based
+authentication scheme, or skip authentication.  When must-authenticate
+is <function>False</function> <function>ConnectionReply</function> and
+<function>AuthenticationRequired</function> are both valid responses.
+If a host-address-based authentication scheme is used,
+<function>AuthenticationRejected</function> and
+<function>AuthenticationFailed</function> errors are possible.
+</para>
+
+<para>
+Authentication-protocol-names specifies a (possibly null, if
+must-authenticate is <function>False</function>
+list of authentication protocols the party is willing to perform.  If
+must-authenticate is <function>True</function>
+presumably the party will offer only authentication mechanisms
+allowing mutual authentication.
+</para>
+
+<para>
+Vendor gives the name of the vendor of this ICE implementation.
+</para>
+
+<para>
+Release gives the release identifier of this ICE implementation.
+</para>
+
+<para><function>AuthenticationRequired</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>authentication-protocol-index</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis>:</term>
+    <listitem>
+      <para>&lt;specific to authentication protocol&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Response:</term>
+    <listitem>
+      <para><function>AuthenticationReply</function></para>
+    </listitem>
+  </varlistentry>
+    <varlistentry>
+    <term>Expected errors:</term>
+    <listitem>
+      <para>
+<function>AuthenticationRejected</function>,
+<function>AuthenticationFailed</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent in response to a <function>ConnectionSetup</function>
+or <function>ProtocolSetup</function>
+message to specify that authentication is to be done and what
+authentication mechanism is to be used.
+</para>
+
+<para>
+The authentication protocol is specified by a 0-based index into the list
+of names given in the <function>ConnectionSetup</function> or
+<function>ProtocolSetup</function>
+Any protocol-specific data that might be required is also sent.
+</para>
+
+
+<para><function>AuthenticationReply</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis>:</term>
+    <listitem>
+      <para>&lt;specific to authentication protocol&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Responses:</term>
+    <listitem>
+      <para>
+<function>AuthenticationNextPhase</function>,
+<function>ConnectionReply</function>,
+<function>ProtocolReply</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Expected errors:</term>
+    <listitem>
+      <para>
+<function>AuthenticationRejected</function>,
+<function>AuthenticationFailed</function>,
+<function>SetupFailed</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent in response to an
+<function>AuthenticationRequired</function> or
+<function>AuthenticationNextPhase</function> message, to
+supply authentication data as defined by the authentication protocol
+being used.
+</para>
+
+<para>
+Note that this message is sent by the party that initiated the current
+negotiation -- the party that sent the
+<function>ConnectionSetup</function> or
+<function>ProtocolSetup</function> message.
+</para>
+
+<para>
+<function>AuthenticationNextPhase</function>
+indicates that more is to be done to complete the authentication.
+If the authentication is complete,
+<function>ConnectionReply</function>
+is appropriate if the current authentication handshake is the result of a
+<function>ConnectionSetup</function> and a
+<function>ProtocolReply</function>
+is appropriate if it is the result of a
+<function>ProtocolSetup</function>.
+</para>
+
+<para><function>AuthenticationNextPhase</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>data</emphasis>:</term>
+    <listitem>
+      <para>&lt;specific to authentication protocol&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Response:</term>
+    <listitem>
+      <para><function>AuthenticationReply</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Expected errors:</term>
+    <listitem>
+      <para>
+<function>AuthenticationRejected</function>,
+<function>AuthenticationFailed</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent in response to an
+<function>AuthenticationReply</function>
+message, to supply authentication data as defined by the authentication
+protocol being used.
+</para>
+
+<para><function>ConnectionReply</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>version-index</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent in response to a
+<function>ConnectionSetup</function> or
+<function>AuthenticationReply</function>
+message to indicate that the authentication handshake is complete.
+</para>
+
+<para>
+Version-index gives a 0-based index into the list of versions offered in
+the <function>ConnectionSetup</function> message; it specifies the
+version of the ICE protocol that both parties
+should speak for the duration of the connection.
+</para>
+
+<para>Vendor gives the name of the vendor of this ICE implementation.</para>
+
+<para>
+Release gives the release identifier of this ICE implementation.
+</para>
+
+<para><function>ProtocolSetup</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>protocol-name</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major-opcode</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>versions</emphasis>:</term>
+    <listitem>
+      <para>LISTofVERSION</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>must-authenticate</emphasis>:</term>
+    <listitem>
+      <para>BOOL</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='I'>authentication-protocol-names</emphasis>:</term>
+    <listitem>
+      <para>LISTofSTRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Responses:</term>
+    <listitem>
+      <para>
+<function>AuthenticationRequired</function>,
+<function>ProtocolReply</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Expected errors:</term>
+    <listitem>
+      <para>
+<function>UnknownProtocol</function>,
+<function>NoVersion</function>,
+<function>SetupFailed</function>,
+<function>NoAuthentication</function>,
+<function>AuthenticationRejected</function>,
+<function>AuthenticationFailed</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is used to initiate negotiation of a protocol and
+establish any authentication specific to it.
+</para>
+
+<para>
+Protocol-name gives the name of the protocol the party wishes
+to speak.
+</para>
+
+<para>
+Major-opcode gives the opcode that the party will use in messages
+it sends.
+</para>
+
+<para>
+Versions gives a list of version numbers, in decreasing order of
+preference, that the party is willing to speak.
+</para>
+
+<para>
+Vendor and release are identification strings with semantics defined
+by the specific protocol being negotiated.
+</para>
+
+<para>
+If must-authenticate is <function>True</function>,
+the initiating party demands authentication; the accepting party
+<emphasis remap='I'>must</emphasis> pick an authentication scheme
+and use it.  In this case, the only valid response is
+<function>AuthenticationRequired</function>
+</para>
+
+<para>
+If must-authenticate is <function>False</function>,
+the accepting party may choose an authentication mechanism, use a
+host-address-based authentication scheme, or skip authentication.
+When must-authenticate is <function>False</function>,
+<function>ProtocolReply</function> and
+<function>AuthenticationRequired</function>
+are both valid responses.  If a host-address-based authentication
+scheme is used, <function>AuthenticationRejected</function> and
+<function>AuthenticationFailed</function> errors are possible.
+</para>
+
+<para>
+Authentication-protocol-names  specifies a (possibly null, if
+must-authenticate is <function>False</function>
+list of authentication protocols the party is willing to perform.  If
+must-authenticate is <function>True</function>
+presumably the party will offer only authentication mechanisms
+allowing mutual authentication.
+</para>
+
+<para><function>ProtocolReply</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>major-opcode</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>version-index</emphasis>:</term>
+    <listitem>
+      <para>CARD8</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>vendor</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>release</emphasis>:</term>
+    <listitem>
+      <para>STRING</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is sent in response to a <function>ProtocolSetup</function>
+or <function>AuthenticationReply</function>
+message to indicate that the authentication handshake is complete.
+</para>
+
+<para>
+Major-opcode gives the opcode that this party will use in
+messages that it sends.
+</para>
+
+<para>
+Version-index gives a 0-based index into the list of versions offered in the
+<function>ProtocolSetup</function> message; it specifies the version
+of the protocol that both parties should speak for the duration of
+the connection.
+</para>
+
+<para>
+Vendor and release are identification strings with semantics defined
+by the specific protocol being negotiated.
+</para>
+
+<para><function>Ping</function></para>
+<variablelist>
+  <varlistentry>
+    <term>Response:</term>
+    <listitem>
+      <para><function>PingReply</function></para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This message is used to test if the connection is still functioning.
+</para>
+
+<para><function>PingReply</function></para>
+
+<para>
+This message is sent in response to a <function>Ping</function>
+message, indicating that the connection is still functioning.
+</para>
+
+<para><function>WantToClose</function></para>
+<variablelist>
+  <varlistentry>
+    <term>Responses:</term>
+    <listitem>
+      <para>
+<function>WantToClose</function>,
+<function>NoClose</function>,
+<function>ProtocolSetup</function>
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+This message is used to initiate a possible close of the connection.
+The sending party has noticed that, as a result of mechanisms specific
+to each protocol, there are no active protocols left.
+There are four possible scenarios arising from this request:
+</para>
+
+<orderedlist>
+  <listitem>
+    <para>
+The receiving side noticed too, and has already sent a
+<function>WantToClose</function> On receiving a
+<function>WantToClose</function> while already attempting to
+shut down, each party should simply close the connection.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+The receiving side hasn't noticed, but agrees.  It closes the connection.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+The receiving side has a <function>ProtocolSetup</function>
+"in flight," in which case it is to ignore
+<function>WantToClose</function> and the party sending
+<function>WantToClose</function> is to abandon the shutdown attempt
+when it receives the <function>ProtocolSetup</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+The receiving side wants the connection kept open for some
+reason not specified by the ICE protocol, in which case it
+sends <function>NoClose</function>
+    </para>
+  </listitem>
+</orderedlist>
+
+<para>
+See the state transition diagram for additional information.
+</para>
+
+<para><function>NoClose</function></para>
+
+<para>
+This message is sent in response to a <function>WantToClose</function>
+message to indicate that the responding party does not want the
+connection closed at this time.  The receiving party should not close the
+connection.  Either party may again initiate
+<function>WantToClose</function> at some future time.
+</para>
+
+<sect1 id='Generic_Error_Classes'>
+<title>Generic Error Classes</title>
+
+<para>
+These errors should be used by all protocols, as applicable.
+For ICE (major opcode 0), <function>FatalToProtocol</function>
+should be interpreted as <function>FatalToConnection</function>.
+</para>
+
+<para><function>BadMinor</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>&lt;any&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>FatalToProtocol</function> or
+<function>CanContinue</function>
+(protocol's discretion)
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>(none)</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Received a message with an unknown minor opcode.
+</para>
+
+<para><function>BadState</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>&lt;any&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>FatalToProtocol</function> or
+<function>CanContinue</function> (protocol's discretion)
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>(none)</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Received a message with a valid minor opcode which is not appropriate
+for the current state of the protocol.
+</para>
+
+<para><function>BadLength</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>&lt;any&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>FatalToProtocol</function> or
+<function>CanContinue</function> (protocol's discretion)
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>(none)</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Received a message with a bad length.  The length of the message is
+longer or shorter than required to contain the data.
+</para>
+
+<para><function>BadValue</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>&lt;any&gt;</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>CanContinue</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>
+CARD32 Byte offset to offending value in offending message.
+CARD32 Length of offending value.
+&lt;varies&gt; Offending value
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>Received a message with a bad value specified.</para>
+
+</sect1>
+
+<sect1 id='ICE_Error_Classes'>
+<title>ICE Error Classes</title>
+
+<para>These errors are all major opcode 0 errors.</para>
+
+<para><function>BadMajor</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>&lt;any&gt;</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>CanContinue</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>CARD8 Opcode</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>The opcode given is not one that has been registered.</para>
+
+
+<para><function>NoAuthentication</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function>,
+<function>ProtocolSetup</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function> \(-&gt;
+<function>FatalToConnection</function>
+<function>ProtocolSetup</function> \(-&gt;
+<function>FatalToProtocol</function>
+       </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>(none)</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>None of the authentication protocols offered are available.</para>
+
+<para><function>NoVersion</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function>,
+<function>ProtocolSetup</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function> \(-&gt;
+<function>FatalToConnection</function>
+<function>ProtocolSetup</function> \(-&gt;
+<function>FatalToProtocol</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>(none)</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>None of the protocol versions offered are available.</para>
+
+<para><function>SetupFailed</function></para>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function>,
+<function>ProtocolSetup</function>,
+<function>AuthenticationReply</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para>
+<function>ConnectionSetup</function> \(-&gt;
+<function>FatalToConnection</function>
+<function>ProtocolSetup</function> \(-&gt;
+<function>FatalToProtocol</function>
+<function>AuthenticationReply</function> \(-&gt;
+<function>FatalToConnection</function> if authenticating a connection,
+otherwise <function>FatalToProtocol</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>STRING reason</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The sending side is unable to accept the
+new connection or new protocol for a reason other than authentication
+failure.  Typically this error will be a result of inability to allocate
+additional resources on the sending side.  The reason field will give a
+human-interpretable message providing further detail on the type of failure.
+</para>
+
+<para><function>AuthenticationRejected</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>
+<function>AuthenticationReply</function>,
+<function>AuthenticationRequired</function>,
+<function>AuthenticationNextPhase</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>FatalToProtocol</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>STRING reason</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Authentication rejected.  The peer has failed to properly
+authenticate itself.  The reason field will give a human-interpretable
+message providing further detail.
+</para>
+
+<para><function>AuthenticationFailed</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para>
+<function>AuthenticationReply</function>,
+<function>AuthenticationRequired</function>,
+<function>AuthenticationNextPhase</function>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>FatalToProtocol</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>STRING reason</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+Authentication failed.  <function>AuthenticationFailed</function>
+does not imply that the authentication was rejected, as
+<function>AuthenticationRejected</function>
+does.  Instead it means that the sender was unable to complete
+the authentication for some other reason.  (For instance, it
+may have been unable to contact an authentication server.)
+The reason field will give a human-interpretable message
+providing further detail.
+</para>
+
+<para><function>ProtocolDuplicate</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para><function>ProtocolSetup</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>FatalToProtocol</function> (but see note)</para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>STRING protocol name</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The protocol name was already registered.  This is fatal to
+the "new" protocol being set up by <function>ProtocolSetup</function>
+but it does not affect the existing registration.
+</para>
+
+<para><function>MajorOpcodeDuplicate</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para><function>ProtocolSetup</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>FatalToProtocol</function> (but see note)</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>CARD8 opcode</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The major opcode specified was already registered.  This is
+fatal to the <quote>new</quote> protocol being set up by
+<function>ProtocolSetup</function> but it does not affect the
+existing registration.
+</para>
+
+<para><function>UnknownProtocol</function></para>
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>offending-minor-opcode</emphasis>:</term>
+    <listitem>
+      <para><function>ProtocolSetup</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>severity</emphasis>:</term>
+    <listitem>
+      <para><function>FatalToProtocol</function></para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>values</emphasis>:</term>
+    <listitem>
+      <para>STRING protocol name</para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>The protocol specified is not supported.</para>
+
+</sect1>
+</chapter>
+
+<chapter id='State_Diagrams'>
+<title>State Diagrams</title>
+
+<para>
+Here are the state diagrams for the party that initiates the connection:
+</para>
+
+<literallayout>
+<emphasis remap='C'>start</emphasis>:
+     connect to other end, send <function>ByteOrder</function> <function>ConnectionSetup</function> -&gt; <emphasis remap='C'>conn_wait</emphasis>
+
+<emphasis remap='C'>conn_wait</emphasis>:
+     receive <function>ConnectionReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>AuthenticationRequired</function> -&gt; <emphasis remap='C'>conn_auth1</emphasis>
+     receive <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+     receive &lt;other&gt;, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>conn_auth1</emphasis>:
+     if good auth data, send <function>AuthenticationReply</function> -&gt; <emphasis remap='C'>conn_auth2</emphasis>
+     if bad auth data, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>conn_auth2</emphasis>:
+     receive <function>ConnectionReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>AuthenticationNextPhase</function> -&gt; <emphasis remap='C'>conn_auth1</emphasis>
+     receive <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+     receive &lt;other&gt;, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+</literallayout>
+
+<para>
+Here are top-level state transitions for the party
+that accepts connections.
+</para>
+
+<literallayout>
+<emphasis remap='C'>listener</emphasis>:
+     accept connection -&gt; <emphasis remap='C'>init_wait</emphasis>
+
+<emphasis remap='C'>init_wait</emphasis>:
+     receive <function>ByteOrder</function> <function>ConnectionSetup</function> -&gt; <emphasis remap='C'>auth_ask</emphasis>
+     receive &lt;other&gt;, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>auth_ask</emphasis>:
+     send <function>ByteOrder</function> <function>ConnectionReply</function>
+-&gt; <emphasis remap='C'>stasis</emphasis>
+
+     send <function>AuthenticationRequired</function> -&gt; <emphasis remap='C'>auth_wait</emphasis>
+
+     send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>auth_wait</emphasis>:
+     receive <function>AuthenticationReply</function> -&gt; <emphasis remap='C'>auth_check</emphasis>
+
+     receive &lt;other&gt;, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>auth_check</emphasis>:
+     if no more auth needed, send <function>ConnectionReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     if good auth data, send <function>AuthenticationNextPhase</function> -&gt; <emphasis remap='C'>auth_wait</emphasis>
+     if bad auth data, send <function>Error</function> -&gt; <emphasis remap='C'>quit</emphasis>
+</literallayout>
+
+<para>
+Here are the top-level state transitions for all parties after the initial
+connection establishment subprotocol.
+</para>
+
+<note>
+<para>
+Note:  this is not quite the truth for branches out from stasis, in
+that multiple conversations can be interleaved on the connection.
+</para>
+</note>
+
+<literallayout>
+<emphasis remap='C'>stasis</emphasis>:
+     send <function>ProtocolSetup</function> -&gt; <emphasis remap='C'>proto_wait</emphasis>
+     receive <function>ProtocolSetup</function> -&gt; <emphasis remap='C'>proto_reply</emphasis>
+     send <function>Ping</function> -&gt; <emphasis remap='C'>ping_wait</emphasis>
+     receive <function>Ping</function> send <function>PingReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>WantToClose</function> -&gt; <emphasis remap='C'>shutdown_attempt</emphasis>
+     receive &lt;other&gt;, send <function>Error</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     all protocols shut down, send <function>WantToClose</function> -&gt; <emphasis remap='C'>close_wait</emphasis>
+
+<emphasis remap='C'>proto_wait</emphasis>:
+     receive <function>ProtocolReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>AuthenticationRequired</function> -&gt; <emphasis remap='C'>give_auth1</emphasis>
+     receive <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>WantToClose</function> -&gt; <emphasis remap='C'>proto_wait</emphasis>
+
+<emphasis remap='C'>give_auth1</emphasis>:
+     if good auth data, send <function>AuthenticationReply</function> -&gt; <emphasis remap='C'>give_auth2</emphasis>
+     if bad auth data, send <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>WantToClose</function> -&gt; <emphasis remap='C'>give_auth1</emphasis>
+
+<emphasis remap='C'>give_auth2</emphasis>:
+     receive <function>ProtocolReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>AuthenticationNextPhase</function> -&gt; <emphasis remap='C'>give_auth1</emphasis>
+     receive <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>WantToClose</function> -&gt; <emphasis remap='C'>give_auth2</emphasis>
+
+<emphasis remap='C'>proto_reply</emphasis>:
+     send <function>ProtocolReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     send <function>AuthenticationRequired</function> -&gt; <emphasis remap='C'>take_auth1</emphasis>
+     send <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+
+<emphasis remap='C'>take_auth1</emphasis>:
+     receive <function>AuthenticationReply</function> -&gt; <emphasis remap='C'>take_auth2</emphasis>
+     receive <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+
+<emphasis remap='C'>take_auth2</emphasis>:
+     if good auth data \(-&gt; <emphasis remap='C'>take_auth3</emphasis>
+     if bad auth data, send <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+
+<emphasis remap='C'>take_auth3</emphasis>:
+     if no more auth needed, send <function>ProtocolReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     if good auth data, send <function>AuthenticationNextPhase</function> -&gt; <emphasis remap='C'>take_auth1</emphasis>
+     if bad auth data, send <function>Error</function> give up on this protocol -&gt; <emphasis remap='C'>stasis</emphasis>
+
+<emphasis remap='C'>ping_wait</emphasis>:
+     receive <function>PingReply</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+
+<emphasis remap='C'>quit</emphasis>:
+     -&gt; close connection
+</literallayout>
+
+<para>
+Here are the state transitions for shutting down the connection:
+</para>
+
+<literallayout>
+<emphasis remap='C'>shutdown_attempt</emphasis>:
+     if want to stay alive anyway, send <function>NoClose</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     else -&gt; <emphasis remap='C'>quit</emphasis>
+
+<emphasis remap='C'>close_wait</emphasis>:
+     receive <function>ProtocolSetup</function> -&gt; <emphasis remap='C'>proto_reply</emphasis>
+     receive <function>NoClose</function> -&gt; <emphasis remap='C'>stasis</emphasis>
+     receive <function>WantToClose</function> -&gt; <emphasis remap='C'>quit</emphasis>
+     connection close -&gt; <emphasis remap='C'>quit</emphasis>
+</literallayout>
+</chapter>
+<chapter id='Protocol_Encoding'>
+<title>Protocol Encoding</title>
+
+<para>
+In the encodings below, the first column is the number of bytes occupied.
+The second column is either the type (if the value is variable) or the
+actual value.  The third column is the description of the value (e.g.,
+the parameter name).  Receivers must ignore bytes that are designated
+as unused or pad bytes.
+</para>
+
+<para>
+This document describes major version 1, minor version 0
+of the ICE protocol.
+</para>
+
+<para>
+LISTof&lt;type&gt; indicates some number of repetitions of
+&lt;type&gt;, with no
+additional padding.  The number of repetitions must be specified elsewhere
+in the message.
+</para>
+
+<sect1 id='Primitives'>
+<title>Primitives</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.0*'/>
+    <colspec colname='c3' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Length (bytes)</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>CARD8</entry>
+        <entry>1</entry>
+        <entry>8-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD16</entry>
+        <entry>2</entry>
+        <entry>16-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD32</entry>
+        <entry>4</entry>
+        <entry>32-bit unsigned integer</entry>
+      </row>
+      <row>
+        <entry>LPCE</entry>
+        <entry>1</entry>
+        <entry><para>A character from the X Portable Character Set in Latin Portable Character
+Encoding</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect1>
+
+<sect1 id='Enumerations'>
+<title>Enumerations</title>
+
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.0*'/>
+    <colspec colname='c3' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Value</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>BOOL</entry>
+        <entry>0</entry>
+        <entry>False</entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>1</entry>
+        <entry>True</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect1>
+
+<sect1 id='Compound_Types'>
+<title>Compound Types</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='4' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.0*'/>
+    <colspec colname='c3' colwidth='1.0*'/>
+    <colspec colname='c4' colwidth='2.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Length (bytes)</entry>
+        <entry>Type</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>VERSION</entry>
+        <entry></entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>2</entry>
+        <entry>CARD16</entry>
+        <entry>Major version number</entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>2</entry>
+        <entry>CARD16</entry>
+        <entry>Minor version number</entry>
+      </row>
+      <row>
+        <entry>STRING</entry>
+        <entry></entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>2</entry>
+        <entry>CARD16</entry>
+        <entry>length of string in bytes</entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>n</entry>
+        <entry>LISTofLPCE</entry>
+        <entry>string</entry>
+      </row>
+      <row>
+        <entry></entry>
+        <entry>p</entry>
+        <entry></entry>
+        <entry>unused, p = pad(n+2, 4)</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect1>
+
+<sect1 id='ICE_Minor_opcodes'>
+<title>ICE Minor opcodes</title>
+
+<informaltable frame='topbot'>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Message Name</entry>
+        <entry>Encoding</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>Error</entry>
+        <entry>0</entry>
+      </row>
+      <row>
+        <entry>ByteOrder</entry>
+        <entry>1</entry>
+      </row>
+      <row>
+        <entry>ConnectionSetup</entry>
+        <entry>2</entry>
+      </row>
+      <row>
+        <entry>AuthenticationRequired</entry>
+        <entry>3</entry>
+      </row>
+      <row>
+        <entry>AuthenticationReply</entry>
+        <entry>4</entry>
+      </row>
+      <row>
+        <entry>AuthenticationNextPhase</entry>
+        <entry>5</entry>
+      </row>
+      <row>
+        <entry>ConnectionReply</entry>
+        <entry>6</entry>
+      </row>
+      <row>
+        <entry>ProtocolSetup</entry>
+        <entry>7</entry>
+      </row>
+      <row>
+        <entry>ProtocolReply</entry>
+        <entry>8</entry>
+      </row>
+      <row>
+        <entry>Ping</entry>
+        <entry>9</entry>
+      </row>
+      <row>
+        <entry>PingReply</entry>
+        <entry>10</entry>
+      </row>
+      <row>
+        <entry>WantToClose</entry>
+        <entry>11</entry>
+      </row>
+      <row>
+        <entry>NoClose</entry>
+        <entry>12</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect1>
+
+<sect1 id='Message_Encoding'>
+<title>Message Encoding</title>
+
+<literallayout class="monospaced">
+<function>Error</function>
+     1     CARD8         major-opcode
+     1     0             Error
+     2     CARD16        class
+     4     (n+p)/8+1     length
+     1     CARD8         offending-minor-opcode
+     1                   severity:
+           0               CanContinue
+           1               FatalToProtocol
+           2               FatalToConnection
+     2                   unused
+     4     CARD32        sequence number of erroneous message
+     n     &lt;varies&gt;     value(s)
+     p                   pad, p = pad(n,8)
+</literallayout>
+
+
+<literallayout class="monospaced">
+<function>ByteOrder</function>
+     1     0     ICE
+     1     1     ByteOrder
+     1           byte-order:
+           0        LSBfirst
+           1        MSBfirst
+     1           unused
+     4     0     length
+</literallayout>
+
+<literallayout class="monospaced">
+<function>ConnectionSetup</function>
+     1     0                   ICE
+     1     2                   ConnectionSetup
+     1     CARD8               Number of versions offered
+     1     CARD8               Number of authentication protocol names offered
+     4     (i+j+k+m+p)/8+1     length
+     1     BOOL                must-authenticate
+     7                         unused
+     i     STRING              vendor
+     j     STRING              release
+     k     LISTofSTRING        authentication-protocol-names
+     m     LISTofVERSION       version-list
+     p                         unused, p = pad(i+j+k+m,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>AuthenticationRequired</function>
+     1     0             ICE
+     1     3             AuthenticationRequired
+     1     CARD8         authentication-protocol-index
+     1                   unused
+     4     (n+p)/8+1     length
+     2     n             length of authentication data
+     6          unused
+     n     &lt;varies&gt;     data
+     p                   unused, p = pad(n,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>AuthenticationReply</function>
+     1     0             ICE
+     1     4             AuthenticationReply
+     2                   unused
+     4     (n+p)/8+1     length
+     2     n             length of authentication data
+     6                   unused
+     n     &lt;varies&gt;     data
+     p                   unused, p = pad(n,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>AuthenticationNextPhase</function>
+     1     0             ICE
+     1     5             AuthenticationNextPhase
+     2                   unused
+     4     (n+p)/8+1     length
+     2     n             length of authentication data
+     6                   unused
+     n     &lt;varies&gt;     data
+     p                   unused, p = pad(n,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>ConnectionReply</function>
+     1     0             ICE
+     1     6             ConnectionReply
+     1     CARD8         version-index
+     1                   unused
+     4     (i+j+p)/8     length
+     i     STRING        vendor
+     j     STRING        release
+     p                   unused, p = pad(i+j,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>ProtocolSetup</function>
+     1     0                     ICE
+     1     7                     ProtocolSetup
+     1     CARD8                 major-opcode
+     1     BOOL                  must-authenticate
+     4     (i+j+k+m+n+p)/8+1     length
+     1     CARD8                 Number of versions offered
+     1     CARD8                 Number of authentication protocol names offered
+     6                           unused
+     i     STRING                protocol-name
+     j     STRING                vendor
+     k     STRING                release
+     m     LISTofSTRING          authentication-protocol-names
+     n     LISTofVERSION         version-list
+     p                           unused, p = pad(i+j+k+m+n,8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>ProtocolReply</function>
+     1     0             ICE
+     1     8             ProtocolReply
+     1     CARD8         version-index
+     1     CARD8         major-opcode
+     4     (i+j+p)/8     length
+     i     STRING        vendor
+     j     STRING        release
+     p                   unused, p = pad(i+j, 8)
+</literallayout>
+
+<literallayout class="monospaced">
+<function>Ping</function>
+     1     0     ICE
+     1     9     Ping
+     2     0     unused
+     4     0     length
+</literallayout>
+
+<literallayout class="monospaced">
+<function>PingReply</function>
+     1     0     ICE
+     1     10    PingReply
+     2     0     unused
+     4     0     length
+</literallayout>
+
+<literallayout class="monospaced">
+<function>WantToClose</function>
+     1     0     ICE
+     1     11    WantToClose
+     2     0     unused
+     4     0     length
+</literallayout>
+
+<literallayout class="monospaced">
+<function>NoClose</function>
+     1     0     ICE
+     1     12    NoClose
+     2     0     unused
+     4     0     length
+</literallayout>
+
+</sect1>
+
+<sect1 id='Error_Class_Encoding'>
+<title>Error Class Encoding</title>
+
+<para>
+Generic errors have classes in the range 0x8000-0xFFFF, and
+subprotocol-specific errors are in the range 0x0000-0x7FFF.
+</para>
+
+<sect2 id='Generic_Error_Class_Encoding'>
+<title>Generic Error Class Encoding</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Class</entry>
+        <entry>Encoding</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>BadMinor</entry>
+        <entry>0x8000</entry>
+      </row>
+      <row>
+        <entry>BadState</entry>
+        <entry>0x8001</entry>
+      </row>
+      <row>
+        <entry>BadLength</entry>
+        <entry>0x8002</entry>
+      </row>
+      <row>
+        <entry>BadValue</entry>
+        <entry>0x8003</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect2>
+<sect2 id='ICE_specific_Error_Class_Encoding'>
+<title>ICE-specific Error Class Encoding</title>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Class</entry>
+        <entry>Encoding</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>BadMajor</entry>
+        <entry>0</entry>
+      </row>
+      <row>
+        <entry>NoAuthentication</entry>
+        <entry>1</entry>
+      </row>
+      <row>
+        <entry>NoVersion</entry>
+        <entry>2</entry>
+      </row>
+      <row>
+        <entry>SetupFailed</entry>
+        <entry>3</entry>
+      </row>
+      <row>
+        <entry>AuthenticationRejected</entry>
+        <entry>4</entry>
+      </row>
+      <row>
+        <entry>AuthenticationFailed</entry>
+        <entry>5</entry>
+      </row>
+      <row>
+        <entry>ProtocolDuplicate</entry>
+        <entry>6</entry>
+      </row>
+      <row>
+        <entry>MajorOpcodeDuplicate</entry>
+        <entry>7</entry>
+      </row>
+      <row>
+        <entry>UnknownProtocol</entry>
+        <entry>8</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</sect2>
+</sect1>
+</chapter>
+
+<appendix id="modification_history">
+
+<title>Modification History</title>
+
+<sect1 id='Release_6_to_Release_61_1'>
+<title>Release 6 to Release 6.1</title>
+<para>
+Release 6.1 added the ICE X rendezvous protocol (Appendix B) and
+updated the document version to 1.1.
+</para>
+</sect1>
+
+<sect1 id='Release_61_to_Release_63_3'>
+<title>Release 6.1 to Release 6.3</title>
+<para>Release 6.3 added the listen on well known ports feature.</para>
+</sect1>
+
+</appendix>
+
+<appendix id="ice_x_rendezvous_protocol">
+<title>ICE X Rendezvous Protocol</title>
+
+<sect1 id='Introduction'>
+<title>Introduction</title>
+<para>
+The ICE X rendezvous protocol is designed to answer the need posed
+in Section 2 for one mechanism by which two clients interested in
+communicating via ICE are able to exchange the necessary information.
+This protocol is appropriate for any two ICE clients who also have X
+connections to the same X server.
+</para>
+</sect1>
+
+<sect1 id='Overview_of_ICE_X_Rendezvous'>
+<title>Overview of ICE X Rendezvous</title>
+
+<para>
+The ICE X Rendezvous Mechanism requires clients willing to act as ICE
+originating parties to pre-register the ICE subprotocols they support in an
+ICE_PROTOCOLS property on their top-level window.  Clients willing to
+act as ICE answering parties then send an ICE_PROTOCOLS X
+<function>ClientMessage</function>
+event to the ICE originating parties.  This
+<function>ClientMessage</function>
+event identifies
+the ICE network IDs of the ICE answering party as well as the ICE
+subprotocol it wishes to speak.  Upon receipt of this message the ICE
+originating party uses the information to establish an ICE connection
+with the ICE answering party.
+</para>
+</sect1>
+
+<sect1 id='Registering_Known_Protocols'>
+<title>Registering Known Protocols</title>
+
+<para>
+Clients willing to act as ICE originating parties preregister
+the ICE subprotocols they support in a list of atoms held by an
+ICE_PROTOCOLS property on their top-level window.  The name of each
+atom listed in ICE_PROTOCOLS must be of the form
+ICE_INITIATE_<emphasis remap='I'>pname</emphasis> where
+<emphasis remap='I'>pname</emphasis> is the name of the ICE
+subprotocol the ICE originating party is willing to speak, as would be
+specified in an ICE
+<function>ProtocolSetup</function>
+message.
+</para>
+
+<para>
+Clients with an ICE_INITIATE_<emphasis remap='I'>pname</emphasis> atom
+in the ICE_PROTOCOLS property on their top-level windows must respond to
+<function>ClientMessage</function> events of
+type ICE_PROTOCOLS specifying ICE_INITIATE_
+<emphasis remap='I'>pname</emphasis>.  If a client does not
+want to respond to these client message events, it should
+remove the ICE_INITIATE_<emphasis remap='I'>pname</emphasis>
+atom from its ICE_PROTOCOLS property
+or remove the ICE_PROTOCOLS property entirely.
+</para>
+</sect1>
+
+<sect1 id='Initiating_the_Rendezvous'>
+<title>Initiating the Rendezvous</title>
+
+<para>
+To initiate the rendezvous a client acting as an ICE answering
+party sends an X
+<function>ClientMessage</function>
+event of type ICE_PROTOCOLS to an ICE
+originating party.  This ICE_PROTOCOLS client message contains the
+information the ICE originating party needs to identify the ICE
+subprotocol the two parties will use as well as the ICE network
+identification string of the ICE answering party.
+</para>
+
+<para>
+Before the ICE answering party sends the client message event it must
+define a text property on one of its windows.  This text property
+contains the ICE answering party's ICE network identification string
+and will be used by ICE originating parties to determine the ICE
+answering party's list of ICE network IDs.
+</para>
+
+<para>
+The property name will normally be ICE_NETWORK_IDS, but may be any
+name of the ICE answering party's choosing.  The format for this text
+property is as follows:
+</para>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Field</entry>
+        <entry>Value</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>type</entry>
+        <entry>XA_STRING</entry>
+      </row>
+      <row>
+        <entry>format</entry>
+        <entry>8</entry>
+      </row>
+      <row>
+        <entry>value</entry>
+        <entry>comma-separated list of ICE network IDs</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+
+<para>
+Once the ICE answering party has established this text property on one
+of its windows, it initiates the rendezvous by sending an
+ICE_PROTOCOLS
+<function>ClientMessage</function>
+event to an ICE originating party's
+top-level window.  This event has the following format
+and must only be sent to windows that have pre-registered the ICE
+subprotocol in an ICE_PROTOCOLS property on their top-level window.
+</para>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Field</entry>
+        <entry>Value</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>message_type</entry>
+        <entry>Atom = "ICE_PROTOCOLS"</entry>
+      </row>
+      <row>
+        <entry>format</entry>
+        <entry>32</entry>
+      </row>
+      <row>
+        <entry>data.l[0]</entry>
+        <entry>Atom identifying the ICE subprotocol to speak</entry>
+      </row>
+      <row>
+        <entry>data.l[1]</entry>
+        <entry>Timestamp</entry>
+      </row>
+      <row>
+        <entry>data.l[2]</entry>
+        <entry><para>ICE answering party's window ID with
+ICE network IDs text property</para></entry>
+      </row>
+      <row>
+        <entry>data.l[3]</entry>
+        <entry>Atom naming text property containing the ICE
+answering party's ICE network IDs</entry>
+      </row>
+      <row>
+        <entry>data.l[4]</entry>
+        <entry>Reserved.  Must be 0.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<para>
+The name of the atom in data.l[0] must be of the form
+ICE_INITIATE_<emphasis remap='I'>pname</emphasis>, where
+<emphasis remap='I'>pname</emphasis> is the name of the ICE
+subprotocol the ICE answering party wishes to speak.
+</para>
+
+<para>
+When an ICE originating party receives a
+<function>ClientMessage</function>
+event of type
+ICE_PROTOCOLS specifying ICE_INITIATE_<emphasis remap='I'>pname</emphasis>
+it can initiate an ICE connection with the ICE answering party.
+To open this connection the client retrieves the ICE answering
+party's ICE network IDs from the window specified in data.l[2] using
+the text property specified in data.l[3].
+</para>
+
+<para>
+If the connection attempt fails for any reason, the client must
+respond to the client message event by sending a return
+<function>ClientMessage</function>
+event to the window specified in data.l[2].  This return
+event has the following format:
+</para>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Field</entry>
+        <entry>Value</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>message_type</entry>
+        <entry>Atom = "ICE_INITIATE_FAILED"</entry>
+      </row>
+      <row>
+        <entry>format</entry>
+        <entry>32</entry>
+      </row>
+      <row>
+        <entry>data.l[0]</entry>
+        <entry>Atom identifying the ICE subprotocol requested</entry>
+      </row>
+      <row>
+        <entry>data.l[1]</entry>
+        <entry>Timestamp</entry>
+      </row>
+      <row>
+        <entry>data.l[2]</entry>
+        <entry><para>Initiating party's window ID
+(holding ICE_PROTOCOLS)</para></entry>
+      </row>
+      <row>
+        <entry>data.l[3]</entry>
+        <entry>int: reason for failure</entry>
+      </row>
+      <row>
+        <entry>data.l[4]</entry>
+        <entry>Reserved, must be 0</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<para>
+The values of data.l[0] and data.l[1] are copied directly from the
+client message event the client received.
+</para>
+
+<para>
+The value in data.l[2] is
+the id of the window to which the
+ICE_PROTOCOLS.ICE_INITIATE_<emphasis remap='I'>pname</emphasis>
+client message event was sent.
+</para>
+
+<para>Data.l[3] has one of the following values:</para>
+
+<!-- .ne 21 -->
+
+<informaltable frame='topbot'>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.5*'/>
+    <colspec colname='c2' colwidth='1.0*'/>
+    <colspec colname='c3' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Value</entry>
+        <entry>Encoding</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>OpenFailed</entry>
+        <entry>1</entry>
+        <entry>
+The client was unable to open the connection
+(e.g. a call to IceOpenConnection() failed).  If the
+client is able to distinguish authentication or
+authorization errors from general errors, then
+the preferred reply is <function>AuthenticationFailed</function>
+for authorization errors.
+          </entry>
+      </row>
+      <row>
+        <entry>AuthenticationFailed</entry>
+        <entry>2</entry>
+        <entry>Authentication or authorization of the
+connection or protocol setup was refused.
+This reply will be given only if the client is
+able to distinguish it from
+<function>OpenFailed</function>
+otherwise
+<function>OpenFailed</function>
+will be returned.</entry>
+      </row>
+      <row>
+        <entry>SetupFailed</entry>
+        <entry>3</entry>
+        <entry>The client was unable to initiate the specified
+protocol on the connection (e.g. a call to
+IceProtocolSetup() failed).</entry>
+      </row>
+      <row>
+        <entry>UnknownProtocol</entry>
+        <entry>4</entry>
+        <entry>The client does not recognize the requested
+protocol.  (This represents a semantic error
+on the part of the answering party.)</entry>
+      </row>
+      <row>
+        <entry>Refused</entry>
+        <entry>5</entry>
+        <entry>
+The client was in the process of removing
+ICE_INITIATE_<emphasis remap='I'>pname</emphasis>
+from its ICE_PROTOCOLS list
+when the client message was sent; the client no
+longer is willing to establish the specified ICE
+communication.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+
+<note>
+<para>
+Clients willing to act as ICE originating parties must update the
+ICE_PROTOCOLS property on their top-level windows to include the
+ICE_INITIATE_<emphasis remap='I'>pname</emphasis> atom(s) identifying
+the ICE subprotocols they
+speak.  The method a client uses to update the ICE_PROTOCOLS property
+to include ICE_INITIATE_<emphasis remap='I'>pname</emphasis> atoms is
+implementation dependent, but
+the client must ensure the integrity of the list to prevent the
+accidental omission of any atoms previously in the list.
+</para>
+
+<para>
+When setting up the ICE network IDs text property on one of its
+windows, the ICE answering party can determine its comma-separated
+list of ICE network IDs by calling IceComposeNetworkIdList() after
+making a call to IceListenForConnections().  The method an ICE
+answering party uses to find the top-level windows of clients willing
+to act as ICE originating parties is dependent upon the nature of the
+answering party.  Some may wish to use the approach of requiring the
+user to click on a client's window.  Others wishing to find existing
+clients without requiring user interaction might use something similar
+to the XQueryTree() method used by several freely-available
+applications.  In order for the ICE answering party to become
+automatically aware of new clients willing to originate ICE
+connections, the ICE answering party might register for
+SubstructureNotify events on the root window of the display.  When it
+receives a SubstructureNotify event, the ICE answering party can check
+to see if it was the result of the creation of a new client top-level
+window with an ICE_PROTOCOLS property.
+</para>
+
+<para>
+In any case, before attempting to use this ICE X Rendezvous Mechanism
+ICE answering parties wishing to speak ICE subprotocol
+<emphasis remap='I'>pname</emphasis> should
+check for the ICE_INITIATE_<emphasis remap='I'>pname</emphasis> atom
+in the ICE_PROTOCOLS property on
+a client's top-level window.  A client that does not include an
+ICE_INITIATE_<emphasis remap='I'>pname</emphasis> atom in a
+ICE_PROTOCOLS property on some top-level window should be assumed to ignore
+<function>ClientMessage</function>
+events of type
+ICE_PROTOCOLS specifying ICE_INITIATE_<emphasis remap='I'>pname</emphasis>
+for ICE subprotocol <emphasis remap='I'>pname</emphasis>.
+</para>
+</note>
+</sect1>
+
+<sect1 id='ICE_Subprotocol_Versioning'>
+<title>ICE Subprotocol Versioning</title>
+
+<para>
+Although the version of the ICE subprotocol could be passed in the
+client message event, ICE provides more a flexible version negotiation
+mechanism than will fit within a single
+<function>ClientMessage</function>
+event.  Because
+of this, ICE subprotocol versioning is handled within the ICE protocol
+setup phase.</para>
+<note remap='NT'>
+<para>Clients wish to communicate with each other via an ICE subprotocol
+known as "RAP V1.0".  In RAP terminology one party, the "agent",
+communicates with other RAP-enabled applications on demand.  The
+user may direct the agent to establish communication with a specific
+application by clicking on the application's window, or the agent may
+watch for new application windows to be created and automatically
+establish communication.
+</para>
+
+<para>
+During startup the ICE answering party (the agent) first calls
+IceRegisterForProtocolReply() with a list of
+the versions (i.e., 1.0) of RAP the agent can speak.  The answering
+party then calls IceListenForConnections() followed by
+IceComposeNetworkIdList() and stores the resulting ICE network IDs
+string in a text property on one of its windows.
+</para>
+
+<para>
+When the answering party (agent) finds a client with which it wishes to
+speak, it checks to see if the ICE_INITIATE_RAP atom is in the ICE_PROTOCOLS
+property on the client's top-level window.  If it is present the agent
+sends the client's top-level window an ICE_PROTOCOLS client
+message event as described above.  When the client receives the client
+message event and is willing to originate an ICE connection using RAP,
+it performs an IceRegisterForProtocolSetup() with a list of the
+versions of RAP the client can speak.  The client then retrieves
+the agent's ICE network ID from the property and window specified by
+the agent in the client message event and calls IceOpenConnection().
+After this call succeeds the client calls IceProtocolSetup() specifying
+the RAP protocol.  During this
+process, ICE calls the RAP protocol routines that handle the version
+negotiation.
+</para>
+
+<para>
+Note that it is not necessary for purposes of this rendezvous that
+the client application call any ICElib functions prior to receipt
+of the client message event.
+</para>
+</note>
+</sect1>
+</appendix>
+</book>

@@ -1,0 +1,117 @@
+'\" t
+.\"     Title: xgetextensionversion
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XGETEXTENSIONVERSION" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XGetExtensionVersion \- query the version of the input extension\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+XExtensionVersion *XGetExtensionVersion( Display *display,
+                                         char *name);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+name
+       Specifies the extension to be queried\&. The input
+       extension name is defined in the header file XI\&.h\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetExtensionVersion request is deprecated and should not
+be used in XI2 applications\&. Clients issuing a XGetExtensionVersion
+request will not be able to use XI2 features\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGetExtensionVersion request queries the version of the input
+extension, and returns an XExtensionVersion structure\&. This structure
+contains a major_version and minor_version number which can be compared
+with constants defined in XI\&.h\&. Support for additional protocol
+requests added to the input extension after its initial release
+is indicated by a version number corresponding to the added
+requests\&. Each version contains all the protocol requests
+contained by previous versions\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+You should use XFree to free the XExtensionVersion structure\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "STRUCTURES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This request returns an XExtensionVersion structure\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int present;
+    short major_version;
+    short minor_version;
+} XExtensionVersion;
+.fi
+.if n \{\
+.RE
+.\}

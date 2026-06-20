@@ -1,0 +1,141 @@
+<sect1 id="Ascii_Sink_Object_and_Multi_Sink_Object">
+<title>Ascii Sink Object and Multi Sink Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	AsciiSink Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>AsciiSink object</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/AsciiSink.h&gt;
+<indexterm><primary>AsciiSink.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/AsciiSinkP.h&gt;
+<indexterm><primary>AsciiSinkP.h</primary></indexterm>
+Class		asciiSinkObjectClass
+<indexterm><primary>asciiSinkObjectClass</primary></indexterm>
+Class Name	AsciiSink
+<indexterm><primary>AsciiSink object</primary><secondary>class name</secondary></indexterm>
+Superclass	TextSink
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The AsciiSink or MultiSink object is used by a text widget to render the text.
+Depending on its <function>international</function> resource, a
+AsciiText widget will create one or the other of these when the AsciiText
+itself is created.  Both types are nearly identical; the following discussion
+applies to both, with MultiSink differences noted only as they occur.
+The AsciiSink
+will display all printing characters in an 8 bit font, along with handling Tab
+and Carriage Return.  The name has been left as <quote>AsciiSink</quote> for compatibility.
+<emphasis remap='I'>The MultiSink will display all printing characters in a
+font set, along with handling Tab and Carriage Return.</emphasis>
+The source object also reports the text window metrics to the
+text widgets.
+</para>
+<sect2 id='AsciiSink::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating an AsciiSink object instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>AsciiSink object</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>displayNonprinting</entry>
+      <entry>Output</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>echo</entry>
+      <entry>Output</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>XFontStruct*</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Bg Bold -->
+This resource is retrieved by the AsciiSink instead of being copied
+from the Text widget.
+<!-- .Dc -->
+<!-- .Sd Bold -->
+<!-- .Sh Bold -->
+</para>
+<para>
+<!-- .IP <function>font</function> 1.5i -->
+The text font to use when displaying the <function>string</function>.
+(This resource is present in the AsciiSink, but not the MultiSink.)
+<!-- .IP <function>fontSet</function> 1.5i -->
+</para>
+<para>
+The text font set to use when displaying the <function>string</function>.
+(This resource is present in the MultiSink, but not the AsciiSink.)
+</para>
+</sect2>
+</sect1>

@@ -1,0 +1,399 @@
+<chapter id='Text_Widgets'>
+<title>Text Widgets</title>
+
+<para>
+The Text widget provides a window that will allow an application
+to display and edit one or more lines of text.  Options are provided to
+allow the user to add Scrollbars to its window, search for a specific
+string, and modify the text in the buffer.
+</para>
+<para>
+The Text widget is made up of a number of pieces; it was modularized to
+ease customization.  The AsciiText widget class (actually not limited to
+ASCII but so named for compatibility) is be general enough to most
+needs.  If more flexibility, special features, or extra functionality is
+needed, they can be added by implementing a new TextSource or TextSink, or
+by subclassing the Text Widget
+(<link linkend='Customizing_the_Text_Widget'>See Section 5.8</link>
+for customization details.)
+</para>
+<para>
+The words <emphasis remap='I'>insertion point</emphasis> are used in this chapter to refer to the text
+caret.  This is the symbol that is displayed between two characters in
+the file.  The insertion point marks the location where any new characters
+will be added to the file.  To avoid confusion the pointer cursor will
+always be referred to as the <emphasis remap='I'>pointer</emphasis>.
+</para>
+<para>
+The text widget supports three edit modes, controlling the types of
+modifications a user is allowed to make:
+</para>
+<para>
+<itemizedlist>
+  <listitem><para>Append-only</para></listitem>
+  <listitem><para>Editable</para></listitem>
+  <listitem><para>Read-only</para></listitem>
+</itemizedlist>
+</para>
+<para>
+Read-only mode does not allow the user or the programmer to modify the text
+in the widget.  While the entire string may be reset in
+read-only mode with <xref linkend='XtSetValues' xrefstyle='select: title'/>, it cannot be modified via
+with <xref linkend='XawTextReplace' xrefstyle='select: title'/>.  Append-only and editable modes allow
+the text at the insertion point to be modified.  The only difference is
+that text may only be added to or removed from the end of a buffer in
+append-only mode.
+</para>
+<sect1 id="Text_Widget_for_Users">
+<title>Text Widget for Users</title>
+<indexterm><primary>Text widget</primary><secondary>User's Guide to the Text widget</secondary></indexterm>
+<!-- .XS -->
+<!-- 	Text Widget for Users -->
+<!-- .XE -->
+<para>
+<!-- .LP -->
+The Text widget provides many of the common keyboard editing commands.
+These commands allow users to move around and edit the buffer.  If an
+illegal operation is attempted, (such as deleting characters in a
+read-only text widget), the X server will beep.
+</para>
+<sect2 id="Default_Key_Bindings">
+<title>Default Key Bindings</title>
+<indexterm><primary>Text widget</primary><secondary>default key bindings</secondary></indexterm>
+<para>
+<!-- .LP -->
+The default key bindings are patterned after those in the EMACS text editor:
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA 1.0i 3.0i 4.5i -->
+<!-- .ta 1.0i 3.0i 4.5i -->
+Ctrl-a	Beginning Of Line	Meta-b	Backward Word
+Ctrl-b	Backward Character	Meta-f	Forward Word
+Ctrl-d	Delete Next Character	Meta-i	Insert File
+Ctrl-e	End Of Line	Meta-k	Kill To End Of Paragraph
+Ctrl-f	Forward Character	Meta-q	Form Paragraph
+Ctrl-g	Multiply Reset	Meta-v	Previous Page
+Ctrl-h	Delete Previous Character	Meta-y	Insert Current Selection
+Ctrl-j	Newline And Indent	Meta-z	Scroll One Line Down
+Ctrl-k	Kill To End Of Line	Meta-d	Delete Next Word
+Ctrl-l	Redraw Display	Meta-D	Kill Word
+Ctrl-m	Newline	Meta-h	Delete Previous Word
+Ctrl-n	Next Line	Meta-H	Backward Kill Word
+Ctrl-o	Newline And Backup	Meta-&lt;	Beginning Of File
+Ctrl-p	Previous Line	Meta-&gt;	End Of File
+Ctrl-r	Search/Replace Backward	Meta-]	Forward Paragraph
+Ctrl-s	Search/Replace Forward	Meta-[	Backward Paragraph
+Ctrl-t	Transpose Characters
+Ctrl-u	Multiply by 4	Meta-Delete	Delete Previous Word
+Ctrl-v	Next Page	Meta-Shift Delete	Kill Previous Word
+Ctrl-w	Kill Selection	Meta-Backspace	Delete Previous Word
+Ctrl-y	Unkill	Meta-Shift Backspace	Kill Previous Word
+Ctrl-z	Scroll One Line Up
+Ctrl-\\	Reconnect to input method
+Kanji	Reconnect to input method
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+In addition, the pointer may be used to cut and paste text:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.0i -->
+<!-- .ta .5i 2.0i -->
+	Button 1 Down	Start Selection
+	Button 1 Motion	Adjust Selection
+	Button 1 Up	End Selection (cut)
+
+	Button 2 Down	Insert Current Selection (paste)
+
+	Button 3 Down	Extend Current Selection
+	Button 3 Motion	Adjust Selection
+	Button 3 Up	End Selection (cut)
+
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+Since all of these key and pointer bindings are set through the
+translations and resource manager, the user and the application
+programmer can modify them by changing the Text widget's
+<function>translations</function> resource.
+<!-- .\" -->
+</para>
+</sect2>
+<sect2 id="Search_and_Replace">
+<title>Search and Replace</title>
+<indexterm><primary>Text widget</primary><secondary>search</secondary></indexterm>
+<indexterm><primary>Text widget</primary><secondary>query replace</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Text widget provides a search popup that can be used to search for a
+string within the current Text widget.  The popup can be activated by
+typing either <emphasis remap='I'>Control-r</emphasis> or <emphasis remap='I'>Control-s</emphasis>.  If <emphasis remap='I'>Control-s</emphasis> is
+used the search will be forward in the file from the current location of the
+insertion point; if <emphasis remap='I'>Control-r</emphasis> is used the search will be backward.  The
+activated popup is placed under the pointer.  It has a number of buttons
+that allow both text searches and text replacements to be performed.
+</para>
+<para>
+<!-- .LP -->
+At the top of the search popup are two toggle buttons labeled
+<emphasis remap='I'>backward</emphasis> and <emphasis remap='I'>forward</emphasis>.  One of these buttons will always be
+highlighted; this is the direction in which the search will be
+performed.  The user can change the direction at any time by clicking on
+the appropriate button.
+</para>
+<para>
+<!-- .LP -->
+Directly under the buttons there are two text areas, one labeled
+<emphasis remap='I'>Search for:</emphasis> and the other labeled <emphasis remap='I'>Replace with:</emphasis>.  If this is
+a read-only Text widget the <emphasis remap='I'>Replace with:</emphasis> field will be insensitive
+and no replacements will be allowed.  After each of these labels will be
+a text field.  This field will allow the user to enter a string to
+search for and the string to replace it with.  Only one of these text
+fields will have a window border around it; this is the active text
+field.  Any key presses that occur when the focus in in the search popup
+will be directed to the active text field.  There are also a few special
+key sequences:
+<literallayout class="monospaced">
+<!-- .TA 1.75i -->
+<!-- .ta 1.75i -->
+<function>Carriage Return</function>:	Execute the action, and pop down the search widget.
+<function>Tab</function>:	Execute the action, then move to the next field.
+<function>Shift Carriage Return</function>:	Execute the action, then move to the next field.
+<function>Control-q Tab</function>:	Enter a Tab into a text field.
+<function>Control-c</function>:	Pop down the search popup.
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+Using these special key sequences should allow simple
+searches without ever removing one's hands from the keyboard.
+</para>
+<para>
+<!-- .LP -->
+Near the bottom of the search popup is a row of buttons.  These buttons
+allow the same actions to to be performed as the key sequences, but the
+buttons will leave the popup active.  This can be quite useful if many
+searches are being performed, as the popup will be left on the display.
+Since the search popup is a transient window, it may be picked
+up with the window manager and pulled off to the side for use
+at a later time.
+</para>
+<variablelist>
+  <varlistentry>
+    <term>Search</term>
+    <listitem>
+      <para>
+Search for the specified string.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Replace</term>
+    <listitem>
+      <para>
+Replace the currently highlighted string with the string in the
+<emphasis remap='I'>Replace with</emphasis> text field, and move onto the next occurrence of the
+<emphasis remap='I'>Search for</emphasis> text field.  The functionality is commonly referred to as
+query-replace.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>ReplaceAll</term>
+    <listitem>
+      <para>
+Replace all occurrences of the search string with the replace string from
+the current insertion point position to the end (or beginning) of the
+file.  There is no key sequence to perform this action.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+      <term>ReplaceAll</term>
+      <listitem>
+        <para>
+Remove the search popup from the screen.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+<para>
+<!-- .LP -->
+Finally, when <function>international</function> resource is <function>true</function>, there may be a
+pre-edit buffer below the button row, for composing input.  Its presence
+is determined by the X locale in use and the VendorShell's <function>preeditType</function>
+resource.
+</para>
+<para>
+<!-- .LP -->
+The widget hierarchy for the search popup is show below, all widgets
+are listed by class and instance name.
+<!-- .sp -->
+<!-- .nf -->
+<!-- .ta .5i 1.0i 1.5i 2.0i 2.5i -->
+<literallayout class="monospaced">
+Text  &lt;name of Text widget&gt;
+	TransientShell  search
+		Form  form
+			Label label1
+			Label  label2
+			Toggle  backwards
+			Toggle  forwards
+			Label  searchLabel
+			Text  searchText
+			Label  replaceLabel
+			Text  replaceText
+			Command  search
+			Command  replaceOne
+			Command  replaceAll
+			Command  cancel
+</literallayout>
+<!-- .fi -->
+</para>
+</sect2>
+<sect2 id="File_Insertion">
+<title>File Insertion</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Text widget</primary><secondary>file insertion</secondary></indexterm>
+To insert a file into a text widget, type the key sequence <emphasis remap='I'>Meta-i</emphasis>,
+which will activate the file insert popup.  This popup will appear under
+the pointer, and any text typed while the focus is in this popup will be
+redirected to the text field used for the filename.  When the desired
+filename has been entered, click on <emphasis remap='I'>Insert File</emphasis>, or type
+<emphasis remap='I'>Carriage Return</emphasis>.  The named file will then be inserted in the text
+widget beginning at the insertion point position.  If an error occurs when
+opening the file, an error message will be printed, prompting the user
+to enter the filename again.  The file insert may be aborted by clicking
+on <emphasis remap='I'>Cancel</emphasis>.  If <emphasis remap='I'>Meta-i</emphasis> is typed at a text widget that is
+read-only, it will beep, as no file insertion is allowed.
+</para>
+<para>
+<!-- .LP -->
+The widget hierarchy for the file insert popup is show below; all widgets
+are listed by class and instance name.
+<!-- .sp -->
+<!-- .nf -->
+<!-- .ta .5i 1.0i 1.5i 2.0i 2.5i -->
+<literallayout class="monospaced">
+Text  &lt;name of Text widget&gt;
+	TransientShell  insertFile
+		Form  form
+			Label  label
+			Text  text
+			Command  insert
+			Command  cancel
+</literallayout>
+<!-- .fi -->
+</para>
+</sect2>
+<sect2 id="Text_Selections_for_Users">
+<title>Text Selections for Users</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Text widget</primary><secondary>Text Selections for Users</secondary></indexterm>
+The text widgets have a text selection mechanism that allows
+the user to copy pieces of the text into the <function>PRIMARY</function> selection,
+and paste
+into the text widget some text that another application (or text
+widget) has put in the <function>PRIMARY</function> selection.
+</para>
+<para>
+<!-- .LP -->
+One method of selecting text is to press pointer button 1
+on the beginning of the text to be selected, drag the pointer until all
+of the desired text is highlighted, and then release the button to
+activate the selection.  Another method is to click pointer button 1 at
+one end of the text to be selected, then click pointer button 3 at the
+other end.
+</para>
+<para>
+<!-- .LP -->
+To modify a currently active selection, press pointer button 3 near
+either the end of the selection that you want to
+adjust.  This end of the selection may be moved while holding down pointer
+button 3.  When the proper area has been highlighted release the pointer
+button to activate the selection.
+</para>
+<para>
+<!-- .LP -->
+The selected text may now be pasted into another application, and
+will remain active until some other client makes a selection.
+To paste text that some other application has
+put into the <function>PRIMARY</function> selection use pointer button 2.
+First place the insertion point where you would like the text to be inserted,
+then click and release pointer button 2.
+</para>
+<para>
+<!-- .LP -->
+Rapidly clicking pointer button 1 the following number of times will adjust
+the selection as described.
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Two</function>
+    </term>
+    <listitem>
+      <para>
+Select the word under the pointer.  A word boundary is defined by the
+Text widget to be a Space, Tab, or Carriage Return.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Three</function>
+    </term>
+    <listitem>
+      <para>
+Select the line under the pointer.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Four</function>
+    </term>
+    <listitem>
+      <para>
+Select the paragraph under the pointer.  A paragraph boundary is
+defined by the text widget as two Carriage Returns in a row with only
+Spaces or Tabs between them.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Five</function>
+    </term>
+    <listitem>
+      <para>
+Select the entire text buffer.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+To unset the text selection, click pointer button 1 without moving it.
+</para>
+</sect2>
+</sect1>
+
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextActions_text_widget_actions.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextActions_default_translation_bindings.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextFuncs.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="AsciiText.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="AsciiSource.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="AsciiSink.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextCustom.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Text.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextSource.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="TextSink.xml"/>
+
+</chapter>

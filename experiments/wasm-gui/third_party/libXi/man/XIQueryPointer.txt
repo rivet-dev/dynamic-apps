@@ -1,0 +1,102 @@
+XIQUERYPOINTER(libmansuffix)
+============================
+
+NAME
+----
+
+   XIQueryPointer - get device pointer coordinates.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   Bool XIQueryPointer( Display *display,
+                        int deviceid,
+                        Window win,
+                        Window *root_return,
+                        Window *child_return,
+                        double *root_x_return,
+                        double *root_y_return,
+                        double *win_x_return,
+                        double *win_y_return,
+                        XIButtonState *buttons_return,
+                        XIModifierState *modifiers_return,
+                        XIGroupState *group_return);
+
+   buttons_return
+          Returns the current button state.
+
+   child_return
+          Returns the child window that the pointer is located in,
+          if any.
+
+   deviceid
+          Specifies the device to query.
+
+   display
+          Specifies the connection to the X server.
+
+   group_return
+          Returns the current group state.
+
+   modifiers_return
+          Returns the current state of the modifier keys.
+
+   root_return
+          Returns the root window that the pointer is in.
+
+   root_x_return, root_y_return
+          Return the pointer coordinates relative to the root
+          window's origin.
+
+   win
+          Specifies the window.
+
+   win_x_return, win_y_return
+          Return the pointer coordinates relative to the specified
+          window.
+
+DESCRIPTION
+-----------
+
+   The XIQueryPointer function returns the root window the
+   device's pointer is logically on and the pointer coordinates
+   relative to the root window's origin. If XIQueryPointer returns
+   False, the pointer is not on the same screen as the specified
+   window, and XIQueryPointer returns None to child_return and
+   zero to win_x_return and win_y_return. If XIQueryPointer
+   returns True, the pointer coordinates returned to win_x_return
+   and win_y_return are relative to the origin of the specified
+   window. In this case, XIQueryPointer returns the child that
+   contains the pointer, if any, or else None to child_return.
+
+   XIQueryPointer returns the current logical state of the buttons
+   buttons_return. The keyboard paired with the master pointer is
+   selected to obtain the data for modifiers_return and
+   group_return.
+
+   The mask field in buttons_return is dynamically allocated and
+   must be freed by the caller.
+
+   XIQueryPointer is identical to XQueryPointer but specifies the
+   device explicitly.
+
+   XIQueryPointer can generate a BadDevice and a BadWindow error.
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The device does not
+          exist or is not a pointer device.
+
+   BadWindow
+          A value for a Window argument does not name a defined
+          window.
+
+SEE ALSO
+--------
+
+   XQueryPointer(libmansuffix)
+

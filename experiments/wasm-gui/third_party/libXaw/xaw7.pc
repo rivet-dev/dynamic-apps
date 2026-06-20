@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xaw
+Description: X Athena Widgets Library, version 7
+Version: 1.0.16
+Requires: xproto xt
+Requires.private: x11 xext xt xmu xpm
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXaw7

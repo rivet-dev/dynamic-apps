@@ -1,0 +1,96 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtCreate-Window wid-get
+.na
+.TH XtCreateWindow __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtCreateWindow \- window creation convenience function
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtCreateWindow(Widget \fIw\fP, unsigned int \fIwindow_class\fP, Visual
+*\fIvisual\fP, XtValueMask \fIvalue_mask\fP, XSetWindowAttributes
+*\fIattributes\fP);
+.SH ARGUMENTS
+.IP \fIattributes\fP 1i
+Specifies the window attributes to use in the
+.B XCreateWindow
+call.
+.IP \fIvalue_mask\fP 1i
+Specifies which attribute fields to use.
+.IP \fIvisual\fP 1i
+Specifies the visual type (usually
+.BR CopyFromParent ).
+.IP \fIw\fP 1i
+Specifies the widget that is used to set the x,y coordinates and so on.
+.IP \fIwindow_class\fP 1i
+Specifies the Xlib window class (for example,
+.BR InputOutput ,
+.BR InputOnly ,
+or
+.BR CopyFromParent ).
+.SH DESCRIPTION
+The
+.B XtCreateWindow
+function calls the Xlib
+.B XCreateWindow
+function with values from the widget structure and the passed parameters.
+Then, it assigns the created window to the widget's window field.
+.LP
+.B XtCreateWindow
+evaluates the following fields of the
+.B Core
+widget structure:
+.IP \(bu 5
+depth
+.IP \(bu 5
+screen
+.IP \(bu 5
+parent -> core.window
+.IP \(bu 5
+x
+.IP \(bu 5
+y
+.IP \(bu 5
+width
+.IP \(bu 5
+height
+.IP \(bu 5
+border_width
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

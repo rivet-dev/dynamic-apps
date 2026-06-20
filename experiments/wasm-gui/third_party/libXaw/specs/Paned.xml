@@ -1,0 +1,1213 @@
+<sect1 id="Paned_Widget">
+<title>Paned Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Paned Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Paned widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Paned.h&gt;
+<indexterm><primary>Paned.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/PanedP.h&gt;
+<indexterm><primary>PanedP.h</primary></indexterm>
+Class		panedWidgetClass
+<indexterm><primary>panedWidgetClass</primary></indexterm>
+Class Name	Paned
+<indexterm><primary>Paned widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Constraint
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Paned widget manages children in a vertically or horizontally
+tiled fashion.  The panes may be dynamically resized by the user by
+using the <emphasis remap='I'>grips</emphasis> that appear near the right or bottom edge of the
+border between two panes.
+</para>
+<para>
+<!-- .LP -->
+The Paned widget may accept any widget class as a pane <function>except</function>
+Grip.  Grip widgets have a special meaning for the Paned widget, and
+adding a Grip as its own pane will confuse the Paned widget.
+</para>
+<sect2 id="Using_the_Paned_Widget">
+<title>Using the Paned Widget</title>
+<indexterm><primary>Paned widget</primary><secondary>using</secondary></indexterm>
+<para>
+<!-- .LP -->
+The grips allow the panes to be resized by the user.  The semantics of
+how these panes resize is somewhat complicated, and warrants further
+explanation here.  When the mouse pointer is positioned on a grip and
+pressed, an arrow is displayed that indicates the pane that is to be to
+be resized.  While keeping the mouse button down, the user can move the
+grip up and down (or left and right).  This, in turn, changes the size
+of the pane.  The size of the Paned widget will not change.   Instead,
+it chooses another pane (or panes) to resize. For more details on which
+pane it chooses to resize, see <function>Layout Semantics</function>.
+</para>
+<para>
+<!-- .LP -->
+One pointer binding allows the border between two panes to be moved,
+without affecting any of the other panes.  When this occurs the pointer
+will change to an arrow that points along the pane border.
+</para>
+<para>
+<!-- .LP -->
+The default bindings for the Paned widget's grips are:
+<informaltable>
+  <tgroup cols='3' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <thead>
+    <row>
+      <entry>Mouse button</entry>
+      <entry>Pane to Resize - Vertical</entry>
+      <entry>Pane to Resize - Horizontal</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>1 (left)</entry>
+      <entry>above the grip</entry>
+      <entry>left of the grip</entry>
+    </row>
+    <row>
+      <entry>2 (middle)</entry>
+      <entry>adjust border</entry>
+      <entry>adjust border</entry>
+    </row>
+    <row>
+      <entry>3 (right)</entry>
+      <entry>below the grip</entry>
+      <entry>right of the grip</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+</sect2>
+<sect2 id='Paned::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Paned widget instance, the following resources are
+retrieved from the argument list or the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Paned widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>betweenCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry>A</entry>
+      <entry>Depends on orientation</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>gripCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry>A</entry>
+      <entry>Depends on orientation</entry>
+    </row>
+    <row>
+      <entry>gripIndent</entry>
+      <entry>GripIndent</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>10</entry>
+    </row>
+    <row>
+      <entry>gripTranslations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>see below</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Depends on orientation</entry>
+    </row>
+    <row>
+      <entry>horizontalBetweenCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_up_arrow</entry>
+    </row>
+    <row>
+      <entry>horizontalGripCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_h_double_arrow</entry>
+    </row>
+    <row>
+      <entry>internalBorderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>internalBorderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>leftCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_left_arrow</entry>
+    </row>
+    <row>
+      <entry>lowerCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_down_arrow</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>orientation</entry>
+      <entry>Orientation</entry>
+      <entry>Orientation</entry>
+      <entry></entry>
+      <entry>XtorientVertical</entry>
+    </row>
+    <row>
+      <entry>refigureMode</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>rightCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_right_arrow</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>upperCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_up_arrow</entry>
+    </row>
+    <row>
+      <entry>verticalBetweenCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_left_arrow</entry>
+    </row>
+    <row>
+      <entry>verticalGripCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>sb_v_double_arrow</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Depends on orientation</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Paned</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Paned</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>cursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor to use when the mouse pointer is over the Paned widget, but
+not in any of its children (children may also inherit this cursor).  It
+should be noted that the internal borders are actually part of the Paned
+widget, not the children.
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>gripCursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor to use when the grips are not active.  The default value is
+<function>verticalGripCursor</function> or <function>horizontalGripCursor</function> depending on
+the orientation of the Paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>gripIndent</function>
+    </term>
+    <listitem>
+      <para>
+The amount of space left between the right (or bottom) edge of the
+Paned widget and all the grips.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>gripTranslation</function>
+    </term>
+    <listitem>
+      <para>
+Translation table that will be applied to all grips.
+<!-- .Hw -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>horizontalBetweenCursor</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>verticalBetweenCursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor to be used for the grip when changing the boundary between
+two panes.  These resources allow the cursors to be different
+depending on the orientation of the Paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>horizontalGripCursor</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>verticalGripCursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor to be used for the grips when they are not active. These
+resources allow the cursors to be different depending on the
+orientation of the Paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>internalBorderColor</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the internal
+border color of the widget's window.  The class name of this resource
+allows <emphasis remap='I'>Paned*BorderColor: blue</emphasis> to set the internal border color
+for the Paned widget.  An optimization is invoked if
+<function>internalBorderColor</function> and <function>background</function> are the same, and the
+internal borders are not drawn.  <function>internalBorderWidth</function> is still left
+between the panes, however.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>internalBorderWidth</function>
+    </term>
+    <listitem>
+      <para>
+The width of the internal borders.  This is the amount of space left
+between the panes.  The class name of this resource allows
+<emphasis remap='I'>Paned*BorderWidth: 3</emphasis> to set the internal border width for the
+Paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>leftCursor</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>rightCursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor used to indicate which is the <emphasis remap='I'>important</emphasis> pane to resize
+when the Paned widget is oriented horizontally.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>lowerCursor</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>upperCursor</function>
+    </term>
+    <listitem>
+      <para>
+The cursor used to indicate which is the <emphasis remap='I'>important</emphasis> pane to resize
+when the Paned widget is oriented vertically.
+<!-- .Mm -->
+<!-- .Nc -->
+This is not the same as the number of panes, since this also contains a
+grip for some of the panes, use <xref linkend='XawPanedGetNumSub' xrefstyle='select: title'/> to retrieve the
+number of panes.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>orientation</function>
+    </term>
+    <listitem>
+      <para>
+The orientation to stack the panes.  This value can be either
+<function>XtorientVertical</function> or <function>XtorientHorizontal</function>.
+<indexterm><primary>XtorientVertical</primary></indexterm>
+<indexterm><primary>XtorientHorizontal</primary></indexterm>
+<indexterm><primary>conversions</primary><secondary>Orientation</secondary></indexterm>
+<!-- .Rs "vertical \fPand\fB horizontal" -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>refigureMode</function>
+    </term>
+    <listitem>
+      <para>
+This resource allows pane layout to be suspended.  If this value is
+<function>False</function>, then no layout actions will be taken.  This may improve
+efficiency when adding or removing more than one pane from the Paned
+widget.
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id='Paned::Constraint_Resources'>
+<title>Constraint Resources</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Paned widget</primary><secondary>constraint resources</secondary></indexterm>
+Each child of the Paned widget may request special layout resources
+be applied to it.  These <emphasis remap='I'>constraint</emphasis> resources allow the Paned
+widget's children to specify individual layout requirements.
+</para>
+<para>
+<!-- .LP -->
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>allowResize</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>max</entry>
+      <entry>Max</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>Infinity</entry>
+    </row>
+    <row>
+      <entry>min</entry>
+      <entry>Min</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>Height of Grips</entry>
+    </row>
+    <row>
+      <entry>preferredPaneSize</entry>
+      <entry>PreferredPaneSize</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>ask child</entry>
+    </row>
+    <row>
+      <entry>resizeToPreferred</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>showGrip</entry>
+      <entry>ShowGrip</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>skipAdjust</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>allowResize</function>
+    </term>
+    <listitem>
+      <para>
+If this value is <function>False</function> the the Paned widget will disallow all
+geometry requests from this child.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>max</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>min</function>
+    </term>
+    <listitem>
+      <para>
+The absolute maximum or minimum size for this pane.  These values will
+never be overridden by the Paned widget.  This may cause some panes to be
+pushed off the bottom (or right) edge of the paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>preferredPaneSize</function>
+    </term>
+    <listitem>
+      <para>
+Normally the paned widget makes a QueryGeometry call on a child to
+determine the preferred size of the child's pane.  There are times
+when the application programmer or the user has a better idea of the
+preferred size of a pane.  Setting this resource causes the value
+passed to be interpreted as the preferred size, in pixels, of this pane.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>resizeToPreferred</function>
+    </term>
+    <listitem>
+      <para>
+Determines whether or not to resize each pane to its preferred size
+when the Paned widget is resized.  See <function>Layout Semantics</function> for details.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>showGrip</function>
+    </term>
+    <listitem>
+      <para>
+If <function>True</function> then a grip will be shown for this pane.  The grip
+associated with a pane is either below or to the right of the pane.  No
+grip is ever shown for the last pane.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>skipAdjust</function>
+    </term>
+    <listitem>
+      <para>
+This resource is used to determine which pane is forced to be resized.
+Setting this value to <function>True</function> makes this pane less likely to be
+forced to be resized.  See <function>Layout Semantics</function> for details.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id='Paned::Layout_Semantics'>
+<title>Layout Semantics</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Paned widget</primary><secondary>layout semantics</secondary></indexterm>
+In order to make effective use of the Paned widget it is helpful to know
+the rules it uses to determine which child will be resized in any given
+situation.  There are three rules used to determine which child is
+resized.  While these rules are always the same, the panes that are
+searched can change depending upon what caused the relayout.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<function>Layout Rules</function>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>1</function>
+    </term>
+    <listitem>
+      <para>
+Do not let a pane grow larger than its <function>max</function> or smaller than its
+<function>min</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>2</function>
+    </term>
+    <listitem>
+      <para>
+Do not adjust panes with <function>skipAdjust</function> set.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>3</function>
+    </term>
+    <listitem>
+      <para>
+Do not adjust panes away from their preferred size, although moving one
+closer to its preferred size is fine.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+When searching the children the Paned widget looks for panes that
+satisfy all the rules, and if unsuccessful then it eliminates rule 3
+and then 2.  Rule 1 is always enforced.
+</para>
+<para>
+<!-- .LP -->
+If the relayout is due to a resize or change in management then the
+panes are searched from bottom to top.  If the relayout is due to grip
+movement then they are searched from the grip selected in the direction
+opposite the pane selected.
+</para>
+<sect3 id="Resizing_Panes_from_a_Grip_Action">
+<title>Resizing Panes from a Grip Action</title>
+<para>
+<!-- .LP -->
+The pane above the grip is resized by invoking the GripAction with
+<function>UpLeftPane</function> specified.  The panes below the grip are each checked
+against all rules, then rules 2 and 1 and finally against rule 1 only.
+No pane above the chosen pane will ever be resized.
+</para>
+<para>
+<!-- .LP -->
+The pane below the grip is resized by invoking the GripAction with
+<function>LowRightPane</function> specified.  The panes above the grip are each
+checked in this case.  No pane below the chosen pane will ever be resized.
+</para>
+<para>
+<!-- .LP -->
+Invoking GripAction with <function>ThisBorderOnly</function> specified just moves the
+border between the panes.  No other panes are ever resized.
+</para>
+</sect3>
+<sect3 id='Resizing_Panes_after_the_Paned_widget_is_resized'>
+<title>Resizing Panes after the Paned widget is resized.</title>
+<para>
+<!-- .LP -->
+When the Pane widget is resized it must determine a new size for each
+pane.  There are two methods of doing this.  The Paned widget can either
+give each pane its preferred size and then resize the panes to fit, or
+it can use the current sizes and then resize the panes to fit.  The
+<function>resizeToPreferred</function> resource allows the application to tell the
+Paned widget whether to query the child about its preferred size
+(subject to the the <function>preferredPaneSize</function>) or to use the current size
+when refiguring the pane locations after the pane has been resized.
+</para>
+<para>
+<!-- .LP -->
+There is one special case.  All panes assume they should resize to
+their preferred size until the Paned widget becomes visible to the user.
+</para>
+</sect3>
+<sect3 id="Managing_Children_and_Geometry_Management">
+<title>Managing Children and Geometry Management</title>
+<para>
+<!-- .LP -->
+The Paned widget always resizes its children to their preferred sizes when
+a new child is managed, or a geometry management request is honored.
+The Paned widget will first attempt to resize itself to contain its
+panes exactly.  If this is not possible then it will hunt through the
+children, from bottom to top (right to left), for a pane to resize.
+</para>
+</sect3>
+<sect3 id='Paned::Special_Considerations'>
+<title>Special Considerations</title>
+<para>
+<!-- .LP -->
+When a user resizes a pane with the grips, the Paned widget assumes that
+this new size is the preferred size of the pane.
+</para>
+</sect3>
+</sect2>
+<sect2 id="Grip_Translations">
+<title>Grip Translations</title>
+<para>
+<!-- .LP -->
+The Paned widget has no action routines of its own, as all actions are
+handled through the grips.  The grips are each assigned a default
+Translation table.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+	&lt;Btn1Down&gt;:	GripAction(Start, UpLeftPane)
+<indexterm><primary>GripAction</primary></indexterm>
+	&lt;Btn2Down&gt;:	GripAction(Start, ThisBorderOnly)
+	&lt;Btn3Down&gt;:	GripAction(Start, LowRightPane)
+	&lt;Btn1Motion&gt;:	GripAction(Move, UpLeftPane)
+	&lt;Btn2Motion&gt;:	GripAction(Move, ThisBorderOnly)
+	&lt;Btn3Motion&gt;:	GripAction(Move, LowRightPane)
+	Any&lt;BtnUp&gt;:	GripAction(Commit)
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+The Paned widget interprets the <function>GripAction</function> as taking two arguments.
+<indexterm><primary>GripAction</primary></indexterm>
+The first argument may be any of the following:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Start</function>
+    </term>
+    <listitem>
+      <para>
+Sets up the Paned widget for resizing and changes the cursor of the
+grip.  The second argument determines which pane will be resized, and
+can take on any of the three values shown above.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Move</function>
+    </term>
+    <listitem>
+      <para>
+The internal borders are drawn over the current pane locations to
+animate where the borders would actually be placed if you were to move
+this border as shown.  The second argument must match the second argument
+that was passed to the <function>Start</function> action, that began this process.  If
+these arguments are not passed, the behavior is undefined.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Commit</function>
+    </term>
+    <listitem>
+      <para>
+This argument causes the Paned widget to commit the changes selected
+by the previously started action.  The cursor is changed back to the
+grip's inactive cursor.  No second argument is needed in this case.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id='Paned::Convenience_Routines'>
+<title>Convenience Routines</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Paned widget</primary><secondary>enable pane resizing</secondary></indexterm>
+<indexterm><primary>Paned widget</primary><secondary>disable pane resizing</secondary></indexterm>
+To enable or disable a child's request for pane resizing,
+use
+<function>XawPanedAllowResize :</function>
+<indexterm significance="preferred"><primary>XawPanedAllowResize</primary></indexterm>
+<funcsynopsis id='XawPanedAllowResize'>
+<funcprototype>
+  <funcdef>void<function> XawPanedAllowResize</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Boolean<parameter> allow_resize</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the child pane.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>allow_resize</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether or not resizing requests for this child will be
+granted by the Paned widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+If allow_resize is <function>True</function>, the Paned widget allows geometry
+requests from the child to change the pane's height. If allow_resize
+is <function>False</function>, the Paned widget ignores geometry requests from the
+child to change the pane's height. The default state is <function>True</function>
+before the Pane is realized and <function>False</function> after it is realized.
+This procedure is equivalent to changing the <function>allowResize</function>
+constraint resource for the child.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<indexterm><primary>Paned widget</primary><secondary>change height settings</secondary></indexterm>
+To change the minimum and maximum height settings for a pane, use
+<function>XawPanedSetMinMax :</function>
+<indexterm significance="preferred"><primary>XawPanedSetMinMax</primary></indexterm>
+<funcsynopsis id='XawPanedSetMinMax'>
+<funcprototype>
+  <funcdef>void<function> XawPanedSetMinMax</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>intmin,<parameter> max</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the child pane.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>min</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the new minimum height of the child, expressed in pixels.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>max</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies new maximum height of the child, expressed in pixels.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This procedure is equivalent to setting the <function>min</function> and <function>max</function>
+constraint resources for the child.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<indexterm><primary>Paned widget</primary><secondary>get height settings</secondary></indexterm>
+To retrieve the minimum and maximum height settings for a pane, use
+<function>XawPanedGetMinMax :</function>
+<indexterm significance="preferred"><primary>XawPanedGetMinMax</primary></indexterm>
+<funcsynopsis id='XawPanedGetMinMax'>
+<funcprototype>
+  <funcdef>void<function> XawPanedGetMinMax</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>int*min_return,<parameter> *max_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the child pane.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>min_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the minimum height of the child, expressed in pixels.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>max_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the maximum height of the child, expressed in pixels.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This procedure is equivalent to getting the <function>min</function> and <function>max</function>
+resources for this child child.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<indexterm><primary>Paned widget</primary><secondary>enable auto-reconfiguring</secondary></indexterm>
+<indexterm><primary>Paned widget</primary><secondary>disable auto-reconfiguring</secondary></indexterm>
+To enable or disable automatic recalculation of pane sizes and positions,
+use
+<function>XawPanedSetRefigureMode :</function>
+<indexterm significance="preferred"><primary>XawPanedSetRefigureMode</primary></indexterm>
+<funcsynopsis id='XawPanedSetRefigureMode'>
+<funcprototype>
+  <funcdef>void<function> XawPanedSetRefigureMode</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Boolean<parameter> mode</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Paned widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>mode</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether the layout of the Paned widget is enabled (<function>True</function>)
+or disabled (<function>False</function>).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+When making several changes to the children of a Paned widget
+after the Paned has been realized, it is a good idea to disable
+relayout until after all changes have been made.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<indexterm><primary>Paned widget</primary><secondary>getting the number of children</secondary></indexterm>
+To retrieve the number of panes in a paned widget use
+<xref linkend='XawPanedGetNumSub' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawPanedGetNumSub</primary></indexterm>
+<funcsynopsis id='XawPanedGetNumSub'>
+<funcprototype>
+  <funcdef>int<function> XawPanedGetNumSub</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Paned widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function returns the number of panes in the Paned widget.  This is
+<function>not</function> the same as the number of children, since the grips are also
+children of the Paned widget.
+
+</para>
+</sect2>
+</sect1>

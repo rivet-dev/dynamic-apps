@@ -1,0 +1,163 @@
+'\" t
+.\"     Title: xchangepointerdevice
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XCHANGEPOINTERDEVICE" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XChangePointerDevice \- change which device is the X pointer
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+Status XChangePointerDevice( Display *display,
+                             XDevice *device,
+                             int xaxis,
+                             int yaxis);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device to be used as the X pointer\&.
+.fi
+.sp
+.nf
+xaxis
+       Specifies the axis of the device to be used as the X
+       pointer x\-axis\&.
+.fi
+.sp
+.nf
+yaxis
+       Specifies the axis of the device to be used as the X
+       pointer y\-axis\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XChangePointerDevice request causes the server to use the
+specified device as the X pointer\&. The device must have been
+opened by the client via XOpenDevice or a BadDevice error will
+result\&. The device must support input class Valuators or a
+BadMatch error will result\&. If the implementation does not
+support use of the specified device as the X pointer, a
+BadDevice error will result\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the specified device is grabbed by another client,
+AlreadyGrabbed is returned\&. If the specified device is frozen
+by a grab on another device, GrabFrozen is returned\&. If the
+request is successful, Success is returned\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the request succeeds, a ChangeDeviceNotify event is sent to
+all clients that have selected that event\&. A MappingNotify
+event with request = MappingPointer is sent to all clients\&. The
+specified device becomes the X pointer, and the old X pointer
+becomes accessible through the input extension protocol
+requests\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XChangePointerDevice can generate a BadDevice or a BadMatch
+error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist, has not been opened by this client via
+       XOpenInputDevice, or is already one of the core X input
+       devices (pointer or keyboard)\&. This error may also occur
+       if the server implementation does not support using the
+       specified device as the X pointer\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XChangePointerDevice request
+       was made specifying a device that has less than two
+       valuators, or specifying a valuator index beyond the
+       range supported by the device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XChangeKeyboardDevice(3)
+.fi
+.if n \{\
+.RE
+.\}

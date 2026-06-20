@@ -1,0 +1,178 @@
+'\" t
+.\"     Title: xallowdeviceevents
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XALLOWDEVICEEVENTS" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XAllowDeviceEvents \- release queued events
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+int XAllowDeviceEvents( Display *display,
+                        XDevice *device,
+                        int event_mode,
+                        Time time);
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device from which events are to be
+       allowed\&.
+.fi
+.sp
+.nf
+event_mode
+       Specifies the event mode\&. You can pass AsyncThisDevice,
+       SyncThisDevice, ReplayThisDevice, AsyncOtherDevices,
+       SyncAll, or AsyncAll\&.
+.fi
+.sp
+.nf
+time
+       Specifies the time\&. You can pass either a timestamp or
+       CurrentTime\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+The XAllowDeviceEvents function releases some queued events if the client has caused a device to freeze\&. It has no effect if the specified time is earlier than the last\-grab time of the most recent active grab for the client and device, or if the specified time is later than the current X server time\&.
+.sp
+The following describes the processing that occurs depending on what constant you pass to the event_mode argument\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+AsyncThisDevice \- If the specified device is frozen by the client, event processing for that device continues as usual\&. If the device is frozen multiple times by the client on behalf of multiple separate grabs, AsyncThisDevice thaws for all\&. AsyncThisDevice has no effect if the specified device is not frozen by the client, but the device need not be grabbed by the client\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+SyncThisDevice \- If the specified device is frozen and actively grabbed by the client, event processing for that device continues normally until the next key or button event is reported to the client\&. At this time, the specified device again appears to freeze\&. However, if the reported event causes the grab to be released, the specified device does not freeze\&. SyncThisDevice has no effect if the specified device is not frozen by the client or is not grabbed by the client\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ReplayThisDevice \- If the specified device is actively grabbed by the client and is frozen as the result of an event having been sent to the client (either from the activation of a GrabDeviceButton or from a previous AllowDeviceEvents with mode SyncThisDevice, but not from a GrabDevice), the grab is released and that event is completely reprocessed\&. This time, however, the request ignores any passive grabs at or above (toward the root) that the grab\-window of the grab just released\&. The request has no effect if the specified device is not grabbed by the client or if it is not frozen as the result of an event\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+AsyncOtherDevices \- If the remaining devices are frozen by the client, event processing for them continues as usual\&. If the other devices are frozen multiple times by the client on behalf of multiple grabs, AsyncOtherDevices "thaws" for all\&. AsyncOtherDevices has no effect if the devices are not frozen by the client\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+SyncAll \- If all devices are frozen by the client, event processing (for all devices) continues normally until the next button or key event is reported to the client for a grabbed device, at which time all devices again appear to freeze\&. However, if the reported event causes the grab to be released, then the devices do not freeze\&. If any device is still grabbed, then a subsequent event for it will still cause all devices to freeze\&. SyncAll has no effect unless all devices are frozen by the client\&. If any device is frozen twice by the client on behalf of two separate grabs, SyncAll thaws for both\&. A subsequent freeze for SyncAll will only freeze each device once\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+AsyncAll \- If all devices are frozen by the client, event processing for all devices continues normally\&. If any device is frozen multiple times by the client on behalf of multiple separate grabs, AsyncAll thaws for all\&. AsyncAll has no effect unless all devices are frozen by the client\&.
+.RE
+.sp
+AsyncThisDevice, SyncThisDevice, and ReplayThisDevice have no effect on the processing of events from the remaining devices\&. AsyncOtherDevices has no effect on the processing of events from the specified device\&. When the event_mode is SyncAll or AsyncAll, the device parameter is ignored\&.
+.sp
+It is possible for several grabs of different devices by the same or different clients to be active simultaneously\&. If a device is frozen on behalf of any grab, no event processing is performed for the device\&. It is possible for a single device to be frozen because of several grabs\&. In this case, the freeze must be released on behalf of each grab before events can again be processed\&.
+.sp
+XAllowDeviceEvents can generate a BadDevice or BadValue error\&.
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if the
+       specified device is the X keyboard or X pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       An invalid mode was specified on the request\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGrabDevice(3)
+.fi
+.if n \{\
+.RE
+.\}

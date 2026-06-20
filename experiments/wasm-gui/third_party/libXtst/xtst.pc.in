@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Xtst
+Description: The Xtst Library
+Version: @PACKAGE_VERSION@
+Requires: recordproto
+Requires.private: x11 xext xextproto xi
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXtst

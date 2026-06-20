@@ -1,0 +1,1388 @@
+commit abf3ff74b97c4231d2324d66318bfa1d22e44913
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 1 17:25:18 2024 -0700
+
+    libXtst 1.2.5
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4e4eb10495cc0d24b02c4cc82d86f3977f3cc95f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 21 10:05:36 2024 -0700
+
+    parse_reply_call_callback: avoid NULL dereference if reply is missing data
+    
+    Clears up 7 -Wanalyzer-null-dereference warnings from gcc 14.1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Part-of: <https://gitlab.freedesktop.org/xorg/lib/libxtst/-/merge_requests/7>
+
+commit 3f05df5a6c5140dc3d44f35b9fb635cca8b682c1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 17:03:59 2024 -0700
+
+    XRecordFreeState: avoid NULL dereference when called in error path
+    
+    If the client_info pointer is NULL (for instance, if we decided
+    the number of entries would cause an integer overflow), then
+    don't attempt to walk it to free the entries.
+    
+    Found by gcc 14.1:
+    
+    XRecord.c:513:31: warning: dereference of NULL ‘0’ [CWE-476]
+     [-Wanalyzer-null-dereference]
+      513 |         if (state->client_info[i]->ranges) {
+          |             ~~~~~~~~~~~~~~~~~~^~~
+    [...]
+        |  452 |         ret->client_info = client_inf;
+        |      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        |      |                          |
+        |      |                          (10) ‘client_inf’ is NULL
+    [...]
+        |  457 |            XRecordFreeState(ret);
+        |      |            ^~~~~~~~~~~~~~~~~~~~~
+        |      |            |
+        |      |            (14) ...to here
+        |      |            (15) calling ‘XRecordFreeState’ from ‘XRecordGetContext’
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Part-of: <https://gitlab.freedesktop.org/xorg/lib/libxtst/-/merge_requests/7>
+
+commit eb8370d5e4cf3d68f05b679d3679f695542eddb1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 16:35:48 2024 -0700
+
+    XRecordGetContext: Avoid double free in error path
+    
+    XRecordFreeState() will handle the free for us, so let it.
+    
+    Found by gcc 14.1:
+    
+    XRecord.c:514:31: warning: use after ‘free’ of ‘*state.client_info + i * 8’
+     [CWE-416] [-Wanalyzer-use-after-free]
+      514 |         if (state->client_info[i]->ranges) {
+          |             ~~~~~~~~~~~~~~~~~~^~~
+    [...]
+        |  455 |            free(client_inf);
+        |      |            ~~~~~~~~~~~~~~~~
+        |      |            |
+        |      |            (18) freed here
+    
+    Fixes: e7e04b7 ("integer overflow in XRecordGetContext() [CVE-2013-2063]")
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Part-of: <https://gitlab.freedesktop.org/xorg/lib/libxtst/-/merge_requests/7>
+
+commit c542acce77be47156e53b74f5f9ca7156b3de7f5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 13 13:53:39 2023 -0700
+
+    gitlab CI: add xz-utils to container for "make distcheck"
+    
+    Also update to latest ci-templates to support new Debian "stable" release
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b0d55c9d98269aeefb521f1f2ce464288f176326
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Mar 8 16:05:18 2023 -0800
+
+    configure: Use LT_INIT from libtool 2 instead of deprecated AC_PROG_LIBTOOL
+    
+    AC_PROG_LIBTOOL was replaced by LT_INIT in libtool 2 in 2008,
+    so it's time to rely on it.
+    
+    Clears autoconf warnings:
+    
+    configure.ac:34: warning: The macro `AC_PROG_LIBTOOL' is obsolete.
+    configure.ac:34: You should run autoupdate.
+    aclocal.m4:3465: AC_PROG_LIBTOOL is expanded from...
+    configure.ac:34: the top level
+    
+    libtoolize: Consider adding 'AC_CONFIG_MACRO_DIRS([m4])' to configure.ac,
+    libtoolize: and rerunning libtoolize and aclocal.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a6ea11a5b35e838879152e8141c9c68813994848
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Feb 25 09:33:45 2023 -0800
+
+    Remove "All rights reserved" from Oracle copyright notices
+    
+    Oracle no longer includes this term in our copyright & license notices.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1e8215d8b4c85343da4301cd022639ae5f36756c
+Author: Christos Zoulas <christos@NetBSD.org>
+Date:   Wed Sep 28 09:46:26 2022 +0200
+
+    Coverity CID 1373522: Fix memory leak
+    
+    Signed-off-by: Thomas Klausner <wiz@gatalith.at>
+
+commit 99b89c3bcb0ebb0b6dd86bfdc9d276715eaea889
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Sep 26 18:07:24 2022 -0700
+
+    libXtst 1.2.4
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 14a44d0e3e6c3d9e757e2fdd143587efe532f1e9
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 20 10:39:35 2022 -0700
+
+    Remove obsolete casts from Xmalloc() and Xcalloc() calls
+    
+    Not needed in C89 and later
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit afc015217221acd8667a96111b147f3a742a2c4e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 18 19:12:42 2022 -0700
+
+    Variable scope reductions as suggested by cppcheck
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ff3456b04e1b42fd77e0db061bf7a563108b5868
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 18 19:02:35 2022 -0700
+
+    Resolve -Wsign-compare warnings
+    
+    XRecord.c: In function ‘XRecordFreeState’:
+    XRecord.c:515:15: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(i=0; i<state->nclients; i++) {
+                   ^
+    XRecord.c: In function ‘parse_reply_call_callback’:
+    XRecord.c:752:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 4 > rep->length << 2)
+                             ^
+    XRecord.c:759:28: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+          if (current_index + 1 > rep->length << 2)
+                                ^
+    XRecord.c:763:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 8 > rep->length << 2)
+                             ^
+    XRecord.c:777:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 4 > rep->length << 2)
+                             ^
+    XRecord.c:785:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 4 > rep->length << 2)
+                             ^
+    XRecord.c:792:28: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+          if (current_index + 4 > rep->length<<2)
+                                ^
+    XRecord.c:797:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 8 > rep->length << 2)
+                             ^
+    XRecord.c:810:28: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+          if (current_index + 8 > rep->length << 2)
+                                ^
+    XRecord.c:818:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+       if (current_index + 4 > rep->length << 2)
+                             ^
+    XRecord.c:824:31: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+          } else if (current_index < rep->length << 2)
+                                   ^
+    XRecord.c:830:24: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+          if (current_index < rep->length << 2)
+                            ^
+    XRecord.c:859:27: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         } while (current_index<rep->length<<2);
+                               ^
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f8a2329d8a24c0901d945986232267c02f080fc4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 18 18:52:40 2022 -0700
+
+    send_axes: Mark switch statement fallthrough as intentional
+    
+    Quiets gcc warnings:
+    XTest.c: In function ‘send_axes’:
+    XTest.c:274:19: warning: this statement may fall through [-Wimplicit-fallthrough=]
+          ev.valuator5 = *(axes+5);
+          ~~~~~~~~~~~~~^~~~~~~~~~~
+    XTest.c:275:2: note: here
+      case 5:
+      ^~~~
+    XTest.c:276:19: warning: this statement may fall through [-Wimplicit-fallthrough=]
+          ev.valuator4 = *(axes+4);
+          ~~~~~~~~~~~~~^~~~~~~~~~~
+    XTest.c:277:2: note: here
+      case 4:
+      ^~~~
+    XTest.c:278:19: warning: this statement may fall through [-Wimplicit-fallthrough=]
+          ev.valuator3 = *(axes+3);
+          ~~~~~~~~~~~~~^~~~~~~~~~~
+    XTest.c:279:2: note: here
+      case 3:
+      ^~~~
+    XTest.c:280:19: warning: this statement may fall through [-Wimplicit-fallthrough=]
+          ev.valuator2 = *(axes+2);
+          ~~~~~~~~~~~~~^~~~~~~~~~~
+    XTest.c:281:2: note: here
+      case 2:
+      ^~~~
+    XTest.c:282:19: warning: this statement may fall through [-Wimplicit-fallthrough=]
+          ev.valuator1 = *(axes+1);
+          ~~~~~~~~~~~~~^~~~~~~~~~~
+    XTest.c:283:2: note: here
+      case 1:
+      ^~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 80c35fd74d99039949be2522f18f4040e2f6eec3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 18:23:10 2022 -0700
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0077e7828bd26869d7a3e9ec6158ab09bf646ef3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 18:21:31 2022 -0700
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 63dc5cc8fe89807c7945949d1d86da44ce69687a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 17 18:20:38 2022 -0700
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 769598f20386845f5839fbc68dfed1f4245197be
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Dec 7 19:54:52 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9d20b76d717add6401d66f272656d3cf763d7130
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Nov 19 22:46:44 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7e083f2e618ce063d1ab2885671a0c5ca8472772
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 13:52:49 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit c051091cecad4c22dab362f3d3b7463ad2a52754
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a4994d5f8bc949eabe2c9d8a1a7af4bfcb68df9c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 9f5621a410f18149d4c76b02daa7f1a98b4a2c16
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Tue Oct 4 21:28:17 2016 +0200
+
+    libXtst 1.2.3
+    
+    Signed-off-by: Matthieu Herrb <matthieu.herrb@laas.fr>
+
+commit 9556ad67af3129ec4a7a4f4b54a0d59701beeae3
+Author: Tobias Stoeckmann <tobias@stoeckmann.org>
+Date:   Sun Sep 25 21:37:01 2016 +0200
+
+    Out of boundary access and endless loop in libXtst
+    
+    A lack of range checks in libXtst allows out of boundary accesses.
+    The checks have to be done in-place here, because it cannot be done
+    without in-depth knowledge of the read data.
+    
+    If XRecordStartOfData, XRecordEndOfData, or XRecordClientDied
+    without a client sequence have attached data, an endless loop would
+    occur. The do-while-loop continues until the current index reaches
+    the end. But in these cases, the current index would not be
+    incremented, leading to an endless processing.
+    
+    Signed-off-by: Tobias Stoeckmann <tobias@stoeckmann.org>
+    Reviewed-by: Matthieu Herrb <matthieu@herrb.eu>
+
+commit 48d2656fa1dd98e9d88b31211fa4f09f813e7b30
+Author: Michael Joost <mehl@michael-joost.de>
+Date:   Mon Nov 18 16:11:26 2013 +0100
+
+    Remove fallback for _XEatDataWords, require libX11 1.6 for it
+    
+    _XEatDataWords was orignally introduced with the May 2013 security
+    patches, and in order to ease the process of delivering those,
+    fallback versions of _XEatDataWords were included in the X extension
+    library patches so they could be applied to older versions that didn't
+    have libX11 1.6 yet.   Now that we're past that hurdle, we can drop
+    the fallbacks and just require libX11 1.6 for building new versions
+    of the extension libraries.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit cdc04f06325e55916e0c95b61db626d22b76e2ff
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu May 30 19:09:42 2013 -0700
+
+    libXtst 1.2.2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e7e04b7be3f018ad636aba3a36bfc1cd80b9906d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 11:27:26 2013 -0700
+
+    integer overflow in XRecordGetContext() [CVE-2013-2063]
+    
+    The nclients and nranges members of the reply are both CARD32 and need
+    to be bounds checked before multiplying by the size of the structs to
+    avoid integer overflow leading to underallocation and writing data from
+    the network past the end of the allocated buffer.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 46ed6283034b5b7d14584009453f5d974cfacf1e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 13 11:05:27 2013 -0700
+
+    Use _XEatDataWords to eat data in error cases
+    
+    Avoids having to do calculcations based on response contents
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 2aafac9474a0a0a0c39797862f823255918cf368
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 34cfa2d2b76640f672170dfbd8b5dd4a06d95b4d
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 6394218aae6599b28ced3d30074e154ba4218d07
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Apr 23 22:02:20 2012 -0700
+
+    Add xextproto & xi to Requires.private
+    
+    Only headers are needed, not libraries to link with.   Required for
+    includes of xtestconst.h (xextproto) and XInput.h (xi) in XTest.h
+    public header.
+    
+    Fixes https://bugs.freedesktop.org/attachment.cgi?id=59835
+    (originally reported as https://bugzilla.novell.com/show_bug.cgi?id=748808 )
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 023d494822fea9c3840e75964451fd9d5213ae06
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Apr 23 22:01:16 2012 -0700
+
+    Move -I flags from AM_CFLAGS to AM_CPPFLAGS
+    
+    Ensures local copy of headers takes precedence over any -I flags the
+    builder may have passed in CPPFLAGS.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 30506c32f69ea476f3b068ec3bf9b1c2a24991b8
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Tue Apr 24 21:04:06 2012 +0200
+
+    COPYING: add copyright notices and licenses from the manpages and specs
+    
+    Reported-by: Ansgar Burchardt
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+commit eb177d24ffb459af6205d2658c3a158449660caf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Mar 7 21:11:34 2012 -0800
+
+    libXtst 1.2.1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6150958c2ae61ce82aa15f3a80107dd01278b255
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Nov 10 21:43:16 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 558ec1d7194307d7ce73aeae2f4f61df9d44bba0
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue Oct 4 21:50:03 2011 -0600
+
+    Cleanup IDs and links in doc
+    
+    1 - fix the capitalization of the ID attributes to match either the
+         <title> or <funcdef> string it goes with.
+    2 - fix any <linkend>'s that were affected by 1.
+    3 - any <function> in the docs that has an actual funcdef,
+    will become an olink.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit 262904c22154d5a703ef92a7f954e52956b13663
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Sep 20 15:30:22 2011 -0400
+
+    specs: refactor copyright legal text for multi licensing
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8f68b59f2b66f035ad97e3fe99e9eae983d1f44b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 16 22:55:23 2011 -0700
+
+    Strip trailing whitespace
+    
+    Performed with: find * -type f | xargs perl -i -p -e 's{[ \t]+$}{}'
+    git diff -w & git diff -b show no diffs from this change
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 01dc43ee0fbdb1ed2397a735dfb69b0434600a20
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Sep 16 16:57:52 2011 -0400
+
+    xtestlib: remove duplicate paragraph in legal notice
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d03495e02bf43e9605671d8f6474c1e9e45261e2
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Sep 16 16:55:48 2011 -0400
+
+    specs: fix author affiliation
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b5e58980988017265c239a2bad11489a7ab06c23
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Sep 12 16:54:45 2011 -0400
+
+    docs: use the &fullrelvers; entity to set X11 release information
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 743447eaeab62b5e1d5951706cc99d51c0261bbf
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 19:49:54 2011 -0400
+
+    docs: remove <productnumber> which is not used by default
+    
+    This element is not rendered by default on the title. A template
+    customization is required to display it.
+    X Window System does not have a product number.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c6be40edba1fe8557ebd0b1cc09b3480bc7d6bb8
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Sep 8 20:00:00 2011 -0400
+
+    docbook.am: embed css styles inside the HTML HEAD element
+    
+    Rather than referring to the external xorg.css stylesheet, embed the content
+    of the file in the html output produced. This is accomplished by using
+    version 1.10 of xorg-xhtml.xsl.
+    
+    This makes the whole html docs tree much more relocatable.
+    In addition, it eliminates xorg.css as a runtime file which makes
+    xorg-sgml-doctools a build time only package.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit ee829b31b27580afbd6e16f81d9ef3526514be8e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 7 10:31:04 2011 -0400
+
+    docbook.am: global maintenance update - entities, images and olinking
+    
+    Adding support in libX11 for html chunking caused a reorg of docbook.am
+    as well as the xorg-sgml-doctools masterdb for olinking.
+    The parameter img.src.path is added for pdf images.
+    A searchpath to the root builddir is added for local entities, if present.
+    
+    The docbook.am makefile hides all the details and is identical for
+    all 22 modules having DocBook documentation. It is included by a thin
+    Makefile.am which requires no docbook knowledge.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b8c1a91ed12488999dee915953b5bc36019bbf95
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 12 18:39:46 2011 -0400
+
+    Install xml versions of specs even if HAVE_XMLTO is false
+    
+    DocBook/XML input source is also a usefull output format that can be viewed
+    with an XML viewer or editor and by some O/S help system.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9656d08c2c01965aa57f21f29cc2261b9d015b3c
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 5 16:27:37 2011 -0400
+
+    Install target dbs alongside generated documents
+    
+    This matches a change in xorg-sgml-docs whereby the masterdb will look for
+    the target dbs into the same location as the generated documents.
+    
+    The target dbs are now installed alongside the generated documents.
+    Previously they are installed in $prefix/sgml/X11/dbs alongside masterdb which
+    has the potential of installing outside the package prefix and cause
+    distcheck to fail when user does not have write permission in this package.
+    
+    Requires XORG_CHECK_SGML_DOCTOOLS(1.8) which was released 2011-06-11
+
+commit c131572b98342e0e2a599619647dd1835c740ee4
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue May 31 20:03:23 2011 -0600
+
+    Add id attributes to funcsynopsis to allow other docs to olink to them.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c82effa402128366bfd3cfb77da82d524ddb878f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Feb 27 15:06:18 2011 -0500
+
+    Documentation: add Docbook external references support
+    
+    When writing technical documentation, it is often necessary to cross
+    reference to other information. When that other information is not in the
+    current document, additional support is needed, namely <olink>.
+    
+    A new feature with version 1.7 of xorg-sgml-doctools adds references to
+    other documents within or outside this package.
+    
+    This patch adds technical support for this feature but does not change
+    the content of the documentation as seen by the end user.
+    
+    Each book or article must generate a database containing the href
+    of sections that can be referred to from another document. This database
+    is installed in DATAROOTDIR/sgml/X11/dbs. There is a requirement that
+    the value of DATAROOTDIR for xorg-sgml-doctools and for the package
+    documentation is the same. This forms a virtual document tree.
+    
+    This database is consulted by other documents while they are being generated
+    in order to fulfill the missing information for linking.
+    Refer to the xorg-sgml-doctools for further technical information.
+    
+    Co-authored-by: Matt Dew <marcoz@osource.org>
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 755e43b9a05dfce2564cd62cf97364db94a62731
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 11:43:45 2011 -0500
+
+    config: comment, minor upgrade, quote and layout configure.ac
+    
+    Group statements per section as per Autoconf standard layout
+    Quote statements where appropriate.
+    Autoconf recommends not using dnl instead of # for comments
+    
+    Use AC_CONFIG_FILES to replace the deprecated AC_OUTPUT with parameters.
+    Add AC_CONFIG_SRCDIR([Makefile.am])
+    
+    This helps automated maintenance and release activities.
+    Details can be found in http://wiki.x.org/wiki/NewModuleGuidelines
+
+commit 97eab9c4e103b6b18f1307d42c4ab15bc80b8db7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 19:41:37 2011 -0500
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a0154ff17ac2f7d08e26e82cc211f61935acf229
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Jan 27 18:50:15 2011 -0500
+
+    config: remove AC_PROG_CC as it overrides AC_PROG_C_C99
+    
+    XORG_STRICT_OPTION from XORG_DEFAULT_OPTIONS calls
+    AC_PROG_C_C99. This sets gcc with -std=gnu99.
+    If AC_PROG_CC macro is called afterwards, it resets CC to gcc.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 22ae1c003879ccddb4143669275c5b8071f713a8
+Author: Paulo Zanoni <pzanoni@mandriva.com>
+Date:   Thu Dec 16 14:11:43 2010 -0200
+
+    Use docbookx.dtd version 4.3 for all docs
+    
+    Signed-off-by: Paulo Zanoni <pzanoni@mandriva.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e8ac35fac1974b9fd698f74c143c9691af5dd688
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 9 13:04:59 2010 -0500
+
+    config: HTML file generation: use the installed copy of xorg.css
+    
+    Currenlty the xorg.css file is copied in each location
+    where a DocBook/XML file resides. This produces about
+    70 copies in the $(docdir) install tree.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 5c6834bc9e0ab78c78733c59046510a2f48b2d42
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 29 17:38:10 2010 -0700
+
+    libXtst 1.2.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 109ec12489f050e537d26eed2e60c6d97eb7439f
+Author: Tobias Koch <tobias.koch@nokia.com>
+Date:   Wed Sep 29 18:03:30 2010 +0300
+
+    Allow more than 6 axes to be sent.
+    
+    From: Tobias Koch <tobias.koch@nokia.com>
+    
+    If the number of axes exceeds 6, X server will return BadValue for
+    XTestFakeInput because the number of axes in a single DeviceValuator
+    event is incorrectly set to the total number of axes.
+    
+    Signed-off-by: Tobias Koch <tobias.koch@nokia.com>
+    Reviewed-by: Rami Ylimäki <rami.ylimaki@vincit.fi>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 809ceed85bb577d4bbf80f2d84382375c65b9fbe
+Author: Jesse Adkins <jesserayadkins@gmail.com>
+Date:   Tue Sep 28 13:30:04 2010 -0700
+
+    Purge cvs tags.
+    
+    Signed-off-by: Jesse Adkins <jesserayadkins@gmail.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 785d8cde2d3beecfb23a9dd9b87bb0d96cf352b8
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Aug 16 11:40:14 2010 -0400
+
+    man: remove unused $(BUILT_SOURCES) variable
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 1dba184f586cc689a79b21b60267c72c2c0172b9
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Aug 16 11:30:23 2010 -0400
+
+    man: remove unused LIB_MAN_DIR_SUFFIX (part of an unrequired broken fix)
+    
+    Local fix in CVS for bug 5628 is not required
+    as the problem has been fixed in
+    util-macros d9062e4077ebfd0985baf8418f3d0f111b9ddbba
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 601ea1309d80ba19b4e03207d6fb0f54b2f12730
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 8 15:10:27 2010 -0700
+
+    config: Use additional man page support from util-macros 1.8
+    
+    Use MAN_SUBST now supplied in XORG_MANPAGE_SECTIONS
+    The value of MAN_SUBST is the same for all X.Org packages.
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    The existing statement can now be removed from the configuration file.
+    
+    Use automake provided $(AM_V_GEN) and XORG_DEFAULT_OPTIONS provided $(SED)
+    Enables silent rule and use platform appropriate version of sed.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 672f3ea3431c37ce8f4c33da224287861f64c2a4
+Author: Fernando Carrijo <fcarrijo@yahoo.com.br>
+Date:   Thu Jul 1 07:05:16 2010 -0300
+
+    Purge macros NEED_EVENTS and NEED_REPLIES
+    
+    Signed-off-by: Fernando Carrijo <fcarrijo@yahoo.com.br>
+    Acked-by: Tiago Vignatti <tiago.vignatti@nokia.com>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1676c80db40bffec416da6e3d0002ff9d37093b3
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 27 20:45:38 2010 -0400
+
+    specs: remove trailing spaces in DocBook XML docs
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 96f104f32aef56dd408afbc0d5a073f51e8f0a69
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 27 09:29:26 2010 -0400
+
+    doc: add recordlib converted docbook xml
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b6a6644e371192be281ff96c59aa39f32ba64a84
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Jun 26 13:36:29 2010 -0400
+
+    doc: replace groff input format with docbook xml format
+    
+    Initial version of xtestlib and recordlib docbook xml.
+    recordlib is missing and will be added later
+    Requires util-macros 1.10
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit bbae053ca8bce46639f74f88dc9f687fe53e7c86
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Jun 17 14:45:14 2010 -0400
+
+    specs: translate, format, process, install and distribute.
+    
+    Makefile copied from libSM.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a9e6bb4e4f06b328f03d3d22b6268c4cdd76b702
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 12 09:03:23 2010 -0700
+
+    Sun's copyrights belong to Oracle now
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 65daf48de4726cb54c7337563b9d828536916b61
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 12 09:00:56 2010 -0700
+
+    Copy some introductory text from the specs to README
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b2190a83417ae6a4f99ab3acd47ae2c67b5d6693
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jun 12 08:54:20 2010 -0700
+
+    Move recordlib & testlib specs from xorg-docs module
+    
+    Not formatted, translated, processed or installed yet,
+    just moved & added to EXTRA_DIST
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c83fb2aeeb458ead667a1ebe30c5a59b9e786ed3
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 16:50:34 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f01cb33610654d590339a838f0978386ed8ac5fd
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 14:53:49 2010 -0400
+
+    config: remove the pkgconfig pc.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c4a225f9c96362ca1a2bd98f9c82cb1992d7dd8c
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Mar 11 10:22:59 2010 -0500
+
+    doc: specify 0.0.20 as the minimum version for xmlto
+    
+    Older versions do not have fop backend.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d6b098f463d185e5ed1b45013bd2600c124b7a3a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Feb 16 10:37:21 2010 -0500
+
+    config: move CWARNFLAGS from configure.ac to Makefile.am
+    
+    Compiler warning flags should be explicitly set in the makefile
+    rather than being merged with other packages compiler flags.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit a125ac058be77d81c1806420a7fd1df3b19a6bf4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Jan 23 10:49:06 2010 -0500
+
+    man: allow installing prebuilt man pages from tarball
+    
+    The man pages source may be supplied in the tarball or built
+    from git. The makefile needs to take that into consideration
+    and adjust the targets accordingly.
+    
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 1b887152b514c1701e09313dde718fb9e263ff9f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Jan 18 20:09:55 2010 -0500
+
+    config: replace custom code with reusable macro XORG_WITH_XMLTO
+    
+    XORG_WITH_XMLTO provides additional functions like a configure
+    option which allow platform builders to control the usage of
+    the xmlto program.
+    
+    This is a requirement from platforms that do not have such doc tool.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f9ddf6c7bcc3ca2a4745a37d901ab2337b256638
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jan 14 20:38:59 2010 -0800
+
+    Update Sun license notices to current X.Org standard form
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 5b4cd49321b7f74f6597872977d27e5e1a014f94
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Nov 27 20:56:04 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit 6757983c1a575a2cc172be70861be70f3e5dc25e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:10 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit 7855bdbf6df8cb5eca0d44713f33aebc17ef6df8
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:26 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit fe3b99e8c996fec849f043ad99e05850f5985b5f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:43 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit f77d44ecd4ced217745e4f751800152e3fa71c26
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:19 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit c26e9300ce965c394e452b6a02a059b7514994c1
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:26 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit ddc11c4ef1bd0e6c970630dea74f54bb2b0ea893
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Oct 5 11:38:38 2009 +1000
+
+    libXtst 1.1.0
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e3d74ecf1a3a7adfeafca8cd02c1da82e95d5eaf
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Oct 5 11:40:53 2009 +1000
+
+    Require libXext 1.0.99.4
+    
+    libXext 1.0.99.1 up to including 1.0.99.3 had the XTest.h header which is
+    now in this module.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7a9b269ed83c106265896373120603b9c06997f3
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Oct 5 10:38:34 2009 +1000
+
+    Require macros 1.3 for XORG_DEFAULT_OPTIONS
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 9f727168f561c76c5ae6c3115282ac803172e9f8
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Aug 25 14:09:47 2009 +1000
+
+    Version bump: 1.0.99.2
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 527759ae93ceaafca670995ab97545112f89bfbc
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Aug 18 11:12:37 2009 +1000
+
+    Include recordproto.h instead of recordstr.h
+
+commit 849fa907e129575831fbd3fa69249ff843413fd5
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Aug 14 14:15:48 2009 +1000
+
+    Move record headers to here.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1c928d9c138c90512d534e67e96bced247ca3241
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Aug 14 15:00:15 2009 +1000
+
+    XRecord: avoid use of uninitialised variables.
+    
+    Both variables are initialized inside an if condition but later checked for
+    NULL.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit c0404c6db9a8eacc07d140093982b910e54e3f97
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Wed Jul 22 20:34:51 2009 +1000
+
+    Version bump: 1.0.99.1
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 3f4b895a29b1b48336621e6dcc80831a5910bed9
+Author: Magnus Kessler <Magnus.Kessler@gmx.net>
+Date:   Wed Jul 22 09:29:16 2009 +0100
+
+    Rename xtest.h to xtestconst.h to avoid a collision with XTest.h on case-insensitive filesystems
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit ab9ad139b1f20866405ddcc44d25b7b141cd7bce
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Jul 20 13:26:45 2009 +1000
+
+    Move XTest.h header from xextproto/libXext to here.
+    
+    XTest.h was in xextproto until xextproto-7.1 and did a short but whoefully
+    misguided visit to libXext during the cleanup of the xextproto headers.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit a119baf3c5aa4f035040e0b991e99e6b382b9670
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Thu Jul 16 09:41:33 2009 +1000
+
+    Include xtestproto.h, not xteststr.h
+    
+    Require xextproto 7.0.99.1.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 378db00ee91a11629666fc1c5e5a5e13c65ffefc
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Feb 2 20:34:37 2009 -0800
+
+    Add README with pointers to mailing list, bugzilla & git repos
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 3237cc5b45a41ffe93ebde10b1090a7f2db6f88e
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Fri Jan 30 20:41:31 2009 -0200
+
+    Janitor: ansification, make distcheck, compiler warnings.
+    
+      Manual page generation, and xmlto handling, shamelessly cut&paste'd
+    from libXi/man/Makefile.am, so that make distcheck will work.
+
+commit 48544103324d1816139dfafe5873a11c88ee05b6
+Author: Peter Hutterer <peter.hutterer@redhat.com>
+Date:   Fri Aug 8 10:18:19 2008 +0930
+
+    Require xi.pc for XInput.h include.
+    
+    XInput.h is now part of libXi. But just in case we have an older version of
+    libXi floating around, pull in inputproto too.
+
+commit 5b4ba84a422d168c01b335c4fc4046a7316463e0
+Author: Ian Romanick <idr@us.ibm.com>
+Date:   Wed May 21 12:38:00 2008 -0700
+
+    Add .PHONY build target to fix parallel builds
+
+commit 56bc832134b4f6884999797f0f0c1b846602088d
+Author: Peter Hutterer <peter@cs.unisa.edu.au>
+Date:   Mon May 19 17:38:08 2008 +0930
+
+    Rename parameters to clarify QueryExtension call.
+    
+    These parameters are not treated as input. Rename them to make the inner
+    workings slightly more obvious.
+    
+    X.Org Bug 14511 <http://bugs.freedesktop.org/show_bug.cgi?id=14511>
+
+commit f3971bca54ff6018758642303108eec975d80cd5
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 15:51:20 2007 -0500
+
+    Add missing PHONY line for automatic ChangeLog generation
+
+commit 8db9ffdf7a16162cd81da2bf1e914ecf3981d0ee
+Author: Egbert Eich <eich@freedesktop.org>
+Date:   Tue Oct 16 14:27:57 2007 +0200
+
+    Wrong place. Reverting srcdir patch.
+
+commit 7684e7da5648fb8664c145a5f4d79d8e2d085808
+Author: Egbert Eich <eich@freedesktop.org>
+Date:   Mon Oct 15 11:44:53 2007 +0200
+
+    Fix man page build when srcdir is specified.
+
+commit 4a5ac6a63c22bdfac9a873803f3a0fa3d6e20a5b
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Aug 17 14:57:22 2007 -0700
+
+    Version bump: 1.0.3
+
+commit fe206f87078c90afaa5eba42a4bbe1c0ea300e9b
+Author: zoka <zoran@microtrol.com.au>
+Date:   Mon Jul 2 20:34:52 2007 -0700
+
+    libXtst man pages generation fails if srcdir != builddir
+
+commit a8738715dd5b74f0dec904c83b732ef6471be0db
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 18:57:12 2007 -0700
+
+    Version bump: 1.0.2
+
+commit 8bbc3b75318c67f6089d50f68d53d092390c8233
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 18:41:36 2007 -0700
+
+    Replace static ChangeLog with dist-hook to generate from git
+
+commit 6aaa875dffbcc5dd2206644cfa73fdfd8ffe280f
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 18:13:32 2007 -0700
+
+    Convert man page to docbook/xml (thanks to doclifter)
+
+commit d9514f97f54b47630b645ef44a5d40262a10d33a
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 16:39:01 2007 -0700
+
+    Add man pages for XTest*() functions
+    
+    Converted xorg-docs/Xext/xtestlib.ms to man page formatting
+
+commit 68a28875bc7a2cd760f035508997dfd88b3b6cc8
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 14:43:59 2007 -0700
+
+    Fill in COPYING file with real copyright/licenses
+
+commit 931675017dd28ccca8353abeff3055f0c47bc3b2
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 14:36:43 2007 -0700
+
+    Coverity #578/579: Don't leak memory if one malloc fails but other succeeds
+    
+    (Unlikely to happen, since the smaller malloc was first, but still possible.)
+
+commit dab4830b8db0d3cf5db5e96b2b870e94a48330bc
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 14:23:17 2007 -0700
+
+    ANSIfy static function declarations (clears some lint warnings)
+
+commit 57a201a15637cfea6c15a4d0ed8b629c9cd49495
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 14:11:04 2007 -0700
+
+    Add hooks to check code with sparse/lint
+
+commit 5e791a1465aba3b8be89b4cf2d9f90dee18e8e96
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 6 14:10:44 2007 -0700
+
+    Add *~ to .gitignore to skip emacs/patch droppings
+
+commit 68ca8cd2ba9877ee2e3695783f3a8445ab366ea8
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jul 13 14:59:09 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit 1f76457e307db2cec4c7f1e4b66dab597271fc86
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Dec 21 02:30:06 2005 +0000
+
+    Update package version for X11R7 release.
+
+commit 0f5c2436708a0d399f8fc348902518a9117728ac
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Mon Dec 19 16:28:27 2005 +0000
+
+    Stub COPYING files
+
+commit b5670af70e2e29f67639e85106817740c83ccc8d
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:35 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit c68f6e145fac21f3fc6fe7d09b5e8639538d54e1
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:45 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit 1d76bb2d8bb23d91a64c23923fc819af0badb57b
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:43 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit 3e0b2a05fcfb60561402b46318bd152b466509f9
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Nov 9 21:19:13 2005 +0000
+
+    Update package version number for X11R7 RC2 release.
+
+commit c753f306d0bda3dc3009ad273e9cd3548ea13bb8
+Author: Kevin E Martin <kem@kem.org>
+Date:   Tue Nov 1 15:11:52 2005 +0000
+
+    Update pkgcheck dependencies to work with separate build roots.
+
+commit 36c47a88481794b25118870a6caf93d2b2ca9344
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:48:12 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 6578854789201d229f20ae560d4b7051e9402c84
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Wed Aug 3 03:28:02 2005 +0000
+
+    Do PKG_CHECK_MODULES on a unique token instead of on "DEP", so builds with
+        a global configure cache don't get confused.
+
+commit aa10e9ef0425286da35fb3312dd6df31066c627a
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:53 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit a72494febb5b14a5ad860f1048ff11bdd83bbe53
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Jul 16 07:39:26 2005 +0000
+
+    Set soversion to 6.1.0 with -version-number.
+
+commit 9001f6684617761cf258e71259f98f85c02f33d1
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu Jul 14 15:07:42 2005 +0000
+
+    more trailing whitespace
+
+commit 3568421ddbec548cff7b49eb339d5bafaab2cbd3
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Jul 9 06:50:41 2005 +0000
+
+    Add .cvsignore files Switch _la_CFLAGS for AM_CFLAGS to clean up directory
+
+commit 1f8c48e0574892a0b3fe359fb65523d7d1dcc236
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Jul 2 06:35:03 2005 +0000
+
+    Add appropriate lib*_CFLAGS to Makefile.am's -- fixes build problems
+
+commit 250934b516532e24e48a9aa93dd389493acc4f53
+Author: Alexander Gottwald <alexander.gottwald@s1999.tu-chemnitz.de>
+Date:   Tue Jun 21 15:41:36 2005 +0000
+
+    lib/XScrnSaver/configure.ac
+    lib/XScrnSaver/src/Makefile.am
+    lib/Xfontcache/configure.ac
+    lib/Xfontcache/src/Makefile.am
+    lib/Xinerama/configure.ac
+    lib/Xinerama/src/Makefile.am
+    lib/Xtst/configure.ac
+    lib/Xv/configure.ac
+    lib/XvMC/configure.ac
+    lib/dmx/configure.ac Add missing xext.pc and xextproto.pc Add DEP_CFLAGS to
+        src/Makefile.am
+
+commit dbedf673f50e0baf6d5af60f60dbd16368071ed4
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Mon Jun 13 19:44:25 2005 +0000
+
+    - Add Xtst to symlink.sh
+    - Add Xtst build system
+
+commit e2cdce7dab4c62bdfcff33ee9270f6a7703352ef
+Author: Egbert Eich <eich@suse.de>
+Date:   Mon May 24 19:06:58 2004 +0000
+
+    Fix build glitches when building modules independently using Imake.
+
+commit 3bb9e7d92569600697ec398e9cff01e50101ff22
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 18:43:55 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit 91ddef6b5dec497a7501fc7a9416cfc6454824f3
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:32:27 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit efc2b386671de52b5454a336dab4afa3aeabd340
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:11:32 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit b7c0ec40d3045f024bb74292189f72cdf7a1cd14
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:35:34 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit 2f5a9d8afe48466be084cea784ac73e932655f6e
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:22:48 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit 7aea93fb6b188b32b0be32f064997aabe8d7bdda
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:28:16 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit 88eb8a804d05b72091309323ad2df962a1ed7b8d
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:49 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit 65a2b6d50473730673749ad2facc248ea41af00a
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:39 2003 +0000
+
+    R6.6 is the Xorg base-line

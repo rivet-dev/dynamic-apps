@@ -1,0 +1,306 @@
+<sect1 id="Porthole_Widget">
+<title>Porthole Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Porthole Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Porthole widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Porthole.h&gt;
+<indexterm><primary>Porthole.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/PortholeP.h&gt;
+<indexterm><primary>PortholeP.h</primary></indexterm>
+Class		portholeWidgetClass
+<indexterm><primary>portholeWidgetClass</primary></indexterm>
+Class Name	Porthole
+<indexterm><primary>Porthole widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Composite
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Porthole widget provides geometry management of a list of arbitrary
+widgets, only one of which may be managed at any particular time.
+The managed child widget is reparented within the porthole and is moved around
+by the application (typically under the control of a Panner widget).
+</para>
+<sect2 id='Porthole::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Porthole widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Porthole widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>see <function>Layout Semantics</function></entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>reportCallback</entry>
+      <entry>ReportCallback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>see <function>Layout Semantics</function></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Hw -->
+<!-- .Mm -->
+<!-- .Nc -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>reportCallback</function>
+    </term>
+    <listitem>
+      <para>
+A list of functions to invoke whenever the managed child widget changes
+size or position.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+</para>
+</sect2>
+<sect2 id='Porthole::Layout_Semantics'>
+<title>Layout Semantics</title>
+<indexterm><primary>Porthole widget</primary><secondary>layout semantics</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Porthole widget allows its managed child to request any size
+that is as large
+or larger than the Porthole itself and any location so long as the child
+still obscures all of the Porthole.  This widget typically is used with a
+Panner widget.
+</para>
+</sect2>
+<sect2 id="Porthole_Callbacks">
+<title>Porthole Callbacks</title>
+<indexterm><primary>Porthole widget</primary><secondary>callbacks</secondary></indexterm>
+<para>
+<!-- .LP -->
+The functions registered on the <function>reportCallback</function> list are invoked whenever
+the managed child changes size or position:
+<indexterm significance="preferred"><primary>ReportProc</primary></indexterm>
+<funcsynopsis id='Porthole::ReportProc'>
+<funcprototype>
+  <funcdef>void<function> ReportProc</function></funcdef>
+  <paramdef>Widget<parameter> porthole</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> report</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+</para>
+<variablelist>
+  <varlistentry>
+    <term>porthole</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>porthole</emphasis> 1i -->
+Specifies the Porthole widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>client_data</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>client_data</emphasis> 1i -->
+Specifies the client data.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>report</term>
+    <listitem>
+      <para>
+<!-- .IP <emphasis remap='I'>report</emphasis> 1i -->
+Specifies a pointer to an <function>XawPannerReport</function> structure containing
+the location and size of the slider and the size of the canvas.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</sect2>
+</sect1>

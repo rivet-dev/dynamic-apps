@@ -1,0 +1,250 @@
+#**********************************************************************
+#
+#    .twmrc
+#
+#**********************************************************************
+
+#IconDirectory "/users/jim/icons"	# use *bitmapFilePath instead.
+
+#
+# Use the SHAPE extension to make titles use as little space as possible.  The
+# location of the titles is specified as a fraction of the distance from the
+# left (numerator positive) or right edge (numerator negative).  A denominator
+# of 0 indicates that the numerator is measured in pixels.  The title is then
+# justified over the indicated spot (note special cases are made for center on
+# 0/0 and right on 0/0 to indicate the center and right edge of the titlebar).
+#
+SqueezeTitle			# also sets default to Squeeze all Titles
+{
+#   name	justify	num denom
+    "oclock"	center	  0  0		# centered over middle of title
+    "XTerm"	left	  0  0		# left edge of title
+    "xlogo"	right	  0  0		# for kicks
+    "emacs"	right	  0  0		# left side emacs with center tab
+    "xmh"	center	  0  0
+}
+DontSqueezeTitle
+{
+    "XLogout"			# make it stand out when mapped
+}
+NoDefaults			# turn off iconify and resize button
+LeftTitleButton "menu12" = f.menu "windowmenu"	# add a menu to each window
+TitleButtonBorderWidth 0	# don't want to see box around button
+ButtonIndent 0			# button doesn't have to be smaller
+
+UsePPosition "on"		# use program-specified size hints accepted
+NoHighlight			# do not flash borders on enter events
+OpaqueMove			# actually move window instead of outline
+AutoRelativeResize		# don't require resize to cross border to start
+RestartPreviousState		# reiconify iconified things on startup
+ClientBorderWidth		# use the application border width on frame
+BorderWidth 2			# width of top level windows created by twm
+NoGrabServer			# don't grab server during menus, etc.
+NoRaiseOnMove			# allow moving under other windows
+NoRaiseOnResize			# allow resizing under other windows
+NoTitleFocus			# avoid keystrokes in wrong window cause of lag
+DecorateTransients		# put titlebars on transients
+TitleFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
+MenuFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
+IconFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*-*-*-*"
+IconManagerFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*"
+ResizeFont "-adobe-helvetica-bold-r-normal--*-120-*-*-*"
+NoSaveUnders			# faster to just repaint then save
+XORvalue 1			# tend to use visually distinct adjacent colors
+ConstrainedMoveTime 0		# turn off horizontal/vertical only moving
+NoCaseSensitive			# turn off case-sensitivity in sorting icons
+WarpUnmapped			# allow warping to unmapped windows
+
+###############################################################################
+#                                                                             #
+#                           Declare some nice colors                          #
+#                                                                             #
+###############################################################################
+
+Pixmaps
+{
+#    TitleHighlight "solid4x4"		# make it stand out
+}
+
+Color
+{
+    DefaultBackground "maroon"
+    DefaultForeground "gray85"
+    BorderColor "gray70"
+    TitleBackground "maroon"
+    TitleForeground "gray85"
+    MenuBackground "maroon"
+    MenuForeground "gray85"
+    MenuTitleBackground "gray70"
+    MenuTitleForeground "maroon"
+    IconBackground "maroon"
+    IconForeground "gray85"
+    IconBorderColor "gray85"
+    IconManagerBackground "maroon"
+    IconManagerForeground "gray85"
+}
+
+Monochrome
+{
+    IconManagerHighlight  "white"
+    BorderColor "black"
+}
+
+
+###############################################################################
+#                                                                             #
+#                             Define key bindings                             #
+#                                                                             #
+###############################################################################
+
+MoveDelta 3			# need to move this much before takes effect
+Function "move-or-raise"	# simulate uwm action
+{
+    f.move
+    f.deltastop
+    f.raise
+}
+
+DefaultFunction f.nop		# ignore extraneous events
+
+Button1 =	: root				: f.menu "twmops"
+Button2 =	: root				: f.menu "windowops"
+Button3 =	: root				: f.menu "TwmWindows"
+Button1 =	: title				: f.function "move-or-raise"
+Button1 =	: icon				: f.iconify
+Button1 =	: iconmgr			: f.iconify
+Button1	= m	: window|icon|frame|title	: f.lower
+Button2	= m	: window			: f.resize
+Button3	= m	: window|icon|frame|title	: f.function "move-or-raise"
+Button1 = c|m|s	: all				: f.menu "twmops"
+#Button1	= c|m|s	: root				: f.refresh
+#"F20"	=	: all				: f.warptoscreen "next"
+
+"F21"		=	: all			: f.warpring "next"
+"F22"		=	: all			: f.warptoiconmgr ""
+"F23"		=	: all			: f.raiselower
+"Num_Lock"	=	: all			: f.iconify
+"F24"		=	: all			: f.warpto "xmh"
+"F25"		=	: all			: f.warpto "[expo]"
+"F26"		=	: all			: f.warpto "emacs"
+"KP_Subtract"	= mod5	: all			: f.colormap "prev"
+"KP_Add"	= mod5	: all			: f.colormap "next"
+"KP_Enter"	= mod5	: all			: f.colormap "default"
+"Left"		= m	: all			: f.backiconmgr
+"Right"		= m	: all			: f.forwiconmgr
+"Up"		= m	: all			: f.upiconmgr
+"Down"		= m	: all			: f.downiconmgr
+"Left"		= mod5	: all			: f.warpring "prev"
+"Right"		= mod5	: all			: f.warpring "next"
+
+###############################################################################
+#                                                                             #
+#     Display an icon manager across the top of the screen.  Don't manage     #
+#                the windows for which you don't show a title.                #
+#                                                                             #
+###############################################################################
+
+SortIconManager			# keep them in alphabetic order
+ShowIconManager			# start with iconmgr up
+IconManagerGeometry "700x50+246+2" 14	# strip across top
+IconRegion "200x300+950+2" North East 50 50
+IconifyByUnmapping		# just use icon manager
+IconManagerDontShow		# but ignore these windows
+{
+  "xclock"
+  "xbiff"
+  "xload"
+  "oclock"
+  "xcutsel"
+  "XLogout"
+}
+DontIconifyByUnmapping		# don't lose them (still in TwmWindows menu)
+{
+  "xclock"
+  "xbiff"
+  "xload"
+  "oclock"
+  "xcutsel"
+  "Untitled"
+}
+NoTitle				# little programs that look like icons
+{
+  "xclock"
+  "xbiff"
+  "xload"
+  "TWM Icon Manager"
+  "xcutsel"
+}
+
+NoStackMode			# prevent hostile clients from hosing display
+{
+    "saber"
+}
+
+WindowRing			# f.warpring acts along these windows
+{
+    "XTerm"
+    "emacs"
+    "Xmh"
+}
+
+
+###############################################################################
+#                                                                             #
+#                          Define some useful menus.                          #
+#                                                                             #
+###############################################################################
+
+menu "twmops"
+{
+"System"		f.title
+"Restart Twm"		f.restart
+"Exit Twm"		f.quit
+""			f.nop
+"xterm"			!"xterm &"
+"xterm -e /bin/sh"	!"xterm -e /bin/sh &"
+"xhost +"		!"xhost + >/dev/null"
+"xhost -"		!"xhost - >/dev/null"
+""			f.nop
+"Kill"			f.menu "kill"
+""			f.nop
+"Logout"		f.warpto "xlogout"
+}
+
+menu "windowops"
+{
+"Windows"		f.title
+"Kill"			f.menu "kill"
+"Save"			f.saveyourself
+"Refresh"		f.refresh
+""			f.nop
+"Iconify"		f.iconify
+"Resize"		f.resize
+"Move"			f.move
+"Raise"			f.raise
+"Lower"			f.lower
+"Info"			f.identify
+"Focus"			f.focus
+"Unfocus"		f.unfocus
+""			f.nop
+"Show Iconmgr"		f.showiconmgr
+"Hide Iconmgr"		f.hideiconmgr
+"Prev Iconmgr"		f.previconmgr
+"Next Iconmgr"		f.nexticonmgr
+}
+
+menu "windowmenu"
+{
+"Iconify"		f.iconify
+"RaiseLower"		f.raiselower
+"Refresh"		f.winrefresh
+"Focus"			f.focus
+""			f.nop
+"Kill"			f.menu "kill"
+}
+
+menu "kill"
+{
+    "Send Delete"	f.delete
+    "Kill Window"	f.destroy
+}

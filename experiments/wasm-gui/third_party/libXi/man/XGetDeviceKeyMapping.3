@@ -1,0 +1,361 @@
+'\" t
+.\"     Title: xgetdevicekeymapping
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XGETDEVICEKEYMAPPING" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XGetDeviceKeyMapping, XChangeDeviceKeyMapping \- query or change device key mappings
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+KeySym *XGetDeviceKeyMapping( Display *display,
+                              XDevice *device,
+                              KeyCode first_keycode,
+                              int keycode_count,
+                              int *keysyms_per_keycode_return);
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device whose key mapping is to be queried
+       or modified\&.
+.fi
+.sp
+.nf
+first_keycode
+       Specifies the first KeyCode to be returned\&.
+.fi
+.sp
+.nf
+keycode_count
+       Specifies the number of KeyCodes to be returned or
+       modified\&.
+.fi
+.sp
+.nf
+keysyms_per_keycode
+       Specifies the number of KeySyms per KeyCode\&.
+.fi
+.sp
+.nf
+keysyms_per_keycode_return
+       Specifies the address of a variable into which the
+       number of KeySyms per KeyCode will be returned\&.
+.fi
+.sp
+.nf
+keysyms
+       Specifies the address of an array of KeySyms\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+For the specified device, the XGetDeviceKeyMapping request
+returns the symbols for the specified number of KeyCodes
+starting with first_keycode\&. The value specified in
+first_keycode must be greater than or equal to min_keycode as
+returned by XListInputDevices, or a BadValue error results\&. In
+addition, the following expression must be less than or equal
+to max_keycode as returned by XListInputDevices:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+first_keycode + keycode_count \- 1
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If this is not the case, a BadValue error results\&. The number
+of elements in the KeySyms list is:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+keycode_count * keysyms_per_keycode_return
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+KeySym number N, counting from zero, for KeyCode K has the
+following index in the list, counting from zero: (K \-
+first_code) * keysyms_per_code_return + N
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The X server arbitrarily chooses the keysyms_per_keycode_return
+value to be large enough to report all requested symbols\&. A
+special KeySym value of NoSymbol is used to fill in unused
+elements for individual KeyCodes\&. To free the storage returned
+by XGetDeviceKeyMapping, use XFree\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the specified device does not support input class keys, a
+BadMatch error will result\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGetDeviceKeyMapping can generate a BadDevice, BadMatch, or
+BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+For the specified device, the XChangeDeviceKeyMapping request
+defines the symbols for the specified number of KeyCodes
+starting with first_keycode\&. The symbols for KeyCodes outside
+this range remain unchanged\&. The number of elements in keysyms
+must be:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+num_codes * keysyms_per_keycode
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The specified first_keycode must be greater than or equal to
+min_keycode returned by XListInputDevices, or a BadValue error
+results\&. In addition, the following expression must be less
+than or equal to max_keycode as returned by XListInputDevices,
+or a BadValue error results:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+first_keycode + num_codes \- 1
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+KeySym number N, counting from zero, for KeyCode K has the
+following index in keysyms, counting from zero:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+(K \- first_keycode) * keysyms_per_keycode + N
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The specified keysyms_per_keycode can be chosen arbitrarily by
+the client to be large enough to hold all desired symbols\&. A
+special KeySym value of NoSymbol should be used to fill in
+unused elements for individual KeyCodes\&. It is legal for
+NoSymbol to appear in nontrailing positions of the effective
+list for a KeyCode\&. XChangeDeviceKeyMapping generates a
+DeviceMappingNotify event that is sent to all clients that have
+selected that type of event\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+There is no requirement that the X server interpret this
+mapping\&. It is merely stored for reading and writing by
+clients\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the specified device does not support input class keys, a
+BadMatch error results\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XChangeDeviceKeyMapping can generate a BadDevice, BadMatch,
+BadAlloc, or BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if the
+       specified device is the X keyboard or X pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XGetDeviceKeyMapping or
+       XChangeDeviceKeyMapping request was made specifying a
+       device that has no keys\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the request\&. Unless a specific range is
+       specified for an argument, the full range defined by the
+       argument\*(Aqs type is accepted\&. Any argument defined as a
+       set of alternatives can generate this error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadAlloc
+       The server failed to allocate the requested resource or
+       server memory\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XSetDeviceButtonMapping(3), XSetDeviceModifierMapping(__3_)
+.fi
+.if n \{\
+.RE
+.\}

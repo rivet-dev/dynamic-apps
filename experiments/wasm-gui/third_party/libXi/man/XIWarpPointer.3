@@ -1,0 +1,185 @@
+'\" t
+.\"     Title: xiwarppointer
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XIWARPPOINTER" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIWarpPointer \- move a device\*(Aqs pointer\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+Bool XIWarpPointer( Display *display,
+                    int deviceid,
+                    Window src_w,
+                    Window dest_w,
+                    double src_x,
+                    double src_y,
+                    int src_width,
+                    int src_height,
+                    double dest_x,
+                    double dest_y);
+.fi
+.sp
+.nf
+dest_w
+       Specifies the destination window or None\&.
+.fi
+.sp
+.nf
+dest_x, dest_y
+       Specify the x and y coordinates within the destination
+       window\&.
+.fi
+.sp
+.nf
+deviceid
+       Specifies the master pointer device or floating slave
+       device to move\&.
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+src_x, src_y, src_width, src_height
+       Specify a rectangle in the source window\&.
+.fi
+.sp
+.nf
+src_w
+       Specifies the source window or None\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If dest_w is None, XIWarpPointer moves the pointer by the
+offsets (dest_x, dest_y) relative to the current position of
+the pointer\&. If dest_w is a window, XIWarpPointer moves the
+pointer to the offsets (dest_x, dest_y) relative to the origin
+of dest_w\&. However, if src_w is a window, the move only takes
+place if the window src_w contains the pointer and if the
+specified rectangle of src_w contains the pointer\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The src_x and src_y coordinates are relative to the origin of
+src_w\&. If src_height is zero, it is replaced with the current
+height of src_w minus src_y\&. If src_width is zero, it is
+replaced with the current width of src_w minus src_x\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+There is seldom any reason for calling this function\&. The
+pointer should normally be left to the user\&. If you do use this
+function, however, it generates events just as if the user had
+instantaneously moved the pointer from one position to another\&.
+Note that you cannot use XIWarpPointer to move the pointer
+outside the confine_to window of an active pointer grab\&. An
+attempt to do so will only move the pointer as far as the
+closest edge of the confine_to window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIWarpPointer is identical to XWarpPointer but specifies the
+device explicitly\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIWarpPointer can generate a BadDevice and a BadWindow error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist or is not a pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       A value for a Window argument does not name a defined
+       window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XWarpPointer(3)
+.fi
+.if n \{\
+.RE
+.\}

@@ -1,0 +1,87 @@
+<sect1 id="Private_Header_File">
+<title>Private Header File</title>
+<para>
+<!-- .LP -->
+The private header file contains the complete declaration of the class
+and instance structures for the widget and any additional private data
+that will be required by anticipated subclasses of the widget.
+Information in the private header file is normally hidden from the
+application and is designed to be accessed only through other public
+procedures; e.g.
+<function>XtSetValues</function>.
+</para>
+<para>
+<!-- .LP -->
+The contents of the Template private header file,
+<filename class="headerfile">&lt;X11/Xaw/TemplateP.h&gt;</filename>,
+are:
+</para>
+<!-- .CB -->
+<!-- .\".so ../../lib/Xaw/TemplateP.h -->
+<literallayout class="monospaced">
+/* Copyright (c) X Consortium 1987, 1988
+ */
+
+#ifndef _TemplateP_h
+#define _TemplateP_h
+
+#include &lt;X11/Xaw/Template.h&gt;
+/* include superclass private header file */
+#include &lt;X11/CoreP.h&gt;
+
+/* define unique representation types not found in &lt;X11/StringDefs.h&gt; */
+
+#define XtRTemplateResource "TemplateResource"
+
+typedef struct {
+	int empty;
+} TemplateClassPart;
+
+typedef struct _TemplateClassRec {
+	CoreClassPart	core_class;
+	TemplateClassPart	template_class;
+} TemplateClassRec;
+
+extern TemplateClassRec templateClassRec;
+
+typedef struct {
+	/* resources */
+	char* resource;
+	/* private state */
+} TemplatePart;
+
+typedef struct _TemplateRec {
+	CorePart	core;
+	TemplatePart	template;
+} TemplateRec;
+
+#endif /* _TemplateP_h */
+<!-- .CE -->
+</literallayout>
+<para>
+The private header file includes the private header file of its
+superclass, thereby exposing the entire internal structure of the widget.
+It may not always be advantageous to do this; your own project
+development style will dictate the appropriate level of detail to expose
+in each module.
+</para>
+<para>
+The "WindowWidget" needs to declare two fields in its instance structure to
+hold the drawing colors, a resource field for the font and a field for the
+expose and user input callback lists:
+</para>
+
+<literallayout class="monospaced">
+typedef struct {
+	/* resources */
+	Pixel color_1;
+	Pixel color_2;
+	XFontStruct* font;
+	XtCallbackList expose_callback;
+	XtCallbackList input_callback;
+	/* private state */
+	/* (none) */
+} WindowPart;
+</literallayout>
+
+</sect1>

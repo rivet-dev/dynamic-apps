@@ -1,0 +1,98 @@
+XISELECTEVENTS(libmansuffix)
+============================
+
+NAME
+----
+
+   XISelectEvents, XIGetSelectedEvents - select for or get selected XI2 events on the window.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   Status XISelectEvents( Display *display,
+                          Window win,
+                          XIEventMask *masks,
+                          int num_masks);
+
+   display
+          Specifies the connection to the X server.
+
+   masks
+          Device event mask.
+
+   num_masks
+          Number of masks in masks.
+
+   win
+          Specifies the window.
+
+   XIEventMask *XIGetSelectedEvents( Display *display,
+                                     Window win,
+                                     int *num_masks_return);
+ 
+   display
+          Specifies the connection to the X server.
+
+   num_masks_return
+          Number of masks in the return value.
+
+   win
+          Specifies the window.
+
+DESCRIPTION
+-----------
+
+   XI2 events must be selected using XISelectEvents.
+
+   XISelectEvents sets the event mask for this client on win.
+   Further events are only reported to this client if the event
+   type matches the selected event mask. The masks overrides the
+   previously selected event mask for the given device.
+
+   If deviceid is a valid device, the event mask is selected only
+   for this device. If deviceid is XIAllDevices or
+   XIAllMasterDevices, the event mask is selected for all devices
+   or all master devices, respectively. The effective event mask
+   is the bit-wise OR of the XIAllDevices, XIAllMasterDevices and
+   the respective device's event mask.
+
+            typedef struct {
+                int deviceid;
+                int mask_len;
+                unsigned char* mask;
+            } XIEventMask;
+
+   The mask_len specifies the length of mask in bytes. mask is a
+   binary mask in the form of (1 << event type). deviceid must be
+   either a device or XIAllDevices or XIAllMasterDevices. A client
+   may submit several masks with the same deviceid in one request
+   but only the last mask will be effective.
+
+   XISelectEvents can generate a BadValue, a BadDevice, and a
+   BadWindow error.
+
+   XIGetSelectedEvents returns the events selected by this client on the given
+   window. If no events were selected on this window, XIGetSelectedEvents
+   returns NULL and num_masks_return is set to 0. If an internal error occurs,
+   XIGetSelectedEvents returns NULL and num_masks_return is set to -1.
+   Otherwise, XIGetSelectedEvent returns the selected event masks for all
+   devices including the masks for XIAllDevices and XIAllMasterDevices
+
+   The caller must free the returned data using XFree().
+
+
+DIAGNOSTICS
+-----------
+
+   BadValue
+          A value is outside of the permitted range.
+
+   BadWindow
+          A value for a Window argument does not name a defined
+          window.
+
+   BadDevice
+          An invalid device was specified. The device does not
+          exist.

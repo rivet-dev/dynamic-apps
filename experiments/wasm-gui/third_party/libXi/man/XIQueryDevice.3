@@ -1,0 +1,712 @@
+'\" t
+.\"     Title: xiquerydevice
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XIQUERYDEVICE" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIQueryDevice, XIFreeDeviceInfo \- get information about devices\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+XIDeviceInfo* XIQueryDevice( Display *display,
+                             int deviceid,
+                             int *ndevices_return);
+.fi
+.sp
+.nf
+XIFreeDeviceInfo( XIDeviceInfo *info);
+.fi
+.sp
+.nf
+deviceid
+       Specifies the device to query or XIAllDevices or
+       XIAllMasterDevices\&.
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+ndevices_return
+       Returns the number of devices returned\&.
+.fi
+.sp
+.nf
+info
+       A list of device XIDeviceInfo structs to be freed\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XIQueryDevice returns information about one or more input
+devices\&. If the deviceid specifies a device, ndevices_return is
+1 and the returned information describes only the requested
+device\&. If deviceid is XIAllDevices or XIAllMasterDevices,
+ndevices_return is the number of devices or master devices,
+respectively, and the returned information represents all
+devices or all master devices, respectively\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+To free the XIDeviceInfo array returned by XIQueryDevice, use
+XIFreeDeviceInfo\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+For each input device requested, the XIQueryDevice returns an
+XIDeviceInfo structure\&. Each structure contains information
+about the capabilities of one input device available to the
+server\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int                 deviceid;
+    char                *name;
+    int                 use;
+    int                 attachment;
+    Bool                enabled;
+    int                 num_classes;
+    XIAnyClassInfo      **classes;
+} XIDeviceInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The deviceid is the numeric unique id of the device\&. A deviceid
+is unique for the life\-time of a device but a server may re\-use
+the id once a device has been removed\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The name points to a null\-terminated string specifying the
+identifier of the device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The use and attachment fields specify the type of the device
+and the current attachment or pairing\&.
+\- If use is XIMasterPointer, the device is a master pointer and
+  attachment specifies the deviceid of the paired master
+  keyboard\&.
+\- If use is XIMasterKeyboard, the device is a master keyboard,
+  and the attachment field specifies the paired master pointer\&.
+\- If use is XISlavePointer, the device is a slave device and
+  currently attached to the master pointer specified in
+  attachment\&.
+\- If use is XISlaveKeyboard, the device is a slave device an
+  currently attached to the master keyboard specified in
+  attachment\&.
+\- If use is XIFloatingSlave, the device is a slave device
+  currently not attached to any master device\&. The value of the
+  attachment field for floating slave devices is undefined\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The enabled field specifies if the device is currently enabled
+and can send events\&. Disabled devices will not send events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The num_classes field specifies the number of input classes
+pointed to by classes\&. The first two fields of all input
+classes are identical\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+} XIAnyClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The type field specifies the type of the input class\&.
+Currently, the following types are defined:
+    XIKeyClass, XIButtonClass, XIValuatorClass, XIScrollClass,
+    XITouchClass, XIGestureClass\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+In the future, additional types may be added\&. Clients are
+required to ignore unknown input classes\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The sourceid is the deviceid this class originated from\&. For
+master devices, the sourceid is typically the id of the slave
+device currently sending events\&. For slave devices, the
+sourceid is typically the device\*(Aqs id\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device may have zero or one XIButtonClass, denoting the
+device\*(Aqs capability to send button events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int           mask_len;
+    unsigned char *mask;
+} XIButtonState;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         num_buttons;
+    Atom        *labels;
+    XIButtonState state;
+} XIButtonClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The num_buttons field specifies the number of buttons available
+on this device\&. A device that has an XIButtonClass must have at
+least one button\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+labels is a list of num_buttons Atoms specifying the button
+labels for this device\&. If the label is not None, then the
+label specifies the type of button in physical device order
+(i\&.e\&. as the buttons are numbered on the physical input
+device)\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The state is the current button state as seen by clients (i\&.e\&.
+after button mapping is applied)\&. The mask_len field specifies
+the length of mask in bytes\&. For each button on the device, the
+respective bit in mask is set if the button is currently
+logically down\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device may have zero or one XIKeyClass, denoting the device\*(Aqs
+capability to send key events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         num_keycodes;
+    int         *keycodes;
+} XIKeyClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The num_keycodes field specifies the number of keycodes
+available on this device\&. A device that has an XIKeyClass must
+have at least one keycode\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+keycodes is a list of num_keycodes keycodes the device may
+send\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device may have zero or more XIValuatorClass, denoting the
+device\*(Aqs capability to send coordinates\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         number;
+    Atom        label;
+    double      min;
+    double      max;
+    double      value;
+    int         resolution;
+    int         mode;
+} XIValuatorClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The number field specifies the number of the axis on the
+physical device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the label field is not None, the value of label is an Atom
+describing the axis\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+min and max are the minimum and maximum values allowed on this
+axis\&. If both are zero, no minimum or maximum values are set on
+this device\&. value is the current value of this axis\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The resolution field specifies the resolution of the device in
+units/m\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The mode specifies the mode of this axis\&. If the mode is
+XIModeAbsolute this axis sends absolute coordinates\&. If the
+mode is XIModeRelative, this device sends relative coordinates\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         number;
+    int         scroll_type;
+    double      increment;
+    int         flags;
+} XIScrollClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This class describes scrolling capability on a valuator\&. For
+each XIScrollClassInfo, an XIValuatorClassInfo with the same
+number is present on the device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The number field specifies the valuator number on the physical
+device that this scroll information applies to\&. See the
+respective XIValuatorClassInfo for detailed information on this
+valuator\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The scroll_type field specifies the type of scrolling, either
+XIScrollTypeVertical or XIScrollTypeHorizontal\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The increment specifies the value change considered one unit of
+scrolling down\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The flags field specifies flags that apply to this scrolling
+information:
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If XIScrollFlagNoEmulation is set, the server will not
+emulate legacy button events for valuator changes on this
+valuator\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If XIScrollFlagPreferred is set, this axis is the
+preferred axis for this scroll type and will be used for
+the emulation of XI_Motion events when the driver submits
+legacy scroll button events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         mode;
+    int         num_touches;
+} XITouchClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device may have zero or one XITouchClassInfo, denoting
+multi\-touch capability on the device\&. A device with a XITouchClassInfo
+may send TouchBegin, TouchUpdate, TouchEnd and TouchOwnership events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The mode field is either XIDirectTouch for direct\-input touch devices
+such as touchscreens or XIDependentTouch for indirect input devices such
+as touchpads\&. For XIDirectTouch devices, touch events are sent to window
+at the position the touch occurred\&. For XIDependentTouch devices, touch
+events are sent to the window at the position of the device\*(Aqs sprite\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The num_touches field defines the maximum number of simultaneous touches
+the device supports\&. A num_touches of 0 means the maximum number of
+simultaneous touches is undefined or unspecified\&. This field should be
+used as a guide only, devices will lie about their capabilities\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device with an XITouchClassInfo may still send pointer events\&. The
+valuators must be defined with the respective XIValuatorClass
+classes\&. A valuator may send both pointer and touch\-events\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct
+{
+    int         type;
+    int         sourceid;
+    int         num_touches;
+} XIGestureClassInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+A device may have zero or one XIGestureClassInfo, denoting
+touchpad gesture capability on the device\&. A device with a XIGestureClassInfo
+may send GestureSwipeBegin, GestureSwipeUpdate, GestureSwipeEnd,
+GesturePinchBegin, GesturePinchUpdate, GesturePinchEnd\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The num_touches field defines the maximum number of simultaneous touches
+the device supports\&. A num_touches of 0 means the maximum number of
+simultaneous touches is undefined or unspecified\&. This field should be
+used as a guide only, devices will lie about their capabilities\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryDevice can generate a BadDevice error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIFreeDeviceInfo frees the information returned by
+XIQueryDevice\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist or is not a pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}

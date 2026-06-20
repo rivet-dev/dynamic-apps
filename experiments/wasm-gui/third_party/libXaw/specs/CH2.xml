@@ -1,0 +1,1933 @@
+<chapter><title>Using Widgets</title>
+<sect1 id='Using_Widgets'>
+<title>Using Widgets</title>
+<para>
+Widgets serve as the primary tools for building a user interface or
+application environment.  The Athena widget set consists of primitive
+widgets that contain no children (for example, a command button) and
+composite widgets which may contain one or more widget children (for
+example, a Box widget).
+</para>
+<para>
+The remaining chapters explain the widgets that are provided
+by the Athena widget set.
+These user-interface components serve as an interface for
+application programmers who do not want to implement their own widgets.
+In addition, they serve as a starting point
+for those widget programmers who, using the Intrinsics mechanisms,
+want to implement alternative application programming interfaces.
+</para>
+<para>
+This chapter is a brief introduction to widget programming.  The
+examples provided use the Athena widgets, though most of the concepts
+will apply to all widget sets.  Although there are several programming
+interfaces to the X Toolkit, only one is described here.  A full
+description of the programming interface is provided in the document
+<olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+<sect2 id="Setting_the_Locale">
+<title>Setting the Locale</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Setting the Locale -->
+<!-- .XE -->
+If it is desirable that the application take advantage of
+internationalization (i18n), you must establish locale with
+<function>XtSetLanguageProc</function>
+prior to calling
+<xref linkend='XtOpenApplication' xrefstyle='select: title'/>,
+<function>XtOpenDisplay</function>,
+<function>XtDisplayInitialize</function>,
+or
+<function>XtAppInitialize</function>.
+For full details, please refer to the document
+<olink targetdoc='intrinsics' targetptr='Establishing_the_Locale'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle>,
+section 2.2</olink>. However, the following simplest-case
+call is sufficient in many or most applications.
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>internationalization</primary></indexterm>
+<indexterm significance="preferred"><primary>XtSetLanguageProc</primary></indexterm>
+<indexterm><primary>locale</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA .5i 2i -->
+<!-- .ta .5i 2i -->
+	XtSetLanguageProc(NULL, NULL, NULL);
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+Most notably, this will affect the Standard C locale, determine which
+resource files will be loaded, and what fonts will be required of FontSet
+specifications.  In many cases, the addition of this line is the only source change
+required to internationalize Xaw programs, and will not disturb the function
+of programs in the default "C" locale.
+</para>
+</sect2>
+<sect2 id="Initializing_the_Toolkit">
+<title>Initializing the Toolkit</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Initializing the Toolkit -->
+<!-- .XE -->
+You must call a toolkit initialization function before invoking any
+other toolkit routines (besides locale setting, above).
+<xref linkend='XtOpenApplication' xrefstyle='select: title'/>,
+opens the X server connection, parses the command line,
+and creates an initial widget that will serve as the root of
+a tree of widgets created by this application.
+<indexterm significance="preferred"><primary>initialization</primary></indexterm>
+<indexterm significance="preferred"><primary>toolkit initialization</primary></indexterm>
+<indexterm significance="preferred"><primary>XtOpenApplication</primary></indexterm>
+<indexterm significance="preferred"><primary>fallback resources</primary></indexterm>
+<funcsynopsis id='XtOpenApplication'>
+<funcprototype>
+<funcdef>Widget <function>XtOpenApplication</function></funcdef>
+  <paramdef>XtAppContext *<parameter>app_context_return</parameter></paramdef>
+  <paramdef>String <parameter>application_class</parameter></paramdef>
+  <paramdef>XrmOptionDescList <parameter>options</parameter></paramdef>
+  <paramdef>Cardinal <parameter>num_options</parameter></paramdef>
+  <paramdef>int *<parameter>argc_in_out</parameter></paramdef>
+  <paramdef>String *<parameter>argv_in_out</parameter></paramdef>
+  <paramdef>String *<parameter>fallback_resources</parameter></paramdef>
+  <paramdef>WidgetClass <parameter>widget_class</parameter></paramdef>
+  <paramdef>ArgList <parameter>args</parameter></paramdef>
+  <paramdef>Cardinal <parameter>num_args</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>app_context_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the application context of this application, if non-NULL.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>application_class</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the class name of this application,
+which is usually the generic name for all instances of this application.
+A useful convention is to form the class name by capitalizing the
+first letter of the application name. For example, the application named
+<quote>xman</quote> has a class name of <quote>Xman</quote>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>options</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies how to parse the command line for any application-specific
+resources.
+The options argument is passed as a parameter to
+<olink targetdoc='libX11' targetptr='XrmParseCommand'><function>XrmParseCommand</function></olink>.
+For further information,
+see <olink targetdoc='libX11' targetptr='XrmParseCommand'
+><citetitle>Xlib - C Language Interface</citetitle></olink>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_options</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of entries in the options list.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>argc_in_out</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a pointer to the number of command line parameters.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>argv_in_out</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the command line parameters.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>fallback_resources</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies resource values to be used if the site-wide application class
+defaults file cannot be opened, or NULL.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>widget_class</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the class of the widget to be created.  Must be shellWidgetClass
+or a subclass.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the argument list to use when creating the Application shell.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of arguments in <emphasis remap='I'>args</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function will remove the command line arguments that the toolkit
+reads from <emphasis remap='I'>argc_in_out</emphasis>, and <emphasis remap='I'>argv_in_out</emphasis>.  It will then
+attempt to open the display.  If the display cannot be opened, an error
+message is issued and XtAppInitialize terminates the application.  Once
+the display is opened, all resources are read from the locations
+specified by the Intrinsics.  This function returns an ApplicationShell
+widget to be used as the root of the application's widget tree.
+</para>
+</sect2>
+<sect2 id="Creating_a_Widget">
+<title>Creating a Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Creating a Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>widget creation</primary></indexterm>
+<indexterm significance="preferred"><primary>creating widgets</primary></indexterm>
+<indexterm><primary>XtRealizeWidget</primary></indexterm>
+Creating a widget is a three-step process.  First, the widget instance
+is allocated, and various instance-specific attributes are set by
+using <function>XtCreateWidget</function>.  Second, the widget's parent is informed
+of the new child by using <function>XtManageChild</function>.  Finally, X windows are
+created for the parent and all its children by using <xref linkend='XtRealizeWidget' xrefstyle='select: title'/>
+and specifying the top-most widget. The first two steps can be
+combined by using <xref linkend='XtCreateManagedWidget' xrefstyle='select: title'/>.  In addition,
+<xref linkend='XtRealizeWidget' xrefstyle='select: title'/> is automatically called when the child becomes
+managed if the parent is already realized.
+</para>
+<para>
+<!-- .LP -->
+To allocate, initialize, and manage a widget, use
+<function>XtCreateManagedWidget</function>.
+<indexterm significance="preferred"><primary>XtCreateManagedWidget</primary></indexterm>
+<funcsynopsis id='XtCreateManagedWidget'>
+<funcprototype>
+  <funcdef>Widget<function> XtCreateManagedWidget</function></funcdef>
+  <paramdef>String<parameter> name</parameter></paramdef>
+  <paramdef>WidgetClass<parameter> widget_class</parameter></paramdef>
+  <paramdef>Widget<parameter> parent</parameter></paramdef>
+  <paramdef>ArgList<parameter> args</parameter></paramdef>
+  <paramdef>Cardinal<parameter> num_args</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>name</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the instance name for the created widget that is used for retrieving
+widget resources.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>widget_class</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget class pointer for the created widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>parent</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the parent widget ID.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the argument list.  The argument list is a variable-length
+list composed of name and value pairs that contain information
+pertaining to the specific widget instance being created.  For further
+information, see Section 2.7.2. <!-- xref> -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of arguments in the argument list.
+If the num_args is zero, the argument list is never referenced.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+When a widget instance is successfully created, the widget identifier
+is returned to the application.  If an error is encountered, the
+<function>XtError</function>
+routine is invoked to inform the user of the error.
+<indexterm><primary>XtError</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+For further information, see
+<olink targetdoc='intrinsics' targetptr='Creating_Widgets'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</sect2>
+<sect2 id="Common_Resources">
+<title>Common Resources</title>
+<!-- .XS -->
+<!-- 	Common Resources -->
+<!-- .XE -->
+<indexterm><primary>resource</primary></indexterm>
+<para>
+<!-- .LP -->
+Although a widget can have unique arguments that it understands, all
+widgets have common arguments that provide some regularity of operation.
+The common arguments allow arbitrary widgets to be managed by
+higher-level components without regard for the individual widget type.
+Widgets will ignore any argument that they do not understand.
+</para>
+<para>
+<!-- .LP -->
+The following resources are retrieved from the argument list
+or from the resource database by all of the Athena widgets:
+<informaltable>
+  <tgroup cols='4' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry><emphasis remap='I'>widget dependent</emphasis></entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry><emphasis remap='I'>widget dependent</emphasis></entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry><emphasis remap='I'>widget dependent</emphasis></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<indexterm><primary>XtDefaultForeground</primary></indexterm>
+<indexterm><primary>XtDefaultBackground</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+The following additional resources are retrieved from the argument list
+or from the resource database by many of the Athena widgets:
+<informaltable>
+  <tgroup cols='4' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry><emphasis remap='I'>widget dependent</emphasis></entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry>GreyPixmap</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<indexterm><primary>XtDefaultForeground</primary></indexterm>
+</para>
+</sect2>
+<sect2 id="Resource_Conversions">
+<title>Resource Conversions</title>
+<!-- .XS -->
+<!-- 	Resource Conversions -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>conversions</primary></indexterm>
+<indexterm significance="preferred"><primary>string conversions</primary></indexterm>
+<indexterm significance="preferred"><primary>type conversions</primary></indexterm>
+<para>
+<!-- .LP -->
+Most resources in the Athena widget set have a converter registered that
+will translate the string in a resource file to the correct internal
+representation.  While some are obvious (string to integer, for example),
+others need specific mention of the allowable values.  Three general
+converters are described here:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Cursor
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Pixel
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Bitmap
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+Many widgets have defined special converters that apply only to that
+widget.  When these occur, the documentation section for that widget
+will describe the converter.
+</para>
+<sect3 id="Cursor_Conversion">
+<title>Cursor Conversion</title>
+<indexterm significance="preferred"><primary>conversions</primary><secondary>ColorCursor</secondary></indexterm>
+<indexterm significance="preferred"><primary>conversions</primary><secondary>Cursor</secondary></indexterm>
+<indexterm><primary>cursor</primary></indexterm>
+<para>
+<!-- .LP -->
+The value for the <function>cursorName</function> resource is specified in the resource
+database as a string, and is of the following forms:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+A standard X cursor name from <filename class="headerfile">&lt;X11/cursorfont.h&gt;</filename>.
+The names in <function>cursorfont.h</function> each describe a specific cursor.  The
+resource names for these cursors are exactly like the names in this file
+except the <function>XC_</function> is not used.  The cursor definition <function>XC_gumby</function>
+has a resource name of <function>gumby</function>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Glyphs, as in <emphasis remap='I'>FONT font-name glyph-index [[ font-name ] glyph-index ]</emphasis>.
+The first font and glyph specify the cursor source pixmap.
+The second font and glyph specify the cursor mask pixmap.
+The mask font defaults to the source font,
+and the mask glyph index defaults to the source glyph index.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A relative or absolute file name.
+If a relative or absolute file name is specified, that file is used to
+create the source pixmap.  Then the string "Mask" is appended to
+locate the cursor mask pixmap.  If the "Mask" file does not exist, the
+suffix "msk" is tried.  If "msk" fails, no cursor mask will be used.
+If the filename does not start with '/' or './' the the bitmap
+file path is used (see section 2.4.3). <!-- xref -->
+    </para>
+  </listitem>
+</itemizedlist>
+</sect3>
+<sect3 id="Pixel_Conversion">
+<title>Pixel Conversion</title>
+<para>
+<!-- .LP -->
+<indexterm significance="preferred"><primary>conversions</primary><secondary>Pixel</secondary></indexterm>
+<indexterm><primary>pixel</primary></indexterm>
+<indexterm><primary>rgb.txt</primary></indexterm>
+<indexterm><primary>XtDefaultForeground</primary></indexterm>
+<indexterm><primary>XtDefaultBackground</primary></indexterm>
+The string-to-pixel converter takes any name that is acceptable to
+XParseColor (see <olink targetdoc='libX11' targetptr='Color_Strings'
+><citetitle>Xlib - C Language Interface</citetitle></olink>).  In addition this routine understands
+the special toolkit symbols `XtDefaultForeground' and
+`XtDefaultBackground', described in
+<olink targetdoc='intrinsics' targetptr='Predefined_Resource_Converters'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.  In short the acceptable
+pixel names are:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Any color name for the rgb.txt file (typically in the directory
+/usr/share/X11 on POSIX systems).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A numeric specification of the form #&lt;red&gt;&lt;green&gt;&lt;blue&gt; where these
+numeric values are hexadecimal digits (both upper and lower case).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+The special strings `XtDefaultForeground' and `XtDefaultBackground'
+    </para>
+  </listitem>
+</itemizedlist>
+</sect3>
+<sect3 id="Bitmap_Conversion">
+<title>Bitmap Conversion</title>
+<indexterm significance="preferred"><primary>bitmap conversions</primary></indexterm>
+<indexterm significance="preferred"><primary>conversions</primary><secondary>Bitmap</secondary></indexterm>
+<indexterm significance="preferred"><primary>bitmapFilePath</primary></indexterm>
+<indexterm significance="preferred"><primary>BitmapFilePath</primary></indexterm>
+<indexterm><primary>/usr/include/X11/bitmaps</primary></indexterm>
+<para>
+<!-- .LP -->
+The string-to-bitmap converter attempts to locate a file containing
+bitmap data whose name is specified by the input string.  If the file
+name is relative (i.e. does not begin with / or ./), the directories to
+be searched are specified in the <function>bitmapFilePath</function> resource--class
+<function>BitmapFilePath</function>.  This resource specifies a colon (:) separated
+list of directories that will be searched for the named bitmap or
+cursor glyph (see section 2.4.1).  The <function>bitmapFilePath</function> resource is
+global to the application, and may <function>not</function> be specified differently
+for each widget that wishes to convert a cursor to bitmap.  In addition
+to the directories specified in the <function>bitmapFilePath</function> resource a
+default directory is searched.  When using POSIX the default
+directory is
+<function>/usr/include/X11/bitmaps</function>.
+</para>
+</sect3>
+</sect2>
+<sect2 id="Realizing_a_Widget">
+<title>Realizing a Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Realizing a Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>realizing widgets</primary></indexterm>
+The
+<xref linkend='XtRealizeWidget' xrefstyle='select: title'/>
+function performs two tasks:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Calculates the geometry constraints of all managed descendants
+of this widget.  The actual calculation is put off until realize time
+for performance reasons.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Creates an X window for the widget and, if it is a composite widget,
+realizes each of its managed children.
+<indexterm significance="preferred"><primary>XtRealizeWidget</primary></indexterm>
+<funcsynopsis id='XtRealizeWidget'>
+<funcprototype>
+  <funcdef>void<function> XtRealizeWidget</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Specifies the widget.
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+For further information about this function,
+see the <olink targetdoc='intrinsics' targetptr='XtRealizeWidget'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</sect2>
+<sect2 id="Processing_Events">
+<title>Processing Events</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Processing Events -->
+<!-- .XE -->
+<indexterm><primary>events</primary></indexterm>
+<indexterm><primary>XtAppInitialize</primary></indexterm>
+Now that the application has created, managed and realized its
+widgets, it is ready to process the events that will be delivered by the
+X Server to this client.  A function call that will process the
+events is <xref linkend='XtAppMainLoop' xrefstyle='select: title'/>.
+<indexterm significance="preferred"><primary>XtAppMainLoop</primary></indexterm>
+<funcsynopsis id='XtAppMainLoop'>
+<funcprototype>
+  <funcdef>void<function> XtAppMainLoop</function></funcdef>
+  <paramdef>XtAppContext<parameter> app_context</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>app_context</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the application context of this application.  The value is
+normally returned by <xref linkend='XtOpenApplication' xrefstyle='select: title'/>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function never returns: it is an infinite loop that processes the
+X events.  User input can be handled through callback procedures and
+application defined action routines.  More details are provided in
+<olink targetdoc='intrinsics' targetptr='Event_Management'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</sect2>
+<sect2 id="Standard_Widget_Manipulation_Functions">
+<title>Standard Widget Manipulation Functions</title>
+<!-- .XS -->
+<!-- 	Standard Widget Manipulation Functions -->
+<!-- .XE -->
+<para>
+<!-- .LP -->
+After a widget has been created, a client can interact with that
+widget by calling one of the standard widget manipulation routines
+provided by the Intrinsics, or a widget class-specific manipulation routine.
+</para>
+<para>
+<!-- .LP -->
+The Intrinsics provide generic routines to give the application programmer
+access to a set of standard widget functions.  The common widget
+routines let an application or composite widget perform the following
+operations on widgets without requiring explicit knowledge of the widget
+type.
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Control the mapping of widget windows
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Destroy a widget instance
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Obtain an argument value
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Set an argument value
+    </para>
+  </listitem>
+</itemizedlist>
+<sect3 id="Mapping_Widgets">
+<title>Mapping Widgets</title>
+<para>
+<!-- .LP -->
+By default,
+widget windows are mapped (made viewable) automatically by
+<xref linkend='XtRealizeWidget' xrefstyle='select: title'/>.  This behavior can be disabled by using
+<xref linkend='XtSetMappedWhenManaged' xrefstyle='select: title'/>, making the client responsible for calling
+<xref linkend='XtMapWidget' xrefstyle='select: title'/> to make the widget viewable.
+<indexterm significance="preferred"><primary>XtSetMappedWhenManaged</primary></indexterm>
+<indexterm><primary>XtMapWidget</primary></indexterm>
+<indexterm><primary>XtRealizeWidget</primary></indexterm>
+<funcsynopsis id='XtSetMappedWhenManaged'>
+<funcprototype>
+  <funcdef>void<function> XtSetMappedWhenManaged</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Boolean<parameter> map_when_managed</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>map_when_managed</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the new value.
+If map_when_managed is <function>True</function>, the widget is mapped automatically
+when it is realized.  If map_when_managed is <function>False</function>, the client
+must call
+<xref linkend='XtMapWidget' xrefstyle='select: title'/>
+or make a second call to
+<xref linkend='XtSetMappedWhenManaged' xrefstyle='select: title'/>
+to cause the child window to be mapped.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+The definition for
+<xref linkend='XtMapWidget' xrefstyle='select: title'/>
+is:
+<indexterm significance="preferred"><primary>XtMapWidget</primary></indexterm>
+<funcsynopsis id='XtMapWidget'>
+<funcprototype>
+  <funcdef>void<function> XtMapWidget</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+When you are creating several children in sequence for a previously
+realized common parent it is generally more efficient to construct a
+list of children as they are created (using <function>XtCreateWidget</function>) and
+then use <xref linkend='XtManageChildren' xrefstyle='select: title'/> to request that their parent managed
+them all at once.  By managing a list of children at one time, the
+parent can avoid wasteful duplication of geometry processing and the
+associated <quote>screen flash</quote>.
+<indexterm significance="preferred"><primary>XtManageChildren</primary></indexterm>
+<indexterm><primary>XtCreateWidget</primary></indexterm>
+<funcsynopsis id='XtManageChildren'>
+<funcprototype>
+  <funcdef>void<function> XtManageChildren</function></funcdef>
+  <paramdef>WidgetList<parameter> children</parameter></paramdef>
+  <paramdef>Cardinal<parameter> num_children</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>children</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a list of children to add.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_children</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of children to add.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+If the parent is already visible on the screen, it is especially
+important to batch updates so that the minimum amount of visible window
+reconfiguration is performed.
+</para>
+<para>
+<!-- .LP -->
+For further information about these functions,
+see the <olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</sect3>
+<sect3 id="Destroying_Widgets">
+<title>Destroying Widgets</title>
+<para>
+<!-- .LP -->
+To destroy a widget instance of any type, use
+<xref linkend='XtDestroyWidget' xrefstyle='select: title'/>
+<indexterm significance="preferred"><primary>XtDestroyWidget</primary></indexterm>
+<funcsynopsis id='XtDestroyWidget'>
+<funcprototype>
+  <funcdef>void<function> XtDestroyWidget</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<xref linkend='XtDestroyWidget' xrefstyle='select: title'/>
+destroys the widget and recursively destroys any children that it may have,
+including the windows created by its children.
+After calling
+<function>XtDestroyWidget</function>,
+no further references should be made to the widget or any children
+that the destroyed widget may have had.
+</para>
+</sect3>
+<sect3 id="Retrieving_Widget_Resource_Values">
+<title>Retrieving Widget Resource Values</title>
+<para>
+<!-- .LP -->
+To retrieve the current value of a resource attribute associated
+with a widget instance, use
+<function>XtGetValues</function>.
+<indexterm significance="preferred"><primary>XtGetValues</primary></indexterm>
+<funcsynopsis id='XtGetValues'>
+<funcprototype>
+  <funcdef>void<function> XtGetValues</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>ArgList<parameter> args</parameter></paramdef>
+  <paramdef>Cardinal<parameter> num_args</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a variable-length argument list of name and <function>address</function>
+pairs that contain the resource name and the address into which the
+resource value is stored.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of arguments in the argument list.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The arguments and values passed in the argument list are dependent on
+the widget. Note that the caller is responsible for providing space
+into which the returned resource value is copied; the <function>ArgList</function>
+contains a pointer to this storage (e.g. x and y must be
+allocated as Position).  For further information, see the
+<olink targetdoc='intrinsics' targetptr='Reading_and_Writing_Widget_State'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+</sect3>
+<sect3 id="Modifying_Widget_Resource_Values">
+<title>Modifying Widget Resource Values</title>
+<para>
+<!-- .LP -->
+To modify the current value of a resource attribute associated with a
+widget instance, use
+<function>XtSetValues</function>.
+<indexterm significance="preferred"><primary>XtSetValues</primary></indexterm>
+<funcsynopsis id='XtSetValues'>
+<funcprototype>
+  <funcdef>void<function> XtSetValues</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>ArgList<parameter> args</parameter></paramdef>
+  <paramdef>Cardinal<parameter> num_args</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies an array of name and <function>value</function> pairs that contain the
+arguments to be modified and their new values.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>num_args</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the number of arguments in the argument list.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The arguments and values that are passed will depend on the widget
+being modified.  Some widgets may not allow certain resources to be
+modified after the widget instance has been created or realized.
+No notification is given if any part of a <xref linkend='XtSetValues' xrefstyle='select: title'/> request is
+ignored.
+</para>
+<para>
+<!-- .LP -->
+For further information about these functions, see the
+<olink targetdoc='intrinsics' targetptr='Reading_and_Writing_Widget_State'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+<indexterm><primary>XtGetValues</primary></indexterm>
+<indexterm><primary>XtSetValues</primary></indexterm>
+<!-- .NT -->
+The argument list entry for
+<xref linkend='XtGetValues' xrefstyle='select: title'/>
+specifies the address to which the caller wants the value copied.  The
+argument list entry for
+<function>XtSetValues</function>,
+however, contains the new value itself, if the size of value is less than
+sizeof(XtArgVal) (architecture dependent, but at least sizeof(long));
+otherwise, it is a pointer to the value.  String resources are always
+passed as pointers, regardless of the length of the string.
+<!-- .NE -->
+</para>
+</sect3>
+</sect2>
+<sect2 id="Using_the_Client_Callback_Interface">
+<title>Using the Client Callback Interface</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Using the Client Callback Interface -->
+<!-- .XE -->
+<indexterm><primary>callbacks</primary></indexterm>
+Widgets can communicate changes in their state to their clients
+by means of a callback facility.
+The format for a client's callback handler is:
+<indexterm significance="preferred"><primary>CallbackProc</primary></indexterm>
+<funcsynopsis id='CallbackProc'>
+<funcprototype>
+  <funcdef>void<function> CallbackProc</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> call_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies widget for which the callback is registered.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies arbitrary client-supplied data that the widget should pass
+back to the client when the widget executes the client's callback
+procedure.  This is a way for the client registering the callback to
+also register client-specific data: a pointer to additional information
+about the widget, a reason for invoking the callback, and so on. If no
+additional information is necessary, NULL may be passed as this argument.
+This field is also frequently known as the <emphasis remap='I'>closure</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>call_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies any callback-specific data the widget wants to pass to the client.
+For example, when Scrollbar executes its <function>jumpProc</function> callback list,
+it passes the current position of the thumb in <emphasis remap='I'>call_data</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+Callbacks can be registered either by creating an argument containing
+the callback list described below or by using the special convenience
+routines <xref linkend='XtAddCallback' xrefstyle='select: title'/> and <function>XtAddCallbacks</function>.  When the widget
+is created, a pointer to a list of callback procedure and data pairs can
+be passed in the argument list to
+<function>XtCreateWidget</function>.
+The list is of type
+<function>XtCallbackList :</function>
+<indexterm><primary>XtCallbackProc</primary></indexterm>
+<indexterm><primary>XtAddCallbacks</primary></indexterm>
+<indexterm><primary>XtAddCallback</primary></indexterm>
+<indexterm significance="preferred"><primary>XtCallbackList</primary></indexterm>
+<indexterm significance="preferred"><primary>XtCallbackRec</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 3i -->
+<!-- .ta .5i 3i -->
+typedef struct {
+	XtCallbackProc callback;
+	XtPointer closure;
+} XtCallbackRec, *XtCallbackList;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The callback list must be allocated and initialized before calling
+<function>XtCreateWidget</function>.
+<indexterm><primary>XtCreateWidget</primary></indexterm>
+The end of the list is identified by an entry containing NULL in
+callback and closure.  Once the widget is created, the client can change
+or de-allocate this list; the widget itself makes no further reference
+to it.  The closure field contains the client_data passed to the
+callback when the callback list is executed.
+</para>
+<para>
+<!-- .LP -->
+The second method for registering callbacks is to use
+<xref linkend='XtAddCallback' xrefstyle='select: title'/>
+after the widget has been created.
+<indexterm significance="preferred"><primary>XtAddCallback</primary></indexterm>
+<funcsynopsis id='XtAddCallback'>
+<funcprototype>
+  <funcdef>void<function> XtAddCallback</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>String<parameter> callback_name</parameter></paramdef>
+  <paramdef>XtCallbackProc<parameter> callback</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the widget to add the callback to.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>callback_name</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the callback list within the widget to append to.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>callback</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the callback procedure to add.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the data to be passed to the callback when it is invoked.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<xref linkend='XtAddCallback' xrefstyle='select: title'/>
+adds the specified callback to the list for the named widget.
+</para>
+<para>
+<!-- .LP -->
+All widgets provide a callback list named
+<function>destroyCallback</function>
+<indexterm significance="preferred"><primary>destroyCallback</primary></indexterm>
+where clients can register procedures that are to be executed when the
+widget is destroyed.  The destroy callbacks are executed when the widget
+or an ancestor is destroyed.  The <emphasis remap='I'>call_data</emphasis> argument is unused for
+destroy callbacks.
+</para>
+</sect2>
+<sect2 id="Programming_Considerations">
+<title>Programming Considerations</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Programming Considerations -->
+<!-- .XE -->
+This section provides some guidelines on how to set up an application
+program that uses the X Toolkit.
+</para>
+<sect3 id="Writing_Applications">
+<title>Writing Applications</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>writing applications</primary></indexterm>
+<indexterm><primary>StringDefs.h</primary></indexterm>
+<indexterm><primary>Intrinsic.h</primary></indexterm>
+When writing an application that uses the X Toolkit,
+you should make sure that your application performs the following:
+</para>
+<orderedlist>
+  <listitem>
+    <para>
+Include
+<filename class="headerfile">&lt;X11/Intrinsic.h&gt;</filename>
+in your application programs.
+This header file automatically includes
+<filename class="headerfile">&lt;X11/Xlib.h&gt;</filename>,
+so all Xlib functions also are defined.
+It may also be necessary to include <filename class="headerfile">&lt;X11/StringDefs.h&gt;</filename> when setting
+up argument lists, as many of the XtN<emphasis remap='I'>something</emphasis> definitions are
+only defined in this file.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Include the widget-specific header files for each widget type
+that you need to use.
+For example,
+<filename class="headerfile">&lt;X11/Xaw/Label.h&gt;</filename>
+and
+<filename class="headerfile">&lt;X11/Xaw/Command.h&gt;</filename>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Call the
+<xref linkend='XtOpenApplication' xrefstyle='select: title'/>
+<indexterm><primary>XtOpenApplication</primary></indexterm>
+function before invoking any other toolkit or Xlib functions.
+For further information,
+see Section 2.1 and the
+<olink targetdoc='intrinsics' targetptr='Widget_Instantiation'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+To pass attributes to the widget creation routines that will override
+any site or user customizations, set up argument lists.  In this
+document, a list of valid argument names is provided in the discussion
+of each widget.  The names each have a global symbol defined that begins
+with <function>XtN</function> to help catch spelling errors.  For example,
+<function>XtNlabel</function> is defined for the <function>label</function> resource of many widgets.
+<indexterm significance="preferred"><primary>XtN</primary></indexterm>
+    </para>
+    <para>
+For further information, see Section 2.9.2.2.  <!-- xref -->
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+When the argument list is set up, create the widget with the
+<xref linkend='XtCreateManagedWidget' xrefstyle='select: title'/> function.  For further information, see
+Section 2.2 and the
+<olink targetdoc='intrinsics' targetptr='XtCreateManagedWidget'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+<indexterm><primary>XtCreateManagedWidget</primary></indexterm>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+If the widget has any callback routines, set by the
+<function>XtNcallback</function>
+argument or the
+<xref linkend='XtAddCallback' xrefstyle='select: title'/>
+function, declare these routines within the application.
+<indexterm><primary>XtAddCallback</primary></indexterm>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+After creating the initial widget hierarchy, windows must be created
+for each widget by calling
+<xref linkend='XtRealizeWidget' xrefstyle='select: title'/>
+on the top level widget.
+<indexterm><primary>XtRealizeWidget</primary></indexterm>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Most applications now sit in a loop processing events using
+<function>XtAppMainLoop</function>,
+for example:
+<indexterm><primary>XtAppMainLoop</primary></indexterm>
+<literallayout class="monospaced">
+XtCreateManagedWidget(<emphasis remap='I'>name</emphasis>, <emphasis remap='I'>class</emphasis>, <emphasis remap='I'>parent</emphasis>, <emphasis remap='I'>args</emphasis>, <emphasis remap='I'>num_args</emphasis>);
+XtRealizeWidget(<emphasis remap='I'>shell</emphasis>);
+XtAppMainLoop(<emphasis remap='I'>app_context</emphasis>);
+</literallayout>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+For information about this function, see the
+<olink targetdoc='intrinsics' targetptr='Event_Management'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Link your application with
+<function>libXaw</function>
+(the Athena widgets),
+<function>libXmu</function>
+(miscellaneous utilities),
+<function>libXt</function>
+(the X Toolkit Intrinsics),
+<function>libSM</function>
+(Session Management),
+<function>libICE</function>
+(Inter-Client Exchange),
+<function>libXext</function>
+(the extension library needed for the shape extension code which allows
+rounded Command buttons), and
+<function>libX11</function>
+(the core X library).
+The following provides a sample command line:
+<indexterm><primary>libXaw</primary></indexterm>
+<indexterm><primary>libXmu</primary></indexterm>
+<indexterm><primary>libXt</primary></indexterm>
+<indexterm><primary>libSM</primary></indexterm>
+<indexterm><primary>libICE</primary></indexterm>
+<indexterm><primary>libXext</primary></indexterm>
+<indexterm><primary>libX11</primary></indexterm>
+<indexterm><primary>linking applications</primary></indexterm>
+<indexterm><primary>compiling applications</primary></indexterm>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<literallayout class="monospaced">
+cc -o <emphasis remap='I'>application</emphasis> <emphasis remap='I'>application</emphasis>.c -lXaw -lXmu -lXt -lSM -lICE -lXext -lX11
+</literallayout>
+    </para>
+  </listitem>
+</orderedlist>
+</sect3>
+<sect3 id="Changing_Resource_Values">
+<title>Changing Resource Values</title>
+<indexterm><primary>resource</primary></indexterm>
+<para>
+<!-- .LP -->
+The Intrinsics support two methods of changing the default resource
+values; the resource manager, and an argument list passed into
+XtCreateWidget.  While resources values will get updated no matter
+which method you use, the two methods provide slightly different
+functionality.
+<variablelist>
+  <varlistentry>
+    <term>Resource Manager</term>
+    <listitem>
+      <para>
+This method picks up resource definitions described in
+<olink targetdoc='libX11' targetptr='Resource_Manager_Functions'
+><citetitle>Xlib - C Language Interface</citetitle></olink> from
+many different locations at run time.  The locations most important to
+the application programmer are the <emphasis remap='I'>fallback resources</emphasis> and the
+<emphasis remap='I'>app-defaults</emphasis> file, (see
+<olink targetdoc='intrinsics' targetptr='Loading_the_Resource_Database'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>
+for the complete list).
+Since these resource are loaded at run time, they can be overridden by
+the user, allowing an application to be customized to fit the
+particular needs of each individual user.  These values can also be
+modified without the need to rebuild the application, allowing rapid
+prototyping of user interfaces.  Application programmers should use
+resources in preference to hard-coded values whenever possible.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Argument Lists</term>
+    <listitem>
+      <para>
+The values passed into the widget at creation time via an argument list
+cannot be modified by the user, and allow no opportunity for
+customization.  It is used to set resources that cannot be specified as
+strings (e.g. callback lists) or resources that should not be
+overridden (e.g. window depth) by the user.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<sect4 id="Specifying_Resources">
+<title>Specifying Resources</title>
+<para>
+<!-- .LP -->
+It is important for all X Toolkit application programmers to
+understand how to use the X Resource Manager to specify resources for
+widgets in an X application.  This section will describe the most common
+methods used to specify these resources, and how to use the X Resource
+manager.
+<indexterm><primary>xrdb</primary></indexterm>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Xrdb</function>
+    </term>
+    <listitem>
+      <para>
+The <function>xrdb</function> utility may be used to load a file containing
+resources into the X server.   Once the resources are loaded, the
+resources will affect any new applications started on the display that
+they were loaded onto.
+<indexterm><primary>application defaults</primary></indexterm>
+<indexterm><primary>app-defaults</primary></indexterm>
+<indexterm><primary>/usr/share/X11/app-defaults</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>Application Defaults</term>
+    <listitem>
+      <para>
+The application defaults (app-defaults) file (normally in
+/usr/share/X11/app-defaults/<emphasis remap='I'>classname</emphasis>) for an application is loaded
+whenever the application is started.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The resource specification has two colon-separated parts, a name, and
+a value.  The <emphasis remap='I'>value</emphasis> is a string whose format is dependent on the
+resource specified by <emphasis remap='I'>name</emphasis>.  <emphasis remap='I'>Name</emphasis> is constructed by
+appending a resource name to a full widget name.
+</para>
+<para>
+<!-- .LP -->
+The full widget name is a list of the name of every ancestor of the
+desired widget separated by periods (.).  Each widget also has a class
+associated with it.  A class is a type of widget (e.g. Label or
+Scrollbar or Box).  Notice that class names, by convention, begin with
+capital letters and instance names begin with lower case letters.  The
+class of any widget may be used in place of its name in a resource
+specification.  Here are a few examples:
+<variablelist>
+  <varlistentry>
+    <term>
+      xman.form.button1
+    </term>
+    <listitem>
+      <para>
+This is a fully specified resource name, and will affect only widgets
+called button1 that are children of widgets called form that are
+children of
+applications named xman.  (Note that while typically two widgets that
+are siblings will have different names, it is not prohibited.)
+
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      Xman.Form.Command
+    </term>
+    <listitem>
+      <para>
+This will match any Command widget that is a child of a Form widget
+that is itself a child of an application of class <emphasis remap='I'>Xman</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      Xman.Form.button1
+    </term>
+    <listitem>
+      <para>
+This is a mixed resource name with both widget names and classes specified.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This syntax allows an application programmer to specify any widget
+in the widget tree.  To match more than one widget (for example a user
+may want to make all Command buttons blue), use an asterisk (*)
+instead of a period.  When an asterisk is used, any number of widgets
+(including zero) may exist between the two widget names. For example:
+<variablelist>
+  <varlistentry>
+    <term>
+      Xman*Command
+    </term>
+    <listitem>
+      <para>
+This matches all Command widgets in the Xman application.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      Foo*button1
+    </term>
+    <listitem>
+      <para>
+This matches any widget in the Foo application that is named <emphasis remap='I'>button1</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The root of all application widget trees is the widget returned by
+<xref linkend='XtOpenApplication' xrefstyle='select: title'/>.  Even though this is actually an
+ApplicationShell widget, the toolkit replaces its widget class with the
+class name of the application.  The name of this widget is either
+the name used to invoke the application (<function>argv[0]</function>) or the name of
+the application specified using the standard <emphasis remap='I'>-name</emphasis> command line
+option supported by the Intrinsics.
+</para>
+<para>
+<!-- .LP -->
+The last step in constructing the resource name is to append the name of
+the resource with either a period or asterisk to the full or partial
+widget name already constructed.
+<variablelist>
+  <varlistentry>
+    <term>
+      *foreground:Blue
+    </term>
+    <listitem>
+      <para>
+Specifies that all widgets in all applications will have a foreground
+color of blue.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      Xman*borderWidth:10
+    </term>
+    <listitem>
+      <para>
+Specifies that all widgets in an application whose class is Xman will
+have a border width of 10 (pixels).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      xman.form.button1.label:Testing
+    </term>
+    <listitem>
+      <para>
+Specifies that a particular widget in the xman application will have a
+label named <emphasis remap='I'>Testing</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+An exclamation point (!) in the first column of a line indicates
+that the rest of the line should be treated as a comment.
+</para>
+<para>
+<!-- .LP -->
+<function>Final Words</function>
+</para>
+<para>
+<!-- .LP -->
+The Resource manager is a powerful tool that can be used very
+effectively to customize X Toolkit applications at run time by either the
+application programmer or the user.  Some final points to note:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+An application programmer may add new resources to their
+application.  These resources are associated with the global
+application, and not any particular widget.  The X Toolkit function used for
+adding the application resources is <function>XtGetApplicationResources</function>.
+<indexterm><primary>XtGetApplicationResources</primary></indexterm>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Be careful when creating resource files.  Since widgets will
+ignore resources that they do not understand, any spelling
+errors will cause a resource to have no effect.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Only one resource line will match any given resource.  There is a set
+of precedence rules, which take the following general stance.
+<!-- .ta 10n -->
+    </para>
+  </listitem>
+  <listitem>
+    <itemizedlist>
+      <listitem>
+        <para>
+More specific overrides less specific, thus period always overrides asterisk.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+Names on the left are more specific and override names on the right.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+When resource specifications are exactly the same, user defaults
+will override program defaults.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+For a complete explanation of the rules of precedence, and
+other specific topics see
+<olink targetdoc='intrinsics' targetptr='Loading_the_Resource_Database'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink> and <olink targetdoc='libX11' targetptr='Resource_Manager_Functions'
+><citetitle>Xlib - C Language Interface</citetitle></olink>.
+</para>
+</sect4>
+<sect4 id="Creating_Argument_Lists">
+<title>Creating Argument Lists</title>
+<indexterm significance="preferred"><primary>argument lists</primary></indexterm>
+<para>
+<!-- .LP -->
+To set up an argument list for the inline specification of widget attributes,
+you may use any of the four approaches discussed in this section.
+Each resource name has a global symbol associated with it.  This
+global symbol has the form XtN<emphasis remap='I'>resource name</emphasis>.  For example, the
+symbol for <quote>foreground</quote> is <function>XtNforeground</function>. For further information,
+see the <olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>.
+</para>
+<para>
+<!-- .LP -->
+Argument are specified by using the following structure:
+<indexterm significance="preferred"><primary>ArgList</primary></indexterm>
+<indexterm significance="preferred"><primary>Arg</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 1.5i -->
+<!-- .ta .5i 1.5i -->
+typedef struct {
+	String name;
+	XtArgVal value;
+} Arg, *ArgList;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The first approach is to statically initialize the argument list.
+For example:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i -->
+<!-- .ta .5i -->
+static Arg arglist[] = {
+	{XtNwidth, (XtArgVal) 400},
+	{XtNheight, (XtArgVal) 300},
+};
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+This approach is convenient for lists that do not need to be computed
+at runtime and makes adding or deleting new elements easy.
+The
+<indexterm><primary>XtNumber</primary></indexterm>
+<function>XtNumber</function>
+macro is used to compute the number of elements in the argument list,
+preventing simple programming errors:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+XtCreateWidget(<emphasis remap='I'>name</emphasis>, <emphasis remap='I'>class</emphasis>, <emphasis remap='I'>parent</emphasis>, <emphasis remap='I'>arglist</emphasis>, XtNumber(<emphasis remap='I'>arglist</emphasis>));
+</literallayout>
+<indexterm significance="preferred"><primary>XtSetArg</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+The second approach is to use the
+<function>XtSetArg</function>
+macro.
+For example:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i -->
+<!-- .ta .5i -->
+Arg arglist[10];
+XtSetArg(arglist[1], XtNwidth, 400);
+XtSetArg(arglist[2], XtNheight, 300);
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+To make it easier to insert and delete entries,
+you also can use a variable index:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i -->
+<!-- .ta .5i -->
+Arg arglist[10];
+Cardinal i=0;
+XtSetArg(arglist[i], XtNwidth,  400);       i++;
+XtSetArg(arglist[i], XtNheight, 300);       i++;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The i variable can then be used as the argument list count in the widget
+create function.
+In this example,
+<indexterm><primary>XtNumber</primary></indexterm>
+<function>XtNumber</function>
+would return 10, not 2, and therefore is not useful.
+<!-- .NT -->
+You should not use auto-increment or auto-decrement
+within the first argument to
+<function>XtSetArg</function>.
+As it is currently implemented,
+<function>XtSetArg</function>
+is a macro that dereferences the first argument twice.
+<!-- .NE -->
+</para>
+<para>
+<!-- .LP -->
+The third approach is to individually set the elements of the
+argument list array:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i -->
+<!-- .ta .5i -->
+Arg arglist[10];
+arglist[0].name  = XtNwidth;
+arglist[0].value = (XtArgVal) 400;
+arglist[1].name  = XtNheight;
+arglist[1].value = (XtArgVal) 300;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+Note that in this example, as in the previous example,
+<indexterm><primary>XtNumber</primary></indexterm>
+<function>XtNumber</function>
+would return 10, not 2, and therefore would not be useful.
+</para>
+<para>
+<!-- .LP -->
+The fourth approach is to use a mixture of the first and third approaches:
+you can statically define the argument list but modify some entries at runtime.
+For example:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i -->
+<!-- .ta .5i -->
+static Arg arglist[] = {
+	{XtNwidth, (XtArgVal) 400},
+	{XtNheight, (XtArgVal) NULL},
+};
+arglist[1].value = (XtArgVal) 300;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+In this example,
+<indexterm><primary>XtNumber</primary></indexterm>
+<function>XtNumber</function>
+can be used, as in the first approach, for easier code maintenance.
+</para>
+</sect4>
+</sect3>
+</sect2>
+<sect2 id="Example_Programs">
+<title>Example Programs</title>
+<!-- .XS -->
+<!-- 	Example Programs -->
+<!-- .XE -->
+<indexterm><primary>examples</primary></indexterm>
+<para>
+<!-- .LP -->
+The best way to understand how to use any programming library is by
+trying some simple examples.  A collection of example programs that
+introduces each of the widgets in that Athena widget set, as well as many
+important toolkit programming concepts, is available in the X11R5 contrib
+release as distributed by the X Consortium.  It can be found in the
+directory <filename>contrib/examples/Xaw</filename> in the archive
+at <ulink url="http://www.x.org/releases/X11R5/contrib-1.tar.Z" />
+See the <filename>README</filename> file from that directory for a guide
+to the examples.
+</para>
+</sect2>
+</sect1>
+</chapter>

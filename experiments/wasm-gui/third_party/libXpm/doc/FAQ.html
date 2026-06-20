@@ -1,0 +1,344 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="en">
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<TITLE>FAQ XPM</TITLE>
+</HEAD>
+
+<body>
+<h1 align="center">The XPM<br>
+Frequently Asked Questions</h1>
+<p>
+This article contains the answers to some Frequently Asked Questions about the
+XPM format and/or library. If you don't find the answer to your problem here,
+then you can mail either to lehors@sophia.inria.fr or to the mailing list
+xpm-talk@sophia.inria.fr.
+
+
+<h2>Contents</h2>
+
+<ol>
+<li><a href="#Q1">How do I convert my images to or from XPM ?</a>
+<li><a href="#Q2">Why are my XPM files said to be invalid ?</a>
+<li><a href="#Q3">Why does my program core dumps using XPM ?</a>
+<li><a href="#Q4">Why does my program core dumps using XPM with a widget ?</a>
+<li><a href="#Q5">How can I get a non rectangular icon using XPM ?</a>
+<li><a href="#Q6">What exactly triggers the creation of a mask when using XPM ?</a>
+<li><a href="#Q7">How should I use the mask ?</a>
+<li><a href="#Q8">Is there a string to pixmap converter somewhere ?</a>
+<li><a href="#Q9">How can I edit XPM icons ?</a>
+<li><a href="#Q10">Is there a collection of icons somewhere ?</a>
+<li><a href="#Q11">The documentation fails to print out. Why ?</a>
+<li><a href="#copy">Copyright</a>
+</ol>
+
+
+<h2><a name="Q1">1. How do I convert my images to or from XPM ?</a></h2>
+<p>
+  Netpbm is surely the best image conversion package that I know of. It defines
+  formats for color, gray and monochrome images and provides a set of filters.
+  Thus a GIF image can be converted to XPM with something like:
+<p>
+  $ giftoppm youricon.gif | ppmtoxpm > youricon.xpm
+<p>
+  The latest release can be found at least from wuarchive.wustl.edu
+  (128.252.135.4), directory /graphics/graphics/packages/NetPBM
+
+
+<h2><a name="Q2">2. Why are my XPM files said to be invalid ?</a></h2>
+<p>
+  There are three official versions of the XPM format. The XPM library since
+  version 3.3 can read all them but writes out only XPM 3. Also the small
+  program called sxpm which is part of the XPM library package can be used to
+  automatically translate XPM 1 and 2 files to XPM 3 with a command such as:
+<p>
+  $ sxpm -nod yourxpm1or2file -o yourxpm3file
+<p>
+  Also, the XPM format defines "None" to be the color name meaning
+  "transparent", but IXI used to hack the XPM library in its early days to
+  handle transparency as "#Transparent". This makes IXI format not compatible
+  with the official XPM format, and so not readable neither by the official XPM
+  library nor any of the programs built on top of it.
+<p>
+  The only solutions are either to stick on IXI programs which can deal with
+  their format or convert your files to the standard XPM format. This can be
+  done simply by changing "#Transparent" to "None".
+
+
+<h2><a name="Q3">3. Why does my program core dumps using XPM ?</a></h2>
+<p>
+  Be sure the XpmAttributes structure you pass by reference has a valid
+  valuemask. You can give NULL instead if you don't want to use an
+  XpmAttributes but if you do, you MUST initialize its valuemask component to
+  some valid value, at least 0, otherwise unpredictable errors can occur.
+<p>
+  So instead of doing something like:
+<pre>
+      XpmAttributes attrib;
+
+      XpmReadFileToPixmap(dpy, d, filename, &amp;pixmap, &amp;mask, &amp;attrib);
+</pre>
+<p>
+  you should do:
+<pre>
+      XpmAttributes attrib;
+
+      attrib.valuemask = 0;
+      XpmReadFileToPixmap(dpy, d, filename, &amp;pixmap, &amp;mask, &amp;attrib);
+</pre>
+
+
+<h2><a name="Q4">4. Why does my program core dumps using XPM with a widget ?</a></h2>
+<ul>
+<li>First the XPM library is Xlib level, so don't pass your widget as a
+    Drawable parameter. A Drawable is either a Window or a Pixmap. The widget's
+    window can do the job but:
+
+<li>Then a widget only gets a Window when realized, so passing XtWindow(widget)
+    with a not yet realized widget is wrong. Either realize you widget first or
+    use another window. Since the Drawable parameter is only used to specify
+    the screen to which the pixmap must be created on, most of the time the
+    default root window is just fine.
+</ul>
+
+
+<h2><a name="Q5">5. How can I get a non rectangular icon using XPM ?</a></h2>
+<p>
+  The X Window System does not support transparent color. However there are
+  several ways you can use to get the same visual effect using XPM:
+<ul>
+<li>First you can use the None color to get a shape mask and use it as
+    explained below (question 7).
+
+<li>Second you can define a symbolic color name such as "mask" in the XPM
+    format file, then use the color overriding mechanism to set this symbolic
+    color to the color of the underlying object. Note that in this case the XPM
+    library won't create a shape mask, and that if the color of the underlying
+    object is changed then you'll have to create a new pixmap.
+</ul>
+
+
+<h2><a name="Q6">6. What exactly triggers the creation of a mask when using XPM ?</a></h2>
+<p>
+  Basically a mask is created if "None" is used as one of the color of the
+  pixmap. Be aware that this is not only true if it is used in the XPM of the
+  pixmap since the colors can be overridden at load time. So a mask is created
+  if the "None" color is used at load time, coming either from the XPM
+  definition or the color overriding.
+
+
+<h2><a name="Q7">7. How should I use the mask ?</a></h2>
+<p>
+  There are basically two ways of using the mask:
+<ul>
+<li>Use the mask as a shapemask with the X11 Nonrectangular Saphe Window
+    Extension. Typically this is what should be done when the icon is used in a
+    desktop.
+
+<li>Use the mask as a clipmask in the GC you pass to XCopyArea when drawing the
+    pixmap. So the "transparent" pixels being not actually drawn will get the
+    underlying pixels colors.
+</ul>
+
+
+<h2><a name="Q8">8. Is there a string to pixmap converter for Motif ?</a></h2>
+<p>
+ Yes, Motif 2.0 or later does support XPM pixmaps as well as XBM bitmaps.
+
+
+<h2><a name="Q9">9. How can I edit XPM icons ?</a></h2>
+<p>
+  As listed below several editors either commercial or not are supporting the
+  XPM format. However, pixmap is the one I would recommend since it is freely
+  available and, being fully dedicated to XPM, it allows to edit all the
+  special things, such as the symbolic color names, which makes XPM different
+  from all the other image formats. Pixmap can always be found by ftp from
+  ftp.x.org (contrib) and avahi.inria.fr (pub/pixmap).
+<p>
+Last Update: 3 August 1994
+<table border=1>
+<caption>XPM Icon Editors</caption>
+<tr><th>Program<th>Infos<th>Source/Author<th>Platforms<th>SA<th>XPM<th>cost
+<tr><td>pixmap<td><ul>
+   <li><a href="ftp://ftp.x.org/contrib/application/pixmap/pixmap2.6.tar.gz">ftp://ftp.x.org/contrib/application/pixmap/pixmap2.6.tar.gz</a>
+   <li>requires 3.4 or higher revision of Xpm lib.
+   <li>supports all XPM format features
+   <li>current version doesn't work on 24-plane displays
+</ul>
+<td>Lionel Mallet<td>source<td>yes<td>3<td>NC
+
+<tr><td>pixt<td><ul>
+   <li><a href="ftp://ftp.x.org/contrib/pixt.tar.Z">ftp://ftp.x.org/contrib/pixt.tar.Z</a>
+   <li>doesn't work on 24-plane displays
+   <li>last updated November 1991
+</ul>
+<td>J. Michael Flanery<td>source<td>yes<td>1<td>NC
+
+<tr><td>pixed<td><ul>
+   <li>part of X.desktop
+   <li>current version doesn't work on 24-plane displays
+</ul>
+<td>IXI<td>Many UNIX<td>no<td>3<td>N/A
+
+<tr><td>olpixmap<td><ul>
+   <li>packaged with the OLIT (OpenLook) toolkit
+</ul>
+<td>USL<td>Sun, SVR4.2, UnixWare<td>no<td>1<td>N/A
+
+<tr><td>xfedor<td><ul>
+   <li>only uses XLIB
+   <li>doesn't work on 24-plane displays
+</ul>
+<td>Daniel Dardailler<td>source<td>yes<td>3<td>NC
+
+<tr><td>SCOpaint<td><ul>
+   <li>included with the ODT package
+</ul>
+<td>SCO/Wing Eng<td>ODT<td>yes<td>2.8<td>N/A
+
+<tr><td>pme.icn<td><ul>
+   <li>written in the Icon language
+</ul>
+<td>Icon Project<td>source<td>yes<td>3<td>NC
+
+<tr><td>PixEditT<td><ul>
+   <li>there is currently no support for editing the colormap
+</ul>
+<td>Free Widget Foundation<td>source<td>yes<td>3<td>NC
+
+<tr><td>xscribble<td><ul>
+   <li>requires the FWF, 8-bit pseudocolor
+   <li><a href="ftp://ftp.cis.ufl.edu/pub/thoth">ftp://ftp.cis.ufl.edu/pub/thoth</a>
+   <li>Alpha version (last updated April 1993)
+</ul>
+<td>Robert Forsman<td>source<td>yes<td>?<td>NC
+
+<tr><td>vueicon<td><ul>
+   <li>included with Vue3.0
+</ul>
+<td>Hewlett-Packard<td>HP<td>yes<td>3<td>N/A
+
+<tr><td>iconedit V3<td>&nbsp;<td>SunSoft<td>Sparc/Sun3<td>yes<td>2<td>N/A
+
+<tr><td>Pixmap Editor<td><ul>
+   <li>this is a Widget, not a complete program
+</ul>
+<td>ICS<td>?<td>yes<td>?<td>?
+
+<tr><td>ezX<td>&nbsp;<td>Sunrise Softwarey<td>?<td>?<td>?<td>N/A
+
+<tr><td>XPaint<td><ul>
+     <li>full featured, works on all displays
+     <li>current release is 2.1.1 (last update January 1994)
+</ul>
+<td>David Koblas<td>source<td>yes<td>3<td>NC
+
+<tr><td>Phoenix<td><ul>
+    <li>full featured, 24-bit painting program, requires Motif.
+    <li><a href="ftp://nic.funet.fi/pub/graphics/packages/phoenix">ftp://nic.funet.fi/pub/graphics/packages/phoenix</a>
+    <li>Beta version (last updated September 1993)
+</ul>
+<td>ohtcolor@niksula.hut.fi<td>source<td>yes<td>3<td>NC
+
+<tr><td>pixed<td><ul>
+    <li>pixed is part of the TeleUSE UIMS
+    <li>More info is available from service@ignite.alsys.com
+</ul>
+<td>Alsys<td>Many UNIX<td>yes<td>3<td>N/A
+
+<tr><td>display<td><ul>
+   <li><a href="ftp://ftp.x.org/contrib/application/ImageMagick/ImageMagick-3.2.tar.gz">ftp://ftp.x.org/contrib/application/ImageMagick/ImageMagick-3.2.tar.gz</a>
+   <li>lots of image conversion and manipulation features
+</ul>
+<td>John Cristy<td>source<td>yes<td>3<td>NC
+</table>
+
+<p>
+SA - Stand Alone program<br>
+NC - No Charge (i.e. free); most programs are copyrighted.<br>
+XPM - XPM format supported<br>
+source - built from source code; likely works on all standard X platforms<br>
+N/A - icon editor is normally distributed with other software
+
+<p>
+Send updates, additions, corrections, etc. to <a
+href="mailto:dan@bristol.com">dan@bristol.com</a>
+
+
+<h2><a name="Q10">10. Is there a collection of icons somewhere ?</a></h2>
+<p>
+  At least there is one freely available: Anthony's X Icon Library. You can
+  found it on several ftp servers, such as <a href="ftp://server.berkeley.edu/pub/AIcons">server.berkeley.edu/pub/AIcons</a>. It
+  contains only small icons (less than about 100x100 pixels in size) which are
+  stored in groups in a logical way. Color icons are stored in XPM format and
+  Black & White icons in XBM.
+
+
+<h2><a name="Q11">11. The documentation fails to print out. Why ?</a></h2>
+<p>
+  The PostScript documentation file is formatted for US letter paper. Frame
+  Maker tries very hard to ensure that you have the right paper and punts if
+  you don't. However, you can easily work around this problem by applying the
+  following patch. If for some reason applying the patch fails, you can still
+  do it by hand. Just locate the corresponding block in the PS file and remove
+  the lines with a leading '-' character.
+  By the way, this applies to any doc generated by Frame Maker. The
+  corresponding block might be slightly different depending on which version of
+  Frame Maker was used, but it is still easy to locate.
+
+<pre>
+*** xpm.PS      Wed Sep 11 15:47:43 1996
+--- xpm-A4.PS   Thu Nov 21 09:27:28 1996
+***************
+*** 647,668 ****
+        0 ne /edown exch def
+        /yscale exch def
+        /xscale exch def
+-       FMLevel1 {
+-               manualfeed {setmanualfeed} if
+-               /FMdicttop countdictstack 1 add def
+-               /FMoptop count def
+-               setpapername
+-               manualfeed {true} {papersize} ifelse
+-               {manualpapersize} {false} ifelse
+-               {desperatepapersize} {false} ifelse
+-               { (Can't select requested paper size for Frame print job!) FMFAILURE } if
+-               count -1 FMoptop {pop pop} for
+-               countdictstack -1 FMdicttop {pop end} for
+-               }
+-               {{1 dict dup /PageSize [paperwidth paperheight]put setpagedevice}stopped
+-               { (Can't select requested paper size for Frame print job!) FMFAILURE } if
+-                {1 dict dup /ManualFeed manualfeed put setpagedevice } stopped pop }
+-       ifelse
+
+        FMPColor {
+                currentcolorscreen
+--- 647,652 ----
+</pre>
+
+
+<hr>
+<h2><a name="copy">Copyright (C) 1989-95 GROUPE BULL</a></h2>
+<p>
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+<p>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+<p>
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+GROUPE BULL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+<p>
+Except as contained in this notice, the name of GROUPE BULL shall not be
+used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization from GROUPE BULL.
+</body>
+</html>

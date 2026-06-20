@@ -1,0 +1,435 @@
+<sect1 id="StripChart_Widget">
+<title>StripChart Widget</title>
+<!-- .XS -->
+<!-- 	StripChart Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>StripChart widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;Xaw/StripChart.h&gt;
+<indexterm><primary>StripChart.h</primary></indexterm>
+Class Header file	&lt;Xaw/StripCharP.h&gt;
+<indexterm><primary>StripCharP.h</primary></indexterm>
+Class		stripChartWidgetClass
+<indexterm><primary>stripChartWidgetClass</primary></indexterm>
+Class Name	StripChart
+<indexterm><primary>StripChart widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Simple
+<!-- .sp -->
+</literallayout>
+<para>
+<!-- .LP -->
+The StripChart widget is used to provide a roughly real
+time graphical chart of a single value.  For example,
+it is used by the common client program <function>xload</function>
+to provide a graph of processor load.  The StripChart
+reads data from an application, and updates the chart
+at the <function>update</function> interval specified.
+</para>
+<sect2 id='StripChart::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a StripChart widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>StripChart widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>getValue</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>120</entry>
+    </row>
+    <row>
+      <entry>highlight</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>jumpScroll</entry>
+      <entry>JumpScroll</entry>
+      <entry>int</entry>
+      <entry>A</entry>
+      <entry>half the width of the widget</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>minScale</entry>
+      <entry>Scale</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Pointer</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>update</entry>
+      <entry>Interval</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>10</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>120</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Cm -->
+<!-- .Cu -->
+<!-- .Cn -->
+<!-- .Dp -->
+<!-- .Dc -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>foreground</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+that will be used to draw the graph.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>getValue</function>
+    </term>
+    <listitem>
+      <para>
+A list of callback functions to call every <function>update</function> seconds.
+This list should contain one function, which returns the
+value to be graphed by the StripChart widget.  The following
+section describes the procedural interface.  Behavior when this list has
+more than one function is undefined.
+<!-- .Hw -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>highlight</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+that will be used to draw the scale lines on the graph.
+<!-- .Ib -->
+<!-- .Ix -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>jumpScroll</function>
+    </term>
+    <listitem>
+      <para>
+When the graph reaches the right edge of the window it must be
+scrolled to the left.  This resource specifies the number of pixels
+it will jump.  Smooth scrolling can be achieved by setting this resource
+to 1.
+<!-- .Mm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>minScale</function>
+    </term>
+    <listitem>
+      <para>
+The minimum scale for the graph.  The number of divisions on the graph
+will always be greater than or equal to this value.
+<!-- .Pf -->
+<!-- .Pb -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>update</function>
+    </term>
+    <listitem>
+      <para>
+The number of seconds between graph updates.  Each update is
+represented on the graph as a 1 pixel wide line.  Every <function>update</function> seconds
+the <function>getValue</function> procedure will be used to get a new graph point,
+and this point will be added to the right end of the StripChart.
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Getting_the_StripChart_Value">
+<title>Getting the StripChart Value</title>
+<indexterm><primary>StripChart widget</primary><secondary>getting the value</secondary></indexterm>
+<para>
+<!-- .LP -->
+The StripChart widget will call the application routine passed to it
+as the <function>getValue</function> callback function every <function>update</function> seconds to
+obtain another point for the StripChart graph.
+</para>
+<para>
+<!-- .LP -->
+The calling interface for the <function>getValue</function> callback is:
+<indexterm significance="preferred"><primary>StripChart widget</primary><secondary>getValue callback</secondary></indexterm>
+<funcsynopsis>
+<funcprototype>
+  <funcdef><function> void</function>(*getValueProc)</funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> value</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the StripChart widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the client data.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>value</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns a pointer to a double.  The application should set the address
+pointed to by this argument to a double containing the value to be
+graphed on the StripChart.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function is used by the StripChart to call an application routine.
+The routine will pass the value to be graphed back to the the StripChart
+in the <function>value</function> field of this routine.
+
+</para>
+</sect2>
+</sect1>

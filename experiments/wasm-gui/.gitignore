@@ -1,0 +1,12 @@
+# Large cross-compiled build outputs (exceed jj snapshot limit; rebuildable from source).
+# Ignoring them keeps a concurrent `jj new`/working-copy reset from wiping them.
+*.wasm
+target/
+third_party/wasm-prefix/lib/
+third_party/wasm-prefix/share/
+third_party/*/build-wasm/
+third_party/xserver/build-wasm/
+**/*.o
+**/*.a
+**/*.lo
+**/*.la

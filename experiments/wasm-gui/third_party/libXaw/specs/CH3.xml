@@ -1,0 +1,124 @@
+<chapter id='Simple_Widgets'>
+<title>Simple Widgets</title>
+
+<!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="CH3.intro.xml"/> -->
+<para>
+Each of these widgets performs a specific user interface function.  They
+are <emphasis remap='I'>simple</emphasis> because they cannot have widget
+children&#x2014;they may only
+be used as leaves of the widget tree.  These widgets display information or
+take user input.
+</para>
+
+<variablelist>
+  <varlistentry>
+    <term><function>Command</function></term>
+    <listitem>
+      <para>
+A push button that, when selected, may cause a specific action
+to take place.  This widget can display a multi-line string or a bitmap or pixmap image.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><function>Grip</function></term>
+    <listitem>
+      <para>
+A rectangle that, when selected, will cause an action to take place.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><function>Label</function></term>
+    <listitem>
+      <para>
+A rectangle that can display a multi-line string or a bitmap or pixmap image.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>List</function></term>
+    <listitem>
+      <para>
+A list of text strings presented in row column format that may be
+individually selected.  When an element is selected an action may take
+place.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>Panner</function></term>
+    <listitem>
+      <para>
+A rectangular area containing a <emphasis remap='I'>slider</emphasis> that may be moved in two
+dimensions.  Notification of movement may be continuous or discrete.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>Repeater</function></term>
+    <listitem>
+      <para>
+A push button that triggers an action at an increasing rate when selected.
+This widget can display a multi-line string or a bitmap or pixmap image.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>Scrollbar</function></term>
+    <listitem>
+      <para>
+A rectangular area containing a <emphasis remap='I'>thumb</emphasis> that when slid along one
+dimension may cause a specific action to take place.  The Scrollbar may
+be oriented horizontally or vertically.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>Simple</function></term>
+    <listitem>
+      <para>
+The base class for most of the simple widgets.  Provides a rectangular
+area with a settable mouse cursor and special border.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>StripChart</function></term>
+    <listitem>
+      <para>
+A real time data graph that will automatically update and scroll.
+      </para>
+    </listitem>
+  </varlistentry>
+
+  <varlistentry>
+    <term><function>Toggle</function></term>
+    <listitem>
+      <para>
+A push button that contains state information.  Toggles
+may also be used as "radio buttons" to implement a "one of many" or
+"zero or one of many" group
+of buttons.  This widget can display a multi-line string or a bitmap or pixmap image.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+<!-- End of CH3.Intr -->
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Command.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Grip.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Label.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="List.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Panner.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Repeater.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Scrollbar.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Simple.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="StripChart.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Toggle.xml"/>
+</chapter>

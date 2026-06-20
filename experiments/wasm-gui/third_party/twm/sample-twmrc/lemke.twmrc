@@ -1,0 +1,255 @@
+#
+#  Dave Lemke's .twmrc
+#
+
+IconDirectory "/u/lemke/lib/icons"
+
+#AutoRelativeResize
+BorderWidth	3
+ButtonIndent	0
+ClientBorderWidth
+#DefaultFunction	f.nop
+#DontMoveOff
+IconifyByUnmapping
+IconFont	"-adobe-helvetica-bold-r-normal--14-100-100-100-p-82-iso8859-1"
+IconManagerFont	"-adobe-helvetica-bold-r-normal--14-100-100-100-p-82-iso8859-1"
+IconManagerGeometry  "=98x5-2+50"
+#LeftTitleButton	"menu12.xbm" = f.menu "window-ops"
+MenuFont	"-adobe-helvetica-bold-r-normal--14-100-100-100-p-82-iso8859-1"
+MoveDelta	5
+#NoBackingStore
+NoDefaults
+NoGrabServer
+NoMenuShadows
+#NoRaiseOnDeiconify
+NoRaiseOnMove
+#NoRaiseOnResize
+#NoSaveUnder
+#NoTitleFocus
+#NoVersion
+#OpaqueMove
+ResizeFont	"10x20"
+RestartPreviousState
+#ReverseVideo
+ShowIconManager
+SortIconManager
+
+SqueezeTitle
+{
+	"XTerm"		center	0	0 
+	"Xsol"		center	0	0
+	"Spider"	center	0	0
+}
+
+TitleFont	"-adobe-helvetica-bold-r-normal--14-100-100-100-p-82-iso8859-1"
+TitleButtonBorderWidth	1
+UnknownIcon     "ncdlogo64.xbm"
+#WarpCursor
+XORValue	1
+#Zoom
+
+DefaultFunction	f.nop
+
+Function "move-or-raise"
+{
+	f.move
+	f.deltastop
+	f.raise
+}
+
+AutoRaise
+{
+	"xtrek"
+	"TWM Icon Manager"
+	"xclock"
+	"xbiff"
+	"xeyes"
+}
+
+Cursors
+{
+	Menu	"right_ptr"
+}
+
+DontIconifyByUnmapping
+{
+	"xclock"
+	"xbiff"
+	"twmOutput"
+	"xload"
+	"oclock"
+	"xeyes"
+}
+
+IconManagerDontShow
+{
+	"xclock"
+	"xbiff"
+	"twmOutput"
+	"xload"
+	"oclock"
+	"xeyes"
+}
+
+Monochrome
+{
+	DefaultForeground	"black"
+	DefaultBackground	"white"
+	BorderColor	"black"
+	TitleForeground	"black"
+	TitleBackground	"white"
+	MenuForeground	"black"
+	MenuBackground	"white"
+}
+
+NoTitle
+{
+	"xclock"
+	"xbiff"
+	"xload"
+	"TWM Icon Manager"
+	"FrameMaker"
+	"FrameWriter"
+	"oclock"
+	"twmOutput"
+	"xeyes"
+}
+
+#
+# buttons
+#
+
+Button1 = 	: root	: f.menu "button1"
+Button2 = 	: root	: f.menu "Util_menu"
+Button3 = 	: root	: f.menu "Hosts_menu"
+Button1 = 	: m	: f.iconify
+Button2 = 	: m	: f.lower
+Button1 = 	: t	: f.function "move-or-raise"
+Button2 = 	: t	: f.lower
+Button3 = 	: t	: f.menu "window-ops"
+Button1 = 	: i	: f.iconify
+Button2 = 	: i	: f.function "move-or-raise"
+
+"F1"    =	: w|t|i	: f.iconify
+"F2"    =	: all	: f.refresh
+"F3"	=	: w|t|i	: f.raise
+"F4"	=	: w|t|i	: f.lower
+
+"F5"	=	: w|t|i	: f.zoom
+
+
+
+menu "button1"
+{
+"Applications"		f.title
+#"FrameWriter"		!"rsh indian -n /usr/local/xframewriter $DISPLAY& "
+#"Q Calc "		!"rsh indian -n /usr/bin/X11/xterm -display $DISPLAY -T Qcalc -e /pmax/u/demo/qsp/bin/qcalc &"
+#"Notepad"		!"/usr/bin/dxnotepad -display $DISPLAY&"
+#"Calculator"		!"xcalc -display $DISPLAY&"
+"Mail Box"		!"/usr/bin/X11/xbiff -display $DISPLAY&"
+"Clock"        		!"oclock -display $DISPLAY &"
+"Xterm"			!"/usr/bin/X11/xterm -ls -display $DISPLAY &"
+"Big Xterm"		!"/usr/bin/X11/xterm -ls -fn 9x15 -display $DISPLAY &"
+"xsol"			!"$HOME/games/bin/`arch`/xsol &"
+"Spider"		!"$HOME/games/bin/`arch`/spider &"
+"Utility"		f.title
+#"Focus"		f.focus
+#"UnFocus"		f.unfocus
+#"More.."		f.title
+"..Hosts"		f.menu "Hosts_menu"
+"..Applications"	f.menu "Apps_menu"
+"..Utility"		f.menu "Util_menu"
+""			f.title
+"Exit"			f.quit
+}
+
+menu "Hosts_menu"
+{
+"Host Connections"	f.title
+"Almanor"	!"rsh -n almanor exec /usr/bin/X11/xterm -ls -display $DISPLAY -T Almanor&"
+"Hamilton"	!"rsh -n hamilton exec /usr/bin/X11/xterm -ls -display $DISPLAY -T Hamilton&"
+"Homer"		!"rsh -n Homer exec /usr/bin/X11/xterm -ls -display $DISPLAY -T Homer&"
+"Lupine"	!"TERM=xterms xterm -fn 10x20 -T lupine -e rlogin lupine&"
+"Ramona"	!"rsh -n ramona exec /usr/bin/X11/xterm -ls -display $DISPLAY -T Ramona&"
+"Pagemill"	!"rsh pagemill -n /usr/bin/X11/xterm -display $DISPLAY -T Pagemill -e /bin/ksh&"
+"Sheridan"	!"rsh -n sheridan exec /usr/bin/X11/xterm -ls -display $DISPLAY -T Sheridan&"
+}
+
+menu "Apps_menu"
+{
+"Applications"	f.title
+"Man Pages"		!"/usr/bin/X11/xman -display $DISPLAY&"
+#"Notepad"		!"/usr/bin/dxnotepad -display $DISPLAY&"
+#"FrameMaker"		!"rsh indian -n /usr/local/xframemaker $DISPLAY& "
+#"Calendar"		!"/usr/bin/dxcalendar -display $DISPLAY &"
+"Clock"                 !"/usr/bin/X11/xclock -display $DISPLAY &"
+#"Rolodex"       	!"/usr/bin/dxcardfiler -display $DISPLAY &"
+#"Paint"        		!"/usr/bin/dxpaint -display $DISPLAY &"
+"Lock Screen"    	!"/usr/bin/X11/xlock & "
+"Preferences"		!"/usr/bin/X11/xpref -display $DISPLAY&"
+"Xterm"			!"/usr/bin/X11/xterm -ls -display $DISPLAY &"
+}
+
+menu "Util_menu"
+{
+"Utilities"		f.title
+"Refresh"		f.refresh
+"twm Version"		f.version
+"Source .twmrc"		f.twmrc
+"Restart twm"		f.restart
+#"Hide IconManager"      f.hideiconmgr
+#"Show IconManager"      f.showiconmgr
+#"Destroy All Window"    !"xkill -a&"
+"Preferences"		f.menu "Pref_menu"
+"TwmWindows"		f.menu "TwmWindows"
+"Exit twm"		f.quit
+"Window Ops"		f.title
+"Refresh Window"	f.winrefresh
+"Move Window"           f.move
+"Resize Window"         f.resize
+"Lower Window"		f.lower
+"Raise Window"		f.raise
+"Iconify"		f.iconify
+"Window Info"		f.identify
+"Destroy Window"        f.destroy
+"Focus on Window"       f.focus
+"Focus on Root"		f.unfocus
+}
+
+menu "Pref_menu"
+{
+"Preferences"		f.title
+"Bell Loud"		!"xset b 75&"
+"Bell Normal"		!"xset b 50&"
+"Bell Quiet"		!"xset b 25&"
+"Bell Off"		!"xset b off&"
+"Mouse Fast"		!"xset m 5 1&"
+"Mouse Normal"		!"xset m 3 1&"
+"Mouse Slow"		!"xset m 1 1&"
+"Screen Saver"		f.menu "SSaver"
+}
+
+
+menu "SSaver"
+{
+"Screen Saver"		f.title
+"Blank"			!"/usr/bin/X11/xset s blank -display $DISPLAY &"
+"No Blank"		!"/usr/bin/X11/xset s noblank -display $DISPLAY &"
+"Saver 2 Sec."		!"/usr/bin/X11/xset s 2 2 -display $DISPLAY &"
+"Saver 2 Min."		!"/usr/bin/X11/xset s 120 120 -display $DISPLAY &"
+"Saver 10 Min."		!"/usr/bin/X11/xset s 600 600 -display $DISPLAY &"
+}
+
+menu "window-ops"
+{
+"Window Ops"		f.title
+"Iconify"		f.iconify
+"Refresh Window"	f.winrefresh
+"Move Window"		f.move
+"Resize Window"		f.resize
+"Hide Window"		f.lower
+"Expose Window"		f.raise
+"Destroy Window"	f.destroy
+"Delete Window"		f.delete
+"Save"			f.saveyourself
+}

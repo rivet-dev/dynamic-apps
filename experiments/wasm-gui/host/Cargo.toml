@@ -1,0 +1,29 @@
+[package]
+name = "wasm-gui-host"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "wasm-gui-host"
+path = "src/main.rs"
+
+[features]
+# Default build has NO display deps, so it runs on a headless box (the --capture path).
+# The interactive window demo is behind `--features window`.
+default = []
+window = ["dep:winit", "dep:softbuffer"]
+
+[dependencies]
+# THE standard secure-exec Rust client — drives the guest through the real V8 sidecar.
+# No wasmer / node:wasi / Command::new in the execution path (SPEC §1a.2).
+# Workspace dep (host is a member of the repo root workspace) so it shares Cargo.lock with the
+# sidecar and resolves identical transitive versions.
+secure-exec-client = { workspace = true }
+# For the bridge-contract version the Authenticate handshake must carry.
+secure-exec-bridge = { workspace = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "io-util", "time"] }
+base64 = "0.22"
+
+winit = { version = "0.30", optional = true }
+softbuffer = { version = "0.4", optional = true }

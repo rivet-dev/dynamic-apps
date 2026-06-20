@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="dpmslib">
+
+<bookinfo>
+   <title>X Display Power Management Signaling (DPMS) Extension</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 1.0</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Rob</firstname><surname>Lembree</surname>
+         <affiliation><orgname>Digital Equipment Corporation</orgname></affiliation>
+         <email>lembree@zk3.dec.com</email>
+      </author>
+   </authorgroup>
+   <copyright><year>1996</year><holder>Digital Equipment Corporation</holder></copyright>
+
+<legalnotice>
+<para>
+Permission to use, copy, modify, distribute, and sell this
+documentation for any purpose is hereby granted without fee,
+provided that the above copyright notice and this permission
+notice appear in all copies.  Digital Equipment Corporation
+makes no representations about the suitability for any purpose
+of the information in this document.  This documentation is
+provided "as is" without express or implied warranty.
+</para>
+
+<para>X Window System is a trademark of The Open Group.</para>
+</legalnotice>
+
+</bookinfo>
+
+<chapter id='overview'>
+<title>Overview</title>
+
+<para>This extension provides X Protocol control over the VESA Display
+Power Management Signaling (DPMS) characteristics of video boards
+under control of the X Window System.
+</para>
+
+<para>
+Traditionally, the X Window System has provided for both blanking and
+non-blanking screen savers.  Timeouts associated with these built-in
+screen saver mechanisms are limited to idle (dwell) time, and a change
+timeout that specifies the change interval for non-blanking screen savers.
+</para>
+
+<para>
+The United States' Environmental Protection Agency (EPA) Energy Star program
+requires that monitors power down after some idle time by default.
+While it is possible to simply overload the existing screen saver timeouts,
+this solution leaves the non-privileged user little to no control over
+the DPMS characteristics of his or her system.  For example, disabling
+DPMS would require some unintended side effect in the core screen saver,
+such as disabling the changing of a non-blanking screen saver.  Providing
+clients with this control requires an extension to the core X Window System
+Protocol, and this extension seeks to fill this gap.
+</para>
+
+<para>
+There are four power levels specified by the Video Electronics Standards
+Association (VESA) Display Power Management Signaling (DPMS) standard.
+These are mapped onto the X DPMS Extension like this:
+</para>
+
+<literallayout remap='Ds'>
+<function>DPMS Extension Power Levels</function>
+     0     DPMSModeOn               In use
+     1     DPMSModeStandby          Blanked, low power
+     2     DPMSModeSuspend          Blanked, lower power
+     3     DPMSModeOff               Shut off, awaiting activity
+</literallayout> <!-- remap='De' -->
+
+</chapter>
+
+<chapter id='dpms_functions'>
+<title>DPMS Functions</title>
+
+
+<funcsynopsis id='DPMSQueryExtention'>
+<funcprototype>
+  <funcdef>Bool <function>DPMSQueryExtention</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>int <parameter>event_base</parameter></paramdef>
+    <paramdef>int <parameter>error_base</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>*display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>event_base</emphasis></term>
+    <listitem><para>Specifies the return location for the assigned base event</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>error_base</emphasis></term>
+    <listitem><para>Specifies the return location for the assigned base error</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSQueryExtension function queries the X server to determine the
+availability of the DPMS Extension.  If the extension is available, the
+return value is TRUE, and <emphasis remap='I'>event_base</emphasis> and
+<emphasis remap='I'>error_base</emphasis> are set to the base event number
+and base error number for the extension, respectively.  Otherwise, the
+return value is FALSE, and the values of
+<emphasis remap='I'>event_base</emphasis> and
+<emphasis remap='I'>error_base</emphasis> are undefined.
+</para>
+
+<funcsynopsis id='DPMSGetVersion'>
+<funcprototype>
+  <funcdef>Status <function>DPMSGetVersion</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>int <parameter>*major_version</parameter></paramdef>
+    <paramdef>int <parameter>*minor_version</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>major_version</emphasis></term>
+    <listitem><para>Specifies the return location for the extension major version.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>minor_version</emphasis></term>
+    <listitem><para>Specifies the return location for the extension minor version.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+The DPMSGetVersion function returns the version of the DPMS extension
+implemented by the X server.  The version is returned in
+<emphasis remap='I'>major_version</emphasis> and
+<emphasis remap='I'>minor_version</emphasis>.
+The major version and minor version for this specification are '1' and '1',
+respectively.  The major version will be incremented for protocol
+incompatible changes, and the minor version will be incremented for small,
+upwardly compatible changes.
+</para>
+
+<funcsynopsis id='DPMSCapable'>
+<funcprototype>
+  <funcdef>Bool <function>DPMSCapable</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+<para>
+The DPMSCapable function returns the DPMS capability of the X server, either
+TRUE (capable of DPMS) or FALSE (incapable of DPMS).  The capability of an
+X server is implementation defined.  For example, if a multi-headed  X server
+is capable of DPMS on one head, and incapable on another, the truth value of
+this function is defined by the X server implementation.
+</para>
+
+<funcsynopsis id='DPMSSetTimeouts'>
+<funcprototype>
+  <funcdef>Status <function>DPMSSetTimeouts</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>CARD16 <parameter>standby</parameter></paramdef>
+    <paramdef>CARD16 <parameter>suspend</parameter></paramdef>
+    <paramdef>CARD16 <parameter>off</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>standby</emphasis></term>
+    <listitem><para>Specifies the new standby timeout in seconds.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>suspend</emphasis></term>
+    <listitem><para>Specifies the new suspend timeout in seconds.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>off</emphasis></term>
+    <listitem><para>Specifies the new off timeout in seconds.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSSetTimeouts function permits applications to set the timeout values
+used by the X server for DPMS timings.
+</para>
+
+<para>
+The value <emphasis remap='I'>standby</emphasis> is the amount of time of
+inactivity in seconds before standby mode is invoked. The actual effects of
+this mode are implementation defined, but in the case of DPMS compliant
+hardware, it is implemented by shutting off the horizontal sync signal,
+and pulsing the vertical sync signal.
+Standby mode provides the quickest monitor recovery time.  Note also that
+many monitors implement this mode identically to suspend mode.  A value
+of zero disables this mode.
+</para>
+
+<para>
+The value <emphasis remap='I'>suspend</emphasis> is the amount of time of
+inactivity in seconds before the second level of power savings is invoked.
+Suspend mode's physical and electrical characteristics are implementation
+defined, but in DPMS compliant hardware, results in the pulsing of the
+horizontal sync signal, and shutting off of the vertical sync signal.
+Suspend mode recovery is considered to be slower than standby mode, but
+faster than off mode, however this is monitor dependent.  As noted above,
+many monitors implement this mode identically to standby mode.  A value of
+zero disables this mode.
+</para>
+
+<para>
+The value <emphasis remap='I'>off</emphasis> is the amount of time of
+inactivity in seconds before the third and final level of power savings is
+invoked. Off mode's physical and electrical characteristics are
+implementation defined, but in DPMS compliant hardware, is implemented by
+shutting off both horizontal and vertical sync signals, resulting in
+the power-down of the monitor.  Recovery time is implementation dependent,
+but frequently is similar to the power-up time of the monitor.  A value
+of zero disables this mode.
+</para>
+
+<para>
+Chronologically, standby mode occurs before or simultaneously with
+suspend mode, and suspend mode must occur before or simultaneously with
+off mode.  Therefore, non-zero mode timeout values must be greater than
+or equal to the timeout values of earlier modes.  If inconsistent values
+are supplied, a BadValue error will result.
+</para>
+
+<funcsynopsis id='DPMSGetTimeouts'>
+<funcprototype>
+  <funcdef>Status <function>DPMSGetTimeouts</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>CARD16 <parameter>*standby</parameter></paramdef>
+    <paramdef>CARD16 <parameter>*suspend</parameter></paramdef>
+    <paramdef>CARD16 <parameter>*off</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>standby</emphasis></term>
+    <listitem><para>Specifies the new standby timeout in seconds.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>suspend</emphasis></term>
+    <listitem><para>Specifies the new suspend timeout in seconds.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>off</emphasis></term>
+    <listitem><para>Specifies the new off timeout in seconds.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSGetTimeouts function retrieves the timeout values used by the X
+server for DPMS timings.
+</para>
+
+<para>
+The value <emphasis remap='I'>standby</emphasis> is the amount of time of
+inactivity in seconds before standby mode is invoked. A value of zero
+indicates that this mode has been disabled.
+</para>
+
+<para>
+The value <emphasis remap='I'>suspend</emphasis> is the amount of time of
+inactivity in seconds before the second level of power savings is invoked.
+A value of zero indicates that this mode has been disabled.
+</para>
+
+<para>
+The value <emphasis remap='I'>off</emphasis> is the amount of time of
+inactivity in seconds before the third and final level of power savings is
+invoked. A value of zero indicates that this mode has been disabled.
+</para>
+
+<funcsynopsis id='DPMSEnable'>
+<funcprototype>
+  <funcdef>Status <function>DPMSEnable</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSEnable function enables DPMS on the specified display.  When
+enabled, DPMS will use the currently saved timeout values, and will
+invoke the DPMS power mode appropriate for the amount of time that
+the workstation input devices have been idle.  If DPMSEnable is invoked
+on a display with DPMS already enabled, no change is made, and no
+error is returned.  If DPMSEnable is invoked on a display without
+support for DPMS, no change is made and no error is returned.
+</para>
+
+<funcsynopsis id='DPMSDisable'>
+<funcprototype>
+  <funcdef>Status <function>DPMSDisable</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSDisable function disables DPMS on the specified display.  When
+disabled, DPMS returns the display to DPMSModeOn.  If DPMSDisable is
+invoked on a display with DPMS already disabled, no change is made,
+and no error is returned.  If DPMSDisable is invoked on a display
+without support for DPMS, no change is made and no error is returned.
+</para>
+
+<funcsynopsis id='DPMSForceLevel'>
+<funcprototype>
+  <funcdef>Status <function>DPMSForceLevel</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>CARD16 <parameter>level</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>level</emphasis></term>
+    <listitem><para>Specifies the level to force power to.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSForceLevel function forces a DPMS capable display into the
+specified power level.  The <emphasis remap='I'>level</emphasis> must be one of
+DPMSModeOn, DPMSModeStandby, DPMSModeSuspend, or DPMSModeOff.
+Values other than these will result in a BadValue error.  If DPMS
+is disabled on the display, a BadMatch protocol error will result.
+</para>
+
+<para>Status DPMSInfo(<emphasis remap='I'>display, power_level, state</emphasis>)</para>
+
+<funcsynopsis id='DPMSInfo'>
+<funcprototype>
+  <funcdef>Status <function>DPMSInfo</function></funcdef>
+    <paramdef>Display <parameter>*display</parameter></paramdef>
+    <paramdef>CARD16 <parameter>power_level</parameter></paramdef>
+    <paramdef>BOOL <parameter>*state</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><emphasis remap='I'>display</emphasis></term>
+    <listitem><para>Specifies the connection to the X server.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>power_level</emphasis></term>
+    <listitem><para>Specifies the current power level.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>state</emphasis></term>
+    <listitem><para>Specifies the current DPMS state.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The DPMSInfo function returns information about the current DPMS state.
+The <emphasis remap='I'>state</emphasis> return parameter indicates whether
+or not DPMS is enabled (TRUE) or disabled (FALSE).  The
+<emphasis remap='I'>power_level</emphasis> return parameter indicates the
+current power level (one of DPMSModeOn, DPMSModeStandby, DPMSModeSuspend,
+or DPMSModeOff.)
+</para>
+
+</chapter>
+</book>

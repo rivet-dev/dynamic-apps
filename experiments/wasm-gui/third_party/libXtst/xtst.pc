@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xtst
+Description: The Xtst Library
+Version: 1.2.5
+Requires: recordproto
+Requires.private: x11 xext xextproto xi
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXtst

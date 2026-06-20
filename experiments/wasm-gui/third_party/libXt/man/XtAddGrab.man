@@ -1,0 +1,108 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtAdd-Grab wid-get
+.na
+.TH XtAddGrab __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtAddGrab, XtRemoveGrab \- redirect user input to a modal widget
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtAddGrab(Widget \fIw\fP, Boolean \fIexclusive\fP, Boolean
+\fIspring_loaded\fP);
+.HP
+void XtRemoveGrab(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fIexclusive\fP 1i
+Specifies whether user events should be dispatched exclusively to this widget
+or also to previous widgets in the cascade.
+.IP \fIspring_loaded\fP 1i
+Specifies whether this widget was popped up because the user pressed
+a pointer button.
+.IP \fIw\fP 1i
+Specifies the widget to add to or remove from the modal cascade.
+.SH DESCRIPTION
+The
+.B XtAddGrab
+function appends the widget (and associated parameters) to the modal cascade
+and checks that exclusive is
+.B True
+if spring_loaded is
+.BR True .
+If these are not
+.BR True ,
+.B XtAddGrab
+generates an error.
+.LP
+The modal cascade is used by
+.B XtDispatchEvent
+when it tries to dispatch a user event.
+When at least one modal widget is in the widget cascade,
+.B XtDispatchEvent
+first determines if the event should be delivered.
+It starts at the most recent cascade entry and follows the cascade up to and
+including the most recent cascade entry added with the exclusive parameter
+.BR True .
+.LP
+This subset of the modal cascade along with all descendants of these widgets
+comprise the active subset.
+User events that occur outside the widgets in this subset are ignored
+or remapped.
+Modal menus with submenus generally add a submenu widget to the cascade
+with exclusive
+.BR False .
+Modal dialog boxes that need to restrict user input to the most deeply nested
+dialog box add a subdialog widget to the cascade with exclusive
+.BR True .
+User events that occur within the active subset are delivered to the
+appropriate widget, which is usually a child or further descendant of the modal
+widget.
+.LP
+Regardless of where on the screen they occur,
+remap events are always delivered to the most recent widget in the active
+subset of the cascade that has spring_loaded
+.BR True ,
+if any such widget exists.
+.LP
+The
+.B XtRemoveGrab
+function removes widgets from the modal cascade starting
+at the most recent widget up to and including the specified widget.
+It issues an error if the specified widget is not on the modal cascade.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

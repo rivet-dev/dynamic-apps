@@ -1,0 +1,348 @@
+'\" t
+.\"     Title: xgrabdevicekey
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XGRABDEVICEKEY" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XGrabDeviceKey, XUngrabDeviceKey \- grab/ungrab extension input device Keys
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput\&.h>
+.fi
+.sp
+.nf
+int XGrabDeviceKey( Display *display,
+                    XDevice *device,
+                    unsigned int key,
+                    unsigned int modifiers,
+                    XDevice *modifier_device,
+                    Window grab_window,
+                    Bool owner_events,
+                    unsigned int event_count,
+                    XEventClass *event_list,
+                    int this_device_mode,
+                    int other_devices_mode);
+.fi
+.sp
+.nf
+int XUngrabDeviceKey( Display *display,
+                      XDevice *device,
+                      unsigned int key,
+                      unsigned int modifiers,
+                      XDevice *modifier_device,
+                      Window grab_window);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+device
+       Specifies the device that is to be grabbed or released\&.
+.fi
+.sp
+.nf
+Key
+       Specifies the device Key that is to be grabbed released
+       or AnyKey\&.
+.fi
+.sp
+.nf
+modifiers
+       Specifies the set of keymasks or AnyModifier\&. The mask is
+       the bitwise inclusive OR of the valid keymask bits\&. Valid
+       bits are: ShiftMask, LockMask, ControlMask, Mod1Mask,
+       Mod2Mask, Mod3Mask, Mod4Mask, Mod5Mask\&.
+.fi
+.sp
+.nf
+modifier_device
+       Specifies the device whose modifiers are to be used\&. If
+       a modifier_device of NULL is specified, the X keyboard
+       will be used as the modifier_device\&.
+.fi
+.sp
+.nf
+grab_window
+       Specifies the grab window\&.
+.fi
+.sp
+.nf
+owner_events
+       Specifies a Boolean value that indicates whether the
+       device events are to be reported as usual or reported
+       with respect to the grab window if selected by the event
+       list\&.
+.fi
+.sp
+.nf
+event_count
+       Specifies the number of event classes in the event list\&.
+.fi
+.sp
+.nf
+event_list
+       Specifies which device events are reported to the
+       client\&.
+.fi
+.sp
+.nf
+this_device_mode
+       Specifies further processing of events from this
+       device\&. You can pass GrabModeSync or GrabModeAsync\&.
+.fi
+.sp
+.nf
+other_devices_mode
+       Specifies further processing of events from other
+       devices\&. You can pass GrabModeSync or GrabModeAsync\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XGrabDeviceKey request establishes a passive grab\&. In the
+future, the device is actively grabbed (as for XGrabDevice, the
+last\-device\-grab time is set to the time at which the Key was
+pressed (as transmitted in the DeviceKeyPress event), and the
+DeviceKeyPress event is reported if all of the following
+conditions are true:
+  * The device is not grabbed, and the specified key is
+    logically pressed when the specified modifier keys are
+    logically down, and no other keys or modifier keys are
+    logically down\&.
+  * The grab_window is an ancestor (or is) the focus window OR
+    the grab window is a descendant of the focus window and
+    contains the device\&.
+  * The confine_to window (if any) is viewable\&.
+  * A passive grab on the same key/modifier combination does
+    not exist on any ancestor of grab_window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The interpretation of the remaining arguments is as for
+XGrabDevice\&. The active grab is terminated automatically when
+the logical state of the device has the specified key released\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Note that the logical state of a device (as seen by means of
+the X protocol ) may lag the physical state if device event
+processing is frozen\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If the key is not AnyKey, it must be in the range specified by
+min_keycode and max_keycode as returned by the
+XListInputDevices request\&. Otherwise, a BadValue error results\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This request overrides all previous grabs by the same client on
+the same Key/modifier combinations on the same window\&. A
+modifier of AnyModifier is equivalent to issuing the grab
+request for all possible modifier combinations (including the
+combination of no modifiers)\&. It is not required that all
+modifiers specified have currently assigned KeyCodes\&. A key of
+AnyKey is equivalent to issuing the request for all possible
+keys\&. Otherwise, it is not required that the specified key
+currently be assigned to a physical Key\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If a modifier_device of NULL is specified, the X keyboard will
+be used as the modifier_device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If some other client has already issued a XGrabDeviceKey with
+the same Key/modifier combination on the same window, a
+BadAccess error results\&. When using AnyModifier or AnyKey, the
+request fails completely, and a BadAccess error results (no
+grabs are established) if there is a conflicting grab for any
+combination\&. XGrabDeviceKey has no effect on an active grab\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XGrabDeviceKey can generate BadAccess, BadClass, BadDevice,
+BadMatch, BadValue, and BadWindow errors\&. It returns Success on
+successful completion of the request\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XUngrabDeviceKey request releases the passive grab for a
+key/modifier combination on the specified window if it was
+grabbed by this client\&. A modifier of AnyModifier is equivalent
+to issuing the ungrab request for all possible modifier
+combinations, including the combination of no modifiers\&. A Key
+of AnyKey is equivalent to issuing the request for all possible
+Keys\&. XUngrabDeviceKey has no effect on an active grab\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+If a modifier_device of NULL is specified, the X keyboard will
+be used as the modifier_device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XUngrabDeviceKey can generate BadDevice, BadMatch, BadValue and
+BadWindow errors\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The specified device
+       does not exist or has not been opened by this client via
+       XOpenInputDevice\&. This error may also occur if the
+       specified device is the X keyboard or X pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadMatch
+       This error may occur if an XGrabDeviceKey request was
+       made specifying a device that has no keys, or a modifier
+       device that has no keys\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls outside the range of values
+       accepted by the request\&. Unless a specific range is
+       specified for an argument, the full range defined by the
+       argument\*(Aqs type is accepted\&. Any argument defined as a
+       set of alternatives can generate this error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       A value for a Window argument does not name a defined
+       Window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XAllowDeviceEvents(3), XGrabDevice(3), XGrabDeviceButton(3)
+.fi
+.if n \{\
+.RE
+.\}

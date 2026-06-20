@@ -1,0 +1,100 @@
+.\" Copyright (c) 1995  Hewlett-Packard Company
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" HEWLETT-PACKARD COMPANY BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the Hewlett-Packard Company shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" Hewlett-Packard Company.
+.\"
+.TH XdbeSwapBuffers __libmansuffix__ 1996-03-11 __xorgversion__
+.SH NAME
+XdbeSwapBuffers - swaps front and back DBE buffers.
+.SH SYNOPSIS
+.nf
+\&#include <X11/extensions/Xdbe.h>
+.sp
+Status XdbeSwapBuffers(
+    Display      *dpy,
+    XdbeSwapInfo *swap_info,
+    int          num_windows)
+.fi
+.SH DESCRIPTION
+This function swaps the front and back buffers for a list of windows.
+The
+argument
+.I num_windows
+specifies how many windows are to have their buffers
+swapped; it is the number of elements in the
+.I swap_info
+array.
+The argument
+.I swap_info
+specifies the information needed per window to do the swap.
+.PP
+The
+.I XdbeSwapInfo
+structure has the following fields:
+.nf
+     Window            swap_window
+     XdbeSwapAction    swap_action
+.fi
+.I swap_window
+specifies the window for which to swap buffers.
+.I swap_action
+specifies the swap action to use for this
+.IR swap_window .
+.PP
+.I swap_action
+determines what will happen to the new back buffer of the
+.I swap_window
+it is paired with in the list in addition to making the old back buffer
+become visible.
+The defined actions are as follows:
+.IP XdbeUndefined
+The contents of the new back buffer become undefined.
+This may be the most efficient action since it allows the implementation to
+discard the contents of the buffer if it needs to.
+.IP XdbeBackground
+The unobscured region of the new back buffer will be tiled with the
+window background.
+The background action allows devices to use a fast clear
+capability during a swap.
+.IP XdbeUntouched
+The unobscured region of the new back buffer will be unmodified by the swap.
+.IP XdbeCopied
+The unobscured region of the new back buffer will be the contents of the old
+back buffer.
+.SH ERRORS
+.IP BadMatch
+A non-double-buffered window was specified or a window was specified twice.
+.IP BadWindow
+An invalid window was specified.
+.IP BadValue
+An invalid swap action was specified.
+.SH SEE ALSO
+.BR DBE (__libmansuffix__),
+.BR XdbeAllocateBackBufferName (__libmansuffix__),
+.BR XdbeBeginIdiom (__libmansuffix__),
+.BR XdbeDeallocateBackBufferName (__libmansuffix__),
+.BR XdbeEndIdiom (__libmansuffix__),
+.BR XdbeFreeVisualInfo (__libmansuffix__),
+.BR XdbeGetBackBufferAttributes (__libmansuffix__),
+.BR XdbeGetVisualInfo (__libmansuffix__),
+.BR XdbeQueryExtension (__libmansuffix__).

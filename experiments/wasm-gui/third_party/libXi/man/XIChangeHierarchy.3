@@ -1,0 +1,299 @@
+'\" t
+.\"     Title: xichangehierarchy
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XICHANGEHIERARCHY" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIChangeHierarchy \- change the device hierarchy\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+Status XIChangeHierarchy( Display *display,
+                          XIAnyHierarchyChangeInfo *changes,
+                          int num_changes);
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+num_changes
+       Specifies the number of elements in changes\&.
+.fi
+.sp
+.nf
+changes
+       Specifies the changes to be made\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIChangeHierarchy modifies the device hierarchy by creating or
+removing master devices or changing the attachment of slave
+devices\&. If num_changes is non\-zero, changes is an array of
+XIAnyHierarchyChangeInfo structures\&. If num_changes is equal or less than
+zero, XIChangeHierarchy does nothing\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIChangeHierarchy processes changes in order, effective
+immediately\&. If an error occurs, processing is aborted and the
+error is reported to the client\&. Changes already made remain
+effective\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The list of changes is any combination of
+XIAnyHierarchyChangeInfo\&. The type of a hierarchy change can be
+XIAddMaster, XIRemoveMaster, XIAttachSlave or XIDetachSlave\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef union {
+    int type;
+    XIAddMasterInfo add;
+    XIRemoveMasterInfo remove;
+    XIAttachSlave attach;
+    XIDetachSlave detach;
+} XIAnyHierarchyChangeInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int type; /* XIAddMaster */
+    char* name;
+    Bool send_core;
+    Bool enable;
+} XIAddMasterInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int type; /* XIRemoveMaster */
+    int deviceid;
+    int return_mode;
+    int return_pointer;
+    int return_keyboard;
+} XIRemoveMasterInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int type; /* XIAttachSlave */
+    int deviceid;
+    int new_master;
+} XIAttachSlaveInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+typedef struct {
+    int type; /* XIDetachSlave */
+    int deviceid;
+} XIDetachSlaveInfo;
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIAddMasterInfo creates a new master pointer and a new
+master keyboard labeled "name pointer" and "name keyboard"
+respectively\&. If sendCore is True, the devices will send core
+events\&. If enable is True, the device is enabled immediately\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIAddMasterInfo can generate a BadValue error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIRemoveMasterInfo removes device and its paired master device\&.
+If returnMode is XIAttachToMaster, all pointers attached to
+device or its paired master device are attached to
+returnPointer\&. Likewise, all keyboards are attached to
+returnKeyboard\&. If returnMode is XIFloating, all attached
+devices are set to floating\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIRemoveMasterInfo can generate a BadValue and a BadDevice
+error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIAttachSlaveInfo attaches device to new_master\&. If the device
+is currently attached to a master device, it is detached from
+the master device and attached to the new master device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIAttachSlaveInfo can generate a BadDevice error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIDetachSlaveInfo detaches device from the current master
+device and sets it floating\&. If the device is already floating,
+no changes are made\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIDetachSlaveInfo can generate a BadDevice error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIChangeHierarchy generates an XIHierarchyEvent if any
+modifications were successful\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist or is not a appropriate for the type of change\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadValue
+       Some numeric value falls out of the allowed range\&.
+.fi
+.if n \{\
+.RE
+.\}

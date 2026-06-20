@@ -1,0 +1,84 @@
+XQUERYDEVICESTATE(libmansuffix)
+===============================
+
+NAME
+----
+
+   XQueryDeviceState - query the state of an extension input
+   device.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput.h>
+
+   XDeviceState* XQueryDeviceState( Display *display,
+                                    XDevice *device);
+   
+   display
+          Specifies the connection to the X server.
+
+   device
+          Specifies the device whose state is to be queried.
+
+DESCRIPTION
+-----------
+
+   The XQueryDeviceState request queries the state of an input
+   device. The current state of keys and buttons (up or down), and
+   valuators (current value) on the device is reported by this
+   request. Each key or button is represented by a bit in the
+   XDeviceState structure that is returned. Valuators on the
+   device report 0 if they are reporting relative information, and
+   the current value if they are reporting absolute information.
+
+   XQueryDeviceState can generate a BadDevice error.
+
+   Structures:
+
+   The XDeviceState structure contains:
+
+                typedef struct {
+                    XID device_id;
+                    int num_classes;
+                    XInputClass *data;
+                } XDeviceState;
+
+   The XValuatorState structure contains:
+
+                typedef struct {
+                    unsigned char class;
+                    unsigned char length;
+                    unsigned char num_valuators;
+                    unsigned char mode;
+                    int *valuators;
+                } XValuatorState;
+
+   The XKeyState structure contains:
+
+                typedef struct {
+                    unsigned char class;
+                    unsigned char length;
+                    short     num_keys;
+                    char keys[32];
+                } XKeyState;
+
+   The XButtonState structure contains:
+
+                typedef struct {
+                    unsigned char class;
+                    unsigned char length;
+                    short     num_buttons;
+                    char buttons[32];
+                } XButtonState;
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The specified device
+          does not exist or has not been opened by this client via
+          XOpenInputDevice. This error may also occur if some
+          other client has caused the specified device to become
+          the X keyboard or X pointer device via the
+          XChangeKeyboardDevice or XChangePointerDevice requests.

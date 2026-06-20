@@ -13,9 +13,11 @@ pub(crate) const NODE_IMPORT_CACHE_ASSET_ROOT_ENV: &str = "AGENT_OS_NODE_IMPORT_
 
 const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_PATH";
 const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_LOADER_PATH";
+const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
+    "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "60";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "70";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -53,6 +55,22 @@ const NODE_PYTHON_RUNNER_SOURCE: &str = include_str!("../assets/runners/python-r
 static CLEANED_NODE_IMPORT_CACHE_ROOTS: OnceLock<Mutex<BTreeSet<PathBuf>>> = OnceLock::new();
 #[cfg(test)]
 static NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS: AtomicU64 = AtomicU64::new(0);
+
+fn node_import_cache_materialize_timeout() -> Duration {
+    node_import_cache_materialize_timeout_from_env_value(
+        env::var(NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV)
+            .ok()
+            .as_deref(),
+    )
+}
+
+fn node_import_cache_materialize_timeout_from_env_value(value: Option<&str>) -> Duration {
+    value
+        .and_then(|raw| raw.trim().parse::<u64>().ok())
+        .filter(|timeout_ms| *timeout_ms > 0)
+        .map(Duration::from_millis)
+        .unwrap_or(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT)
+}
 
 #[derive(Clone, Copy)]
 struct BundledPyodidePackageAsset {
@@ -9252,6 +9270,11 @@ const wasi = new WASI({
 
 let instanceMemory = null;
 const wasiImport = { ...wasi.wasiImport };
+// node:wasi omits sock_shutdown; guest socket teardown happens via fd_close + host_net, so a
+// success no-op is sufficient (needed for the cross-compiled X server / X clients).
+if (typeof wasiImport.sock_shutdown !== 'function') {
+  wasiImport.sock_shutdown = () => 0;
+}
 const delegateClockTimeGet =
   typeof wasi.wasiImport.clock_time_get === 'function'
     ? wasi.wasiImport.clock_time_get.bind(wasi.wasiImport)
@@ -11196,7 +11219,117 @@ function writeGuestBytes(ptr, maxLen, bytes, actualLenPtr) {
   }
 }
 
+// Perform a single NON-BLOCKING accept on a listening host_net socket. On success it
+// registers the accepted connection as a new host_net socket and returns
+// { acceptedFd, address } (address is a Buffer: "host:port" for TCP, the peer path for
+// AF_UNIX). Returns null when no connection is currently pending. Used by both net_poll
+// (to report accurate listener readiness) and net_accept (non-blocking semantics) so the
+// server never blocks inside accept() and starves already-connected clients.
+function tryHostNetAcceptOnce(socket) {
+  let result = callSyncRpc('net.server_accept', [socket.serverId]);
+  if (!result || result === HOST_NET_TIMEOUT_SENTINEL) {
+    return null;
+  }
+  if (typeof result === 'string') {
+    result = JSON.parse(result);
+  }
+  if (!result || typeof result.socketId !== 'string') {
+    return null;
+  }
+
+  const acceptedFd = nextHostNetSocketFd++;
+  hostNetSockets.set(acceptedFd, {
+    domain: socket.domain,
+    sockType: socket.sockType,
+    protocol: socket.protocol,
+    bindOptions: null,
+    localInfo: normalizeHostNetAddressInfo(result.info?.localAddress, result.info?.localPort),
+    localReservation: null,
+    remoteInfo: normalizeHostNetAddressInfo(result.info?.remoteAddress, result.info?.remotePort),
+    serverId: null,
+    socketId: result.socketId,
+    udpSocketId: null,
+    recvTimeoutMs: socket.recvTimeoutMs,
+    readChunks: [],
+    readableEnded: false,
+    closed: false,
+    lastError: null,
+  });
+
+  let address;
+  if (result.info?.remoteAddress != null && result.info?.remotePort != null) {
+    address = Buffer.from(formatHostNetAddressInfo({
+      address: result.info.remoteAddress,
+      port: result.info.remotePort,
+    }), 'utf8');
+  } else {
+    address = Buffer.from(String(result.info?.remotePath ?? ''), 'utf8');
+  }
+  return { acceptedFd, address };
+}
+
 const hostNetImport = {
+  // Poll an array of pollfd entries (8 bytes each: i32 fd, i16 events, i16 revents).
+  // Connected sockets report POLLIN when data is queued; listening sockets report POLLIN
+  // only when a connection is actually pending (a buffered non-blocking accept), so the
+  // server's WaitForSomething does not spin forever inside a blocking accept().
+  // POLLOUT is always writable.
+  net_poll(fdsPtr, nfds, timeoutMs, retReadyPtr) {
+    const n = Number(nfds) >>> 0;
+    const base0 = Number(fdsPtr) >>> 0;
+    // The patched wasi sysroot's effective poll bits (bits/poll.h): POLLIN=POLLRDNORM=0x1,
+    // POLLOUT=POLLWRNORM=0x2 (NOT the 0x004 in legacy poll.h). Guests (X server + libxcb) use
+    // these, so net_poll must match or POLLOUT readiness is never reported and writers block.
+    const POLLIN = 0x001;
+    const POLLOUT = 0x002;
+    const t = Number(timeoutMs) | 0;
+    const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
+    try {
+      while (true) {
+        const view = new DataView(instanceMemory.buffer);
+        let ready = 0;
+        for (let i = 0; i < n; i++) {
+          const base = base0 + i * 8;
+          const fd = view.getInt32(base, true);
+          const events = view.getUint16(base + 4, true);
+          let revents = 0;
+          const socket = getHostNetSocket(fd);
+          if (socket && !socket.closed) {
+            if (socket.serverId) {
+              if (events & POLLIN) {
+                // Report the listener readable only when a connection is actually pending.
+                if (!socket.pendingAccepts) socket.pendingAccepts = [];
+                if (socket.pendingAccepts.length === 0) {
+                  const accepted = tryHostNetAcceptOnce(socket);
+                  if (accepted) socket.pendingAccepts.push(accepted);
+                }
+                if (socket.pendingAccepts.length > 0) revents |= POLLIN;
+              }
+            } else if (socket.socketId) {
+              if (events & POLLIN && socket.readChunks && socket.readChunks.length > 0) {
+                revents |= POLLIN;
+              }
+              if (events & POLLOUT) revents |= POLLOUT;
+            }
+          }
+          view.setUint16(base + 6, revents, true);
+          if (revents) ready++;
+        }
+        if (ready > 0 || t === 0 || (deadline != null && Date.now() >= deadline)) {
+          new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
+          return 0;
+        }
+        const v2 = new DataView(instanceMemory.buffer);
+        for (let i = 0; i < n; i++) {
+          const fd = v2.getInt32(base0 + i * 8, true);
+          const s = getHostNetSocket(fd);
+          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 10);
+        }
+      }
+    } catch (_e) {
+      return WASI_ERRNO_FAULT;
+    }
+  },
   net_socket(domain, sockType, protocol, retFdPtr) {
     try {
       const numericDomain = Number(domain) >>> 0;
@@ -11226,6 +11359,14 @@ const hostNetImport = {
       return WASI_ERRNO_FAULT;
     }
   },
+  // Mark a host_net socket non-blocking (O_NONBLOCK). The patched wasi-libc fcntl cannot reach
+  // host_net fds, so libxcb calls this directly. Non-blocking recv returns EAGAIN on no data.
+  net_set_nonblock(fd, enable) {
+    const socket = getHostNetSocket(fd);
+    if (!socket) return WASI_ERRNO_BADF;
+    socket.nonblock = (Number(enable) >>> 0) !== 0;
+    return WASI_ERRNO_SUCCESS;
+  },
   net_connect(fd, addrPtr, addrLen) {
     const socket = getHostNetSocket(fd);
     if (!socket) {
@@ -11233,7 +11374,39 @@ const hostNetImport = {
     }
 
     try {
-      const { host, port } = parseHostNetAddress(readGuestString(addrPtr, addrLen));
+      let rawAddr = String(readGuestString(addrPtr, addrLen) ?? '');
+      // A sockaddr_un serialized from sizeof(struct sockaddr_un) carries trailing NUL
+      // padding; cut at the first NUL so the unix path is clean before classification.
+      const nulAt = rawAddr.indexOf(String.fromCharCode(0));
+      if (nulAt >= 0) rawAddr = rawAddr.slice(0, nulAt);
+      rawAddr = rawAddr.trim();
+      // AF_UNIX path connect (e.g. X11 /tmp/.X11-unix/X0): the C library passes the
+      // raw sun_path, the same '/'-prefixed string net_bind/net_listen receive. Route it
+      // to the sidecar's path-based net.connect, which dials the host-backed unix socket
+      // the listener bound under the VM sandbox root, so two guests in one VM can talk.
+      if (rawAddr.startsWith('/')) {
+        let result;
+        try {
+          result = callSyncRpc('net.connect', [{ path: rawAddr }]);
+        } catch (e) {
+          try { process.stderr.write('[host_net] connect ' + rawAddr + ' failed: ' + (e && e.message ? e.message : String(e)) + '\n'); } catch (_) {}
+          return WASI_ERRNO_FAULT;
+        }
+        if (!result || typeof result.socketId !== 'string') {
+          try { process.stderr.write('[host_net] ' + rawAddr + ' returned no socketId\n'); } catch (_) {}
+          return WASI_ERRNO_FAULT;
+        }
+        socket.socketId = result.socketId;
+        socket.localInfo = null;
+        socket.localReservation = null;
+        socket.remoteInfo = null;
+        socket.readChunks.length = 0;
+        socket.readableEnded = false;
+        socket.closed = false;
+        socket.lastError = null;
+        return WASI_ERRNO_SUCCESS;
+      }
+      const { host, port } = parseHostNetAddress(rawAddr);
       if (!Number.isInteger(port) || port < 0 || port > 65535) {
         return WASI_ERRNO_FAULT;
       }
@@ -11401,48 +11574,23 @@ const hostNetImport = {
     }
 
     try {
-      let result = null;
-      while (true) {
-        result = callSyncRpc('net.server_accept', [socket.serverId]);
-        if (result && result !== HOST_NET_TIMEOUT_SENTINEL) {
-          break;
+      // First drain a connection already buffered by net_poll's readiness probe; otherwise block
+      // until one arrives (POSIX blocking-accept semantics, for guests that accept() without polling
+      // first). This no longer starves connected clients: net_poll now reports the listener readable
+      // only when a connection is actually pending, so the X server only reaches accept() when there
+      // is one to take, and otherwise services connected client fds instead.
+      if (!socket.pendingAccepts) socket.pendingAccepts = [];
+      let accepted = socket.pendingAccepts.shift();
+      while (!accepted) {
+        accepted = tryHostNetAcceptOnce(socket);
+        if (!accepted) {
+          pumpSpawnedChildren(10);
         }
-        pumpSpawnedChildren(10);
       }
-      if (typeof result === 'string') {
-        result = JSON.parse(result);
-      }
-      if (!result || typeof result.socketId !== 'string') {
+      if (writeGuestUint32(retFdPtr, accepted.acceptedFd) !== WASI_ERRNO_SUCCESS) {
         return WASI_ERRNO_FAULT;
       }
-
-      const acceptedFd = nextHostNetSocketFd++;
-      hostNetSockets.set(acceptedFd, {
-        domain: socket.domain,
-        sockType: socket.sockType,
-        protocol: socket.protocol,
-        bindOptions: null,
-        localInfo: normalizeHostNetAddressInfo(result.info?.localAddress, result.info?.localPort),
-        localReservation: null,
-        remoteInfo: normalizeHostNetAddressInfo(result.info?.remoteAddress, result.info?.remotePort),
-        serverId: null,
-        socketId: result.socketId,
-        udpSocketId: null,
-        recvTimeoutMs: socket.recvTimeoutMs,
-        readChunks: [],
-        readableEnded: false,
-        closed: false,
-        lastError: null,
-      });
-
-      const address = Buffer.from(formatHostNetAddressInfo({
-        address: result.info?.remoteAddress,
-        port: result.info?.remotePort,
-      }), 'utf8');
-      if (writeGuestUint32(retFdPtr, acceptedFd) !== WASI_ERRNO_SUCCESS) {
-        return WASI_ERRNO_FAULT;
-      }
-      return writeGuestBytes(retAddrPtr, readGuestUint32(retAddrLenPtr), address, retAddrLenPtr);
+      return writeGuestBytes(retAddrPtr, readGuestUint32(retAddrLenPtr), accepted.address, retAddrLenPtr);
     } catch {
       return WASI_ERRNO_FAULT;
     }
@@ -11505,6 +11653,29 @@ const hostNetImport = {
     try {
       if ((Number(flags) >>> 0) !== 0) {
         // Non-zero recv flags are currently ignored in the WASM host_net shim.
+      }
+
+      // Non-blocking sockets (O_NONBLOCK via net_set_nonblock, used by libxcb's poll_for_*):
+      // pull whatever is queued, do ONE short readiness probe, and return EAGAIN if still empty
+      // instead of blocking. libxcb assumes its "poll" reads never block on an empty socket.
+      if (socket.nonblock) {
+        let queued = dequeueHostNetBytes(socket, bufLen);
+        if (queued.length > 0) {
+          return writeGuestBytes(bufPtr, bufLen, queued, retReceivedPtr);
+        }
+        if (socket.lastError) return WASI_ERRNO_FAULT;
+        if (socket.readableEnded || socket.closed || !socket.socketId) {
+          return writeGuestUint32(retReceivedPtr, 0);
+        }
+        pollHostNetSocket(socket, 0);
+        queued = dequeueHostNetBytes(socket, bufLen);
+        if (queued.length > 0) {
+          return writeGuestBytes(bufPtr, bufLen, queued, retReceivedPtr);
+        }
+        if (socket.readableEnded || socket.closed || !socket.socketId) {
+          return writeGuestUint32(retReceivedPtr, 0);
+        }
+        return WASI_ERRNO_AGAIN;
       }
 
       const deadline =
@@ -13891,7 +14062,7 @@ impl NodeImportCache {
     }
 
     pub(crate) fn ensure_materialized(&self) -> Result<(), io::Error> {
-        self.ensure_materialized_with_timeout(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT)
+        self.ensure_materialized_with_timeout(node_import_cache_materialize_timeout())
     }
 
     pub(crate) fn ensure_materialized_with_timeout(
@@ -14992,7 +15163,9 @@ fn write_file_if_changed(path: &Path, contents: &str) -> Result<(), io::Error> {
 #[cfg(test)]
 mod tests {
     use super::{
-        NodeImportCache, NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS, NODE_WASM_RUNNER_SOURCE,
+        node_import_cache_materialize_timeout_from_env_value, NodeImportCache,
+        DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT, NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS,
+        NODE_WASM_RUNNER_SOURCE,
     };
     use crate::host_node::node_binary;
     use serde_json::Value;
@@ -15747,6 +15920,30 @@ export async function loadPyodide(options) {
         );
 
         std::thread::sleep(Duration::from_millis(75));
+    }
+
+    #[test]
+    fn node_import_cache_materialize_timeout_from_env_value_parses_positive_millis() {
+        assert_eq!(
+            node_import_cache_materialize_timeout_from_env_value(Some("120000")),
+            Duration::from_secs(120)
+        );
+        assert_eq!(
+            node_import_cache_materialize_timeout_from_env_value(Some(" 2500 ")),
+            Duration::from_millis(2500)
+        );
+        assert_eq!(
+            node_import_cache_materialize_timeout_from_env_value(Some("0")),
+            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
+        );
+        assert_eq!(
+            node_import_cache_materialize_timeout_from_env_value(Some("nope")),
+            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
+        );
+        assert_eq!(
+            node_import_cache_materialize_timeout_from_env_value(None),
+            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
+        );
     }
 
     #[test]

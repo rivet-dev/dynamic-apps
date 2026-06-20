@@ -1,0 +1,205 @@
+'\" t
+.\"     Title: xiquerypointer
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 09/05/2024
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "XIQUERYPOINTER" "3" "09/05/2024" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XIQueryPointer \- get device pointer coordinates\&.
+.SH "SYNOPSIS"
+.sp
+.nf
+#include <X11/extensions/XInput2\&.h>
+.fi
+.sp
+.nf
+Bool XIQueryPointer( Display *display,
+                     int deviceid,
+                     Window win,
+                     Window *root_return,
+                     Window *child_return,
+                     double *root_x_return,
+                     double *root_y_return,
+                     double *win_x_return,
+                     double *win_y_return,
+                     XIButtonState *buttons_return,
+                     XIModifierState *modifiers_return,
+                     XIGroupState *group_return);
+.fi
+.sp
+.nf
+buttons_return
+       Returns the current button state\&.
+.fi
+.sp
+.nf
+child_return
+       Returns the child window that the pointer is located in,
+       if any\&.
+.fi
+.sp
+.nf
+deviceid
+       Specifies the device to query\&.
+.fi
+.sp
+.nf
+display
+       Specifies the connection to the X server\&.
+.fi
+.sp
+.nf
+group_return
+       Returns the current group state\&.
+.fi
+.sp
+.nf
+modifiers_return
+       Returns the current state of the modifier keys\&.
+.fi
+.sp
+.nf
+root_return
+       Returns the root window that the pointer is in\&.
+.fi
+.sp
+.nf
+root_x_return, root_y_return
+       Return the pointer coordinates relative to the root
+       window\*(Aqs origin\&.
+.fi
+.sp
+.nf
+win
+       Specifies the window\&.
+.fi
+.sp
+.nf
+win_x_return, win_y_return
+       Return the pointer coordinates relative to the specified
+       window\&.
+.fi
+.SH "DESCRIPTION"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The XIQueryPointer function returns the root window the
+device\*(Aqs pointer is logically on and the pointer coordinates
+relative to the root window\*(Aqs origin\&. If XIQueryPointer returns
+False, the pointer is not on the same screen as the specified
+window, and XIQueryPointer returns None to child_return and
+zero to win_x_return and win_y_return\&. If XIQueryPointer
+returns True, the pointer coordinates returned to win_x_return
+and win_y_return are relative to the origin of the specified
+window\&. In this case, XIQueryPointer returns the child that
+contains the pointer, if any, or else None to child_return\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryPointer returns the current logical state of the buttons
+buttons_return\&. The keyboard paired with the master pointer is
+selected to obtain the data for modifiers_return and
+group_return\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+The mask field in buttons_return is dynamically allocated and
+must be freed by the caller\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryPointer is identical to XQueryPointer but specifies the
+device explicitly\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XIQueryPointer can generate a BadDevice and a BadWindow error\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "DIAGNOSTICS"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadDevice
+       An invalid device was specified\&. The device does not
+       exist or is not a pointer device\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+BadWindow
+       A value for a Window argument does not name a defined
+       window\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "SEE ALSO"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+XQueryPointer(3)
+.fi
+.if n \{\
+.RE
+.\}

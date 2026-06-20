@@ -1,0 +1,181 @@
+src/builtins/render.lo: src/builtins/render.c \
+  /home/nathan/secure-exec/experiments/wasm-gui/toolchain/wasi-compat.h \
+  config.h include/libxfontint.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/FSproto.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/FS.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xdefs.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fsmasks.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xmd.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/X.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xos.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xosdefs.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/types.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/features.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/alltypes.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_time_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_suseconds_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_clockid_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_clock_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_timeval.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_timespec.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_iovec.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_size_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/endian.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/select.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_sigset_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__macro_FD_SETSIZE.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/string.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_string.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_null.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__functions_memcpy.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/strings.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/fcntl.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_fcntl.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/wasi/api.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_header_macro.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_ptrdiff_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_wchar_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_max_align_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_offsetof.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__seek.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__mode_t.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/fcntl.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/unistd.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_unistd.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/posix.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/time.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/time.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_time.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_tm.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xarch.h \
+  include/X11/fonts/fontmisc.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xfuncs.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdlib.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__functions_malloc.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_stdlib.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/alloca.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdio.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fontstruct.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xproto.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xprotostr.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/font.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xfuncproto.h \
+  /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fontproto.h \
+  include/X11/fonts/fontutil.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/errno.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__errno.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__errno_values.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/limits.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/limits.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/limits.h \
+  /home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__macro_PAGESIZE.h \
+  include/X11/fonts/libxfont2.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdarg.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_header_macro.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___gnuc_va_list.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_list.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_arg.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___va_copy.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h \
+  include/X11/fonts/fntfilst.h include/X11/fonts/fontxlfd.h \
+  include/X11/fonts/fntfil.h include/X11/fonts/pcf.h \
+  include/X11/fonts/fntfilio.h include/X11/fonts/bufio.h \
+  src/builtins/builtin.h
+/home/nathan/secure-exec/experiments/wasm-gui/toolchain/wasi-compat.h:
+config.h:
+include/libxfontint.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/FSproto.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/FS.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xdefs.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fsmasks.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xmd.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/X.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xos.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xosdefs.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/types.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/features.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/alltypes.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_time_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_suseconds_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_clockid_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_clock_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_timeval.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_timespec.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_iovec.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_size_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/endian.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/select.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_sigset_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__fd_set.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__typedef_fd_set.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__macro_FD_SETSIZE.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/string.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_string.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_null.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__functions_memcpy.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/strings.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/fcntl.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_fcntl.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/wasi/api.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_header_macro.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_ptrdiff_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_wchar_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_max_align_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_offsetof.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdint.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdint.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/stdint.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__seek.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__mode_t.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/fcntl.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/unistd.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_unistd.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/posix.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/sys/time.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/time.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_time.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__struct_tm.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xarch.h:
+include/X11/fonts/fontmisc.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xfuncs.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdlib.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__functions_malloc.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__header_stdlib.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/alloca.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/stdio.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fontstruct.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xproto.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xprotostr.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/font.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/Xfuncproto.h:
+/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include/X11/fonts/fontproto.h:
+include/X11/fonts/fontutil.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/errno.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__errno.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__errno_values.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/limits.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/limits.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/bits/limits.h:
+/home/nathan/secure-exec/registry/native/c/sysroot/include/wasm32-wasip1/__macro_PAGESIZE.h:
+include/X11/fonts/libxfont2.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdarg.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_header_macro.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___gnuc_va_list.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_list.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_arg.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___va_copy.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h:
+include/X11/fonts/fntfilst.h:
+include/X11/fonts/fontxlfd.h:
+include/X11/fonts/fntfil.h:
+include/X11/fonts/pcf.h:
+include/X11/fonts/fntfilio.h:
+include/X11/fonts/bufio.h:
+src/builtins/builtin.h:

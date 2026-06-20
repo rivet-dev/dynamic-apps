@@ -1,0 +1,4728 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+ "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+<!-- lifted from troff+ms+XMan by doclifter -->
+
+<article id='xmu'>
+  <articleinfo>
+    <title>Xmu and Xmuu Library API Reference</title>
+    <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+    <copyright><year>1989</year><holder>X Consortium</holder>
+    </copyright>
+    <abstract><para>&ldquo;Don't ask.&rdquo;</para></abstract>
+
+    <legalnotice>
+
+      <para>
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &ldquo;Software&rdquo;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+      </para>
+      <para>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+      </para>
+      <para>
+THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+      </para>
+      <para>
+Except as contained in this notice, the name of the X Consortium shall not be
+used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization from the X Consortium.
+      </para>
+      <para>
+<trademark><emphasis>X Window System</emphasis></trademark>
+is a trademark of The Open Group.
+      </para>
+
+    </legalnotice>
+  </articleinfo>
+
+  <sect1 id='Introduction'>
+<title>Introduction</title>
+
+    <para>
+The Xmu Library is a collection of miscellaneous (some might say random)
+utility functions that have been useful in building various applications
+and widgets.  This library is required by the Athena Widgets.
+    </para>
+
+    <para>
+Starting in XFree86 4.1.0, and incorporated into X11R6.7 and later releases,
+a subset of the functions that do not rely on the Athena Widgets (libXaw)
+or X Toolkit Intrinsics (libXt) are provided in a second library, libXmuu.
+    </para>
+
+    <para>
+Programs using either of these libraries are encouraged to determine the
+correct compiler and linker options via the <userinput>xmu</userinput> or
+<userinput>xmuu</userinput> module names for <command>pkg-config</command>,
+<indexterm>
+<primary><command>pkg-config</command></primary>
+</indexterm>
+such as:
+
+      <screen>
+cc -c xapplication.c `pkg-config --cflags xmu`
+cc -o xapplication xapplication.o `pkg-config --libs xmu`
+      </screen>
+    </para>
+
+  </sect1>
+
+  <sect1 id='Atom_Functions'>
+<title>Atom Functions</title>
+
+    <para>
+To use the functions and macros defined in this section, you should include
+the header file
+&lt;<filename class='headerfile'>X11/Xmu/Atoms.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Atoms.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef><function>XA_ATOM_PAIR</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_CHARACTER_POSITION</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_CLASS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_CLIENT_WINDOW</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_CLIPBOARD</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_COMPOUND_TEXT</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_DECNET_ADDRESS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_DELETE</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_FILENAME</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_HOSTNAME</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_IP_ADDRESS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_LENGTH</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_LIST_LENGTH</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_NAME</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_NET_ADDRESS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_NULL</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_OWNER_OS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_SPAN</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_TARGETS</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_TEXT</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_TIMESTAMP</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_USER</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+      <funcprototype>
+	<funcdef><function>XA_UTF8_STRING</function></funcdef>
+	<paramdef><parameter>d</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+    <para>
+      <indexterm>
+	<primary><type>Atom</type></primary>
+      </indexterm>
+These macros take a display as argument and return an
+<type>Atom</type>.
+The name of the
+atom is obtained from the macro name by removing the leading characters
+&ldquo;<code>XA_</code>&rdquo;.  The
+<type>Atom</type>
+value is cached, such that subsequent requests do not cause
+another round-trip to the server.
+    </para>
+
+    <para>
+      <indexterm zone="XmuMakeAtom">
+	<primary><xref linkend='XmuMakeAtom' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuMakeAtom'>
+	<funcprototype>
+	  <funcdef>AtomPtr <function>XmuMakeAtom</function></funcdef>
+	  <paramdef>const char *<parameter>name</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>name</parameter></term>
+	  <listitem><para>
+specifies the atom name
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function creates and initializes an opaque object, an
+<type>AtomPtr</type>,
+for an
+<type>Atom</type>
+with the
+given name.
+<xref linkend='XmuInternAtom' xrefstyle='select: title'/>
+can be used to cache the Atom value for one or more displays.
+    </para>
+
+    <para>
+      <indexterm zone="XmuNameOfAtom">
+	<primary><xref linkend='XmuNameOfAtom' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuNameOfAtom'>
+	<funcprototype>
+	  <funcdef>char *<function>XmuNameOfAtom</function></funcdef>
+	  <paramdef>AtomPtr <parameter>atom_ptr</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>atom_ptr</parameter></term>
+	  <listitem><para>
+specifies the AtomPtr
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+The function returns the name of an AtomPtr.
+    </para>
+
+    <para>
+      <indexterm zone="XmuInternAtom">
+	<primary><xref linkend='XmuInternAtom' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuInternAtom'>
+	<funcprototype>
+	  <funcdef>Atom <function>XmuInternAtom</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>AtomPtr <parameter>atom_ptr</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>atom_ptr</parameter></term>
+	  <listitem><para>
+specifies the AtomPtr
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function returns the
+<type>Atom</type>
+for an
+<type>AtomPtr</type>.
+The
+<type>Atom</type>
+is cached,
+such that subsequent requests do not cause another round-trip to the server.
+    </para>
+
+    <para>
+      <indexterm zone="XmuGetAtomName">
+	<primary><xref linkend='XmuGetAtomName' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuGetAtomName'>
+	<funcprototype>
+	  <funcdef>char *<function>XmuGetAtomName</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Atom <parameter>atom</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	   </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>atom</parameter></term>
+	  <listitem><para>
+specifies the atom whose name is desired
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function returns the name of an
+<type>Atom</type>.
+The result is cached, such that subsequent
+requests do not cause another round-trip to the server.
+    </para>
+
+    <para>
+      <indexterm zone="XmuInternStrings">
+	<primary><xref linkend='XmuInternStrings' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuInternStrings'>
+	<funcprototype>
+	  <funcdef>void <function>XmuInternStrings</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>String *<parameter>names</parameter></paramdef>
+	  <paramdef>Cardinal <parameter>count</parameter></paramdef>
+	  <paramdef>Atom *<parameter>atoms</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	   </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>names</parameter></term>
+	  <listitem><para>
+specifies the strings to intern
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>count</parameter></term>
+	  <listitem><para>
+specifies the number of strings
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>atoms</parameter></term>
+	  <listitem><para>
+returns the list of Atom values
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts a list of atom names into
+<type>Atom</type>
+values.  The results are cached, such
+that subsequent requests do not cause further round-trips to the server.
+The caller is responsible for preallocating the array pointed at by atoms.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Error_Handler_Functions'>
+<title>Error Handler Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/Error.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Error.h</filename></primary>
+</indexterm>
+and link against the libXmu or libXmuu library.
+    </para>
+
+    <para>
+      <indexterm zone="XmuPrintDefaultErrorMessage">
+	<primary><xref linkend='XmuPrintDefaultErrorMessage' xrefstyle='select: title'/></primary>
+      </indexterm>
+      <funcsynopsis id='XmuPrintDefaultErrorMessage'>
+	<funcprototype>
+	  <funcdef>int <function>XmuPrintDefaultErrorMessage</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XErrorEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>FILE *<parameter>fp</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the error
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fp</parameter></term>
+	  <listitem><para>
+	      specifies where to print the error message
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function prints an error message, equivalent to Xlib's default error
+message for protocol errors.  It returns a non-zero value
+if the caller should consider exiting, otherwise it returns 0.
+This function can be used when you need to
+write your own error handler, but need to print out an error from within
+that handler.
+    </para>
+
+    <para id="XmuSimpleErrorHandler">
+      <indexterm zone="XmuSimpleErrorHandler">
+	<primary><function>XmuSimpleErrorHandler</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuSimpleErrorHandler</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XErrorEvent *<parameter>errorp</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>errorp</parameter></term>
+	  <listitem><para>
+specifies the error
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function ignores errors for
+<errorname>BadWindow</errorname>
+errors for
+<olink targetdoc='libX11' targetptr='XQueryTree'><function>XQueryTree</function></olink>
+and
+<olink targetdoc='libX11' targetptr='XGetWindowAttributes'><function>XGetWindowAttributes</function></olink>,
+and ignores
+<errorname>BadDrawable</errorname>
+errors for
+<olink targetdoc='libX11' targetptr='XGetGeometry'><function>XGetGeometry</function></olink>;
+it returns 0 in those cases.  Otherwise, it prints the default error message,
+and returns a non-zero value if the caller should consider exiting,
+and 0 if the caller should not exit.
+    </para>
+  </sect1>
+
+  <sect1 id='System_Utility_Functions'>
+<title>System Utility Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/SysUtil.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/SysUtil.h</filename></primary>
+</indexterm>
+and link against the libXmu or libXmuu library.
+    </para>
+
+    <para id="XmuGetHostname">
+      <indexterm zone="XmuGetHostname">
+	<primary><function>XmuGetHostname</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuGetHostname</function></funcdef>
+	  <paramdef>char *<parameter>buf</parameter></paramdef>
+	  <paramdef>int <parameter>maxlen</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+     <variablelist>
+	<varlistentry>
+	  <term><parameter>buf</parameter></term>
+	  <listitem><para>
+returns the host name
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>maxlen</parameter></term>
+	  <listitem><para>
+specifies the length of <parameter>buf</parameter>
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function stores the null terminated name of the local host in
+<parameter>buf</parameter>, and
+returns length of the name.  This function hides operating system differences,
+such as whether to call <function>gethostname</function> or
+<function>uname</function>.
+    </para>
+
+    <para id="XmuSnprintf">
+      <indexterm zone="XmuSnprintf">
+	<primary><function>XmuSnprintf</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuSnprintf</function></funcdef>
+	  <paramdef>char *<parameter>str</parameter></paramdef>
+	  <paramdef>int <parameter>size</parameter></paramdef>
+	  <paramdef><parameter>...</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+     <variablelist>
+	<varlistentry>
+	  <term><parameter>str</parameter></term>
+	  <listitem><para>
+string to write output to
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>size</parameter></term>
+	  <listitem><para>
+specifies the size of <parameter>str</parameter>
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function was provided as a portable implementation of
+<function>snprintf</function> before all platforms could be
+relied on to provide their own.   It is now deprecated in favor of
+calling <function>snprintf</function> directly and should only be used
+in software that needs to continue to support non-Unix98 compliant platforms.
+    </para>
+
+
+  </sect1>
+
+  <sect1 id='Window_Utility_Functions'>
+<title>Window Utility Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/WinUtil.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/WinUtil.h</filename></primary>
+</indexterm>.
+To use <function>XmuClientWindow</function>, you may link against either the
+libXmu or libXmuu libraries.   The other functions in this section require
+linking against the libXmu library.
+    </para>
+
+    <para id="XmuScreenOfWindow">
+      <indexterm zone="XmuScreenOfWindow">
+	<primary><function>XmuScreenOfWindow</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Screen *<function>XmuScreenOfWindow</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Window <parameter>w</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>w</parameter></term>
+	  <listitem><para>
+specifies the window
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function returns the
+<type>Screen</type>
+on which the specified window was created.
+    </para>
+
+    <para id="XmuClientWindow">
+      <indexterm zone="XmuClientWindow">
+	<primary><function>XmuClientWindow</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Window <function>XmuClientWindow</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Window <parameter>win</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>win</parameter></term>
+	  <listitem><para>
+specifies the window
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuClientWindow">
+	<primary><property>WM_STATE</property></primary>
+      </indexterm>
+This function finds a window, at or below the specified window, which has a
+<property>WM_STATE</property> property.  If such a window is found, it is
+returned, otherwise the
+argument window is returned.
+    </para>
+
+    <para id="XmuUpdateMapHints">
+      <indexterm zone="XmuUpdateMapHints">
+	<primary><function>XmuUpdateMapHints</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Bool <function>XmuUpdateMapHints</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Window <parameter>w</parameter></paramdef>
+	  <paramdef>XSizeHints *<parameter>hints</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>win</parameter></term>
+	  <listitem><para>
+specifies the window
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>hints</parameter></term>
+	  <listitem><para>
+specifies the new hints, or <symbol>NULL</symbol>
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function clears the
+<symbol>PPosition</symbol>
+and
+<symbol>PSize</symbol>
+flags and sets the
+<symbol>USPosition</symbol>
+and
+<symbol>USSize</symbol>
+flags in the hints structure, and then stores the hints for the
+window using
+      <indexterm zone="XmuUpdateMapHints">
+	<primary><olink targetdoc='libX11' targetptr='XSetWMNormalHints'><function>XSetWMNormalHints</function></olink></primary>
+      </indexterm>
+<olink targetdoc='libX11' targetptr='XSetWMNormalHints'><function>XSetWMNormalHints</function></olink>
+and returns
+<symbol>True</symbol>.
+If <symbol>NULL</symbol> is passed for the
+hints structure, then the current hints are read back from the window using
+      <indexterm zone="XmuUpdateMapHints">
+	<primary><olink targetdoc='libX11' targetptr='XGetWMNormalHints'><function>XGetWMNormalHints</function></olink></primary>
+      </indexterm>
+<olink targetdoc='libX11' targetptr='XGetWMNormalHints'><function>XGetWMNormalHints</function></olink>
+and are used instead, and
+<symbol>True</symbol>
+is returned; otherwise
+<symbol>False</symbol>
+is returned.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Cursor_Utility_Functions'>
+<title>Cursor Utility Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/CurUtil.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/CurUtil.h</filename></primary>
+</indexterm>
+and link against the libXmu or libXmuu library.
+    </para>
+
+    <para id="XmuCursorNameToIndex">
+      <indexterm zone="XmuCursorNameToIndex">
+	<primary><function>XmuCursorNameToIndex</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuCursorNameToIndex</function></funcdef>
+	  <paramdef>const char *<parameter>name</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>name</parameter></term>
+	  <listitem><para>
+specifies the name of the cursor
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function takes the name of a standard cursor and returns its index
+in the standard cursor font.  The cursor names are formed by removing the
+&ldquo;<code>XC_</code>&rdquo; prefix from the cursor defines listed in
+Appendix B of the Xlib
+manual.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Graphics_Functions'>
+<title>Graphics Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/Drawing.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Drawing.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuDrawRoundedRectangle">
+      <indexterm zone="XmuDrawRoundedRectangle">
+	<primary><function>XmuDrawRoundedRectangle</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuDrawRoundedRectangle</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Drawable <parameter>draw</parameter></paramdef>
+	  <paramdef>GC <parameter>gc</parameter></paramdef>
+	  <paramdef>int <parameter>x</parameter></paramdef>
+	  <paramdef>int <parameter>y</parameter></paramdef>
+	  <paramdef>int <parameter>w</parameter></paramdef>
+	  <paramdef>int <parameter>h</parameter></paramdef>
+	  <paramdef>int <parameter>ew</parameter></paramdef>
+	  <paramdef>int <parameter>eh</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>draw</parameter></term>
+	  <listitem><para>
+specifies the drawable
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>gc</parameter></term>
+	  <listitem><para>
+specifies the GC
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>x</parameter></term>
+	  <listitem><para>
+specifies the upper left x coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>y</parameter></term>
+	  <listitem><para>
+specifies the upper left y coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>w</parameter></term>
+	  <listitem><para>
+specifies the rectangle width
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>h</parameter></term>
+	  <listitem><para>
+specifies the rectangle height
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>ew</parameter></term>
+	  <listitem><para>
+specifies the corner width
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>eh</parameter></term>
+	  <listitem><para>
+specifies the corner height
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function draws a rounded rectangle, where x, y, w, h are the dimensions
+of the overall rectangle, and ew and eh are the sizes of a bounding box that
+the corners are drawn inside of; ew should be no more than half of w, and eh
+should be no more than half of h.  The current GC line attributes control
+all attributes of the line.
+    </para>
+
+    <para id="XmuFillRoundedRectangle">
+      <indexterm zone="XmuFillRoundedRectangle">
+	<primary><function>XmuFillRoundedRectangle</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuFillRoundedRectangle</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Drawable <parameter>draw</parameter></paramdef>
+	  <paramdef>GC <parameter>gc</parameter></paramdef>
+	  <paramdef>int <parameter>x</parameter></paramdef>
+	  <paramdef>int <parameter>y</parameter></paramdef>
+	  <paramdef>int <parameter>w</parameter></paramdef>
+	  <paramdef>int <parameter>h</parameter></paramdef>
+	  <paramdef>int <parameter>ew</parameter></paramdef>
+	  <paramdef>int <parameter>eh</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>draw</parameter></term>
+	  <listitem><para>
+specifies the drawable
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>gc</parameter></term>
+	  <listitem><para>
+specifies the GC
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>x</parameter></term>
+	  <listitem><para>
+specifies the upper left x coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>y</parameter></term>
+	  <listitem><para>
+specifies the upper left y coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>w</parameter></term>
+	  <listitem><para>
+specifies the rectangle width
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>h</parameter></term>
+	  <listitem><para>
+specifies the rectangle height
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>ew</parameter></term>
+	  <listitem><para>
+specifies the corner width
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>eh</parameter></term>
+	  <listitem><para>
+specifies the corner height
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function draws a filled rounded rectangle, where x, y, w, h are the
+dimensions of the overall rectangle, and ew and eh are the sizes of a
+bounding box that the corners are drawn inside of; ew should be no more than
+half of w, and eh should be no more than half of h.  The current GC fill
+settings control all attributes of the fill contents.
+      </para>
+
+    <para id="XmuDrawLogo">
+      <indexterm zone="XmuDrawLogo">
+	<primary><function>XmuDrawLogo</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef><function>XmuDrawLogo</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Drawable <parameter>drawable</parameter></paramdef>
+	  <paramdef>GC <parameter>gcFore</parameter></paramdef>
+	  <paramdef>GC <parameter>gcBack</parameter></paramdef>
+	  <paramdef>int <parameter>x</parameter></paramdef>
+	  <paramdef>int <parameter>y</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>width</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>height</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>drawable</parameter></term>
+	  <listitem><para>
+specifies the drawable
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>gcFore</parameter></term>
+	  <listitem><para>
+specifies the foreground GC
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>gcBack</parameter></term>
+	  <listitem><para>
+specifies the background GC
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>x</parameter></term>
+	  <listitem><para>
+specifies the upper left x coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>y</parameter></term>
+	  <listitem><para>
+specifies the upper left y coordinate
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>width</parameter></term>
+	  <listitem><para>
+specifies the logo width
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>height</parameter></term>
+	  <listitem><para>
+specifies the logo height
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function draws the &ldquo;official&rdquo; X Window System logo
+(<xref linkend="xlogo"/>).  The bounding box
+of the logo in the drawable is given by x, y, width, and height.  The logo
+itself is filled using gcFore, and the rest of the rectangle is filled using
+gcBack.
+    </para>
+      <figure id="xlogo" pgwide="0">
+	<title>The X Logo</title>
+	<mediaobject>
+	  <imageobject>
+	    <imagedata id="xlogo-svg" format="SVG" fileref="xlogo.svg"/>
+	  </imageobject>
+	</mediaobject>
+      </figure>
+    <para id="XmuCreateStippledPixmap">
+      <indexterm zone="XmuCreateStippledPixmap">
+	<primary><function>XmuCreateStippledPixmap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Pixmap <function>XmuCreateStippledPixmap</function></funcdef>
+	  <paramdef>Screen *<parameter>screen</parameter></paramdef>
+	  <paramdef>Pixel <parameter>fore</parameter></paramdef>
+	  <paramdef>Pixel <parameter>back</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>depth</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen the pixmap is created on
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fore</parameter></term>
+	  <listitem><para>
+specifies the foreground pixel value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>back</parameter></term>
+	  <listitem><para>
+specifies the background pixel value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>depth</parameter></term>
+	  <listitem><para>
+specifies the depth of the pixmap
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function creates a two pixel by one pixel stippled pixmap of specified
+depth on the specified screen.  The pixmap is cached so that multiple
+requests share the same pixmap.  The pixmap should be freed with
+<function>XmuReleaseStippledPixmap</function>
+to maintain correct reference counts.
+    </para>
+
+    <para id="XmuReleaseStippledPixmap">
+      <indexterm zone="XmuReleaseStippledPixmap">
+	<primary><function>XmuReleaseStippledPixmap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuReleaseStippledPixmap</function></funcdef>
+	  <paramdef>Screen *<parameter>screen</parameter></paramdef>
+	  <paramdef>Pixmap <parameter>pixmap</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen the pixmap was created on
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>pixmap</parameter></term>
+	  <listitem><para>
+specifies the pixmap to free
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function frees a pixmap created with
+<function>XmuCreateStippledPixmap</function>.
+    </para>
+
+    <para id="XmuReadBitmapData">
+      <indexterm zone="XmuReadBitmapData">
+	<primary><function>XmuReadBitmapData</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuReadBitmapData</function></funcdef>
+	  <paramdef>FILE *<parameter>fstream</parameter></paramdef>
+	  <paramdef>unsigned int *<parameter>width</parameter></paramdef>
+	  <paramdef>unsigned int *<parameter>height</parameter></paramdef>
+	  <paramdef>unsigned char **<parameter>datap</parameter></paramdef>
+	  <paramdef>int *<parameter>x_hot</parameter></paramdef>
+	  <paramdef>int *<parameter>y_hot</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>fstream</parameter></term>
+	  <listitem><para>
+specifies the stream to read from
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>width</parameter></term>
+	  <listitem><para>
+returns the width of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>height</parameter></term>
+	  <listitem><para>
+returns the height of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>datap</parameter></term>
+	  <listitem><para>
+returns the parsed bitmap data
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>x_hot</parameter></term>
+	  <listitem><para>
+returns the x coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>y_hot</parameter></term>
+	  <listitem><para>
+returns the y coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function reads a standard bitmap file description from the specified
+stream, and returns the parsed data in a format suitable for passing to
+<olink targetdoc='libX11' targetptr='XCreateBitmapFromData'><function>XCreateBitmapFromData</function></olink>.
+The return value of the function has the same
+interpretation as the return value for
+<olink targetdoc='libX11' targetptr='XReadBitmapFile'><function>XReadBitmapFile</function></olink>.
+    </para>
+
+    <para id="XmuReadBitmapDataFromFile">
+      <indexterm zone="XmuReadBitmapDataFromFile">
+	<primary><function>XmuReadBitmapDataFromFile</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuReadBitmapDataFromFile</function></funcdef>
+	  <paramdef>const char *<parameter>filename</parameter></paramdef>
+	  <paramdef>unsigned int *<parameter>width</parameter></paramdef>
+	  <paramdef>unsigned int *<parameter>height</parameter></paramdef>
+	  <paramdef>unsigned char **<parameter>datap</parameter></paramdef>
+	  <paramdef>int *<parameter>x_hot</parameter></paramdef>
+	  <paramdef>int *<parameter>y_hot</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>fstream</parameter></term>
+	  <listitem><para>
+specifies the file to read from
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>width</parameter></term>
+	  <listitem><para>
+returns the width of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>height</parameter></term>
+	  <listitem><para>
+returns the height of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>datap</parameter></term>
+	  <listitem><para>
+returns the parsed bitmap data
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>x_hot</parameter></term>
+	  <listitem><para>
+returns the x coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>y_hot</parameter></term>
+	  <listitem><para>
+returns the y coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function reads a standard bitmap file description from the specified
+file, and returns the parsed data in a format suitable for passing to
+<olink targetdoc='libX11' targetptr='XCreateBitmapFromData'><function>XCreateBitmapFromData</function></olink>.
+The return value of the function has the same
+interpretation as the return value for
+<olink targetdoc='libX11' targetptr='XReadBitmapFile'><function>XReadBitmapFile</function></olink>.
+    </para>
+
+    <para id="XmuLocateBitmapFile">
+      <indexterm zone="XmuLocateBitmapFile">
+	<primary><function>XmuLocateBitmapFile</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Pixmap <function>XmuLocateBitmapFile</function></funcdef>
+	  <paramdef>Screen *<parameter>screen</parameter></paramdef>
+	  <paramdef>const char *<parameter>name</parameter></paramdef>
+	  <paramdef>char *<parameter>srcname</parameter></paramdef>
+	  <paramdef>int <parameter>srcnamelen</parameter></paramdef>
+	  <paramdef>int *<parameter>widthp</parameter></paramdef>
+	  <paramdef>int *<parameter>heightp</parameter></paramdef>
+	  <paramdef>int *<parameter>xhotp</parameter></paramdef>
+	  <paramdef>int *<parameter>yhotp</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen the pixmap is created on
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>name</parameter></term>
+	  <listitem><para>
+specifies the file to read from
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>srcname</parameter></term>
+	  <listitem><para>
+returns the full filename of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>srcnamelen</parameter></term>
+	  <listitem><para>
+specifies the length of the srcname buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>width</parameter></term>
+	  <listitem><para>
+returns the width of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>height</parameter></term>
+	  <listitem><para>
+returns the height of the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>xhotp</parameter></term>
+	  <listitem><para>
+returns the x coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>yhotp</parameter></term>
+	  <listitem><para>
+returns the y coordinate of the hotspot
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function reads a file in standard bitmap file format, using
+<olink targetdoc='libX11' targetptr='XReadBitmapFile'><function>XReadBitmapFile</function></olink>,
+and returns the created bitmap.  The filename may be
+absolute, or relative to the global resource named
+      <indexterm zone="XmuLocateBitmapFile">
+	<primary><systemitem class="resource">bitmapFilePath</systemitem></primary>
+      </indexterm>
+<systemitem class="resource">bitmapFilePath</systemitem> with class
+BitmapFilePath.  If the resource is not defined, the default value is the
+build symbol BITMAPDIR, which is typically
+"<filename class="directory">/usr/include/X11/bitmaps</filename>".
+If <parameter>srcnamelen</parameter> is greater than zero and
+<parameter>srcname</parameter> is not <symbol>NULL</symbol>,
+the null terminated filename will be copied into
+<parameter>srcname</parameter>.  The size and hotspot of the bitmap are
+also returned.
+    </para>
+
+    <para id="XmuCreatePixmapFromBitmap">
+      <indexterm zone="XmuCreatePixmapFromBitmap">
+	<primary><function>XmuCreatePixmapFromBitmap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Pixmap <function>XmuCreatePixmapFromBitmap</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Drawable <parameter>d</parameter></paramdef>
+	  <paramdef>Pixmap <parameter>bitmap</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>width</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>height</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>depth</parameter></paramdef>
+	  <paramdef>unsigned long <parameter>fore</parameter></paramdef>
+	  <paramdef>unsigned long <parameter>back</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen the pixmap is created on
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>bitmap</parameter></term>
+	  <listitem><para>
+specifies the bitmap source
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>width</parameter></term>
+	  <listitem><para>
+specifies the width of the pixmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>height</parameter></term>
+	  <listitem><para>
+specifies the height of the pixmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>depth</parameter></term>
+	  <listitem><para>
+specifies the depth of the pixmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fore</parameter></term>
+	  <listitem><para>
+specifies the foreground pixel value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>back</parameter></term>
+	  <listitem><para>
+specifies the background pixel value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function creates a pixmap of the specified width, height, and depth, on
+the same screen as the specified drawable, and then performs an
+<olink targetdoc='libX11' targetptr='XCopyPlane'><function>XCopyPlane</function></olink>
+from the specified bitmap to the pixmap,
+using the specified foreground and background pixel values.
+The created pixmap is returned.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Selection_Functions'>
+<title>Selection Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/StdSel.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/StdSel.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuConvertStandardSelection">
+      <indexterm zone="XmuConvertStandardSelection">
+	<primary><function>XmuConvertStandardSelection</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Boolean <function>XmuConvertStandardSelection</function></funcdef>
+	  <paramdef>Widget <parameter>w</parameter></paramdef>
+	  <paramdef>Time <parameter>time</parameter></paramdef>
+	  <paramdef>Atom *<parameter>selection</parameter></paramdef>
+	  <paramdef>Atom *<parameter>target</parameter></paramdef>
+	  <paramdef>Atom *<parameter>type</parameter></paramdef>
+	  <paramdef>XPointer <parameter>value</parameter></paramdef>
+	  <paramdef>unsigned long *<parameter>length</parameter></paramdef>
+	  <paramdef>int *<parameter>format</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>w</parameter></term>
+	  <listitem><para>
+specifies the widget which currently owns the selection
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>time</parameter></term>
+	  <listitem><para>
+specifies the time at which the selection was established
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>selection</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>target</parameter></term>
+	  <listitem><para>
+specifies the target type of the selection
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>type</parameter></term>
+	  <listitem><para>
+returns the property type of the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>value</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>length</parameter></term>
+	  <listitem><para>
+returns the number of elements in the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>format</parameter></term>
+	  <listitem><para>
+returns the size in bits of the elements</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts the following standard selections: CLASS,
+CLIENT_WINDOW, DECNET_ADDRESS, HOSTNAME, NAME, OWNER_OS,
+TARGETS, TIMESTAMP, and USER.  It returns
+<symbol>True</symbol>
+if the conversion was successful, else it returns
+<symbol>False</symbol>.
+    </para>
+  </sect1>
+
+  <sect1 id='Type_Converter_Functions'>
+<title>Type Converter Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/Converters.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Converters.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuCvtFunctionToCallback">
+      <indexterm zone="XmuCvtFunctionToCallback">
+	<primary><function>XmuCvtFunctionToCallback</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtFunctionToCallback</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+the function to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+the place to store the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts a callback procedure to a callback list containing
+that procedure, with <symbol>NULL</symbol> closure data.  To use this converter, include the
+following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRCallProc, XtRCallback, XmuCvtFunctionToCallback, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToBackingStore">
+      <indexterm zone="XmuCvtStringToBackingStore">
+	<primary><function>XmuCvtStringToBackingStore</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToBackingStore</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument must be a pointer to a Cardinal containing the value 0
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToBackingStore">
+	<primary>backing-store</primary>
+      </indexterm>
+This function converts a string to a backing-store integer as defined in
+&lt;<filename class='headerfile'>X11/X.h</filename>&gt;.
+The string "notUseful" converts to
+<symbol>NotUseful</symbol>,
+"whenMapped" converts to
+<symbol>WhenMapped</symbol>,
+and "always" converts to
+<symbol>Always</symbol>.
+The string "default" converts to the value
+<symbol>Always</symbol> +
+<symbol>WhenMapped</symbol> +
+<symbol>NotUseful</symbol>.
+The case of the string does not matter.
+To use this converter, include the following
+in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRString, XtRBackingStore, XmuCvtStringToBackingStore, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToBitmap">
+      <indexterm zone="XmuCvtStringToBitmap">
+	<primary><function>XmuCvtStringToBitmap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToBitmap</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+the sole argument specifies the Screen on which to create the bitmap
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+must be the value 1
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToBitmap">
+	<primary>window manager icons</primary>
+      </indexterm>
+This function creates a bitmap (a Pixmap of depth one) suitable for window
+manager icons.  The string argument is the name of a file in standard bitmap
+file format.  For the possible filename specifications, see
+<link linkend="XmuLocateBitmapFile"><function>XmuLocateBitmapFile</function></link>.
+To use this converter, include the following in your widget's
+ClassInitialize procedure:
+
+      <programlisting>
+static XtConvertArgRec screenConvertArg[] = {
+  {XtBaseOffset, (XtPointer)XtOffset(Widget, core.screen), sizeof(Screen *)}
+};
+
+XtAddConverter(XtRString, XtRBitmap, XmuCvtStringToBitmap,
+		 screenConvertArg, XtNumber(screenConvertArg));
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToColorCursor">
+      <indexterm zone="XmuCvtStringToColorCursor">
+	<primary><function>XmuCvtStringToColorCursor</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Boolean <function>XmuCvtStringToColorCursor</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	  <paramdef>XtPointer *<parameter>data</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the display to use for conversion warnings
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+specifies the required conversion arguments
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+specifies the number of required conversion arguments, which is 4
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToColorCursor">
+	<primary><type>Cursor</type></primary>
+      </indexterm>
+This function converts a string to a
+<type>Cursor</type>
+with the foreground and background pixels specified by the conversion
+arguments.  The string can either be a
+standard cursor name formed by removing the <code>&ldquo;XC_&rdquo;</code>
+prefix from any of the
+cursor defines listed in Appendix B of the Xlib Manual, a font name and
+glyph index in decimal of the form "FONT fontname index [[font] index]",
+or a bitmap filename acceptable to
+<link linkend="XmuLocateBitmapFile"><function>XmuLocateBitmapFile</function></link>.
+To use this converter, include
+the following in the widget ClassInitialize procedure:
+
+      <programlisting>
+static XtConvertArgRec colorCursorConvertArgs[] = {
+  {XtWidgetBaseOffset, (XtPointer) XtOffsetOf(WidgetRec, core.screen),
+   sizeof(Screen *)},
+  {XtResourceString, (XtPointer) XtNpointerColor, sizeof(Pixel)},
+  {XtResourceString, (XtPointer) XtNpointerColorBackground, sizeof(Pixel)},
+  {XtWidgetBaseOffset, (XtPointer) XtOffsetOf(WidgetRec, core.colormap),
+   sizeof(Colormap)}
+};
+
+
+XtSetTypeConverter(XtRString, XtRColorCursor, XmuCvtStringToColorCursor,
+		 colorCursorConvertArgs, XtNumber(colorCursorConvertArgs),
+                 XtCacheByDisplay, NULL);
+      </programlisting>
+
+The widget must recognize XtNpointerColor and XtNpointerColorBackground as
+resources, or specify other appropriate foreground and background resources.
+The widget's Realize and SetValues methods must cause the converter to be
+invoked with the appropriate arguments when one of the foreground,
+background, or cursor resources has changed, or when the window is created,
+and must assign the cursor to the window of the widget.
+    </para>
+
+    <para id="XmuCvtStringToCursor">
+      <indexterm zone="XmuCvtStringToCursor">
+	<primary><function>XmuCvtStringToCursor</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToCursor</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+specifies the required conversion argument, the screen
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+specifies the number of required conversion arguments, which is 1
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToCursor">
+	<primary><type>Cursor</type></primary>
+      </indexterm>
+This function converts a string to a
+<type>Cursor</type>.
+The string can either be a
+standard cursor name formed by removing the <code>&ldquo;XC_&rdquo;</code>
+prefix from any of the
+cursor defines listed in Appendix B of the Xlib Manual, a font name and
+glyph index in decimal of the form "FONT fontname index [[font] index]", or
+a bitmap filename acceptable to
+<link linkend="XmuLocateBitmapFile"><function>XmuLocateBitmapFile</function></link>.
+To use this converter, include
+the following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+static XtConvertArgRec screenConvertArg[] = {
+  {XtBaseOffset, (XtPointer)XtOffsetOf(WidgetRec, core.screen), sizeof(Screen *)}
+};
+
+XtAddConverter(XtRString, XtRCursor, XmuCvtStringToCursor,
+		 screenConvertArg, XtNumber(screenConvertArg));
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToGravity">
+      <indexterm zone="XmuCvtStringToGravity">
+	<primary><function>XmuCvtStringToGravity</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToGravity</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument must be a pointer to a Cardinal containing the value 0
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToGravity">
+	<primary><type>XtGravity</type></primary>
+      </indexterm>
+This function converts a string to an
+<type>XtGravity</type>
+enumeration value.  The string "forget" and a <symbol>NULL</symbol> value convert to
+<symbol>ForgetGravity</symbol>,
+"NorthWestGravity" converts to
+<symbol>NorthWestGravity</symbol>,
+the strings "NorthGravity" and "top" convert to
+<symbol>NorthGravity</symbol>,
+"NorthEastGravity" converts to
+<symbol>NorthEastGravity</symbol>,
+the strings "West" and "left" convert to
+<symbol>WestGravity</symbol>,
+"CenterGravity" converts to
+<symbol>CenterGravity</symbol>,
+"EastGravity" and "right" convert to
+<symbol>EastGravity</symbol>,
+"SouthWestGravity" converts to
+<symbol>SouthWestGravity</symbol>,
+"SouthGravity" and "bottom" convert to
+<symbol>SouthGravity</symbol>,
+"SouthEastGravity" converts to
+<symbol>SouthEastGravity</symbol>,
+"StaticGravity" converts to
+<symbol>StaticGravity</symbol>,
+and "UnmapGravity" converts to
+<symbol>UnmapGravity</symbol>.
+The case of the string does not matter.  To use this converter, include
+the following in your widget's class initialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRString, XtRGravity, XmuCvtStringToGravity, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToJustify">
+      <indexterm zone="XmuCvtStringToJustify">
+	<primary><function>XmuCvtStringToJustify</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToJustify</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToJustify">
+	<primary><type>XtJustify</type></primary>
+      </indexterm>
+This function converts a string to an
+<type>XtJustify</type>
+enumeration value.  The string "left" converts to
+<symbol>XtJustifyLeft</symbol>,
+"center" converts to
+<symbol>XtJustifyCenter</symbol>,
+and "right" converts to
+<symbol>XtJustifyRight</symbol>.
+The case of the string does not matter.  To use this converter,
+include the following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRString, XtRJustify, XmuCvtStringToJustify, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToLong">
+      <indexterm zone="XmuCvtStringToLong">
+	<primary><function>XmuCvtStringToLong</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToLong</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument must be a pointer to a Cardinal containing 0
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts a string to an integer of type long.  It parses the
+string using
+<function>sscanf</function>
+with a format of "%ld".  To use this converter, include
+the following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRString, XtRLong, XmuCvtStringToLong, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToOrientation">
+      <indexterm zone="XmuCvtStringToOrientation">
+	<primary><function>XmuCvtStringToOrientation</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToOrientation</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuCvtStringToOrientation">
+	<primary><type>XtOrientation</type></primary>
+      </indexterm>
+This function converts a string to an
+<type>XtOrientation</type>
+enumeration value.  The string "horizontal" converts to
+<symbol>XtorientHorizontal</symbol>
+and "vertical" converts to
+<symbol>XtorientVertical</symbol>.
+The case of the string does not matter.  To use this converter,
+include the following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtAddConverter(XtRString, XtROrientation, XmuCvtStringToOrientation, NULL, 0);
+      </programlisting>
+    </para>
+
+    <para id="XmuCvtStringToShapeStyle">
+      <indexterm zone="XmuCvtStringToShapeStyle">
+	<primary><function>XmuCvtStringToShapeStyle</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Boolean <function>XmuCvtStringToShapeStyle</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	  <paramdef>XtPointer *<parameter>data</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+the display to use for conversion warnings
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+the value to convert from
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+the place to store the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts a string to an integer shape style.  The string
+"rectangle" converts to
+<symbol>XmuShapeRectangle</symbol>,
+"oval" converts to
+<symbol>XmuShapeOval</symbol>,
+"ellipse" converts to
+<symbol>XmuShapeEllipse</symbol>,
+and "roundedRectangle" converts to
+<symbol>XmuShapeRoundedRectangle</symbol>.
+The case of the string does not matter.  To use this converter,
+include the following in your widget's ClassInitialize procedure:
+
+      <programlisting>
+XtSetTypeConverter(XtRString, XtRShapeStyle, XmuCvtStringToShapeStyle,
+		     NULL, 0, XtCacheNone, NULL);
+      </programlisting>
+    </para>
+
+    <para id="XmuReshapeWidget">
+      <indexterm zone="XmuReshapeWidget">
+	<primary><function>XmuReshapeWidget</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Boolean <function>XmuReshapeWidget</function></funcdef>
+	  <paramdef>Widget <parameter>w</parameter></paramdef>
+	  <paramdef>int <parameter>shape_style</parameter></paramdef>
+	  <paramdef>int <parameter>corner_width</parameter></paramdef>
+	  <paramdef>int <parameter>corner_height</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>w</parameter></term>
+	  <listitem><para>
+specifies the widget to reshape
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>shape_style</parameter></term>
+	  <listitem><para>
+specifies the new shape
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>corner_width</parameter></term>
+	  <listitem><para>
+specifies the width of the rounded rectangle corner
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>corner_height</parameter></term>
+	  <listitem><para>
+specified the height of the rounded rectangle corner
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm zone="XmuReshapeWidget">
+	<primary>Shape extension</primary>
+      </indexterm>
+This function reshapes the specified widget, using the Shape extension, to a
+rectangle, oval, ellipse, or rounded rectangle, as specified by shape_style
+(
+<symbol>XmuShapeRectangle</symbol>,
+<symbol>XmuShapeOval</symbol>,
+<symbol>XmuShapeEllipse</symbol>,
+and
+<symbol>XmuShapeRoundedRectangle</symbol>,
+respectively).
+The shape is bounded by the outside edges of the rectangular extents of the
+widget.  If the shape is a rounded rectangle, corner_width and corner_height
+specify the size of the bounding box that the corners are drawn inside of
+(see
+<link linkend="XmuFillRoundedRectangle"><function>XmuFillRoundedRectangle</function></link>);
+otherwise, corner_width and corner_height are ignored.
+The origin of the widget within its parent remains unchanged.
+    </para>
+
+    <para id="XmuCvtStringToWidget">
+      <indexterm zone="XmuCvtStringToWidget">
+	<primary><function>XmuCvtStringToWidget</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCvtStringToWidget</function></funcdef>
+	  <paramdef>XrmValue *<parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+the sole argument is the parent Widget
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+  <listitem><para>
+this argument must be 1
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function converts a string to an immediate child widget of the parent
+widget passed as an argument.  Note that this converter only works for
+child widgets that have already been created; there is no lazy evaluation.
+The string is first compared against the
+names of the normal and popup children, and if a match is found the
+corresponding child is returned.  If no match is found, the string is
+compared against the classes of the normal and popup children, and if a
+match is found the corresponding child is returned.  The case of the string
+is significant.  To use this converter, include the following in your
+widget's ClassInitialize procedure:
+
+      <programlisting>
+static XtConvertArgRec parentCvtArg[] = {
+  {XtBaseOffset, (XtPointer)XtOffset(Widget, core.parent), sizeof(Widget)},
+};
+
+XtAddConverter(XtRString, XtRWidget, XmuCvtStringToWidget,
+		 parentCvtArg, XtNumber(parentCvtArg));
+      </programlisting>
+    </para>
+
+    <para id="XmuNewCvtStringToWidget">
+      <indexterm zone="XmuNewCvtStringToWidget">
+	<primary><function>XmuNewCvtStringToWidget</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Boolean <function>XmuNewCvtStringToWidget</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>args</parameter></paramdef>
+	  <paramdef>Cardinal *<parameter>num_args</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>fromVal</parameter></paramdef>
+	  <paramdef>XrmValuePtr <parameter>toVal</parameter></paramdef>
+	  <paramdef>XtPointer *<parameter>data</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+the display to use for conversion warnings
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>args</parameter></term>
+	  <listitem><para>
+the sole argument is the parent Widget
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_args</parameter></term>
+	  <listitem><para>
+this argument must be a pointer to a Cardinal containing the value 1
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>fromVal</parameter></term>
+	  <listitem><para>
+specifies the string to convert
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toVal</parameter></term>
+	  <listitem><para>
+returns the converted value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+this argument is ignored
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This converter is identical in functionality to
+<link linkend="XmuCvtStringToWidget"><function>XmuCvtStringToWidget</function></link>, except
+that it is a new-style converter, allowing the specification of a cache type
+at the time of registration.
+Most widgets will not cache the conversion results, as the application may
+dynamically create and destroy widgets, which would cause cached values to
+become illegal.  To use this converter, include the following in the widget's
+class initialize procedure:
+
+    <programlisting>
+static XtConvertArgRec parentCvtArg[] = {
+  {XtWidgetBaseOffset, (XtPointer)XtOffsetOf(WidgetRec, core.parent),
+   sizeof(Widget)}
+};
+
+XtSetTypeConverter(XtRString, XtRWidget, XmuNewCvtStringToWidget,
+		   parentCvtArg, XtNumber(parentCvtArg), XtCacheNone, NULL);
+      </programlisting>
+
+    </para>
+
+  </sect1>
+
+  <sect1 id='Character_Set_Functions'>
+<title>Character Set Functions</title>
+
+<para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/CharSet.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/CharSet.h</filename></primary>
+</indexterm>
+and link against the libXmu or libXmuu library.
+</para>
+
+    <warning><para>
+The functions in this section are <emphasis remap='B'>deprecated</emphasis>
+because they don't work in most locales now supported by X11; most platforms
+provide alternatives in their system libraries.
+      </para></warning>
+
+    <para id="XmuCopyISOLatin1Lowered">
+      <indexterm zone="XmuCopyISOLatin1Lowered">
+	<primary><function>XmuCopyISOLatin1Lowered</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCopyISOLatin1Lowered</function></funcdef>
+	  <paramdef>char *<parameter>dst</parameter></paramdef>
+	  <paramdef>const char *<parameter>src</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dst</parameter></term>
+	  <listitem><para>
+returns the string copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>src</parameter></term>
+	  <listitem><para>
+specifies the string to copy
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function copies a null terminated string from src to dst (including the
+null), changing all Latin-1 uppercase letters to lowercase.  The string is
+assumed to be encoded using ISO 8859-1.
+    </para>
+
+    <para>
+Note that like <function>strcpy</function> the caller is responsible for
+ensuring the size of <parameter>dst</parameter> is at least as large as the
+size of <parameter>src</parameter>.
+    </para>
+
+    <para id="XmuNCopyISOLatin1Lowered">
+      <indexterm zone="XmuNCopyISOLatin1Lowered">
+	<primary><function>XmuNCopyISOLatin1Lowered</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuNCopyISOLatin1Lowered</function></funcdef>
+	  <paramdef>char *<parameter>dst</parameter></paramdef>
+	  <paramdef>const char *<parameter>src</parameter></paramdef>
+	  <paramdef>int <parameter>size</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dst</parameter></term>
+	  <listitem><para>
+returns the string copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>src</parameter></term>
+	  <listitem><para>
+specifies the string to copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>size</parameter></term>
+	  <listitem><para>
+maximum number of characters (including the null terminator) to write to dst
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function copies up to <code><parameter>size</parameter> - 1</code>
+characters of a null terminated string from <parameter>src</parameter>
+to <parameter>dst</parameter>, and terminates it with a null,
+changing all Latin-1 uppercase letters to lowercase.  The string is
+assumed to be encoded using ISO 8859-1.
+    </para>
+
+    <para id="XmuCopyISOLatin1Uppered">
+      <indexterm zone="XmuCopyISOLatin1Uppered">
+	<primary><function>XmuCopyISOLatin1Uppered</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCopyISOLatin1Uppered</function></funcdef>
+	  <paramdef>char *<parameter>dst</parameter></paramdef>
+	  <paramdef>const char *<parameter>src</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dst</parameter></term>
+	  <listitem><para>
+returns the string copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>src</parameter></term>
+	  <listitem><para>
+specifies the string to copy
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function copies a null terminated string from src to dst (including the
+null), changing all Latin-1 lowercase letters to uppercase.  The string is
+assumed to be encoded using ISO 8859-1.
+    </para>
+
+    <para>
+Note that like <function>strcpy</function> the caller is responsible for
+ensuring the size of <parameter>dst</parameter> is at least as large as the
+size of <parameter>src</parameter>.
+    </para>
+
+    <para id="XmuNCopyISOLatin1Uppered">
+      <indexterm zone="XmuNCopyISOLatin1Uppered">
+	<primary><function>XmuNCopyISOLatin1Uppered</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuNCopyISOLatin1Uppered</function></funcdef>
+	  <paramdef>char *<parameter>dst</parameter></paramdef>
+	  <paramdef>const char *<parameter>src</parameter></paramdef>
+	  <paramdef>int <parameter>size</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dst</parameter></term>
+	  <listitem><para>
+returns the string copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>src</parameter></term>
+	  <listitem><para>
+specifies the string to copy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>size</parameter></term>
+	  <listitem><para>
+maximum number of characters (including the null terminator) to write to dst
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function copies up to <code><parameter>size</parameter> - 1</code>
+characters of a null terminated string from <parameter>src</parameter>
+to <parameter>dst</parameter>, and terminates it with a null,
+changing all Latin-1 lowercase letters to uppercase.  The string is
+assumed to be encoded using ISO 8859-1.
+    </para>
+
+    <para id="XmuCompareISOLatin1">
+      <indexterm zone="XmuCompareISOLatin1">
+	<primary><function>XmuCompareISOLatin1</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuCompareISOLatin1</function></funcdef>
+	  <paramdef>const char *<parameter>first</parameter></paramdef>
+	  <paramdef>const char *<parameter>second</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>first</parameter></term>
+	  <listitem><para>
+	      specifies a string to compare
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>second</parameter></term>
+	  <listitem><para>
+specifies a string to compare
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function compares two null terminated Latin-1 strings, ignoring case
+differences, and returns an integer greater than, equal to, or less than 0,
+according to whether first is lexicographically greater than, equal to, or
+less than second.  The two strings are assumed to be encoded using ISO
+8859-1.
+    </para>
+  </sect1>
+
+  <sect1 id='Keyboard_Event_Translation_Functions'>
+<title>Keyboard Event Translation Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/Lookup.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Lookup.h</filename></primary>
+</indexterm>.
+and link against the libXmu library.
+    </para>
+
+    <warning><para>
+The functions in this section are <emphasis remap='B'>deprecated</emphasis> because they don't work
+in most locales now supported by X11; the function
+<olink targetdoc='libX11' targetptr='XmbLookupString'><function>XmbLookupString</function></olink>
+provides a better alternative.
+      </para></warning>
+
+    <para id="XmuLookupLatin1">
+      <indexterm zone="XmuLookupLatin1">
+	<primary><function>XmuLookupLatin1</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupLatin1</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is identical to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+and exists only for naming symmetry with other functions.
+    </para>
+
+    <para id="XmuLookupLatin2">
+      <indexterm zone="XmuLookupLatin2">
+	<primary><function>XmuLookupLatin2</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupLatin2</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to an Latin-2 (ISO 8859-2) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupLatin3">
+      <indexterm zone="XmuLookupLatin3">
+	<primary><function>XmuLookupLatin3</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupLatin3</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to an Latin-3 (ISO 8859-3) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupLatin4">
+      <indexterm zone="XmuLookupLatin4">
+	<primary><function>XmuLookupLatin4</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupLatin4</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to an Latin-4 (ISO 8859-4) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupKana">
+      <indexterm zone="XmuLookupKana">
+	<primary><function>XmuLookupKana</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupKana</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a string in an encoding consisting of Latin-1 (ISO 8859-1) and ASCII
+control in the Graphics Left half (values 0 to 127), and Katakana in the
+Graphics Right half (values 128 to 255), using the values from JIS
+X201-1976.
+    </para>
+
+    <para id="XmuLookupJISX0201">
+      <indexterm zone="XmuLookupJISX0201">
+	<primary><function>XmuLookupJISX0201</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupJISX0201</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a string in the JIS X0201-1976 encoding, including ASCII control.
+    </para>
+
+    <para id="XmuLookupArabic">
+      <indexterm zone="XmuLookupArabic">
+	<primary><function>XmuLookupArabic</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupArabic</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a Latin/Arabic (ISO 8859-6) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupCyrillic">
+      <indexterm zone="XmuLookupCyrillic">
+	<primary><function>XmuLookupCyrillic</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupCyrillic</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a Latin/Cyrillic (ISO 8859-5) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupGreek">
+      <indexterm zone="XmuLookupGreek">
+	<primary><function>XmuLookupGreek</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupGreek</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a Latin/Greek (ISO 8859-7) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupHebrew">
+      <indexterm zone="XmuLookupHebrew">
+	<primary><function>XmuLookupHebrew</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupHebrew</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event
+to a Latin/Hebrew (ISO 8859-8) string, or to an ASCII control string.
+    </para>
+
+    <para id="XmuLookupAPL">
+      <indexterm zone="XmuLookupAPL">
+	<primary><function>XmuLookupAPL</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuLookupAPL</function></funcdef>
+	  <paramdef>XKeyEvent *<parameter>event</parameter></paramdef>
+	  <paramdef>unsigned char *<parameter>buffer</parameter></paramdef>
+	  <paramdef>int <parameter>nbytes</parameter></paramdef>
+	  <paramdef>KeySym *<parameter>keysym</parameter></paramdef>
+	  <paramdef>XComposeStatus *<parameter>status</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>event</parameter></term>
+	  <listitem><para>
+specifies the key event
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>buffer</parameter></term>
+	  <listitem><para>
+returns the translated characters
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>nbytes</parameter></term>
+	  <listitem><para>
+specifies the length of the buffer
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>keysym</parameter></term>
+	  <listitem><para>
+returns the computed KeySym, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>status</parameter></term>
+	  <listitem><para>
+specifies or returns the compose state
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function is similar to
+<olink targetdoc='libX11' targetptr='XLookupString'><function>XLookupString</function></olink>,
+except that it maps a key event to an APL string.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Compound_Text_Functions'>
+<title>Compound Text Functions</title>
+
+    <para>
+The functions defined in this section are for parsing Compound Text strings,
+decomposing them into individual segments. Definitions needed to use these
+routines are in the include file
+&lt;<filename class='headerfile'>X11/Xmu/Xct.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Xct.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <warning><para>
+The functions in this section are <emphasis remap='B'>deprecated</emphasis> because they shift the
+burden for recently introduced locale encodings to the application. The
+use of the
+<symbol>UTF8_STRING</symbol>
+text encoding provides a better alternative.
+      </para></warning>
+
+    <para>
+A Compound Text string is represented as the following type:
+
+      <synopsis>
+	typedef unsigned char *XctString;
+      </synopsis>
+    </para>
+
+    <para id="XctCreate">
+      <indexterm zone="XctCreate">
+	<primary><function>XctCreate</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XctData <function>XctCreate</function></funcdef>
+	  <paramdef>const XctString <parameter>string</parameter></paramdef>
+	  <paramdef>int <parameter>length</parameter></paramdef>
+	  <paramdef>XctFlags <parameter>flags</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>string</parameter></term>
+	  <listitem><para>
+the Compound Text string
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>length</parameter></term>
+	  <listitem><para>
+the number of bytes in string
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>flags</parameter></term>
+	  <listitem><para>
+parsing control flags
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function creates an
+<type>XctData</type>
+structure for parsing a Compound Text
+string.  The string need not be null terminated.  The following flags are
+defined to control parsing of the string:
+
+    <variablelist>
+      <varlistentry>
+	<term><symbol>XctSingleSetSegments</symbol></term>
+	<listitem><para>
+This means that returned segments should contain
+characters from only one set (C0, C1, GL, GR).  When this is requested,
+<symbol>XctSegment</symbol>
+is never returned by
+<function>XctNextItem</function>,
+instead
+<symbol>XctC0Segment</symbol>,
+<symbol>XctC1Segment</symbol>,
+<symbol>XctGlSegment</symbol>,
+and
+<symbol>XctGRSegment</symbol>
+are returned.  C0 and C1
+segments are always returned as singleton characters.
+	  </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><symbol>XctProvideExtensions</symbol></term>
+	<listitem><para>
+This means that if the Compound Text string is from a
+higher version than this code is implemented to, then syntactically correct
+but unknown control sequences should be returned as
+<symbol>XctExtension</symbol>
+items by
+<function>XctNextItem</function>.
+If this flag is not set, and the Compound Text string version
+indicates that extensions cannot be ignored, then each unknown control
+sequence will be reported as an
+<symbol>XctError</symbol>.
+	  </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><symbol>XctAcceptC0Extensions</symbol></term>
+	<listitem><para>
+This means that if the Compound Text string is from
+a higher version than this code is implemented to, then unknown C0
+characters should be treated as if they were legal, and returned as C0
+characters (regardless of how
+<symbol>XctProvideExtensions</symbol>
+is set) by
+<function>XctNextItem</function>.
+If this flag is not set, then all unknown C0 characters are treated
+according to
+<symbol>XctProvideExtensions</symbol>.
+	  </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><symbol>XctAcceptC1Extensions</symbol></term>
+	<listitem><para>
+This means that if the Compound Text string is from
+a higher version than this code is implemented to, then unknown C1
+characters should be treated as if they were legal, and returned as C1
+characters (regardless of how
+<symbol>XctProvideExtensions</symbol>
+is set) by
+<function>XctNextItem</function>.
+If this flag is not set, then all unknown C1 characters are treated
+according to
+<symbol>XctProvideExtensions</symbol>.
+	  </para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><symbol>XctHideDirection</symbol></term>
+	<listitem><para>
+This means that horizontal direction changes should be
+reported as
+<symbol>XctHorizontal</symbol>
+items by
+<function>XctNextItem</function>. If this flag is not set,
+then direction changes are not returned as items, but the current direction
+is still maintained and reported for other items.  The current direction is
+given as an enumeration, with the values
+<symbol>XctUnspecified</symbol>,
+<symbol>XctLeftToRight</symbol>,
+and
+<symbol>XctRightToLeft</symbol>.
+	  </para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><symbol>XctFreeString</symbol></term>
+	<listitem><para>
+This means that
+<function>XctFree</function>
+should free the Compound Text string that is passed to
+<function>XctCreate</function>.
+If this flag is not set, the string is not freed.
+	  </para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><symbol>XctShiftMultiGRToGL</symbol></term>
+	<listitem><para>
+This means that
+<function>XctNextItem</function>
+should translate GR
+segments on-the-fly into GL segments for the GR sets: GB2312.1980-1,
+JISX0208.1983-1, and KSC5601.1987-1.
+	  </para></listitem>
+      </varlistentry>
+    </variablelist>
+  </para>
+
+    <para id="XctReset">
+      <indexterm zone="XctReset">
+	<primary><function>XctReset</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XctReset</function></funcdef>
+	    <paramdef>XctData <parameter>data</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<variablelist>
+	  <varlistentry>
+	    <term><parameter>data</parameter></term>
+	    <listitem><para>
+specifies the Compound Text structure
+	      </para></listitem>
+	  </varlistentry>
+	</variablelist>
+
+This function resets the
+<type>XctData</type>
+structure to reparse the Compound Text string from the beginning.
+      </para>
+
+      <para id="XctNextItem">
+      <indexterm zone="XctNextItem">
+	<primary><function>XctNextItem</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XctResult <function>XctNextItem</function></funcdef>
+	    <paramdef>XctData <parameter>data</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<variablelist>
+	  <varlistentry>
+	    <term><parameter>data</parameter></term>
+	    <listitem><para>
+specifies the Compound Text structure
+	      </para></listitem>
+	  </varlistentry>
+	</variablelist>
+
+This function parses the next &ldquo;item&rdquo; from the Compound Text string.  The
+return value indicates what kind of item is returned.  The item itself, its
+length, and the current contextual state, are reported as components of the
+<type>XctData</type>
+structure.
+<type>XctResult</type>
+is an enumeration, with the following values:
+
+	<variablelist>
+	  <varlistentry>
+	    <term><symbol>XctSegment</symbol></term>
+	    <listitem><para>
+the item contains some mixture of C0, GL, GR, and C1 characters.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctC0Segment</symbol></term>
+	    <listitem><para>
+the item contains only C0 characters.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctGLSegment</symbol></term>
+	    <listitem><para>
+the item contains only GL characters.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctC1Segment</symbol></term>
+	    <listitem><para>
+the item contains only C1 characters.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctGRSegment</symbol></term>
+	    <listitem><para>
+the item contains only GR characters.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctExtendedSegment</symbol></term>
+	    <listitem><para>
+the item contains an extended segment.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctExtension</symbol></term>
+	    <listitem><para>
+the item is an unknown extension control sequence.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctHorizontal</symbol></term>
+	    <listitem><para>
+the item indicates a change in horizontal direction or
+depth.  The new direction and depth are recorded in the
+<type>XctData</type>
+structure.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctEndOfText</symbol></term>
+	    <listitem><para>
+The end of the Compound Text string has been reached.
+	      </para></listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><symbol>XctError</symbol></term>
+	    <listitem><para>
+the string contains a syntactic or semantic error; no further
+parsing should be performed.
+	      </para></listitem>
+	  </varlistentry>
+	</variablelist>
+    </para>
+
+    <para id="XctData">
+      <indexterm zone="XctData">
+	<primary><type>XctData</type></primary>
+      </indexterm>
+The following state values are stored in the
+<type>XctData</type>
+structure:
+	<synopsis>
+    XctString		item;		/* the action item */
+    unsigned		item_length;	/* length of item in bytes */
+    int			char_size;	/* the number of bytes per character in
+					 * item, with zero meaning variable */
+    char		*encoding;	/* the XLFD encoding name for item */
+    XctHDirection	horizontal;	/* the direction of item */
+    unsigned		horz_depth;	/* the current direction nesting depth */
+    char		*GL;		/* the "{I} F" string for the current GL */
+    char		*GL_encoding;	/* the XLFD encoding name for the current GL */
+    int			GL_set_size;	/* 94 or 96 */
+    int			GL_char_size;	/* the number of bytes per GL character */
+    char		*GR;		/* the "{I} F" string for the current GR */
+    char		*GR_encoding;	/* the XLFD encoding name for the current GR */
+    int			GR_set_size;	/* 94 or 96 */
+    int			GR_char_size;	/* number of bytes per GR character */
+    char		*GLGR_encoding;	/* the XLFD encoding name for the current
+					 *  GL+GR, if known */
+	</synopsis>
+      </para>
+      <para>
+	<funcsynopsis>
+	  <funcprototype>
+	    <funcdef>void <function>XctFree</function></funcdef>
+	    <paramdef>XctData <parameter>data</parameter></paramdef>
+	  </funcprototype>
+	</funcsynopsis>
+	<variablelist>
+	  <varlistentry>
+	    <term><parameter>data</parameter></term>
+	    <listitem><para>
+specifies the Compound Text structure
+	      </para></listitem>
+	  </varlistentry>
+	</variablelist>
+
+This function frees all data associated with the
+<type>XctData</type>
+structure.
+      </para>
+
+  </sect1>
+
+  <sect1 id='CloseDisplay_Hook_Functions'>
+<title>CloseDisplay Hook Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/CloseHook.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/CloseHook.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuAddCloseDisplayHook">
+      <indexterm zone="XmuAddCloseDisplayHook">
+	<primary><function>XmuAddCloseDisplayHook</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>CloseHook <function>XmuAddCloseDisplayHook</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>int <parameter>( *func )</parameter>
+	    <funcparams>Display *, XPointer</funcparams></paramdef>
+	  <paramdef>XPointer <parameter>arg</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>func</parameter></term>
+	  <listitem><para>
+specifies the function to call at display close
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>arg</parameter></term>
+	  <listitem><para>
+specifies arbitrary data to pass to <parameter>func</parameter>
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function adds a callback for the given display.  When the display is
+closed, the given function will be called with the given display and
+argument as:
+
+      <programlisting>
+	(*func)(dpy, arg)
+      </programlisting>
+    </para>
+
+    <para>
+The function is declared to return an int even though the value is ignored,
+because some compilers used to have problems with functions returning void.
+    </para>
+
+    <para>
+This routine returns <symbol>NULL</symbol> if it was unable to add the
+callback, otherwise it
+returns an opaque handle that can be used to remove or lookup the callback.
+    </para>
+
+    <para id="XmuRemoveCloseDisplayHook">
+      <indexterm zone="XmuRemoveCloseDisplayHook">
+	<primary><function>XmuRemoveCloseDisplayHook</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Bool <function>XmuRemoveCloseDisplayHook</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>CloseHook <parameter>handle</parameter></paramdef>
+	  <paramdef>int <parameter>( *func )</parameter>
+	    <funcparams>Display *, XPointer</funcparams></paramdef>
+	  <paramdef>XPointer <parameter>arg</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>handle</parameter></term>
+	  <listitem><para>
+specifies the callback by id, or <symbol>NULL</symbol>
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><function>func</function></term>
+	  <listitem><para>
+specifies the callback by function
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>arg</parameter></term>
+		<listitem><para>
+specifies the function data to match
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function deletes a callback that has been added with
+<function>XmuAddCloseDisplayHook</function>.
+If handle is not <symbol>NULL</symbol>, it specifies the callback to
+remove, and the func and arg parameters are ignored.  If handle is <symbol>NULL</symbol>, the
+first callback found to match the specified func and arg will be removed.
+Returns
+<symbol>True</symbol>
+if a callback was removed, else returns
+<symbol>False</symbol>.
+    </para>
+
+    <para id="XmuLookupCloseDisplayHook">
+      <indexterm zone="XmuLookupCloseDisplayHook">
+	<primary><function>XmuLookupCloseDisplayHook</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Bool <function>XmuLookupCloseDisplayHook</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>CloseHook <parameter>handle</parameter></paramdef>
+	  <paramdef>int <parameter>( *func )</parameter>
+	    <funcparams>Display *, XPointer</funcparams></paramdef>
+	  <paramdef>XPointer <parameter>arg</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>handle</parameter></term>
+	  <listitem><para>
+specifies the callback by id, or <symbol>NULL</symbol>
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><function>func</function></term>
+	  <listitem><para>
+specifies the callback by function
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>arg</parameter></term>
+	  <listitem><para>
+specifies the function data to match
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function determines if a callback is installed.  If handle is not
+<symbol>NULL</symbol>,
+it specifies the callback to look for, and the func and arg parameters are
+ignored.  If handle is <symbol>NULL</symbol>, the function will look for
+any callback for the
+specified func and arg.  Returns
+<symbol>True</symbol>
+if a matching callback exists, else returns
+<symbol>False</symbol>.
+
+
+    </para>
+  </sect1>
+
+  <sect1 id='Display_Queue_Functions'>
+<title>Display Queue Functions</title>
+
+    <para>
+To use the functions and types defined in this section, you should include the
+header file
+&lt;<filename class='headerfile'>X11/Xmu/DisplayQue.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/DisplayQue.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+<filename class='headerfile'>DisplayQue.h</filename> defines the following
+types:
+
+      <indexterm zone="XmuDisplayQueue">
+	<primary><type>XmuDisplayQueue</type></primary>
+      </indexterm>
+      <synopsis id="XmuDisplayQueue">
+typedef int (*XmuCloseDisplayQueueProc)(XmuDisplayQueue *queue,
+                                        XmuDisplayQueueEntry *entry);
+
+typedef int (*XmuFreeDisplayQueueProc)(XmuDisplayQueue *queue);
+
+typedef struct _XmuDisplayQueueEntry {
+	struct _XmuDisplayQueueEntry *prev, *next;
+	Display *display;
+	CloseHook closehook;
+	XPointer data;
+} XmuDisplayQueueEntry;
+
+typedef struct _XmuDisplayQueue {
+	int nentries;
+	XmuDisplayQueueEntry *head, *tail;
+	XmuCloseDisplayQueueProc closefunc;
+	XmuFreeDisplayQueueProc freefunc;
+	XPointer data;
+} XmuDisplayQueue;
+      </synopsis>
+    </para>
+
+    <para id="XmuDQCreate">
+      <indexterm zone="XmuDQCreate">
+	<primary><function>XmuDQCreate</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XmuDisplayQueue *<function>XmuDQCreate</function></funcdef>
+	  <paramdef>XmuCloseDisplayQueueProc <parameter>closefunc</parameter></paramdef>
+	  <paramdef>XmuFreeDisplayQueueProc <parameter>freefunc</parameter></paramdef>
+	  <paramdef>XPointer <parameter>data</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>closefunc</parameter></term>
+	  <listitem><para>
+specifies the close function
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>freefunc</parameter></term>
+	  <listitem><para>
+specifies the free function
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+specifies private data for the functions
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function creates and returns an empty
+<type>XmuDisplayQueue</type>
+(which is really just a set of displays, but is called a queue for
+historical reasons).  The queue is initially empty, but displays
+can be added using
+<function>XmuAddDisplay</function>.
+The data value is simply stored in the queue for use by the closefunc
+and freefunc callbacks.
+Whenever a display in the queue is closed using
+<function>XCloseDisplay</function>,
+the <parameter>closefunc</parameter> (if non-<symbol>NULL</symbol>) is called with the queue and the display's
+<function>XmuDisplayQueueEntry</function>
+as follows:
+      <programlisting>
+	(*closefunc)(queue, entry)
+      </programlisting>
+    </para>
+
+    <para>
+The <parameter>freefunc</parameter> (if non-<symbol>NULL</symbol>) is called whenever the last
+display in the
+queue is closed, as follows:
+
+      <programlisting>
+	(*freefunc)(queue)
+      </programlisting>
+    </para>
+
+    <para>
+The application is responsible for actually freeing the queue, by calling
+<function>XmuDQDestroy</function>.
+    </para>
+
+    <para id="XmuDQAddDisplay">
+      <indexterm zone="XmuDQAddDisplay">
+	<primary><function>XmuDQAddDisplay</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XmuDisplayQueueEntry *<function>XmuDQAddDisplay</function></funcdef>
+	  <paramdef>XmuDisplayQueue *<parameter>q</parameter></paramdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XPointer <parameter>data</parameter></paramdef>
+	</funcprototype>
+     </funcsynopsis>
+
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>q</parameter></term>
+	  <listitem><para>
+specifies the queue
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the display to add
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+specifies private data for the free function
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function adds the specified display to the queue.  If successful,
+the queue entry is returned, otherwise <symbol>NULL</symbol> is returned.
+The data value is simply stored in the queue entry for use by the
+queue's freefunc callback.  This function does not attempt to prevent
+duplicate entries in the queue; the caller should use
+<function>XmuDQLookupDisplay</function>
+to determine if a display has already been added to a queue.
+    </para>
+
+    <para id="XmuDQLookupDisplay">
+      <indexterm zone="XmuDQLookupDisplay">
+	<primary><function>XmuDQLookupDisplay</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XmuDisplayQueueEntry *<function>XmuDQLookupDisplay</function></funcdef>
+	  <paramdef>XmuDisplayQueue *<parameter>q</parameter></paramdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>q</parameter></term>
+	  <listitem><para>
+specifies the queue
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the display to lookup
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function returns the queue entry for the specified display, or
+<symbol>NULL</symbol> if
+the display is not in the queue.
+    </para>
+
+    <para id="XmuDQNDisplays">
+      <indexterm zone="XmuDQNDisplays">
+	<primary><function>XmuDQNDisplays</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef><function>XmuDQNDisplays</function></funcdef>
+	      <paramdef><parameter>q</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+This macro returns the number of displays in the specified queue.
+    </para>
+
+    <para id="XmuDQRemoveDisplay">
+      <indexterm zone="XmuDQRemoveDisplay">
+	<primary><function>XmuDQRemoveDisplay</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Bool <function>XmuDQRemoveDisplay</function></funcdef>
+	  <paramdef>XmuDisplayQueue *<parameter>q</parameter></paramdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>q</parameter></term>
+	  <listitem><para>
+specifies the queue
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the display to remove
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function removes the specified display from the specified queue.
+No callbacks are performed.
+If the display is not found in the queue,
+<symbol>False</symbol>
+is returned, otherwise
+<symbol>True</symbol>
+is returned.
+    </para>
+
+    <para id="XmuDQDestroy">
+      <indexterm zone="XmuDQDestroy">
+	<primary><function>XmuDQDestroy</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Bool <function>XmuDQDestroy</function></funcdef>
+	  <paramdef>XmuDisplayQueue *<parameter>q</parameter></paramdef>
+	  <paramdef>Bool <parameter>docallbacks</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>q</parameter></term>
+	  <listitem><para>
+specifies the queue to destroy
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>docallbacks</parameter></term>
+	  <listitem><para>
+specifies whether close functions should be called
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function releases all memory associated with the specified queue.
+If docallbacks is
+<symbol>True</symbol>,
+then the queue's closefunc callback (if non-<symbol>NULL</symbol>) is first called
+for each display in the queue, even though
+<function>XCloseDisplay</function>
+is not called on the display.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Toolkit_Convenience_Functions'>
+<title>Toolkit Convenience Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/Initer.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Initer.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuAddInitializer">
+      <indexterm zone="XmuAddInitializer">
+	<primary><function>XmuAddInitializer</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuAddInitializer</function></funcdef>
+	  <paramdef>void <parameter>( *func )</parameter>
+	    <funcparams>XtAppContext, XPointer</funcparams></paramdef>
+	  <paramdef>XPointer <parameter>data</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>func</parameter></term>
+	  <listitem><para>
+specifies the procedure to register
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>data</parameter></term>
+	  <listitem><para>
+specifies private data for the procedure
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function registers a procedure, to be invoked the first time
+<function>XmuCallInitializers</function>
+is called on a given application context.  The procedure
+is called with the application context and the specified data:
+
+      <programlisting>
+	(*func)(app_con, data)
+      </programlisting>
+    </para>
+
+    <para id="XmuCallInitializers">
+      <indexterm zone="XmuCallInitializers">
+	<primary><function>XmuCallInitializers</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuCallInitializers</function></funcdef>
+	  <paramdef>XtAppContext <parameter>app_con</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>app_con</parameter></term>
+	  <listitem><para>
+specifies the application context to initialize
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function calls each of the procedures that have been registered with
+<function>XmuAddInitializer</function>,
+if this is the first time the application context has been passed to
+<function>XmuCallInitializers</function>.
+Otherwise, this function does nothing.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Standard_Colormap_Functions'>
+<title>Standard Colormap Functions</title>
+
+    <para>
+To use the functions defined in this section, you should include the header
+file
+&lt;<filename class='headerfile'>X11/Xmu/StdCmap.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/StdCmap.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para id="XmuAllStandardColormaps">
+      <indexterm zone="XmuAllStandardColormaps">
+	<primary><function>XmuAllStandardColormaps</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Status <function>XmuAllStandardColormaps</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <indexterm>
+	<primary>colormaps</primary><secondary>standard</secondary>
+      </indexterm>
+To create all of the appropriate standard colormaps for every visual of
+every screen on a given display, use
+<function>XmuAllStandardColormaps</function>.
+    </para>
+
+    <para>
+This function defines and retains as permanent resources all standard
+colormaps which are meaningful for the visuals of each screen of the
+display.  It returns 0 on failure, non-zero on success.  If the property of
+any standard colormap is already defined, this function will redefine it.
+    </para>
+
+    <para>
+This function is intended to be used by window managers or a special client
+at the start of a session.
+    </para>
+
+    <para>
+The standard colormaps of a screen are defined by properties associated with
+the screen's root window.  The property names of standard colormaps are
+predefined, and each property name except
+<property>RGB_DEFAULT_MAP</property> may describe at
+most one colormap.
+    </para>
+
+    <para>
+The standard colormaps are: <property>RGB_BEST_MAP</property>,
+<property>RGB_RED_MAP</property>, <property>RGB_GREEN_MAP</property>,
+<property>RGB_BLUE_MAP</property>, <property>RGB_DEFAULT_MAP</property>,
+ and <property>RGB_GRAY_MAP</property>.  Therefore a screen may
+have at most 6 standard colormap properties defined.
+    </para>
+
+    <para>
+A standard colormap is associated with a particular visual of the screen.  A
+screen may have multiple visuals defined, including visuals of the same
+class at different depths.  Note that a visual id might be repeated for more
+than one depth, so the visual id and the depth of a visual identify the
+visual.  The characteristics of the visual will determine which standard
+colormaps are meaningful under that visual, and will determine how the
+standard colormap is defined.  Because a standard colormap is associated
+with a specific visual, there must be a method of determining which visuals
+take precedence in defining standard colormaps.
+    </para>
+
+    <para>
+The method used here is: for the visual of greatest depth, define all
+standard colormaps meaningful to that visual class, according to this order
+of (descending) precedence:
+<symbol>DirectColor</symbol>;
+<symbol>PseudoColor</symbol>;
+<symbol>TrueColor</symbol>
+and
+<symbol>GrayScale</symbol>;
+and finally
+<symbol>StaticColor</symbol>
+and
+<symbol>StaticGray</symbol>.
+    </para>
+
+<para>This function allows success, on a per screen basis.  For example, if a map
+on screen 1 fails, the maps on screen 0, created earlier, will remain.
+However, none on screen 1 will remain.  If a map on screen 0 fails, none
+will remain.
+    </para>
+
+    <para>
+See
+<link linkend="XmuVisualStandardColormaps"><function>XmuVisualStandardColormaps</function></link>
+for which standard colormaps are meaningful under these classes of visuals.
+    </para>
+
+    <para id="XmuVisualStandardColormaps">
+      <indexterm zone="XmuVisualStandardColormaps">
+	<primary><function>XmuVisualStandardColormaps</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Status <function>XmuVisualStandardColormaps</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>int <parameter>screen</parameter></paramdef>
+	  <paramdef>VisualID <parameter>visualid</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>depth</parameter></paramdef>
+	  <paramdef>Bool <parameter>replace</parameter></paramdef>
+	  <paramdef>Bool <parameter>retain</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen of the display
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>visualid</parameter></term>
+	  <listitem><para>
+specifies the visual type
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>depth</parameter></term>
+	  <listitem><para>
+specifies the visual depth
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>replace</parameter></term>
+	  <listitem><para>
+specifies whether or not to replace
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>retain</parameter></term>
+	  <listitem><para>
+specifies whether or not to retain
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To create all of the appropriate standard colormaps for a given visual on a
+given screen, use
+<function>XmuVisualStandardColormaps</function>.
+    </para>
+
+    <para>
+This function defines all appropriate standard colormap properties for the
+given visual.  If replace is
+<symbol>True</symbol>,
+any previous definition will be removed.
+If retain is
+<symbol>True</symbol>,
+new properties will be retained for the duration of the
+server session.  This function returns 0 on failure, non-zero on success.
+On failure, no new properties will be defined, but old ones may have been
+removed if replace was <symbol>True</symbol>.
+    </para>
+
+    <para>
+Not all standard colormaps are meaningful to all visual classes.  This
+routine will check and define the following properties for the following
+classes, provided that the size of the colormap is not too small.  For
+<symbol>DirectColor</symbol>
+and
+<symbol>PseudoColor</symbol>:
+<property>RGB_DEFAULT_MAP</property>, <property>RGB_BEST_MAP</property>,
+<property>RGB_RED_MAP</property>, <property>RGB_GREEN_MAP</property>,
+<property>RGB_BLUE_MAP</property>, and <property>RGB_GRAY_MAP</property>.
+For
+<symbol>TrueColor</symbol>
+and
+<symbol>StaticColor</symbol>:
+<property>RGB_BEST_MAP</property>.  For
+<symbol>GrayScale</symbol>
+and
+<symbol>StaticGray</symbol>:
+<property>RGB_GRAY_MAP</property>.
+    </para>
+
+    <para id="XmuLookupStandardColormap">
+      <indexterm zone="XmuLookupStandardColormap">
+	<primary><function>XmuLookupStandardColormap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Status <function>XmuLookupStandardColormap</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>int <parameter>screen</parameter></paramdef>
+	  <paramdef>VisualID <parameter>visualid</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>depth</parameter></paramdef>
+	  <paramdef>Atom <parameter>property</parameter></paramdef>
+	  <paramdef>Bool <parameter>replace</parameter></paramdef>
+	  <paramdef>Bool <parameter>retain</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen of the display
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>visualid</parameter></term>
+	  <listitem><para>
+specifies the visual type
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>depth</parameter></term>
+	  <listitem><para>
+specifies the visual depth
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>property</parameter></term>
+	  <listitem><para>
+specifies the standard colormap property
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>replace</parameter></term>
+	  <listitem><para>
+specifies whether or not to replace
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>retain</parameter></term>
+	  <listitem><para>
+specifies whether or not to retain
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To create a standard colormap if one does not currently exist, or replace
+the currently existing standard colormap, use
+<function>XmuLookupStandardColormap</function>.
+    </para>
+
+    <para>
+Given a screen, a visual, and a property, this function will determine the
+best allocation for the property under the specified visual, and determine
+the whether to create a new colormap or to use the default colormap of the
+screen.
+    </para>
+
+    <para>
+If replace is True, any previous definition of the property will be
+replaced.  If retain is True, the property and the colormap will be made
+permanent for the duration of the server session.  However, pre-existing
+property definitions which are not replaced cannot be made permanent by a
+call to this function; a request to retain resources pertains to newly
+created resources.
+    </para>
+
+    <para>
+This function returns 0 on failure, non-zero on success.  A request to
+create a standard colormap upon a visual which cannot support such a map is
+considered a failure.  An example of this would be requesting any standard
+colormap property on a monochrome visual, or, requesting an
+<property>RGB_BEST_MAP</property> on
+a display whose colormap size is 16.
+    </para>
+
+    <para id="XmuGetColormapAllocation">
+      <indexterm zone="XmuGetColormapAllocation">
+	<primary><function>XmuGetColormapAllocation</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Status <function>XmuGetColormapAllocation</function></funcdef>
+	  <paramdef>XVisualInfo *<parameter>vinfo</parameter></paramdef>
+	  <paramdef>Atom <parameter>property</parameter></paramdef>
+	  <paramdef>unsigned long *<parameter>red_max</parameter></paramdef>
+	  <paramdef>unsigned long *<parameter>green_max</parameter></paramdef>
+	  <paramdef>unsigned long *<parameter>blue_max</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>vinfo</parameter></term>
+	  <listitem><para>
+specifies visual information for a chosen visual
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>property</parameter></term>
+	  <listitem><para>
+specifies one of the standard colormap property names
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>red_max</parameter></term>
+	  <listitem><para>
+returns maximum red value</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>green_max</parameter></term>
+	  <listitem><para>
+returns maximum green value
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>blue_max</parameter></term>
+	  <listitem><para>
+returns maximum blue value
+	  </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To determine the best allocation of reds, greens, and blues in a standard
+colormap, use
+<function>XmuGetColormapAllocation</function>.
+    </para>
+
+    <para>
+<function>XmuGetColormapAllocation</function>
+returns 0 on failure, non-zero on success.  It is
+assumed that the visual is appropriate for the colormap property.
+    </para>
+
+    <para id="XmuStandardColormap">
+      <indexterm zone="XmuStandardColormap">
+	<primary><function>XmuStandardColormap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XStandardColormap *<function>XmuStandardColormap</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>int <parameter>screen</parameter></paramdef>
+	  <paramdef>VisualID <parameter>visualid</parameter></paramdef>
+	  <paramdef>unsigned int <parameter>depth</parameter></paramdef>
+	  <paramdef>Atom <parameter>property</parameter></paramdef>
+	  <paramdef>Colormap <parameter>cmap</parameter></paramdef>
+	  <paramdef>unsigned long <parameter>red_max</parameter></paramdef>
+	  <paramdef>unsigned long <parameter>green_max</parameter></paramdef>
+	  <paramdef>unsigned long <parameter>blue_max</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen of the display
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>visualid</parameter></term>
+	  <listitem><para>
+specifies the visual type
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>depth</parameter></term>
+	  <listitem><para>
+specifies the visual depth
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>property</parameter></term>
+	  <listitem><para>
+specifies the standard colormap property
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>cmap</parameter></term>
+	  <listitem><para>
+specifies the colormap ID, or None
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>red_max</parameter></term>
+	  <listitem><para>
+specifies the red allocation
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>green_max</parameter></term>
+	  <listitem><para>
+specifies the green allocation
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>blue_max</parameter></term>
+	  <listitem><para>
+specifies the blue allocation
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To create any one standard colormap, use
+<function>XmuStandardColormap</function>.
+    </para>
+
+    <para>
+This function creates a standard colormap for the given screen, visualid,
+and visual depth, with the given red, green, and blue maximum values, with
+the given standard property name.  Upon success, it returns a pointer to an
+<function>XStandardColormap</function>
+structure which describes the newly created colormap.
+Upon failure, it returns <symbol>NULL</symbol>.
+If cmap is the default colormap of the screen, the standard colormap
+will be defined on the default colormap; otherwise a new colormap is created.
+    </para>
+
+    <para>
+Resources created by this function are not made permanent; that is the
+caller's responsibility.
+    </para>
+
+    <para id="XmuCreateColormap">
+      <indexterm zone="XmuCreateColormap">
+	<primary><function>XmuCreateColormap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>Status <function>XmuCreateColormap</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>XStandardColormap *<parameter>colormap</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection under which the map is created
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>colormap</parameter></term>
+	  <listitem><para>
+specifies the map to be created</para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To create any one colormap which is described by an
+<structname>XStandardColormap</structname>
+structure, use
+<function>XmuCreateColormap</function>.
+    </para>
+
+    <para>
+This function returns 0 on failure, and non-zero on success.  The base_pixel
+of the colormap is set on success.  Resources created by this function are
+not made permanent.  No argument error checking is provided; use at your own
+risk.
+    </para>
+
+    <para>
+All colormaps are created with read-only allocations, with the exception of
+read-only allocations of colors which fail
+to return the expected pixel value, and these are individually defined as
+read/write allocations.  This is done so that all the cells defined in the
+colormap are contiguous, for use in image processing.  This typically
+happens with White and Black in the default map.
+    </para>
+
+    <para>
+Colormaps of static visuals are considered to be successfully created if the
+map of the static visual matches the definition given in the standard
+colormap structure.
+    </para>
+
+    <para id="XmuDeleteStandardColormap">
+      <indexterm zone="XmuDeleteStandardColormap">
+	<primary><function>XmuDeleteStandardColormap</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuDeleteStandardColormap</function></funcdef>
+	  <paramdef>Display *<parameter>dpy</parameter></paramdef>
+	  <paramdef>Screen *<parameter>screen</parameter></paramdef>
+	  <paramdef>Atom <parameter>property</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>dpy</parameter></term>
+	  <listitem><para>
+specifies the connection to the X server
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>screen</parameter></term>
+	  <listitem><para>
+specifies the screen of the display
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>property</parameter></term>
+	  <listitem><para>
+specifies the standard colormap property
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+To remove any standard colormap property, use
+<function>XmuDeleteStandardColormap</function>.
+This function will remove the specified property from the specified screen,
+releasing any resources used by the colormap(s) of the property, if
+possible.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Widget_Description_Functions'>
+<title>Widget Description Functions</title>
+
+    <para>
+The functions defined in this section are for building a description of
+the structure of and resources associated with a hierarchy of widget classes.
+This package is typically used by applications that wish to manipulate the
+widget set itself.
+    </para>
+
+    <para>
+The definitions needed to use these interfaces are in the header file
+&lt;<filename class='headerfile'>X11/Xmu/WidgetNode.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/WidgetNode.h</filename></primary>
+</indexterm>.
+To call these functions, you need to link against the libXmu library.
+The following function must be called before any of the others described
+below:
+
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuWnInitializeNodes</function></funcdef>
+	  <paramdef>XmuWidgetNode *<parameter>node_array</parameter></paramdef>
+	  <paramdef>int <parameter>num_nodes</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>node_array</parameter></term>
+	  <listitem><para>
+specifies a list of widget classes, in alphabetical order
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_nodes</parameter></term>
+	  <listitem><para>
+specifies the number of widget classes in the node array
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+To determine the resources provided by a widget class or classes, use
+
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>void <function>XmuWnFetchResources</function></funcdef>
+	  <paramdef>XmuWidgetNode *<parameter>node</parameter></paramdef>
+	  <paramdef>Widget <parameter>toplevel</parameter></paramdef>
+	  <paramdef>XmuWidgetNode *<parameter>top_node</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>node</parameter></term>
+	  <listitem><para>
+specifies the widget class for which resources should be obtained.
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>toplevel</parameter></term>
+	  <listitem><para>
+specifies the widget that should be used for creating an instance of
+<parameter>node</parameter>
+from which resources are extracted.  This is typically the value returned
+by <olink targetdoc='libXaw' targetptr='XtAppInitialize'><function>XtAppInitialize</function></olink>.
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>top_node</parameter></term>
+	  <listitem><para>
+specifies the ancestor of <parameter>node</parameter> that should be
+treated as the root
+of the widget inheritance tree (used in determining which ancestor contributed
+which resources).
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+Each widget class inherits the resources of its parent.  To count the number
+of resources contributed by a particular widget class, use:
+
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>int <function>XmuWnCountOwnedResources</function></funcdef>
+	  <paramdef>XmuWidgetNode *<parameter>node</parameter></paramdef>
+	  <paramdef>XmuWidgetNode *<parameter>owner_node</parameter></paramdef>
+	  <paramdef>Bool <parameter>constraints</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>node</parameter></term>
+	  <listitem><para>
+specifies the widget class whose resources are being examined.
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>owner_node</parameter></term>
+	  <listitem><para>
+specifies the widget class of the ancestor of <parameter>node</parameter>
+whose contributions
+are being counted.
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>constraints</parameter></term>
+	  <listitem><para>
+specifies whether or not to count constraint resources or normal resources.
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This routine returns the number of resources contributed (or
+&ldquo;owned&rdquo;) by
+the specified widget class.
+	    </para>
+
+    <para id="XmuWnNameToNode">
+      <indexterm zone="XmuWnNameToNode">
+	<primary><function>XmuWnNameToNode</function></primary>
+      </indexterm>
+      <funcsynopsis>
+	<funcprototype>
+	  <funcdef>XmuWidgetNode *<function>XmuWnNameToNode</function></funcdef>
+	  <paramdef>XmuWidgetNode *<parameter>node_list</parameter></paramdef>
+	  <paramdef>int <parameter>num_nodes</parameter></paramdef>
+	  <paramdef>char *<parameter>name</parameter></paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      <variablelist>
+	<varlistentry>
+	  <term><parameter>node_list</parameter></term>
+	  <listitem><para>
+specifies a list of widget nodes
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>num_nodes</parameter></term>
+	  <listitem><para>
+specifies the number of nodes in the list
+	    </para></listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term><parameter>name</parameter></term>
+	  <listitem><para>
+specifies the name of the widget class in the node list to search for
+	    </para></listitem>
+	</varlistentry>
+      </variablelist>
+
+This function returns the WidgetNode in the list that matches the given
+widget name or widget class name.  If no match is found, it returns
+<symbol>NULL</symbol>.
+    </para>
+
+  </sect1>
+
+  <sect1 id='Participation_in_the_Editres_Protocol'>
+<title>Participation in the Editres Protocol</title>
+
+    <para>
+      <indexterm>
+	<primary>editres</primary>
+      </indexterm>
+To participate in the editres protocol, applications which are not based
+on the Athena widget set should include the header file
+&lt;<filename class='headerfile'>X11/Xmu/Editres.h</filename>&gt;
+<indexterm>
+<primary><filename class='headerfile'>X11/Xmu/Editres.h</filename></primary>
+</indexterm>
+and link against the libXmu library.
+    </para>
+
+    <para>
+To participate in the editres protocol, Xt applications which do not rely
+on the Athena widget set should register the editres protocol handler on
+each shell widget in the application, specifying an event mask of 0,
+nonmaskable events, and client data as <symbol>NULL</symbol>:
+
+    <programlisting>
+XtAddEventHandler(shell, (EventMask) 0, True, _XEditResCheckMessages, NULL);
+    </programlisting>
+    </para>
+  </sect1>
+
+  <index />
+</article>

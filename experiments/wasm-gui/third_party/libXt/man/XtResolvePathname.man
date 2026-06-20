@@ -1,0 +1,206 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.ie \n(.g .ds `` \(lq
+.el       .ds `` ``
+.ie \n(.g .ds '' \(rq
+.el       .ds '' ''
+.hw XtResolve-Pathname wid-get
+.na
+.TH XtResolvePathname __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtResolvePathname \- search for a file using standard substitution
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+char * XtResolvePathname(Display *\fIdisplay\fP,
+const char *\fItype\fP,
+const char *\fIfilename\fP,
+const char *\fIsuffix\fP,
+const char *\fIpath\fP,
+Substitution \fIsubstitutions\fP, Cardinal \fInum_substitutions\fP,
+XtFilePredicate \fIpredicate\fP);
+.SH ARGUMENTS
+.IP \fIdisplay\fP 1.2i
+Specifies the display to use to find the language for language substitutions.
+.IP \fItype\fP
+.br
+.ns
+.IP \fIfilename\fP
+.br
+.ns
+.IP \fIsuffix\fP 1.2i
+Specify values to substitute into the path.
+.IP \fIpath\fP 1.2i
+Specifies the list of file specifications, or NULL.
+.IP \fIsubstitutions\fP 1.2i
+Specifies a list of additional substitutions to make into the path, or NULL.
+.IP \fInum_substitutions\fP 1.2i
+Specifies the number of entries in \fIsubstitutions\fP.
+.IP \fIpredicate\fP 1.2i
+Specifies a procedure called to judge each potential file name, or NULL.
+.SH DESCRIPTION
+The substitutions specified by
+.B XtResolvePathname
+are determined from the value of the language string retrieved by
+.B XtDisplayInitialize
+for the specified display.
+To set the
+language for all applications specify \*(``*xnlLanguage: \fIlang\fP\*('' in the
+resource database.
+The format and content of the language string are
+implementation-defined.
+One suggested syntax is to compose
+the language string of three parts:
+a  \*(``language  part\*('',  a
+\*(``territory  part\*('' and a \*(``codeset part\*(''.
+The manner in which
+this composition is accomplished is implementation-defined
+and the \*(xI make no interpretation of the parts other
+than to use them in substitutions as described below.
+.LP
+.B XtResolvePathname
+calls
+.B XtFindFile
+with the following substitutions
+in addition to any passed by the caller and returns the value returned by
+.BR XtFindFile :
+.IP %N 5
+The value of the \fIfilename\fP parameter, or the application's
+class name if \fIfilename\fP is NULL.
+.IP %T 5
+The value of the \fItype\fP parameter.
+.IP %S 5
+The value of the \fIsuffix\fP parameter.
+.IP %L 5
+The language string associated with the specified display.
+.IP %l 5
+The language part of the display's language string.
+.IP %t 5
+The territory part of the display's language string.
+.IP %c 5
+The codeset part of the display's language string.
+.IP %C 5
+The customization string retrieved from the resource
+database associated with \fIdisplay\fP.
+.IP %D 5
+The value of the implementation-specific default path.
+.LP
+If a path is passed to
+.BR XtResolvePathname ,
+it will be passed along to
+.BR XtFindFile .
+If the \fIpath\fP argument is NULL, the value of the
+.B \s-1XFILESEARCHPATH\s+1
+environment variable will be passed to
+.BR XtFindFile .
+If
+.B \s-1XFILESEARCHPATH\s+1
+is not defined, an implementation-specific default path will be used
+which contains at least 6 entries.
+These entries
+must contain the following substitutions:
+
+.nf
+.ta 3n 23n 27n
+1.	%C, %N, %S, %T, %L	or	%C, %N, %S, %T, %l, %t, %c
+2.	%C, %N, %S, %T, %l
+3.	%C, %N, %S, %T
+4.	%N, %S, %T, %L	or	%N, %S, %T, %l, %t, %c
+5.	%N, %S, %T, %l
+6.	%N, %S, %T
+.fi
+
+The order of these six entries within the path must be as given above.
+The order and use of substitutions within a given entry is implementation
+dependent.
+If the path begins
+with a colon, it will be preceded by %N%S.  If the path includes two
+adjacent colons, \fB%N%S\fP will be inserted between them.
+.LP
+The \fItype\fP parameter is intended to be a category of files, usually
+being translated into a directory in the pathname.
+Possible values
+might include \*(``app-defaults\*('', \*(``help\*('', and \*(``bitmap\*(''.
+.LP
+The \fIsuffix\fP parameter is intended to be appended to the file name.
+Possible values might include \*(``.txt\*('', \*(``.dat\*('', and \*(``.bm\*(''.
+.LP
+A suggested value for the default path on POSIX-based systems is
+.IP
+__projectroot__/lib/X11/%L/%T/%N%C%S:__projectroot__/lib/X11/%l/%T/%N%C%S:\\
+.br
+__projectroot__/lib/X11/%T/%N%C%S:__projectroot__/lib/X11/%L/%T/%N%S:\\
+.br
+__projectroot__/lib/X11/%l/%T/%N%S:__projectroot__/lib/X11/%T/%N%S
+.LP
+Using this example, if the user has specified a language, it will be
+used as a subdirectory of __projectroot__/lib/X11 that will be searched
+for other files.
+If the desired file is not found there, the lookup
+will be tried again using just the language part of the specification.
+If the file is not there, it will be looked for in
+__projectroot__/lib/X11.
+The \fItype\fP parameter is used as a
+subdirectory of the language directory or of __projectroot__/lib/X11,
+and \fIsuffix\fP is appended to the file name.
+.LP
+The %D substitution allows the addition of path
+elements to the implementation-specific default path, typically to
+allow additional directories to be searched without preventing
+resources in the system directories from being found.
+For example, a
+user installing resource files under a directory called \*(``ourdir\*(''
+might set
+.B \s-1XFILESEARCHPATH\s+1
+to
+.IP
+%D:ourdir/%T/%N%C:ourdir/%T/%N
+.LP
+The customization string is obtained by querying the resource database
+currently associated with the display (the database returned by
+.BR XrmGetDatabase )
+for the resource \fIapplication_name\fP.customization, class
+\fIapplication_class\fP.Customization where \fIapplication_name\fP
+and \fIapplication_class\fP are the values returned by
+.BR XtGetApplicationNameAndClass .
+If no value is specified in the database, the empty string is used.
+.LP
+It is the responsibility of the caller to free the returned string using
+.B XtFree
+when it is no longer needed.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

@@ -1,0 +1,118 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.ie \n(.g .ds `` \(lq
+.el       .ds `` ``
+.ie \n(.g .ds '' \(rq
+.el       .ds '' ''
+.hw XtSet-Language-Proc wid-get
+.na
+.TH XtSetLanguageProc __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtSetLanguageProc \- set the language procedure
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtLanguageProc XtSetLanguageProc(XtAppContext \fIapp_context\fP, XtLanguageProc
+\fIproc\fP, XtPointer \fIclient_data\fP);
+.SH ARGUMENTS
+.IP \fIapp_context\fP 1i
+Specifies the application context in which the language procedure
+is to be used, or NULL.
+.LP
+.IP \fIproc\fP 1i
+Specifies the language procedure, or NULL.
+.LP
+.IP \fIclient_data\fP 1i
+Specifies additional client data to be passed to the language procedure
+when it is called.
+.SH DESCRIPTION
+.B XtSetLanguageProc
+sets the language procedure that will be called from
+.B XtDisplayInitialize
+for all subsequent Displays initialized in the specified application
+context.
+If \fIapp_context\fP is NULL, the specified language procedure
+is registered in all application contexts created by the calling process,
+including any future application contexts that may be created.
+If
+\fIproc\fP is NULL a default language procedure is registered.
+.B XtSetLanguageProc
+returns the previously registered language procedure.
+If a language
+procedure has not yet been registered, the return value is unspecified
+but if this return value is used in a subsequent call to
+.BR XtSetLanguageProc ,
+it will cause the default language procedure to be registered.
+.LP
+The default language procedure does the following:
+.IP \(bu 5
+Sets the locale according to the environment.
+On ANSI C-based systems
+this is done by calling
+.BR setlocale (
+.BR LC_ALL ,
+language ).
+If an error is encountered a warning message is issued with
+.BR XtWarning .
+.IP \(bu 5
+Calls
+.B XSupportsLocale
+to verify that the current locale is supported.
+If the locale is not
+supported, a warning message is issued with
+.B XtWarning
+and the locale is set to \*(``C\*(''.
+.IP \(bu 5
+Calls
+.B XSetLocaleModifiers
+specifying the empty string.
+.IP \(bu 5
+Returns the value of the current locale.
+On ANSI C-based systems this
+is the return value from a final call to
+.BR setlocale (
+.BR LC_ALL ,
+NULL ).
+.LP
+A client wishing to use this mechanism to establish locale can do so
+by calling
+.B XtSetLanguageProc
+prior to
+.B XtDisplayInitialize.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP
