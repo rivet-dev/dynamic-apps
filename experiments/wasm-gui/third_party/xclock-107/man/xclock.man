@@ -1,0 +1,272 @@
+.\" $Xorg: xclock.man,v 1.4 2001/02/09 02:05:39 xorgcvs Exp $
+.\" Copyright 1988, 1994, 1998  The Open Group
+.\"
+.\" Permission to use, copy, modify, distribute, and sell this software and its
+.\" documentation for any purpose is hereby granted without fee, provided that
+.\" the above copyright notice appear in all copies and that both that
+.\" copyright notice and this permission notice appear in supporting
+.\" documentation.
+.\"
+.\" The above copyright notice and this permission notice shall be included
+.\" in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of The Open Group shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from The Open Group.
+.\"
+.\" $XFree86: xc/programs/xclock/xclock.man,v 1.15 2003/07/04 16:24:30 eich Exp $
+.\"
+.TH XCLOCK 1 __xorgversion__
+.SH NAME
+xclock \- analog / digital clock for X
+.SH SYNOPSIS
+\fBxclock\fP [ \fB\-help\fP ] [ \fB\-analog\fP | \fB\-digital\fP ]
+[ \fB\-brief\fP ] [ \fB\-chime\fP ] [ \fB\-hd\fP \fIcolor\fP ]
+[ \fB\-hl\fP \fIcolor\fP ] [ \fB\-update\fP \fIseconds\fP ]
+[ \fB\-strftime\fP \fIformat\fP ]
+[ \fB\-twelve\fP | \fB-twentyfour\fP | \fB-utime\fP ]
+[ \fB\-padding\fP \fInumber\fP ]
+[ \fB\-norender\fP ]
+[ \fB\-render\fP ]
+[ \fB\-sharp\fP ]
+[ \fB\-face\fP \fIpattern\fP ]
+.SH DESCRIPTION
+The
+.I xclock
+program displays the time in analog or digital form.  The time is continuously
+updated at a frequency which may be specified by the user.
+.SH OPTIONS
+.I Xclock
+accepts all of the standard X Toolkit command line options along with the
+additional options listed below:
+.TP 8
+.B \-help
+This option indicates that a brief summary of the allowed options should be
+printed on the standard error.
+.TP 8
+.B \-analog
+This option indicates that a conventional 12 hour clock face with tick marks
+and hands should be used.  This is the default.
+.TP 8
+\fB\-digital\fP or \fB\-d\fP
+This option indicates that a 24 hour digital clock should be used.
+.TP 8
+\fB\-brief\fP
+This option indicates that the digital clock should only display the hours
+and minutes fields.  The default is to show the full time and date information.
+.TP 8
+\fB\-utime\fP
+This option indicates that a digital clock should display seconds since
+the Epoch (in format '970012340 seconds since Epoch' instead of a standard
+24-hour time.
+.TP 8
+.B \-strftime \fIformat\fP
+This option allows an strftime(__libmansuffix__) format string to be specified
+for the digital clock's display.
+.TP 8
+.B \-twelve
+This option indicates that a digital clock should display the time in
+twelve hour format.
+.TP 8
+.B \-twentyfour
+This option indicates that a digital clock should display the time in
+twenty-four hour format.  This is the default when a digital clock is used.
+.TP 8
+.B \-chime
+This option indicates that the clock should chime
+once on the half hour and twice on the hour.
+.TP 8
+\fB\-hands\fP \fIcolor\fP (or \fB\-hd\fP \fIcolor\fP)
+This option specifies the color of the hands on an analog clock.  The default
+is \fIblack\fP.
+This option is effectively ignored when Xrender is in use.
+.TP 8
+\fB\-highlight\fP \fIcolor\fP (or \fB\-hl\fP \fIcolor\fP)
+This option specifies the color of the edges of the hands on an analog clock,
+and is only useful on color displays.  The default is \fIblack\fP.
+This option is effectively ignored when Xrender is in use.
+.TP 8
+.B \-update \fIseconds\fP
+This option specifies the frequency in seconds at which \fIxclock\fP
+should update its display.  If the clock is obscured and then exposed,
+it will be updated immediately.  A value of 30 seconds or less will enable a
+second hand on an analog clock.  The default is 60 seconds.
+.TP 8
+.B \-padding \fInumber\fP
+This option specifies the width in pixels of the padding
+between the window border and clock text or picture.  The default is 10
+on a digital clock and 8 on an analog clock.
+.TP 8
+.B \-render
+This option tells \fIxclock\fP to use the Xrender extension to draw an
+anti-aliased face. This is the default if \fIxclock\fP has been
+compiled with Xrender support.
+Note that the color selection options and resources used when Xrender is
+in effect differ from the standard options.
+.TP 8
+.B \-norender
+This option turns off the use of Xrender to draw the clock.
+.TP 8
+.B \-sharp
+This option tells \fIxclock\fP to use sharper edges when drawn using
+the Xrender extension.
+.TP 8
+.B \-face \fIpattern\fP
+This option specifies the font to use in digital mode when the
+Xrender extension is used.  Patterns are specified using the
+fontconfig face format described in the
+.I Font Names
+section of
+.IR fonts.conf (__filemansuffix__).
+.SH X DEFAULTS
+This program uses the
+.I Clock
+widget.  It understands all of the core resource names and classes as well as:
+.PP
+.TP 8
+.B width (\fPclass\fB Width)
+Specifies the width of the clock.  The default for analog clocks is 164
+pixels; the default for digital clocks is whatever is needed to hold the
+clock when displayed in the chosen font.
+.TP 8
+.B height (\fPclass\fB Height)
+Specifies the height of the clock.  The default for analog clocks is 164
+pixels; the default for digital clocks is whatever is needed to hold the
+clock when displayed in the chosen font.
+.TP 8
+.B update (\fPclass\fB Interval)
+Specifies the frequency in seconds at which the time should be redisplayed.
+.TP 8
+.B foreground (\fPclass\fB Foreground)
+Specifies the color for the tick marks. The default depends on whether
+\fIreverseVideo\fP is specified.  If \fIreverseVideo\fP is specified
+the default is \fIlwhite\fP, otherwise the default is \fIblack\fP.
+
+.TP 8
+.B hands (\fPclass\fB Foreground)
+Specifies the color of the insides of the clock's hands. The default
+depends on whether
+\fIreverseVideo\fP is specified.  If \fIreverseVideo\fP is specified
+the default is \fIlwhite\fP, otherwise the default is \fIblack\fP.
+Note that this resource is not used when Xrender is in effect.
+.TP 8
+.B highlight (\fPclass\fB Foreground)
+Specifies the color used to highlight the clock's hands. The default is
+ depends on whether
+\fIreverseVideo\fP is specified.  If \fIreverseVideo\fP is specified
+the default is \fIlwhite\fP, otherwise the default is \fIblack\fP.
+Note that this resource is not used when Xrender is in effect.
+.TP 8
+.B analog (\fPclass\fB Boolean)
+Specifies whether or not an analog clock should be used instead of a digital
+one.  The default is True.
+.TP 8
+.B twentyfour (\fPclass\fB Boolean)
+Specifies whether or not a digital clock should display the time in
+twenty-four hour format.  The default is True.
+.TP 8
+.B chime (\fPclass\fB Boolean)
+Specifies whether or not a bell should be rung on the hour and half hour.
+.TP 8
+.B padding (\fPclass\fB Margin)
+Specifies the amount of internal padding in pixels to be used.  The default is
+8.
+.TP 8
+.B font (\fPclass\fB Font)
+Specifies the font to be used for the digital clock.  Note that variable width
+fonts currently will not always display correctly.
+This font is only used when Xrender is not in effect.
+.TP 8
+.B render (\fPclass\fB Boolean)
+Specifies whether or not the Xrender extension should be used for the
+display. The default is True if \fIxclock\fP has been compiled with
+Xrender support.
+.PP
+When Xrender is in effect, the following additional resources are
+understood:
+.PP
+.TP 8
+.B face (\fPclass\fB FaceName)
+Specify the pattern for the font to be used for the digital clock when
+Xrender is used.   Patterns are specified using the fontconfig face format
+described in the
+.I Font Names
+section of
+.IR fonts.conf (__filemansuffix__).
+.TP 8
+.B sharp (\fPclass\fB Boolean)
+Specifies if sharp edges should be used when rendering the clock.
+The default is False.
+.TP 8
+.B buffer (\fPclass\fB Boolean)
+Specifies that the updates of the image are drawn to a pixmap before copied
+into the window instead drawing them into the window directly.
+.PP
+The defaults of the following color resources depend on whether
+\fIreverseVideo\fP is specified.
+If \fIreverseVideo\fP is specified the default is \fIlwhite\fP,
+otherwise the default is \fIblack\fP.
+.TP 8
+.B hourColor (\fPclass\fB Foreground)
+The color of the hour hand.
+.TP 8
+.B minuteColor (\fPclass\fB Foreground)
+The color of the minute hand.
+.TP 8
+.B secondColor (\fPclass\fB Foreground)
+The color of the second hand.
+.TP 8
+.B majorColor (\fPclass\fB Foreground)
+The color of the major scale ticks (i. e. each five minutes).
+.TP 8
+.B minorColor (\fPclass\fB Foreground)
+The color of the minor scale ticks (between major ticks).
+.SH WIDGETS
+In order to specify resources, it is useful to know the hierarchy of
+the widgets which compose \fIxclock\fR.  In the notation below,
+indentation indicates hierarchical structure.  The widget class name
+is given first, followed by the widget instance name.
+.sp
+.ft CW
+.nf
+XClock  xclock
+        Clock  clock
+.fi
+.ft
+.sp
+.SH ENVIRONMENT
+.PP
+.TP 8
+.B DISPLAY
+to get the default host and display number.
+.TP 8
+.B XENVIRONMENT
+to get the name of a resource file that overrides the global resources
+stored in the RESOURCE_MANAGER property.
+.SH FILES
+.TP
+.I __apploaddir__/XClock
+specifies required resources
+.SH "SEE ALSO"
+X(__miscmansuffix__), xrdb(__appmansuffix__), time(__libmansuffix__), fonts.conf (__filemansuffix__).
+.SH BUGS
+.I Xclock
+believes the system clock.
+.PP
+When in digital mode, the string should be centered automatically.
+.SH AUTHORS
+Tony Della Fera (MIT-Athena, DEC)
+.br
+Dave Mankins (MIT-Athena, BBN)
+.br
+Ed Moy (UC Berkeley)
+

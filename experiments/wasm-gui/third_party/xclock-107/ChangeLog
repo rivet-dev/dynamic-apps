@@ -1,0 +1,765 @@
+commit 66a2f29e7c649d1eb4079910b0211ffdf7dbbd4d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 7 23:33:09 2013 -0700
+
+    xclock 1.0.7
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1ac04613b566ba0dde29a16f3ac409832f32d74e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 18 21:02:55 2013 -0700
+
+    Combine usage message strings & print them to stderr, not stdout
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 61f95e11eef3fbfb9060a32233df13c35115a6f3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 18 20:59:01 2013 -0700
+
+    Add noreturn attributes suggested by -Wmissing-noreturn
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 52bbd1ce31f1adf2b7145b9d6183f6b866fa9301
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 18 20:50:17 2013 -0700
+
+    Store sine & cosine tables as doubles instead of floats
+    
+    Since they're used as doubles in the calculations, might as well store them
+    that way instead of converting when read from the table at runtime.
+    
+    Costs about 4k more storage in the binary for the doubled tables.
+    
+    Also gets rid of 900 clang warnings, of the form:
+    
+    Clock.c:1708:11: warning: implicit conversion loses floating-point precision:
+          'double' to 'float' [-Wconversion]
+    0.000000, 0.001745, 0.003490, 0.005235, 0.006981, 0.008726, 0.010471, 0.012217,
+    
+    (one for each table entry)
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 69de4eaa3be6cc177eb53a4754cb6bd35340c585
+Author: Eric S. Raymond <esr@thyrsus.com>
+Date:   Thu Aug 23 06:15:01 2012 -0400
+
+    Don't rely on being able to set tab stops.
+    Signed-off-by: Eric S. Raymond <esr@thyrsus.com>
+
+commit cd184e2f1a6f8f4f9178d29e43dc08d1534504e3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Feb 10 22:03:24 2012 -0800
+
+    xclock 1.0.6
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 251461d84de4220f05ffa35a3138aad1cd2e0302
+Author: Peter Stuge <peter@stuge.se>
+Date:   Thu Aug 26 04:14:27 2010 +0200
+
+    Calculate text and window size from LC_CTYPE instead of LC_TIME
+    
+    LC_TIME only defines what will be displayed, LC_CTYPE is what defines
+    the character encoding.
+    
+    References:
+    
+      Bug 15903 - LANG=en_US xclock -digital -font fixed has wrong size
+      https://bugs.freedesktop.org/show_bug.cgi?id=15903
+    
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 45e936174e39637c09cd10c0a5c6f8752ee2d709
+Author: Yaakov Selkowitz <yselkowitz@users.sourceforge.net>
+Date:   Tue Aug 23 19:05:20 2011 -0500
+
+    Use AM_ICONV
+    
+    AC_SEARCH_LIBS does not detect GNU libiconv because its symbols are
+    exported in the "libiconv" namespace instead of "iconv".  The AM_ICONV
+    macro correctly detects both glibc and GNU libiconv, defines HAVE_ICONV,
+    ICONV_CONST, and LIBICONV depending on the system.  The config.rpath
+    file is required by this macro.
+    
+    This adds a dependency on the aclocal macros from gettext (gettext-devel
+    in some distros) when building from git, but not when building from a
+    tarball.
+    
+    Signed-off-by: Yaakov Selkowitz <yselkowitz@users.sourceforge.net>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 27e10658010d314b40dfc9403a92864b26a9d576
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 19 10:06:55 2011 -0500
+
+    config: move man pages into their own directory
+    
+    Use services provided by XORG_MANPAGE_SECTIONS.
+    Use standard Makefile for man pages.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 5f26fbf5384ec03260edfa7d2bd8b39fde380d5b
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Jan 13 17:15:36 2011 -0500
+
+    man: replace hard coded man page section with substitution strings
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 64a5168667d30cfac2f6c6038a3b095b824580ac
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 16:28:02 2011 -0500
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    This silences an Autoconf warning
+
+commit 0c5674fe5c12ae4258b23bf6d9cdbaac443162b7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 15:29:50 2011 -0500
+
+    config: replace deprecated AC_HELP_STRING with AS_HELP_STRING
+    
+    This silences an Automake warning.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8e2adc61b09ca2a2959ed96091b2a49d306339fe
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 15:12:08 2011 -0500
+
+    config: remove unrequired AC_SUBST([*_LIBS])
+    
+    This macro is called by PKG_CHECK_MODULES
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 4995928a94c7cc2a295fbdf36d9949ae8f444cf6
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 13:33:47 2011 -0500
+
+    config: remove unrequired AC_SUBST([*_CFLAGS])
+    
+    This macro is called by PKG_CHECK_MODULES
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b7b7a6c4b9227c7b429362c8ef232bf06cea57d1
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 13:10:21 2011 -0500
+
+    config: remove AC_PROG_CC as it overrides AC_PROG_C_C99
+    
+    XORG_STRICT_OPTION from XORG_DEFAULT_OPTIONS calls
+    AC_PROG_C_C99. This sets gcc with -std=gnu99.
+    If AC_PROG_CC macro is called afterwards, it resets CC to gcc.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c37ee6e4b42776b6dd4147db6022c574e68288b7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Jan 12 11:54:40 2011 -0500
+
+    config: use AC_PROG_INSTALL now supplied by XORG_DEFAULT_OPTIONS
+    
+    It depends on util-macros 1.8 or later
+    The existing statement can now be removed from the configuration file.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 97110e50013fc5735c6220f559588b0be9a8b821
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Sep 23 18:34:13 2010 -0700
+
+    xclock 1.0.5
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 051b0f943db06ee56349dc6a03735f4b4d3f6e0f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Jul 20 18:45:18 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b5ce0b4f7e7b36451872df82c37251fc3d860de4
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Thu Aug 26 08:23:41 2010 -0700
+
+    Remove extraneous  reference to HAS_STRLCAT
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit eefa040512ec291da7cc537774e14d24801b784e
+Author: David Coppa <dcoppa@gmail.com>
+Date:   Thu Jul 29 21:46:11 2010 +0200
+
+    Fix a crash on sparc64.
+    
+    The pid variable that is passed to XChangeProperty() is not a long.
+    The libX11 code deferences the variable as a long and on a 64-bit sparc
+    this must be aligned on a 8-byte boundary.
+    
+    Signed-off-by: Matthieu Herrb <matthieu.herrb@laas.fr>
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ed35a91ebdbe54befb003599364434193d5c8078
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 1 16:50:16 2010 -0700
+
+    Sun's copyrights now belong to Oracle
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit cd064a06a4d87c1acb890a0b0f2a543c0e90116b
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 1 16:46:54 2010 -0700
+
+    Xmu functions are called directly, so include it in PKG_CHECK_MODULES
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7b8ac4d10c8d745750a015ad50e07d5e3ef704fa
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Jun 30 23:25:03 2010 -0700
+
+    config: upgrade to util-macros 1.8 for additional man page support
+    
+    Use MAN_SUBST now supplied in XORG_MANPAGE_SECTIONS
+    The value of MAN_SUBST is the same for all X.Org packages.
+    
+    Use AC_PROG_SED now supplied by XORG_DEFAULT_OPTIONS
+    The existing statement can now be removed from the configuration file.
+    
+    Use automake provided $(AM_V_GEN) and XORG_DEFAULT_OPTIONS provided $(SED)
+    Enables silent rule and use platform appropriate version of sed.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 3f3532422225e23114427ad6f1fbc039e60b64c9
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Jan 15 13:05:38 2010 -0800
+
+    Update Sun license notices to current X.Org standard form
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit bf3695b37628fda8b06fc5363123cf25c77fe76e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Dec 19 20:48:47 2009 -0500
+
+    configure.ac: use backticks rather than $() for cmd subs
+    
+    Use "$PKG_CONFIG" rather than hard coded "pkg-config"
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit ee1225481c1c5fe7b6fb9093df5fe4ae9f490e9e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Nov 26 09:19:53 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit baf85e944fbd238586805293025a11f62ee56683
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:08 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit 795cd3133fd861d8aa987c76b1227befc641fd17
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:24 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit ff0358b1b151f2f07d6bf4345ef32769dab96365
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:38 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit 742033062d0153f8e5dcf1214ac904131a27c2cb
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:15 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit 30db8ad3c045a4fbcff171435bb8e56ed792a5ec
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Mon Sep 28 08:31:17 2009 +1000
+
+    Add INSTALL to .gitignore. (#24157)
+    
+    Avoids git error "fatal: Untracked working tree file 'INSTALL' would be
+    overwritten by merge." when switching between pre-1.0.4 and now.
+    
+    X.Org Bug 24157 <http://bugs.freedesktop.org/show_bug.cgi?id=24157>
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 779dd2f2af9a65f96b741c2692d7055bf5970969
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Sep 21 21:05:16 2009 -0700
+
+    xclock 1.0.4
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit b88a85d9021d2e895205ecbe393786d989302cd8
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Sep 21 20:59:48 2009 -0700
+
+    Fill in COPYING file
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 1a1c157c7abccc03a37c26e63ad923fd7dfecc5c
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Sep 21 20:54:04 2009 -0700
+
+    Migrate to xorg macros 1.3 & XORG_DEFAULT_OPTIONS
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 8b1af8f1ef0d7cce970a05fe36b7e8e63aa18068
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Sep 21 20:51:06 2009 -0700
+
+    Trim trailing whitespaces
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit ce8173a20046c9c21ccfcea45daa0647905c1714
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Sep 21 20:47:35 2009 -0700
+
+    Add pointers to mailing list, bugzilla, wiki & git repo to README
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 82d76c4efcae92709aa07ec9e653f73076f43ebf
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Tue Jan 13 16:26:42 2009 -0200
+
+    Ansification and compile warning fixes.
+    
+      This also uses XORG_CHANGELOG and XORG_CWARNFLAGS, corrects
+    make distcheck and all gcc 4.3 and sparse warnings.
+
+commit 48663cb8af72ea5e0528a341a7dc8865aa84fad2
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Wed Aug 20 10:32:49 2008 -0400
+
+    xaw8 is gone, use xaw7
+
+commit 2d43b9d1c3e3632176fccdb5017b6e196b05b37a
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Fri May 16 14:23:54 2008 +0200
+
+    $(builddir) is the current directory
+    
+    Apparently automake doesn't always export the builddir variable.
+    This fixes my previous commit.
+
+commit 7b16b32d15ea105a3ff77468cea8364193bbdf3c
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Sun Apr 20 19:46:18 2008 +0200
+
+    Fix build with builddir != srcdir
+
+commit 7a6eb7af07301afa6024368544174765d9df0088
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Thu Mar 27 20:07:39 2008 -0700
+
+    Build fix for file systems that are not case sensitive
+
+commit f149891aea012ace76e63a08fe5ad19a47d9cd52
+Author: Matthieu Herrb <matthieu@bluenote.herrb.net>
+Date:   Sat Mar 8 22:16:23 2008 +0100
+
+    Makefile.am: nuke RCS Id
+
+commit 8c6739ba1179337c7f8fa25680871e0813ef5181
+Author: vdb128 <vdb128@picaros.org>
+Date:   Thu Dec 20 16:08:28 2007 -0800
+
+    X.Org Bug 13537: bugs in UTF-8 handling and regularized tick updating
+    
+    X.Org Bugzilla #13537 <https://bugs.freedesktop.org/show_bug.cgi?id=13537>
+    Patch #12964 <https://bugs.freedesktop.org/attachment.cgi?id=12964&action=view>
+
+commit 870ebb6762f63c6587ee75aba50ee93257fa610b
+Author: Todd C. Miller <Todd.Miller@courtesan.com>
+Date:   Mon Oct 22 21:14:03 2007 +0200
+
+    Fix logic inversion in geometry computation in -norender -digital mode.
+
+commit 1ea56dd7d67cef80f364fafcf985fb4a6846109d
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 6 15:37:11 2007 -0700
+
+    Version bump: 1.0.3
+
+commit 0c458e28ff7a3f85c0041ac0f01791853c6bdf28
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 6 15:36:57 2007 -0700
+
+    Replace static changelog with dist-hook to generate from git log
+
+commit c94628bef06ea76be371eb0dc8b60bdf0e0009e9
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 6 15:32:20 2007 -0700
+
+    Fix cast to clear sparse warning: Using plain integer as NULL pointer
+
+commit 6f845b1d5516864e143113ca074e98b7be194adb
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 6 15:25:57 2007 -0700
+
+    Change xclock_CFLAGS to AM_CFLAGS to make automake-1.10 happier
+    
+    Clears warning message:
+    Makefile.am:28: compiling `Clock.c' with per-target flags requires `AM_PROG_CC_C_O' in `configure.ac'
+
+commit a450fbb0f93f8bcdaabfb623fe49ddbb12468287
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 13 14:45:51 2007 -0700
+
+    Man page: add missing options to synopsis section
+
+commit 8476e5fbddafc171903470000e86a68f66dc3958
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 13 14:37:39 2007 -0700
+
+    Don't segfault if unable to load a usable fontset
+
+commit 41503ac2d7c84502074b3b6528478fe017060ef7
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Jun 12 19:19:32 2007 -0700
+
+    Add pointer to Xft/fontconfig font name format to man page
+
+commit 300afc5784cec539a1a9d2babb9f73056aee52cd
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Jun 12 19:13:23 2007 -0700
+
+    X.Org Bug 10775: xclock does not set _NET_WM_PID
+    
+    X.Org Bugzilla #10775: <https://bugs.freedesktop.org/show_bug.cgi?id=10775>
+
+commit 861edc2009b8224d9acf77b9703a9fdb7d4903cc
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri May 18 13:57:47 2007 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit 38e77edd7c3cf9a3f8895e92e46debd0467ecc68
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri May 18 13:57:15 2007 -0700
+
+    Make use of iconv() conditional on configure.ac finding it in libc or libiconv
+
+commit 4abb71337d740fdcca30f4f2f57b769b7f422c13
+Author: Osamu Sayama <osamu.sayama@sun.com>
+Date:   Fri May 18 13:27:56 2007 -0700
+
+    Sun bug 6518500: Use iconv() to convert other charsets to UTF8
+    
+    <http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6518500>
+
+commit d335cefbbe5d23c410f8e8b7af0692559b649e67
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Wed Apr 26 23:37:10 2006 +0000
+
+    Bump to 1.0.2
+
+commit a5fd7d91172970d75b1aeaa729125dbbc56615f7
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Wed Mar 29 02:10:49 2006 +0000
+
+    Bug #6420 <https://bugs.freedesktop.org/show_bug.cgi?id=6420> Patch #5103
+        <https://bugs.freedesktop.org/attachment.cgi?id=5103> xclock code
+        contains wrong "ifdef RENDER" (Kirill Belokurov)
+
+commit 57647f74642e672bc7082aed84141b456659e464
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Dec 21 02:29:48 2005 +0000
+
+    Update package version for X11R7 release.
+
+commit cf4d35d1fe4750a81e6842216bf69cbc2b0616aa
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Mon Dec 19 16:22:42 2005 +0000
+
+    Stub COPYING files
+
+commit 21b8bde3c5d7c2d0c53a5abacc59ef0dad28b9cc
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:05 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 9d2ba2917eea02a77d1e50d74f7449166067d7dd
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Dec 7 16:17:59 2005 +0000
+
+    Change to use the app-defaults default dir configured in libXt.
+
+commit 2b26c5434f06ee68349b41f332ff46b21bafd557
+Author: Kevin E Martin <kem@kem.org>
+Date:   Tue Dec 6 22:48:19 2005 +0000
+
+    Change *man_SOURCES ==> *man_PRE to fix autotools warnings.
+
+commit 5a833cc25b6913ae41bd2c0263cff2bc9b63f28d
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Tue Dec 6 16:26:51 2005 +0000
+
+    Bugzilla #5251 <https://bugs.freedesktop.org/show_bug.cgi?id=5251> xclock
+        -digital only shows "20" (Egmont Koblinger)
+
+commit 78df2d5bdd53a2dd2febf18ce6c2c9d9e3e4f5f7
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:18 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit b7954fdcf2ad3298ad2b514d9e5336a9d87c9f22
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Nov 28 22:01:40 2005 +0000
+
+    Change *mandir targets to use new *_MAN_DIR variables set by xorg-macros.m4
+        update to fix bug #5167 (Linux prefers *.1x man pages in man1 subdir)
+
+commit c76fe7d3b795e61aff81672ea2ddd00fae1bd71e
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Mon Nov 21 10:34:58 2005 +0000
+
+    Another pass at .cvsignores for apps.
+
+commit 269b92bf81d7216e147ca9b95013da6bcfaf5c57
+Author: Eric Anholt <anholt@freebsd.org>
+Date:   Sun Nov 20 22:08:51 2005 +0000
+
+    Add/improve .cvsignore files for apps.
+
+commit 5b899caf3dd80e85e61d02796c87f2328f6083d4
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:47:52 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 9524650fad38958f6be53a65a809a77b4b0c3f12
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Tue Oct 18 00:32:53 2005 +0000
+
+    Change default install dir for app-default files from
+        $(sysconfdir)/X11/app-defaults to $(libdir)/X11/app-defaults to match
+        the monolith & allow localization
+
+commit 648d403d9f57c10c4f6f8906eb365793adc34fcd
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Oct 17 23:56:21 2005 +0000
+
+    Use @APP_MAN_SUFFIX@ instead of $(APP_MAN_SUFFIX) in macro substitutions to
+        work better with BSD make
+
+commit 3a45db6788aa23de00379fa73acd9737c6f95ba8
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Fri Oct 14 00:25:43 2005 +0000
+
+    Use sed to fill in variables in man page
+
+commit 9be5366a9bd5b307fd046309ca500a5ad962a167
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Thu Oct 13 20:11:00 2005 +0000
+
+    Fix app-default files to install under the same names as in the monolith
+        instead of their short names used only for 14-character filename length
+        limited ancient filesystems
+
+commit 81149c1a3710d53869bb92f1e4175a479c4204d6
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Aug 1 20:25:29 2005 +0000
+
+    Install man pages to section 1 instead of section m (Patch from Donnie
+        Berkholz)
+
+commit e152093bd0a4b8e10282fcd7cbdefdf9204f1e32
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:31 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit 44223cac61092b5d53ecfcd3816dc3bf113b774d
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Jul 28 15:57:12 2005 +0000
+
+    Fix distcheck for remaining apps
+
+commit aec9ed75f66e67e9d9d69f04c40867577bcfdf21
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Tue Jul 26 15:44:02 2005 +0000
+
+    Replace more GNU make-ism's with more portable macros
+
+commit ae8ef7b8f5bdd1c53e0f6cb1e1fb1e58333b27a6
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sat Jul 23 16:04:41 2005 +0000
+
+    Get rid of DEP_{CFLAGS,LIBS}. This is what was intended, but had a bug in
+        rev 1.2
+
+commit 05bce260dae5db93c178061d411b46b06e0c5e11
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sat Jul 23 15:57:38 2005 +0000
+
+    use the DEP_{CFLAGS,LIBS} that were computed in XCLOCK_{CFLAGS,LIBS}
+
+commit fe29c745207c2076cd711a23d1dbae033a192143
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Wed Jul 20 19:31:52 2005 +0000
+
+    Use a unique token for PKG_CHECK_MODULES. Otherwise, if you use a global
+        configure cache, you cache it, and the cached value is probably wrong.
+
+commit 575ef4d780ef152a889ee475e4875923c5244589
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 16 17:31:45 2005 +0000
+
+    Add #include "config.h" for modularization Accept autoconf HAVE_STRLCPY as
+        alias for HAS_STRLCAT
+
+commit a4bcc238c730ebadb8c3c67763771bfbefed0879
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 16 17:16:05 2005 +0000
+
+    Fix app-defaults rule in Makefile.am to work with non-GNU make Add checks
+        for strlcat, xkb, xft2, render, xkb Add --with-* options for XKB &
+        Xft2/Render (enabled by default)
+
+commit 80d8b6affb2ee823cf18a368ab33535cb1cf1721
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Fri Jul 1 17:55:48 2005 +0000
+
+    Build system for xclock
+
+commit ca43036f8cdd456ebff29860fd514248b3699bcf
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Oct 30 20:33:44 2004 +0000
+
+    Add -d flag for compilers like the Sun C compilers that produce dependency
+        lists themselves. To use with the Sun compilers, add to host.def: #
+        define UseCCMakeDepend YES # define DependFlags -cc $(CC) -d -xM (Sun
+        bug id #4245688 - fix by Alan Coopersmith)
+    Add Solaris to the platforms on which mprotect is run to set execute
+        permissions when necessary. (Sun bug id #6175128 - fix by Alan
+        Coopersmith)
+    Internationalize digital output (Sun bug id #4119396 - fix by Steve
+        Swales), add -bgpixmap option to set XPM file as background (originally
+        from STSF project version of xclock by Alan Coopersmith)
+    xc/programs/xmodmap/handle.c,pf.c xmodmap was printing line numbers which
+        are one too low in error messages (Xorg bugzilla #1739, Sun bug id
+        4637857 - fix by Sam Lau)
+
+commit 3f3b1fbe531e0c1ab3b74396bf4e78db861c8bbc
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 19:54:39 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit 850f3f26301d2768b92d0d1de38e0cef467761c0
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:35:01 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit 4227756d219279272400b4ffc7e77ace44adc600
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:12:55 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit 61f5ea4644b373e3f8cc7c71d9f4d658707eff9a
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:36:16 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit fc5273bdfb2e6c21f305e9de872efa46b81c3910
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:23:58 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit 5be867cc0e6745ddac1736441a0cc5e11dd6a523
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Jan 29 08:09:03 2004 +0000
+
+    Importing vendor version xf86-012804-2330 on Thu Jan 29 00:06:33 PST 2004
+
+commit fd1ae903363dc0a1de353a594ab3524f0abcb0e0
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:29:03 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit c69802c0f421772f1b11e462e1b553e1638afc6f
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:29:03 2003 +0000
+
+    Initial revision
+
+commit f994ad01956aa98c99d6efd85df83fc59493c6ff
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:58 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit 7fa20e0899cf53cbb6d386d0688127df8b6fb0c7
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:53 2003 +0000
+
+    R6.6 is the Xorg base-line

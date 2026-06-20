@@ -277,10 +277,24 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
   runs). Robustness came from (a) WM-ready-gated sequential launch in the host (session-manager style,
   no in-client sleep) and (b) making clients **event-driven** (block in the X loop, draw on Expose) so
   continuous redraw traffic stops flooding the sidecar's single sync-RPC thread. Proof:
-  `~/tmp/gui-progress/m6-xclock.png`, `m6-xclock-digital.png`, `m6-desktop.png`. **Remaining:** live
-  window + input (built path pending; needs a machine with a display to verify — this box is headless),
-  a terminal (xterm needs fork/exec/PTY → a kernel-PTY-spawn shim), Xft/fontconfig + libX11 locale
-  files for antialiased/i18n text. Original sub-tasks:
+  `~/tmp/gui-progress/m6-xclock.png`, `m6-xclock-digital.png`, `m6-desktop.png`.
+
+  **Post-wipe rebuild (2026-06-20) status:** all 26 cross-compiled X libs + Xvfb/twm rebuilt and
+  M4b/M5-twm/M5-multiclient PASS again (full recovery proven). Work now runs in an isolated jj
+  workspace (`/home/nathan/secure-exec-wasmgui`) with a workspace-relative toolchain. **M6.2 locale
+  fix landed:** Xt apps were failing `XCreateFontSet` ("Unable to load any usable fontset") fatally
+  because libX11 is built without `XLOCALEDIR` env support on wasi (no `getresuid`/`issetugid`, so
+  configure leaves it disabled) and the compiled-in locale path is a host path absent in the VM. Fix:
+  host `--locale-dir` (+ `scripts/prepare-locale.sh`) installs the C-locale DB into the VM at the
+  exact paths libX11 has compiled in; the fontset error is gone. **Two open M6 blockers, both the
+  same root cause (M6.4 sync-RPC fairness):** (1) the freshly built xclock (1.0.7, analog) initializes
+  cleanly but maps no visible window — it appears stuck busy-looping pre-map; (2) with xclock sharing
+  the server, a second event-driven client (xwin) *racily* loses its fill rects (white/green present
+  in some runs, absent in others). A single busy client starving others over the one sync-RPC service
+  thread is the architectural issue M6.4 must fix (per-client fairness / non-blocking dispatch).
+  **Remaining:** the M6.4 fairness fix above; live window + input (built path pending; needs a machine
+  with a display to verify — this box is headless); a terminal (xterm needs fork/exec/PTY → a
+  kernel-PTY-spawn shim); Xft/fontconfig for antialiased/i18n text. Original sub-tasks:
   1. **Live rendering + input.** Stream the X server framebuffer to the M1 `winit`/`softbuffer` window
      continuously (not a one-shot PNG), and inject host mouse/keyboard back through the client as X
      input events (so you can actually click/type into the wasm desktop). Replace `xdemo`'s PNG

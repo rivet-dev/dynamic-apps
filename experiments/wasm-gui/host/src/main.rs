@@ -22,6 +22,14 @@ use secure_exec_client::wire;
 /// PREAD chunk size: stays well under the 1 MiB default max frame even after base64 (4/3) blowup.
 const READ_CHUNK: u64 = 256 * 1024;
 
+/// Paths libX11 has the locale database compiled into (it ignores XLOCALEDIR on wasi). The locale
+/// tree is staged at these exact in-VM paths so XCreateFontSet / XSupportsLocale work. These match
+/// the `XLOCALEDIR`/`XLOCALELIBDIR` baked into the current libX11.a build.
+const LIBX11_COMPILED_LOCALE_DIRS: &[&str] = &[
+    "/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/share/X11/locale",
+    "/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/lib/X11/locale",
+];
+
 /// Trusted VM config: default bundled-base filesystem + allow-all permission policy (fs reads are
 /// denied by default, which would block loading the wasm from /tmp). `"allow"` maps to the untagged
 /// `FsPermissionScope::Mode(Allow)` etc.
@@ -127,6 +135,37 @@ impl Session {
         req.recursive = true;
         self.fs_call(req).await?;
         Ok(())
+    }
+
+    /// Recursively install a host directory tree into the VM filesystem (mkdir dirs, write files).
+    /// Used to stage runtime data the guest libraries expect at fixed paths: libX11 locale data
+    /// (XLOCALEDIR), and later fontconfig configs / theme data.
+    fn install_tree<'a>(
+        &'a self,
+        host_root: &'a std::path::Path,
+        vm_root: &'a str,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<usize>> + 'a>> {
+        Box::pin(async move {
+            self.mkdir(vm_root).await.ok();
+            let mut count = 0usize;
+            let entries = std::fs::read_dir(host_root)
+                .map_err(|e| format!("read tree {}: {e}", host_root.display()))?;
+            for entry in entries.flatten() {
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                let vm_path = format!("{vm_root}/{name}");
+                let ft = entry.file_type().map_err(|e| format!("stat {name}: {e}"))?;
+                if ft.is_dir() {
+                    count += self.install_tree(&entry.path(), &vm_path).await?;
+                } else if ft.is_file() {
+                    let bytes = std::fs::read(entry.path())
+                        .map_err(|e| format!("read {name}: {e}"))?;
+                    self.write_file(&vm_path, &bytes).await?;
+                    count += 1;
+                }
+            }
+            Ok(count)
+        })
     }
 
     async fn write_file(&self, path: &str, data: &[u8]) -> Result<()> {
@@ -386,6 +425,7 @@ async fn run_xdemo(
     fb_out: Option<&str>,
     timeout_s: u64,
     fonts_dir: Option<&str>,
+    locale_dir: Option<&str>,
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let server_abs = abs_path(server)?;
@@ -426,6 +466,19 @@ async fn run_xdemo(
             n += 1;
         }
         eprintln!("secure-exec: installed {n} font files into /fonts");
+    }
+
+    // Install libX11 locale data into the VM so XCreateFontSet works (Xt apps like xclock/xterm fail
+    // their widget realize without a usable fontset). Our libX11 is built without XLOCALEDIR env
+    // support (wasi lacks getresuid/issetugid, so configure leaves it disabled), so it reads ONLY the
+    // path compiled into the library. We install the data at that exact compiled path inside the VM
+    // (plus /locale for builds that do honor XLOCALEDIR).
+    if let Some(ldir) = locale_dir {
+        let n = s.install_tree(std::path::Path::new(ldir), "/locale").await?;
+        for compiled in LIBX11_COMPILED_LOCALE_DIRS {
+            s.install_tree(std::path::Path::new(ldir), compiled).await?;
+        }
+        eprintln!("secure-exec: installed {n} locale files into /locale (+ compiled libX11 paths)");
     }
 
     let mut events = s.t.subscribe_wire_events();
@@ -478,6 +531,9 @@ async fn run_xdemo(
                 let mut cenv = HashMap::new();
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                if locale_dir.is_some() {
+                    cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                }
                 s.execute_env(&id, path, &argv, cenv).await?;
                 eprintln!("secure-exec: launched {id} ({path})");
                 launched += 1;
@@ -600,6 +656,7 @@ struct Args {
     clients: Vec<String>,
     fb_out: Option<String>,
     fonts_dir: Option<String>,
+    locale_dir: Option<String>,
 }
 
 fn parse_args() -> Args {
@@ -617,6 +674,7 @@ fn parse_args() -> Args {
         clients: Vec::new(),
         fb_out: None,
         fonts_dir: None,
+        locale_dir: None,
     };
     let mut i = 1;
     while i < argv.len() {
@@ -641,6 +699,10 @@ fn parse_args() -> Args {
             "--fonts-dir" => {
                 i += 1;
                 a.fonts_dir = argv.get(i).cloned();
+            }
+            "--locale-dir" => {
+                i += 1;
+                a.locale_dir = argv.get(i).cloned();
             }
             "--capture" => {
                 i += 1;
@@ -693,6 +755,7 @@ async fn main() {
             args.fb_out.as_deref(),
             args.timeout,
             args.fonts_dir.as_deref(),
+            args.locale_dir.as_deref(),
         )
         .await
         {

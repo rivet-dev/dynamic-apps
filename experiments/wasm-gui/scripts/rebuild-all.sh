@@ -36,7 +36,7 @@ echo "== util-macros / protos =="
 autobuild util-macros
 # xorgproto is headers-only and must use meson (its autotools configure can't probe wasi fd_set).
 if [ -d "$TP/xorgproto" ]; then
-  ( cd "$TP/xorgproto" && rm -rf build-wasm && meson setup build-wasm --cross-file "$EXP/toolchain/wasi-sdk-cross.ini" --prefix="$PREFIX" -Dlegacy=true >/dev/null 2>&1; ninja -C build-wasm install ) >/tmp/rb-xorgproto.log 2>&1 \
+  ( cd "$TP/xorgproto" && rm -rf build-wasm && meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" -Dlegacy=true >/dev/null 2>&1; ninja -C build-wasm install ) >/tmp/rb-xorgproto.log 2>&1 \
     && { echo "  OK   xorgproto"; ok=$((ok+1)); } || { echo "  FAIL xorgproto (/tmp/rb-xorgproto.log)"; fail=$((fail+1)); }
 fi
 autobuild xcbproto

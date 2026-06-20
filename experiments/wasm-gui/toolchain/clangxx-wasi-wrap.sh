@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-REAL="/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/bin/clang++"
+REAL="${SECURE_EXEC_TOOLCHAIN_HOME:-/home/nathan/secure-exec}/registry/native/c/vendor/wasi-sdk/bin/clang++"
 args=()
 for a in "$@"; do
   case "$a" in

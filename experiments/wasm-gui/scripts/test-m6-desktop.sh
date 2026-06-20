@@ -8,11 +8,14 @@ EXP="$(pwd)"; REPO="$(cd ../.. && pwd)"
 HOST="$REPO/target/debug/wasm-gui-host"; SIDECAR="$REPO/target/debug/secure-exec-sidecar"
 FB="$(mktemp /tmp/m6-fb.XXXXXX.bin)"
 FONTS="${VMFONTS:-/tmp/vmfonts}"
+LOCALE="${VMLOCALE:-/tmp/vmlocale}"
 
 for f in "$HOST" "$SIDECAR" "$EXP/Xvfb.wasm" "$EXP/twm.wasm" "$EXP/xclock.wasm" "$EXP/guest-xclient/xwin.wasm"; do
   [ -f "$f" ] || { echo "MISSING: $f"; exit 1; }
 done
 [ -d "$FONTS" ] || { echo "MISSING fonts dir $FONTS (set VMFONTS)"; exit 1; }
+# libX11 locale DB (so Xt apps like xclock can build a fontset and realize their widgets).
+[ -d "$LOCALE" ] || bash "$EXP/scripts/prepare-locale.sh" "$LOCALE" >/dev/null 2>&1
 
 echo "== twm + xclock + a libX11 window, with X core fonts =="
 timeout 90 env -u DISPLAY "$HOST" --xdemo --timeout 40 \
@@ -20,7 +23,7 @@ timeout 90 env -u DISPLAY "$HOST" --xdemo --timeout 40 \
   --client "$EXP/twm.wasm" \
   --client "$EXP/xclock.wasm -analog" \
   --client "$EXP/guest-xclient/xwin.wasm" \
-  --fonts-dir "$FONTS" --fb-out "$FB" --sidecar "$SIDECAR" \
+  --fonts-dir "$FONTS" --locale-dir "$LOCALE" --fb-out "$FB" --sidecar "$SIDECAR" \
   -- :0 -screen 0 640x480x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data -fp /fonts > /tmp/m6-run.log 2>&1 || true
 
 grep -q "window manager is ready" /tmp/m6-run.log || { echo "FAIL: WM did not signal ready"; exit 1; }

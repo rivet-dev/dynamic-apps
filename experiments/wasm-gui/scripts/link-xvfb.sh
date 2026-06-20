@@ -6,9 +6,10 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 BW="$EXP/third_party/xserver/build-wasm"
-WSDK=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk
+TOOLCHAIN_HOME="${SECURE_EXEC_TOOLCHAIN_HOME:-/home/nathan/secure-exec}"
+WSDK="$TOOLCHAIN_HOME/registry/native/c/vendor/wasi-sdk"
 SETJMP="$WSDK/share/wasi-sysroot/lib/wasm32-wasip1/libsetjmp.a"
-LIBC=/home/nathan/secure-exec/registry/native/c/sysroot/lib/wasm32-wasip1/libc.a
+LIBC="$TOOLCHAIN_HOME/registry/native/c/sysroot/lib/wasm32-wasip1/libc.a"
 P="$EXP/third_party/wasm-prefix/lib"
 MAINOBJ="$EXP/toolchain/xvfb-main.o"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
