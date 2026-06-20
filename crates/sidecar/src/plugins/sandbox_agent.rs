@@ -10,7 +10,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::io::Read;
-use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
+use std::net::IpAddr;
 use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use url::Url;
@@ -1117,13 +1117,13 @@ fn response_into_bytes_limited(
 }
 
 fn validate_sandbox_agent_base_url(raw: &str) -> Result<String, PluginError> {
-    validate_sandbox_agent_base_url_with_resolver(raw, resolve_sandbox_agent_base_url_host)
-}
-
-fn validate_sandbox_agent_base_url_with_resolver(
-    raw: &str,
-    resolve_host: impl FnOnce(&str, u16) -> std::io::Result<Vec<SocketAddr>>,
-) -> Result<String, PluginError> {
+    // The baseUrl comes only from the trusted mount config, never from untrusted
+    // guest code, so it is not an SSRF surface (see root CLAUDE.md): the private
+    // -IP denylist and DNS re-resolution are dropped. We still validate
+    // well-formedness (clear errors + the trailing-slash trim that request
+    // building relies on) and still require https for non-local hosts, because
+    // the client's bearer token is sent in the Authorization header and must not
+    // traverse plaintext http.
     let normalized = raw.trim().trim_end_matches('/').to_owned();
     if normalized.is_empty() {
         return Err(PluginError::invalid_input(
@@ -1150,122 +1150,24 @@ fn validate_sandbox_agent_base_url_with_resolver(
     }
 
     let scheme = url.scheme();
-    let port = match scheme {
-        "http" => url.port().unwrap_or(80),
-        "https" => url.port().unwrap_or(443),
-        _ => {
-            return Err(PluginError::invalid_input(
-                "sandbox_agent mount baseUrl must use http or https",
-            ));
-        }
-    };
-
-    if host_for_address.eq_ignore_ascii_case("localhost") {
-        return Ok(normalized);
+    if !matches!(scheme, "http" | "https") {
+        return Err(PluginError::invalid_input(
+            "sandbox_agent mount baseUrl must use http or https",
+        ));
     }
 
-    match host_for_address.parse::<IpAddr>() {
-        Ok(ip) => {
-            if ip.is_loopback() {
-                return Ok(normalized);
-            }
-            if is_disallowed_sandbox_agent_base_url_ip(ip) {
-                return Err(PluginError::invalid_input(format!(
-                    "sandbox_agent mount baseUrl must not target a private or local/non-global IP address ({host})"
-                )));
-            }
-            if scheme != "https" {
-                return Err(PluginError::invalid_input(
-                    "sandbox_agent mount non-local baseUrl must use https",
-                ));
-            }
-        }
-        Err(_) => {
-            if scheme != "https" {
-                return Err(PluginError::invalid_input(
-                    "sandbox_agent mount hostname baseUrl must use https unless it targets localhost",
-                ));
-            }
-            let addresses = resolve_host(host_for_address, port).map_err(|error| {
-                PluginError::invalid_input(format!(
-                    "could not resolve sandbox_agent mount baseUrl host '{host}': {error}"
-                ))
-            })?;
-            if addresses.is_empty() {
-                return Err(PluginError::invalid_input(format!(
-                    "could not resolve sandbox_agent mount baseUrl host '{host}'"
-                )));
-            }
-            for address in addresses {
-                if is_disallowed_sandbox_agent_base_url_ip(address.ip()) {
-                    return Err(PluginError::invalid_input(format!(
-                        "sandbox_agent mount baseUrl host '{host}' resolved to a private or local/non-global IP address ({})",
-                        address.ip()
-                    )));
-                }
-            }
-        }
+    let is_local = host_for_address.eq_ignore_ascii_case("localhost")
+        || host_for_address
+            .parse::<IpAddr>()
+            .map(|ip| ip.is_loopback())
+            .unwrap_or(false);
+    if scheme != "https" && !is_local {
+        return Err(PluginError::invalid_input(
+            "sandbox_agent mount baseUrl must use https unless it targets localhost",
+        ));
     }
 
     Ok(normalized)
-}
-
-fn resolve_sandbox_agent_base_url_host(host: &str, port: u16) -> std::io::Result<Vec<SocketAddr>> {
-    (host, port)
-        .to_socket_addrs()
-        .map(|addresses| addresses.collect())
-}
-
-fn is_disallowed_sandbox_agent_base_url_ip(ip: IpAddr) -> bool {
-    match ip {
-        IpAddr::V4(ip) => {
-            let [first, second, third, fourth] = ip.octets();
-            ip.is_private()
-                || ip.is_loopback()
-                || ip.is_link_local()
-                || ip.is_multicast()
-                || ip.is_unspecified()
-                || first == 0
-                || (first == 100 && (second & 0b1100_0000) == 64)
-                || (first == 192
-                    && second == 0
-                    && third == 0
-                    && (fourth <= 8 || fourth == 170 || fourth == 171))
-                || (first == 192 && second == 0 && third == 2)
-                || (first == 192 && second == 88 && third == 99 && fourth == 2)
-                || (first == 198 && (second == 18 || second == 19))
-                || (first == 198 && second == 51 && third == 100)
-                || (first == 203 && second == 0 && third == 113)
-                || first >= 240
-                || (first == 255 && second == 255 && third == 255 && fourth == 255)
-        }
-        IpAddr::V6(ip) => {
-            if let Some(mapped) = ip.to_ipv4_mapped() {
-                return is_disallowed_sandbox_agent_base_url_ip(IpAddr::V4(mapped));
-            }
-
-            let segments = ip.segments();
-            ip.is_loopback()
-                || ip.is_unique_local()
-                || ip.is_unicast_link_local()
-                || ip.is_multicast()
-                || ip.is_unspecified()
-                || (segments[0] & 0xffc0) == 0xfec0
-                || (segments[0..6] == [0, 0, 0, 0, 0, 0])
-                || (segments[0] == 0x0064 && segments[1] == 0xff9b && segments[2] == 0x0001)
-                || (segments[0] == 0x0100
-                    && segments[1] == 0
-                    && segments[2] == 0
-                    && (segments[3] == 0 || segments[3] == 1))
-                || (segments[0] == 0x2001 && segments[1] == 0)
-                || (segments[0] == 0x2001 && segments[1] == 0x0002 && segments[2] == 0)
-                || (segments[0] == 0x2001 && (segments[1] & 0xfff0) == 0x0010)
-                || (segments[0] == 0x2001 && segments[1] == 0x0db8)
-                || (segments[0] == 0x3fff && (segments[1] & 0xf000) == 0)
-                || segments[0] == 0x5f00
-                || segments[0] == 0x2002
-        }
-    }
 }
 
 fn sandbox_client_error_to_vfs(

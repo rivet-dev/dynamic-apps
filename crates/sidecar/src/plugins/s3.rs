@@ -17,7 +17,6 @@ use secure_exec_kernel::vfs::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
 use tokio::runtime::Runtime;
 use url::Url;
 
@@ -582,13 +581,11 @@ impl S3ObjectStore {
 }
 
 fn validate_s3_endpoint(raw: &str) -> Result<String, PluginError> {
-    validate_s3_endpoint_with_resolver(raw, resolve_s3_endpoint_host)
-}
-
-fn validate_s3_endpoint_with_resolver(
-    raw: &str,
-    resolve_host: impl FnOnce(&str, u16) -> std::io::Result<Vec<SocketAddr>>,
-) -> Result<String, PluginError> {
+    // The endpoint comes only from the trusted mount config (the client picks
+    // its own S3 host); untrusted guest code can never set it, so it is not an
+    // SSRF attack surface under the trust model (see root CLAUDE.md). Validate
+    // only well-formedness, so a misconfigured endpoint fails at mount time with
+    // a clear error instead of an opaque AWS SDK failure on the first object op.
     let normalized = raw.trim().trim_end_matches('/').to_owned();
     if normalized.is_empty() {
         return Err(PluginError::invalid_input(
@@ -599,144 +596,18 @@ fn validate_s3_endpoint_with_resolver(
     let url = Url::parse(&normalized).map_err(|error| {
         PluginError::invalid_input(format!("s3 mount endpoint is not a valid URL: {error}"))
     })?;
-    let host = url
-        .host_str()
-        .ok_or_else(|| PluginError::invalid_input("s3 mount endpoint must include a host"))?;
-    let host_for_address = host
-        .strip_prefix('[')
-        .and_then(|host| host.strip_suffix(']'))
-        .unwrap_or(host);
-    let scheme = url.scheme();
-    let port = match scheme {
-        "http" => url.port().unwrap_or(80),
-        "https" => url.port().unwrap_or(443),
-        _ => {
-            return Err(PluginError::invalid_input(
-                "s3 mount endpoint must use http or https",
-            ));
-        }
-    };
-
-    if is_allowed_test_endpoint_host(host_for_address) {
-        return Ok(normalized);
-    }
-
-    if host_for_address.eq_ignore_ascii_case("localhost") {
+    if url.host_str().is_none() {
         return Err(PluginError::invalid_input(
-            "s3 mount endpoint must not target localhost",
+            "s3 mount endpoint must include a host",
+        ));
+    }
+    if !matches!(url.scheme(), "http" | "https") {
+        return Err(PluginError::invalid_input(
+            "s3 mount endpoint must use http or https",
         ));
     }
 
-    match host_for_address.parse::<IpAddr>() {
-        Ok(ip) => {
-            if is_disallowed_s3_endpoint_ip(ip) {
-                return Err(PluginError::invalid_input(format!(
-                    "s3 mount endpoint must not target a private or local/non-global IP address ({host})"
-                )));
-            }
-        }
-        Err(_) => {
-            if scheme != "https" {
-                return Err(PluginError::invalid_input(
-                    "s3 mount hostname endpoints must use https",
-                ));
-            }
-            let addresses = resolve_host(host_for_address, port).map_err(|error| {
-                PluginError::invalid_input(format!(
-                    "could not resolve s3 mount endpoint host '{host}': {error}"
-                ))
-            })?;
-            if addresses.is_empty() {
-                return Err(PluginError::invalid_input(format!(
-                    "could not resolve s3 mount endpoint host '{host}'"
-                )));
-            }
-            for address in addresses {
-                if is_disallowed_s3_endpoint_ip(address.ip()) {
-                    return Err(PluginError::invalid_input(format!(
-                        "s3 mount endpoint host '{host}' resolved to a private or local/non-global IP address ({})",
-                        address.ip()
-                    )));
-                }
-            }
-        }
-    }
-
     Ok(normalized)
-}
-
-fn resolve_s3_endpoint_host(host: &str, port: u16) -> std::io::Result<Vec<SocketAddr>> {
-    (host, port)
-        .to_socket_addrs()
-        .map(|addresses| addresses.collect())
-}
-
-fn is_disallowed_s3_endpoint_ip(ip: IpAddr) -> bool {
-    match ip {
-        IpAddr::V4(ip) => {
-            let [first, second, third, fourth] = ip.octets();
-            ip.is_private()
-                || ip.is_loopback()
-                || ip.is_link_local()
-                || ip.is_multicast()
-                || ip.is_unspecified()
-                || first == 0
-                || (first == 100 && (second & 0b1100_0000) == 64)
-                || (first == 192
-                    && second == 0
-                    && third == 0
-                    && (fourth <= 8 || fourth == 170 || fourth == 171))
-                || (first == 192 && second == 0 && third == 2)
-                || (first == 192 && second == 88 && third == 99 && fourth == 2)
-                || (first == 198 && (second == 18 || second == 19))
-                || (first == 198 && second == 51 && third == 100)
-                || (first == 203 && second == 0 && third == 113)
-                || first >= 240
-                || (first == 255 && second == 255 && third == 255 && fourth == 255)
-        }
-        IpAddr::V6(ip) => {
-            if let Some(mapped) = ip.to_ipv4_mapped() {
-                return is_disallowed_s3_endpoint_ip(IpAddr::V4(mapped));
-            }
-
-            let segments = ip.segments();
-            ip.is_loopback()
-                || ip.is_unique_local()
-                || ip.is_unicast_link_local()
-                || ip.is_multicast()
-                || ip.is_unspecified()
-                || (segments[0] & 0xffc0) == 0xfec0
-                || (segments[0..6] == [0, 0, 0, 0, 0, 0])
-                || (segments[0] == 0x0064 && segments[1] == 0xff9b && segments[2] == 0x0001)
-                || (segments[0] == 0x0100
-                    && segments[1] == 0
-                    && segments[2] == 0
-                    && (segments[3] == 0 || segments[3] == 1))
-                || (segments[0] == 0x2001 && segments[1] == 0)
-                || (segments[0] == 0x2001 && segments[1] == 0x0002 && segments[2] == 0)
-                || (segments[0] == 0x2001 && (segments[1] & 0xfff0) == 0x0010)
-                || (segments[0] == 0x2001 && segments[1] == 0x0db8)
-                || (segments[0] == 0x3fff && (segments[1] & 0xf000) == 0)
-                || segments[0] == 0x5f00
-                || segments[0] == 0x2002
-        }
-    }
-}
-
-fn is_allowed_test_endpoint_host(host: &str) -> bool {
-    if std::env::var_os("AGENT_OS_ALLOW_LOCAL_S3_ENDPOINTS").is_some() {
-        return matches!(host, "127.0.0.1" | "localhost" | "::1");
-    }
-
-    #[cfg(test)]
-    {
-        matches!(host, "127.0.0.1" | "localhost" | "::1")
-    }
-    #[cfg(not(test))]
-    {
-        let _ = host;
-        false
-    }
 }
 
 #[derive(Debug, Clone)]

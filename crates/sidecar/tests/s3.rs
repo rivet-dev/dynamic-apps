@@ -24,150 +24,23 @@ mod s3 {
         }
 
         #[test]
-        fn s3_plugin_rejects_private_ip_endpoints() {
-            let server = MockS3Server::start();
-            let mut config = test_config(&server, "reject-private-endpoint");
-            config.endpoint = Some(String::from("http://169.254.169.254/latest"));
-
-            let error = match S3BackedFilesystem::from_config(config) {
-                Ok(_) => panic!("private IP endpoint should fail"),
-                Err(error) => error,
-            };
-            assert!(
-                error.to_string().contains(
-                    "s3 mount endpoint must not target a private or local/non-global IP address"
-                ),
-                "unexpected error: {error}"
-            );
-        }
-
-        #[test]
-        fn s3_plugin_accepts_https_hostname_endpoints_with_public_dns() {
-            let endpoint = validate_s3_endpoint_with_resolver(
-                "https://s3-compatible.example.com",
-                |host, port| {
-                    assert_eq!(host, "s3-compatible.example.com");
-                    assert_eq!(port, 443);
-                    Ok(vec!["93.184.216.34:443".parse().expect("public address")])
-                },
-            )
-            .expect("https hostname endpoint with public DNS should pass");
-            assert_eq!(endpoint, "https://s3-compatible.example.com");
-        }
-
-        #[test]
-        fn s3_plugin_rejects_http_hostname_endpoints_to_avoid_dns_rebinding() {
-            let error = match validate_s3_endpoint_with_resolver(
-                "http://s3-compatible.example.com",
-                |_, _| panic!("http hostname endpoint should fail before DNS"),
-            ) {
-                Ok(_) => panic!("http hostname endpoint should fail"),
-                Err(error) => error,
-            };
-            assert_eq!(error.code(), "EINVAL");
-            assert!(
-                error
-                    .message()
-                    .contains("hostname endpoints must use https"),
-                "unexpected error: {}",
-                error.message()
-            );
-        }
-
-        #[test]
-        fn s3_plugin_rejects_endpoint_hosts_resolving_to_private_ips() {
-            let error = match validate_s3_endpoint_with_resolver(
-                "https://metadata.test/latest",
-                |host, port| {
-                    assert_eq!(host, "metadata.test");
-                    assert_eq!(port, 443);
-                    Ok(vec!["169.254.169.254:443"
-                        .parse()
-                        .expect("private address")])
-                },
-            ) {
-                Ok(_) => panic!("private DNS endpoint should fail"),
-                Err(error) => error,
-            };
-            assert_eq!(error.code(), "EINVAL");
-            assert!(
-                error
-                    .message()
-                    .contains("resolved to a private or local/non-global IP address"),
-                "unexpected error: {}",
-                error.message()
-            );
-        }
-
-        #[test]
-        fn s3_plugin_rejects_ipv4_mapped_private_ipv6_endpoint_hosts() {
-            let error = match validate_s3_endpoint("http://[::ffff:169.254.169.254]/latest") {
-                Ok(_) => panic!("IPv4-mapped private endpoint should fail"),
-                Err(error) => error,
-            };
-            assert_eq!(error.code(), "EINVAL");
-            assert!(
-                error
-                    .message()
-                    .contains("private or local/non-global IP address"),
-                "unexpected error: {}",
-                error.message()
-            );
-        }
-
-        #[test]
-        fn s3_plugin_accepts_global_literal_endpoint_ips() {
-            for endpoint in [
-                "https://93.184.216.34",
-                "https://192.0.0.9",
-                "https://192.0.0.10",
-                "https://[64:ff9b::808:808]",
-                "https://[2001:1::1]",
-                "https://[2001:3::1]",
-                "https://[2001:20::1]",
-                "https://[3ff0::1]",
-                "https://[2606:4700:4700::1111]",
+        fn s3_plugin_validates_endpoint_well_formedness_only() {
+            // The endpoint is trusted mount config, not an SSRF surface, so it is
+            // no longer checked against an IP denylist; only well-formedness is
+            // validated. Private/metadata/loopback hosts are accepted.
+            for ok in [
+                "https://s3.example.com",
+                "http://127.0.0.1:9000",
+                "https://169.254.169.254/latest",
+                "https://[2001:db8::1]",
             ] {
-                let normalized = validate_s3_endpoint(endpoint)
-                    .unwrap_or_else(|error| panic!("global endpoint {endpoint} failed: {error}"));
-                assert_eq!(normalized, endpoint);
+                validate_s3_endpoint(ok)
+                    .unwrap_or_else(|error| panic!("well-formed endpoint {ok} failed: {error}"));
             }
-        }
-
-        #[test]
-        fn s3_plugin_rejects_non_global_literal_endpoint_ips() {
-            for endpoint in [
-                "http://100.64.0.1",
-                "http://192.0.0.8",
-                "http://192.0.0.170",
-                "http://192.0.0.171",
-                "http://192.0.2.1",
-                "http://192.88.99.2",
-                "http://198.18.0.1",
-                "http://203.0.113.1",
-                "http://[100::1]",
-                "http://[100:0:0:1::1]",
-                "http://[fec0::1]",
-                "http://[2001:db8::1]",
-                "http://[2001::1]",
-                "http://[2001:2::1]",
-                "http://[2001:10::1]",
-                "http://[2002::1]",
-                "http://[3fff::1]",
-                "http://[5f00::1]",
-            ] {
-                let error = match validate_s3_endpoint(endpoint) {
-                    Ok(_) => panic!("non-global endpoint {endpoint} should fail"),
-                    Err(error) => error,
-                };
-                assert_eq!(error.code(), "EINVAL");
-                assert!(
-                    error
-                        .message()
-                        .contains("private or local/non-global IP address"),
-                    "unexpected error for {endpoint}: {}",
-                    error.message()
-                );
+            for bad in ["", "not a url", "ftp://example.com"] {
+                let error = validate_s3_endpoint(bad)
+                    .expect_err(&format!("malformed endpoint {bad:?} should fail"));
+                assert_eq!(error.code(), "EINVAL", "unexpected error for {bad:?}");
             }
         }
 
@@ -783,39 +656,9 @@ use secure_exec_sidecar::wire::{
     RootFilesystemEntryEncoding, RootFilesystemEntryKind,
 };
 use std::collections::HashMap;
-use std::ffi::OsString;
-use std::sync::{Mutex, MutexGuard, OnceLock};
 use support::{
     authenticate_wire, create_vm_wire, open_session_wire, temp_dir, wire_request, wire_vm,
 };
-
-struct LocalS3EndpointEnvGuard {
-    _lock: Option<MutexGuard<'static, ()>>,
-    previous: Option<OsString>,
-}
-
-impl Drop for LocalS3EndpointEnvGuard {
-    fn drop(&mut self) {
-        match &self.previous {
-            Some(previous) => std::env::set_var("AGENT_OS_ALLOW_LOCAL_S3_ENDPOINTS", previous),
-            None => std::env::remove_var("AGENT_OS_ALLOW_LOCAL_S3_ENDPOINTS"),
-        }
-    }
-}
-
-fn allow_local_s3_endpoints() -> LocalS3EndpointEnvGuard {
-    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-    let lock = LOCK
-        .get_or_init(|| Mutex::new(()))
-        .lock()
-        .expect("lock local s3 endpoint env");
-    let previous = std::env::var_os("AGENT_OS_ALLOW_LOCAL_S3_ENDPOINTS");
-    std::env::set_var("AGENT_OS_ALLOW_LOCAL_S3_ENDPOINTS", "1");
-    LocalS3EndpointEnvGuard {
-        _lock: Some(lock),
-        previous,
-    }
-}
 
 fn structured_events(
     sidecar: &secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
@@ -827,7 +670,6 @@ fn structured_events(
 
 #[test]
 fn dispose_vm_surfaces_s3_flush_failures_as_structured_events() {
-    let _local_s3_guard = allow_local_s3_endpoints();
     let server = s3::test_support::MockS3Server::start();
     let mut sidecar = support::new_sidecar("s3-dispose-shutdown-failure");
     let cwd = temp_dir("s3-dispose-shutdown-failure-cwd");

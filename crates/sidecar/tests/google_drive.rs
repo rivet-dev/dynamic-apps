@@ -50,38 +50,34 @@ oFnGY0OFksX/ye0/XGpy2SFxYRwGU98HPYeBvAQQrVjdkzfy7BmXQQ==\n\
         }
 
         #[test]
-        fn google_drive_plugin_rejects_untrusted_token_hosts() {
-            let server = MockGoogleDriveServer::start();
-            let mut config = test_config(&server, "reject-token-host");
-            config.token_url = Some(String::from("https://evil.example/token"));
+        fn google_drive_url_drops_host_allowlist_but_keeps_credential_guards() {
+            // tokenUrl/apiBaseUrl are trusted mount config, so the strict host
+            // allowlist (SSRF hardening over trusted input) is gone: an arbitrary
+            // https host is now accepted.
+            validate_google_drive_url("https://drive.example.com", "apiBaseUrl", false)
+                .expect("arbitrary https host should now be accepted");
 
-            let error = match GoogleDriveBackedFilesystem::from_config(config) {
-                Ok(_) => panic!("untrusted token host should be rejected"),
-                Err(error) => error,
-            };
+            // The credential-leak guards stay, because these endpoints carry the
+            // OAuth bearer token and signed JWT assertion: http and embedded
+            // credentials are still rejected.
+            let http = validate_google_drive_url("http://oauth2.googleapis.com", "tokenUrl", true)
+                .expect_err("http tokenUrl should be rejected");
             assert!(
-                error
-                    .to_string()
-                    .contains("google_drive mount tokenUrl host must be one of"),
-                "unexpected error: {error}"
+                http.to_string().contains("tokenUrl must use https"),
+                "unexpected error: {http}"
             );
-        }
 
-        #[test]
-        fn google_drive_plugin_rejects_untrusted_api_base_hosts() {
-            let server = MockGoogleDriveServer::start();
-            let mut config = test_config(&server, "reject-api-host");
-            config.api_base_url = Some(String::from("https://metadata.google.internal"));
-
-            let error = match GoogleDriveBackedFilesystem::from_config(config) {
-                Ok(_) => panic!("untrusted api base host should be rejected"),
-                Err(error) => error,
-            };
+            let creds = validate_google_drive_url(
+                "https://user:pass@oauth2.googleapis.com",
+                "tokenUrl",
+                true,
+            )
+            .expect_err("tokenUrl with embedded credentials should be rejected");
             assert!(
-                error
+                creds
                     .to_string()
-                    .contains("google_drive mount apiBaseUrl host must be one of"),
-                "unexpected error: {error}"
+                    .contains("must not include user credentials"),
+                "unexpected error: {creds}"
             );
         }
 

@@ -24,8 +24,6 @@ const LEGACY_AGENT_OS_MANIFEST_FORMAT: &str = "agent_os_google_drive_filesystem_
 const DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file";
 const DEFAULT_TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const DEFAULT_API_BASE_URL: &str = "https://www.googleapis.com";
-const GOOGLE_TOKEN_HOSTS: &[&str] = &["oauth2.googleapis.com"];
-const GOOGLE_API_BASE_HOSTS: &[&str] = &["www.googleapis.com"];
 const TOKEN_REFRESH_SKEW_SECONDS: u64 = 60;
 const MAX_PERSISTED_MANIFEST_BYTES: usize = 64 * 1024 * 1024;
 const MAX_PERSISTED_MANIFEST_FILE_BYTES: u64 = 1024 * 1024 * 1024;
@@ -282,7 +280,7 @@ impl GoogleDriveObjectStore {
         api_base_url: String,
     ) -> Result<Self, PluginError> {
         let api_base_url =
-            validate_google_drive_url(&api_base_url, "apiBaseUrl", GOOGLE_API_BASE_HOSTS, false)?;
+            validate_google_drive_url(&api_base_url, "apiBaseUrl", false)?;
 
         Ok(Self {
             auth: GoogleServiceAccountAuth::new(credentials, token_url)?,
@@ -545,7 +543,7 @@ impl GoogleServiceAccountAuth {
                 ))
             })?;
         let token_url =
-            validate_google_drive_url(&token_url, "tokenUrl", GOOGLE_TOKEN_HOSTS, true)?;
+            validate_google_drive_url(&token_url, "tokenUrl", true)?;
 
         Ok(Self {
             client_email: credentials.client_email,
@@ -986,9 +984,15 @@ fn normalize_base_url(raw: &str) -> Option<String> {
 fn validate_google_drive_url(
     raw: &str,
     field_name: &str,
-    allowed_hosts: &[&str],
     allow_path: bool,
 ) -> Result<String, PluginError> {
+    // tokenUrl / apiBaseUrl come only from the trusted mount config, never from
+    // untrusted guest code, so a strict host allowlist (SSRF hardening against
+    // trusted input) is dropped (see root CLAUDE.md). We keep well-formedness
+    // plus the credential-leak guards: these endpoints receive a signed
+    // service-account JWT and an OAuth bearer token, so https is required and
+    // embedded credentials / query / fragment are rejected to avoid leaking
+    // those secrets to an unintended host on a config typo.
     let normalized = normalize_base_url(raw).ok_or_else(|| {
         PluginError::invalid_input(format!("google_drive mount requires a valid {field_name}"))
     })?;
@@ -1012,11 +1016,6 @@ fn validate_google_drive_url(
             "google_drive mount {field_name} must include a host"
         )));
     }
-    if url.port().is_some() {
-        return Err(PluginError::invalid_input(format!(
-            "google_drive mount {field_name} must not override the default port"
-        )));
-    }
     if !url.username().is_empty() || url.password().is_some() {
         return Err(PluginError::invalid_input(format!(
             "google_drive mount {field_name} must not include user credentials"
@@ -1030,14 +1029,6 @@ fn validate_google_drive_url(
     if !allow_path && url.path() != "/" {
         return Err(PluginError::invalid_input(format!(
             "google_drive mount {field_name} must not include a path"
-        )));
-    }
-
-    let host = url.host_str().expect("host checked above");
-    if !allowed_hosts.iter().any(|candidate| candidate == &host) {
-        return Err(PluginError::invalid_input(format!(
-            "google_drive mount {field_name} host must be one of: {}",
-            allowed_hosts.join(", ")
         )));
     }
 

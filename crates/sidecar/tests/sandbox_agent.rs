@@ -4,8 +4,8 @@ mod sandbox_agent {
     mod tests {
         use super::test_support::MockSandboxAgentServer;
         use super::{
-            validate_sandbox_agent_base_url_with_resolver, SandboxAgentFilesystem,
-            SandboxAgentMountConfig, SandboxAgentMountPlugin,
+            validate_sandbox_agent_base_url, SandboxAgentFilesystem, SandboxAgentMountConfig,
+            SandboxAgentMountPlugin,
         };
         use nix::unistd::{Gid, Uid};
         use secure_exec_kernel::mount_plugin::{
@@ -214,116 +214,63 @@ mod sandbox_agent {
         }
 
         #[test]
-        fn sandbox_agent_base_url_accepts_explicit_loopback_targets() {
+        fn sandbox_agent_base_url_accepts_loopback_over_http() {
             for base_url in [
                 "http://localhost:1234",
                 "http://127.0.0.1:1234",
                 "http://[::1]:1234",
             ] {
                 assert_eq!(
-                    validate_sandbox_agent_base_url_with_resolver(base_url, |_, _| {
-                        panic!("loopback literals should not need DNS")
-                    })
-                    .expect("loopback baseUrl should be accepted"),
+                    validate_sandbox_agent_base_url(base_url)
+                        .expect("loopback baseUrl should be accepted"),
                     base_url
                 );
             }
         }
 
         #[test]
-        fn sandbox_agent_base_url_rejects_private_and_local_non_loopback_literals() {
+        fn sandbox_agent_base_url_allows_private_and_public_https_hosts() {
+            // baseUrl is trusted mount config, not an SSRF surface, so private /
+            // metadata hosts are accepted as long as they are well-formed https.
             for base_url in [
-                "http://10.0.0.1:8080",
                 "https://169.254.169.254/latest",
-                "https://100.64.0.1:8080",
-                "https://192.0.0.8:8080",
-                "https://192.88.99.2:8080",
-                "https://[::ffff:10.0.0.1]:8080",
-                "https://[fc00::1]:8080",
-                "https://[fe80::1]:8080",
+                "https://10.0.0.1:8080",
                 "https://[2001:db8::1]:8080",
-                "https://[3fff::1]:8080",
+                "https://sandbox.example.com",
+                "https://93.184.216.34",
             ] {
-                let error = validate_sandbox_agent_base_url_with_resolver(base_url, |_, _| {
-                    panic!("literal baseUrl should not need DNS")
-                })
-                .expect_err("private or local baseUrl should be rejected");
+                validate_sandbox_agent_base_url(base_url).unwrap_or_else(|error| {
+                    panic!("https baseUrl {base_url} should be accepted: {error}")
+                });
+            }
+            // Trailing slash is trimmed (request building depends on this).
+            assert_eq!(
+                validate_sandbox_agent_base_url("https://sandbox.example.com/api/")
+                    .expect("trailing slash trimmed"),
+                "https://sandbox.example.com/api"
+            );
+        }
+
+        #[test]
+        fn sandbox_agent_base_url_requires_https_for_non_local_targets() {
+            // The bearer token rides the Authorization header, so non-local http
+            // is still rejected to avoid leaking it over plaintext.
+            for base_url in ["http://sandbox.example.com", "http://93.184.216.34"] {
+                let error = validate_sandbox_agent_base_url(base_url)
+                    .expect_err("non-local http baseUrl should be rejected");
                 assert!(
-                    error.to_string().contains("private or local/non-global"),
+                    error.to_string().contains("must use https"),
                     "unexpected error for {base_url}: {error}"
                 );
             }
         }
 
         #[test]
-        fn sandbox_agent_base_url_requires_https_for_non_local_targets() {
-            let error = validate_sandbox_agent_base_url_with_resolver(
-                "http://sandbox.example.com",
-                |_, _| panic!("http hostname should be rejected before DNS"),
-            )
-            .expect_err("http hostname should be rejected");
-            assert!(
-                error.to_string().contains("must use https"),
-                "unexpected hostname error: {error}"
-            );
-
-            let error =
-                validate_sandbox_agent_base_url_with_resolver("http://93.184.216.34", |_, _| {
-                    panic!("literal IP should not need DNS")
-                })
-                .expect_err("http public literal should be rejected");
-            assert!(
-                error.to_string().contains("must use https"),
-                "unexpected literal error: {error}"
-            );
-        }
-
-        #[test]
-        fn sandbox_agent_base_url_allows_https_public_targets() {
-            assert_eq!(
-                validate_sandbox_agent_base_url_with_resolver(
-                    "https://sandbox.example.com/api/",
-                    |host, port| {
-                        assert_eq!(host, "sandbox.example.com");
-                        assert_eq!(port, 443);
-                        Ok(vec!["93.184.216.34:443".parse().expect("socket addr")])
-                    },
-                )
-                .expect("public https hostname should be accepted"),
-                "https://sandbox.example.com/api"
-            );
-
-            assert_eq!(
-                validate_sandbox_agent_base_url_with_resolver(
-                    "https://93.184.216.34",
-                    |_, _| panic!("literal IP should not need DNS"),
-                )
-                .expect("public https literal should be accepted"),
-                "https://93.184.216.34"
-            );
-        }
-
-        #[test]
-        fn sandbox_agent_base_url_rejects_hostnames_resolving_private_or_local() {
-            for address in [
-                "127.0.0.1:443",
-                "10.0.0.1:443",
-                "169.254.169.254:443",
-                "[::1]:443",
-                "[fc00::1]:443",
-                "[2001:db8::1]:443",
-            ] {
-                let error = validate_sandbox_agent_base_url_with_resolver(
-                    "https://sandbox.example.com",
-                    |_, _| Ok(vec![address.parse().expect("socket addr")]),
-                )
-                .expect_err("private DNS result should be rejected");
-                assert!(
-                    error
-                        .to_string()
-                        .contains("resolved to a private or local/non-global"),
-                    "unexpected error for {address}: {error}"
-                );
+        fn sandbox_agent_base_url_rejects_malformed_urls() {
+            for base_url in ["", "not a url", "ftp://sandbox.example.com"] {
+                validate_sandbox_agent_base_url(base_url).expect_err(&format!(
+                    "malformed baseUrl {base_url:?} should be rejected"
+                ));
             }
         }
 
