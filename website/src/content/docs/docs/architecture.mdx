@@ -1,0 +1,132 @@
+---
+title: Architecture
+description: How Secure Exec fits together, from the public TypeScript API down to the virtualized kernel.
+---
+import { Aside } from '@astrojs/starlight/components';
+
+Secure Exec runs untrusted guest code inside a fully virtualized VM. Nothing the guest does touches the host directly: there is no real host filesystem, no real host network socket, and no real host process. Every guest syscall is serviced by a kernel that Secure Exec owns.
+
+This page maps the moving parts, from the `secure-exec` package you import down to the Rust kernel that executes guest code.
+
+## The big picture
+
+A Secure Exec runtime spans two processes:
+
+1. **Your process.** You import `NodeRuntime` from `secure-exec` and call `NodeRuntime.create()`. The runtime drives a low-level `SidecarProcess` handle.
+2. **The sidecar process.** `SidecarProcess` spawns the native `secure-exec-sidecar` binary and talks to it over a stdio wire protocol. The sidecar hosts the kernel, the virtual filesystem, the process table, and the language runtimes that actually run guest code.
+
+```
+your process                          sidecar process
+┌───────────────────────────┐        ┌──────────────────────────────────┐
+│ NodeRuntime (secure-exec)  │        │ secure-exec-sidecar               │
+│        │                   │ stdio  │   kernel (VFS, processes, perms)  │
+│        ▼                   │ wire   │     ├─ v8-runtime  (guest JS)     │
+│ SidecarProcess ────────────┼───────▶│     └─ wasm runtime (sh, coreutils)│
+│ (@secure-exec/core)        │ proto  │                                   │
+└───────────────────────────┘        └──────────────────────────────────┘
+```
+
+The guest never runs in your process. It runs inside the sidecar, behind the kernel's isolation boundary.
+
+## TypeScript packages
+
+The code you import lives under `packages/`.
+
+### `secure-exec`
+
+The public package. It re-exports exactly one class, `NodeRuntime`, plus its option and result types. This is the surface almost every application should use.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create();
+try {
+  const { stdout } = await rt.exec("console.log('hi', 1 + 1)");
+  console.log(stdout.trim()); // hi 2
+} finally {
+  await rt.dispose();
+}
+```
+
+`NodeRuntime` is an ergonomic facade. `NodeRuntime.create()` hides the entire setup: spawning the sidecar, opening a session, creating the VM with a bootstrapped root filesystem, mounting the shell and Node runtimes, and waiting for the VM to report ready. Each `exec()` / `run()` / `spawn()` runs the guest as a fresh kernel process.
+
+See [Process Isolation](/docs/process-isolation) for what one runtime isolates and how to choose isolation granularity.
+
+### `@secure-exec/core`
+
+The generic protocol, client, descriptor, and runtime-asset package. `NodeRuntime` itself is implemented here; `secure-exec` is a thin re-export.
+
+`@secure-exec/core` also exports the low-level `SidecarProcess` handle for advanced callers who want to drive sessions, VMs, and the wire protocol directly rather than through `NodeRuntime`:
+
+```ts
+import { SidecarProcess } from "@secure-exec/core/sidecar-process";
+```
+
+`SidecarProcess` is what `NodeRuntime` uses under the hood: it spawns the sidecar binary and exposes the wire protocol. Most applications never need it. Reach for it only when you are building your own runtime facade.
+
+<Aside type="note">Every capability in the wire protocol is reachable from both the TypeScript client (`NodeRuntime` / `SidecarProcess`) and the Rust client, so neither side is a second-class consumer.</Aside>
+
+## Rust crates
+
+The native runtime lives under `crates/`. These build the `secure-exec-sidecar` binary and the kernel it hosts.
+
+| Crate | Role |
+|---|---|
+| `secure-exec-kernel` | The shared kernel plane: virtual filesystem, process and socket tables, pipes, PTYs, permission policy, and DNS. Every guest syscall goes through here. |
+| `secure-exec-v8-runtime` | V8 isolate runtime that executes guest JavaScript. Guest JS runs in isolates; there are no host escapes and no real Node.js builtins for guest work. |
+| `secure-exec-execution` | The native execution plane that wires the kernel to host capabilities on a real machine. |
+| `secure-exec-bridge` | The browser/native portability seam. Shared contracts between the kernel and the execution planes live here. |
+| `secure-exec-sidecar` | Builds the `secure-exec-sidecar` crate and binary. It speaks the stdio wire protocol and hosts the kernel and runtimes. |
+| `secure-exec-client` | The Rust client transport. It exposes the `SidecarProcess` struct, the Rust counterpart to the TypeScript `SidecarProcess`. |
+
+Supporting crates include `secure-exec-vm-config` (shared VM-creation config DTOs) and `secure-exec-sidecar-browser` (the browser-side sidecar scaffold).
+
+<Aside type="caution">`crates/bridge/` is the portability layer; shared contracts belong there. `crates/execution/` is the native execution implementation and must not become the browser portability seam.</Aside>
+
+## Language runtimes inside the VM
+
+The kernel cannot run a program until a runtime is mounted to handle it. `NodeRuntime.create()` mounts two:
+
+- **WASM command runtime.** Provides `sh` plus WASM-backed coreutils. `sh` is required: without it the kernel cannot spawn anything, including the guest `node` program and any child the guest spawns through `node:child_process`.
+- **Node runtime.** Provides the real V8-backed `node`. Guest programs are written to a module inside the VM and executed as `node <file>` through the kernel.
+
+You can point at a different set of WASM command binaries with the `commandsDir` option. See [Child Processes](/docs/features/child-processes) for how guest code spawns commands inside the VM.
+
+## How a run flows through the system
+
+When you call `rt.exec(code)`:
+
+1. `NodeRuntime` writes the guest code to a module inside the VM's virtual filesystem.
+2. It asks the kernel to spawn `node <file>` as a fresh guest process.
+3. The request crosses the stdio wire protocol from `SidecarProcess` to the sidecar.
+4. Inside the sidecar, the kernel starts the process; the V8 runtime executes the guest JavaScript in an isolate.
+5. Guest syscalls (filesystem, process, env, and, when permitted, network) are serviced by the kernel against the VM's virtualized resources, gated by the permission policy.
+6. Captured stdout, stderr, and the exit code travel back across the wire and resolve the `exec()` promise.
+
+Guest `fetch()` runs through undici inside the V8 isolate, then through the kernel socket table, so even network access stays inside the isolation boundary and under the permission policy.
+
+## Permissions
+
+The kernel enforces a permission policy on every scope. `NodeRuntime.create()` applies a secure default: the filesystem, child-process, process, and env scopes are allowed (they are fully virtualized, so the guest only ever sees the VM), and the network scope is denied until you opt in.
+
+```ts
+// Grant the network while keeping the execution essentials.
+const rt = await NodeRuntime.create({ permissions: { network: "allow" } });
+```
+
+The policy merges over the secure default, so a partial object like `{ network: "allow" }` is all you need to open one scope. See [Permissions](/docs/features/permissions) for the full policy model.
+
+## Lifecycle
+
+The caller owns each runtime. `dispose()` tears down the sidecar process and frees the VM:
+
+```ts
+const rt = await NodeRuntime.create();
+try {
+  // ... use rt ...
+} finally {
+  await rt.dispose();
+}
+```
+
+Runtimes are independent. Disposing one never affects another, and a crash in one runtime's process does not touch the others. See [Process Isolation](/docs/process-isolation) for the isolation guarantees in detail.

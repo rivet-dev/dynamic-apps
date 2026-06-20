@@ -1,0 +1,290 @@
+---
+title: API Reference
+description: Complete reference for the secure-exec public API surface.
+---
+import { Aside } from '@astrojs/starlight/components';
+
+The `secure-exec` package exports a single class, `NodeRuntime`, plus the types that describe its options and results.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+```
+
+A runtime is created with `NodeRuntime.create()`, used to run guest programs, and torn down with `dispose()`. The shape every example follows:
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create();
+try {
+  const { stdout, exitCode } = await rt.exec("console.log('hi', 1 + 1)");
+  console.log(stdout, exitCode);
+} finally {
+  await rt.dispose();
+}
+```
+
+<Aside type="note">
+Every `NodeRuntime.create()` boots its own fully virtualized VM backed by its own sidecar process. Each `exec()` / `run()` / `spawn()` starts a fresh guest process inside that VM. See [Process Isolation](/docs/process-isolation).
+</Aside>
+
+## Exports
+
+| Export | Kind | Description |
+|---|---|---|
+| `NodeRuntime` | class | The runtime. Create with `NodeRuntime.create()`. |
+| `NodeRuntimeCreateOptions` | type | Options for `NodeRuntime.create()`. |
+| `NodeRuntimeExecOptions` | type | Options for a single `exec()` / `run()` / `spawn()` call. |
+| `NodeRuntimeExecResult` | type | Result of `exec()`. |
+| `NodeRuntimeRunResult` | type | Result of `run()`. |
+| `NodeRuntimeSpawnOptions` | type | Options for `spawn()`. |
+| `NodeRuntimeProcess` | type | Live handle to a spawned guest process. |
+| `NodeRuntimeFetchInput` | type | Request passed to `fetch()`. |
+| `NodeRuntimeFetchResponse` | type | Response returned by `fetch()`. |
+| `NodeRuntimeListener` | type | A matched guest TCP listener. |
+| `NodeRuntimeListenerQuery` | type | Query for `findListener()` / `waitForListener()`. |
+| `NodeRuntimeWaitForListenerOptions` | type | Options for `waitForListener()`. |
+| `HostDirectoryMount` | type | A host directory projected into the VM. |
+| `NodeModulesMount` | type | Object form of the `nodeModules` create option. |
+| `HostToolDefinition` | type | A host-side tool the guest can invoke as a command. |
+| `HostToolExample` | type | A worked example shown alongside a host tool. |
+
+## `NodeRuntime`
+
+Ergonomic, batteries-included runtime for executing guest JavaScript. A single instance can run many programs; each call executes a fresh guest process.
+
+### `NodeRuntime.create(options?)`
+
+```ts
+static create(options?: NodeRuntimeCreateOptions): Promise<NodeRuntime>
+```
+
+Boots a VM and returns a ready-to-use runtime. Spawns the sidecar, opens a session, creates the VM with a bootstrapped root filesystem, mounts the shell (WASM `sh` plus coreutils) and Node (V8-backed `node`) runtimes, and waits for the VM to report ready.
+
+### Methods
+
+| Method | Returns | Description |
+|---|---|---|
+| `exec(code, options?)` | `Promise<NodeRuntimeExecResult>` | Run `code` as a guest Node program and capture its output. |
+| `run<T>(code, options?)` | `Promise<NodeRuntimeRunResult<T>>` | Run `code` and return the JSON value it produces via `__return(value)`. |
+| `spawn(code, options?)` | `Promise<NodeRuntimeProcess>` | Start `code` as a long-running guest program and return a live handle. |
+| `fetch(port, input)` | `Promise<NodeRuntimeFetchResponse>` | Drive an HTTP request to a guest server listening inside the VM. |
+| `findListener(query)` | `NodeRuntimeListener \| null` | Look up a guest TCP listener once, non-blocking. |
+| `waitForListener(query, options?)` | `Promise<NodeRuntimeListener>` | Block until a matching guest listener appears. |
+| `registerTools(tools)` | `Promise<void>` | Register host-side tools the guest can invoke as commands, after boot. |
+| `writeFile(path, content)` | `Promise<void>` | Write a file into the VM's virtual filesystem. |
+| `readFile(path)` | `Promise<Uint8Array>` | Read a file from the VM's virtual filesystem as raw bytes. |
+| `dispose()` | `Promise<void>` | Tear down the VM and release the sidecar. |
+
+#### `exec(code, options?)`
+
+Writes `code` to an ES module inside the VM and executes it with `node <file>`. It runs as standard ESM, so top-level `await` and `import` work.
+
+```ts
+const { stdout, stderr, exitCode } = await rt.exec(`
+  import os from "node:os";
+  console.log(os.platform());
+`);
+```
+
+#### `run(code, options?)`
+
+Like `exec`, but returns a JSON-serializable value. The guest calls the injected `__return(value)` function; that value is decoded on the host as `result.value`. If `__return` is never called, `value` is `undefined`. stdout, stderr, and exitCode are still captured.
+
+```ts
+const { value } = await rt.run<number>(`
+  __return(40 + 2);
+`);
+console.log(value); // 42
+```
+
+#### `spawn(code, options?)`
+
+Starts `code` without waiting for it to finish and returns a `NodeRuntimeProcess` handle. Use this for guests that do not run to completion, such as a dev server you later drive with `fetch()`.
+
+```ts
+const server = await rt.spawn(`
+  import http from "node:http";
+  http.createServer((_, res) => res.end("ok")).listen(3000);
+`);
+await rt.waitForListener({ port: 3000 });
+const res = await rt.fetch(3000, { path: "/" });
+server.kill();
+await server.wait();
+```
+
+#### `fetch(port, input)`
+
+Drives an HTTP request to a guest HTTP server listening inside the VM and reads the response back on the host. The request and response never leave the VM: the connection is made to the guest's loopback listener through the kernel socket table, so this works even when guest network egress is denied.
+
+#### `findListener(query)` and `waitForListener(query, options?)`
+
+`findListener` asks the kernel socket table whether a guest process is accepting connections on the requested port (optionally narrowed by `host` / `path`) and returns the match or `null`. `waitForListener` polls until a match appears, rejecting on timeout (default 10000 ms) or abort.
+
+#### `registerTools(tools)`
+
+Registers host-side tools on a live runtime. Each entry becomes a named guest command; running it round-trips back to the host and runs the tool's `handler`, whose return value is delivered to the guest. Make sure the `tool` permission scope is granted (for example `permissions: { tool: "allow" }`) so the tools are invocable. The `tools` create option does this automatically when no `tool` scope is set.
+
+## Types
+
+### `NodeRuntimeCreateOptions`
+
+| Option | Type | Description |
+|---|---|---|
+| `env` | `Record<string, string>` | Environment variables visible to guest processes. |
+| `cwd` | `string` | Initial working directory for guest processes. Defaults to `/home/user`. |
+| `permissions` | `Permissions` | Permission policy, merged over a secure default that denies network access. See [Permissions](/docs/features/permissions). |
+| `commandsDir` | `string` | Override the directory holding the WASM command binaries (the source of guest `sh`). |
+| `files` | `Record<string, string \| Uint8Array>` | Files seeded into the VM's virtual filesystem before boot, keyed by absolute guest path. |
+| `mounts` | `HostDirectoryMount[]` | Host directories projected into the VM, Docker-style, read lazily. |
+| `nodeModules` | `string \| NodeModulesMount` | Host `node_modules` directory to project so guest `import` / `require` resolve real packages. Defaults to mounting at `/tmp/node_modules`. |
+| `tools` | `Record<string, HostToolDefinition>` | Host-side tools the guest can invoke as shell commands. |
+| `loopbackExemptPorts` | `number[]` | Guest-bound ports that may accept non-loopback connections. |
+
+<Aside type="note">
+When `commandsDir` is unset, resolution falls back through the `SECURE_EXEC_WASM_COMMANDS_DIR` environment variable, the in-repo build output (developer checkouts), then the commands vendored into the installed `@secure-exec/core` package (published installs).
+</Aside>
+
+The `permissions` field is the `Permissions` type from `@secure-exec/core`. Each scope (`fs`, `network`, `childProcess`, `process`, `env`, `tool`) accepts either a mode (`"allow"` / `"deny"`) or a `{ default?, rules }` policy. The default policy denies `network` and allows the virtualized scopes so programs run. See [Permissions](/docs/features/permissions) for the full shape.
+
+### `HostDirectoryMount`
+
+| Field | Type | Description |
+|---|---|---|
+| `guestPath` | `string` | Absolute guest path the directory appears at inside the VM. |
+| `hostPath` | `string` | Absolute host directory to project (read lazily through the VFS). |
+| `readOnly` | `boolean` | Mount read-only (the default). Pass `false` to allow guest writes. |
+
+### `NodeModulesMount`
+
+Object form of the `nodeModules` create option. The string form (`nodeModules: "/abs/node_modules"`) is shorthand for `{ hostPath }`.
+
+| Field | Type | Description |
+|---|---|---|
+| `hostPath` | `string` | Absolute host `node_modules` directory to project (read lazily). |
+| `guestPath` | `string` | Guest path to mount it at. Defaults to `/tmp/node_modules`. |
+
+### `NodeRuntimeExecOptions`
+
+Options for a single `exec()` / `run()` call. `NodeRuntimeSpawnOptions` extends this type (the streaming hooks apply to `spawn` too).
+
+| Option | Type | Description |
+|---|---|---|
+| `env` | `Record<string, string>` | Extra environment variables for this run, merged over the VM env. |
+| `cwd` | `string` | Working directory for this run. |
+| `stdin` | `string \| Uint8Array` | Data piped to the guest program's stdin. |
+| `timeout` | `number` | Abort the run after this many milliseconds. |
+| `signal` | `AbortSignal` | Cancel the run when this signal aborts; the guest process is killed (SIGTERM) and the call rejects with the abort reason. |
+| `onStdout` | `(chunk: Uint8Array) => void` | Called with each stdout chunk as it is produced. |
+| `onStderr` | `(chunk: Uint8Array) => void` | Called with each stderr chunk as it is produced. |
+
+### `NodeRuntimeExecResult`
+
+```ts
+interface NodeRuntimeExecResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+```
+
+### `NodeRuntimeRunResult<T>`
+
+```ts
+interface NodeRuntimeRunResult<T = unknown> {
+  value?: T;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+```
+
+### `NodeRuntimeSpawnOptions`
+
+Identical to `NodeRuntimeExecOptions` (it extends it). The `onStdout` / `onStderr` hooks receive output chunks as the spawned process produces them.
+
+### `NodeRuntimeProcess`
+
+A live handle to a guest process started with `spawn()`.
+
+| Member | Type | Description |
+|---|---|---|
+| `pid` | `number` (readonly) | The guest process id. |
+| `writeStdin(data)` | `(data: string \| Uint8Array) => void` | Write data to the process's stdin. |
+| `closeStdin()` | `() => void` | Close the process's stdin, signalling end-of-input. |
+| `kill(signal?)` | `(signal?: NodeJS.Signals \| number) => void` | Send a signal. Defaults to `SIGTERM`. Accepts a signal name or raw number. |
+| `wait()` | `() => Promise<number>` | Resolve with the exit code once the process terminates. |
+| `exitCode` | `number \| null` (readonly) | The exit code once exited, or `null` while running. |
+
+### `NodeRuntimeFetchInput`
+
+| Field | Type | Description |
+|---|---|---|
+| `method` | `string` | HTTP method. Defaults to `GET`. |
+| `path` | `string` | Request path and query, e.g. `/api/users?limit=10`. |
+| `headers` | `Record<string, string>` | Request headers. |
+| `body` | `string \| Uint8Array` | Request body. |
+
+### `NodeRuntimeFetchResponse`
+
+| Field | Type | Description |
+|---|---|---|
+| `status` | `number` | HTTP status code, e.g. `200`. |
+| `statusText` | `string` | HTTP status text, e.g. `OK`. |
+| `headers` | `Record<string, string>` | Response headers, lower-cased by name. |
+| `body` | `string` | Response body decoded as UTF-8 text. |
+
+### `NodeRuntimeListenerQuery`
+
+| Field | Type | Description |
+|---|---|---|
+| `port` | `number` | TCP port the guest listener is bound to. |
+| `host` | `string` | Bind host to match. Omit to match any host. |
+| `path` | `string` | Unix socket path to match, for path-bound listeners. |
+
+### `NodeRuntimeListener`
+
+| Field | Type | Description |
+|---|---|---|
+| `processId` | `string` | The guest process id that owns the listening socket. |
+| `host` | `string` | The host the listener is bound to, when reported. |
+| `port` | `number` | The port the listener is bound to, when reported. |
+| `path` | `string` | The unix socket path the listener is bound to, when reported. |
+
+### `NodeRuntimeWaitForListenerOptions`
+
+| Option | Type | Description |
+|---|---|---|
+| `timeoutMs` | `number` | Give up after this many milliseconds and reject. Defaults to 10000. |
+| `signal` | `AbortSignal` | Abort the wait early; the promise rejects when it fires. |
+| `pollIntervalMs` | `number` | How long to wait between lookups while polling. Defaults to 50. |
+
+### `HostToolDefinition`
+
+A host-side tool the guest invokes by name as a shell command. The invocation round-trips back to the host `handler`, which runs on the host (never inside the guest) and returns a JSON-serializable result delivered back to the guest.
+
+| Field | Type | Description |
+|---|---|---|
+| `description` | `string` | Human-readable description of what the tool does. |
+| `inputSchema` | `object` | JSON Schema describing the tool's input. |
+| `handler` | `(input: unknown) => unknown \| Promise<unknown>` | Host handler invoked when the guest runs the tool. |
+| `timeoutMs` | `number` | Abort the invocation after this many milliseconds. |
+| `examples` | `HostToolExample[]` | Worked examples shown alongside the tool. |
+| `commandAliases` | `string[]` | Extra command names the guest can use to invoke the tool. |
+
+### `HostToolExample`
+
+| Field | Type | Description |
+|---|---|---|
+| `description` | `string` | What this example demonstrates. |
+| `input` | `unknown` | Example input matching the tool's input schema. |
+
+## The low-level handle
+
+`NodeRuntime` is built on top of `SidecarProcess`, the lower-level client handle to a running sidecar. It is not exported from `secure-exec`; reach for it from `@secure-exec/core/sidecar-process` only when you need direct protocol-level control, and prefer `NodeRuntime` otherwise.
+
+```ts
+import { SidecarProcess } from "@secure-exec/core/sidecar-process";
+```
+
+A matching `SidecarProcess` struct is available in the Rust client crate `secure-exec-client`.

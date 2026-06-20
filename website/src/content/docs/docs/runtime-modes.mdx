@@ -1,0 +1,127 @@
+---
+title: Native and Browser Modes
+description: Secure Exec runs the same architecture in two modes, a native sidecar process and an in-browser sidecar Worker. This page explains both and how their transports differ.
+---
+import { Aside } from '@astrojs/starlight/components';
+
+Secure Exec runs in two modes: **native** (Node.js, Deno, Bun, or any process that can spawn the sidecar binary) and **browser** (the runtime running entirely inside the page). Both modes use the exact same architecture. Only the carriers that connect the pieces change, because a browser tab cannot spawn a process or share memory the way a native host can.
+
+This page is the companion to [Architecture](/docs/architecture). It focuses on the two communication paths that make the runtime work, and on how those paths are implemented in each mode.
+
+<Aside type="note">The browser mode here describes the converged design that brings the browser runtime to parity with native. It is under active development; the conceptual model below is the target both modes share.</Aside>
+
+## One model, two modes
+
+Every Secure Exec runtime is built from three roles:
+
+- **Client.** The trusted caller. It speaks the wire protocol and asks the sidecar to create VMs and run code. It never runs guest code itself.
+- **Sidecar.** The trusted enforcement point. It owns the kernel (virtual filesystem, process and socket tables, pipes, PTYs, permission policy, DNS) and creates executors on demand.
+- **Executor.** The untrusted leaf. It runs guest JavaScript and reaches the kernel for every syscall. It holds no capabilities of its own.
+
+Because of that shared shape, there are always exactly **two communication hops**:
+
+1. **Client to sidecar:** a framed request/response (plus events) protocol.
+2. **Executor to kernel:** a synchronous, blocking syscall path where the executor waits until the kernel services the request.
+
+The difference between native and browser is entirely in how each hop is carried.
+
+## Native mode
+
+In native mode the kernel and the executor live in **one sidecar process**, on different threads.
+
+```
+ client process                         sidecar process
+┌────────────────────┐        stdio    ┌────────────────────────────────┐
+│ NodeRuntime        │  ◀══════════════▶│ kernel (VFS, processes, perms) │
+│ (secure-exec)      │   wire protocol  │     ▲                          │
+│   SidecarProcess   │                  │     │ in-process channel       │
+└────────────────────┘                  │  ┌──┴── V8 isolate ──┐         │
+                                         │  │  (own OS thread)  │ guest JS│
+                                         │  └───────────────────┘         │
+                                         └────────────────────────────────┘
+```
+
+- **Client to sidecar** travels over **stdio pipes**. The client spawns the `secure-exec-sidecar` binary and writes requests to its stdin, reading responses and events from its stdout.
+- **Executor to kernel** travels over an **in-process channel**. The guest runs in a V8 isolate on its own OS thread. A guest syscall parks that thread on the channel until the kernel replies. Because both sides share the same address space, no shared-memory marshalling is needed beyond the message itself.
+
+## Browser mode
+
+In the browser there is no process to spawn and no shared address space, so the same three roles are split across **three realms**: the page's main thread, a dedicated sidecar Worker, and one or more executor Workers.
+
+```
+ main thread             sidecar Worker                 executor Worker(s)
+┌────────────────┐      ┌──────────────────────┐       ┌──────────────────┐
+│ BrowserRuntime │ post │ kernel (WASM)         │ spawn │ guest JS in a    │
+│ (@secure-exec/ │◀════▶│  VFS, processes,      │══════▶│ Web Worker       │
+│  core)         │ Msg  │  sockets, perms       │       │                  │
+└────────────────┘      │            ▲          │◀═════▶│                  │
+        ▲               └────────────│──────────┘ Shared└──────────────────┘
+        │ host callbacks             │            Array
+        │ (OPFS, fetch, clock,       └─ Atomics ──┘Buffer
+        │  random, DNS, spawn Worker)
+        └───────────────────────────────────────────────────────────────
+```
+
+- **Client to sidecar** travels over **`postMessage`** between the main thread and the sidecar Worker. The kernel is compiled to WebAssembly and runs inside that Worker.
+- **Executor to kernel** travels over a **SharedArrayBuffer** with **Atomics**. The guest runs as JavaScript inside an executor Worker. A guest syscall writes the request into shared memory, blocks the executor Worker with `Atomics.wait`, and the sidecar Worker wakes it with `Atomics.notify` once the kernel has serviced the request.
+
+The sidecar runs in its own Worker for a specific reason: the kernel blocks while servicing waits (pipes, polling, PTYs, waiting on a child). Blocking is forbidden on the page's main thread but allowed inside a Worker, so giving the kernel its own Worker lets it keep the same blocking model native uses without freezing the page.
+
+Capabilities the WASM kernel cannot provide on its own (real storage, network egress, time, randomness, DNS, and spawning the executor Worker) are requested back from the main thread through host callbacks, the browser counterpart to native's reverse calls into the trusted client.
+
+## Hop 1: client to sidecar
+
+This hop is the **same protocol over a different pipe**. The framed wire protocol, the request and response catalog, the asynchronous events, and the message correlation are identical in both modes. Only the bottom transport layer changes.
+
+| | Native | Browser |
+|---|---|---|
+| Boundary | separate OS process | separate Web Worker |
+| Carrier | stdio pipes | `postMessage` |
+| Framing | length-prefixed binary frames | the same frames (length prefix optional, since `postMessage` already delivers discrete messages) |
+| Protocol engine | shared | shared (same client code) |
+| Reverse calls for host capabilities | serviced by the native client (for example host-backed mounts via the host filesystem) | serviced by the main thread (OPFS, `fetch`, `Date`, `crypto`, a JS DNS resolver, and spawning the executor Worker) |
+
+Because the protocol is identical, the same client drives both modes. The native client exposes `NodeRuntime`; the browser client exposes a browser runtime built on the same `@secure-exec/core` foundation.
+
+```ts
+// Native: spawns the sidecar binary and talks over stdio.
+import { NodeRuntime } from "secure-exec";
+
+// Browser: boots the WASM sidecar Worker and talks over postMessage.
+import { BrowserRuntime } from "@secure-exec/browser";
+```
+
+## Hop 2: executor to kernel
+
+This hop is the **same semantics over a different blocking primitive**. In both modes a guest syscall is synchronous from the guest's point of view: the executor stops and waits until the kernel, the trusted enforcement point, has serviced the request and applied the permission policy. What differs is how the executor waits.
+
+| | Native | Browser |
+|---|---|---|
+| Boundary | thread boundary, shared address space | realm boundary, no shared address space |
+| Carrier | in-process channel | SharedArrayBuffer |
+| Blocking primitive | the thread parks on a channel receive | `Atomics.wait` on shared memory |
+| Executor engine | V8 isolate on an OS thread | JavaScript evaluated inside a Web Worker |
+| Kernel form | native code | WebAssembly |
+
+The executor engine is the one piece that is necessarily different. V8 isolates cannot run inside a browser tab, so the browser executor evaluates guest JavaScript in a Web Worker instead. Both engines sit behind the same kernel syscall contract, so the kernel, the permission policy, and the guest-facing bridge are shared.
+
+<Aside type="caution">The executor never holds capabilities in either mode. It cannot touch a real filesystem, open a real socket, or spawn a real process. Every action it takes is a request to the kernel, which decides whether the applied permission policy allows it. See the [Security Model](/docs/security-model) for the boundary in detail.</Aside>
+
+## What is shared and what differs
+
+Shared across both modes:
+
+- The wire protocol, framing, and message correlation.
+- The client, built on `@secure-exec/core`.
+- The kernel: virtual filesystem, process and socket tables, pipes, PTYs, permission policy, and DNS.
+- The guest-facing syscall contract and the permission model.
+
+Different by necessity:
+
+- **Client to sidecar carrier:** stdio pipes (native) versus `postMessage` (browser).
+- **Executor to kernel carrier:** an in-process channel (native) versus SharedArrayBuffer with Atomics (browser).
+- **Sidecar form:** a native binary in its own process (native) versus a WebAssembly module in a dedicated Worker (browser).
+- **Executor engine:** a V8 isolate (native) versus JavaScript in a Web Worker (browser).
+- **Host capabilities:** the operating system through the native client versus browser APIs (OPFS, `fetch`, `Date`, `crypto`) through the main thread.
+
+The result is one architecture and one mental model. Whichever mode you target, a runtime is a client talking to a kernel-owning sidecar that runs your guest code behind an isolation boundary, with the permission policy enforced on every syscall.
