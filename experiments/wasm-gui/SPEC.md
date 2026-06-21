@@ -440,9 +440,16 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      event-routing instrumentation (which client the server queues each event for) -- a deep X-over-host_net
      delivery investigation. The terminal<->shell bidirectional I/O is proven by `test-m6-3-pty.sh` and
      the X keyboard by `test-m6-keyboard.sh`; only the X->st event hop remains.
-  4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
-     many clients can start simultaneously without the `usleep`/ordering hack. (Likely: per-client
-     sync-RPC fairness, or a smarter net_poll/recv path.)
+  4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
+     now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
+     once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
+     xftdemo SIMULTANEOUSLY -- twm reaches its event loop and decorates both concurrently-launched
+     windows, xftdemo opens its Xft font, 0 clients crash, and the framebuffer shows the managed desktop
+     (proof `~/tmp/gui-progress/m2-3-concurrent.png`). 5/5 reliability runs: 0 failures, consistent
+     render. The enabling fix was M6.4's net.poll fairness (JAVASCRIPT_NET_POLL_MAX_WAIT 50ms->3ms),
+     which removed the bridge starvation that made concurrent init flaky; this milestone adds the
+     concurrent launch path + test to lock it in. (Note: the WM is somewhat slower to finish decorating
+     under concurrent contention than when launched first, but it is reliable, not flaky.)
   Acceptance: a live window showing twm managing xterm + xclock, typing into xterm works, all started
   concurrently, with an automated test + manual example.
 

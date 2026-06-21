@@ -701,6 +701,7 @@ async fn run_xdemo(
     vm_trees: &[String],
     inject: &[(String, String)],
     pty_shell: Option<&str>,
+    concurrent_launch: bool,
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let server_abs = abs_path(server)?;
@@ -812,8 +813,30 @@ async fn run_xdemo(
         {
             wm_ready = true; // fallback: assume the WM is up if it has run a while
         }
+        // M2.3 concurrency mode: once the server is up, launch ALL clients back-to-back without the
+        // settle/WM gating, to exercise concurrent libX11 init over the sync-RPC bridge.
+        if concurrent_launch && server_ready && launched < client_specs.len() {
+            while launched < client_specs.len() {
+                let (path, cargs) = &client_specs[launched];
+                let id = format!("xclient{launched}");
+                let argv: Vec<&str> = cargs.iter().map(|x| x.as_str()).collect();
+                let mut cenv = HashMap::new();
+                cenv.insert("DISPLAY".to_string(), ":0".to_string());
+                cenv.insert("HOME".to_string(), "/root".to_string());
+                if locale_dir.is_some() {
+                    cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                }
+                if !vm_trees.is_empty() {
+                    cenv.insert("FONTCONFIG_PATH".to_string(), "/etc/fonts".to_string());
+                    cenv.insert("FONTCONFIG_FILE".to_string(), "/etc/fonts/fonts.conf".to_string());
+                }
+                s.execute_env(&id, path, &argv, cenv).await?;
+                eprintln!("secure-exec: launched {id} ({path}) [concurrent]");
+                launched += 1;
+            }
+        }
         let can_launch_next = launched == 0 || wm_ready;
-        if server_ready && launched < client_specs.len() && can_launch_next {
+        if !concurrent_launch && server_ready && launched < client_specs.len() && can_launch_next {
             let now = tokio::time::Instant::now();
             let prev_settled = launched == 0
                 || (now.duration_since(last_activity) >= settle
@@ -1002,6 +1025,7 @@ struct Args {
     vm_trees: Vec<String>,
     inject: Vec<(String, String)>,
     pty_test: bool,
+    concurrent: bool,
     pty_shell: Option<String>,
 }
 
@@ -1025,6 +1049,7 @@ fn parse_args() -> Args {
         vm_trees: Vec::new(),
         inject: Vec::new(),
         pty_test: false,
+        concurrent: false,
         pty_shell: None,
     };
     let mut i = 1;
@@ -1034,6 +1059,7 @@ fn parse_args() -> Args {
             "--desktop" => a.mode_desktop = true,
             "--exec" => a.exec = true,
             "--xdemo" => a.xdemo = true,
+            "--concurrent" => a.concurrent = true,
             "--pty-test" => a.pty_test = true,
             "--pty-shell" => {
                 i += 1;
@@ -1169,6 +1195,7 @@ async fn main() {
             &args.vm_trees,
             &args.inject,
             args.pty_shell.as_deref(),
+            args.concurrent,
         )
         .await
         {
