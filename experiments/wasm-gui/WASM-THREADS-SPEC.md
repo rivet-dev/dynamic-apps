@@ -236,9 +236,33 @@ In `crates/v8-runtime` (+ wiring through `crates/execution`):
 
 ### Phase 2 — Concurrency safety for synchronous host calls (the real "RPC fix")
 
-Because host imports are synchronous and in-context per isolate-thread, the hazard is **N isolate-threads
-making concurrent synchronous host calls into shared kernel/sidecar state**. There is no central
-single-thread servicer to "multi-channel"; the fix is a disciplined critical section.
+> **MAJOR FINDING (2026-06-21, from mapping the execution path) — the existing architecture already
+> provides most of Phase 2.** Kernel-touching host calls do NOT mutate kernel state in-isolate; each one
+> marshals its args to **CBOR (a copy)** and round-trips via `RuntimeEvent::BridgeCall`
+> (`host_call.rs:sync_call`) to the **single-threaded sidecar event loop**
+> (`service.rs:handle_javascript_sync_rpc_request`, a `new_current_thread` runtime). Multiple isolates of
+> one VM **already coexist** today (parent + `child_process.spawn` children), and their host calls are
+> **serialized at that one loop**, which accesses `vm.kernel` via `&mut` on a single thread. Consequences
+> for a worker isolate (which routes BridgeCalls to the same loop):
+> - **Races: already prevented.** One event is processed to completion before the next → kernel access is
+>   single-threaded by construction. No new lock needed for memory-safety.
+> - **Check-then-act atomicity: already provided.** A whole host-call handler runs uninterrupted on the
+>   sidecar loop → permission/resource check + action + commit are atomic w.r.t. other host calls.
+> - **TOCTOU-on-args: already prevented.** Args are CBOR-copied before crossing to the sidecar; a sibling
+>   thread mutating shared guest memory can't change the already-copied request.
+> - **`pthread_join`/futex: no sidecar round-trip.** wasi-libc uses in-wasm `memory.atomic.wait/notify`
+>   on shared memory, so the joiner parks in its *isolate*, not in a host call → no sidecar deadlock edge.
+> So the "per-VM critical-section lock" below is **largely subsumed by the existing single-threaded
+> sidecar**. The remaining real Phase-2 work is narrower: (i) **fairness** for *blocking* worker host
+> calls (the M6.4 class — a worker's blocking `poll` must not starve the main thread; bounded poll
+> quantum already exists), and (ii) an **audit** to confirm no kernel-touching path bypasses the sidecar
+> loop (e.g. anything handled directly in v8-runtime). The original lock-design notes below are retained
+> as the fallback / audit checklist if any unsynchronized path is found.
+
+Because host imports are synchronous and in-context per isolate-thread, the *potential* hazard is
+**N isolate-threads making concurrent synchronous host calls into shared kernel/sidecar state** — but per
+the finding above, the existing single-threaded sidecar loop is that critical section. The notes below
+define what to verify / how to harden if a bypass exists.
 
 - **Per-VM critical-section lock.** The unit of mutual exclusion is the **entire host-call servicing
   routine**, not "one kernel method." Concretely, each host call:
