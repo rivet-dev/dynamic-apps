@@ -44,6 +44,9 @@ struct addrinfo {
 #define AI_ADDRCONFIG  0x0400
 #define NI_NUMERICHOST 0x0001
 #define NI_NUMERICSERV 0x0002
+#define NI_NOFQDN 0x0004
+#define NI_NAMEREQD 0x0008
+#define NI_DGRAM 0x0010
 #define NI_MAXHOST     1025
 #define NI_MAXSERV     32
 #define EAI_BADFLAGS   -1
