@@ -532,6 +532,17 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      request volume. NEXT: stub xloadfonts/xloadcols in st (or load just 1 font/color) and re-probe; if
      keys return, bisect which Xft/Fc/Render call in those triggers it. This is the precise remaining
      frontier; everything else in st's X path is ruled out.
+     NO SINGLE OPERATION IS THE CAUSE (2026-06-21, ~34 passes): the baseline `xftpoll-target.c` was
+     extended to perform EVERY operation st's xinit does -- st's exact XCreateWindow + GC-on-root, FOUR
+     Xft faces (xloadfonts), 256 XftColor allocations (xloadcols), offscreen-pixmap render, AND pty_spawn
+     -- and it STILL receives KeyPress (green). So bisection-by-ADDITION is exhausted: every individual
+     st operation has been replicated and none breaks input. The cause must be operation ORDER (st loads
+     fonts/colors BEFORE creating its window; the baseline creates the window first) or a subtle
+     cumulative/interaction effect that addition cannot surface. The remaining methodologies are: (1)
+     st-side REMOVAL bisection -- stub xloadfonts/xloadcols/tnew in st and re-probe, then reorder; (2) an
+     X PROTOCOL TRACE comparison (capture st's vs xftpoll-target's byte stream around the inject and diff
+     what the server sends each); (3) NON-perturbing server-side counters on the device-event path. This
+     is a genuine multi-session deep dive; ~19 suspects eliminated, working reference baseline committed.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +

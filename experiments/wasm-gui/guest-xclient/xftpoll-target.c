@@ -71,6 +71,7 @@ int main(void) {
         mark("XF:rendered\n");
     }
 
+
     /* Replicate st's ttynew: spawn a PTY child. This is the major st behavior the baseline lacked. */
     {
         unsigned master = 0;
