@@ -15,7 +15,9 @@ cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-TP="$EXP/third_party"; PREFIX="$TP/wasm-prefix"
+TP="$EXP/third_party"
+# Honor cross-env PREFIX (wasm-prefix vs wasm-prefix-threads under SECURE_EXEC_WASM_THREADS=1).
+BUILDDIR="build-wasm${SECURE_EXEC_WASM_THREADS:+-threads}"
 
 # 1) libffi-wasm shim + intl stub.
 bash "$EXP/scripts/build-libffi-wasm.sh"
@@ -95,13 +97,13 @@ if b1o in t and b1n not in t: t = t.replace(b1o, b1n, 1); n += 1
 if b2o in t and b2n not in t: t = t.replace(b2o, b2n, 1); n += 1
 if n: open(g, "w").write(t); print(f"patched gunixmounts.c ({n} wasi stub branches)")
 PY
-rm -rf build-wasm
-meson setup build-wasm --cross-file "$CROSS_INI" --wrap-mode=nofallback \
+rm -rf "$BUILDDIR"
+meson setup "$BUILDDIR" --cross-file "$CROSS_INI" --wrap-mode=nofallback \
   -Dtests=false -Dglib_debug=disabled -Dnls=disabled -Dlibmount=disabled -Dselinux=disabled \
   -Ddtrace=false -Dsystemtap=false -Ddefault_library=static -Dxattr=false
 echo "== building glib / gobject / gthread / gmodule / gio =="
 for lib in glib/libglib-2.0.a gobject/libgobject-2.0.a gthread/libgthread-2.0.a gmodule/libgmodule-2.0.a gio/libgio-2.0.a; do
-  ninja -C build-wasm "$lib"
-  echo "BUILT $(basename "$lib") ($(stat -c%s "build-wasm/$lib") bytes)"
+  ninja -C "$BUILDDIR" "$lib"
+  echo "BUILT $(basename "$lib") ($(stat -c%s "$BUILDDIR/$lib") bytes)"
 done
 echo "== M8 GLib stack COMPLETE: GLib + GObject (linked the libffi-wasm shim) + GThread + GModule + GIO built for wasm32-wasip1 =="
