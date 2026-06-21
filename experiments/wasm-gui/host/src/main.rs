@@ -37,7 +37,7 @@ const LIBX11_COMPILED_LOCALE_DIRS: &[&str] = &[
 // timeout in ms) far above the 30s default: the X server and a desktop's clients are LONG-RUNNING
 // guests, so the default would kill the server ~30s in ("WebAssembly fuel budget exhausted") and the
 // desktop would collapse. 1 hour is generous for a session while still bounding a runaway guest.
-const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","tool":"allow"},"limits":{"resources":{"maxWasmFuel":3600000}}}"#;
+const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","tool":"allow"},"limits":{"resources":{"maxWasmFuel":3600000,"maxWasmMemoryBytes":536870912}}}"#;
 
 type Result<T> = std::result::Result<T, String>;
 

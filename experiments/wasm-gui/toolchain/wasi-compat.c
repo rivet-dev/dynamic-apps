@@ -42,7 +42,9 @@ int pthread_join(unsigned long t, void **r) { (void)t; (void)r; return 0; }
 int pthread_attr_setscope(void *a, int s) { (void)a; (void)s; return 0; }
 int pthread_setname_np(unsigned long t, const char *n) { (void)t; (void)n; return 0; }
 #endif
-void __SIG_IGN(int s) { (void)s; }
+#ifndef SECURE_EXEC_WASM_THREADS
+void __SIG_IGN(int s) { (void)s; }  /* provided by libwasi-emulated-signal in the threaded profile */
+#endif
 /* process/net stubs genuinely absent from wasi (X server runs single-process, local-only). */
 int fork(void) { return -1; }
 int execl(const char *p, ...) { (void)p; return -1; }
