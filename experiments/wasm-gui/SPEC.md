@@ -586,6 +586,21 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      net_poll fixes are the relevant area. Caveat: the flush counter is cumulative to its last /data dump,
      so confirm the keypress flush is included by dumping after the inject. This is the precise host_net
      socket-layer frontier; the X server, focus, keymap, and st's X-call/read logic are all excluded.
+     FULL RECV-CHAIN TRACE (~39 passes): the client recv path is st libxcb -> `net_recv` (runner,
+     node_import_cache.rs ~11737) -> drains a runner-LOCAL buffer via `dequeueHostNetBytes`, refilled by
+     `pollHostNetSocket` (~10990) which does ONE `net.poll` sync-RPC per call and pushes ONE chunk to
+     `socket.readChunks` -> sidecar `net.poll` handler -> kernel `recv_buffer` (socket_table.rs, an
+     UNBOUNDED VecDeque; poll reports POLLIN level-triggered when non-empty, line ~1263). The kernel
+     buffering is correct (unbounded, level-triggered), so the suspect is the `net.poll` RPC / runner
+     local-buffer refill for st's heavy connection (e.g. one-chunk-per-poll under-draining, or a
+     readiness edge st misses), AND a measurement caveat: the FlushClient byte counter that showed st
+     flushed_bytes=2596 is cumulative to its last /data dump, so it may NOT include the late keypress
+     flush -- re-run with a dump forced AFTER the inject to confirm the keypress is actually net_sent.
+     NEXT: (1) per-fd byte counters in the runner `net_recv` and the sidecar `net.poll` handler, dumped
+     AFTER the inject, to compare server-sent vs client-recv for st's X fd; (2) check `net.poll`
+     level-vs-edge readiness for a socket that already drained once. Everything above the host_net wire
+     (X server, focus, keymap, st X-calls/read-logic) is excluded; this is the precise sidecar/kernel
+     socket-readiness frontier for a future session.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
