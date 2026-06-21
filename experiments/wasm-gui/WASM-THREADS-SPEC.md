@@ -525,8 +525,11 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
   `spawn_wasm_thread`; process-global `ThreadSlots` backstop too.
 - ✅ Full regression aggregate + cross-run flake gate (`test-threads-all.sh`: spike/multi/io/stress/
   trap/nested each ×N, 0 failures). ⬜ a **sanitizer** build of the gate (infra follow-up).
-- ⬜ Threaded **GLib** smoke + libffi-under-threads (both need Phase 0 threaded GLib/GTK build).
-- ⬜ Phase 0 threaded GTK closure rebuild (multi-week, mechanical).
+- 🟡 Phase 0 threaded GTK closure rebuild (in progress): threaded toolchain DONE + proven; **the ENTIRE
+  GLib stack (libglib/gobject/gthread/gmodule/gio) now builds for `wasm32-wasip1-threads`** — Phase 0's
+  hardest dependency. Remaining: harfbuzz/cairo/pango/gdk-pixbuf/atk/gtk + X libs threaded (same
+  toolchain + compat-header pattern).
+- ⬜ Threaded **GLib** smoke + libffi-under-threads (now unblocked by the threaded GLib stack).
 - 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
   satisfied autonomously.
 
