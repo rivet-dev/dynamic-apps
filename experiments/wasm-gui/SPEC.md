@@ -543,6 +543,15 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      X PROTOCOL TRACE comparison (capture st's vs xftpoll-target's byte stream around the inject and diff
      what the server sends each); (3) NON-perturbing server-side counters on the device-event path. This
      is a genuine multi-session deep dive; ~19 suspects eliminated, working reference baseline committed.
+     ORDER ALSO RULED OUT (~35 passes): the baseline was made to load fonts+colors BEFORE XCreateWindow
+     (st's exact order, since st's window bg uses a loaded color) and STILL receives keys. CONCLUSION:
+     `xftpoll-target.c` now replicates st's ENTIRE X behavior -- every operation, in st's order -- and
+     works; st fails even right after xinit with focus CONFIRMED (FocusIn arrives, so KeyPressMask is
+     provably set -- same mask word). The cause is NOT identifiable by replicating st's X calls (X-call
+     layer exhaustively excluded, ~20 suspects). The ONLY remaining methodology is an X PROTOCOL-TRACE
+     DIFF: capture the bytes the server sends to st vs to xftpoll-target around the key inject (in-VM
+     socket proxy on /tmp/.X11-unix/X0, or a libxcb raw-read hook in each client) and diff them. That is
+     the precise frontier for a future session.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
