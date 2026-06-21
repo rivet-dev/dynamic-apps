@@ -24,8 +24,8 @@ if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   THREADS_SYSROOT="$WSDK/share/wasi-sysroot"
   PREFIX="$EXP/third_party/wasm-prefix-threads"
   THREADS_MEM_MAX=$((512*1024*1024))
-  THREADS_FLAGS="-pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS"
-  THREADS_LDFLAGS="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$THREADS_MEM_MAX -Wl,--export=wasi_thread_start"
+  THREADS_FLAGS="-pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL"
+  THREADS_LDFLAGS="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$THREADS_MEM_MAX -Wl,--export=wasi_thread_start -lwasi-emulated-signal"
 else
   WASM_TARGET="wasm32-wasip1"
   THREADS_SYSROOT="$SYSROOT"
@@ -58,12 +58,12 @@ CROSS_INI="$EXP/toolchain/wasi-sdk-cross.gen.ini"
 if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   MESON_SYSROOT="$THREADS_SYSROOT"
   MESON_LIBSUBDIR="wasm32-wasip1-threads"
-  MESON_C_THREADS="'-pthread', '-matomics', '-mbulk-memory', '-DSECURE_EXEC_WASM_THREADS', "
+  MESON_C_THREADS="'-pthread', '-matomics', '-mbulk-memory', '-DSECURE_EXEC_WASM_THREADS', '-D_WASI_EMULATED_SIGNAL', "
   MESON_C_EMUL_PTHREAD=""
   # NOTE: --export=wasi_thread_start is intentionally NOT here — as a global link arg it fails every
   # meson cc.links() probe (the probe program has no such symbol to export), breaking dependency
   # detection (e.g. GIO's socket() check). It is added only at the final guest-app link.
-  MESON_LINK_THREADS="'-Wl,--shared-memory', '-Wl,--import-memory', '-Wl,--export-memory', '-Wl,--max-memory=$THREADS_MEM_MAX', "
+  MESON_LINK_THREADS="'-Wl,--shared-memory', '-Wl,--import-memory', '-Wl,--export-memory', '-Wl,--max-memory=$THREADS_MEM_MAX', '-lwasi-emulated-signal', "
   MESON_LINK_EMUL_PTHREAD=""
   MESON_WASI_COMPAT_O="$EXP/toolchain/wasi-compat-threads.o"
   # Compile the threaded compat object (pthread/flockfile stubs compiled out) for the final link.
