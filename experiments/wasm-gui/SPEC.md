@@ -449,14 +449,20 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      to find why xinput-target's window is delivered to but st's is not -- NOT `DeliverFocusedEvent`.
      xinput-target uses real core KeyPress events (XNextEvent + `case KeyPress`), so the path works for a
      simple client; the difference is st-connection/window specific.
-     UPDATE (12 passes): keyboard events bypass ALL THREE central dix delivery functions --
-     `TryClientEvents`, `DeliverFocusedEvent`, AND `DeliverDeviceEvents` are each called 0 times for
-     internal key/button events (ET_KeyPress=2..ET_ButtonRelease=5) in BOTH the working green run and the
-     st run, yet green delivers KeyPress. So this server's keyboard delivery path is atypical -- it must
-     run through `DeliverGrabbedEvent` (active/implicit grab) or XKB-direct or an XTEST-specific route.
-     The next session should instrument `DeliverGrabbedEvent` + `ProcXTestFakeInput` + `mieqProcessDeviceEvent`
-     (the XTEST FakeInput -> mieq -> processInputProc path), since the standard core-delivery functions
-     are confirmed off-path here.
+     CORRECTED ROOT CAUSE (13 passes, 2026-06-21): it is a TIMING/LOAD-sensitivity issue, NOT a routing
+     bug. KEY META-FINDING: hot-path `ErrorF` instrumentation in the X server's event pipeline PERTURBS
+     the very timing that is the bug -- with traces added, even the WORKING xinput-target case stops
+     delivering KeyPress (green=0, orange=40000, no "XI:key"), which is why the dew/dde/dfe traces showed
+     "0 type-2 deliveries" (the key simply wasn't delivered in time in the trace-slowed runs, NOT because
+     type-2 delivery doesn't exist). Without any trace, `test-m6-keyboard.sh` passes 3/3 reliably
+     (green=39888) -- so core KeyPress delivery to a light client works fine. st FAILS because it is a
+     HEAVY client: its Xft rendering + driving the PTY child generate dense sync-RPC/request traffic that
+     starves the wasm X server's input-event processing (mieq drain) over the single service thread, so
+     key events don't reach st in time. This is the SAME class of single-sync-RPC-bridge scheduling issue
+     M2.3/M6.4 addressed for net.poll, now for input-event processing under request load. The next
+     session must use LOW-OVERHEAD methods (counters dumped at exit, not hot-path ErrorF) and likely needs
+     input-vs-request scheduling fairness in the server main loop / `WaitForSomething`/`ProcessInputEvents`
+     drive, not a delivery-function fix.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
