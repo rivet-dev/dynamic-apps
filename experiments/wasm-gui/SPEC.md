@@ -563,6 +563,16 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      the server/protocol-trace avenues are now MOOT): instrument st's XPending/_XEventsQueued and the
      libxcb xcb_poll_for_event read path vs the working xftpoll-target's; suspect an X error during st
      init that wedges Xlib's read, a libxcb special-event/sequence stall, or st's XFlush/queue handling.
+     REFINEMENT (~38 passes): forcing a socket read in st's loop via XEventsQueued(QueuedAfterReading)
+     does NOT surface the KeyPress -- so the bytes are not reaching st's libxcb read at all. Note the
+     server counter measured WriteToClient (the server BUFFERING the event), not the actual flush/wire
+     send. So the boundary is now: server-flush (FlushClient/FlushAllOutput -> Xtranssock -> net_send) OR
+     host_net wire delivery (net_send/net_recv for st's specific heavy connection) OR libxcb's recv --
+     NOT st's read logic (forced reads don't help). st DOES recv EARLY events (Expose) so its socket
+     works initially; LATER events (the KeyPress) are not recv'd. NEXT: count net_send-to-st (server,
+     non-perturbing) and net_recv-on-st (client) to pin server-flush vs wire vs client-recv; suspect a
+     host_net per-socket buffering/poll-readiness stall on st's connection after heavy traffic. This is
+     a layer-by-layer wire investigation, multi-session.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
