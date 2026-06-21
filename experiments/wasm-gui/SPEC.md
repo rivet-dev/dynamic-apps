@@ -449,6 +449,14 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      to find why xinput-target's window is delivered to but st's is not -- NOT `DeliverFocusedEvent`.
      xinput-target uses real core KeyPress events (XNextEvent + `case KeyPress`), so the path works for a
      simple client; the difference is st-connection/window specific.
+     UPDATE (12 passes): keyboard events bypass ALL THREE central dix delivery functions --
+     `TryClientEvents`, `DeliverFocusedEvent`, AND `DeliverDeviceEvents` are each called 0 times for
+     internal key/button events (ET_KeyPress=2..ET_ButtonRelease=5) in BOTH the working green run and the
+     st run, yet green delivers KeyPress. So this server's keyboard delivery path is atypical -- it must
+     run through `DeliverGrabbedEvent` (active/implicit grab) or XKB-direct or an XTEST-specific route.
+     The next session should instrument `DeliverGrabbedEvent` + `ProcXTestFakeInput` + `mieqProcessDeviceEvent`
+     (the XTEST FakeInput -> mieq -> processInputProc path), since the standard core-delivery functions
+     are confirmed off-path here.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
