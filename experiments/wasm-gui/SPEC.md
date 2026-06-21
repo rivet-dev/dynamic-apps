@@ -573,6 +573,19 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      non-perturbing) and net_recv-on-st (client) to pin server-flush vs wire vs client-recv; suspect a
      host_net per-socket buffering/poll-readiness stall on st's connection after heavy traffic. This is
      a layer-by-layer wire investigation, multi-session.
+     PINNED TO CLIENT-SIDE RECV (~39 passes): a server-side FlushClient byte counter (non-perturbing,
+     /data dump) shows the server FLUSHES/net_sends data to st: client 1 (st) flushed_bytes=2596 over the
+     run (vs client 2 / xinput-target 460). So the server both buffers AND writev/net_sends to st's
+     socket. Combined with the forced-read result (st's XEventsQueued(QueuedAfterReading) does not surface
+     the KeyPress), the failure is st's CLIENT-SIDE host_net RECV: st recvs the EARLY bytes (Expose
+     surfaces) but not the LATER KeyPress bytes the server sent. So the bug is in the host_net net_recv /
+     net_poll readability for st's heavy X connection (the bytes are on the wire / in the kernel socket,
+     but st's recv stops pulling them after the initial burst). NEXT: count net_recv bytes on st's client
+     socket (in the wasm runner host_net.net_recv, keyed by fd) and compare to the 2596 the server sent;
+     and check net_poll readability for st's X fd after heavy traffic -- the memory's POLLIN/POLLOUT
+     net_poll fixes are the relevant area. Caveat: the flush counter is cumulative to its last /data dump,
+     so confirm the keypress flush is included by dumping after the inject. This is the precise host_net
+     socket-layer frontier; the X server, focus, keymap, and st's X-call/read logic are all excluded.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
