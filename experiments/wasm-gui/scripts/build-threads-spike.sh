@@ -24,7 +24,7 @@ MAXMEM=$((64*1024*1024))    # 64 MiB (spike; GTK profile raises this)
 "$CC" \
   --target=wasm32-wasip1-threads --sysroot="$TSYS" -O2 -g \
   -pthread \
-  -Wl,--import-memory -Wl,--shared-memory \
+  -Wl,--import-memory -Wl,--export-memory -Wl,--shared-memory \
   -Wl,--initial-memory=$INITIAL -Wl,--max-memory=$MAXMEM \
   -Wl,--export=wasi_thread_start \
   -o "$OUT" "$SRC" 2>&1 | grep -iE "error|undefined|warning: unsupported" | head -20
@@ -76,6 +76,7 @@ def check(c,msg):
 check(mem_imported, f"memory is IMPORTED (env.memory)  [imported={mem_imported}]")
 check(mem_shared is True, f"imported memory is SHARED  [shared={mem_shared}]")
 check(mem_max is not None, f"imported memory declares a maximum  [max_pages={mem_max}]")
+check('memory' in exports, "memory is RE-EXPORTED (instance.exports.memory works)")
 check('wasi.thread-spawn' in imports, "imports wasi.thread-spawn")
 check('wasi_thread_start' in exports, "exports wasi_thread_start")
 check('_start' in exports, "exports _start")

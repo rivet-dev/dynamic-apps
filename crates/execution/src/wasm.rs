@@ -5113,7 +5113,11 @@ fn validate_module_limits(
     })?;
     let module_limits = extract_wasm_module_limits(&bytes)?;
 
-    if module_limits.imports_memory {
+    // wasi-threads (WASM-THREADS-SPEC.md): a threaded guest IMPORTS a shared env.memory so the host
+    // can supply one shared WebAssembly.Memory to every isolate-thread. That is supported. A plain
+    // (non-shared) imported memory is not part of any guest contract and is still rejected; its limits
+    // are validated below either way.
+    if module_limits.imports_memory && !module_limits.memory_shared {
         return Err(WasmExecutionError::InvalidModule(String::from(
             "configured WebAssembly memory limit does not support imported memories yet",
         )));
@@ -5141,6 +5145,7 @@ fn validate_module_limits(
 #[derive(Debug, Default)]
 struct WasmModuleLimits {
     imports_memory: bool,
+    memory_shared: bool,
     initial_memory_bytes: Option<u64>,
     maximum_memory_bytes: Option<u64>,
 }
@@ -5183,8 +5188,15 @@ fn extract_wasm_module_limits(bytes: &[u8]) -> Result<WasmModuleLimits, WasmExec
                     let kind = read_byte(bytes, &mut cursor)?;
                     match kind {
                         0x02 => {
-                            let _ = read_memory_limits(bytes, &mut cursor)?;
+                            let (initial_pages, maximum_pages, shared) =
+                                read_memory_limits(bytes, &mut cursor)?;
                             limits.imports_memory = true;
+                            limits.memory_shared = shared;
+                            // Validate the imported (threaded) memory's limits against the cap too.
+                            limits.initial_memory_bytes =
+                                Some(initial_pages.saturating_mul(WASM_PAGE_BYTES));
+                            limits.maximum_memory_bytes =
+                                maximum_pages.map(|pages| pages.saturating_mul(WASM_PAGE_BYTES));
                         }
                         0x00 => {
                             let _ = read_varuint(bytes, &mut cursor)?;
@@ -5213,7 +5225,8 @@ fn extract_wasm_module_limits(bytes: &[u8]) -> Result<WasmModuleLimits, WasmExec
                     )));
                 }
                 if memory_count > 0 {
-                    let (initial_pages, maximum_pages) = read_memory_limits(bytes, &mut cursor)?;
+                    let (initial_pages, maximum_pages, _shared) =
+                        read_memory_limits(bytes, &mut cursor)?;
                     limits.initial_memory_bytes =
                         Some(initial_pages.saturating_mul(WASM_PAGE_BYTES));
                     limits.maximum_memory_bytes =
@@ -5232,7 +5245,7 @@ fn extract_wasm_module_limits(bytes: &[u8]) -> Result<WasmModuleLimits, WasmExec
 fn read_memory_limits(
     bytes: &[u8],
     offset: &mut usize,
-) -> Result<(u64, Option<u64>), WasmExecutionError> {
+) -> Result<(u64, Option<u64>, bool), WasmExecutionError> {
     let flags = read_varuint(bytes, offset)?;
     let initial = read_varuint(bytes, offset)?;
     let maximum = if flags & 0x01 != 0 {
@@ -5240,7 +5253,8 @@ fn read_memory_limits(
     } else {
         None
     };
-    Ok((initial, maximum))
+    let shared = flags & 0x02 != 0;
+    Ok((initial, maximum, shared))
 }
 
 fn skip_name(bytes: &[u8], offset: &mut usize) -> Result<(), WasmExecutionError> {

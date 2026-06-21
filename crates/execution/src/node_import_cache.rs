@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "75";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "76";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -9218,6 +9218,98 @@ function enforceMemoryLimit(moduleBytes, limitPages) {
   return Buffer.from(rewritten);
 }
 
+// Parse the wasm import section to detect a wasi-threads module (WASM-THREADS-SPEC.md). A threaded
+// guest IMPORTS a shared `env.memory` (so the host can supply ONE shared WebAssembly.Memory to every
+// isolate-thread) and imports `wasi.thread-spawn`. Returns the env.memory limits so the host can size
+// the shared memory it creates. Tables/data are per-instance and need no host involvement.
+function parseWasmThreadInfo(moduleBytes) {
+  const bytes = moduleBytes instanceof Uint8Array ? moduleBytes : new Uint8Array(moduleBytes);
+  const info = {
+    threaded: false,
+    hasThreadSpawn: false,
+    memImported: false,
+    memShared: false,
+    memInitialPages: 0,
+    memMaxPages: null,
+  };
+  if (
+    bytes.length < 8 ||
+    bytes[0] !== 0 || bytes[1] !== 0x61 || bytes[2] !== 0x73 || bytes[3] !== 0x6d
+  ) {
+    return info;
+  }
+  const readName = (start, len) => {
+    let s = '';
+    for (let i = 0; i < len; i += 1) s += String.fromCharCode(bytes[start + i]);
+    return s;
+  };
+  let offset = 8;
+  while (offset < bytes.length) {
+    const sectionId = bytes[offset];
+    offset += 1;
+    const sizeResult = readVarUint(bytes, offset, 'section size');
+    offset = sizeResult.offset;
+    const sectionEnd = offset + sizeResult.value;
+    if (sectionId !== 2) {
+      offset = sectionEnd;
+      continue;
+    }
+    let p = offset;
+    const countResult = readVarUint(bytes, p, 'import count');
+    const count = countResult.value;
+    p = countResult.offset;
+    for (let i = 0; i < count; i += 1) {
+      const mlen = readVarUint(bytes, p, 'import mod len');
+      p = mlen.offset;
+      const mod = readName(p, mlen.value);
+      p += mlen.value;
+      const nlen = readVarUint(bytes, p, 'import name len');
+      p = nlen.offset;
+      const nm = readName(p, nlen.value);
+      p += nlen.value;
+      const kind = bytes[p];
+      p += 1;
+      if (kind === 0) {
+        const t = readVarUint(bytes, p, 'import func typeidx');
+        p = t.offset;
+        if (mod === 'wasi' && nm === 'thread-spawn') info.hasThreadSpawn = true;
+      } else if (kind === 1) {
+        p += 1; // elemtype
+        const fl = readVarUint(bytes, p, 'import table flags');
+        p = fl.offset;
+        const mn = readVarUint(bytes, p, 'import table min');
+        p = mn.offset;
+        if (fl.value & 1) {
+          const mx = readVarUint(bytes, p, 'import table max');
+          p = mx.offset;
+        }
+      } else if (kind === 2) {
+        const fl = readVarUint(bytes, p, 'import mem flags');
+        p = fl.offset;
+        const mn = readVarUint(bytes, p, 'import mem min');
+        p = mn.offset;
+        let mx = null;
+        if (fl.value & 1) {
+          const mxr = readVarUint(bytes, p, 'import mem max');
+          p = mxr.offset;
+          mx = mxr.value;
+        }
+        if (mod === 'env' && nm === 'memory') {
+          info.memImported = true;
+          info.memShared = (fl.value & 2) !== 0;
+          info.memInitialPages = mn.value;
+          info.memMaxPages = mx;
+        }
+      } else if (kind === 3) {
+        p += 2; // valtype + mutability
+      }
+    }
+    offset = sectionEnd;
+  }
+  info.threaded = info.hasThreadSpawn || (info.memImported && info.memShared);
+  return info;
+}
+
 function decodeBase64ToUint8Array(value) {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
@@ -9249,8 +9341,32 @@ const moduleBytes =
   typeof moduleSource === 'string'
     ? decodeBase64ToUint8Array(moduleSource)
     : moduleSource;
+const wasmThreadInfo = parseWasmThreadInfo(moduleBytes);
+// A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
+// memory section) is a no-op for it; sizing happens on the host-created shared memory below.
 const moduleBinary = enforceMemoryLimit(moduleBytes, maxMemoryPages);
 const module = new WebAssembly.Module(moduleBinary);
+
+// wasi-threads: the host owns the single shared linear memory and supplies it to every isolate-thread
+// (env.memory). Create it here, sized from the module's imported-memory limits, clamped to the
+// runtime cap. Only MEMORY is shared across isolates; the function table is per-instance.
+const guestSharedMemory = (() => {
+  if (!wasmThreadInfo.threaded) return null;
+  if (!wasmThreadInfo.memImported || !wasmThreadInfo.memShared) {
+    throw new Error(
+      'secure-exec wasi-threads: guest must import a shared env.memory (build with --import-memory --shared-memory)',
+    );
+  }
+  if (wasmThreadInfo.memMaxPages == null) {
+    throw new Error('secure-exec wasi-threads: shared imported memory must declare a maximum');
+  }
+  let maximum = wasmThreadInfo.memMaxPages;
+  if (Number.isInteger(maxMemoryPages)) {
+    maximum = Math.min(maximum, maxMemoryPages);
+  }
+  const initial = Math.min(wasmThreadInfo.memInitialPages, maximum);
+  return new WebAssembly.Memory({ initial, maximum, shared: true });
+})();
 
 if (prewarmOnly) {
   process.exit(0);
@@ -13736,7 +13852,22 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
   return writeGuestUint32(neventsPtr, readyEvents.length);
 };
 
-const instance = new WebAssembly.Instance(module, {
+// wasi-threads `thread-spawn` host import. wasi-libc's pthread_create calls this with an opaque
+// start_arg pointer and expects a positive tid (success) or a negative value (failure -> EAGAIN).
+// INCREMENT 2 (negative gate): no real spawn yet -> return a negative value so pthread_create fails
+// cleanly and the guest runs to completion reporting FAIL. INCREMENT 3 replaces the body with a real
+// second-isolate spawn sharing guestSharedMemory and a call to instance.exports.wasi_thread_start.
+function createWasiThreadsImport() {
+  return {
+    'thread-spawn'(startArg) {
+      // TODO(M7.5 Phase 1): spawn a V8 isolate-thread sharing guestSharedMemory and invoke
+      // wasi_thread_start(tid, startArg). Until then, report failure (no real threads yet).
+      return -1;
+    },
+  };
+}
+
+const wasmImportObject = {
   wasi_snapshot_preview1: wasiImport,
   wasi_unstable: wasiImport,
   // Read-write commands like DuckDB need fd_dup_min from the patched
@@ -13751,7 +13882,17 @@ const instance = new WebAssembly.Instance(module, {
   host_net: permissionTier === 'full' ? hostNetImport : undefined,
   host_user: hostUserImport,
   host_fs: hostFsImport,
-});
+};
+
+// wasi-threads wiring (WASM-THREADS-SPEC.md). Supply the host-owned shared memory as env.memory and
+// the wasi.thread-spawn host import. Gated on a threaded module so non-threaded guests are unchanged.
+if (guestSharedMemory) {
+  instanceMemory = guestSharedMemory;
+  wasmImportObject.env = { memory: guestSharedMemory };
+  wasmImportObject.wasi = createWasiThreadsImport();
+}
+
+const instance = new WebAssembly.Instance(module, wasmImportObject);
 
 if (instance.exports.memory instanceof WebAssembly.Memory) {
   instanceMemory = instance.exports.memory;
