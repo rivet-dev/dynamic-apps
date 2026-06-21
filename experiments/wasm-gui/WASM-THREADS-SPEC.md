@@ -473,6 +473,32 @@ Until every box is checked, `SPEC.md` M8 stays blocked.
 
 ---
 
+## 11b. DoD scorecard (live)
+
+Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gated):
+
+- ✅ Spike: threaded module spawns + joins on the real V8 path (`test-threads-spike.sh`, 5/5).
+- ✅ `-pthread` guest spawns/joins; multi-thread atomics correct (`test-threads-multi.sh`, 8 threads ×
+  2000 atomic incs = 16000, 5/5); nested spawn (`threads-nested`, worker spawns workers, 3/3).
+- ✅ Shared, growable memory across threads (imported shared `env.memory`; proven in spikes).
+- 🟡 Concurrent kernel I/O: kernel access is already serialized by the single-threaded sidecar loop
+  (§Phase 2 finding); **but worker isolates don't yet route host calls to the kernel** (they use stub
+  wasi imports — the GTK-enabling gap). The lock-disabled negative test is N/A until workers call the
+  kernel. **This is the next big block.**
+- ⬜ Stress flake gate ≥200 + sanitizer; teardown/trap → VM fault; libffi-under-threads.
+- ⬜ Threaded **GLib** smoke (needs worker host calls + Phase 0 threaded GLib build).
+- ⬜ `max_threads` on the BARE wire (currently a process-global allocator, no wire cap).
+- ⬜ Full regression aggregate; Phase 0 threaded GTK closure rebuild (multi-day).
+- 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
+  satisfied autonomously.
+
+**Honest completion note.** The hard technical risk of wasi-threads in this runtime is **retired**:
+real multi-threaded guests run reliably (spike + multi + nested). The remaining DoD is large and partly
+out of autonomous reach: worker→kernel host-call routing (a substantial sidecar-session integration),
+the **multi-week** threaded GTK closure rebuild (Phase 0), the full conformance/stress/teardown suite,
+`max_threads` wire plumbing, and a **human security sign-off**. M8 (GTK desktop) is gated behind all of
+that. Progress continues on the next implementable block (worker host-call routing).
+
 ## 11a. Implementation status (M7.5.0 spike — in progress)
 
 - **DONE — threaded build profile.** `scripts/build-threads-spike.sh` produces a correct wasi-threads
