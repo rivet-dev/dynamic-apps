@@ -8,7 +8,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
-PREFIX="$EXP/third_party/wasm-prefix"
+# Honor the cross-env PREFIX (wasm-prefix vs wasm-prefix-threads under SECURE_EXEC_WASM_THREADS=1).
 INC="$EXP/libffi-wasm/include"
 mkdir -p "$PREFIX/lib/pkgconfig" "$PREFIX/include"
 
