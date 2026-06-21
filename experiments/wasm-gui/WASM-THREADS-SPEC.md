@@ -509,10 +509,12 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
 - ✅ `-pthread` guest spawns/joins; multi-thread atomics correct (`test-threads-multi.sh`, 8 threads ×
   2000 atomic incs = 16000, 5/5); nested spawn (`threads-nested`, worker spawns workers, 3/3).
 - ✅ Shared, growable memory across threads (imported shared `env.memory`; proven in spikes).
-- 🟡 Concurrent kernel I/O: kernel access is already serialized by the single-threaded sidecar loop
-  (§Phase 2 finding); **but worker isolates don't yet route host calls to the kernel** (they use stub
-  wasi imports — the GTK-enabling gap). The lock-disabled negative test is N/A until workers call the
-  kernel. **This is the next big block.**
+- ✅ **Concurrent kernel I/O — worker→kernel host calls WORK** (the GTK-enabling block, DONE
+  2026-06-21). Worker threads are real sidecar wasm sessions sharing the parent's kernel process
+  (shared fd table); their host calls route to the kernel, serialized by the single-threaded sidecar
+  loop. `threads-io` (a worker does `write()` to stdout) PASSES; spike/multi/nested also pass via this
+  path; worker exit no longer kills the leader (`ActiveProcess.is_thread` guard). Lifecycle: worker =
+  top-level active_process (autonomously pumped) sharing `kernel_pid` + handle clone.
 - ⬜ Stress flake gate ≥200 + sanitizer; teardown/trap → VM fault; libffi-under-threads.
 - ⬜ Threaded **GLib** smoke (needs worker host calls + Phase 0 threaded GLib build).
 - ⬜ `max_threads` on the BARE wire (currently a process-global allocator, no wire cap).
