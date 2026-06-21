@@ -520,11 +520,13 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
   `__builtin_trap` faults the VM in ~2s via `fault_thread_group`, not a hang). ⬜ ≥200-iteration
   *cross-run* flake gate under sanitizer; ⬜ libffi-under-threads (needs the shared-built libffi shim,
   part of Phase 0).
-- 🟡 `max_threads`: a **per-VM** server-side cap (64) is enforced in `spawn_wasm_thread` + a
-  process-global backstop; making it **client-configurable on the BARE wire** (ResourceLimits) is the
-  remaining piece.
-- ⬜ Threaded **GLib** smoke (needs Phase 0 threaded GLib build).
-- ⬜ Full regression aggregate; Phase 0 threaded GTK closure rebuild (multi-week, mechanical).
+- ✅ `max_threads` on the **BARE wire**: `limits.resources.maxThreads` (vm-config macro → TS-exported,
+  both clients) → kernel `ResourceLimits.max_threads` (default 64) → enforced per-VM in
+  `spawn_wasm_thread`; process-global `ThreadSlots` backstop too.
+- ✅ Full regression aggregate + cross-run flake gate (`test-threads-all.sh`: spike/multi/io/stress/
+  trap/nested each ×N, 0 failures). ⬜ a **sanitizer** build of the gate (infra follow-up).
+- ⬜ Threaded **GLib** smoke + libffi-under-threads (both need Phase 0 threaded GLib/GTK build).
+- ⬜ Phase 0 threaded GTK closure rebuild (multi-week, mechanical).
 - 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
   satisfied autonomously.
 
