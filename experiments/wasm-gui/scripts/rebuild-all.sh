@@ -99,19 +99,43 @@ for d in libXau libxdmcp libxcb libX11 libXext libXrender libXfixes libXi libXts
 done
 
 echo "== libXpm (src/ only; its sxpm tool links getuid, absent on wasi) =="
+XPMD="libXpm${SECURE_EXEC_WASM_THREADS:+-threads}"
 if [ -d "$TP/libXpm" ]; then
-  cd "$TP/libXpm"
-  cfg=$(grep -m1 '\$ ./configure' config.log 2>/dev/null | sed 's|.*\$ ./configure|./configure|')
-  [ -n "$cfg" ] || cfg="./configure $CROSS_CONFIGURE_ARGS"
+  # Threaded: build in a per-profile copy and configure cleanly against the threaded $PREFIX (the
+  # recovered config.log invocation bakes in the non-threaded prefix, which sent xpm.pc to the wrong
+  # tree and broke libXaw's pkg-config probe).
+  if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && [ ! -d "$TP/$XPMD" ]; then cp -r "$TP/libXpm" "$TP/$XPMD"; fi
+  cd "$TP/$XPMD"
+  if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
+    ( make distclean >/dev/null 2>&1 || true ); cfg="./configure $CROSS_CONFIGURE_ARGS"
+  else
+    cfg=$(grep -m1 '\$ ./configure' config.log 2>/dev/null | sed 's|.*\$ ./configure|./configure|')
+    [ -n "$cfg" ] || cfg="./configure $CROSS_CONFIGURE_ARGS"
+  fi
   N="ACLOCAL=true AUTOCONF=true AUTOMAKE=true AUTOHEADER=true MAKEINFO=true"
   ( eval "$cfg" && eval "make -j4 -C src $N" && eval "make -C src install $N" \
-      && eval "make -C include install $N" && eval "make install-pkgconfigDATA $N" ) >/tmp/rb-libXpm.log 2>&1 \
-    && { echo "  OK   libXpm"; ok=$((ok+1)); } || { echo "  FAIL libXpm (/tmp/rb-libXpm.log)"; fail=$((fail+1)); }
+      && eval "make -C include install $N" && eval "make install-pkgconfigDATA $N" ) >/tmp/rb-$XPMD.log 2>&1 \
+    && { echo "  OK   $XPMD"; ok=$((ok+1)); } || { echo "  FAIL $XPMD (/tmp/rb-$XPMD.log)"; fail=$((fail+1)); }
   cd "$EXP"
 fi
 
 echo "== libXt (native makestrs first) =="
-if [ -d "$TP/libXt" ]; then
+if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
+  # Threaded: autobuild's distclean would wipe a pre-built makestrs, and the util/Makefile forces
+  # CC=@CC_FOR_BUILD@ but still injects the cross $(CPPFLAGS) (--target) that native gcc rejects. So
+  # configure first, build makestrs natively, then touch it newer than its source so `make` never
+  # invokes the cross compiler on the build-time helper.
+  if [ -d "$TP/libXt" ]; then
+    [ -d "$TP/libXt-threads" ] || cp -r "$TP/libXt" "$TP/libXt-threads"
+    ( cd "$TP/libXt-threads" && ( make distclean >/dev/null 2>&1 || true ) \
+        && eval "./configure $CROSS_CONFIGURE_ARGS" \
+        && cd util && gcc -O2 -c makestrs.c -o makestrs.o && gcc -O2 -o makestrs makestrs.o \
+        && touch makestrs.c && sleep 1 && touch makestrs.o makestrs ) >/tmp/rb-makestrs.log 2>&1
+    NOREGEN_XT="ACLOCAL=true AUTOCONF=true AUTOMAKE=true AUTOHEADER=true MAKEINFO=true AUTORECONF=true"
+    ( cd "$TP/libXt-threads" && eval "make -j4 $NOREGEN_XT" && eval "make install $NOREGEN_XT" ) >/tmp/rb-libXt-threads.log 2>&1 \
+      && { echo "  OK   libXt-threads"; ok=$((ok+1)); } || { echo "  FAIL libXt-threads (/tmp/rb-libXt-threads.log)"; fail=$((fail+1)); }
+  fi
+elif [ -d "$TP/libXt" ]; then
   ( cd "$TP/libXt/util" && gcc -O2 -o makestrs makestrs.c && gcc -O2 -c makestrs.c -o makestrs.o && touch makestrs makestrs.o ) >/tmp/rb-makestrs.log 2>&1
   autobuild libXt
 fi

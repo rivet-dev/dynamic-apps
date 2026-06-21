@@ -13,6 +13,22 @@
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 64
 #endif
+/* The patched non-threaded libc declares + defines getuid/geteuid/getgid/getegid; the vanilla
+ * threaded sysroot omits both. wasi-compat.c provides weak stub symbols (return 0); declare them
+ * here so callers (e.g. libX11 GetDflt.c) compile. Threaded-only to avoid clashing with the patched
+ * unistd.h decls on the non-threaded profile. */
+#ifdef SECURE_EXEC_WASM_THREADS
+unsigned getuid(void);
+unsigned geteuid(void);
+unsigned getgid(void);
+unsigned getegid(void);
+/* libXt NextEvent.c references POLLPRI, which the sysroot's <sys/poll.h> (__header_poll.h) omits
+ * (only <poll.h> defines it). wasi's poll has no urgent-data band, so this is compile-only; value
+ * matches the full <poll.h> (0x002) so a later include is a same-value (harmless) redefinition. */
+#ifndef POLLPRI
+#define POLLPRI 0x002
+#endif
+#endif
 /* wasi has no POSIX record locking (F_SETLK/struct flock). Define the constants + struct so code that
  * does best-effort cache-file locking (e.g. fontconfig fccache.c) compiles; the wasi fcntl() ignores
  * these commands, which is fine in the single-process sandbox where nothing else contends. */
