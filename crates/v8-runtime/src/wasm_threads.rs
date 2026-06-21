@@ -413,9 +413,58 @@ pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
     }
 }
 
+/// Concurrent response demultiplexer for the shared-session worker host-call path.
+///
+/// To give worker threads real kernel host calls, a worker isolate shares the spawning isolate's
+/// bridge wiring (same `session_id` → the sidecar dispatches the worker's calls against the parent's
+/// kernel process, so threads share the process fd table) and `call_id` counter. But the existing
+/// per-session response receiver assumes exactly one in-flight call (it errors on a `call_id`
+/// mismatch). With multiple threads issuing calls concurrently, responses interleave, so a single
+/// reader must demultiplex them by `call_id` to the waiting thread. This is that router: each caller
+/// `register`s its `call_id` (getting a one-shot receiver to block on), and the session's response
+/// reader `complete`s each arriving response to the matching waiter.
+pub struct ResponseDemux {
+    waiters: Mutex<HashMap<u64, std::sync::mpsc::SyncSender<crate::runtime_protocol::BridgeResponse>>>,
+}
+
+impl Default for ResponseDemux {
+    fn default() -> Self {
+        Self { waiters: Mutex::new(HashMap::new()) }
+    }
+}
+
+impl ResponseDemux {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Register interest in `call_id`; returns a receiver that yields exactly that call's response.
+    pub fn register(&self, call_id: u64) -> std::sync::mpsc::Receiver<crate::runtime_protocol::BridgeResponse> {
+        let (tx, rx) = std::sync::mpsc::sync_channel(1);
+        self.waiters.lock().expect("response demux poisoned").insert(call_id, tx);
+        rx
+    }
+
+    /// Deliver a response to the thread waiting on its `call_id`. Returns `false` if no waiter is
+    /// registered (a late/duplicate response) so the caller can drop it.
+    pub fn complete(&self, response: crate::runtime_protocol::BridgeResponse) -> bool {
+        let sender = self.waiters.lock().expect("response demux poisoned").remove(&response.call_id);
+        match sender {
+            Some(tx) => tx.send(response).is_ok(),
+            None => false,
+        }
+    }
+
+    /// Number of outstanding (registered-but-not-completed) calls. Diagnostics/tests only.
+    pub fn pending_len(&self) -> usize {
+        self.waiters.lock().expect("response demux poisoned").len()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::runtime_protocol::BridgeResponse;
 
     #[test]
     fn registry_round_trips_a_token() {
@@ -455,5 +504,40 @@ mod tests {
         let slots = ThreadSlots::new(0);
         assert!(!slots.try_reserve());
         assert_eq!(slots.live(), 0);
+    }
+
+    fn response(call_id: u64) -> BridgeResponse {
+        BridgeResponse { call_id, status: 0, payload: vec![call_id as u8] }
+    }
+
+    #[test]
+    fn response_demux_routes_by_call_id_out_of_order() {
+        let demux = ResponseDemux::new();
+        let rx1 = demux.register(1);
+        let rx2 = demux.register(2);
+        assert_eq!(demux.pending_len(), 2);
+        // Complete out of order: 2 then 1. Each waiter gets exactly its own response.
+        assert!(demux.complete(response(2)));
+        assert!(demux.complete(response(1)));
+        assert_eq!(rx1.recv().unwrap().payload, vec![1]);
+        assert_eq!(rx2.recv().unwrap().payload, vec![2]);
+        assert_eq!(demux.pending_len(), 0);
+    }
+
+    #[test]
+    fn response_demux_drops_unregistered_response() {
+        let demux = ResponseDemux::new();
+        assert!(!demux.complete(response(99)), "no waiter -> dropped");
+    }
+
+    #[test]
+    fn response_demux_delivers_across_threads() {
+        use std::sync::Arc;
+        let demux = Arc::new(ResponseDemux::new());
+        let rx = demux.register(7);
+        let d2 = Arc::clone(&demux);
+        let h = std::thread::spawn(move || d2.complete(response(7)));
+        assert_eq!(rx.recv().unwrap().call_id, 7, "waiter wakes on cross-thread completion");
+        assert!(h.join().unwrap());
     }
 }
