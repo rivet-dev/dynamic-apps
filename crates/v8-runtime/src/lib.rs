@@ -10,3 +10,4 @@ pub mod session;
 pub mod snapshot;
 pub mod stream;
 pub mod timeout;
+pub mod wasm_threads;
