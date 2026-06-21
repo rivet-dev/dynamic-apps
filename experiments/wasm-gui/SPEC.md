@@ -426,15 +426,20 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      XIM disabled + core `XLookupString` (no XIM server exists under wasi, and an XIC makes
      `XFilterEvent` swallow every KeyPress). Xvfb must be re-`wasm-opt --fpcast-emu`'d after relinking
      (link-xvfb.sh does not do it).
-     **One separable gap — live typing into st specifically:** the X keyboard works and st's
-     keypress->ttywrite->pty_write path is wired, but st's poll loop blocks inside `ttyread` driving the
-     interactive PTY child: the child's `read(0)` spins in-isolate (`readKernelStdinChunk`'s
-     `Atomics.wait` loop) waiting for input, and `child_process.poll` drives child isolates
-     SYNCHRONOUSLY, so driving a blocking-read child never returns and st can't process the keystroke
-     that would feed it (a self-deadlock). This is the core "drive child isolates concurrently"
-     execution-engine limitation (high blast radius on `child_process`), NOT a terminal/keyboard issue.
-     The terminal<->shell bidirectional I/O is proven deterministically by `test-m6-3-pty.sh` (which
-     writes-then-reads so the child never spins), and the X keyboard is proven by `test-m6-keyboard.sh`.
+     **One separable gap — live typing into st specifically (root cause CORRECTED 2026-06-21):** the X
+     keyboard works (proven: `test-m6-keyboard.sh`) and st's keypress->ttywrite->pty_write path is wired,
+     but st's window never receives FocusIn/KeyPress events. Earlier theories (a child-drive deadlock;
+     XIM filtering) were DISPROVEN with flushed logging + sidecar tracing: st's poll loop runs fine
+     (`poll_descendant` ENTERs 150+ times and returns; the "block at tick N" was a stderr-buffering
+     artifact), and the server's input focus IS st's window (confirmed via `get_input_focus`: focus=st
+     win, map_state=VIEWABLE, KeyPressMask selected). Yet st receives only events generated EARLY (Expose,
+     VisibilityNotify during init) and NONE generated later (FocusIn, KeyPress) -- even with `XSync` every
+     loop iteration forcing a server round-trip. An identical simple client (xinput-target) DOES receive
+     keys via the exact same focus/inject flow (green=40000), so it is st-connection-specific: the server
+     is not delivering late events to st's host_net X connection. Cracking it needs server-side
+     event-routing instrumentation (which client the server queues each event for) -- a deep X-over-host_net
+     delivery investigation. The terminal<->shell bidirectional I/O is proven by `test-m6-3-pty.sh` and
+     the X keyboard by `test-m6-keyboard.sh`; only the X->st event hop remains.
   4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
      many clients can start simultaneously without the `usleep`/ordering hack. (Likely: per-client
      sync-RPC fairness, or a smarter net_poll/recv path.)
