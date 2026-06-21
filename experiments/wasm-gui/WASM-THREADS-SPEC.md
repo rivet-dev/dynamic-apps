@@ -10,6 +10,12 @@ shared-memory spawning), plus `crates/execution`, `crates/kernel`, `crates/sidec
 runtime that needs threads runs in the real secure-exec **V8 isolate** path, not in any experiment-local
 harness or the opt-in Node path.
 
+> **PROGRESS LOG (do this as we go — REQUIRED).** Keep `~/tmp/gui-progress/progress.html` current as each
+> milestone lands: add a dated entry with PROOF — for runtime/build work the passing test output or the
+> built-artifact sizes (e.g. `libgio-2.0.a 10.7MB threaded`), and for any GUI/render work a screenshot
+> saved under `~/tmp/gui-progress/`. Do not let it go stale; update it in the same change that lands the
+> milestone. (Same rule as `SPEC.md`'s progress logging.)
+
 > **v2 changelog (why this differs from the first draft).** A four-lens adversarial review found the v1
 > design was built on the wrong execution model. v1 assumed guests run under `node:wasi` with a single
 > `SharedArrayBuffer` + `worker_threads` synchronous-RPC bridge, and proposed "multi-channel that

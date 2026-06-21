@@ -36,7 +36,10 @@ sequencing:
    Rust client. (The M0 spike that used `wasmer`/`node:wasi` is **superseded** by this rule — it
    stays only as evidence the renderer is deterministic; it is not the product path.)
 3. Everything is **end-to-end and automatically tested**, with a **manually runnable example**, and
-   the spec + `~/tmp/gui-progress/progress.html` are kept current with proof/screenshots.
+   the spec + `~/tmp/gui-progress/progress.html` are kept current with proof/screenshots **as we go** —
+   every milestone (including the M7.5 wasm-threads runtime + Phase-0 build milestones) gets a dated
+   `progress.html` entry with proof (passing test output / built-artifact sizes / a screenshot under
+   `~/tmp/gui-progress/`) **in the same change that lands it**. Do not let it go stale.
 
 ## 2. Hard constraints (from runtime survey + research, verified against the codebase)
 
