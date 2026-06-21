@@ -1,22 +1,23 @@
 ---
 title: Resource Limits
-description: Cap per-VM memory, CPU time, file descriptors, processes, and sockets so guest code can never exhaust the host.
+description: A short overview of Secure Exec resource limits, with a link to the canonical agentOS resource limits docs.
 ---
+import { LinkCard } from '@astrojs/starlight/components';
 
-Secure Exec bounds each VM with per-VM caps on memory/heap, CPU time, file descriptors, processes, and sockets, so runaway guest code can never exhaust the host.
+Secure Exec bounds each VM with per-VM resource caps so untrusted guest code can never exhaust the host. At a glance:
 
-Set limits on the VM config you pass when creating a runtime:
+- **Per-VM caps**: Each VM gets its own ceilings on concurrent processes, open file descriptors, sockets, total filesystem bytes, and WASM stack depth.
+- **Kernel-enforced**: The kernel mediates and accounts for every allocation. There is no path for the guest to reach host resources around these limits.
+- **Guest-local failure**: A guest that exceeds a cap fails inside its own VM with a normal POSIX errno, exactly as it would on real Linux.
+- **Host is unaffected**: Hitting a limit terminates or fails the guest operation only; the sidecar and host process stay intact and the VM keeps running.
+- **Operator-raisable**: The caller configures the limits per VM and can raise or lower them to fit the workload.
 
-```ts
-import { NodeRuntime } from "secure-exec";
+## Full reference
 
-const rt = await NodeRuntime.create({
-	limits: {
-		v8HeapLimitMb: 256, // cap guest JS heap
-		maxProcesses: 64, // cap concurrent processes
-		maxFileDescriptors: 256, // cap open fds
-	},
-});
-```
+The canonical limit names, defaults, and configuration API are owned by agentOS.
 
-Secure Exec uses the same resource-limits model as agentOS. See the full reference at [agentos-sdk.dev/docs/resource-limits](https://agentos-sdk.dev/docs/resource-limits).
+<LinkCard
+  title="agentOS: Resource Limits"
+  href="https://agentos-sdk.dev/docs/resource-limits"
+  description="The complete set of per-VM resource limits, defaults, and configuration options."
+/>

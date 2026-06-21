@@ -13,7 +13,7 @@ Secure Exec keeps a guest server running and forwards host requests into it. `sp
 
 ## Spawn a server and drive host requests into it
 
-The guest boots an HTTP server on loopback and stays alive serving requests. The host spawns it, polls `fetch()` until the server is ready, drives a request into it, then kills the process and waits for it to exit.
+The guest boots an HTTP server on loopback and stays alive serving requests. The host spawns it, blocks on `waitForListener()` until the server is accepting connections, drives a request into it, then kills the process and waits for it to exit.
 
 ```ts
 import { NodeRuntime } from "secure-exec";
@@ -47,27 +47,6 @@ app.listen(3000, "127.0.0.1", () => {
 // denies network by default; permissions merge over that secure default.
 const runtime = await NodeRuntime.create({ permissions: { network: "allow" } });
 
-// Drive an HTTP request from the host into the guest server, retrying until the
-// server is accepting connections. waitForListener would normally signal
-// readiness, but it is currently buggy (issue #92), so poll fetch() instead.
-async function fetchWhenReady(
-	port: number,
-	input: Parameters<NodeRuntime["fetch"]>[1],
-) {
-	let lastError: unknown;
-	for (let attempt = 0; attempt < 50; attempt++) {
-		try {
-			return await runtime.fetch(port, input);
-		} catch (error) {
-			lastError = error;
-			await new Promise((resolve) => setTimeout(resolve, 50));
-		}
-	}
-	throw new Error(
-		`server on port ${port} never became ready: ${String(lastError)}`,
-	);
-}
-
 try {
 	// spawn() starts the server as a long-running guest process and returns a
 	// handle immediately, without waiting for it to exit.
@@ -77,11 +56,14 @@ try {
 	console.log("spawned guest server, pid:", server.pid);
 
 	try {
-		// Wait for readiness by driving the health endpoint from the host.
-		const health = await fetchWhenReady(3000, { path: "/health" });
-		console.log("health check ->", health.status, JSON.stringify(health.body));
+		// Block until the guest is actually accepting connections on the port,
+		// then drive requests into it.
+		await runtime.waitForListener({ port: 3000 });
 
 		// Drive a real host->guest request into the running server.
+		const health = await runtime.fetch(3000, { path: "/health" });
+		console.log("health check ->", health.status, JSON.stringify(health.body));
+
 		const res = await runtime.fetch(3000, { method: "GET", path: "/" });
 		console.log("GET / ->", res.status, JSON.stringify(res.body));
 
@@ -113,14 +95,6 @@ RESULT {"status":200,"body":"hello from the sandboxed dev server"}
 server stopped
 ```
 
-## What the isolate gives you
-
-- The guest owns the server process, the application code, and the loopback socket. The kernel mediates the socket, so it never binds a real host port.
-- `fetch(port, input)` drives host requests into the running guest server through the kernel socket table, so traffic stays inside the isolation boundary even when guest network egress is denied.
-- The host stays in control of the lifecycle: `spawn()` starts the server, the process handle lets you kill it and await its exit, and `dispose()` tears down the VM.
+The guest owns the server process, the application code, and the loopback socket, while the host stays in control of the lifecycle through the process handle (`kill()`, `wait()`) and `dispose()`. The kernel mediates the socket, so the guest never binds a real host port.
 
 This is useful for platforms that let users write and preview server-side code (live coding environments, serverless playgrounds, educational tools) without giving them access to the host machine.
-
-## Readiness while issue #92 is open
-
-`waitForListener({ port })` is meant to block until a guest server is accepting connections, then let you drive requests into it. It is currently buggy (issue [#92](https://github.com/rivet-dev/secure-exec/issues/92)), so the example polls `fetch()` in a short retry loop instead: the first calls fail while the server is still starting, and the loop returns the first successful response. Once #92 is fixed you can replace the retry loop with a single `waitForListener` call before the first `fetch()`.

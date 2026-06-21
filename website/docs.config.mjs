@@ -33,8 +33,7 @@ export const siteConfig = {
 		cards: [
 			{ title: "Quickstart", href: "/docs/quickstart", icon: "rocket", description: "Install and run your first sandboxed execution in a few minutes." },
 			{ title: "Crash Course", href: "/docs/crash-course", icon: "terminal", description: "A fast tour of the secure-exec SDK: run code, capture output, and the core concepts." },
-			{ title: "Node.js Runtime", href: "/docs/features/executing-code", icon: "layers", description: "Executing code, TypeScript, npm modules, child processes, and host tools." },
-			{ title: "Virtual Machine", href: "/docs/features/permissions", icon: "cpu", description: "The system surface: permissions, filesystem, networking, and resource limits." },
+			{ title: "Executing Code", href: "/docs/features/executing-code", icon: "layers", description: "Run code and TypeScript, capture output, and load npm modules in the sandbox." },
 		],
 	},
 
@@ -51,6 +50,7 @@ export const siteConfig = {
 					items: [
 						{ slug: "docs/sdks/typescript", attrs: { "data-icon": "fileCode" } },
 						{ slug: "docs/sdks/rust", attrs: { "data-icon": "code" } },
+						{ label: "TypeScript API Reference", link: "/api", attrs: { "data-icon": "book", target: "_blank" } },
 					],
 				},
 			],
@@ -74,7 +74,7 @@ export const siteConfig = {
 				{ slug: "docs/features/module-loading", label: "NPM & Module Loading", attrs: { "data-icon": "package" } },
 				{ slug: "docs/features/runtime-platform", label: "Runtime & Platform", attrs: { "data-icon": "code" } },
 				{ slug: "docs/features/child-processes", attrs: { "data-icon": "split" } },
-				{ slug: "docs/features/host-tools", attrs: { "data-icon": "wrench" } },
+				{ slug: "docs/features/bindings", attrs: { "data-icon": "wrench" } },
 			],
 		},
 		{
@@ -82,7 +82,6 @@ export const siteConfig = {
 			items: [
 				{ slug: "docs/features/permissions", attrs: { "data-icon": "shield" } },
 				{ slug: "docs/features/filesystem", attrs: { "data-icon": "folder" } },
-				{ slug: "docs/features/filesystem-mounts", attrs: { "data-icon": "folderTree" } },
 				{ slug: "docs/features/networking", attrs: { "data-icon": "network" } },
 				{ slug: "docs/features/resource-limits", attrs: { "data-icon": "gauge" } },
 			],
@@ -90,7 +89,7 @@ export const siteConfig = {
 		{
 			label: "Reference",
 			items: [
-				{ slug: "docs/nodejs-compatibility", attrs: { "data-icon": "check" } },
+				{ slug: "docs/nodejs-compatibility", attrs: { "data-icon": "nodejs" } },
 				{ slug: "docs/benchmarks", attrs: { "data-icon": "gauge" } },
 				{
 					label: "Comparison",

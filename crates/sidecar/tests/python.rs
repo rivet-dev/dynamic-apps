@@ -2251,7 +2251,7 @@ fn python_runtime_micropip_install_respects_network_permissions() {
             child_process: wire_permissions_allow_all().child_process,
             process: wire_permissions_allow_all().process,
             env: wire_permissions_allow_all().env,
-            tool: wire_permissions_allow_all().tool,
+            binding: wire_permissions_allow_all().binding,
         },
     );
 
@@ -2481,7 +2481,7 @@ fn python_runtime_surfaces_network_permission_errors() {
             child_process: wire_permissions_allow_all().child_process,
             process: wire_permissions_allow_all().process,
             env: wire_permissions_allow_all().env,
-            tool: wire_permissions_allow_all().tool,
+            binding: wire_permissions_allow_all().binding,
         },
     );
 
@@ -2622,7 +2622,7 @@ fn python_runtime_surfaces_subprocess_permission_errors() {
             )),
             process: wire_permissions_allow_all().process,
             env: wire_permissions_allow_all().env,
-            tool: wire_permissions_allow_all().tool,
+            binding: wire_permissions_allow_all().binding,
         },
     );
 

@@ -22,7 +22,7 @@ Instead of calling MCP tools one at a time, Code Mode lets the LLM write JavaScr
 
 ## How it works
 
-1. Register your tools on the host with `NodeRuntime.create({ tools })`. Each becomes a named command inside the sandbox.
+1. Register your host tools on the host with `NodeRuntime.create({ tools })`. Each becomes a named command inside the sandbox.
 2. Give the LLM one tool ("execute code") and feed its generated JavaScript to `rt.run()`.
 3. The generated code invokes your tools by name. Each call round-trips out of the sandbox, runs the tool's host `handler`, and the handler's return value comes back to the guest.
 4. The guest hands a single structured result back to the host with `globalThis.__return(value)`, which `rt.run()` decodes as `result.value`.

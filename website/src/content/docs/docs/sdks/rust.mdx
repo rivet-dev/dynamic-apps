@@ -1,51 +1,30 @@
 ---
 title: Rust SDK
-description: The Secure Exec Rust client and where to find its generated docs.
+description: Install the Secure Exec Rust client and find its generated docs.rs reference.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
+import { LinkCard } from '@astrojs/starlight/components';
 
-The Rust client lives in the `secure-exec-client` crate. It speaks the same sidecar wire protocol as the TypeScript client, so every capability reachable from `@secure-exec/core` is also reachable from Rust.
+The `secure-exec-client` crate is the Rust SDK. It speaks the same sidecar wire protocol as the TypeScript client, so every capability reachable from `secure-exec` is also reachable from Rust through `SidecarProcess`.
 
-<Aside type="note">
-The Rust API reference is generated with rustdoc, not maintained by hand. Use the generated docs as the source of truth for signatures and types.
-</Aside>
+## Install
 
-## Generated reference
+```bash
+cargo add secure-exec-client
+```
+
+Or add it to `Cargo.toml`:
+
+```toml
+[dependencies]
+secure-exec-client = "*"
+```
+
+## API reference
+
+The full reference is generated with rustdoc and published to docs.rs. Use it as the source of truth for signatures and types.
 
 <LinkCard
   title="secure-exec-client on docs.rs"
-  description="Full generated rustdoc for the Rust client crate."
+  description="Generated rustdoc for the Rust client crate."
   href="https://docs.rs/secure-exec-client"
 />
-
-To build the docs locally from a checkout:
-
-```bash
-cargo doc -p secure-exec-client --open
-```
-
-## What the crate exposes
-
-The entry point is `SidecarProcess`, the low-level handle to a running sidecar (the analogue of the TypeScript `SidecarProcess`).
-
-```rust
-use secure_exec_client::SidecarProcess;
-
-// Spawn a sidecar (pass an explicit binary path, or None to resolve it).
-let sidecar = SidecarProcess::spawn(None).await?;
-```
-
-Key items re-exported from the crate root:
-
-| Item | Description |
-|---|---|
-| `SidecarProcess` | Spawns and owns a sidecar process; sends wire requests and subscribes to events. |
-| `wire::*` | The wire protocol types (shared with `secure-exec-sidecar`), including `CreateVmConfig`, request/response payloads, and events. |
-| `TransportError`, `TransportResult`, `ProtocolCodecError` | Transport and codec error types. |
-| `WireSidecarCallback` | Host callback registration for sidecar-to-host calls. |
-
-You drive a VM by sending wire requests through `SidecarProcess` (create a VM with `CreateVmConfig`, execute guest code, stream events). The wire types are identical to those the TypeScript client uses, so the [TypeScript SDK](/docs/sdks/typescript) reference is a useful companion for the per-capability shapes.
-
-<Aside type="caution">
-The sidecar wire protocol is same-version lockstep: the client and sidecar must be built from the same version. There is no protocol versioning or negotiation.
-</Aside>

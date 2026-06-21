@@ -84,20 +84,15 @@ try {
 
 *[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-plugin-systems)*
 
-This gives you a clean host/plugin boundary:
-
-- The host decides which plugin source runs
-- The plugin executes inside the kernel isolation boundary
-- Only explicitly granted capabilities are available; here, network access is denied
-- The host gets back structured data via `__return()`, not direct access to plugin internals
+The plugin executes inside the kernel isolation boundary with only the capabilities you granted (network access is denied here), and the host gets back structured data via `__return()` rather than direct access to plugin internals.
 
 You can combine this with [TypeScript](/docs/features/typescript) to type-check uploaded plugin code before enabling it.
 
 ## Let plugins call curated host tools
 
-Denying a capability outright is one option, but most plugin systems need the opposite: the plugin must reach a few host capabilities, just not the raw underlying access. The canonical pattern is host tools. You register a narrow set of named tools whose handlers run on the host, and the untrusted plugin invokes them by name. The plugin never gets the database connection, the secret, or the network socket behind the tool; it only gets the curated tool surface you chose to expose.
+Denying a capability outright is one option, but most plugin systems need the opposite: the plugin must reach a few host capabilities, just not the raw underlying access. The canonical pattern is host tools. You register a narrow set of named tools whose handlers run on the host, and the untrusted plugin invokes them by name. The plugin never gets the database connection, the secret, or the network socket behind the tool; it only gets the curated surface you chose to expose.
 
-Register tools with the `tools` option on `create()` (or add them to a live runtime with `rt.registerTools()`). Each tool is exposed inside the VM, and the plugin invokes it with the `callHostTool(name, input)` global, which resolves with the host handler's return value.
+Register host tools with the `tools` option on `create()` (or add them to a live runtime with `rt.registerTools()`). Each tool becomes a named command inside the VM, and the plugin invokes it with the `callHostTool(name, input)` global, which resolves with the host handler's return value.
 
 ```ts Host Tools
 import { NodeRuntime } from "secure-exec";
@@ -137,6 +132,8 @@ try {
 }
 ```
 
+*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode)*
+
 This is safe because the plugin reaches host capability only through the curated tool surface, never the underlying access behind it. The `tool` permission scope gates invocation: when you pass `tools` and set no `tool` policy, the scope is granted so the registered tools are invocable, but you can supply your own `permissions.tool` policy to gate individual tools.
 
-See [Host Tools](/docs/features/host-tools) for the full guide, including input schemas, command aliases, and tool examples.
+See [Bindings](/docs/features/bindings) for the full guide, including input schemas, command aliases, and worked examples.

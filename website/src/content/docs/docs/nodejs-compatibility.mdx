@@ -36,7 +36,7 @@ These route through the kernel and present normal Linux/Node semantics over virt
 | `crypto` | Host entropy and crypto bridges: `getRandomValues`, `randomUUID`, `randomBytes`, `createHash`, `createHmac`, cipher/decipher, scrypt, and `crypto.subtle` (WebCrypto). |
 | `process` | Virtualized `process` global: env (permission-gated), `cwd`/`chdir`, signals, timers, stdio, `umask`. |
 | `module` | `createRequire`, `Module` basics, builtin resolution, `Module.builtinModules`. |
-| `console` | Bridge shim with circular-safe formatting. By default output is dropped; stream it via the `onStdout`/`onStderr` hooks on `exec`/`run`/`spawn`. |
+| `console` | Bridge shim with circular-safe formatting. Output is captured into the `stdout`/`stderr` result fields and can also be streamed via the `onStdout`/`onStderr` hooks on `exec`/`run`/`spawn`. |
 | `dgram` | Kernel socket table (UDP). |
 | `perf_hooks`, `diagnostics_channel`, `async_hooks` | Bridge-backed compatibility surfaces. |
 | `worker_threads` | Compatibility shim: `isMainThread` and inert ports for feature detection. Real worker threads are not spawned. |
@@ -91,9 +91,10 @@ The builtin surface can be narrowed through the [platform / `allowedBuiltins` co
 ## Logging behavior
 
 - `console.log`/`warn`/`error` serialize arguments with circular-safe, bounded formatting.
-- `exec()` and `run()` results do not expose buffered `stdout`/`stderr` fields.
-- By default the runtime drops console output instead of buffering it.
-- To capture logs, pass the `onStdout`/`onStderr` hooks, which receive raw `Uint8Array` chunks in emission order.
+- `exec()` and `run()` buffer guest output and return it as the `stdout` and `stderr` strings on the result.
+- To observe output incrementally, pass the `onStdout`/`onStderr` hooks, which receive raw `Uint8Array` chunks in emission order; the full strings are still returned when the run ends.
+
+See [Output Capture](/docs/features/output-capture) for details.
 
 ## TypeScript
 
@@ -132,4 +133,5 @@ try {
 
 ## See also
 
-- **Same runtime, full matrix**: the underlying VM is shared with agentOS, so the complete compatibility reference lives at [Node.js Compatibility on agentOS](https://agentos-sdk.dev/docs/node-compatibility).
+- **Module loading and resolution**: how ESM/CJS, the `node_modules` walk, and unmodified npm packages resolve over the virtual filesystem lives in [NPM & Module Loading](/docs/features/module-loading).
+- **Output capture**: how `stdout`/`stderr` are buffered and streamed is documented in [Output Capture](/docs/features/output-capture).

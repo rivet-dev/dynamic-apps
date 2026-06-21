@@ -117,7 +117,7 @@ fn filesystem_permission_denials_emit_security_audit_events() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
                 module_access_cwd: None,
                 instructions: Vec::new(),

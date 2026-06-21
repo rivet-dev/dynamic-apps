@@ -73,8 +73,7 @@ const { stdout, stderr, exitCode } = await rt.exec(`
 console.log(exitCode); // 0
 ```
 
-- **`stdout` / `stderr`**: captured text written by the guest.
-- **`exitCode`**: `0` on success, non-zero if the guest threw or was killed.
+`exitCode` is `0` on a clean exit and non-zero if the guest threw or was killed.
 
 Read more about [Output Capture](/docs/features/output-capture).
 
@@ -92,7 +91,7 @@ console.log(value?.sum); // 42
 
 Read more about [Executing Code](/docs/features/executing-code).
 
-## Bound a run
+## Set a timeout
 
 Pass a `timeout` so a runaway guest cannot run forever. The VM kills the process
 when the budget elapses.
@@ -114,7 +113,7 @@ You now know the core loop. Each feature builds on it:
 - **[Filesystem](/docs/features/filesystem)**: read, write, and seed the virtualized VFS.
 - **[NPM & Module Loading](/docs/features/module-loading)**: resolve real npm packages inside the VM.
 - **[Networking](/docs/features/networking)**: guest `fetch`, sockets, and driving HTTP into a guest server.
-- **[Host Tools](/docs/features/host-tools)**: expose curated host functions to guest code.
+- **[Bindings](/docs/features/bindings)**: expose curated host functions to guest code.
 - **[Permissions](/docs/features/permissions)**: grant network and other access over the secure default.
 - **[Runtime & Platform](/docs/features/runtime-platform)**: shape the env, cwd, and platform the guest sees.
 - **[TypeScript](/docs/features/typescript)**: compile and type-check inside the sandbox.

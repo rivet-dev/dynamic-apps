@@ -55,9 +55,12 @@ const result = await rt.run<string>(
 );
 ```
 
-Guest code can also call registered host tools with the `callHostTool(name, input)`
-global. For the full option and result shapes, see the
-[TypeScript SDK reference](/docs/sdks/typescript).
+Guest code can also invoke host-side tools you register with the `tools` option
+on `NodeRuntime.create()`: each becomes a named command the guest runs by name,
+round-tripping its JSON input to a handler on the host. For the full option and
+result shapes, see the [TypeScript SDK reference](/docs/sdks/typescript).
+
+*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/sdk-overview)*
 
 ## Related
 
@@ -65,4 +68,4 @@ global. For the full option and result shapes, see the
 <LinkCard title="Resident Runner" href="/docs/features/resident-runner" description="Reuse a live guest process for low-latency repeated execution." />
 <LinkCard title="Child Processes" href="/docs/features/child-processes" description="spawn() long-running guests and the guest child_process surface." />
 <LinkCard title="Resource Limits" href="/docs/features/resource-limits" description="Bound a run with timeout, AbortSignal, and the VM's limits." />
-<LinkCard title="Host Tools" href="/docs/features/host-tools" description="Call host-side functions from the guest with callHostTool." />
+<LinkCard title="Bindings" href="/docs/features/bindings" description="Register host-side tools the guest invokes by name." />

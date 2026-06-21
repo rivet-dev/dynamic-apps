@@ -2,9 +2,6 @@
 title: Output Capture
 description: Capture console output from sandboxed code.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
-
-<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-output-capture" description="Runnable example for capturing stdout, stderr, and the exit code." />
 
 `exec()` runs guest code and resolves with its captured output once the guest process exits.
 
@@ -108,14 +105,11 @@ await pending.catch((err) => console.log(err.name)); // "AbortError"
 
 ## Common patterns
 
-Use `exitCode` to detect failure; use `run()` when you also need a value back:
+Use `exitCode` to detect failure, with `stderr` for the diagnostic:
 
 ```ts
 const { stderr, exitCode } = await rt.exec(code);
 if (exitCode !== 0) throw new Error(`guest exited ${exitCode}: ${stderr}`);
-
-const { value } = await rt.run(`globalThis.__return({ answer: 42 });`);
-// value === { answer: 42 }
 ```
 
 For long-running guests that never exit (dev servers), use `spawn()` instead: it returns a live `NodeRuntimeProcess` handle with the same `onStdout`/`onStderr` streaming, plus `writeStdin`, `kill`, and `wait()`.

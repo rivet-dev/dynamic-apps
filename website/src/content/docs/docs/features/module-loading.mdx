@@ -4,7 +4,7 @@ description: How sandboxed code resolves and loads modules.
 ---
 import { Aside } from '@astrojs/starlight/components';
 
-Guest `import` and `require` resolve against the VM's virtual filesystem, never the host module loader. Resolution runs entirely inside the kernel. By default the guest sees an empty `node_modules`; project host packages in with `mounts` to run real npm packages (including the TypeScript compiler) in-sandbox.
+Guest `import` and `require` resolve against the VM's virtual filesystem, never the host module loader. Resolution runs entirely inside the kernel. By default the guest sees an empty `node_modules`; project host packages into the VM with `nodeModules` (or `mounts`) to run real npm packages (including the TypeScript compiler) in-sandbox.
 
 ## Loading Modules
 
@@ -61,33 +61,26 @@ resolved node:os via require -> linux
 
 ## Loading real npm packages
 
-Put package bytes on the guest filesystem, then let the in-kernel resolver walk them. Two ways to project them:
+Put package bytes on the guest filesystem, then let the in-kernel resolver walk them. Three ways to project them:
 
-- `create({ mounts })`: a mount projects a host directory onto the guest filesystem, Docker-style, read lazily so a large tree (e.g. the TypeScript compiler) is projected without copying it up front. Preferred for real `node_modules` trees. See the snippet below for field usage, and [the TypeScript SDK reference](/docs/sdks/typescript) for the full mount shape.
-- `create({ files })` or `rt.writeFile` / `rt.readFile`: write bytes directly into the VM when you want to seed files instead of projecting a host tree.
+- `create({ nodeModules })`: project a whole host `node_modules` tree in one call. Read-only, defaulting to `/tmp/node_modules`, which is where the resolution walk begins for a program run by `exec()` / `run()` (each program is written under `/tmp`). Pass the object form (`{ hostPath, guestPath }`) to mount it elsewhere.
+- `create({ mounts })`: project one host directory at a time onto a guest path, Docker-style. Use a `mounts` entry per package when you want fine-grained control instead of the whole tree.
+- `create({ files })` or `rt.writeFile`: write bytes directly into the VM when you want to seed files instead of projecting a host tree.
 
-Either way the host filesystem is never exposed; the guest sees only the mounted subtree or the bytes you write.
+Either way the host filesystem is never exposed; the guest sees only the projected subtree or the bytes you write. For the full mount shapes see [the TypeScript SDK reference](/docs/sdks/typescript).
 
-Mount the package under a `node_modules` directory on the importing module's resolution path. The walk follows the module's location (not the cwd), and `exec()` runs each program from `/tmp`, so `/tmp/node_modules/<name>` is where that walk finds it.
+The example below points `nodeModules` at the host directory that holds `is-number`, then imports it from inside the VM. The guest resolves it the way Node would over a real filesystem, including through `createRequire`.
 
 ```ts
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import { NodeRuntime } from "secure-exec";
 
-// `is-number` is a tiny dependency-free CommonJS package in this repo's
-// node_modules. require.resolve returns its entry file; the parent dir is the
-// package root we project into the VM.
-const require = createRequire(import.meta.url);
-const isNumberDir = require.resolve("is-number").replace(/[/\\]index\.js$/, "");
+const hostNodeModules = fileURLToPath(
+  new URL("../../../../node_modules", import.meta.url),
+);
 
 const mounted = await NodeRuntime.create({
-  mounts: [
-    {
-      guestPath: "/tmp/node_modules/is-number",
-      hostPath: isNumberDir,
-      readOnly: true,
-    },
-  ],
+  nodeModules: hostNodeModules,
 });
 
 try {
@@ -101,14 +94,13 @@ try {
     const isNumberCjs = require("is-number");
 
     const result = {
-      from: require.resolve("is-number"),
       "isNumber(42)": isNumber(42),
       'isNumber("3.14")': isNumber("3.14"),
       'isNumber("nope")': isNumber("nope"),
       sameModule: isNumber === isNumberCjs,
     };
 
-    console.log("loaded real npm package ->", result.from);
+    console.log("loaded real npm package is-number");
     console.log(JSON.stringify(result));
   `);
 
@@ -126,39 +118,8 @@ try {
 ```
 exitCode: 0
 guest stdout:
-loaded real npm package -> /tmp/node_modules/is-number/index.js
-{"from":"/tmp/node_modules/is-number/index.js","isNumber(42)":true,"isNumber(\"3.14\")":true,"isNumber(\"nope\")":false,"sameModule":true}
-```
-
-### Mounting a whole node_modules tree
-
-When you already have a host-installed `node_modules` directory, `create({ nodeModules })` projects the entire tree in one call instead of wiring up a `mounts` entry per package. The guest's `import`/`require` then resolve every package inside it the way Node would over a real filesystem.
-
-`nodeModules` projects a whole host `node_modules` tree, read-only, defaulting to `/tmp/node_modules` (where the resolution walk begins for a program run by `exec()` / `run()`, since each program is written under `/tmp`). The snippet below uses the string shorthand; for the full shape (string or object, custom `guestPath`) see [the TypeScript SDK reference](/docs/sdks/typescript).
-
-```ts
-import { createRequire } from "node:module";
-import { NodeRuntime } from "secure-exec";
-
-// Resolve this project's own node_modules directory on the host.
-const require = createRequire(import.meta.url);
-const hostNodeModules = require
-  .resolve("is-number")
-  .replace(/[/\\]is-number[/\\].*$/, "");
-
-const rt = await NodeRuntime.create({
-  // Shorthand: mounts the whole tree at /tmp/node_modules.
-  nodeModules: hostNodeModules,
-});
-
-try {
-  await rt.exec(`
-    import isNumber from "is-number";
-    console.log("isNumber(42) ->", isNumber(42));
-  `);
-} finally {
-  await rt.dispose();
-}
+loaded real npm package is-number
+{"isNumber(42)":true,"isNumber(\"3.14\")":true,"isNumber(\"nope\")":false,"sameModule":true}
 ```
 
 ## node_modules resolution

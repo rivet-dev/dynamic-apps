@@ -511,8 +511,8 @@ pub(crate) fn evaluate_permissions_policy(
             capability_operation(capability, domain),
             resource,
         ),
-        "tool" => evaluate_pattern_permission_scope(
-            permissions.tool.as_ref(),
+        "binding" => evaluate_pattern_permission_scope(
+            permissions.binding.as_ref(),
             capability_operation(capability, domain),
             resource,
         ),
@@ -612,8 +612,8 @@ pub(crate) fn validate_permissions_policy(
     if let Some(scope) = permissions.env.as_ref() {
         validate_pattern_permission_scope("env", scope)?;
     }
-    if let Some(scope) = permissions.tool.as_ref() {
-        validate_pattern_permission_scope("tool", scope)?;
+    if let Some(scope) = permissions.binding.as_ref() {
+        validate_pattern_permission_scope("binding", scope)?;
     }
     Ok(())
 }

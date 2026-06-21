@@ -23,7 +23,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
 	ExecResult,
-	HostToolDefinition,
+	BindingDefinition,
 	Kernel,
 	KernelBootTiming,
 	Permissions,
@@ -37,13 +37,13 @@ import {
 	NodeFileSystem,
 } from "./test-runtime.js";
 
-export type { HostToolDefinition, HostToolExample } from "./test-runtime.js";
+export type { BindingDefinition, HostToolExample } from "./test-runtime.js";
 
 export type NodeRuntimeBootTimingPhase =
 	| KernelBootTiming["phase"]
 	| "runtime_mount_wasm"
 	| "runtime_mount_node"
-	| "host_tools";
+	| "bindings";
 
 export interface NodeRuntimeBootTiming {
 	phase: NodeRuntimeBootTimingPhase;
@@ -220,18 +220,18 @@ export interface NodeRuntimeCreateOptions {
 	 */
 	nodeModules?: string | NodeModulesMount;
 	/**
-	 * Host-side tools the guest can invoke as shell commands. Each entry is
+	 * Host-side bindings the guest can invoke as shell commands. Each entry is
 	 * registered as a named guest command; when the guest runs it, the
-	 * invocation round-trips back to the host and runs the tool's `handler`,
+	 * invocation round-trips back to the host and runs the binding's `handler`,
 	 * whose return value is delivered back to the guest. This is how you give
 	 * sandboxed guest code controlled, named host capabilities (the kind an AI
 	 * agent calls as tools) without granting it the underlying access directly.
 	 *
-	 * The guest invokes a tool by name with JSON input:
+	 * The guest invokes a binding by name with JSON input:
 	 *
 	 * ```ts
 	 * const rt = await NodeRuntime.create({
-	 *   tools: {
+	 *   bindings: {
 	 *     add: {
 	 *       description: "Add two numbers",
 	 *       inputSchema: {
@@ -250,11 +250,11 @@ export interface NodeRuntimeCreateOptions {
 	 * `);
 	 * ```
 	 *
-	 * When `tools` is provided and no `tool` permission scope is set, the `tool`
-	 * scope is granted so the registered tools are invocable; pass your own
-	 * `permissions.tool` policy to gate individual tools.
+	 * When `bindings` is provided and no `binding` permission scope is set, the
+	 * `binding` scope is granted so the registered bindings are invocable; pass
+	 * your own `permissions.binding` policy to gate individual bindings.
 	 */
-	tools?: Record<string, HostToolDefinition>;
+	bindings?: Record<string, BindingDefinition>;
 	/**
 	 * Guest-bound ports that may accept non-loopback connections. By default a
 	 * guest server is reachable only over loopback inside the VM; listing a port
@@ -484,27 +484,27 @@ let nextProgramId = 0;
 let nextResidentRequestId = 0;
 
 /**
- * Guest preamble exposing `globalThis.callHostTool(name, input?)`: an ergonomic
- * async wrapper over the host-tool invocation path. It runs the registered tool
- * as the guest would by hand (`<tool> --json <input>` through
+ * Guest preamble exposing `globalThis.callBinding(name, input?)`: an ergonomic
+ * async wrapper over the binding invocation path. It runs the registered binding
+ * as the guest would by hand (`<binding> --json <input>` through
  * `node:child_process`), so it inherits every security property of that path:
- * the `tool` permission scope, the tool's input-schema validation, and the
+ * the `binding` permission scope, the binding's input-schema validation, and the
  * host-side handler all still apply. It adds no new trust surface; it only
  * removes the manual `execFile`/JSON boilerplate so guest and agent code can do
- * `const out = await callHostTool("add", { a, b })`. The value is a single line
+ * `const out = await callBinding("add", { a, b })`. The value is a single line
  * so it shifts guest source line numbers by at most one in stack traces.
  *
- * Note: the tool still runs through a guest process. Eliminating that spawn would
- * require a dedicated async guest-to-host tool channel (the synchronous sync-RPC
- * path cannot be used: it runs on the sidecar's main sync-RPC thread and a host
- * round-trip would block it); that is a separate, test-gated change.
+ * Note: the binding still runs through a guest process. Eliminating that spawn
+ * would require a dedicated async guest-to-host binding channel (the synchronous
+ * sync-RPC path cannot be used: it runs on the sidecar's main sync-RPC thread and
+ * a host round-trip would block it); that is a separate, test-gated change.
  */
-const HOST_TOOL_PREAMBLE =
-	`globalThis.callHostTool = (name, input = {}) => import("node:child_process").then(({ execFile }) => new Promise((resolve, reject) => { execFile(name, [name, "--json", JSON.stringify(input)], { maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => { if (error) { reject(new Error(String(stderr || "").trim() || error.message)); return; } const text = String(stdout ?? "").trim(); let reply; try { reply = text ? JSON.parse(text) : undefined; } catch { reject(new Error("host tool returned invalid JSON: " + text)); return; } if (reply && reply.ok === false) { reject(new Error(reply.error || "host tool failed")); return; } resolve(reply && typeof reply === "object" && "result" in reply ? reply.result : reply); }); }));`;
+const BINDING_PREAMBLE =
+	`globalThis.callBinding = (name, input = {}) => import("node:child_process").then(({ execFile }) => new Promise((resolve, reject) => { execFile(name, [name, "--json", JSON.stringify(input)], { maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => { if (error) { reject(new Error(String(stderr || "").trim() || error.message)); return; } const text = String(stdout ?? "").trim(); let reply; try { reply = text ? JSON.parse(text) : undefined; } catch { reject(new Error("binding returned invalid JSON: " + text)); return; } if (reply && reply.ok === false) { reject(new Error(reply.error || "binding failed")); return; } resolve(reply && typeof reply === "object" && "result" in reply ? reply.result : reply); }); }));`;
 
-/** Prepend the host-tool helper preamble to guest program source. */
-function withHostToolPreamble(code: string): string {
-	return `${HOST_TOOL_PREAMBLE}\n${code}`;
+/** Prepend the binding helper preamble to guest program source. */
+function withBindingPreamble(code: string): string {
+	return `${BINDING_PREAMBLE}\n${code}`;
 }
 
 const RESIDENT_READY_PREFIX = "__SECURE_EXEC_RESIDENT_READY__";
@@ -568,13 +568,13 @@ export class NodeRuntime {
 			readOnly: mount.readOnly ?? true,
 		}));
 
-		// Grant the `tool` scope when the caller registers tools but does not set
-		// their own tool policy, so the registered tools are actually invocable.
-		const toolDefaults =
-			options.tools &&
-			Object.keys(options.tools).length > 0 &&
-			options.permissions?.tool === undefined
-				? { tool: "allow" as const }
+		// Grant the `binding` scope when the caller registers bindings but does not
+		// set their own binding policy, so the registered bindings are invocable.
+		const bindingDefaults =
+			options.bindings &&
+			Object.keys(options.bindings).length > 0 &&
+			options.permissions?.binding === undefined
+				? { binding: "allow" as const }
 				: {};
 
 		const kernel = createKernel({
@@ -585,7 +585,7 @@ export class NodeRuntime {
 			// execution essentials (fs/childProcess/process/env) stay granted.
 			permissions: {
 				...DEFAULT_PERMISSIONS,
-				...toolDefaults,
+				...bindingDefaults,
 				...options.permissions,
 			},
 			env: options.env,
@@ -608,12 +608,12 @@ export class NodeRuntime {
 				kernel.mount(createNodeRuntime()),
 			);
 
-			// Register host tools after the runtimes are mounted so they are
+			// Register bindings after the runtimes are mounted so they are
 			// installed as guest commands the moment the VM is ready.
-			const tools = options.tools;
-			if (tools && Object.keys(tools).length > 0) {
-				await measureBootTiming("host_tools", options.onBootTiming, () =>
-					kernel.registerHostTools(tools),
+			const bindings = options.bindings;
+			if (bindings && Object.keys(bindings).length > 0) {
+				await measureBootTiming("bindings", options.onBootTiming, () =>
+					kernel.registerHostTools(bindings),
 				);
 			}
 		} catch (error) {
@@ -641,7 +641,7 @@ export class NodeRuntime {
 		options: NodeRuntimeExecOptions = {},
 	): Promise<NodeRuntimeExecResult> {
 		const programPath = `/tmp/secure-exec-program-${nextProgramId++}.mjs`;
-		await this.kernel.writeFile(programPath, withHostToolPreamble(code));
+		await this.kernel.writeFile(programPath, withBindingPreamble(code));
 		return this.runProgram(programPath, options);
 	}
 
@@ -760,7 +760,7 @@ export class NodeRuntime {
 		options: NodeRuntimeSpawnOptions = {},
 	): Promise<NodeRuntimeProcess> {
 		const programPath = `/tmp/secure-exec-program-${nextProgramId++}.mjs`;
-		await this.kernel.writeFile(programPath, withHostToolPreamble(code));
+		await this.kernel.writeFile(programPath, withBindingPreamble(code));
 		const proc = this.kernel.spawn("node", [programPath], {
 			env: options.env,
 			cwd: options.cwd,
@@ -814,7 +814,7 @@ export class NodeRuntime {
 		// statements inside a function and make them a SyntaxError.
 		const wrapped = [
 			`import { writeFileSync as __writeFileSync } from "node:fs";`,
-			HOST_TOOL_PREAMBLE,
+			BINDING_PREAMBLE,
 			`globalThis.__return = (value) => {`,
 			`  __writeFileSync(${JSON.stringify(resultPath)}, JSON.stringify(value === undefined ? null : value));`,
 			`};`,
@@ -958,22 +958,22 @@ export class NodeRuntime {
 	}
 
 	/**
-	 * Register host-side tools the guest can invoke as shell commands, after the
-	 * VM is already running. Each entry becomes a named guest command; when the
-	 * guest runs it, the invocation round-trips back to the host and runs the
-	 * tool's `handler`, whose return value is delivered back to the guest. This
-	 * is the same capability as the `tools` create option, exposed for adding
-	 * tools to a live runtime. See `tools` on {@link NodeRuntime.create} for the
-	 * invocation shape and permission behavior.
+	 * Register host-side bindings the guest can invoke as shell commands, after
+	 * the VM is already running. Each entry becomes a named guest command; when
+	 * the guest runs it, the invocation round-trips back to the host and runs the
+	 * binding's `handler`, whose return value is delivered back to the guest. This
+	 * is the same capability as the `bindings` create option, exposed for adding
+	 * bindings to a live runtime. See `bindings` on {@link NodeRuntime.create} for
+	 * the invocation shape and permission behavior.
 	 *
-	 * When registering tools this way, make sure the `tool` permission scope is
-	 * granted (for example `permissions: { tool: "allow" }` on
-	 * {@link NodeRuntime.create}) so the tools are invocable.
+	 * When registering bindings this way, make sure the `binding` permission scope
+	 * is granted (for example `permissions: { binding: "allow" }` on
+	 * {@link NodeRuntime.create}) so the bindings are invocable.
 	 */
-	async registerTools(
-		tools: Record<string, HostToolDefinition>,
+	async registerBindings(
+		bindings: Record<string, BindingDefinition>,
 	): Promise<void> {
-		await this.kernel.registerHostTools(tools);
+		await this.kernel.registerHostTools(bindings);
 	}
 
 	/**

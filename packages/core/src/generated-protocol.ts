@@ -905,7 +905,7 @@ export type PermissionsPolicy = {
     readonly childProcess: PatternPermissionScope | null
     readonly process: PatternPermissionScope | null
     readonly env: PatternPermissionScope | null
-    readonly tool: PatternPermissionScope | null
+    readonly binding: PatternPermissionScope | null
 }
 
 export function readPermissionsPolicy(bc: bare.ByteCursor): PermissionsPolicy {
@@ -915,7 +915,7 @@ export function readPermissionsPolicy(bc: bare.ByteCursor): PermissionsPolicy {
         childProcess: read11(bc),
         process: read11(bc),
         env: read11(bc),
-        tool: read11(bc),
+        binding: read11(bc),
     }
 }
 
@@ -925,7 +925,7 @@ export function writePermissionsPolicy(bc: bare.ByteCursor, x: PermissionsPolicy
     write11(bc, x.childProcess)
     write11(bc, x.process)
     write11(bc, x.env)
-    write11(bc, x.tool)
+    write11(bc, x.binding)
 }
 
 export type CreateVmRequest = {

@@ -11,7 +11,7 @@ These numbers measure the public `secure-exec` SDK paths that consumers actually
 ## Scenarios
 
 - **owned-sidecar**: `NodeRuntime.create()` boots a fresh sidecar process for each runtime. This is the default, fully isolated path (see [Process Isolation](/docs/architecture)).
-- **shared-sidecar**: one sidecar process is created once and reused across many runtimes, instead of spawning a fresh sidecar per runtime. Sidecar setup is measured separately and excluded from cold start, so this isolates the per-runtime cost. (Sharing a sidecar is a reuse fast path layered on the low-level `SidecarProcess`, not the default `NodeRuntime.create()` path.)
+- **shared-sidecar**: one sidecar process is created once and reused across many runtimes, instead of spawning a fresh sidecar per runtime. Sidecar setup is measured separately and excluded from cold start, so this isolates the per-runtime cost. (Sharing a sidecar is a reuse fast path: spawn one `Sidecar` and pass it to `NodeRuntime.create({ sidecar })`, instead of the default `NodeRuntime.create()` path that owns a fresh sidecar per runtime.)
 - **resident-runner**: a shared sidecar plus a resident runner, so repeated small snippets reuse one live guest Node process instead of starting a new one each time.
 
 ## Cold vs warm

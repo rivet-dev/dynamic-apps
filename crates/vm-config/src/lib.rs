@@ -492,7 +492,7 @@ pub struct PermissionsPolicy {
     pub env: Option<PatternPermissionScope>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    pub tool: Option<PatternPermissionScope>,
+    pub binding: Option<PatternPermissionScope>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]

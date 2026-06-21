@@ -1,19 +1,22 @@
 ---
 title: Networking
-description: Network access for sandboxed code.
+description: A short overview of Secure Exec networking, with a link to the canonical agentOS networking docs.
 ---
+import { LinkCard } from '@astrojs/starlight/components';
 
-Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table, so guest code never touches the real host network. The `network` permission on the VM config gates what the guest may reach.
+Secure Exec virtualizes all VM networking so guest code never touches the real host network. At a glance:
 
-```ts
-import { NodeRuntime } from "secure-exec";
+- **One kernel socket table**: Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table, never the real host network.
+- **Loopback-only by default**: A guest can bind and reach loopback services inside its own VM, but the socket table stays hermetic and cannot reach a real host loopback service.
+- **Allowlist-gated egress**: Outbound networking is denied by default and opted into via the `network` permission, either allowing everything or scoping to specific patterns.
+- **Proxied host-to-guest**: Host loopback ports are not visible to the guest unless explicitly exposed through `loopbackExemptPorts`.
 
-// Allow outbound networking, or scope it with a rule set.
-const rt = await NodeRuntime.create({
-	permissions: {
-		network: { default: "deny", rules: [{ mode: "allow", patterns: ["api.example.com"] }] },
-	},
-});
-```
+## Full reference
 
-Secure Exec uses the same networking model as agentOS. See the [full reference](https://agentos-sdk.dev/docs/networking).
+The canonical networking API, permission rules, and egress details are owned by agentOS.
+
+<LinkCard
+  title="agentOS: Networking"
+  href="https://agentos-sdk.dev/docs/networking"
+  description="The complete networking API, permission rules, and egress configuration."
+/>

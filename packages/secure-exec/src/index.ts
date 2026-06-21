@@ -1,6 +1,6 @@
 export type {
 	HostDirectoryMount,
-	HostToolDefinition,
+	BindingDefinition,
 	HostToolExample,
 	SidecarSpawnOptions,
 	NodeRuntimeBootTiming,

@@ -33,7 +33,7 @@ export interface LivePermissionsPolicy {
 	child_process?: LivePermissionScope<LivePatternPermissionRule>;
 	process?: LivePermissionScope<LivePatternPermissionRule>;
 	env?: LivePermissionScope<LivePatternPermissionRule>;
-	tool?: LivePermissionScope<LivePatternPermissionRule>;
+	binding?: LivePermissionScope<LivePatternPermissionRule>;
 }
 
 export function toGeneratedPermissionsPolicy(
@@ -63,10 +63,10 @@ export function toGeneratedPermissionsPolicy(
 			policy.env === undefined
 				? null
 				: toGeneratedPatternPermissionScope(policy.env),
-		tool:
-			policy.tool === undefined
+		binding:
+			policy.binding === undefined
 				? null
-				: toGeneratedPatternPermissionScope(policy.tool),
+				: toGeneratedPatternPermissionScope(policy.binding),
 	};
 }
 

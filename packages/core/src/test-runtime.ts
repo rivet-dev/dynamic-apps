@@ -191,7 +191,7 @@ export type ProcessPermissions =
 export type EnvPermissions =
 	| PermissionMode
 	| RulePermissions<PatternPermissionRule>;
-export type ToolPermissions =
+export type BindingPermissions =
 	| PermissionMode
 	| RulePermissions<PatternPermissionRule>;
 
@@ -288,41 +288,41 @@ export interface Permissions {
 	childProcess?: ChildProcessPermissions;
 	process?: ProcessPermissions;
 	env?: EnvPermissions;
-	tool?: ToolPermissions;
+	binding?: BindingPermissions;
 }
 
-/** A worked example shown alongside a registered host tool. */
+/** A worked example shown alongside a registered binding. */
 export interface HostToolExample {
 	/** What this example demonstrates. */
 	description: string;
-	/** Example input matching the tool's input schema. */
+	/** Example input matching the binding's input schema. */
 	input: unknown;
 }
 
 /**
- * A host-side tool that guest code can invoke as a shell command. The guest
- * runs the tool by name and the invocation round-trips back to the host JS
- * `handler`, whose return value is passed back to the guest. Tools never run
+ * A host-side binding that guest code can invoke as a shell command. The guest
+ * runs the binding by name and the invocation round-trips back to the host JS
+ * `handler`, whose return value is passed back to the guest. Bindings never run
  * inside the guest: they execute on the host, so they are the bridge for giving
  * sandboxed guest code controlled, named capabilities (the kind AI agents call
  * as tools).
  */
-export interface HostToolDefinition {
-	/** Human-readable description of what the tool does. */
+export interface BindingDefinition {
+	/** Human-readable description of what the binding does. */
 	description: string;
-	/** JSON Schema describing the tool's input. */
+	/** JSON Schema describing the binding's input. */
 	inputSchema: object;
 	/** Abort the invocation after this many milliseconds. */
 	timeoutMs?: number;
-	/** Worked examples shown alongside the tool. */
+	/** Worked examples shown alongside the binding. */
 	examples?: HostToolExample[];
 	/**
-	 * Extra command names the guest can use to invoke this tool, in addition to
-	 * the key it is registered under.
+	 * Extra command names the guest can use to invoke this binding, in addition
+	 * to the key it is registered under.
 	 */
 	commandAliases?: string[];
 	/**
-	 * Host handler invoked when guest code runs the tool. Receives the parsed
+	 * Host handler invoked when guest code runs the binding. Receives the parsed
 	 * input and returns a JSON-serializable result delivered back to the guest.
 	 */
 	handler: (input: unknown) => unknown | Promise<unknown>;
@@ -477,7 +477,7 @@ export interface Kernel extends KernelInterface {
 		headersJson: string;
 		body?: string;
 	}): Promise<string>;
-	registerHostTools(tools: Record<string, HostToolDefinition>): Promise<void>;
+	registerHostTools(tools: Record<string, BindingDefinition>): Promise<void>;
 	readonly commands: ReadonlyMap<string, string>;
 	readonly processes: ReadonlyMap<number, ProcessInfo>;
 	readonly env: Record<string, string>;
@@ -1265,7 +1265,7 @@ function normalizePatternPermissionScope(
 		| ChildProcessPermissions
 		| ProcessPermissions
 		| EnvPermissions
-		| ToolPermissions
+		| BindingPermissions
 		| undefined,
 ): PermissionsPolicy["network"] {
 	if (scope === undefined || typeof scope === "string") {
@@ -1293,7 +1293,7 @@ function normalizePermissionsPolicy(
 		childProcess: normalizePatternPermissionScope(permissions.childProcess),
 		process: normalizePatternPermissionScope(permissions.process),
 		env: normalizePatternPermissionScope(permissions.env),
-		tool: normalizePatternPermissionScope(permissions.tool),
+		binding: normalizePatternPermissionScope(permissions.binding),
 	};
 }
 
@@ -2508,9 +2508,9 @@ class NativeKernel implements Kernel {
 		number
 	>();
 	private readonly loopbackExemptPorts: number[];
-	// Host tools registered with the VM, keyed by the callback key the sidecar
-	// sends back on a host_callback request (the tool name). Installed lazily on
-	// the first registerHostTools call.
+	// Bindings registered with the VM, keyed by the callback key the sidecar
+	// sends back on a host_callback request (the binding name). Installed lazily
+	// on the first registerHostTools call.
 	private readonly hostToolHandlers = new Map<
 		string,
 		(input: unknown) => unknown | Promise<unknown>
@@ -2801,7 +2801,7 @@ class NativeKernel implements Kernel {
 	}
 
 	async registerHostTools(
-		tools: Record<string, HostToolDefinition>,
+		tools: Record<string, BindingDefinition>,
 	): Promise<void> {
 		await this.ensureReady();
 		if (!this.client || !this.session || !this.vm) {
@@ -2818,33 +2818,36 @@ class NativeKernel implements Kernel {
 			this.hostToolRequestHandlerInstalled = true;
 		}
 
-		for (const [name, tool] of Object.entries(tools)) {
-			this.hostToolHandlers.set(name, tool.handler);
+		for (const [name, binding] of Object.entries(tools)) {
+			this.hostToolHandlers.set(name, binding.handler);
 			const definition: SidecarRegisteredHostCallbackDefinition = {
-				description: tool.description,
-				inputSchema: tool.inputSchema,
-				...(tool.timeoutMs !== undefined ? { timeoutMs: tool.timeoutMs } : {}),
-				...(tool.examples && tool.examples.length > 0
+				description: binding.description,
+				inputSchema: binding.inputSchema,
+				...(binding.timeoutMs !== undefined
+					? { timeoutMs: binding.timeoutMs }
+					: {}),
+				...(binding.examples && binding.examples.length > 0
 					? {
-							examples: tool.examples.map((example) => ({
+							examples: binding.examples.map((example) => ({
 								description: example.description,
 								input: example.input,
 							})),
 						}
 					: {}),
 			};
-			// Register each tool as its own single-tool toolkit so the guest can
-			// invoke it directly by name (or by any caller-provided alias). The
+			// Register each binding as its own single-callback toolkit so the guest
+			// can invoke it directly by name (or by any caller-provided alias). The
 			// sidecar exposes the toolkit name as a guest command; the single
-			// callback carries the tool's schema and gates the `tool` permission.
+			// callback carries the binding's schema and gates the `binding`
+			// permission.
 			await this.client.registerHostCallbacks(this.session, this.vm, {
 				name,
-				description: tool.description,
-				commandAliases: [name, ...(tool.commandAliases ?? [])],
+				description: binding.description,
+				commandAliases: [name, ...(binding.commandAliases ?? [])],
 				callbacks: { [name]: definition },
 			});
 			this.commands.set(name, "wasmvm");
-			for (const alias of tool.commandAliases ?? []) {
+			for (const alias of binding.commandAliases ?? []) {
 				this.commands.set(alias, "wasmvm");
 			}
 		}
@@ -2856,7 +2859,7 @@ class NativeKernel implements Kernel {
 		const { payload } = request;
 		if (payload.type !== "host_callback") {
 			throw new Error(
-				`unsupported sidecar request for host tools: ${payload.type}`,
+				`unsupported sidecar request for bindings: ${payload.type}`,
 			);
 		}
 		// Callback keys arrive as `${toolkit}:${tool}` for toolkit invocations and
@@ -2874,7 +2877,7 @@ class NativeKernel implements Kernel {
 			return {
 				type: "host_callback_result",
 				invocation_id: payload.invocation_id,
-				error: `no host tool registered for ${callbackKey}`,
+				error: `no binding registered for ${callbackKey}`,
 			};
 		}
 		try {

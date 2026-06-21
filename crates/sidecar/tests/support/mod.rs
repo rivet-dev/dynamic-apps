@@ -161,7 +161,7 @@ pub fn wire_permissions_allow_all() -> secure_exec_sidecar::wire::PermissionsPol
                 secure_exec_sidecar::wire::PermissionMode::Allow,
             ),
         ),
-        tool: Some(
+        binding: Some(
             secure_exec_sidecar::wire::PatternPermissionScope::PermissionMode(
                 secure_exec_sidecar::wire::PermissionMode::Allow,
             ),

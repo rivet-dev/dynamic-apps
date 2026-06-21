@@ -867,7 +867,7 @@ fn schema_supports_configuration_and_structured_events() {
                 child_process: None,
                 process: None,
                 env: None,
-                tool: None,
+                binding: None,
             }),
             module_access_cwd: None,
             instructions: vec!["keep timing mitigation enabled".to_string()],

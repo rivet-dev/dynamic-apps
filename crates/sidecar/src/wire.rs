@@ -73,7 +73,7 @@ impl crate::generated_protocol::v1::PermissionsPolicy {
             child_process: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
             process: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
             env: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
-            tool: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
+            binding: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
         }
     }
 
@@ -95,7 +95,7 @@ impl crate::generated_protocol::v1::PermissionsPolicy {
             env: Some(PatternPermissionScope::PermissionMode(
                 PermissionMode::Allow,
             )),
-            tool: Some(PatternPermissionScope::PermissionMode(
+            binding: Some(PatternPermissionScope::PermissionMode(
                 PermissionMode::Allow,
             )),
         }
@@ -247,7 +247,9 @@ fn legacy_permissions_config(
             .process
             .map(legacy_pattern_permission_scope_config),
         env: permissions.env.map(legacy_pattern_permission_scope_config),
-        tool: permissions.tool.map(legacy_pattern_permission_scope_config),
+        binding: permissions
+            .binding
+            .map(legacy_pattern_permission_scope_config),
     }
 }
 

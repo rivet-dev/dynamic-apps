@@ -25,7 +25,7 @@ const READ_CHUNK: u64 = 256 * 1024;
 /// Trusted VM config: default bundled-base filesystem + allow-all permission policy (fs reads are
 /// denied by default, which would block loading the wasm from /tmp). `"allow"` maps to the untagged
 /// `FsPermissionScope::Mode(Allow)` etc.
-const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","tool":"allow"}}"#;
+const VM_CONFIG_JSON: &str = r#"{"permissions":{"fs":"allow","network":"allow","childProcess":"allow","process":"allow","env":"allow","binding":"allow"}}"#;
 
 type Result<T> = std::result::Result<T, String>;
 

@@ -245,14 +245,14 @@ fn resolve_toolkit_command(
     if !matches!(
         evaluate_permissions_policy(
             &vm.configuration.permissions,
-            "tool",
-            "tool.invoke",
+            "binding",
+            "binding.invoke",
             Some(&callback_key),
         ),
         PermissionMode::Allow
     ) {
         return Ok(ToolCommandResolution::Failure(format!(
-            "blocked by tool.invoke policy for {callback_key}"
+            "blocked by binding.invoke policy for {callback_key}"
         )));
     }
 

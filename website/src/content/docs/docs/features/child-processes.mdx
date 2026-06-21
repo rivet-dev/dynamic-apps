@@ -98,7 +98,7 @@ const exitCode = await proc.wait();
 console.log(proc.pid, exitCode);
 ```
 
-The handle exposes `pid`, `writeStdin` / `closeStdin`, `kill`, `wait`, and `exitCode`; see the [TypeScript SDK reference](/docs/sdks/typescript) for the full `NodeRuntimeProcess` and `NodeRuntimeSpawnOptions` shapes. Stream output by passing `onStdout` / `onStderr`, which receive raw `Uint8Array` chunks:
+See the [TypeScript SDK reference](/docs/sdks/typescript) for the full `NodeRuntimeProcess` and `NodeRuntimeSpawnOptions` shapes. Stream output by passing `onStdout` / `onStderr`, which receive raw `Uint8Array` chunks:
 
 ```ts
 const proc = await rt.spawn("setInterval(() => console.log('tick'), 100)", {

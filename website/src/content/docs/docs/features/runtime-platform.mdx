@@ -64,11 +64,12 @@ Output, the guest host environment as seen from inside the isolate:
 }
 ```
 
-:::note[Guest `run()` code is wrapped in an async function]
-Code passed to `rt.run()` executes inside an `async` wrapper, so it can use
-top-level `await` but is not a module body: use dynamic `await import("node:…")`,
-not a top-level `import`. Code passed to `rt.exec()` runs as a real ES module,
-where static `import` is fine.
+:::note[Guest `run()` and `exec()` code both run as ES modules]
+Both `rt.run()` and `rt.exec()` write your code into an `.mjs` module, so
+top-level `import` and top-level `await` work in either. `run()` injects a
+`globalThis.__return(value)` helper you call to hand a JSON-serializable value
+back to the host (delivered as `result.value`); the example uses dynamic
+`await import("node:…")` purely to keep the snippet a single expression body.
 :::
 
 ## Host environment (the `node` surface)
@@ -121,7 +122,9 @@ After boot, the same surface is reachable on the live runtime:
 ```ts
 await rt.writeFile("/root/late.json", '{"added":"after boot"}');
 const bytes = await rt.readFile("/root/late.json"); // Uint8Array
-await rt.registerTools({ now: { description: "epoch ms", handler: () => Date.now() } });
+await rt.registerTools({
+	now: { description: "epoch ms", inputSchema: { type: "object" }, handler: () => Date.now() },
+});
 ```
 
 ### Driving a guest dev server from the host

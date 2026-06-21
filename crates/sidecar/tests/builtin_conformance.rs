@@ -917,7 +917,7 @@ console.log(JSON.stringify(result));
             child_process: allow_all.child_process,
             process: allow_all.process,
             env: allow_all.env,
-            tool: allow_all.tool,
+            binding: allow_all.binding,
         },
         &["http"],
     );

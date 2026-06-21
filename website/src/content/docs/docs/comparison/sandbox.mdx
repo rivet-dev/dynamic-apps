@@ -41,7 +41,7 @@ These capabilities are the reason to reach for Secure Exec over a container when
 - **Virtual filesystem.** Each runtime gets its own in-memory filesystem. Guest reads and writes never reach the host disk, and two runtimes writing the same path do not collide. See [Filesystem](/docs/features/filesystem).
 - **Mediated networking.** Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table, so you can allow, deny, or rule-match outbound traffic. See [Networking](/docs/features/networking).
 - **Process-level isolation.** Each runtime is its own VM and its own crash domain, and each `exec()` / `run()` starts a fresh guest process so in-memory state never leaks between runs. See [Process Isolation](/docs/architecture).
-- **npm compatibility.** Real npm packages run unmodified inside the VM, resolved over a faithfully mounted `node_modules` like a real filesystem.
+- **npm compatibility.** Real npm packages run unmodified inside the VM, resolved over a faithfully mounted `node_modules` like a real filesystem. See [Module Loading](/docs/features/module-loading).
 
 ## When to use each
 

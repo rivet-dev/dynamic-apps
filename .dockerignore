@@ -2,8 +2,21 @@
 # site from the repo-root build context (Railway default). Narrow that context to
 # website/ so the multi-GB monorepo (crates, pyodide wasm, etc.) is never sent to
 # the builder. If another Dockerfile is added that needs more, revisit this.
+#
+# The website build's docs:gen:ts (typedoc) step also needs the @secure-exec/core
+# SDK source, which lives outside website/. Include just that package's src +
+# config (and the root tsconfig its tsconfig extends), not node_modules/dist, so
+# the API reference can be generated in the image.
 *
 !website
+!packages
+packages/*
+!packages/core
+packages/core/*
+!packages/core/src
+!packages/core/package.json
+!packages/core/tsconfig.json
+!tsconfig.base.json
 website/node_modules
 website/dist
 website/.astro

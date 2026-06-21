@@ -1206,7 +1206,7 @@ ykAheWCsAteSEWVc0w==\n\
                 child_process: None,
                 process: None,
                 env: None,
-                tool: None,
+                binding: None,
             }
         }
 
@@ -1229,8 +1229,9 @@ ykAheWCsAteSEWVc0w==\n\
                     "env" => {
                         policy.env = Some(PatternPermissionScope::PermissionMode(mode.clone()))
                     }
-                    "tool" => {
-                        policy.tool = Some(PatternPermissionScope::PermissionMode(mode.clone()))
+                    "binding" => {
+                        policy.binding =
+                            Some(PatternPermissionScope::PermissionMode(mode.clone()))
                     }
                     _ if capability.starts_with("fs.") => {
                         append_fs_rule(
@@ -1267,10 +1268,10 @@ ykAheWCsAteSEWVc0w==\n\
                             mode.clone(),
                         );
                     }
-                    _ if capability.starts_with("tool.") => {
+                    _ if capability.starts_with("binding.") => {
                         append_pattern_rule(
-                            &mut policy.tool,
-                            capability.trim_start_matches("tool."),
+                            &mut policy.binding,
+                            capability.trim_start_matches("binding."),
                             mode.clone(),
                         );
                     }
@@ -1431,7 +1432,7 @@ ykAheWCsAteSEWVc0w==\n\
                     },
                 )),
                 env: None,
-                tool: None,
+                binding: None,
             }
         }
 
@@ -7445,7 +7446,7 @@ ykAheWCsAteSEWVc0w==\n\
                             child_process: None,
                             process: None,
                             env: None,
-                            tool: None,
+                            binding: None,
                         }),
                     )),
                 ))
@@ -7498,7 +7499,7 @@ ykAheWCsAteSEWVc0w==\n\
                             child_process: None,
                             process: None,
                             env: None,
-                            tool: None,
+                            binding: None,
                         }),
                         module_access_cwd: None,
                         instructions: Vec::new(),
@@ -7544,7 +7545,7 @@ ykAheWCsAteSEWVc0w==\n\
                             child_process: None,
                             process: None,
                             env: None,
-                            tool: None,
+                            binding: None,
                         }),
                         module_access_cwd: None,
                         instructions: Vec::new(),
@@ -9143,7 +9144,7 @@ ykAheWCsAteSEWVc0w==\n\
                     )),
                     process: None,
                     env: None,
-                    tool: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
+                    binding: Some(PatternPermissionScope::PermissionMode(PermissionMode::Deny)),
                 },
             )
             .expect("create vm");
@@ -9187,7 +9188,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .as_str()
                 .expect("stderr should be captured as a string");
             assert!(
-                stderr.contains("blocked by tool.invoke policy for math:add"),
+                stderr.contains("blocked by binding.invoke policy for math:add"),
                 "unexpected denied stderr: {stderr:?}"
             );
         }
@@ -9203,7 +9204,7 @@ ykAheWCsAteSEWVc0w==\n\
                 )),
                 process: None,
                 env: None,
-                tool: Some(PatternPermissionScope::PatternPermissionRuleSet(
+                binding: Some(PatternPermissionScope::PatternPermissionRuleSet(
                     PatternPermissionRuleSet {
                         default: Some(PermissionMode::Deny),
                         rules: vec![PatternPermissionRule {
@@ -9295,7 +9296,7 @@ ykAheWCsAteSEWVc0w==\n\
                 )),
                 process: None,
                 env: None,
-                tool: Some(PatternPermissionScope::PatternPermissionRuleSet(
+                binding: Some(PatternPermissionScope::PatternPermissionRuleSet(
                     PatternPermissionRuleSet {
                         default: Some(PermissionMode::Deny),
                         rules: vec![PatternPermissionRule {
@@ -9404,7 +9405,7 @@ ykAheWCsAteSEWVc0w==\n\
                 )),
                 process: None,
                 env: None,
-                tool: Some(PatternPermissionScope::PatternPermissionRuleSet(
+                binding: Some(PatternPermissionScope::PatternPermissionRuleSet(
                     PatternPermissionRuleSet {
                         default: Some(PermissionMode::Deny),
                         rules: vec![PatternPermissionRule {

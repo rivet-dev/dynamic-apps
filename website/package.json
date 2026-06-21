@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "pnpm run docs:gen:ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "docs:gen:ts": "typedoc"

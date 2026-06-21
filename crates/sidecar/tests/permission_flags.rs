@@ -123,7 +123,7 @@ fn permission_flags_reject_empty_operations_and_accept_explicit_wildcards() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
             )),
         ))
@@ -162,7 +162,7 @@ fn permission_flags_reject_empty_operations_and_accept_explicit_wildcards() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
             )),
         ))
@@ -211,7 +211,7 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
                 module_access_cwd: None,
                 instructions: Vec::new(),
@@ -249,7 +249,7 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
                 module_access_cwd: None,
                 instructions: Vec::new(),
@@ -287,7 +287,7 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                     child_process: None,
                     process: None,
                     env: None,
-                    tool: None,
+                    binding: None,
                 }),
                 module_access_cwd: None,
                 instructions: Vec::new(),
@@ -339,7 +339,7 @@ fn permission_flags_single_star_paths_do_not_cross_path_separators() {
             child_process: None,
             process: None,
             env: None,
-            tool: None,
+            binding: None,
         },
     );
 
@@ -409,7 +409,7 @@ fn permission_flags_double_star_paths_allow_nested_descendants() {
             child_process: None,
             process: None,
             env: None,
-            tool: None,
+            binding: None,
         },
     );
 

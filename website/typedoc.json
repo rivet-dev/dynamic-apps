@@ -1,15 +1,19 @@
 {
-  "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["../packages/core/src/index.ts"],
-  "tsconfig": "../packages/core/tsconfig.json",
-  "plugin": ["typedoc-plugin-markdown"],
-  "out": "typedoc-out",
-  "readme": "none",
-  "githubPages": false,
-  "hideBreadcrumbs": true,
-  "excludeInternal": true,
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "name": "secure-exec TypeScript SDK",
-  "comment": "Generated reference for the @secure-exec/core public API. Source of truth for the TypeScript SDK page (docs/sdks/typescript.mdx)."
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": ["../packages/core/src/index.ts"],
+	"tsconfig": "../packages/core/tsconfig.json",
+	"out": "public/api",
+	"name": "secure-exec TypeScript SDK",
+	"includeVersion": true,
+	"hideGenerator": true,
+	"skipErrorChecking": true,
+	"readme": "none",
+	"githubPages": false,
+	"excludePrivate": true,
+	"excludeProtected": true,
+	"excludeInternal": true,
+	"excludeExternals": true,
+	"navigationLinks": {
+		"Docs": "/docs"
+	}
 }

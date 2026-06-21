@@ -4,14 +4,14 @@ import { NodeRuntime } from "secure-exec";
 // "execute code" tool. The LLM writes JavaScript that chains tool calls,
 // branches, and transforms data - then runs it in a single sandboxed pass.
 //
-// The heart of Code Mode is real host tools. You register them on the host with
+// The heart of Code Mode is real bindings. You register them on the host with
 // create({ tools }); each becomes a named command inside the sandbox. When the
 // guest invokes a tool by name with JSON input, the call round-trips back to the
 // host, runs the tool's handler, and the handler's return value is delivered
 // back to the guest. The guest never sees the host filesystem, network, or any
 // capability beyond the named tools you grant it.
 
-// Register the host tools. These handlers run on the HOST, not in the sandbox.
+// Register the bindings. These handlers run on the HOST, not in the sandbox.
 // In a real app each handler would hit a database, an API, or a service; here we
 // keep them small and deterministic so the example is easy to follow.
 const rt = await NodeRuntime.create({
@@ -47,16 +47,16 @@ const rt = await NodeRuntime.create({
 
 // Imagine this string was written by the LLM. It chains three host-tool calls
 // with real control flow (Promise.all, arithmetic, branching) in one execution,
-// then hands a single structured result back to the host. callHostTool resolves
+// then hands a single structured result back to the host. callBinding resolves
 // with the host handler's return value.
 const llmGeneratedCode = `
 const [sf, tokyo] = await Promise.all([
-  callHostTool("get-weather", { city: "San Francisco" }),
-  callHostTool("get-weather", { city: "Tokyo" }),
+  callBinding("get-weather", { city: "San Francisco" }),
+  callBinding("get-weather", { city: "Tokyo" }),
 ]);
 
 const diffF = Math.abs(sf.temp_f - tokyo.temp_f);
-const diffC = await callHostTool("calculate", { expression: \`\${diffF} * 5 / 9\` });
+const diffC = await callBinding("calculate", { expression: \`\${diffF} * 5 / 9\` });
 
 console.log("chained 3 tool calls in one sandbox execution");
 

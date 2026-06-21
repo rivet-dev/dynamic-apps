@@ -227,7 +227,7 @@ export interface SidecarPermissionsPolicy {
 	childProcess?: SidecarPermissionScope<SidecarPatternPermissionRule>;
 	process?: SidecarPermissionScope<SidecarPatternPermissionRule>;
 	env?: SidecarPermissionScope<SidecarPatternPermissionRule>;
-	tool?: SidecarPermissionScope<SidecarPatternPermissionRule>;
+	binding?: SidecarPermissionScope<SidecarPatternPermissionRule>;
 }
 
 type WirePermissionsPolicy = LivePermissionsPolicy;
@@ -1466,7 +1466,7 @@ function toWirePermissionsPolicy(
 		child_process: policy.childProcess,
 		process: policy.process,
 		env: policy.env,
-		tool: policy.tool,
+		binding: policy.binding,
 	};
 }
 

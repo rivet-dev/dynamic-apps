@@ -1,24 +1,22 @@
 ---
 title: Architecture
-description: A high-level summary of how Secure Exec fits together, with a link to the canonical internals reference.
+description: A short overview of the Secure Exec architecture, with a link to the canonical agentOS architecture docs.
 ---
+import { LinkCard } from '@astrojs/starlight/components';
 
-Secure Exec runs untrusted guest code inside a fully virtualized VM. Nothing the guest does touches the host directly: every guest syscall is serviced by a kernel that Secure Exec owns.
+Secure Exec runs untrusted guest code inside a fully virtualized VM whose kernel services every guest syscall. At a glance:
 
-## The three components
+- **Kernel-owned VM**: A kernel owns the virtual filesystem, process table, and socket table, plus pipes, PTYs, permission policy, and DNS. There is no real host filesystem, host socket, or host process available to the guest.
+- **Guest runs in an executor**: Guest JavaScript runs in a V8 isolate and other guest code runs in a WASM executor, holding no real host capabilities of their own.
+- **Sidecar mediates every syscall**: A trusted sidecar is the enforcement point. Every guest syscall flows through kernel-owned paths it controls, where policy and limits are checked.
+- **Normal Linux semantics**: The VM presents POSIX-like behavior to guest programs, so normal tools run unmodified while staying fully virtualized.
 
-- **Client**: trusted. Your process imports `NodeRuntime` (or uses the Rust client), supplies config, policy, and limits, and submits the untrusted payload to run.
-- **Sidecar**: trusted, and the enforcement point. It owns the kernel, the virtual filesystem, the process and socket tables, the permission policy, and the language runtimes that execute guest code.
-- **Executor**: untrusted. Guest JavaScript (V8 isolates) and WASM run here, holding no real capabilities of their own.
+## Full reference
 
-## Kernel-owned syscalls
+The canonical, in-depth architecture reference, including packages, crates, trust boundaries, and syscall paths, is owned by agentOS.
 
-- **Everything is virtualized**: there is no real host filesystem, host network socket, or host process available to the guest.
-- **Every guest syscall flows through the kernel**: filesystem, processes, sockets, pipes, PTYs, and DNS are all serviced by kernel-owned paths inside the sidecar.
-- **The security boundary is sidecar to executor**: the policy and limits are enforced on every scope, so the executor cannot reach a capability the policy denies. See the [Security Model](/docs/security-model) for the in-scope and out-of-scope threat model.
-
-## Full internals reference
-
-The canonical, in-depth architecture reference (packages, crates, trust boundary, and syscall paths) lives with agentOS:
-
-- [agentOS: Architecture internals](https://agentos-sdk.dev/docs/architecture)
+<LinkCard
+  title="agentOS: Architecture"
+  href="https://agentos-sdk.dev/docs/architecture"
+  description="The complete architecture reference, including components, trust boundary, and syscall paths."
+/>

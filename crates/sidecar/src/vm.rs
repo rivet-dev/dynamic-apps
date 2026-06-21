@@ -835,8 +835,8 @@ fn permissions_policy_from_config(config: &vm_config::PermissionsPolicy) -> Perm
             .env
             .as_ref()
             .map(pattern_permission_scope_from_config),
-        tool: config
-            .tool
+        binding: config
+            .binding
             .as_ref()
             .map(pattern_permission_scope_from_config),
     }
