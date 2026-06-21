@@ -14,8 +14,9 @@ WSDK="$REPO/registry/native/c/vendor/wasi-sdk"
 TSYS="$WSDK/share/wasi-sysroot"
 CC="$WSDK/bin/clang"
 
-OUT="$EXP/guest-xclient/threads-test.wasm"
-SRC="$EXP/guest-xclient/threads-test.c"
+SRCNAME="${1:-threads-test}"
+OUT="$EXP/guest-xclient/$SRCNAME.wasm"
+SRC="$EXP/guest-xclient/$SRCNAME.c"
 
 # Shared memory MUST declare a maximum and be page-aligned (64 KiB). Growable: initial < max.
 INITIAL=$((16*1024*1024))   # 16 MiB
@@ -30,7 +31,7 @@ MAXMEM=$((64*1024*1024))    # 64 MiB (spike; GTK profile raises this)
   -o "$OUT" "$SRC" 2>&1 | grep -iE "error|undefined|warning: unsupported" | head -20
 
 if [ ! -f "$OUT" ]; then echo "BUILD FAILED"; exit 1; fi
-echo "built guest-xclient/threads-test.wasm ($(stat -c%s "$OUT") bytes)"
+echo "built guest-xclient/$SRCNAME.wasm ($(stat -c%s "$OUT") bytes)"
 
 # Verify the ABI is what the host design needs: imported shared memory + wasi.thread-spawn import +
 # wasi_thread_start export. Fail loudly if not, so a toolchain change can't silently regress it.
