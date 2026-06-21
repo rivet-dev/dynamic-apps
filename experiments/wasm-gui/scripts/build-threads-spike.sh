@@ -27,7 +27,7 @@ MAXMEM=$((64*1024*1024))    # 64 MiB (spike; GTK profile raises this)
   -pthread \
   -Wl,--import-memory -Wl,--export-memory -Wl,--shared-memory \
   -Wl,--initial-memory=$INITIAL -Wl,--max-memory=$MAXMEM \
-  -Wl,--export=wasi_thread_start \
+  -Wl,--export=wasi_thread_start -Wl,--export-table \
   -o "$OUT" "$SRC" 2>&1 | grep -iE "error|undefined|warning: unsupported" | head -20
 
 if [ ! -f "$OUT" ]; then echo "BUILD FAILED"; exit 1; fi

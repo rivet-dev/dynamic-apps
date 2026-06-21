@@ -14,6 +14,8 @@ declare -a SUITE=(
   "test-threads-io.sh $REPS"     # worker kernel I/O (write)
   "test-threads-stress.sh $REPS" # 200 spawn/join cycles + slot reclamation
   "test-threads-trap.sh"         # worker trap -> VM fault
+  "test-threads-ffi.sh $REPS"    # concurrent ffi_call from workers
+  "test-glib-threads.sh $REPS"   # GLib g_thread_new + GThreadPool
 )
 
 fail=0
