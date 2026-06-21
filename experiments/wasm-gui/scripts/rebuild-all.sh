@@ -12,9 +12,15 @@ export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 ok=0; fail=0
 
 autobuild() {  # autobuild <dir> [fallback configure args...]
-  local d="$1"; shift
-  [ -d "$TP/$d" ] || { echo "  SKIP $d (no dir)"; return; }
+  local base="$1"; shift
+  # Threaded profile builds in a per-profile copy of the source (in-tree autotools) so it never reuses
+  # the non-threaded config.status/objects; distclean the copy before reconfiguring.
+  local d="$base${SECURE_EXEC_WASM_THREADS:+-threads}"
+  if [ ! -d "$TP/$d" ]; then
+    if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && [ -d "$TP/$base" ]; then cp -r "$TP/$base" "$TP/$d"; else echo "  SKIP $base (no dir)"; return; fi
+  fi
   cd "$TP/$d"
+  [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && ( make distclean >/dev/null 2>&1 || true )
   local cfg
   cfg=$(grep -m1 '\$ ./configure' config.log 2>/dev/null | sed 's|.*\$ ./configure|./configure|')
   if [ -z "$cfg" ]; then
