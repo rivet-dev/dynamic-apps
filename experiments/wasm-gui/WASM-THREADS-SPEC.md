@@ -469,10 +469,23 @@ Until every box is checked, `SPEC.md` M8 stays blocked.
   is `Send`) to share compiled code, and `ValueSerializer`/`ValueDeserializer` with SAB + wasm transfer
   delegates — the structured-clone path that reconstructs a shared `WebAssembly.Memory` in isolate B
   (the same mechanism node `worker_threads` uses). So Phase 1 is buildable in `crates/v8-runtime`.
-- **NEXT — Phase 1 real spawn (increment 3).** A `crates/v8-runtime` primitive: on `thread-spawn`,
-  start a new isolate on a new OS thread, reconstruct the shared memory from the backing store,
-  instantiate the (shared compiled) module, call `wasi_thread_start(tid, start_arg)`; wire that isolate's
-  host calls to the same VM's kernel (Phase 2 per-VM lock). Then the spike flips to SPIKE PASS.
+- **DONE — all cross-isolate primitives proven in code.** Two passing rusty_v8 tests:
+  `threads_shared_memory_spike.rs` (a backing store is genuinely shared across two isolates on two OS
+  threads) and `threads_memory_serialize_spike.rs` (a shared `WebAssembly.Memory` round-trips via
+  `ValueSerializer`, so the worker isolate gets a real `Memory` to instantiate `env.memory` with).
+- **DONE — coordinator module.** `crates/v8-runtime/src/wasm_threads.rs`: `SendBackingStore` /
+  `SendCompiledModule` (sound cross-thread move wrappers), `ThreadSpawnRegistry` (process-global token
+  table handing a `ThreadStart` from spawner thread to worker thread), `ThreadIdAllocator`, and
+  `serialize_shared_memory` / `deserialize_shared_memory` (the reusable round-trip). Unit-tested.
+- **NEXT — Phase 1 integration (the large block).** Wire it end to end:
+  1. Make `wasi.thread-spawn` (runner JS) call a native host callback that, in the spawning isolate,
+     grabs the shared memory + compiled module, allocates a tid, `register`s a `ThreadStart`, and starts
+     a worker execution carrying the token; returns tid synchronously.
+  2. A worker execution = a session/isolate on a new OS thread (mirror `session.rs:287`) running the
+     runner in **thread mode**: `take` the `ThreadStart`, `deserialize_shared_memory` into `env.memory`,
+     instantiate the shared module, call `wasi_thread_start(tid, start_arg)` instead of `wasi.start`.
+  3. Route the worker isolate's host calls to the same VM's kernel behind the **per-VM lock** (Phase 2:
+     copy args first, check+act atomic, DROP lock while blocking). Then the spike flips to SPIKE PASS.
 
 ## 11. Open questions (resolve in review)
 
