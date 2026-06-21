@@ -436,10 +436,19 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      VisibilityNotify during init) and NONE generated later (FocusIn, KeyPress) -- even with `XSync` every
      loop iteration forcing a server round-trip. An identical simple client (xinput-target) DOES receive
      keys via the exact same focus/inject flow (green=40000), so it is st-connection-specific: the server
-     is not delivering late events to st's host_net X connection. Cracking it needs server-side
-     event-routing instrumentation (which client the server queues each event for) -- a deep X-over-host_net
-     delivery investigation. The terminal<->shell bidirectional I/O is proven by `test-m6-3-pty.sh` and
-     the X keyboard by `test-m6-keyboard.sh`; only the X->st event hop remains.
+     is not delivering late events to st's host_net X connection. The terminal<->shell bidirectional I/O
+     is proven by `test-m6-3-pty.sh` and the X keyboard (a real client receiving + acting on KeyPress) by
+     `test-m6-keyboard.sh`; only the X->st event hop remains.
+     **Where the next investigation should start (10 instrumentation passes, 2026-06-21):** keyboard
+     events do NOT flow through `DeliverFocusedEvent` (instrumented: 0 calls in BOTH the working
+     xinput-target run AND the st run), and `TryClientEvents`/`DeliverToWindowOwner` core type-2 checks
+     never fire either -- so core KeyPress is synthesized late (EventToCore at write time) and the live
+     events travel as XI internal device events via `DeliverGrabbedEvent`/`DeliverDeviceEvents`. The
+     `WriteToClient` trace is confounded by event batching (count = N*32) / XI2. So the next step is to
+     instrument `DeliverGrabbedEvent` + `DeliverDeviceEvents` (and the `mieq`/`ProcessInputEvents` drain)
+     to find why xinput-target's window is delivered to but st's is not -- NOT `DeliverFocusedEvent`.
+     xinput-target uses real core KeyPress events (XNextEvent + `case KeyPress`), so the path works for a
+     simple client; the difference is st-connection/window specific.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
