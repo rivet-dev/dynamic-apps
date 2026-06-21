@@ -987,6 +987,10 @@ fn session_thread(
                                 SYNC_BRIDGE_FNS,
                                 ASYNC_BRIDGE_FNS,
                             );
+
+                            // wasi-threads: expose the native thread-spawn the wasm runner calls.
+                            // Inert for non-threaded guests (they never invoke it).
+                            crate::wasm_threads::register_thread_spawn(scope);
                         }
 
                         // Run post-restore init script (config, mutable state reset)

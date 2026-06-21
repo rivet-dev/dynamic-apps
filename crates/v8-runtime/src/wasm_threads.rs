@@ -49,6 +49,9 @@ pub struct ThreadStart {
     pub module: SendCompiledModule,
     /// The shared linear memory's backing store (re-wrapped as the worker's `env.memory`).
     pub memory_backing: SendBackingStore,
+    /// `ValueSerializer` bytes for the shared memory (paired with `memory_backing` to reconstruct a
+    /// real `WebAssembly.Memory` in the worker isolate — `WasmMemoryObject` has no constructor).
+    pub serialized_memory: Vec<u8>,
     /// The thread id assigned by the host (positive; returned to the spawner).
     pub tid: i32,
     /// The opaque `start_arg` pointer wasi-libc passed to `thread-spawn`; forwarded verbatim to
@@ -202,6 +205,137 @@ impl v8::ValueDeserializerImpl for SingleStoreTransfer {
         _transfer_id: u32,
     ) -> Option<v8::Local<'s, v8::SharedArrayBuffer>> {
         Some(v8::SharedArrayBuffer::with_backing_store(scope, &self.store))
+    }
+}
+
+/// The process-global tid allocator used by the in-runtime `thread-spawn` path. (Per-VM allocation is
+/// a refinement; global monotonic tids are a valid superset of per-VM uniqueness.)
+fn global_thread_ids() -> &'static ThreadIdAllocator {
+    static IDS: OnceLock<ThreadIdAllocator> = OnceLock::new();
+    IDS.get_or_init(ThreadIdAllocator::default)
+}
+
+/// JS run in the worker isolate: instantiate the shared module against the shared memory and enter the
+/// guest at `wasi_thread_start(tid, start_arg)`. The wasi imports are no-op stubs: a worker that makes
+/// real host calls is the GTK path (Phase 2, routed through the sidecar); the minimal threads spike's
+/// worker only touches shared memory, so stubs suffice and instantiation still needs every import
+/// present (a Proxy supplies a no-op for any name).
+const WORKER_BOOTSTRAP_JS: &str = "(() => {\n\
+  const wasiStub = new Proxy({}, { get: () => (() => 0) });\n\
+  const inst = new WebAssembly.Instance(globalThis.__threadMod, {\n\
+    env: { memory: globalThis.__threadMem },\n\
+    wasi_snapshot_preview1: wasiStub,\n\
+    wasi_unstable: wasiStub,\n\
+    wasi: { 'thread-spawn': () => -1 },\n\
+  });\n\
+  inst.exports.wasi_thread_start(globalThis.__threadTid, globalThis.__threadStartArg);\n\
+})();";
+
+fn set_global<'s>(
+    scope: &mut v8::HandleScope<'s>,
+    context: v8::Local<'s, v8::Context>,
+    name: &str,
+    value: v8::Local<'s, v8::Value>,
+) {
+    let global = context.global(scope);
+    if let Some(key) = v8::String::new(scope, name) {
+        global.set(scope, key.into(), value);
+    }
+}
+
+/// Body of a worker OS thread: create a fresh isolate, reconstruct the shared memory + module from the
+/// transferred handles, and run the worker bootstrap (which calls `wasi_thread_start`). Best-effort:
+/// errors are swallowed (a trapping guest thread would, in the production path, fault the whole VM —
+/// see the spec; for the spike a failed worker simply never flips the join flag and the test fails).
+fn run_worker(start: ThreadStart) {
+    crate::isolate::init_v8_platform();
+    let mut isolate = crate::isolate::create_isolate(None);
+    let context = crate::isolate::create_context(&mut isolate);
+    let scope = &mut v8::HandleScope::new(&mut isolate);
+    let context = v8::Local::new(scope, &context);
+    let scope = &mut v8::ContextScope::new(scope, context);
+
+    let memory = match deserialize_shared_memory(scope, context, &start.serialized_memory, &start.memory_backing.0) {
+        Some(memory) => memory,
+        None => return,
+    };
+    let module = match v8::WasmModuleObject::from_compiled_module(scope, &start.module.0) {
+        Some(module) => module,
+        None => return,
+    };
+    set_global(scope, context, "__threadMem", memory);
+    set_global(scope, context, "__threadMod", module.into());
+    let tid_value = v8::Integer::new(scope, start.tid).into();
+    set_global(scope, context, "__threadTid", tid_value);
+    let start_arg_value = v8::Integer::new(scope, start.start_arg).into();
+    set_global(scope, context, "__threadStartArg", start_arg_value);
+
+    let try_catch = &mut v8::TryCatch::new(scope);
+    if let Some(code) = v8::String::new(try_catch, WORKER_BOOTSTRAP_JS) {
+        if let Some(script) = v8::Script::compile(try_catch, code, None) {
+            let _ = script.run(try_catch);
+        }
+    }
+}
+
+/// Native `__agentOsWasmThreadSpawn(start_arg, module, memory)` callback. Invoked by the wasm runner's
+/// `wasi.thread-spawn` import. Captures the shared module + memory from the spawning isolate, allocates
+/// a tid, spawns a worker OS thread that runs the guest's `wasi_thread_start`, and returns the tid
+/// synchronously (a negative return tells wasi-libc the spawn failed -> EAGAIN).
+fn wasm_thread_spawn_callback<'s>(
+    scope: &mut v8::HandleScope<'s>,
+    args: v8::FunctionCallbackArguments<'s>,
+    mut rv: v8::ReturnValue,
+) {
+    let fail = |rv: &mut v8::ReturnValue| rv.set_int32(-1);
+
+    let start_arg = args.get(0).int32_value(scope).unwrap_or(0);
+
+    let module = match v8::Local::<v8::WasmModuleObject>::try_from(args.get(1)) {
+        Ok(module) => module,
+        Err(_) => return fail(&mut rv),
+    };
+    let compiled = module.get_compiled_module();
+
+    let memory_value = args.get(2);
+    let context = scope.get_current_context();
+    let (serialized_memory, backing) = match serialize_shared_memory(scope, context, memory_value) {
+        Some(parts) => parts,
+        None => return fail(&mut rv),
+    };
+
+    let tid = match global_thread_ids().allocate() {
+        Some(tid) => tid,
+        None => return fail(&mut rv),
+    };
+
+    let start = ThreadStart {
+        module: SendCompiledModule(compiled),
+        memory_backing: SendBackingStore(backing),
+        serialized_memory,
+        tid,
+        start_arg,
+    };
+    if std::thread::Builder::new()
+        .name(format!("wasm-thread-{tid}"))
+        .spawn(move || run_worker(start))
+        .is_err()
+    {
+        return fail(&mut rv);
+    }
+    rv.set_int32(tid);
+}
+
+/// Register `globalThis.__agentOsWasmThreadSpawn` on the current context so the wasm runner's
+/// `wasi.thread-spawn` import can reach it. Inert for non-threaded guests (they never call it).
+pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
+    let context = scope.get_current_context();
+    let global = context.global(scope);
+    let template = v8::FunctionTemplate::builder(wasm_thread_spawn_callback).build(scope);
+    if let Some(func) = template.get_function(scope) {
+        if let Some(key) = v8::String::new(scope, "__agentOsWasmThreadSpawn") {
+            global.set(scope, key.into(), func.into());
+        }
     }
 }
 

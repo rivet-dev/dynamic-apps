@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "76";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "77";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -13860,9 +13860,11 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
 function createWasiThreadsImport() {
   return {
     'thread-spawn'(startArg) {
-      // TODO(M7.5 Phase 1): spawn a V8 isolate-thread sharing guestSharedMemory and invoke
-      // wasi_thread_start(tid, startArg). Until then, report failure (no real threads yet).
-      return -1;
+      // Spawn a V8 isolate-thread sharing guestSharedMemory and enter it at
+      // wasi_thread_start(tid, startArg) (handled natively by __agentOsWasmThreadSpawn).
+      // Returns a positive tid on success, negative on failure (-> EAGAIN in wasi-libc).
+      if (typeof globalThis.__agentOsWasmThreadSpawn !== 'function') return -1;
+      return globalThis.__agentOsWasmThreadSpawn(startArg, module, guestSharedMemory) | 0;
     },
   };
 }
