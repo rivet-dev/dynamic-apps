@@ -1150,6 +1150,94 @@ fn open_shell_configures_pty_and_exec_uses_shell_driver() {
 }
 
 #[test]
+fn open_pty_split_wires_master_in_parent_and_slave_in_child() {
+    use secure_exec_kernel::pty::LineDisciplineConfig;
+    let mut config = KernelVmConfig::new("vm-api-pty-split");
+    config.permissions = Permissions::allow_all();
+    let mut kernel = KernelVm::new(MemoryFileSystem::new(), config);
+    kernel
+        .register_driver(CommandDriver::new("shell", ["sh"]))
+        .expect("register shell");
+
+    // Two processes: a terminal (parent, holds the master) and a shell (child, holds the slave).
+    let terminal = kernel
+        .exec(
+            "term",
+            ExecOptions {
+                requester_driver: Some(String::from("shell")),
+                ..ExecOptions::default()
+            },
+        )
+        .expect("spawn terminal");
+    let shell = kernel
+        .exec(
+            "shell",
+            ExecOptions {
+                requester_driver: Some(String::from("shell")),
+                ..ExecOptions::default()
+            },
+        )
+        .expect("spawn shell");
+
+    let (master_fd, slave_fd, path) = kernel
+        .open_pty_split("shell", terminal.pid(), shell.pid())
+        .expect("open pty split");
+    assert!(path.starts_with("/dev/pts/"), "pty path was {path}");
+
+    // Raw mode on the slave so the line discipline does not cook/echo our test bytes.
+    kernel
+        .pty_set_discipline(
+            "shell",
+            shell.pid(),
+            slave_fd,
+            LineDisciplineConfig {
+                canonical: Some(false),
+                echo: Some(false),
+                isig: Some(false),
+            },
+        )
+        .expect("set raw mode");
+
+    // Input direction: the terminal writes the master, the shell reads it from the slave.
+    assert_eq!(
+        kernel
+            .fd_write("shell", terminal.pid(), master_fd, b"ping")
+            .expect("write master"),
+        4
+    );
+    assert_eq!(
+        kernel
+            .fd_read("shell", shell.pid(), slave_fd, 64)
+            .expect("read slave"),
+        b"ping"
+    );
+
+    // Output direction: the shell writes the slave, the terminal reads it from the master.
+    assert_eq!(
+        kernel
+            .fd_write("shell", shell.pid(), slave_fd, b"pong")
+            .expect("write slave"),
+        4
+    );
+    assert_eq!(
+        kernel
+            .fd_read("shell", terminal.pid(), master_fd, 64)
+            .expect("read master"),
+        b"pong"
+    );
+
+    // A nonexistent child must fail (and roll back the master fd it tentatively opened).
+    assert!(kernel
+        .open_pty_split("shell", terminal.pid(), 999_999)
+        .is_err());
+
+    terminal.finish(0);
+    shell.finish(0);
+    kernel.waitpid(terminal.pid()).expect("wait terminal");
+    kernel.waitpid(shell.pid()).expect("wait shell");
+}
+
+#[test]
 fn pty_resize_delivers_sigwinch_to_the_foreground_process_group() {
     let mut config = KernelVmConfig::new("vm-api-shell");
     config.permissions = Permissions::allow_all();

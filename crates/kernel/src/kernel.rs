@@ -1292,6 +1292,64 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
         Ok(self.ptys.create_pty_fds(table)?)
     }
 
+    /// Allocate a PTY pair and split its ends across two processes: the master fd lands in
+    /// `parent_pid`'s fd table (the terminal emulator reads/writes it) and the slave fd lands in
+    /// `child_pid`'s fd table (dup'd onto the shell's stdin/stdout/stderr by the caller). This is
+    /// the kernel primitive behind `__pty_spawn`: unlike `open_pty`, which places both ends in one
+    /// process, a terminal needs the two ends in distinct processes.
+    pub fn open_pty_split(
+        &mut self,
+        requester_driver: &str,
+        parent_pid: u32,
+        child_pid: u32,
+    ) -> KernelResult<(u32, u32, String)> {
+        self.assert_not_terminated()?;
+        self.assert_driver_owns(requester_driver, parent_pid)?;
+        self.assert_driver_owns(requester_driver, child_pid)?;
+        self.resources
+            .check_pty_allocation(&self.resource_snapshot())?;
+        let pty = self.ptys.create_pty();
+        let mut tables = lock_or_recover(&self.fd_tables);
+        let master_fd = match tables.get_mut(parent_pid) {
+            Some(parent_table) => parent_table.open_with(
+                Arc::clone(&pty.master.description),
+                FILETYPE_CHARACTER_DEVICE,
+                None,
+            )?,
+            None => {
+                self.ptys.close(pty.master.description.id());
+                self.ptys.close(pty.slave.description.id());
+                return Err(KernelError::no_such_process(parent_pid));
+            }
+        };
+        let slave_fd = match tables.get_mut(child_pid) {
+            Some(child_table) => match child_table.open_with(
+                Arc::clone(&pty.slave.description),
+                FILETYPE_CHARACTER_DEVICE,
+                None,
+            ) {
+                Ok(slave_fd) => slave_fd,
+                Err(error) => {
+                    if let Some(parent_table) = tables.get_mut(parent_pid) {
+                        parent_table.close(master_fd);
+                    }
+                    self.ptys.close(pty.master.description.id());
+                    self.ptys.close(pty.slave.description.id());
+                    return Err(error.into());
+                }
+            },
+            None => {
+                if let Some(parent_table) = tables.get_mut(parent_pid) {
+                    parent_table.close(master_fd);
+                }
+                self.ptys.close(pty.master.description.id());
+                self.ptys.close(pty.slave.description.id());
+                return Err(KernelError::no_such_process(child_pid));
+            }
+        };
+        Ok((master_fd, slave_fd, pty.path))
+    }
+
     pub fn socket_create(
         &mut self,
         requester_driver: &str,
