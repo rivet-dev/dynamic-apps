@@ -520,6 +520,18 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      (tnew/twrite terminal core, the run() do-while MapNotify wait, xsetenv, the handler[] dispatch) until
      keys arrive -- OR use NON-perturbing server-side counters (not hot-path ErrorF) on the device-event
      path. The near-st baseline `xftpoll-target.c` (works) is the reference to diff st against.
+     ISOLATED TO xinit FONT/COLOR LOADING (2026-06-21, ~33 passes): split tests pinned it precisely.
+     (a) st with its run() loop replaced by the minimal working-baseline loop (no ttyread/draw) STILL
+     gets no KeyPress => NOT the loop body, it is st's INIT. (b) A probe placed right after `xinit()`
+     (before xsetenv/selinit/run/ttynew) gets FocusIn but no KeyPress => `xinit` itself breaks device-event
+     delivery. (c) Removing cursor (XCreateFontCursor/XDefineCursor/XRecolorCursor), WM-protocols,
+     _NET_WM_PID, resettitle, and xhints (XSetWMHints input=1) from xinit did NOT restore keys => none of
+     those. (d) 500 round-trip requests added to the working baseline did NOT break it => NOT request
+     count. So the remaining suspects are xinit's `xloadfonts` (opens 4 Xft faces) and `xloadcols`
+     (allocates 256+ colors) -- the only xinit ops the working baseline lacks and that aren't generic
+     request volume. NEXT: stub xloadfonts/xloadcols in st (or load just 1 font/color) and re-probe; if
+     keys return, bisect which Xft/Fc/Render call in those triggers it. This is the precise remaining
+     frontier; everything else in st's X path is ruled out.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
