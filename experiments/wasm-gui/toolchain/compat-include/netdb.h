@@ -56,6 +56,15 @@ struct addrinfo {
 int getaddrinfo(const char *, const char *, const struct addrinfo *, struct addrinfo **);
 void freeaddrinfo(struct addrinfo *);
 const char *gai_strerror(int);
+/* getservbyname/port + struct servent (GIO gnetworking.c). */
+struct servent {
+  char *s_name;
+  char **s_aliases;
+  int s_port;
+  char *s_proto;
+};
+struct servent *getservbyname(const char *, const char *);
+struct servent *getservbyport(int, const char *);
 #endif /* AI_NUMERICHOST */
 
 #ifndef HOST_NOT_FOUND
