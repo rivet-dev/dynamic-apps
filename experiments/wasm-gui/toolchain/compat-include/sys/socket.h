@@ -11,6 +11,14 @@
 
 #include <stddef.h>
 
+/* The vanilla wasm32-wasip1-threads sysroot (Phase 0) does not declare socket()/socketpair() — wasi
+ * cannot create sockets, so wasi-libc omits them (the patched non-threaded sysroot adds them). Declare
+ * them here under the threads profile; wasi-compat provides weak definitions. */
+#ifdef SECURE_EXEC_WASM_THREADS
+int socket(int domain, int type, int protocol);
+int socketpair(int domain, int type, int protocol, int sv[2]);
+#endif
+
 /* wasi defines SOCK_STREAM/SOCK_DGRAM via the WASI filetype enum (DGRAM=5, STREAM=6). SOCK_SEQPACKET
  * and SOCK_RAW are unsupported on wasi; give them distinct unused values so switch() over socket type
  * has no duplicate cases (these socket types are never actually created in the sandbox). */
