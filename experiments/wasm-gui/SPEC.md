@@ -552,6 +552,17 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      DIFF: capture the bytes the server sends to st vs to xftpoll-target around the key inject (in-VM
      socket proxy on /tmp/.X11-unix/X0, or a libxcb raw-read hook in each client) and diff them. That is
      the precise frontier for a future session.
+     *** DEFINITIVE ROOT-CAUSE LOCALIZATION (2026-06-21, ~37 passes): CLIENT-SIDE; the server is correct. ***
+     A non-perturbing per-client counter in the server's WriteToClient (zero-I/O increments + a rare /data
+     dump) proved the server DOES write the KeyPress to st's connection: st gets keypress_writes=1, EXACTLY
+     like the working xinput-target (keypress_writes=1). The only difference: xinput-target SURFACES it
+     (green) and st does NOT. So the ENTIRE server side -- routing, focus, XI2/core synthesis, keymap,
+     device-event delivery -- is CORRECT and the KeyPress bytes reach st's socket. st-typing is a
+     CLIENT-SIDE libxcb/Xlib event-surfacing bug in st: st surfaces EARLY events (Expose/Visibility) but
+     XPending/XNextEvent stops surfacing the LATER KeyPress the server wrote. NEXT (client-side ONLY --
+     the server/protocol-trace avenues are now MOOT): instrument st's XPending/_XEventsQueued and the
+     libxcb xcb_poll_for_event read path vs the working xftpoll-target's; suspect an X error during st
+     init that wedges Xlib's read, a libxcb special-event/sequence stall, or st's XFlush/queue handling.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
