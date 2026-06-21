@@ -264,6 +264,34 @@ Because host imports are synchronous and in-context per isolate-thread, the *pot
 the finding above, the existing single-threaded sidecar loop is that critical section. The notes below
 define what to verify / how to harden if a bypass exists.
 
+> **CONCRETE DESIGN — worker→kernel host-call routing (the GTK-enabling block, scoped 2026-06-21).**
+> Today worker isolates run with **stub** wasi imports (sound for compute threads — the spike/multi/
+> nested guests make no host calls). GLib's worker does real I/O, so worker host calls must reach the
+> **same VM's kernel, operating on the shared process fd table** (threads share fds — the X socket fd is
+> opened by the main thread and used by workers). Verified constraints from the code:
+> - Kernel: per-process `ProcessFdTable` (`crates/kernel/src/fd_table.rs`), fds are `SharedFileDescription`
+>   (Arc). A thread must share its parent's `ProcessFdTable` (not a cloned one).
+> - Sidecar: host calls dispatch by `(vm_id, process_id)` against `vm.active_processes`
+>   (`service.rs:1780+`); responses route by `session_id` (via the call_id→session_id router + a
+>   per-session response channel). One session per process today.
+>
+> Required (a real threading-model feature, TCB-touching → needs the §10 human design/review):
+> 1. **Kernel thread = a process sharing the parent's fd table.** Add a `spawn_thread`/`SpawnOptions{
+>    share_fd_table: parent_pid}` that `Arc`-shares the parent's `ProcessFdTable` instead of cloning, and
+>    a thread id within the process. (Or a first-class thread abstraction under the process.)
+> 2. **Worker = a registered execution/session in the same VM**, created via the sidecar (the
+>    `spawn_javascript_child_process` template, `execution.rs:5174`) in **thread mode**, mapped to the
+>    shared-fd-table kernel thread, with its **own** response channel (so per-session response routing
+>    works) but the **same** process fd table.
+> 3. **Thread-mode runner**: take the registered `ThreadStart` by token (the `ThreadSpawnRegistry` is
+>    built for this), `deserialize_shared_memory` + `from_compiled_module`, instantiate with the **full**
+>    host imports (wired to the worker session's bridge), call `wasi_thread_start(tid, start_arg)`.
+> 4. Spawn flow: parent `wasi.thread-spawn` registers the `ThreadStart` → token, then `callSync` a new
+>    sidecar method `wasm.thread_spawn{token}` which creates the worker session+kernel-thread.
+> The existing single-threaded sidecar loop already serializes the resulting concurrent kernel access
+> (the Phase-2 finding above), so no new lock is needed — only the threading-model plumbing + fairness.
+> This is the next implementation block and the gate for GTK threads.
+
 - **Per-VM critical-section lock.** The unit of mutual exclusion is the **entire host-call servicing
   routine**, not "one kernel method." Concretely, each host call:
   1. **Copies its arguments out of shared guest memory into host memory first** (path strings, addrs,
