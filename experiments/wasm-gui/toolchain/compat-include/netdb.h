@@ -68,6 +68,19 @@ struct servent {
 };
 struct servent *getservbyname(const char *, const char *);
 struct servent *getservbyport(int, const char *);
+/* Legacy resolver API: libxcb's _xcb_open_tcp (xcb_util.c) connects to a TCP X server by hostname.
+ * Unused at runtime in the sandbox (the X connection is a unix socket through host_net), but must
+ * compile. gethostbyname is a weak NULL stub in wasi-compat.c. */
+struct hostent {
+  char *h_name;
+  char **h_aliases;
+  int h_addrtype;
+  int h_length;
+  char **h_addr_list;
+};
+#define h_addr h_addr_list[0]
+struct hostent *gethostbyname(const char *);
+struct hostent *gethostbyaddr(const void *, unsigned, int);
 #endif /* AI_NUMERICHOST */
 
 #ifndef HOST_NOT_FOUND

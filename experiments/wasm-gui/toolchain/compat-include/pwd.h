@@ -13,6 +13,10 @@ struct passwd {
   char *pw_passwd;
   uid_t pw_uid;
   gid_t pw_gid;
+  /* Legacy BSD fields libX11 GetDflt.c references (XGetDefault home-dir lookup). Unused at runtime
+   * (no passwd db in the sandbox); present so the struct member access compiles. */
+  char *pw_age;
+  char *pw_comment;
   char *pw_gecos;
   char *pw_dir;
   char *pw_shell;

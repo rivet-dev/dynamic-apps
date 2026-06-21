@@ -11,6 +11,22 @@ TP="$EXP/third_party"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 ok=0; fail=0
 
+# Seed prefix .pc files that aren't produced by any lib build. libxcb's configure hard-requires the
+# `pthread-stubs` pkg-config module; on the threaded profile we link real -pthread so the stub lib is
+# empty (Cflags/Libs blank), but the .pc must exist for the dependency probe to pass.
+if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
+  mkdir -p "$PREFIX/lib/pkgconfig"
+  if [ ! -f "$PREFIX/lib/pkgconfig/pthread-stubs.pc" ]; then
+    cat > "$PREFIX/lib/pkgconfig/pthread-stubs.pc" <<'PC'
+Name: pthread-stubs
+Description: Pthread stubs (none needed: threaded wasi profile links real -pthread)
+Version: 0.5
+Libs:
+Cflags:
+PC
+  fi
+fi
+
 autobuild() {  # autobuild <dir> [fallback configure args...]
   local base="$1"; shift
   # Threaded profile builds in a per-profile copy of the source (in-tree autotools) so it never reuses
@@ -22,7 +38,11 @@ autobuild() {  # autobuild <dir> [fallback configure args...]
   cd "$TP/$d"
   [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && ( make distclean >/dev/null 2>&1 || true )
   local cfg
+  # Threaded profile: do NOT recover the non-threaded config.log invocation (it bakes in the
+  # non-threaded --prefix/paths). Use a clean configure against the threaded $PREFIX from cross-env.
+  if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then cfg=""; else
   cfg=$(grep -m1 '\$ ./configure' config.log 2>/dev/null | sed 's|.*\$ ./configure|./configure|')
+  fi
   if [ -z "$cfg" ]; then
     # No prior configure recorded: bootstrap from configure.ac if needed, then use default flags.
     if [ ! -x ./configure ]; then

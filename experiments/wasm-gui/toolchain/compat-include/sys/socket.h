@@ -15,8 +15,23 @@
  * cannot create sockets, so wasi-libc omits them (the patched non-threaded sysroot adds them). Declare
  * them here under the threads profile; wasi-compat provides weak definitions. */
 #ifdef SECURE_EXEC_WASM_THREADS
+#include <sys/types.h>  /* ssize_t */
 int socket(int domain, int type, int protocol);
 int socketpair(int domain, int type, int protocol, int sv[2]);
+/* The vanilla threaded sysroot guards these BSD socket calls behind __wasilibc_unmodified_upstream
+ * (wasi has no BSD sockets). Our threaded guests get real implementations from host_socket.o (routed
+ * to the kernel host_net path), so declare them here. Signatures mirror the sysroot's guarded block. */
+int bind(int socket, const struct sockaddr *addr, socklen_t addrlen);
+int connect(int socket, const struct sockaddr *addr, socklen_t addrlen);
+int listen(int socket, int backlog);
+int accept(int socket, struct sockaddr *__restrict addr, socklen_t *__restrict addrlen);
+ssize_t sendto(int socket, const void *buffer, size_t length, int flags,
+               const struct sockaddr *dest_addr, socklen_t dest_len);
+ssize_t recvfrom(int socket, void *__restrict buffer, size_t length, int flags,
+                 struct sockaddr *__restrict address, socklen_t *__restrict address_len);
+int getsockname(int socket, struct sockaddr *__restrict addr, socklen_t *__restrict addrlen);
+int getpeername(int socket, struct sockaddr *__restrict addr, socklen_t *__restrict addrlen);
+int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len);
 #endif
 
 /* wasi defines SOCK_STREAM/SOCK_DGRAM via the WASI filetype enum (DGRAM=5, STREAM=6). SOCK_SEQPACKET

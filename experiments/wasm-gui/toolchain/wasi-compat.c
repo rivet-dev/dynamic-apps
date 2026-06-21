@@ -194,6 +194,9 @@ __attribute__((weak)) long sendmsg(int fd, const void *msg, int flags) { (void)f
 __attribute__((weak)) int getservbyname_r(const char *n, const char *p, void *r, char *b, unsigned long bl, void **res) {
     (void)n;(void)p;(void)r;(void)b;(void)bl; if (res) *res = 0; return -1;
 }
+/* NOTE: gethostbyname + inet_addr/inet_aton/inet_ntoa are already defined earlier in this file
+ * (the X-server / libXfont2 transports referenced them). Their compat header decls live in
+ * compat-include/{netdb.h,arpa/inet.h}; do not redefine them here. */
 /* libepoxy GLX entrypoints: our libepoxy is built without GLX (no GL in the sandbox). GTK's GL paths
  * query these and fall back to cairo software rendering when GLX is absent. */
 __attribute__((weak)) int epoxy_glx_version(void *dpy, int screen) { (void)dpy;(void)screen; return 0; }

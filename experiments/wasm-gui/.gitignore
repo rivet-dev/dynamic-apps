@@ -46,13 +46,10 @@ third_party/libXdamage/
 third_party/lib*.tar.xz
 third_party/glib/gio/gdbus-2.0/codegen/config.py
 
-# Phase 0 threaded GTK closure build output
-third_party/wasm-prefix-threads/
+# Phase 0 threaded GTK closure build output. rebuild-all.sh copies each lib's base dir to
+# <lib>-threads and builds in-tree; all such copies are rebuildable, so keep them out of snapshots.
+third_party/*-threads/
 third_party/wasm-prefix-threads/
 toolchain/wasi-compat-threads.o
-third_party/pcre2-threads/
 third_party/glib/build-wasm-threads/
-third_party/zlib-threads/
-third_party/libpng-threads/
 third_party/*/build-wasm-threads/
-third_party/freetype-threads/

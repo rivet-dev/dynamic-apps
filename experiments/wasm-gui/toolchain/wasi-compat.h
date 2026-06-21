@@ -8,6 +8,11 @@
 #ifndef F_DUPFD
 #define F_DUPFD 0
 #endif
+/* libX11's Xos_r.h references MAXHOSTNAMELEN but only pulls <sys/param.h> under platform guards that
+ * don't match wasi; force-define it (matches the sysroot's sys/param.h value). */
+#ifndef MAXHOSTNAMELEN
+#define MAXHOSTNAMELEN 64
+#endif
 /* wasi has no POSIX record locking (F_SETLK/struct flock). Define the constants + struct so code that
  * does best-effort cache-file locking (e.g. fontconfig fccache.c) compiles; the wasi fcntl() ignores
  * these commands, which is fine in the single-process sandbox where nothing else contends. */
