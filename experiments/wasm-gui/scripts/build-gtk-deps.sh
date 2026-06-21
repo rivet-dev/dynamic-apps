@@ -13,22 +13,25 @@ cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-TP="$EXP/third_party"; PREFIX="$TP/wasm-prefix"
+TP="$EXP/third_party"
+# Honor cross-env PREFIX (wasm-prefix vs wasm-prefix-threads); threaded build dirs + in-tree source dirs.
+BD="build-wasm${SECURE_EXEC_WASM_THREADS:+-threads}"
+SFX="${SECURE_EXEC_WASM_THREADS:+-threads}"
 mkdir -p "$PREFIX/bin"
 
 # 0) Ensure the GLib stack is built, then install its devel artifacts + host code-gen tools.
-[ -f "$TP/glib/build-wasm/gio/libgio-2.0.a" ] || bash "$EXP/scripts/build-glib-stack.sh"
-( cd "$TP/glib" && meson install -C build-wasm --tags devel --no-rebuild >/dev/null 2>&1 || true )
+[ -f "$TP/glib/$BD/gio/libgio-2.0.a" ] || bash "$EXP/scripts/build-glib-stack.sh"
+( cd "$TP/glib" && meson install -C "$BD" --tags devel --no-rebuild >/dev/null 2>&1 || true )
 for t in glib-mkenums glib-genmarshal; do
-  src="$(find "$TP/glib/build-wasm" -name "$t" -type f | head -1)"
+  src="$(find "$TP/glib/$BD" -name "$t" -type f | head -1)"
   [ -n "$src" ] && { cp -f "$src" "$PREFIX/bin/$t"; chmod +x "$PREFIX/bin/$t"; }
 done
 echo "GLib devel + code-gen tools installed"
 
 # 1) libpng (zlib already in prefix).
 if [ ! -f "$PREFIX/lib/libpng16.a" ]; then
-  cd "$TP"; [ -d libpng ] || { curl -fsSL -o libpng.tar.gz "https://download.sourceforge.net/libpng/libpng-1.6.43.tar.gz"; tar xf libpng.tar.gz && mv libpng-1.6.43 libpng; }
-  cd libpng && CC="$CC" CFLAGS="$CFLAGS -I$PREFIX/include" LDFLAGS="-L$PREFIX/lib" AR="$AR" RANLIB="$WSDK/bin/llvm-ranlib" \
+  cd "$TP"; [ -d "libpng$SFX" ] || { [ -f libpng.tar.gz ] || curl -fsSL -o libpng.tar.gz "https://download.sourceforge.net/libpng/libpng-1.6.43.tar.gz"; tar xf libpng.tar.gz && mv libpng-1.6.43 "libpng$SFX"; }
+  cd "libpng$SFX" && CC="$CC" CFLAGS="$CFLAGS -I$PREFIX/include" LDFLAGS="-L$PREFIX/lib" AR="$AR" RANLIB="$WSDK/bin/llvm-ranlib" \
     ./configure --host=wasm32-wasi --prefix="$PREFIX" --enable-static --disable-shared >/dev/null 2>&1
   make -j4 libpng16.la >/dev/null 2>&1 || true
   cp -f .libs/libpng16.a "$PREFIX/lib/"; mkdir -p "$PREFIX/include/libpng16"
@@ -40,23 +43,23 @@ echo "libpng: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion 
 # 2) fribidi (pure C, meson).
 if [ ! -f "$PREFIX/lib/libfribidi.a" ]; then
   cd "$TP"; [ -d fribidi ] || { curl -fsSL -o fribidi.tar.xz "https://github.com/fribidi/fribidi/releases/download/v1.0.13/fribidi-1.0.13.tar.xz"; tar xf fribidi.tar.xz && mv fribidi-1.0.13 fribidi; }
-  cd fribidi && rm -rf build-wasm
-  meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" -Dtests=false -Ddocs=false -Dbin=false -Ddefault_library=static >/dev/null 2>&1
-  ninja -C build-wasm install >/dev/null 2>&1
+  cd fribidi && rm -rf "$BD"
+  meson setup "$BD" --cross-file "$CROSS_INI" --prefix="$PREFIX" -Dtests=false -Ddocs=false -Dbin=false -Ddefault_library=static >/dev/null 2>&1
+  ninja -C "$BD" install >/dev/null 2>&1
 fi
 echo "fribidi: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion fribidi 2>/dev/null)"
 
 # 3) harfbuzz (C++; freetype + glib). Needs libc++ + -wasm-enable-sjlj (in the cross ini).
 if [ ! -f "$PREFIX/lib/libharfbuzz.a" ]; then
   cd "$TP"; [ -d harfbuzz ] || { curl -fsSL -o harfbuzz.tar.xz "https://github.com/harfbuzz/harfbuzz/releases/download/8.5.0/harfbuzz-8.5.0.tar.xz"; tar xf harfbuzz.tar.xz && mv harfbuzz-8.5.0 harfbuzz; }
-  cd harfbuzz && rm -rf build-wasm
-  meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" \
+  cd harfbuzz && rm -rf "$BD"
+  meson setup "$BD" --cross-file "$CROSS_INI" --prefix="$PREFIX" \
     -Dtests=disabled -Ddocs=disabled -Dutilities=disabled -Dcairo=disabled -Dglib=enabled -Dfreetype=enabled \
     -Ddefault_library=static >/dev/null 2>&1
-  ninja -C build-wasm src/libharfbuzz.a >/dev/null 2>&1
-  cp -f build-wasm/src/libharfbuzz.a "$PREFIX/lib/"; mkdir -p "$PREFIX/include/harfbuzz"
+  ninja -C "$BD" src/libharfbuzz.a >/dev/null 2>&1
+  cp -f ${BD}/src/libharfbuzz.a "$PREFIX/lib/"; mkdir -p "$PREFIX/include/harfbuzz"
   cp -f src/hb*.h "$PREFIX/include/harfbuzz/" 2>/dev/null
-  find build-wasm -name "harfbuzz*.pc" -exec cp -f {} "$PREFIX/lib/pkgconfig/" \;
+  find "$BD" -name "harfbuzz*.pc" -exec cp -f {} "$PREFIX/lib/pkgconfig/" \;
 fi
 echo "harfbuzz: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion harfbuzz 2>/dev/null)"
 
@@ -74,28 +77,28 @@ done
 # 4) cairo (pixman+freetype+fontconfig+libpng; xlib backend). Needs compat sys/ipc.h+sys/shm.h (XShm).
 if [ ! -f "$PREFIX/lib/libcairo.a" ]; then
   cd "$TP"; [ -d cairo ] || { curl -fsSL -o cairo.tar.xz "https://cairographics.org/releases/cairo-1.18.2.tar.xz"; tar xf cairo.tar.xz && mv cairo-1.18.2 cairo; }
-  cd cairo && rm -rf build-wasm
-  meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" \
+  cd cairo && rm -rf "$BD"
+  meson setup "$BD" --cross-file "$CROSS_INI" --prefix="$PREFIX" \
     -Dtests=disabled -Dxlib=enabled -Dxcb=disabled -Dfreetype=enabled -Dfontconfig=enabled \
     -Dpng=enabled -Dzlib=enabled -Dglib=enabled -Dquartz=disabled -Dtee=disabled -Dsymbol-lookup=disabled \
     -Ddefault_library=static >/dev/null 2>&1
-  ninja -C build-wasm src/libcairo.a util/cairo-gobject/libcairo-gobject.a >/dev/null 2>&1
-  meson install -C build-wasm --tags devel --no-rebuild >/dev/null 2>&1 || true
-  cp -f build-wasm/src/libcairo.a "$PREFIX/lib/" 2>/dev/null
+  ninja -C "$BD" src/libcairo.a util/cairo-gobject/libcairo-gobject.a >/dev/null 2>&1
+  meson install -C "$BD" --tags devel --no-rebuild >/dev/null 2>&1 || true
+  cp -f ${BD}/src/libcairo.a "$PREFIX/lib/" 2>/dev/null
 fi
 echo "cairo: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion cairo 2>/dev/null)"
 
 # 5) pango (cairo+harfbuzz+fribidi+glib+fontconfig).
 if [ ! -f "$PREFIX/lib/libpango-1.0.a" ]; then
   cd "$TP"; [ -d pango ] || { curl -fsSL -o pango.tar.xz "https://download.gnome.org/sources/pango/1.52/pango-1.52.2.tar.xz"; tar xf pango.tar.xz && mv pango-1.52.2 pango; }
-  cd pango && rm -rf build-wasm
-  meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" \
+  cd pango && rm -rf "$BD"
+  meson setup "$BD" --cross-file "$CROSS_INI" --prefix="$PREFIX" \
     -Dgtk_doc=false -Dintrospection=disabled -Dfontconfig=enabled -Dcairo=enabled \
     -Ddefault_library=static >/dev/null 2>&1
-  ninja -C build-wasm pango/libpango-1.0.a pango/libpangocairo-1.0.a pango/libpangoft2-1.0.a >/dev/null 2>&1
-  for l in libpango-1.0 libpangocairo-1.0 libpangoft2-1.0; do cp -f build-wasm/pango/$l.a "$PREFIX/lib/"; done
-  find build-wasm -name "pango*.pc" -exec cp -f {} "$PREFIX/lib/pkgconfig/" \;
-  mkdir -p "$PREFIX/include/pango-1.0/pango"; cp -f pango/*.h build-wasm/pango/*.h "$PREFIX/include/pango-1.0/pango/" 2>/dev/null
+  ninja -C "$BD" pango/libpango-1.0.a pango/libpangocairo-1.0.a pango/libpangoft2-1.0.a >/dev/null 2>&1
+  for l in libpango-1.0 libpangocairo-1.0 libpangoft2-1.0; do cp -f ${BD}/pango/$l.a "$PREFIX/lib/"; done
+  find "$BD" -name "pango*.pc" -exec cp -f {} "$PREFIX/lib/pkgconfig/" \;
+  mkdir -p "$PREFIX/include/pango-1.0/pango"; cp -f pango/*.h ${BD}/pango/*.h "$PREFIX/include/pango-1.0/pango/" 2>/dev/null
 fi
 echo "pango: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion pango 2>/dev/null)"
 echo "== GTK rendering deps: libpng+fribidi+harfbuzz+cairo+pango built; gdk-pixbuf/atk/gtk remain =="
