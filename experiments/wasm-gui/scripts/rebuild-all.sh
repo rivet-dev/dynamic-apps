@@ -75,8 +75,15 @@ echo "== zlib (custom configure) =="
   && { echo "  OK   zlib"; ok=$((ok+1)); } || { echo "  FAIL zlib (/tmp/rb-zlib.log)"; fail=$((fail+1)); }
 
 echo "== pixman (meson) =="
-if [ -d "$TP/pixman/build-wasm" ]; then
-  ( cd "$TP/pixman" && ninja -C build-wasm && ninja -C build-wasm install ) >/tmp/rb-pixman.log 2>&1 \
+PIXBD="build-wasm${SECURE_EXEC_WASM_THREADS:+-threads}"
+if [ -d "$TP/pixman" ]; then
+  # Threaded: fresh meson setup against the threaded cross-file/prefix (the non-threaded build-wasm
+  # dir targets wasm32-wasip1 + the non-threaded prefix).
+  ( cd "$TP/pixman" \
+      && { [ -d "$PIXBD" ] || meson setup "$PIXBD" --cross-file "$CROSS_INI" --prefix="$PREFIX" \
+             -Ddefault_library=static -Dtests=disabled -Ddemos=disabled -Dgtk=disabled \
+             -Dlibpng=disabled -Dmmx=disabled -Dvmx=disabled -Dopenmp=disabled >/dev/null 2>&1; } \
+      && ninja -C "$PIXBD" && ninja -C "$PIXBD" install ) >/tmp/rb-pixman.log 2>&1 \
     && { echo "  OK   pixman"; ok=$((ok+1)); } || { echo "  FAIL pixman (/tmp/rb-pixman.log)"; fail=$((fail+1)); }
 fi
 

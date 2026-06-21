@@ -110,12 +110,19 @@ if b2o in t and b2n not in t: t = t.replace(b2o, b2n, 1); n += 1
 if n: open(g, "w").write(t); print(f"patched gunixmounts.c ({n} wasi stub branches)")
 PY
 rm -rf "$BUILDDIR"
-meson setup "$BUILDDIR" --cross-file "$CROSS_INI" --wrap-mode=nofallback \
+meson setup "$BUILDDIR" --cross-file "$CROSS_INI" --wrap-mode=nofallback --prefix="$PREFIX" \
   -Dtests=false -Dglib_debug=disabled -Dnls=disabled -Dlibmount=disabled -Dselinux=disabled \
   -Ddtrace=false -Dsystemtap=false -Ddefault_library=static -Dxattr=false
 echo "== building glib / gobject / gthread / gmodule / gio =="
 for lib in glib/libglib-2.0.a gobject/libgobject-2.0.a gthread/libgthread-2.0.a gmodule/libgmodule-2.0.a gio/libgio-2.0.a; do
   ninja -C "$BUILDDIR" "$lib"
   echo "BUILT $(basename "$lib") ($(stat -c%s "$BUILDDIR/$lib") bytes)"
+done
+# Install the static archives into $PREFIX/lib so downstream pkg-config (harfbuzz/pango/gtk, whose
+# glib-2.0.pc resolves -L${libdir} -lglib-2.0) finds them next to the .pc/headers that build-gtk-deps
+# installs via `meson install --tags devel`. (meson's devel tag covers .pc + headers, not the .a.)
+mkdir -p "$PREFIX/lib"
+for lib in glib/libglib-2.0.a gobject/libgobject-2.0.a gthread/libgthread-2.0.a gmodule/libgmodule-2.0.a gio/libgio-2.0.a; do
+  cp -f "$BUILDDIR/$lib" "$PREFIX/lib/"
 done
 echo "== M8 GLib stack COMPLETE: GLib + GObject (linked the libffi-wasm shim) + GThread + GModule + GIO built for wasm32-wasip1 =="
