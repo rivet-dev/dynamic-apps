@@ -226,7 +226,13 @@ const WORKER_BOOTSTRAP_JS: &str = "(() => {\n\
     env: { memory: globalThis.__threadMem },\n\
     wasi_snapshot_preview1: wasiStub,\n\
     wasi_unstable: wasiStub,\n\
-    wasi: { 'thread-spawn': () => -1 },\n\
+    wasi: {\n\
+      // Nested spawn: a worker can spawn further worker threads (GLib thread pools do).\n\
+      'thread-spawn'(startArg) {\n\
+        if (typeof globalThis.__agentOsWasmThreadSpawn !== 'function') return -1;\n\
+        return globalThis.__agentOsWasmThreadSpawn(startArg, globalThis.__threadMod, globalThis.__threadMem) | 0;\n\
+      },\n\
+    },\n\
   });\n\
   inst.exports.wasi_thread_start(globalThis.__threadTid, globalThis.__threadStartArg);\n\
 })();";
@@ -269,6 +275,8 @@ fn run_worker(start: ThreadStart) {
     set_global(scope, context, "__threadTid", tid_value);
     let start_arg_value = v8::Integer::new(scope, start.start_arg).into();
     set_global(scope, context, "__threadStartArg", start_arg_value);
+    // Expose the native spawn so this worker can itself spawn further worker threads (nested spawn).
+    register_thread_spawn(scope);
 
     let try_catch = &mut v8::TryCatch::new(scope);
     if let Some(code) = v8::String::new(try_catch, WORKER_BOOTSTRAP_JS) {
