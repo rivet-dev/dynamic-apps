@@ -488,6 +488,25 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      XI2 in a way that suppresses core synthesis, or a master-device/coreEvents gate). Focus and the
      keymap both work (xinput-target green via the same path); the gap is core device-event synthesis to
      st specifically.
+     DEFINITIVE CONTROL (2026-06-21, ~23 passes): xpoll-target ALONE (no twm) + the same host `focus`
+     command + key => green=40000. So it is NOT the window manager, NOT the focus mechanism, NOT the poll
+     loop -- the SAME minimal client in st's EXACT configuration (alone + focus cmd + key over its window)
+     receives device events, while st does not. This proves the problem is st-CONNECTION specific. The
+     remaining suspect is st's heavy Xft/fontconfig libxcb init (XftFontOpenName, FcInit, render-extension
+     queries) putting st's xcb connection in a state where subsequent core device events are not surfaced.
+     Decisive next test: link a minimal client WITH Xft (build-st-style) that does XftFontOpenName at
+     startup like st, then poll for keys -- if it then loses keys, Xft init is the cause; bisect which Xft/
+     Fc/Render query triggers it. xpoll-target.c (no Xft) is the working baseline for that bisection.
+     BISECTION RESULTS (2026-06-21, ~25 passes): Xft init is NOT the cause and locale is NOT the cause.
+     `guest-xclient/xftpoll-target.c` (the poll loop + `XftFontOpenName` + `setlocale`/`XSetLocaleModifiers`
+     exactly like st's main) ALONE + focus + key => green=40000. So a minimal client that opens an Xft
+     font AND sets the locale modifiers STILL receives device events; st does not. Eliminated so far: WM,
+     focus, poll loop, PTY driving, visual/colormap, window creation, XIM, Xft font init, locale modifiers.
+     Remaining suspects (st's machinery the minimal clients lack): XftDraw rendering to st's offscreen
+     PIXMAP (`xw.buf`) + XCopyArea to the window; the GC created on the ROOT window (`XCreateGC(dpy, parent=root)`);
+     selection setup (`selinit` / XSetSelectionOwner); `xsetenv` (WINDOWID); or terminal-core init.
+     Continue the bisection by adding each to `xftpoll-target.c` until keys break. Working baselines:
+     xpoll-target.c (no Xft) and xftpoll-target.c (Xft+locale) -- both receive keys.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
