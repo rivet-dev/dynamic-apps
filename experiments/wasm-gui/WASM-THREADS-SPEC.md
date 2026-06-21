@@ -515,10 +515,16 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
   loop. `threads-io` (a worker does `write()` to stdout) PASSES; spike/multi/nested also pass via this
   path; worker exit no longer kills the leader (`ActiveProcess.is_thread` guard). Lifecycle: worker =
   top-level active_process (autonomously pumped) sharing `kernel_pid` + handle clone.
-- ⬜ Stress flake gate ≥200 + sanitizer; teardown/trap → VM fault; libffi-under-threads.
-- ⬜ Threaded **GLib** smoke (needs worker host calls + Phase 0 threaded GLib build).
-- ⬜ `max_threads` on the BARE wire (currently a process-global allocator, no wire cap).
-- ⬜ Full regression aggregate; Phase 0 threaded GTK closure rebuild (multi-day).
+- ✅ Stress + lifecycle (`test-threads-stress.sh`, 200 spawn/join cycles/run, exact count, also proves
+  slot reclamation since 200 > cap). ✅ teardown/trap → VM fault (`test-threads-trap.sh`: a worker
+  `__builtin_trap` faults the VM in ~2s via `fault_thread_group`, not a hang). ⬜ ≥200-iteration
+  *cross-run* flake gate under sanitizer; ⬜ libffi-under-threads (needs the shared-built libffi shim,
+  part of Phase 0).
+- 🟡 `max_threads`: a **per-VM** server-side cap (64) is enforced in `spawn_wasm_thread` + a
+  process-global backstop; making it **client-configurable on the BARE wire** (ResourceLimits) is the
+  remaining piece.
+- ⬜ Threaded **GLib** smoke (needs Phase 0 threaded GLib build).
+- ⬜ Full regression aggregate; Phase 0 threaded GTK closure rebuild (multi-week, mechanical).
 - 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
   satisfied autonomously.
 
