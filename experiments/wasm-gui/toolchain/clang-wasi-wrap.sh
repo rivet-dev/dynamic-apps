@@ -9,7 +9,11 @@ for a in "$@"; do
     -Wl,--start-group|-Wl,--end-group|--start-group|--end-group) continue ;;
     -Wl,-rpath,*|-Wl,-rpath|-rpath) continue ;;
     -Wl,--enable-new-dtags|-Wl,-soname,*) continue ;;
-    -pthread|-lpthread|-ldl) continue ;;
+    -ldl) continue ;;
+    -pthread|-lpthread)
+      # Under the wasi-threads (Phase 0) profile KEEP -pthread: wasi-libc <pthread.h> static_asserts
+      # "threads not enabled" without it. Strip only in the non-threaded profile.
+      [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ] && args+=("$a"); continue ;;
     *'$ORIGIN'*) continue ;;
   esac
   args+=("$a")
