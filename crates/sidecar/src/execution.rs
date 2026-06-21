@@ -5492,6 +5492,23 @@ where
         token: u64,
         module_path: String,
     ) -> Result<Value, SidecarError> {
+        // Per-VM live worker-thread cap (resource-exhaustion bound, in-scope per the trust model: a
+        // guest must not be able to exceed the applied cap). Counted server-side over this VM's
+        // is_thread processes. Returning ok:false makes the guest's thread-spawn yield EAGAIN.
+        // (Making the cap client-configurable on the BARE wire via ResourceLimits is a tracked
+        // follow-up; this enforces a safe per-VM default today, alongside the process-global backstop.)
+        const MAX_THREADS_PER_VM: usize = 64;
+        if let Some(vm) = self.vms.get(vm_id) {
+            let live_threads = vm
+                .active_processes
+                .values()
+                .filter(|process| process.is_thread)
+                .count();
+            if live_threads >= MAX_THREADS_PER_VM {
+                return Ok(json!({ "ok": false, "reason": "max_threads" }));
+            }
+        }
+
         let (parent_kernel_pid, parent_handle, parent_env, parent_guest_cwd, parent_host_cwd, thread_id) = {
             let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
             let parent = vm
