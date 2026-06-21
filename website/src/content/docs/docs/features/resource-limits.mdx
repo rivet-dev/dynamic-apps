@@ -1,124 +1,22 @@
 ---
 title: Resource Limits
-description: Bound and cancel guest execution with exec/run timeouts and AbortSignal, plus the memory, payload, CPU-time, and timing limits the VM enforces.
+description: Cap per-VM memory, CPU time, file descriptors, processes, and sockets so guest code can never exhaust the host.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
-Bound and cancel guest execution so runaway code can never hang the host:
+Secure Exec bounds each VM with per-VM caps on memory/heap, CPU time, file descriptors, processes, and sockets, so runaway guest code can never exhaust the host.
 
-- `timeout` (ms) on `exec()` / `run()`: kill the guest after a wall-clock budget.
-- `signal` (`AbortSignal`) on `exec()` / `run()`: cancel an in-flight run from the outside.
-
-Memory, payload, CPU-time, and timing limits are also enforced by the VM, but are not yet `NodeRuntime` options (see [Other limits](#other-limits-enforced-by-the-vm)).
-
-## Limiting execution time with `timeout`
-
-Pass `timeout` (in milliseconds) to `exec()` or `run()` to bound how long a single guest program may run. Runaway code is killed once the wall-clock budget elapses, so it can never hang the host:
+Set limits on the VM config you pass when creating a runtime:
 
 ```ts
 import { NodeRuntime } from "secure-exec";
 
-const rt = await NodeRuntime.create();
-
-try {
-	// A normal program finishes well within the timeout budget.
-	const ok = await rt.exec(`console.log("finished work");`, {
-		timeout: 5000,
-	});
-	console.log("normal run:");
-	console.log("  exitCode:", ok.exitCode);
-	console.log("  stdout:", JSON.stringify(ok.stdout.trim()));
-
-	// A runaway program (infinite loop) never returns on its own. The exec
-	// timeout terminates the guest process after the budget elapses.
-	const start = Date.now();
-	const runaway = await rt.exec(`while (true) {}`, {
-		timeout: 1000,
-	});
-	const elapsed = Date.now() - start;
-
-	console.log("runaway run (timeout: 1000ms):");
-	console.log("  exitCode:", runaway.exitCode);
-	console.log("  elapsedMs:", elapsed);
-
-	// A killed process exits non-zero; a clean exit would be 0.
-	const terminated = runaway.exitCode !== 0;
-	console.log(
-		terminated
-			? "runaway guest was terminated by the timeout"
-			: "ERROR: runaway guest was NOT terminated",
-	);
-
-	if (!terminated) {
-		process.exitCode = 1;
-	}
-} finally {
-	await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-resource-limits)*
-
-Running it prints:
-
-```text
-normal run:
-  exitCode: 0
-  stdout: "finished work"
-runaway run (timeout: 1000ms):
-  exitCode: 137
-  elapsedMs: 2506
-runaway guest was terminated by the timeout
-```
-
-The same `timeout` works on `run()` too, which additionally decodes the value the guest returns via `__return(...)`:
-
-```ts
-const result = await rt.run(`__return(2 + 2);`, { timeout: 5000 });
-console.log(result.value); // 4
-```
-
-When the budget elapses the guest process is killed and the call still **resolves**, but with a non-zero `exitCode` (`137`, that is `128 + SIGKILL`). A program that finishes first resolves with its real exit code. Inspect `exitCode` to tell a completed run from a terminated one.
-
-## Cancelling with an AbortSignal
-
-Pass an `AbortSignal` to cancel an in-flight run from the outside, for example to enforce your own deadline or to stop work when an upstream request is canceled. On abort the guest process is killed inside the VM (the kernel delivers `SIGTERM`) and the call **rejects** with the signal's abort reason (an `AbortError` by default):
-
-```ts
-const controller = new AbortController();
-const pending = rt.exec(`while (true) {}`, { signal: controller.signal });
-
-controller.abort();
-
-await pending.catch((err) => console.log(err.name)); // "AbortError"
-```
-
-Aborting an already-finished run has no effect, and passing an already-aborted signal rejects immediately. To wire a signal to a deadline, use `AbortSignal.timeout()`:
-
-```ts
-// Cancel after 2s, rejecting with a timeout reason.
-const result = await rt.exec(code, {
-	signal: AbortSignal.timeout(2000),
+const rt = await NodeRuntime.create({
+	limits: {
+		v8HeapLimitMb: 256, // cap guest JS heap
+		maxProcesses: 64, // cap concurrent processes
+		maxFileDescriptors: 256, // cap open fds
+	},
 });
 ```
 
-`timeout` and `signal` can be combined: whichever fires first ends the run. The `timeout` kills and resolves non-zero, while the `signal` kills and rejects.
-
-For long-running guests that should not run to completion (dev servers, watchers), use `rt.spawn(code, options)` instead, which returns a live process handle you `kill()` and `wait()` on directly.
-
-<LinkCard
-	title="exec() / run() option and result shapes"
-	description="Full per-call options (stdin, env, cwd, streaming hooks) and the result types."
-	href="/docs/sdks/typescript"
-/>
-
-## Other limits enforced by the VM
-
-`timeout` and `signal` are the only execution-bounding controls exposed as `NodeRuntime` options today. The VM enforces a broader set of limits, configured at VM creation through the protocol's `VmLimits` (`CreateVmConfig.limits`):
-
-- **Memory**: a V8 heap limit (`jsRuntime.v8HeapLimitMb`) caps guest JavaScript allocation, plus filesystem byte and inode caps for the virtual filesystem.
-- **Payload and transfer**: caps on captured output, stdin buffering, event payload size, and `fetch()` response size bound how much data moves between guest and host.
-- **CPU-time budget**: bounds CPU usage (cores and blocking read time) independently of the wall-clock `timeout`.
-- **Timing mitigation**: timers can be frozen to blunt timing side channels.
-
-These limits are real and enforced, but not yet surfaced as `NodeRuntime.create()` options. The ergonomic API boots the VM with Secure Exec's defaults for them; only `timeout`/`signal` are configurable per call. To tune the rest, set `CreateVmConfig.limits` when driving the VM through the lower-level protocol.
+Secure Exec uses the same resource-limits model as agentOS. See the full reference at [agentos-sdk.dev/docs/resource-limits](https://agentos-sdk.dev/docs/resource-limits).

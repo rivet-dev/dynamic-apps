@@ -474,16 +474,16 @@ importers:
 
   registry/software/build-essential:
     dependencies:
-      '@agent-os-pkgs/common':
+      '@agentos-software/common':
         specifier: workspace:*
         version: link:../common
-      '@agent-os-pkgs/curl':
+      '@agentos-software/curl':
         specifier: workspace:*
         version: link:../curl
-      '@agent-os-pkgs/git':
+      '@agentos-software/git':
         specifier: workspace:*
         version: link:../git
-      '@agent-os-pkgs/make':
+      '@agentos-software/make':
         specifier: workspace:*
         version: link:../make
     devDependencies:
@@ -511,28 +511,28 @@ importers:
 
   registry/software/common:
     dependencies:
-      '@agent-os-pkgs/coreutils':
+      '@agentos-software/coreutils':
         specifier: workspace:*
         version: link:../coreutils
-      '@agent-os-pkgs/diffutils':
+      '@agentos-software/diffutils':
         specifier: workspace:*
         version: link:../diffutils
-      '@agent-os-pkgs/findutils':
+      '@agentos-software/findutils':
         specifier: workspace:*
         version: link:../findutils
-      '@agent-os-pkgs/gawk':
+      '@agentos-software/gawk':
         specifier: workspace:*
         version: link:../gawk
-      '@agent-os-pkgs/grep':
+      '@agentos-software/grep':
         specifier: workspace:*
         version: link:../grep
-      '@agent-os-pkgs/gzip':
+      '@agentos-software/gzip':
         specifier: workspace:*
         version: link:../gzip
-      '@agent-os-pkgs/sed':
+      '@agentos-software/sed':
         specifier: workspace:*
         version: link:../sed
-      '@agent-os-pkgs/tar':
+      '@agentos-software/tar':
         specifier: workspace:*
         version: link:../tar
     devDependencies:
@@ -596,58 +596,58 @@ importers:
 
   registry/software/everything:
     dependencies:
-      '@agent-os-pkgs/codex':
+      '@agentos-software/codex':
         specifier: workspace:*
         version: link:../codex
-      '@agent-os-pkgs/coreutils':
+      '@agentos-software/coreutils':
         specifier: workspace:*
         version: link:../coreutils
-      '@agent-os-pkgs/curl':
+      '@agentos-software/curl':
         specifier: workspace:*
         version: link:../curl
-      '@agent-os-pkgs/diffutils':
+      '@agentos-software/diffutils':
         specifier: workspace:*
         version: link:../diffutils
-      '@agent-os-pkgs/fd':
+      '@agentos-software/fd':
         specifier: workspace:*
         version: link:../fd
-      '@agent-os-pkgs/file':
+      '@agentos-software/file':
         specifier: workspace:*
         version: link:../file
-      '@agent-os-pkgs/findutils':
+      '@agentos-software/findutils':
         specifier: workspace:*
         version: link:../findutils
-      '@agent-os-pkgs/gawk':
+      '@agentos-software/gawk':
         specifier: workspace:*
         version: link:../gawk
-      '@agent-os-pkgs/grep':
+      '@agentos-software/grep':
         specifier: workspace:*
         version: link:../grep
-      '@agent-os-pkgs/gzip':
+      '@agentos-software/gzip':
         specifier: workspace:*
         version: link:../gzip
-      '@agent-os-pkgs/jq':
+      '@agentos-software/jq':
         specifier: workspace:*
         version: link:../jq
-      '@agent-os-pkgs/ripgrep':
+      '@agentos-software/ripgrep':
         specifier: workspace:*
         version: link:../ripgrep
-      '@agent-os-pkgs/sed':
+      '@agentos-software/sed':
         specifier: workspace:*
         version: link:../sed
-      '@agent-os-pkgs/tar':
+      '@agentos-software/tar':
         specifier: workspace:*
         version: link:../tar
-      '@agent-os-pkgs/tree':
+      '@agentos-software/tree':
         specifier: workspace:*
         version: link:../tree
-      '@agent-os-pkgs/unzip':
+      '@agentos-software/unzip':
         specifier: workspace:*
         version: link:../unzip
-      '@agent-os-pkgs/yq':
+      '@agentos-software/yq':
         specifier: workspace:*
         version: link:../yq
-      '@agent-os-pkgs/zip':
+      '@agentos-software/zip':
         specifier: workspace:*
         version: link:../zip
     devDependencies:
@@ -987,6 +987,12 @@ importers:
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0
+      typedoc:
+        specifier: ^0.28.0
+        version: 0.28.19(typescript@5.9.3)
+      typedoc-plugin-markdown:
+        specifier: ^4.0.0
+        version: 4.12.0(typedoc@0.28.19(typescript@5.9.3))
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -1677,6 +1683,9 @@ packages:
 
   '@expressive-code/plugin-text-markers@0.41.7':
     resolution: {integrity: sha512-Ewpwuc5t6eFdZmWlFyeuy3e1PTQC0jFvw2Q+2bpcWXbOZhPLsT7+h8lsSIJxb5mS7wZko7cKyQ2RLYDyK6Fpmw==}
+
+  '@gerrit0/mini-shiki@3.23.0':
+    resolution: {integrity: sha512-bEMORlG0cqdjVyCEuU0cDQbORWX+kYCeo0kV1lbxF5bt4r7SID2l9bqsxJEM0zndaxpOUT7riCyIVEuqq/Ynxg==}
 
   '@grpc/grpc-js@1.14.3':
     resolution: {integrity: sha512-Iq8QQQ/7X3Sac15oB6p0FmUg/klxQvXLeileoqrTRGJYLV+/9tubbr9ipz0GKHjmXVsgFPo/+W+2cA8eNcR+XA==}
@@ -2486,6 +2495,10 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
+  balanced-match@4.0.4:
+    resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
+    engines: {node: 18 || 20 || >=22}
+
   base-64@1.0.0:
     resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
 
@@ -2528,6 +2541,10 @@ packages:
 
   brace-expansion@2.0.3:
     resolution: {integrity: sha512-MCV/fYJEbqx68aE58kv2cA/kiky1G8vux3OR6/jbS+jIMe/6fJWa0DTzJU7dqijOWYwHi1t29FlfYI9uytqlpA==}
+
+  brace-expansion@5.0.6:
+    resolution: {integrity: sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==}
+    engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -3392,6 +3409,9 @@ packages:
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
+  linkify-it@5.0.1:
+    resolution: {integrity: sha512-wVoTjP4Q6R0NW5hiZkVJaFZPWgtXfoGF+6LucL3/FtiNjmcHhYjEr5f1Kqjirc1nBW07J/ZuRFumqr2oqccEWg==}
+
   locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
@@ -3423,6 +3443,9 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  lunr@2.3.9:
+    resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -3432,6 +3455,10 @@ packages:
   markdown-extensions@2.0.0:
     resolution: {integrity: sha512-o5vL7aDWatOTX8LzaS1WMoaoxIiLRQJuIKKe2wAw6IeULDHaqbiqiggmx+pKvZDb1Sj+pE46Sn1T7lCqfFtg1Q==}
     engines: {node: '>=16'}
+
+  markdown-it@14.2.0:
+    resolution: {integrity: sha512-1TGiQiJVRQ3NPmZH6sx5Cfnmg6GQm9jvC1ch4TK511NjSJvjzKLzn5pPfZRNZkRPZP0HqCioSndqH8v2nRaWVQ==}
+    hasBin: true
 
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
@@ -3502,6 +3529,9 @@ packages:
 
   mdn-data@2.27.1:
     resolution: {integrity: sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==}
+
+  mdurl@2.0.0:
+    resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -3635,6 +3665,10 @@ packages:
 
   minimalistic-crypto-utils@1.0.1:
     resolution: {integrity: sha512-JIYlbt6g8i5jKfJ3xz7rF0LXmv2TkDxBLUkiBeZ7bAx4GnnNMr8xFpGnOxn6GhTEHx3SjRrZEoU+j04prX1ktg==}
+
+  minimatch@10.2.5:
+    resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
+    engines: {node: 18 || 20 || >=22}
 
   minimatch@9.0.9:
     resolution: {integrity: sha512-OBwBN9AL4dqmETlpS2zasx+vTeWclWzkblfZk7KTA5j3jeOONz/tRCnZomUyvNg83wL5Zv9Ss6HMJXAgL8R2Yg==}
@@ -3962,6 +3996,10 @@ packages:
 
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
+
+  punycode.js@2.3.1:
+    resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==}
+    engines: {node: '>=6'}
 
   punycode@1.4.1:
     resolution: {integrity: sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==}
@@ -4445,10 +4483,26 @@ packages:
     resolution: {integrity: sha512-nAYYwfY3qnzX30IkA6AQZjVbtK6duGontcQm1WSG1MD94YLqK0515GNApXkoxKOWMusVssAHWLh9SeaoefYFGw==}
     engines: {node: '>= 0.4'}
 
+  typedoc-plugin-markdown@4.12.0:
+    resolution: {integrity: sha512-eJDEMAfxCmede22c/Jw7d0FA13ggAQv+KkwQYKYCdqI02cin6Rc9QRwbG/7XvvHWinuFejySnZVUWDtvGk3Vbg==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      typedoc: 0.28.x
+
+  typedoc@0.28.19:
+    resolution: {integrity: sha512-wKh+lhdmMFivMlc6vRRcMGXeGEHGU2g8a2CkPTJjJlwRf1iXbimWIPcFolCqe4E0d/FRtGszpIrsp3WLpDB8Pw==}
+    engines: {node: '>= 18', pnpm: '>= 10'}
+    hasBin: true
+    peerDependencies:
+      typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x || 6.0.x
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  uc.micro@2.1.0:
+    resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==}
 
   ufo@1.6.4:
     resolution: {integrity: sha512-JFNbkD1Svwe0KvGi8GOeLcP4kAWQ609twvCdcHxq1oSL8svv39ZuSvajcD8B+5D0eL4+s1Is2D/O6KN3qcTeRA==}
@@ -5381,6 +5435,14 @@ snapshots:
     dependencies:
       '@expressive-code/core': 0.41.7
 
+  '@gerrit0/mini-shiki@3.23.0':
+    dependencies:
+      '@shikijs/engine-oniguruma': 3.23.0
+      '@shikijs/langs': 3.23.0
+      '@shikijs/themes': 3.23.0
+      '@shikijs/types': 3.23.0
+      '@shikijs/vscode-textmate': 10.0.2
+
   '@grpc/grpc-js@1.14.3':
     dependencies:
       '@grpc/proto-loader': 0.8.0
@@ -6203,6 +6265,8 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
+  balanced-match@4.0.4: {}
+
   base-64@1.0.0: {}
 
   base64-js@1.5.1: {}
@@ -6251,6 +6315,10 @@ snapshots:
   brace-expansion@2.0.3:
     dependencies:
       balanced-match: 1.0.2
+
+  brace-expansion@5.0.6:
+    dependencies:
+      balanced-match: 4.0.4
 
   braces@3.0.3:
     dependencies:
@@ -7351,6 +7419,10 @@ snapshots:
 
   lines-and-columns@1.2.4: {}
 
+  linkify-it@5.0.1:
+    dependencies:
+      uc.micro: 2.1.0
+
   locate-path@6.0.0:
     dependencies:
       p-locate: 5.0.0
@@ -7377,6 +7449,8 @@ snapshots:
     dependencies:
       react: 19.2.7
 
+  lunr@2.3.9: {}
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -7388,6 +7462,15 @@ snapshots:
       source-map-js: 1.2.1
 
   markdown-extensions@2.0.0: {}
+
+  markdown-it@14.2.0:
+    dependencies:
+      argparse: 2.0.1
+      entities: 4.5.0
+      linkify-it: 5.0.1
+      mdurl: 2.0.0
+      punycode.js: 2.3.1
+      uc.micro: 2.1.0
 
   markdown-table@3.0.4: {}
 
@@ -7585,6 +7668,8 @@ snapshots:
   mdn-data@2.0.28: {}
 
   mdn-data@2.27.1: {}
+
+  mdurl@2.0.0: {}
 
   merge-stream@2.0.0: {}
 
@@ -7879,6 +7964,10 @@ snapshots:
   minimalistic-assert@1.0.1: {}
 
   minimalistic-crypto-utils@1.0.1: {}
+
+  minimatch@10.2.5:
+    dependencies:
+      brace-expansion: 5.0.6
 
   minimatch@9.0.9:
     dependencies:
@@ -8226,6 +8315,8 @@ snapshots:
       end-of-stream: 1.4.5
       once: 1.4.0
     optional: true
+
+  punycode.js@2.3.1: {}
 
   punycode@1.4.1: {}
 
@@ -8904,7 +8995,22 @@ snapshots:
       es-errors: 1.3.0
       is-typed-array: 1.1.15
 
+  typedoc-plugin-markdown@4.12.0(typedoc@0.28.19(typescript@5.9.3)):
+    dependencies:
+      typedoc: 0.28.19(typescript@5.9.3)
+
+  typedoc@0.28.19(typescript@5.9.3):
+    dependencies:
+      '@gerrit0/mini-shiki': 3.23.0
+      lunr: 2.3.9
+      markdown-it: 14.2.0
+      minimatch: 10.2.5
+      typescript: 5.9.3
+      yaml: 2.9.0
+
   typescript@5.9.3: {}
+
+  uc.micro@2.1.0: {}
 
   ufo@1.6.4: {}
 

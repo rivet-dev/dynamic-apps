@@ -32,25 +32,19 @@ export const siteConfig = {
 			"A lightweight library for secure Node.js execution. No containers, no VMs — just npm-compatible sandboxing out of the box.",
 		cards: [
 			{ title: "Quickstart", href: "/docs/quickstart", icon: "rocket", description: "Install and run your first sandboxed execution in a few minutes." },
-			{ title: "SDK Overview", href: "/docs/sdk-overview", icon: "terminal", description: "The programmatic API for driving the runtime from Node or the browser." },
-			{ title: "Features", href: "/docs/features/typescript", icon: "layers", description: "TypeScript, permissions, filesystem, networking, child processes, and more." },
-			// { title: "SDKs", href: "/docs/sdks/typescript", icon: "book", description: "TypeScript and Rust SDK reference." },
+			{ title: "Crash Course", href: "/docs/crash-course", icon: "terminal", description: "A fast tour of the secure-exec SDK: run code, capture output, and the core concepts." },
+			{ title: "Node.js Runtime", href: "/docs/features/executing-code", icon: "layers", description: "Executing code, TypeScript, npm modules, child processes, and host tools." },
+			{ title: "Virtual Machine", href: "/docs/features/permissions", icon: "cpu", description: "The system surface: permissions, filesystem, networking, and resource limits." },
 		],
 	},
 
 	sidebar: [
-		{
-			label: "General",
-			items: [
-				{ slug: "docs", label: "Overview", attrs: { "data-icon": "info" } },
-			],
-		},
+		{ slug: "docs", label: "Introduction", attrs: { "data-icon": "info" } },
 		{
 			label: "Getting Started",
 			items: [
 				{ slug: "docs/quickstart", attrs: { "data-icon": "rocket" } },
-				{ slug: "docs/sdk-overview", attrs: { "data-icon": "terminal" } },
-				{ slug: "docs/security", attrs: { "data-icon": "lock" } },
+				{ slug: "docs/crash-course", label: "Crash Course", attrs: { "data-icon": "terminal" } },
 				{
 					label: "SDKs",
 					collapsed: true,
@@ -71,23 +65,26 @@ export const siteConfig = {
 			],
 		},
 		{
-			label: "Features",
+			label: "Node.js Runtime",
 			items: [
 				{ slug: "docs/features/executing-code", attrs: { "data-icon": "play" } },
-				{ slug: "docs/features/typescript", attrs: { "data-icon": "fileCode" } },
-				{ slug: "docs/features/permissions", attrs: { "data-icon": "shield" } },
-				{ slug: "docs/features/filesystem", attrs: { "data-icon": "folder" } },
-				{ slug: "docs/features/virtual-filesystem", attrs: { "data-icon": "folderTree" } },
-				{ slug: "docs/features/filesystem-mounts", attrs: { "data-icon": "folderTree" } },
-				{ slug: "docs/features/networking", attrs: { "data-icon": "network" } },
-				{ slug: "docs/features/module-loading", attrs: { "data-icon": "package" } },
-				{ slug: "docs/features/runtime-platform", attrs: { "data-icon": "code" } },
 				{ slug: "docs/features/output-capture", attrs: { "data-icon": "scroll" } },
 				{ slug: "docs/features/resident-runner", attrs: { "data-icon": "zap" } },
-				{ slug: "docs/features/resource-limits", attrs: { "data-icon": "gauge" } },
+				{ slug: "docs/features/typescript", attrs: { "data-icon": "fileCode" } },
+				{ slug: "docs/features/module-loading", label: "NPM & Module Loading", attrs: { "data-icon": "package" } },
+				{ slug: "docs/features/runtime-platform", label: "Runtime & Platform", attrs: { "data-icon": "code" } },
 				{ slug: "docs/features/child-processes", attrs: { "data-icon": "split" } },
 				{ slug: "docs/features/host-tools", attrs: { "data-icon": "wrench" } },
-				{ slug: "docs/process-isolation", attrs: { "data-icon": "box" } },
+			],
+		},
+		{
+			label: "Virtual Machine",
+			items: [
+				{ slug: "docs/features/permissions", attrs: { "data-icon": "shield" } },
+				{ slug: "docs/features/filesystem", attrs: { "data-icon": "folder" } },
+				{ slug: "docs/features/filesystem-mounts", attrs: { "data-icon": "folderTree" } },
+				{ slug: "docs/features/networking", attrs: { "data-icon": "network" } },
+				{ slug: "docs/features/resource-limits", attrs: { "data-icon": "gauge" } },
 			],
 		},
 		{
@@ -100,16 +97,14 @@ export const siteConfig = {
 					items: [
 						{ slug: "docs/comparison/sandbox", attrs: { "data-icon": "gitCompare" } },
 						{ slug: "docs/comparison/cloudflare-workers", attrs: { "data-icon": "gitCompare" } },
+						{ slug: "docs/comparison/quickjs", label: "vs QuickJS", attrs: { "data-icon": "gitCompare" } },
+						{ slug: "docs/comparison/isolated-vm", label: "vs isolated-vm", attrs: { "data-icon": "gitCompare" } },
 					],
 				},
 				{
 					label: "Advanced",
 					items: [
-						{ slug: "docs/cost-evaluation", attrs: { "data-icon": "dollar" } },
-						{ slug: "docs/runtime-modes", attrs: { "data-icon": "blocks" } },
 						{ slug: "docs/architecture", attrs: { "data-icon": "blocks" } },
-						{ slug: "docs/architecture/networking", attrs: { "data-icon": "network" } },
-						{ slug: "docs/wasm-posix-extensions", attrs: { "data-icon": "package" } },
 						{ slug: "docs/security-model", attrs: { "data-icon": "lock" } },
 					],
 				},

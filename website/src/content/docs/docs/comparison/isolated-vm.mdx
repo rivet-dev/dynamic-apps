@@ -1,0 +1,101 @@
+---
+title: Secure Exec vs isolated-vm
+description: How Secure Exec and isolated-vm differ in isolation surface, security confinement, performance, and developer experience.
+---
+import { Aside, LinkCard } from '@astrojs/starlight/components';
+
+Both Secure Exec and isolated-vm run untrusted JavaScript inside V8 isolates, but they operate at different layers. isolated-vm is a low-level npm library that exposes a bare V8 isolate with manual value marshaling and no system surface. Secure Exec wraps V8 isolates in a full virtualized kernel: a POSIX-like VFS, process table, socket table, permission policy, and resource limits. This page focuses on the security and performance characteristics of that core runtime layer.
+
+## At a glance
+
+| | Secure Exec | isolated-vm |
+| --- | --- | --- |
+| **Layer** | Full virtualized runtime around V8 isolates | Bare V8 isolate primitive |
+| **System surface** | Virtualized filesystem, processes, sockets, PTYs, DNS | None (you build any surface yourself) |
+| **Host and guest data** | Normal Node/POSIX I/O through the kernel | Manual `Reference`/`Copy`/`ExternalCopy` marshaling |
+| **Permission model** | Deny-by-default capability policy per runtime | None (whatever you expose is reachable) |
+| **Network egress** | Mediated by the kernel socket table, gated by policy | None by default; any bridge you add is unmediated |
+| **Resource limits** | Per-VM CPU, memory, and other caps | Memory limit and timeout per isolate |
+| **npm / Node compat** | Real npm packages run unmodified | None (no module system, no `node:` builtins) |
+
+## Isolation boundary
+
+The core difference is how much exists inside the boundary.
+
+- **isolated-vm** gives you a raw V8 isolate and nothing else. There is no filesystem, no network, no process model, and no globals beyond the ECMAScript spec. Anything the guest can reach, you have to inject yourself across the host/guest boundary by hand.
+- **Secure Exec** boots a fully virtualized VM per runtime. The guest sees a POSIX-like filesystem, a process table, sockets, pipes, PTYs, and DNS, all backed by a kernel that the guest can never escape. Every guest syscall is routed through kernel-owned paths.
+
+The trade-off: isolated-vm is a primitive you assemble a sandbox out of. Secure Exec is the assembled sandbox.
+
+## Security
+
+A bare V8 isolate confines memory and CPU, but it confines nothing else, because there is nothing else inside it. The security of an isolated-vm deployment is entirely a property of the bridge code you write around it.
+
+- **What isolated-vm confines**: heap memory (per-isolate limit) and execution time (per-call timeout). It cannot leak host memory directly because the guest has no references it was not given.
+- **What you must build yourself**: every capability the guest needs (file access, network, subprocesses) is a function you expose across the boundary. Each exposed function is attack surface, and each is unmediated unless you add your own checks.
+- **What Secure Exec confines**: in addition to memory and time, it enforces a deny-by-default capability policy over filesystem, network, child-process, process, and env scopes. A denied operation fails with `EACCES`.
+- **Egress control**: guest `fetch()`, `node:http`, and raw sockets flow through the kernel socket table, so outbound traffic can be allowed, denied, or rule-matched. With isolated-vm there is no networking until you build it, and once built it is not policed.
+
+<Aside type="note">With isolated-vm, a mistake in your marshaling layer (handing the guest a live host `Reference`, or an injected function that does unchecked I/O) is a sandbox escape. Secure Exec moves that boundary into a kernel so the surface the guest sees is virtualized rather than hand-wired per project.</Aside>
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+// Deny-by-default: no network, filesystem and processes are virtualized.
+const rt = await NodeRuntime.create();
+
+// Opt into network egress; it is still mediated by the kernel socket table.
+const networked = await NodeRuntime.create({
+  permissions: { network: "allow" },
+});
+```
+
+<LinkCard
+	title="Permissions"
+	description="The deny-by-default capability policy and per-scope rule sets."
+	href="/docs/features/permissions"
+/>
+
+## Performance
+
+Both runtimes execute guest code in a V8 isolate, so raw JavaScript throughput is comparable. The cost differences come from what surrounds the isolate.
+
+- **isolated-vm** is the thinner layer: creating an isolate is cheap, and the dominant per-call cost is marshaling values across the host/guest boundary, which is explicit and pay-as-you-go.
+- **Secure Exec** adds syscall virtualization. Guest I/O (files, sockets, processes) is routed through the kernel, so operations that touch the system carry virtualization overhead that a bare isolate does not. Pure compute that never makes a syscall runs at isolate speed.
+- **Startup**: Secure Exec boots a virtualized VM per runtime, which is heavier than spinning up a bare isolate, but it is far lighter than a container or microVM. Reusing a live guest process drives warm execution into the low-millisecond range. See [Benchmarks](/docs/benchmarks) for measured numbers.
+
+The summary: isolated-vm has lower overhead because it does less; Secure Exec spends that overhead on a real system surface and enforcement you would otherwise build and pay for yourself.
+
+## Developer experience
+
+This is where the two diverge most for everyday use.
+
+- **isolated-vm**: you write to the isolate API directly. There is no module loader, no `node:` builtins, and no normal I/O. Passing data in or out means `Reference`, `Copy`, or `ExternalCopy`, and any capability is a function you wrap and inject. Running an existing npm package is not a goal of the library.
+- **Secure Exec**: the guest sees normal Linux and Node semantics. Real npm packages run unmodified, resolved over a faithfully mounted `node_modules`, and kernel-backed modules (`fs`, `net`, `child_process`, `dns`, `http`, `os`) work as they would on a real machine.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create();
+try {
+  const result = await rt.run<number>(`
+    __return(40 + 2);
+  `);
+  console.log(result.value); // 42
+} finally {
+  await rt.dispose();
+}
+```
+
+## When to choose which
+
+| Choose | When |
+| --- | --- |
+| **isolated-vm** | You want a minimal V8 isolate primitive and intend to design and own the entire sandbox surface, capability injection, and enforcement yourself. |
+| **Secure Exec** | You want to run untrusted or AI-generated code with a virtualized filesystem, process model, and networking, plus a deny-by-default permission policy and resource limits, without hand-building the sandbox. |
+
+<LinkCard
+	title="Process Isolation"
+	description="The isolation model in depth, plus how to pick isolation granularity."
+	href="/docs/architecture"
+/>

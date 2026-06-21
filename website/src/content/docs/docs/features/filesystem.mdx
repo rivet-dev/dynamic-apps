@@ -1,130 +1,21 @@
 ---
 title: Filesystem
-description: Read and write the VM's virtual filesystem from guest code and the host.
+description: Each VM presents a normal POSIX filesystem to guest code, backed by a virtual filesystem inside the kernel and isolated from the host disk.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
-Every VM gets a virtual filesystem that lives entirely inside the kernel. Guest code reads and writes it through the standard Node `fs` module, and writes never touch the host disk.
-
-- `NodeRuntime.create()` boots an isolated in-memory filesystem.
-- Seed initial bytes with `create({ files })`.
-- Read and write the VFS from the host with `rt.writeFile` / `rt.readFile`.
-
-This page covers reading, writing, and seeding files. For the conceptual model and host isolation guarantees, see [Virtual Filesystem](/docs/features/virtual-filesystem). To project a real host directory into the VM, see [Filesystem Mounts](/docs/features/filesystem-mounts).
-
-## Reading and Writing Files
-
-Boot a runtime, then run guest code that uses `node:fs`. Guest source runs as a standard ES module (top-level `import` and `await` work).
+Each VM presents a normal POSIX filesystem to guest code: the standard `node:fs` and `node:fs/promises` APIs work as usual, backed by a virtual filesystem that lives inside the kernel and never touches the host disk.
 
 ```ts
 import { NodeRuntime } from "secure-exec";
 
-// Boot a fully virtualized VM. The guest filesystem lives entirely inside the
-// kernel and writes never touch the host disk.
 const rt = await NodeRuntime.create();
-
-try {
-  const { stdout, stderr, exitCode } = await rt.exec(`
-    import { mkdirSync, writeFileSync, readFileSync, readdirSync } from "node:fs";
-
-    mkdirSync("/workspace", { recursive: true });
-    writeFileSync("/workspace/hello.txt", "hello from the sandbox");
-
-    const message = readFileSync("/workspace/hello.txt", "utf8");
-    const entries = readdirSync("/workspace");
-
-    console.log("read back from VM:", message);
-    console.log("/workspace contents:", JSON.stringify(entries));
-  `);
-
-  console.log("exitCode:", exitCode);
-  if (stderr.trim()) console.log("guest stderr:", stderr.trim());
-  console.log("guest stdout:");
-  console.log(stdout.trim());
-} finally {
-  await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-filesystem)*
-
-Output:
-
-```
-exitCode: 0
-guest stdout:
-read back from VM: hello from the sandbox
-/workspace contents: ["hello.txt"]
-```
-
-<Aside type="note">The virtual filesystem is isolated from the host by default. A file the guest writes to `/workspace` exists only inside the VM; the host filesystem never sees it.</Aside>
-
-## Host filesystem access (`rt.writeFile` / `rt.readFile`)
-
-Read and write the VFS directly from the host, without running guest code. Both operate on the VM's in-memory filesystem; the host filesystem is never touched.
-
-- `rt.writeFile(path, content)`: write a file, creating parent directories as needed. `content` is `string | Uint8Array`.
-- `rt.readFile(path)`: read a file as raw bytes. Returns `Promise<Uint8Array>`.
-
-```ts
-const rt = await NodeRuntime.create();
-
-// Project an asset into the VM after boot.
-await rt.writeFile("/workspace/config.json", JSON.stringify({ ok: true }));
-
-// Read back whatever the guest produced.
-const bytes = await rt.readFile("/workspace/out.txt");
-console.log(new TextDecoder().decode(bytes));
-```
-
-## Seeding files at boot (`create({ files })`)
-
-Seed bytes into the VFS before the guest runs, keyed by absolute guest path. Parent directories are created automatically. Use this to project host assets, npm packages, or fixtures so guest code can `import`/`require`/read them. Values are `string | Uint8Array`.
-
-```ts
-import { readFileSync } from "node:fs";
-
-const rt = await NodeRuntime.create({
-  files: {
-    "/root/data.json": '{"ok":true}',
-    "/root/logo.png": readFileSync("./logo.png"), // Uint8Array
-  },
-});
-
 await rt.exec(`
-  import { readFileSync } from "node:fs";
-  console.log(readFileSync("/root/data.json", "utf8"));
+  import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
+  mkdirSync("/workspace", { recursive: true });
+  writeFileSync("/workspace/hello.txt", "hello from the sandbox");
+  console.log(readFileSync("/workspace/hello.txt", "utf8"));
 `);
+await rt.dispose();
 ```
 
-The bytes are copied into the VM's in-memory filesystem; the host filesystem is never exposed to the guest.
-
-## When to use each
-
-| Need | Use |
-|---|---|
-| Isolated scratch space | `NodeRuntime.create()` (default) |
-| Inject fixed bytes before boot | `create({ files })` |
-| Write/read the VFS from the host | `rt.writeFile` / `rt.readFile` |
-| Expose a real host directory | `create({ mounts })`, see [Filesystem Mounts](/docs/features/filesystem-mounts) |
-
-## Standard Node `fs` API
-
-Guest code uses Node's built-in `node:fs` module, backed by the virtual filesystem:
-
-| Operation | API |
-|---|---|
-| Read a file as text | `readFileSync(path, "utf8")` |
-| Read a file as bytes | `readFileSync(path)` |
-| List a directory | `readdirSync(path)` |
-| List with entry types | `readdirSync(path, { withFileTypes: true })` |
-| Write a file | `writeFileSync(path, content)` |
-| Create a directory | `mkdirSync(path, { recursive: true })` |
-| Check a path exists | `existsSync(path)` |
-| Get file metadata | `statSync(path)` |
-| Delete a file | `rmSync(path)` |
-| Rename a file or directory | `renameSync(oldPath, newPath)` |
-
-The async `node:fs/promises` variants are available too. Present normal Linux filesystem semantics to your tools and run them unmodified.
-
-For the full option and type shapes (`create()` options, `writeFile`/`readFile` signatures), see the [TypeScript SDK reference](/docs/sdks/typescript).
+Secure Exec uses the same virtual filesystem model as agentOS. For the full reference (seeding files, host read/write, mounts, and storage backends), see the [agentOS filesystem documentation](https://agentos-sdk.dev/docs/filesystem).

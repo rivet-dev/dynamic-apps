@@ -14,7 +14,7 @@ Secure Exec and container sandboxes both run untrusted code in isolation, but th
 
 The biggest difference is what the isolation boundary is made of.
 
-- **Secure Exec** runs guest code in a V8 isolate hosted by its own sidecar process. Every `NodeRuntime.create()` is a separate VM with its own virtual filesystem, process table, network policy, and crash domain. Guest code never calls real Node.js builtins, never opens a real host socket, and never touches the real disk. Every syscall is routed through the kernel. See [Process Isolation](/docs/process-isolation).
+- **Secure Exec** runs guest code in a V8 isolate hosted by its own sidecar process. Every `NodeRuntime.create()` is a separate VM with its own virtual filesystem, process table, network policy, and crash domain. Guest code never calls real Node.js builtins, never opens a real host socket, and never touches the real disk. Every syscall is routed through the kernel. See [Process Isolation](/docs/architecture).
 - **Container sandboxes** isolate with OS-level primitives (namespaces, cgroups, or a microVM). The guest runs a real kernel and a real filesystem, so it can do anything a Linux process can, constrained by the container's configuration.
 
 Secure Exec presents normal Linux semantics to the code it runs (a POSIX-like virtual filesystem, processes, pipes, PTYs, sockets) without granting access to the host that backs them.
@@ -40,7 +40,7 @@ These capabilities are the reason to reach for Secure Exec over a container when
 - **Deny-by-default permissions.** Network egress is blocked until you opt in, and every guest syscall is checked against a per-scope policy before any host resource is touched. A denied operation fails with `EACCES`. See [Permissions](/docs/features/permissions).
 - **Virtual filesystem.** Each runtime gets its own in-memory filesystem. Guest reads and writes never reach the host disk, and two runtimes writing the same path do not collide. See [Filesystem](/docs/features/filesystem).
 - **Mediated networking.** Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table, so you can allow, deny, or rule-match outbound traffic. See [Networking](/docs/features/networking).
-- **Process-level isolation.** Each runtime is its own VM and its own crash domain, and each `exec()` / `run()` starts a fresh guest process so in-memory state never leaks between runs. See [Process Isolation](/docs/process-isolation).
+- **Process-level isolation.** Each runtime is its own VM and its own crash domain, and each `exec()` / `run()` starts a fresh guest process so in-memory state never leaks between runs. See [Process Isolation](/docs/architecture).
 - **npm compatibility.** Real npm packages run unmodified inside the VM, resolved over a faithfully mounted `node_modules` like a real filesystem.
 
 ## When to use each

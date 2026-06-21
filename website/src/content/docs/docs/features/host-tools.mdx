@@ -4,7 +4,11 @@ description: Give sandboxed guest code a narrow, curated set of host-backed capa
 ---
 import { Aside } from '@astrojs/starlight/components';
 
-Host tools are host-side functions the guest invokes by name. The handler runs on the **host**, never inside the guest sandbox, and its return value round-trips back to the guest. This lets you hand untrusted guest code a narrow, curated capability surface (the kind an AI agent calls as tools) without granting it the underlying access.
+Host tools are host-side functions the guest invokes by name:
+
+- **Where the handler runs**: on the **host**, never inside the guest sandbox.
+- **Return value**: round-trips back to the guest as JSON.
+- **Why use them**: hand untrusted guest code a narrow, curated capability surface (the kind an AI agent calls as tools) without granting it the underlying access.
 
 ## Registering tools at boot
 
@@ -51,7 +55,14 @@ When you register tools on a live runtime, make sure the `tool` permission scope
 
 ## The tool definition
 
-A tool needs a `description`, an `inputSchema` (JSON Schema describing the input), and a `handler(input)` that runs on the host. The optional fields are `timeoutMs`, `examples`, and `commandAliases`.
+A tool definition has these fields:
+
+- **`description`** (required): human-readable summary of what the tool does.
+- **`inputSchema`** (required): JSON Schema describing the input.
+- **`handler(input)`** (required): the function that runs on the host.
+- **`timeoutMs`** (optional): abort the host handler after this many milliseconds.
+- **`examples`** (optional): worked examples shown alongside the tool.
+- **`commandAliases`** (optional): extra command names the guest may use, beyond the registered key.
 
 ```ts
 const rt = await NodeRuntime.create({
@@ -70,7 +81,7 @@ const rt = await NodeRuntime.create({
       // Extra command names the guest may use, beyond the registered key.
       commandAliases: ["weather"],
       handler: async ({ city }: { city: string }) => {
-        // Real host access lives here, behind the tool boundary - the guest
+        // Real host access lives here, behind the tool boundary. The guest
         // never gets the network credential, only the curated result.
         const res = await fetch(`https://example.com/weather?city=${city}`);
         return await res.json();
@@ -95,7 +106,10 @@ await rt.exec(`
 
 `callHostTool` is available in every guest program run through `exec`, `run`, and `spawn`. A `commandAlias` (for example `weather` above) works in place of the registered key.
 
-Under the hood, a registered tool is also exposed inside the VM as a command on the guest `PATH` (resolved as `/usr/bin/<name>`), so the same invocation can be driven directly through `node:child_process` if you prefer. `callHostTool` is a thin wrapper over exactly that path, so both share the same permission and validation behavior:
+A registered tool is also exposed two ways under the hood:
+
+- **As a `PATH` command**: resolved as `/usr/bin/<name>` inside the VM, so the same invocation can be driven directly through `node:child_process` if you prefer.
+- **Via `callHostTool`**: a thin wrapper over exactly that command path, so both share the same permission and validation behavior.
 
 ```ts
 await rt.exec(`
@@ -129,7 +143,12 @@ const rt = await NodeRuntime.create({
 
 ## Wiring a tool into an LLM agent
 
-Host tools pair naturally with an LLM agent: expose a sandbox capability to the model, and let the model drive it. The example below uses the Vercel AI SDK to give the model a `runJs` tool whose `execute` runs guest code inside the runtime.
+Host tools pair naturally with an LLM agent:
+
+- **Expose** a sandbox capability to the model as a tool.
+- **Let the model drive it** through its own tool-calling loop.
+
+The example below uses the Vercel AI SDK to give the model a `runJs` tool whose `execute` runs guest code inside the runtime.
 
 ```ts
 import { NodeRuntime } from "secure-exec";
@@ -147,7 +166,7 @@ await generateText({
       description: "Run JavaScript inside the sandbox and capture its output.",
       inputSchema: z.object({ code: z.string() }),
       // The model-generated `code` is untrusted payload, but it only runs
-      // inside the VM under the secure-default policy - no host access.
+      // inside the VM under the secure-default policy (no host access).
       execute: async ({ code }) => {
         const result = await rt.exec(code);
         return { stdout: result.stdout, stderr: result.stderr };
@@ -158,3 +177,7 @@ await generateText({
 ```
 
 The model-generated code is untrusted input, but it executes only inside the VM under the secure-default policy (network denied here), so the model can experiment freely without reaching the host.
+
+<Aside>
+Host tools are the same concept as agentOS "Tools" (toolkits). See the [agentOS Tools docs](https://agentos-sdk.dev/docs/host-tools) for the higher-level toolkit model built on top of this capability.
+</Aside>

@@ -31,7 +31,7 @@ Within a single runtime, every `exec()` or `run()` call runs in a fresh guest pr
 <LinkCard
 	title="Process Isolation"
 	description="How runtimes and runs are isolated, and how to choose granularity."
-	href="/docs/process-isolation"
+	href="/docs/architecture"
 />
 
 The practical consequence: with Workers you trust Cloudflare's platform to keep tenants apart. With Secure Exec you get a hard, statically-defined boundary per runtime that you place yourself, which is well suited to running one tenant or one task per runtime and disposing it when finished.
@@ -117,5 +117,5 @@ Choose **Secure Exec** when you need to run untrusted or AI-generated code insid
 <LinkCard
 	title="Process Isolation"
 	description="The isolation model in depth, plus how to pick isolation granularity."
-	href="/docs/process-isolation"
+	href="/docs/architecture"
 />

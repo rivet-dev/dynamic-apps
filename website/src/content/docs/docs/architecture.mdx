@@ -1,159 +1,24 @@
 ---
 title: Architecture
-description: A detailed reference for how Secure Exec fits together, from the public TypeScript API down to the virtualized kernel and its trust boundary.
+description: A high-level summary of how Secure Exec fits together, with a link to the canonical internals reference.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
-This is the detailed architecture reference. If you are just getting oriented, start with the [Architecture Overview](/docs/runtime-modes) for the three-component model and the lifecycle of a single request; this page goes deeper into the packages, crates, trust boundary, and syscall paths.
+Secure Exec runs untrusted guest code inside a fully virtualized VM. Nothing the guest does touches the host directly: every guest syscall is serviced by a kernel that Secure Exec owns.
 
-Secure Exec runs untrusted guest code inside a fully virtualized VM. Nothing the guest does touches the host directly: there is no real host filesystem, no real host network socket, and no real host process. Every guest syscall is serviced by a kernel that Secure Exec owns.
+## The three components
 
-This page maps the moving parts, from the `secure-exec` package you import down to the Rust kernel that executes guest code.
+- **Client**: trusted. Your process imports `NodeRuntime` (or uses the Rust client), supplies config, policy, and limits, and submits the untrusted payload to run.
+- **Sidecar**: trusted, and the enforcement point. It owns the kernel, the virtual filesystem, the process and socket tables, the permission policy, and the language runtimes that execute guest code.
+- **Executor**: untrusted. Guest JavaScript (V8 isolates) and WASM run here, holding no real capabilities of their own.
 
-## The trust boundary
+## Kernel-owned syscalls
 
-A runtime is three components: a trusted **client**, the trusted **sidecar** (the TCB and enforcement point, which owns the kernel), and the untrusted **executor** that runs the guest. The security boundary is **sidecar to executor**: every guest syscall flows through kernel-owned paths inside the sidecar, so the executor never holds a real capability of its own. The diagram below shows how the components connect; see the [Security Model](/docs/security-model) for the full in-scope and out-of-scope threat model.
+- **Everything is virtualized**: there is no real host filesystem, host network socket, or host process available to the guest.
+- **Every guest syscall flows through the kernel**: filesystem, processes, sockets, pipes, PTYs, and DNS are all serviced by kernel-owned paths inside the sidecar.
+- **The security boundary is sidecar to executor**: the policy and limits are enforced on every scope, so the executor cannot reach a capability the policy denies. See the [Security Model](/docs/security-model) for the in-scope and out-of-scope threat model.
 
-<svg viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trust boundary diagram: a trusted client speaks the wire protocol to a trusted sidecar that owns the kernel; the untrusted executor reaches the kernel through syscalls. The security boundary lies between the sidecar and the executor." style="width:100%;height:auto;font-family:'Manrope',system-ui,sans-serif">
-  <rect x="0" y="0" width="700" height="460" fill="#ffffff" />
+## Full internals reference
 
-  <rect x="20" y="24" width="200" height="120" rx="10" fill="#fbfbfb" stroke="#d4d4d4" stroke-width="1.5" />
-  <text x="120" y="50" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Client</text>
-  <text x="120" y="70" text-anchor="middle" font-size="11" fill="#4a7c4a">trusted</text>
-  <text x="120" y="96" text-anchor="middle" font-size="11" fill="#3a3a3a">NodeRuntime / Rust client</text>
-  <text x="120" y="113" text-anchor="middle" font-size="11" fill="#3a3a3a">config, policy, limits</text>
-  <text x="120" y="132" text-anchor="middle" font-size="10.5" fill="#a14545">submits untrusted payload &#8595;</text>
+The canonical, in-depth architecture reference (packages, crates, trust boundary, and syscall paths) lives with agentOS:
 
-  <line x1="220" y1="84" x2="300" y2="84" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)" />
-  <text x="260" y="76" text-anchor="middle" font-size="10" fill="#3a3a3a">wire</text>
-  <text x="260" y="100" text-anchor="middle" font-size="10" fill="#3a3a3a">protocol</text>
-
-  <rect x="300" y="24" width="380" height="270" rx="10" fill="#fbfbfb" stroke="#d4d4d4" stroke-width="1.5" />
-  <text x="490" y="50" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Sidecar</text>
-  <text x="490" y="69" text-anchor="middle" font-size="11" fill="#4a7c4a">trusted &#183; TCB &#183; enforcement point</text>
-
-  <rect x="324" y="86" width="332" height="186" rx="8" fill="#f3f3f3" stroke="#cfcfcf" stroke-width="1.5" />
-  <text x="490" y="108" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Kernel</text>
-  <text x="490" y="125" text-anchor="middle" font-size="10.5" fill="#6a6a6a">every guest syscall flows through here</text>
-
-  <g font-size="11" fill="#1a1a1a">
-    <rect x="342" y="138" width="86" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="385" y="155" text-anchor="middle">VFS</text>
-    <rect x="438" y="138" width="86" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="481" y="155" text-anchor="middle">processes</text>
-    <rect x="534" y="138" width="104" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="586" y="155" text-anchor="middle">sockets</text>
-    <rect x="342" y="172" width="86" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="385" y="189" text-anchor="middle">pipes</text>
-    <rect x="438" y="172" width="86" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="481" y="189" text-anchor="middle">PTYs</text>
-    <rect x="534" y="172" width="104" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="586" y="189" text-anchor="middle">DNS</text>
-    <rect x="342" y="206" width="296" height="26" rx="5" fill="#ffffff" stroke="#d4d4d4" /><text x="490" y="223" text-anchor="middle">permission policy &#183; network allowlist &#183; resource limits</text>
-  </g>
-
-  <line x1="300" y1="320" x2="680" y2="320" stroke="#a14545" stroke-width="2" stroke-dasharray="7 5" />
-  <text x="490" y="338" text-anchor="middle" font-size="11" font-weight="700" fill="#a14545">security boundary (sidecar &#8596; executor)</text>
-
-  <line x1="490" y1="272" x2="490" y2="248" stroke="#1a1a1a" stroke-width="1.5" />
-  <line x1="490" y1="360" x2="490" y2="320" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrowup)" />
-  <line x1="520" y1="320" x2="520" y2="360" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)" />
-  <text x="566" y="345" text-anchor="middle" font-size="10" fill="#3a3a3a">syscall / reply</text>
-
-  <rect x="300" y="360" width="380" height="86" rx="10" fill="#fbfbfb" stroke="#d4d4d4" stroke-width="1.5" />
-  <text x="490" y="386" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Executor</text>
-  <text x="490" y="405" text-anchor="middle" font-size="11" fill="#a14545">untrusted &#183; assume hostile</text>
-  <text x="490" y="427" text-anchor="middle" font-size="11" fill="#3a3a3a">guest JS in V8 isolates and/or WASM &#183; holds no capabilities</text>
-
-  <defs>
-    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
-      <path d="M0,0 L8,4 L0,8 z" fill="#1a1a1a" />
-    </marker>
-    <marker id="arrowup" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
-      <path d="M0,0 L8,4 L0,8 z" fill="#1a1a1a" />
-    </marker>
-  </defs>
-</svg>
-
-## The big picture
-
-In native mode, a Secure Exec runtime spans two processes:
-
-1. **Your process.** You import `NodeRuntime` from `secure-exec` and call `NodeRuntime.create()`. The runtime drives a low-level `SidecarProcess` handle. This is the client.
-2. **The sidecar process.** `SidecarProcess` spawns the native `secure-exec-sidecar` binary and talks to it over a stdio wire protocol. The sidecar hosts the kernel, the virtual filesystem, the process table, and the language runtimes that actually run guest code.
-
-The guest never runs in your process. It runs inside the sidecar, behind the kernel's isolation boundary, in the executor.
-
-## TypeScript packages
-
-The code you import lives under `packages/`.
-
-### `secure-exec`
-
-The public package. It re-exports exactly one class, `NodeRuntime`, plus its option and result types. This is the surface almost every application should use.
-
-```ts
-import { NodeRuntime } from "secure-exec";
-
-const rt = await NodeRuntime.create();
-try {
-  const { stdout } = await rt.exec("console.log('hi', 1 + 1)");
-  console.log(stdout.trim()); // hi 2
-} finally {
-  await rt.dispose();
-}
-```
-
-`NodeRuntime` is an ergonomic facade. `NodeRuntime.create()` hides the entire setup: spawning the sidecar, opening a session, creating the VM with a bootstrapped root filesystem, mounting the shell and Node runtimes, and waiting for the VM to report ready. Each `exec()` / `run()` / `spawn()` runs the guest as a fresh kernel process.
-
-See [Process Isolation](/docs/process-isolation) for what one runtime isolates and how to choose isolation granularity.
-
-### `@secure-exec/core`
-
-The generic protocol, client, descriptor, and runtime-asset package. `NodeRuntime` itself is implemented here; `secure-exec` is a thin re-export.
-
-`@secure-exec/core` also exports the low-level `SidecarProcess` handle for advanced callers who want to drive sessions, VMs, and the wire protocol directly rather than through `NodeRuntime`:
-
-```ts
-import { SidecarProcess } from "@secure-exec/core/sidecar-process";
-```
-
-`SidecarProcess` is what `NodeRuntime` uses under the hood: it spawns the sidecar binary and exposes the wire protocol. Most applications never need it. Reach for it only when you are building your own runtime facade.
-
-<Aside type="note">Every capability in the wire protocol is reachable from both the TypeScript client (`NodeRuntime` / `SidecarProcess`) and the Rust client, so neither side is a second-class consumer.</Aside>
-
-## Rust crates
-
-The native runtime lives under `crates/`. These build the `secure-exec-sidecar` binary and the kernel it hosts.
-
-| Crate | Role |
-|---|---|
-| `secure-exec-kernel` | The shared kernel plane: virtual filesystem, process and socket tables, pipes, PTYs, permission policy, and DNS. Every guest syscall goes through here. |
-| `secure-exec-v8-runtime` | V8 isolate runtime that executes guest JavaScript. Guest JS runs in isolates; there are no host escapes and no real Node.js builtins for guest work. |
-| `secure-exec-execution` | The native execution plane that wires the kernel to host capabilities on a real machine. |
-| `secure-exec-bridge` | The browser/native portability seam. Shared contracts between the kernel and the execution planes live here. |
-| `secure-exec-sidecar` | Builds the `secure-exec-sidecar` crate and binary. It speaks the stdio wire protocol and hosts the kernel and runtimes. |
-| `secure-exec-client` | The Rust client transport. It exposes the `SidecarProcess` struct, the Rust counterpart to the TypeScript `SidecarProcess`. |
-
-Supporting crates include `secure-exec-vm-config` (shared VM-creation config DTOs) and `secure-exec-sidecar-browser` (the browser-side sidecar scaffold).
-
-<Aside type="caution">`crates/bridge/` is the portability layer; shared contracts belong there. `crates/execution/` is the native execution implementation and must not become the browser portability seam.</Aside>
-
-## Language runtimes inside the VM
-
-The kernel cannot run a program until a runtime is mounted to handle it. `NodeRuntime.create()` mounts two:
-
-- **WASM command runtime.** Provides `sh` plus WASM-backed coreutils. `sh` is required: without it the kernel cannot spawn anything, including the guest `node` program and any child the guest spawns through `node:child_process`.
-- **Node runtime.** Provides the real V8-backed `node`. Guest programs are written to a module inside the VM and executed as `node <file>` through the kernel.
-
-You can point at a different set of WASM command binaries with the `commandsDir` option. See [Child Processes](/docs/features/child-processes) for how guest code spawns commands inside the VM.
-
-## Request mechanics: handles and crates per hop
-
-The [Architecture Overview](/docs/runtime-modes) walks the request lifecycle step by step. This section names the concrete handle or crate at each hop so you know which code owns each stage:
-
-- **Client to sidecar.** `NodeRuntime` (in `@secure-exec/core`) drives a `SidecarProcess` handle, which spawns the `secure-exec-sidecar` binary and carries every request over the **stdio wire protocol**. The Rust client mirrors this with its own `SidecarProcess` struct in `secure-exec-client`.
-- **Inside the sidecar.** `secure-exec-sidecar` hosts the kernel (`secure-exec-kernel`) and starts the guest process. Guest JavaScript executes in a **V8 isolate** owned by `secure-exec-v8-runtime`; `secure-exec-execution` wires the kernel to host capabilities.
-- **Guest syscalls.** Filesystem, process, env, and (when permitted) network calls are serviced by `secure-exec-kernel` against the VM's virtualized resources, gated by the permission policy. Guest `fetch()` runs through undici inside the V8 isolate, then through the kernel socket table, so even network access stays inside the isolation boundary.
-
-## Permissions
-
-The sidecar is the enforcement point: the kernel checks the applied permission policy on every scope, so the executor cannot reach a capability the policy denies. `NodeRuntime.create()` applies a secure default (filesystem, child-process, process, and env allowed; network denied). See [Permissions](/docs/features/permissions) for the full policy model and how to grant scopes.
-
-## Lifecycle
-
-The caller owns each runtime, and `dispose()` tears down the sidecar process and frees the VM (see the `create()` / `dispose()` example above). Runtimes are independent: disposing one never affects another, and a crash in one runtime's process does not touch the others. See [Process Isolation](/docs/process-isolation) for the isolation guarantees in detail.
+- [agentOS: Architecture internals](https://agentos-sdk.dev/docs/architecture)

@@ -1,6 +1,6 @@
 ---
 title: TypeScript SDK
-description: Reference for the secure-exec TypeScript API surface.
+description: Reference for the Secure Exec TypeScript API surface.
 ---
 import { Aside } from '@astrojs/starlight/components';
 
@@ -25,7 +25,7 @@ try {
 ```
 
 <Aside type="note">
-Each `NodeRuntime.create()` boots a fully virtualized VM, and each `exec()` / `run()` / `spawn()` starts a fresh guest process inside that VM. The VM is the unit of isolation. By default several VMs share one sidecar process (a performance optimization that does not weaken isolation); pass a `SidecarProcess` to `create({ sidecar })` to place a runtime on a sidecar you choose. See [Process Isolation](/docs/process-isolation).
+Each `NodeRuntime.create()` boots a fully virtualized VM, and each `exec()` / `run()` / `spawn()` starts a fresh guest process inside that VM. The VM is the unit of isolation. By default several VMs share one sidecar process (a performance optimization that does not weaken isolation); pass a `SidecarProcess` to `create({ sidecar })` to place a runtime on a sidecar you choose. See [Process Isolation](/docs/architecture).
 </Aside>
 
 <Aside type="tip">

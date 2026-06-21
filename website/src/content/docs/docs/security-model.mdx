@@ -1,119 +1,22 @@
 ---
 title: Security Model
-description: How secure-exec isolates untrusted code, what it protects against, and what you are responsible for.
+description: A short overview of Secure Exec isolation and trust, with a link to the canonical agentOS security model.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
+import { LinkCard } from '@astrojs/starlight/components';
 
-Secure Exec runs guest code inside a fully virtualized VM. Every `NodeRuntime.create()` boots its own kernel with a virtual filesystem, process table, socket table, pipes, PTYs, a permission policy, and managed language runtimes. Guest JavaScript executes in a V8 isolate, and every guest syscall is serviced by the kernel rather than the host. There are no host escapes: guest code cannot spawn a real host process, touch the real host filesystem, or open a real host network socket.
+Secure Exec runs guest code inside a fully virtualized VM so untrusted code stays contained. At a glance:
 
-Host access is deny-by-default for the network and is only available through capabilities you explicitly configure.
+- **V8 isolate boundary**: Guest JavaScript runs in a V8 isolate inside the kernel. It never spawns a real host process, touches the real host filesystem, or opens a real host socket.
+- **Sidecar enforces**: A trusted sidecar owns the kernel, VFS, socket table, and permission policy. Every guest syscall is mediated and checked there, not on the host.
+- **Executor is untrusted**: The code you submit for execution is treated as actively hostile. How it reached the executor never makes it trusted.
+- **Secure defaults**: The network is deny-by-default; filesystem, child processes, process info, and env are enabled so normal programs run. Resource and timing limits bound runaway or hostile code.
 
-## Runtime guarantees
+## Full reference
 
-When you run guest code through a `NodeRuntime`, the runtime enforces:
+The canonical threat model, trust boundaries, and detailed enforcement guarantees are owned by agentOS.
 
-- **Kernel isolation.** Guest code runs in a V8 isolate inside the VM. It reaches the outside world only through kernel-owned VFS, process, socket, pipe, PTY, permission, and DNS paths.
-- **Per-runtime containment.** Each runtime is its own VM. Two runtimes share no filesystem, globals, module state, memory, or crash fate, because each is a separate VM. The sidecar process that hosts those VMs is shared by default (a performance optimization), but isolation is enforced at the VM level, not the host-process level. See [Process Isolation](/docs/process-isolation).
-- **Network deny-by-default.** Guest sockets and outbound requests are blocked until you opt in with a `network` permission. Other scopes (filesystem, child processes, process, env) are enabled so normal programs run.
-- **Resource and timing limits.** The VM bounds memory, CPU time, payload sizes, and (optionally) freezes high-resolution timers to blunt timing side channels. See [Resource Limits](/docs/features/resource-limits).
-
-## Trust boundaries
-
-There are two boundaries to reason about.
-
-### The runtime boundary
-
-This is the VM that Secure Exec gives you. Guest code is confined to a V8 isolate inside the kernel. Every syscall, file read, socket open, child-process spawn, and DNS lookup is mediated by the kernel and checked against the runtime's permission policy. This is the boundary Secure Exec owns and enforces for you.
-
-Concretely, the kernel mediates:
-
-- **Filesystem.** A virtual, in-memory filesystem. Guest reads and writes never reach the real host filesystem. Host data enters the VM only through `files`, `mounts`, or `nodeModules` that you configure explicitly. See [Virtual Filesystem](/docs/features/virtual-filesystem).
-- **Processes.** `node:child_process` spawns kernel-managed guest processes, never real host processes. Children can only run the commands the VM mounts (WASM-backed `sh` and coreutils, V8-backed `node`). See [Child Processes](/docs/features/child-processes).
-- **Network.** Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table. Guest `fetch()` runs through undici inside the isolate and then through the kernel socket table; it never opens a real host socket. See [Networking](/docs/features/networking).
-- **Host tools.** Registered `tools` are the only sanctioned way to hand the guest a named host capability. The guest invokes a tool by name with JSON input, the call round-trips to the host handler, and only the handler's return value comes back. The guest never receives the underlying host access.
-
-### The host boundary
-
-This is your process: the Node.js application, container, or serverless function that creates the runtime. Your host code is trusted infrastructure, and you are responsible for hardening it.
-
-The runtime boundary protects the host from the guest. It does not harden your host process against everything else. For internet-facing workloads that take untrusted input, run your host inside an already-hardened environment (for example AWS Lambda, Google Cloud Run, or a similar sandboxed platform).
-
-Both boundaries matter. The VM alone is not enough without a hardened host, and a hardened host alone does not protect against code that runs with full host access inside your own process.
-
-## Isolation granularity
-
-Because isolation is per VM (one VM per runtime), you decide the blast radius by deciding how many runtimes to create and what to put in each. A crash, resource exhaustion, or escape attempt is contained to a single VM; other VMs keep running, even when they share a sidecar process.
-
-- **One runtime per tenant** so one tenant cannot disrupt another.
-- **One runtime per task** for untrusted or high-risk code: create it, run the task, dispose it, and the next task starts from a clean VM.
-- **A shared runtime for trusted work** to amortize startup cost. Each `exec()` / `run()` still gets a fresh guest process, so in-memory state does not leak between runs, but the filesystem and VM are shared.
-
-See [Process Isolation](/docs/process-isolation) for the full model.
-
-## What enters the VM
-
-The host filesystem is never exposed to the guest by default. Host data crosses the runtime boundary only through options you set on `NodeRuntime.create()`:
-
-- **`files`** seeds bytes into the virtual filesystem. The bytes are copied in; the host path is never exposed.
-- **`mounts`** projects a host directory at a guest path, Docker-style. The guest sees only the mounted subtree, read through the VFS lazily, never the wider host filesystem. Mounts are read-only unless you pass `readOnly: false`.
-- **`nodeModules`** projects a host `node_modules` directory (read-only, lazily) at a guest path so guest `import`/`require` resolves real installed packages. It defaults to `/tmp/node_modules`, where the resolution walk for `exec()` / `run()` programs begins.
-
-In every case the guest sees only the subtree you mount, and writes to read-only mounts are rejected. See [Module Loading](/docs/features/module-loading) for how resolution works over the projected tree.
-
-```ts
-import { NodeRuntime } from "secure-exec";
-
-const rt = await NodeRuntime.create({
-  // Network stays denied by default; only opt in when you mean to.
-  permissions: { network: "deny" },
-  files: { "/home/user/input.json": '{"ok":true}' },
-  nodeModules: "/abs/path/to/project/node_modules",
-});
-
-try {
-  const result = await rt.exec(`
-    import { readFileSync } from "node:fs";
-    console.log(readFileSync("/home/user/input.json", "utf8"));
-  `);
-  console.log(result.stdout.trim());
-} finally {
-  await rt.dispose();
-}
-```
-
-## Permissions
-
-Permissions are the capability gate at the runtime boundary. They are merged over a secure default that denies the network and enables the filesystem, child processes, process info, and env. Because the merge is partial, you name only the scope you change.
-
-```ts
-// Grant network egress; everything else keeps the secure defaults.
-const rt = await NodeRuntime.create({ permissions: { network: "allow" } });
-```
-
-A scope can be `"allow"`, `"deny"`, or a `{ default, rules }` policy that matches request patterns. Guest servers are reachable only over loopback inside the VM unless you list a port in `loopbackExemptPorts`. See [Permissions](/docs/features/permissions) and [Networking](/docs/features/networking) for the full policy shape.
-
-## Resource and timing limits
-
-The VM bounds guest execution so runaway or hostile code cannot hang or exhaust the host:
-
-- **`timeout`** and **`signal`** on `exec()` / `run()` kill or cancel a run from the outside.
-- **Memory, CPU-time, payload, and timing limits** are enforced by the VM. In the default timing-mitigation mode, high-resolution clocks (`Date.now()`, `performance.now()`, `process.hrtime()`) are frozen within a run and `SharedArrayBuffer` is removed, to blunt timing side channels of the kind used in Spectre-style attacks. These VM-enforced limits are not yet exposed as `NodeRuntime.create()` options.
-
-See [Resource Limits](/docs/features/resource-limits) for the controls and their defaults.
-
-## Output handling
-
-`exec()` and `run()` return captured `stdout` and `stderr` as part of the result. For long-running or high-volume guests, stream output incrementally with the `onStdout` / `onStderr` hooks (which receive raw `Uint8Array` chunks) instead of accumulating everything in host memory. See [Output Capture](/docs/features/output-capture).
-
-## Under the hood
-
-Each runtime's VM is hosted by a sidecar process, and by default several VMs share one sidecar. That sharing is a performance optimization that does not weaken VM isolation, which is enforced at the VM level. See [Process Isolation](/docs/process-isolation) for the concept and the [TypeScript SDK](/docs/sdks/typescript) for the `SidecarProcess` API.
-
-<Aside type="caution">The runtime boundary contains guest code, but you still own the host. Treat the host process as trusted infrastructure, harden it, and prefer a fresh runtime per untrusted task so an escape attempt cannot outlive a single VM.</Aside>
-
-## Related
-
-<LinkCard title="Process Isolation" href="/docs/process-isolation" description="One isolated VM per runtime; a fresh guest process per run." />
-<LinkCard title="Permissions" href="/docs/features/permissions" description="The capability gate at the runtime boundary." />
-<LinkCard title="Networking" href="/docs/features/networking" description="Guest network access through the kernel socket table." />
-<LinkCard title="Resource Limits" href="/docs/features/resource-limits" description="Timeouts, cancellation, and the limits the VM enforces." />
+<LinkCard
+  title="agentOS: Security Model"
+  href="https://agentos-sdk.dev/docs/security-model"
+  description="The complete trust model, threat model, and enforcement details."
+/>

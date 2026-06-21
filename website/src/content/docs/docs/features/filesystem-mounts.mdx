@@ -3,97 +3,16 @@ title: Filesystem Mounts
 description: Project real host directories and remote storage into the VM's virtual filesystem.
 ---
 
-A mount projects an external directory into the VM's virtual filesystem so guest code reads and writes it as an ordinary POSIX directory. The most common backend is a real host directory, Docker-style, configured with `create({ mounts })`. Remote and cloud backends (Amazon S3, Google Drive, sandbox-agent) attach the same way at the mount layer.
+Filesystem mounts project an external directory (a real host directory, Amazon S3, Google Drive, or a remote sandbox-agent) into the VM's virtual filesystem so guest code reads and writes it as an ordinary POSIX directory.
 
-For reading and writing the in-VM filesystem itself, see [Filesystem](/docs/features/filesystem). For the isolation model behind mounts, see [Virtual Filesystem](/docs/features/virtual-filesystem).
-
-## Mounting host directories (`create({ mounts })`)
-
-Project a real host directory into the VM. Each mount makes a host directory available at a guest path.
-
-- `guestPath`: absolute guest path the directory appears at.
-- `hostPath`: absolute host directory to project.
-- `readOnly`: defaults to `true`; pass `false` to allow guest writes.
-
-The guest sees only the mounted subtree, never the wider host filesystem. Files are read lazily through the VFS, so large trees (for example a `node_modules` package such as the TypeScript compiler) are projected without copying their bytes up front.
-
-```ts
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { NodeRuntime } from "secure-exec";
-
-// A real directory on the host containing greeting.txt ("value-from-host").
-const hostDir = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "host-data",
-);
-
-const mounted = await NodeRuntime.create({
-  mounts: [
-    {
-      guestPath: "/mnt/host-data",
-      hostPath: hostDir,
-      readOnly: true,
-    },
-  ],
-});
-
-try {
-  const { stdout, stderr, exitCode } = await mounted.exec(`
-    import { readFileSync, readdirSync } from "node:fs";
-
-    const entries = readdirSync("/mnt/host-data");
-    const greeting = readFileSync("/mnt/host-data/greeting.txt", "utf8");
-
-    console.log("mounted contents:", JSON.stringify(entries));
-    console.log("guest read host file:", greeting.trim());
-  `);
-
-  console.log("[mount] exitCode:", exitCode);
-  if (stderr.trim()) console.log("[mount] guest stderr:", stderr.trim());
-  console.log("[mount] guest stdout:");
-  console.log(stdout.trim());
-} finally {
-  await mounted.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-filesystem)*
-
-Output:
-
-```
-[mount] exitCode: 0
-[mount] guest stdout:
-mounted contents: ["greeting.txt"]
-guest read host file: value-from-host
-```
-
-## Read-only by default
-
-Mounts are read-only unless you opt in. Leave `readOnly` unset (or `true`) to project a directory the guest can read but not modify. Pass `readOnly: false` to let guest writes land on the host directory:
+Declare host directory mounts on the VM config:
 
 ```ts
 const rt = await NodeRuntime.create({
   mounts: [
-    {
-      guestPath: "/workspace",
-      hostPath: "/abs/path/to/project",
-      readOnly: false, // allow the guest to write back to the host directory
-    },
+    { guestPath: "/mnt/host-data", hostPath: "/abs/path/on/host", readOnly: true },
   ],
 });
 ```
 
-## Remote and cloud backends
-
-Beyond host directories, a guest path can be backed by a remote or cloud store. Each backend ships as its own package and returns a mount descriptor attached at the lower-level VM mount layer (not through a `create()` flag). Guest code reads and writes the mount as an ordinary POSIX directory.
-
-- **`@secure-exec/s3`** (`createS3Backend`): backs a mount with an Amazon S3 bucket.
-- **`@secure-exec/google-drive`** (`createGoogleDriveBackend`): backs a mount with Google Drive.
-- **`@secure-exec/sandbox`** (`createSandboxFs`): backs a mount with a remote sandbox-agent host, scoping guest filesystem operations under a base path.
-
-The kernel can also layer a writable overlay over a read-only base so guest writes land in the overlay and the base is never mutated; overlays are configured at the mount layer rather than through a `create()` option.
-
-For the full option and type shapes (`HostDirectoryMount` and the backend descriptors), see the [TypeScript SDK reference](/docs/sdks/typescript).
+Secure Exec uses the same mounting model as agentOS. For the full reference (host directories, S3, Google Drive, overlays, and read-only/writable semantics), see [Sandbox Mounting](https://agentos-sdk.dev/docs/sandbox).
