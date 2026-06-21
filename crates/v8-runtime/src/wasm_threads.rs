@@ -23,7 +23,7 @@
 //! kernel state, handled by the per-VM lock at the kernel/sidecar layer (see the spec, Phase 2).
 
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicI32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicI32, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 /// A wasm linear-memory backing store that can be moved to a worker isolate thread.
@@ -215,6 +215,53 @@ fn global_thread_ids() -> &'static ThreadIdAllocator {
     IDS.get_or_init(ThreadIdAllocator::default)
 }
 
+/// Bounds the number of *live* worker threads (= worker isolates + OS threads), so an untrusted guest
+/// cannot spawn-bomb the host (a resource-exhaustion escape per the trust model). A slot is reserved
+/// before a worker OS thread is spawned and released when it exits. The cap is process-global for now;
+/// moving it to the per-VM `ResourceLimits` on the BARE wire is a tracked DoD item (§10).
+#[derive(Debug)]
+pub struct ThreadSlots {
+    live: AtomicUsize,
+    max: usize,
+}
+
+impl ThreadSlots {
+    pub fn new(max: usize) -> Self {
+        Self { live: AtomicUsize::new(0), max }
+    }
+
+    /// Atomically reserve a slot, returning `false` (without reserving) if at the cap. The
+    /// reserve-then-rollback keeps the check-and-increment race-free: concurrent spawners each see a
+    /// distinct `prev`, so at most `max` succeed.
+    pub fn try_reserve(&self) -> bool {
+        let prev = self.live.fetch_add(1, Ordering::SeqCst);
+        if prev >= self.max {
+            self.live.fetch_sub(1, Ordering::SeqCst);
+            false
+        } else {
+            true
+        }
+    }
+
+    /// Release a previously reserved slot (called when a worker thread exits).
+    pub fn release(&self) {
+        self.live.fetch_sub(1, Ordering::SeqCst);
+    }
+
+    pub fn live(&self) -> usize {
+        self.live.load(Ordering::SeqCst)
+    }
+}
+
+/// Default cap on concurrent worker threads per process. Generous enough for GLib/GTK thread pools,
+/// bounded enough to prevent host OS-thread/isolate exhaustion.
+pub const DEFAULT_MAX_LIVE_THREADS: usize = 128;
+
+fn global_thread_slots() -> &'static ThreadSlots {
+    static SLOTS: OnceLock<ThreadSlots> = OnceLock::new();
+    SLOTS.get_or_init(|| ThreadSlots::new(DEFAULT_MAX_LIVE_THREADS))
+}
+
 /// JS run in the worker isolate: instantiate the shared module against the shared memory and enter the
 /// guest at `wasi_thread_start(tid, start_arg)`. The wasi imports are no-op stubs: a worker that makes
 /// real host calls is the GTK path (Phase 2, routed through the sidecar); the minimal threads spike's
@@ -254,6 +301,15 @@ fn set_global<'s>(
 /// errors are swallowed (a trapping guest thread would, in the production path, fault the whole VM —
 /// see the spec; for the spike a failed worker simply never flips the join flag and the test fails).
 fn run_worker(start: ThreadStart) {
+    // Release the reserved thread slot when this worker exits (normal return or early bail).
+    struct SlotGuard;
+    impl Drop for SlotGuard {
+        fn drop(&mut self) {
+            global_thread_slots().release();
+        }
+    }
+    let _slot = SlotGuard;
+
     crate::isolate::init_v8_platform();
     let mut isolate = crate::isolate::create_isolate(None);
     let context = crate::isolate::create_context(&mut isolate);
@@ -312,9 +368,18 @@ fn wasm_thread_spawn_callback<'s>(
         None => return fail(&mut rv),
     };
 
+    // Enforce the live-thread cap BEFORE allocating a tid / spawning, so a guest cannot spawn-bomb
+    // the host. The slot is released when the worker exits (run_worker's SlotGuard).
+    if !global_thread_slots().try_reserve() {
+        return fail(&mut rv);
+    }
+
     let tid = match global_thread_ids().allocate() {
         Some(tid) => tid,
-        None => return fail(&mut rv),
+        None => {
+            global_thread_slots().release();
+            return fail(&mut rv);
+        }
     };
 
     let start = ThreadStart {
@@ -329,6 +394,7 @@ fn wasm_thread_spawn_callback<'s>(
         .spawn(move || run_worker(start))
         .is_err()
     {
+        global_thread_slots().release();
         return fail(&mut rv);
     }
     rv.set_int32(tid);
@@ -368,5 +434,26 @@ mod tests {
         let r1 = ThreadSpawnRegistry::global() as *const _;
         let r2 = ThreadSpawnRegistry::global() as *const _;
         assert_eq!(r1, r2, "the registry is a single process-global");
+    }
+
+    #[test]
+    fn thread_slots_enforce_cap_and_release() {
+        let slots = ThreadSlots::new(2);
+        assert!(slots.try_reserve(), "first reservation under cap");
+        assert!(slots.try_reserve(), "second reservation hits cap exactly");
+        assert_eq!(slots.live(), 2);
+        assert!(!slots.try_reserve(), "third reservation rejected at cap");
+        assert_eq!(slots.live(), 2, "rejected reservation must not leak a slot");
+        slots.release();
+        assert_eq!(slots.live(), 1);
+        assert!(slots.try_reserve(), "slot freed by release is reusable");
+        assert_eq!(slots.live(), 2);
+    }
+
+    #[test]
+    fn thread_slots_zero_cap_admits_nothing() {
+        let slots = ThreadSlots::new(0);
+        assert!(!slots.try_reserve());
+        assert_eq!(slots.live(), 0);
     }
 }
