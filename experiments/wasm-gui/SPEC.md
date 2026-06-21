@@ -463,6 +463,20 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      session must use LOW-OVERHEAD methods (counters dumped at exit, not hot-path ErrorF) and likely needs
      input-vs-request scheduling fairness in the server main loop / `WaitForSomething`/`ProcessInputEvents`
      drive, not a delivery-function fix.
+     ISOLATED FURTHER (2026-06-21, ~16 passes): the cause is st-window/connection specific, NOT the loop,
+     PTY, focus, or XIM. Proof: `guest-xclient/xpoll-target.c` (a MINIMAL libX11 client using st's EXACT
+     non-blocking XPending+nanosleep poll loop, no Xft, no PTY) receives KeyPress fine (green=39888) under
+     twm click-to-focus -- so the poll loop is NOT the problem. Disabling st's PTY driving entirely (a
+     hardcoded NOPTY build) did NOT help -- so PTY driving is NOT the cause. With focus CONFIRMED on st's
+     window (`get_input_focus` returns st win, VIEWABLE, KeyPressMask set), st receives ZERO input events
+     (no ButtonPress AND no KeyPress -- only Expose/VisibilityNotify), while xpoll-target under identical
+     conditions gets them. So the remaining suspect is st's window CREATION/CONNECTION: st uses
+     `XCreateWindow` with a custom visual + colormap (CWColormap, for Xft/ARGB) and a heavy libxcb
+     connection, vs xpoll-target's `XCreateSimpleWindow` on the default visual. Next: compare st's window
+     attributes/visual to a working client, and check whether st's heavy libxcb reply traffic buries
+     input events in the xcb event queue (XCB special-event / sequence handling) so Xlib XPending never
+     surfaces them. Reproduce the working baseline with `build-xclient.sh xpoll-target` + the green-test
+     inject flow.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
