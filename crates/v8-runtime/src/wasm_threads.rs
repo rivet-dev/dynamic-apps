@@ -415,15 +415,124 @@ fn wasm_thread_spawn_callback<'s>(
     rv.set_int32(tid);
 }
 
-/// Register `globalThis.__agentOsWasmThreadSpawn` on the current context so the wasm runner's
-/// `wasi.thread-spawn` import can reach it. Inert for non-threaded guests (they never call it).
+/// Native `__agentOsWasmThreadRegister(start_arg, module, memory) -> {token, tid}` (or null on
+/// failure). The **sidecar-mediated** worker path (spec Phase 2, approach a): the spawning isolate
+/// extracts the shared module + memory and reserves a tid+slot, registering a `ThreadStart` under an
+/// opaque token, but does NOT spawn — the runner then asks the sidecar (`wasm.thread_spawn`) to create
+/// a worker *session* in the same VM (sharing the parent kernel pid → shared fd table) that consumes
+/// the token via `__agentOsWasmThreadBootstrap`. This is what gives worker threads real kernel host
+/// calls (the worker session's host imports route to the kernel), unlike the bare-isolate direct-spawn
+/// (`__agentOsWasmThreadSpawn`) used for compute-only threads.
+fn wasm_thread_register_callback<'s>(
+    scope: &mut v8::HandleScope<'s>,
+    args: v8::FunctionCallbackArguments<'s>,
+    mut rv: v8::ReturnValue,
+) {
+    let null = |scope: &mut v8::HandleScope<'s>, rv: &mut v8::ReturnValue| {
+        rv.set(v8::null(scope).into());
+    };
+
+    let start_arg = args.get(0).int32_value(scope).unwrap_or(0);
+    let module = match v8::Local::<v8::WasmModuleObject>::try_from(args.get(1)) {
+        Ok(module) => module,
+        Err(_) => return null(scope, &mut rv),
+    };
+    let compiled = module.get_compiled_module();
+    let context = scope.get_current_context();
+    let (serialized_memory, backing) = match serialize_shared_memory(scope, context, args.get(2)) {
+        Some(parts) => parts,
+        None => return null(scope, &mut rv),
+    };
+    if !global_thread_slots().try_reserve() {
+        return null(scope, &mut rv);
+    }
+    let tid = match global_thread_ids().allocate() {
+        Some(tid) => tid,
+        None => {
+            global_thread_slots().release();
+            return null(scope, &mut rv);
+        }
+    };
+    let token = ThreadSpawnRegistry::global().register(ThreadStart {
+        module: SendCompiledModule(compiled),
+        memory_backing: SendBackingStore(backing),
+        serialized_memory,
+        tid,
+        start_arg,
+    });
+
+    let result = v8::Object::new(scope);
+    let token_key = v8::String::new(scope, "token").unwrap();
+    let token_val = v8::Number::new(scope, token as f64);
+    result.set(scope, token_key.into(), token_val.into());
+    let tid_key = v8::String::new(scope, "tid").unwrap();
+    let tid_val = v8::Integer::new(scope, tid);
+    result.set(scope, tid_key.into(), tid_val.into());
+    rv.set(result.into());
+}
+
+/// Native `__agentOsWasmThreadBootstrap(token) -> bool`. Run in the WORKER session's isolate: consume
+/// the registered `ThreadStart`, reconstruct the shared memory + module, and stash them (plus tid /
+/// start_arg) as globals for the runner's thread-mode bootstrap to instantiate + call
+/// `wasi_thread_start`. Releases the reserved slot if the token is missing (already taken / failed).
+fn wasm_thread_bootstrap_callback<'s>(
+    scope: &mut v8::HandleScope<'s>,
+    args: v8::FunctionCallbackArguments<'s>,
+    mut rv: v8::ReturnValue,
+) {
+    let token = args.get(0).number_value(scope).unwrap_or(0.0) as u64;
+    let Some(start) = ThreadSpawnRegistry::global().take(token) else {
+        rv.set_bool(false);
+        return;
+    };
+    let context = scope.get_current_context();
+    let memory =
+        match deserialize_shared_memory(scope, context, &start.serialized_memory, &start.memory_backing.0) {
+            Some(memory) => memory,
+            None => {
+                global_thread_slots().release();
+                rv.set_bool(false);
+                return;
+            }
+        };
+    let module = match v8::WasmModuleObject::from_compiled_module(scope, &start.module.0) {
+        Some(module) => module,
+        None => {
+            global_thread_slots().release();
+            rv.set_bool(false);
+            return;
+        }
+    };
+    set_global(scope, context, "__threadMem", memory);
+    set_global(scope, context, "__threadMod", module.into());
+    let tid_value = v8::Integer::new(scope, start.tid).into();
+    set_global(scope, context, "__threadTid", tid_value);
+    let start_arg_value = v8::Integer::new(scope, start.start_arg).into();
+    set_global(scope, context, "__threadStartArg", start_arg_value);
+    rv.set_bool(true);
+}
+
+/// Release a worker thread slot from the sidecar-mediated path when its session exits. (The
+/// bare-isolate direct-spawn path releases via `run_worker_from_token`'s guard; the sidecar path's
+/// worker session calls this when its execution ends.)
+pub fn release_worker_thread_slot() {
+    global_thread_slots().release();
+}
+
+/// Register the wasm-threads native functions on the current context so the wasm runner can reach
+/// them. Inert for non-threaded guests (they never call them).
 pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
     let context = scope.get_current_context();
     let global = context.global(scope);
-    let template = v8::FunctionTemplate::builder(wasm_thread_spawn_callback).build(scope);
-    if let Some(func) = template.get_function(scope) {
-        if let Some(key) = v8::String::new(scope, "__agentOsWasmThreadSpawn") {
-            global.set(scope, key.into(), func.into());
+    for (name, tmpl) in [
+        ("__agentOsWasmThreadSpawn", v8::FunctionTemplate::builder(wasm_thread_spawn_callback).build(scope)),
+        ("__agentOsWasmThreadRegister", v8::FunctionTemplate::builder(wasm_thread_register_callback).build(scope)),
+        ("__agentOsWasmThreadBootstrap", v8::FunctionTemplate::builder(wasm_thread_bootstrap_callback).build(scope)),
+    ] {
+        if let Some(func) = tmpl.get_function(scope) {
+            if let Some(key) = v8::String::new(scope, name) {
+                global.set(scope, key.into(), func.into());
+            }
         }
     }
 }
