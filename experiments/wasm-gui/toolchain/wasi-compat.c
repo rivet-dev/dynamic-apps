@@ -2,15 +2,21 @@
    groups/signals). Linked into X-stack executables via the meson cross file. */
 #include <stdio.h>
 #include <sys/types.h>
+/* Under the wasi-threads ABI (SECURE_EXEC_WASM_THREADS, Phase 0) these come from the real
+   libc/libpthread and must NOT be redefined here, or the link hits duplicate symbols. */
+#ifndef SECURE_EXEC_WASM_THREADS
 void flockfile(FILE *f) { (void)f; }
 void funlockfile(FILE *f) { (void)f; }
 int ftrylockfile(FILE *f) { (void)f; return 0; }
+#endif
 int getpgrp(void) { return 1; }
 int setpgid(int p, int g) { (void)p; (void)g; return 0; }
 int setsid(void) { return 1; }              /* no process sessions on wasi (JWM/WMs call it once) */
 void tzset(void) {}                          /* no timezone db on wasi; localtime stays UTC */
 unsigned umask(unsigned m) { (void)m; return 0; }
+#ifndef SECURE_EXEC_WASM_THREADS
 int pthread_sigmask(int how, const void *set, void *old) { (void)how; (void)set; (void)old; return 0; }
+#endif
 #include <string.h>
 struct utsname;
 int uname(struct utsname *u) {
@@ -30,10 +36,12 @@ int setrlimit(int r, const void *l) { (void)r; (void)l; return 0; }
 void *gethostbyname(const char *n) { (void)n; return 0; }
 int msync(void *a, unsigned long l, int f) { (void)a; (void)l; (void)f; return 0; }
 int sigprocmask(int h, const void *s, void *o) { (void)h; (void)s; (void)o; return 0; }
+#ifndef SECURE_EXEC_WASM_THREADS
 int pthread_create(void *t, const void *a, void *(*f)(void *), void *arg) { (void)t; (void)a; (void)f; (void)arg; return 1; }
 int pthread_join(unsigned long t, void **r) { (void)t; (void)r; return 0; }
 int pthread_attr_setscope(void *a, int s) { (void)a; (void)s; return 0; }
 int pthread_setname_np(unsigned long t, const char *n) { (void)t; (void)n; return 0; }
+#endif
 void __SIG_IGN(int s) { (void)s; }
 /* process/net stubs genuinely absent from wasi (X server runs single-process, local-only). */
 int fork(void) { return -1; }

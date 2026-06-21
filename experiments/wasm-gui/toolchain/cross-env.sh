@@ -24,7 +24,7 @@ if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   THREADS_SYSROOT="$WSDK/share/wasi-sysroot"
   PREFIX="$EXP/third_party/wasm-prefix-threads"
   THREADS_MEM_MAX=$((512*1024*1024))
-  THREADS_FLAGS="-pthread -matomics -mbulk-memory"
+  THREADS_FLAGS="-pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS"
   THREADS_LDFLAGS="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$THREADS_MEM_MAX -Wl,--export=wasi_thread_start"
 else
   WASM_TARGET="wasm32-wasip1"
@@ -51,13 +51,35 @@ export SECURE_EXEC_TOOLCHAIN_HOME="$REPO"
 CROSS_CONFIGURE_ARGS="--host=wasm32-wasi --prefix=$PREFIX --enable-static --disable-shared --disable-malloc0returnsnull"
 
 # Generate a workspace-local meson cross file with this workspace's compat/prefix paths baked in
-# (meson cross files cannot self-locate). sysroot/wasi-sdk still point at the toolchain home.
+# (meson cross files cannot self-locate). Threads mode swaps target/sysroot/c++-include, drops the
+# emulated single-threaded pthread for the real one + shared-memory link flags, and uses the threaded
+# wasi-compat object (pthread/flockfile stubs #ifdef'd out under -DSECURE_EXEC_WASM_THREADS).
 CROSS_INI="$EXP/toolchain/wasi-sdk-cross.gen.ini"
+if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
+  MESON_SYSROOT="$THREADS_SYSROOT"
+  MESON_LIBSUBDIR="wasm32-wasip1-threads"
+  MESON_C_THREADS="'-pthread', '-matomics', '-mbulk-memory', '-DSECURE_EXEC_WASM_THREADS', "
+  MESON_C_EMUL_PTHREAD=""
+  MESON_LINK_THREADS="'-Wl,--shared-memory', '-Wl,--import-memory', '-Wl,--export-memory', '-Wl,--max-memory=$THREADS_MEM_MAX', '-Wl,--export=wasi_thread_start', "
+  MESON_LINK_EMUL_PTHREAD=""
+  MESON_WASI_COMPAT_O="$EXP/toolchain/wasi-compat-threads.o"
+  # Compile the threaded compat object (pthread/flockfile stubs compiled out) for the final link.
+  "$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$THREADS_SYSROOT" -O2 -DSECURE_EXEC_WASM_THREADS \
+    -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$MESON_WASI_COMPAT_O" 2>/dev/null || true
+else
+  MESON_SYSROOT="$SYSROOT"
+  MESON_LIBSUBDIR="wasm32-wasip1"
+  MESON_C_THREADS=""
+  MESON_C_EMUL_PTHREAD="'-D_WASI_EMULATED_PTHREAD', "
+  MESON_LINK_THREADS=""
+  MESON_LINK_EMUL_PTHREAD="'-lwasi-emulated-pthread', "
+  MESON_WASI_COMPAT_O="$EXP/toolchain/wasi-compat.o"
+fi
 cat > "$CROSS_INI" <<INI
 [constants]
 wasi_sdk = '$WSDK'
-sysroot = '$SYSROOT'
-vanilla_lib = wasi_sdk / 'share/wasi-sysroot/lib/wasm32-wasip1'
+sysroot = '$MESON_SYSROOT'
+vanilla_lib = wasi_sdk / 'share/wasi-sysroot/lib/$MESON_LIBSUBDIR'
 
 [binaries]
 c = '$EXP/toolchain/clang-wasi-wrap.sh'
@@ -78,10 +100,10 @@ endian = 'little'
 
 [built-in options]
 default_library = 'static'
-c_args = ['--target=wasm32-wasip1', '--sysroot=' + sysroot, '-D_WASI_EMULATED_MMAN', '-D_GNU_SOURCE', '-D_WASI_EMULATED_PROCESS_CLOCKS', '-D_WASI_EMULATED_PTHREAD', '-mllvm', '-wasm-enable-sjlj', '-DHAVE_SYS_RESOURCE_H', '-Wno-error=implicit-function-declaration', '-Wno-implicit-function-declaration', '-Wno-error=format-security', '-Wno-error=format-nonliteral', '-I$PREFIX/include', '-I$EXP/toolchain/compat-include', '-include', '$EXP/toolchain/wasi-compat.h']
-c_link_args = ['--target=wasm32-wasip1', '--sysroot=' + sysroot, '-L$PREFIX/lib', '-L' + vanilla_lib, '-lwasi-emulated-mman', '-lwasi-emulated-process-clocks', '-lwasi-emulated-pthread', '$EXP/toolchain/wasi-compat.o']
-cpp_args = ['--target=wasm32-wasip1', '--sysroot=' + sysroot, '-D_WASI_EMULATED_MMAN', '-D_GNU_SOURCE', '-D_WASI_EMULATED_PTHREAD', '-fno-exceptions', '-mllvm', '-wasm-enable-sjlj', '-isystem', wasi_sdk / 'share/wasi-sysroot/include/wasm32-wasip1/c++/v1', '-I$PREFIX/include', '-I$EXP/toolchain/compat-include']
-cpp_link_args = ['--target=wasm32-wasip1', '--sysroot=' + sysroot, '-L$PREFIX/lib', '-L' + vanilla_lib, '-lwasi-emulated-mman', '-lwasi-emulated-pthread', '-lc++', '-lc++abi']
+c_args = ['--target=$WASM_TARGET', '--sysroot=' + sysroot, $MESON_C_THREADS '-D_WASI_EMULATED_MMAN', '-D_GNU_SOURCE', '-D_WASI_EMULATED_PROCESS_CLOCKS', ${MESON_C_EMUL_PTHREAD}'-mllvm', '-wasm-enable-sjlj', '-DHAVE_SYS_RESOURCE_H', '-Wno-error=implicit-function-declaration', '-Wno-implicit-function-declaration', '-Wno-error=format-security', '-Wno-error=format-nonliteral', '-I$PREFIX/include', '-I$EXP/toolchain/compat-include', '-include', '$EXP/toolchain/wasi-compat.h']
+c_link_args = ['--target=$WASM_TARGET', '--sysroot=' + sysroot, $MESON_LINK_THREADS '-L$PREFIX/lib', '-L' + vanilla_lib, '-lwasi-emulated-mman', '-lwasi-emulated-process-clocks', ${MESON_LINK_EMUL_PTHREAD}'$MESON_WASI_COMPAT_O']
+cpp_args = ['--target=$WASM_TARGET', '--sysroot=' + sysroot, $MESON_C_THREADS '-D_WASI_EMULATED_MMAN', '-D_GNU_SOURCE', ${MESON_C_EMUL_PTHREAD}'-fno-exceptions', '-mllvm', '-wasm-enable-sjlj', '-isystem', wasi_sdk / 'share/wasi-sysroot/include/$MESON_LIBSUBDIR/c++/v1', '-I$PREFIX/include', '-I$EXP/toolchain/compat-include']
+cpp_link_args = ['--target=$WASM_TARGET', '--sysroot=' + sysroot, $MESON_LINK_THREADS '-L$PREFIX/lib', '-L' + vanilla_lib, '-lwasi-emulated-mman', ${MESON_LINK_EMUL_PTHREAD}'-lc++', '-lc++abi']
 INI
 
 export CROSS_CONFIGURE_ARGS PREFIX REPO WSDK SYSROOT EXP CROSS_INI
