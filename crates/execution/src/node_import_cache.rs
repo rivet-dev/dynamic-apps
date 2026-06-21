@@ -8771,17 +8771,18 @@ function parseGuestPathMappings(value) {
   }
 }
 
-const modulePath = process.env.AGENT_OS_WASM_MODULE_PATH;
-if (!modulePath) {
-  throw new Error('AGENT_OS_WASM_MODULE_PATH is required');
-}
-const moduleBase64 = process.env.AGENT_OS_WASM_MODULE_BASE64;
 // wasi-threads sidecar-mediated worker session: this execution runs ONE guest thread, sharing the
 // spawning execution's module + shared memory (handed off via the process-global registry by token)
-// and entering at wasi_thread_start instead of _start. Set by the sidecar's wasm.thread_spawn.
+// and entering at wasi_thread_start instead of _start. Set by the sidecar's wasm.thread_spawn. A
+// worker needs no module path (it reuses the registered compiled module), so the path is optional here.
 const wasmThreadToken = process.env.AGENT_OS_WASM_THREAD_TOKEN
   ? Number(process.env.AGENT_OS_WASM_THREAD_TOKEN)
   : null;
+const modulePath = process.env.AGENT_OS_WASM_MODULE_PATH;
+if (!modulePath && wasmThreadToken == null) {
+  throw new Error('AGENT_OS_WASM_MODULE_PATH is required');
+}
+const moduleBase64 = process.env.AGENT_OS_WASM_MODULE_BASE64;
 
 const guestArgv = JSON.parse(process.env.AGENT_OS_GUEST_ARGV ?? '[]');
 const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
@@ -9339,46 +9340,13 @@ function readKernelStdinChunk(maxBytes) {
   }
 }
 
-const moduleSource =
-  typeof moduleBase64 === 'string' && moduleBase64.length > 0
-    ? moduleBase64
-    : fsModule.readFileSync(resolveModulePath(modulePath));
-const moduleBytes =
-  typeof moduleSource === 'string'
-    ? decodeBase64ToUint8Array(moduleSource)
-    : moduleSource;
-const wasmThreadInfo = parseWasmThreadInfo(moduleBytes);
-// A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
-// memory section) is a no-op for it; sizing happens on the host-created shared memory below.
-const moduleBinary = enforceMemoryLimit(moduleBytes, maxMemoryPages);
-let module = new WebAssembly.Module(moduleBinary);
-
-// wasi-threads: the host owns the single shared linear memory and supplies it to every isolate-thread
-// (env.memory). Create it here, sized from the module's imported-memory limits, clamped to the
-// runtime cap. Only MEMORY is shared across isolates; the function table is per-instance.
-let guestSharedMemory = (() => {
-  if (!wasmThreadInfo.threaded) return null;
-  if (!wasmThreadInfo.memImported || !wasmThreadInfo.memShared) {
-    throw new Error(
-      'secure-exec wasi-threads: guest must import a shared env.memory (build with --import-memory --shared-memory)',
-    );
-  }
-  if (wasmThreadInfo.memMaxPages == null) {
-    throw new Error('secure-exec wasi-threads: shared imported memory must declare a maximum');
-  }
-  let maximum = wasmThreadInfo.memMaxPages;
-  if (Number.isInteger(maxMemoryPages)) {
-    maximum = Math.min(maximum, maxMemoryPages);
-  }
-  const initial = Math.min(wasmThreadInfo.memInitialPages, maximum);
-  return new WebAssembly.Memory({ initial, maximum, shared: true });
-})();
-
-// wasi-threads worker session: replace the freshly-compiled module + freshly-created memory with the
-// shared compiled module + shared memory handed off from the spawning execution via the registry
-// (so this worker instantiates against the SAME linear memory). The worker's host imports below are
-// the full set wired to this session's bridge, so its kernel calls reach the same VM's kernel.
+let module;
+let guestSharedMemory;
 if (wasmThreadToken != null) {
+  // wasi-threads worker session: reuse the spawning execution's shared compiled module + shared
+  // memory (handed off via the registry by token), so this worker instantiates against the SAME
+  // linear memory. No module bytes are read here. The worker's host imports below are the full set
+  // wired to this session's bridge, so its kernel calls reach the same VM's kernel.
   if (typeof globalThis.__agentOsWasmThreadBootstrap !== 'function') {
     throw new Error('secure-exec wasi-threads: worker bootstrap native unavailable');
   }
@@ -9389,6 +9357,41 @@ if (wasmThreadToken != null) {
   }
   module = globalThis.__threadMod;
   guestSharedMemory = globalThis.__threadMem;
+} else {
+  const moduleSource =
+    typeof moduleBase64 === 'string' && moduleBase64.length > 0
+      ? moduleBase64
+      : fsModule.readFileSync(resolveModulePath(modulePath));
+  const moduleBytes =
+    typeof moduleSource === 'string'
+      ? decodeBase64ToUint8Array(moduleSource)
+      : moduleSource;
+  const wasmThreadInfo = parseWasmThreadInfo(moduleBytes);
+  // A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
+  // memory section) is a no-op for it; sizing happens on the host-created shared memory below.
+  const moduleBinary = enforceMemoryLimit(moduleBytes, maxMemoryPages);
+  module = new WebAssembly.Module(moduleBinary);
+
+  // wasi-threads: the host owns the single shared linear memory and supplies it to every isolate-
+  // thread (env.memory). Create it here, sized from the module's imported-memory limits, clamped to
+  // the runtime cap. Only MEMORY is shared across isolates; the function table is per-instance.
+  guestSharedMemory = (() => {
+    if (!wasmThreadInfo.threaded) return null;
+    if (!wasmThreadInfo.memImported || !wasmThreadInfo.memShared) {
+      throw new Error(
+        'secure-exec wasi-threads: guest must import a shared env.memory (build with --import-memory --shared-memory)',
+      );
+    }
+    if (wasmThreadInfo.memMaxPages == null) {
+      throw new Error('secure-exec wasi-threads: shared imported memory must declare a maximum');
+    }
+    let maximum = wasmThreadInfo.memMaxPages;
+    if (Number.isInteger(maxMemoryPages)) {
+      maximum = Math.min(maximum, maxMemoryPages);
+    }
+    const initial = Math.min(wasmThreadInfo.memInitialPages, maximum);
+    return new WebAssembly.Memory({ initial, maximum, shared: true });
+  })();
 }
 
 if (prewarmOnly) {
