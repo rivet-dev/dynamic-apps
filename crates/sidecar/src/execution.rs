@@ -4343,9 +4343,24 @@ where
                 Ok(None)
             }
             ActiveExecutionEvent::Exited(exit_code) => {
+                // wasi-threads: a worker thread that exits abnormally (trap/error) has corrupted the
+                // shared linear memory, so the whole thread group must FAULT rather than leave the
+                // leader hung forever in pthread_join (an in-wasm atomic.wait the dead worker will
+                // never notify). Capture the shared kernel pid before the worker is removed.
+                let thread_fault_kernel_pid = self
+                    .vms
+                    .get(vm_id)
+                    .and_then(|vm| vm.active_processes.get(process_id))
+                    .filter(|process| process.is_thread && exit_code != 0)
+                    .map(|process| process.kernel_pid);
+
                 let became_idle = self
                     .finish_active_process_exit(vm_id, process_id, exit_code)?
                     .unwrap_or(false);
+
+                if let Some(kernel_pid) = thread_fault_kernel_pid {
+                    self.fault_thread_group(vm_id, kernel_pid);
+                }
 
                 if became_idle {
                     self.bridge.emit_lifecycle(vm_id, LifecycleState::Ready)?;
@@ -4358,6 +4373,32 @@ where
                         exit_code,
                     }),
                 )))
+            }
+        }
+    }
+
+    /// Fault a wasi-threads thread group: terminate every execution still sharing `kernel_pid` (the
+    /// thread-group leader and any sibling worker threads). Used when a worker thread traps — its
+    /// corruption of shared memory means the group cannot safely continue, and the leader would
+    /// otherwise hang in an in-wasm `pthread_join`/futex the dead worker will never notify.
+    /// Terminating interrupts the leader's isolate (unwinding its atomic.wait) so it exits and the
+    /// guest faults promptly instead of waiting out the execution timeout.
+    pub(crate) fn fault_thread_group(&mut self, vm_id: &str, kernel_pid: u32) {
+        let Some(vm) = self.vms.get(vm_id) else {
+            return;
+        };
+        for process in vm.active_processes.values() {
+            if process.kernel_pid != kernel_pid {
+                continue;
+            }
+            match &process.execution {
+                ActiveExecution::Wasm(execution) => {
+                    let _ = execution.terminate();
+                }
+                ActiveExecution::Javascript(execution) => {
+                    let _ = execution.terminate();
+                }
+                _ => {}
             }
         }
     }
