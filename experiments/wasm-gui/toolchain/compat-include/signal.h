@@ -22,9 +22,9 @@
 #ifndef SIG_SETMASK
 #define SIG_SETMASK 2
 #endif
-/* sigset_t is absent from the threaded emulated signal.h; a scalar suffices (compile-only). */
-typedef unsigned long __wasm_compat_sigset_t;
-#define sigset_t __wasm_compat_sigset_t
+/* sigset_t is defined by the sysroot's __typedef_sigset_t.h but the emulated signal.h doesn't pull it
+ * in; include it directly (its own include guard makes this idempotent) so we use the real type. */
+#include <__typedef_sigset_t.h>
 /* Complete the forward-declared struct sigaction (incomplete in the threaded signal.h). */
 struct sigaction {
   void (*sa_handler)(int);
