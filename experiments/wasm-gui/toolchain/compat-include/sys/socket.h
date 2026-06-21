@@ -34,6 +34,92 @@ int socketpair(int domain, int type, int protocol, int sv[2]);
 #ifndef SCM_RIGHTS
 #define SCM_RIGHTS 0x01
 #endif
+/* Socket levels/options + flags GIO gsocket.c references; the threaded sysroot omits them (wasi has no
+ * BSD sockets). Linux/musl numeric values (compile-only; runtime goes through host_net). */
+#ifndef SOL_SOCKET
+#define SOL_SOCKET 1
+#endif
+#ifndef SO_REUSEADDR
+#define SO_REUSEADDR 2
+#endif
+#ifndef SO_TYPE
+#define SO_TYPE 3
+#endif
+#ifndef SO_ERROR
+#define SO_ERROR 4
+#endif
+#ifndef SO_DONTROUTE
+#define SO_DONTROUTE 5
+#endif
+#ifndef SO_SNDBUF
+#define SO_SNDBUF 7
+#endif
+#ifndef SO_RCVBUF
+#define SO_RCVBUF 8
+#endif
+#ifndef SO_KEEPALIVE
+#define SO_KEEPALIVE 9
+#endif
+#ifndef SO_OOBINLINE
+#define SO_OOBINLINE 10
+#endif
+#ifndef SO_LINGER
+#define SO_LINGER 13
+#endif
+#ifndef SO_REUSEPORT
+#define SO_REUSEPORT 15
+#endif
+#ifndef SO_RCVTIMEO
+#define SO_RCVTIMEO 20
+#endif
+#ifndef SO_SNDTIMEO
+#define SO_SNDTIMEO 21
+#endif
+#ifndef SO_ACCEPTCONN
+#define SO_ACCEPTCONN 30
+#endif
+#ifndef SO_PROTOCOL
+#define SO_PROTOCOL 38
+#endif
+#ifndef SOMAXCONN
+#define SOMAXCONN 128
+#endif
+#ifndef MSG_OOB
+#define MSG_OOB 0x01
+#endif
+#ifndef MSG_PEEK
+#define MSG_PEEK 0x02
+#endif
+#ifndef MSG_DONTROUTE
+#define MSG_DONTROUTE 0x04
+#endif
+#ifndef MSG_CTRUNC
+#define MSG_CTRUNC 0x08
+#endif
+#ifndef MSG_TRUNC
+#define MSG_TRUNC 0x20
+#endif
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0x40
+#endif
+#ifndef MSG_EOR
+#define MSG_EOR 0x80
+#endif
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0x4000
+#endif
+#ifndef MSG_CMSG_CLOEXEC
+#define MSG_CMSG_CLOEXEC 0x40000000
+#endif
+#ifndef SHUT_RD
+#define SHUT_RD 0
+#endif
+#ifndef SHUT_WR
+#define SHUT_WR 1
+#endif
+#ifndef SHUT_RDWR
+#define SHUT_RDWR 2
+#endif
 /* Protocol-family aliases (BSD): GLib uses PF_UNIX; wasi defines AF_* but not all PF_*. */
 #ifndef PF_UNIX
 #ifdef AF_UNIX
