@@ -13,15 +13,35 @@ WSDK="$REPO/registry/native/c/vendor/wasi-sdk"
 SYSROOT="$REPO/registry/native/c/sysroot"
 PREFIX="$EXP/third_party/wasm-prefix"
 
+# Phase 0 (WASM-THREADS-SPEC.md): SECURE_EXEC_WASM_THREADS=1 switches the cross-compile to the
+# wasi-threads ABI for the GTK closure rebuild — wasm32-wasip1-threads target, the VANILLA threaded
+# sysroot, a SEPARATE threaded prefix (so threaded .a's never mix with non-threaded ones), shared/
+# imported/growable memory, and -pthread. NOTE: the X-stack patches live in the non-threaded $SYSROOT
+# (registry/native/c/sysroot); porting them onto the threaded sysroot is the remaining mechanical Phase
+# 0 work, so this profile builds the patch-independent stack (GLib/PCRE2/...) first.
+if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
+  WASM_TARGET="wasm32-wasip1-threads"
+  THREADS_SYSROOT="$WSDK/share/wasi-sysroot"
+  PREFIX="$EXP/third_party/wasm-prefix-threads"
+  THREADS_MEM_MAX=$((512*1024*1024))
+  THREADS_FLAGS="-pthread -matomics -mbulk-memory"
+  THREADS_LDFLAGS="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$THREADS_MEM_MAX -Wl,--export=wasi_thread_start"
+else
+  WASM_TARGET="wasm32-wasip1"
+  THREADS_SYSROOT="$SYSROOT"
+  THREADS_FLAGS=""
+  THREADS_LDFLAGS=""
+fi
+
 export CC="$WSDK/bin/clang"
 export CXX="$WSDK/bin/clang++"
 export AR="$WSDK/bin/llvm-ar"
 export RANLIB="$WSDK/bin/llvm-ranlib"
-export CFLAGS="--target=wasm32-wasip1 --sysroot=$SYSROOT -O2 -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I$EXP/toolchain/compat-include -include $EXP/toolchain/wasi-compat.h"
-export CPPFLAGS="--target=wasm32-wasip1 --sysroot=$SYSROOT -I$PREFIX/include -I$EXP/toolchain/compat-include -include $EXP/toolchain/wasi-compat.h"
+export CFLAGS="--target=$WASM_TARGET --sysroot=$THREADS_SYSROOT -O2 $THREADS_FLAGS -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I$EXP/toolchain/compat-include -include $EXP/toolchain/wasi-compat.h"
+export CPPFLAGS="--target=$WASM_TARGET --sysroot=$THREADS_SYSROOT -I$PREFIX/include -I$EXP/toolchain/compat-include -include $EXP/toolchain/wasi-compat.h"
 # NOTE: wasi-compat.o (stub symbols) is NOT here — libtool rejects non-libtool objects when
 # building .la static libraries. It is appended only at the final executable link.
-export LDFLAGS="--target=wasm32-wasip1 --sysroot=$SYSROOT -L$PREFIX/lib -L$WSDK/share/wasi-sysroot/lib/wasm32-wasip1 -lwasi-emulated-mman -lwasi-emulated-process-clocks"
+export LDFLAGS="--target=$WASM_TARGET --sysroot=$THREADS_SYSROOT $THREADS_LDFLAGS -L$PREFIX/lib -L$WSDK/share/wasi-sysroot/lib/$WASM_TARGET -lwasi-emulated-mman -lwasi-emulated-process-clocks"
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export PKG_CONFIG_PATH=""
 export ACLOCAL_PATH="$PREFIX/share/aclocal"
