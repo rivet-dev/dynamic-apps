@@ -53,7 +53,16 @@ if [ ! -f "$PREFIX/lib/libpcre2-8.a" ]; then
     find . -name libpcre2-8.pc -exec cp -f {} "$PREFIX/lib/pkgconfig/" \; )
 fi
 [ -f "$PREFIX/lib/libpcre2-8.a" ] || { echo "FATAL: PCRE2 ($PCRE2DIR) failed to build into $PREFIX"; exit 1; }
-echo "deps installed: libffi.a libpcre2-8.a libintl.a"
+
+# 2b) zlib (GIO/gresource dependency). Per-profile source dir (custom configure, in-tree build).
+ZLIBDIR="$TP/zlib${SECURE_EXEC_WASM_THREADS:+-threads}"
+if [ ! -f "$PREFIX/lib/libz.a" ]; then
+  if [ ! -d "$ZLIBDIR" ]; then cp -r "$TP/zlib" "$ZLIBDIR"; ( cd "$ZLIBDIR" && make distclean >/dev/null 2>&1 || true ); fi
+  ( cd "$ZLIBDIR" && CC="$CC" CFLAGS="$CFLAGS" AR="$AR" RANLIB="$RANLIB" ./configure --static --prefix="$PREFIX" >/dev/null 2>&1
+    make -j4 libz.a >/dev/null 2>&1 && make install >/dev/null 2>&1 || true )
+fi
+[ -f "$PREFIX/lib/libz.a" ] || { echo "FATAL: zlib ($ZLIBDIR) failed to build into $PREFIX"; exit 1; }
+echo "deps installed: libffi.a libpcre2-8.a libintl.a libz.a"
 
 # 3) GLib: download, configure, build the core libs.
 GV="2.78.4"
