@@ -379,6 +379,11 @@ fn apply_resource_limits_config(
         "limits.resources.maxProcesses",
     )?;
     set_optional_usize(
+        &mut limits.max_threads,
+        config.max_threads,
+        "limits.resources.maxThreads",
+    )?;
+    set_optional_usize(
         &mut limits.max_open_fds,
         config.max_open_fds,
         "limits.resources.maxOpenFds",

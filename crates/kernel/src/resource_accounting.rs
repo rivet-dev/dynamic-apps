@@ -11,6 +11,8 @@ use std::fmt;
 pub const DEFAULT_MAX_FILESYSTEM_BYTES: u64 = 64 * 1024 * 1024;
 pub const DEFAULT_MAX_INODE_COUNT: usize = 16_384;
 pub const DEFAULT_MAX_PROCESSES: usize = 256;
+/// Default per-VM cap on concurrent wasi-threads worker threads.
+pub const DEFAULT_MAX_THREADS: usize = 64;
 pub const DEFAULT_MAX_OPEN_FDS: usize = 256;
 pub const DEFAULT_MAX_PIPES: usize = 128;
 pub const DEFAULT_MAX_PTYS: usize = 128;
@@ -49,6 +51,8 @@ pub struct ResourceSnapshot {
 pub struct ResourceLimits {
     pub virtual_cpu_count: Option<usize>,
     pub max_processes: Option<usize>,
+    /// Max concurrent wasi-threads worker threads per VM (enforced by the sidecar's thread spawn).
+    pub max_threads: Option<usize>,
     pub max_open_fds: Option<usize>,
     pub max_pipes: Option<usize>,
     pub max_ptys: Option<usize>,
@@ -74,6 +78,7 @@ impl Default for ResourceLimits {
         Self {
             virtual_cpu_count: Some(DEFAULT_VIRTUAL_CPU_COUNT),
             max_processes: Some(DEFAULT_MAX_PROCESSES),
+            max_threads: Some(DEFAULT_MAX_THREADS),
             max_open_fds: Some(DEFAULT_MAX_OPEN_FDS),
             max_pipes: Some(DEFAULT_MAX_PIPES),
             max_ptys: Some(DEFAULT_MAX_PTYS),

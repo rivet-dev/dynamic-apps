@@ -411,6 +411,7 @@ fn legacy_limits_config(
     let resources = secure_exec_vm_config::ResourceLimitsConfig {
         cpu_count: legacy_u64(metadata, "resource.cpu_count"),
         max_processes: legacy_u64(metadata, "resource.max_processes"),
+        max_threads: legacy_u64(metadata, "resource.max_threads"),
         max_open_fds: legacy_u64(metadata, "resource.max_open_fds"),
         max_pipes: legacy_u64(metadata, "resource.max_pipes"),
         max_ptys: legacy_u64(metadata, "resource.max_ptys"),
