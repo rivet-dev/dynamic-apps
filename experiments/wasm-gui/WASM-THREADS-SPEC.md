@@ -501,7 +501,24 @@ Until every box is checked, `SPEC.md` M8 stays blocked.
   `SendCompiledModule` (sound cross-thread move wrappers), `ThreadSpawnRegistry` (process-global token
   table handing a `ThreadStart` from spawner thread to worker thread), `ThreadIdAllocator`, and
   `serialize_shared_memory` / `deserialize_shared_memory` (the reusable round-trip). Unit-tested.
-- **NEXT — Phase 1 integration (the large block).** Wire it end to end:
+- **DONE — SPIKE PASS (Phase 1 minimal real thread-spawn).** A multi-threaded wasm guest
+  (`threads-test.wasm`) runs end to end in the real sidecar: `pthread_create` spawns a V8 isolate on a
+  new OS thread sharing the guest's memory, the worker runs `wasi_thread_start`, writes shared memory,
+  and `pthread_join` (in-wasm `atomic.wait`/`notify`) completes → `M8-THREADS: PASS`, **5/5 reliable**.
+  Wiring: native `__agentOsWasmThreadSpawn` (`wasm_threads.rs`) captures the shared module+memory,
+  allocates a tid, spawns a worker OS thread (`run_worker` reconstructs both and calls
+  `wasi_thread_start`); `session.rs` registers it per-session; `wasi.thread-spawn` (runner, asset v77)
+  calls it. No regressions (3 spikes + 2 unit + 30 `wasm::` tests green). Test: `test-threads-spike.sh`
+  → SPIKE PASS.
+- **NEXT — remaining M7.5 toward the full DoD (§10):**
+  - **Phase 0** build: a threaded-profile GTK closure (retarget `wasm32-wasip1-threads`, fork
+    `wasi-compat.c`/wrappers, rebuild prefix shared) — needed before GTK can use threads.
+  - **Phase 2** for *worker host calls* (GLib's worker does real kernel I/O): route the worker
+    isolate's host calls through the sidecar bridge to the same VM (currently the spike worker uses
+    stub wasi imports since the minimal thread makes no host calls) + the fairness audit.
+  - **Phase 3** WASI coherence; **conformance/stress/teardown tests** (DoD §9.1–§9.8), `max_threads`
+    on the wire, and the **human TCB security sign-off**.
+- **(superseded) earlier "Phase 1 integration" plan — now done for the minimal spike:**
   1. Make `wasi.thread-spawn` (runner JS) call a native host callback that, in the spawning isolate,
      grabs the shared memory + compiled module, allocates a tid, `register`s a `ThreadStart`, and starts
      a worker execution carrying the token; returns tid synchronously.
