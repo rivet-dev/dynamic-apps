@@ -411,12 +411,30 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      `run_xdemo` gained `--pty-shell` to install the child shell into the VM. The terminal emulation core
      + Xft rendering compile unchanged. A real shell (dash/bash) needs fork/exec, which wasi lacks, so
      the child is our line-oriented interpreter `wsh` (pty-shell.c).
-     **One separable gap — keyboard over X:** typing INTO st through the X server does not yet work because
-     this Xvfb build cannot compile an XKB keymap (`xkbcomp` is exec'd, and wasi has no fork/exec), so the
-     server has no functional keyboard device ("XTest keyboard not activated"). This is an X-server-side
-     limitation, NOT a terminal/PTY one: st's keypress->`ttywrite`->pty_write path is wired, and the
-     terminal<->shell bidirectional I/O is proven deterministically by `test-m6-3-pty.sh`. Closing it
-     needs a precompiled/core keymap path in Xvfb (avoiding the xkbcomp exec) — a separate X-on-wasi task.
+     **X KEYBOARD DONE (2026-06-21):** the wasm X server now has a working keyboard device, so
+     host-driven KeyPress/XTEST events are delivered AND translated to characters for real libX11
+     clients. `test-m6-keyboard.sh` asserts a host-injected key repaints the input-target green
+     (`green=39888`). Root cause it fixes: wasi has no fork/exec, so Xvfb cannot run `xkbcomp` to compile
+     a keymap (its keyboard device never activated -> "XTest keyboard not activated" -> all key events
+     dropped). Fix: compile a US keymap on the HOST (`scripts/prepare-xkb.sh` -> `/xkb/default.xkm`, a
+     standard `.xkm`), install it in the VM (`--vm-tree`), and patch the server's `XkbCompileKeymap`
+     (`third_party/xserver/xkb/ddxLoad.c`) to load it directly via `fmemopen` instead of forking xkbcomp.
+     KEY GOTCHA: VFS-backed files don't support per-access `fseek`/`fread` streaming under wasi (the same
+     limitation freetype hit), and `XkmReadFile` fseeks to each section offset, so the file must be
+     slurped into memory and read via `fmemopen`. Also: host `--inject "host=focus"` sets X input focus
+     (window-under-pointer + PointerRoot) so keys reach a client when no WM owns focus; st builds with
+     XIM disabled + core `XLookupString` (no XIM server exists under wasi, and an XIC makes
+     `XFilterEvent` swallow every KeyPress). Xvfb must be re-`wasm-opt --fpcast-emu`'d after relinking
+     (link-xvfb.sh does not do it).
+     **One separable gap — live typing into st specifically:** the X keyboard works and st's
+     keypress->ttywrite->pty_write path is wired, but st's poll loop blocks inside `ttyread` driving the
+     interactive PTY child: the child's `read(0)` spins in-isolate (`readKernelStdinChunk`'s
+     `Atomics.wait` loop) waiting for input, and `child_process.poll` drives child isolates
+     SYNCHRONOUSLY, so driving a blocking-read child never returns and st can't process the keystroke
+     that would feed it (a self-deadlock). This is the core "drive child isolates concurrently"
+     execution-engine limitation (high blast radius on `child_process`), NOT a terminal/keyboard issue.
+     The terminal<->shell bidirectional I/O is proven deterministically by `test-m6-3-pty.sh` (which
+     writes-then-reads so the child never spins), and the X keyboard is proven by `test-m6-keyboard.sh`.
   4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
      many clients can start simultaneously without the `usleep`/ordering hack. (Likely: per-client
      sync-RPC fairness, or a smarter net_poll/recv path.)

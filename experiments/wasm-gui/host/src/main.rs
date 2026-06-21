@@ -499,6 +499,44 @@ mod xinput {
                     self.key(num(1) as u8, true)?;
                     self.key(num(1) as u8, false)
                 }
+                "focus" => {
+                    // Assign keyboard input focus to a client window so XTEST KeyPress events reach it
+                    // (needed when no WM manages focus). Prefer the window under the pointer; if that is
+                    // the root, fall back to the last (most recently mapped) viewable child of root.
+                    let mut target = self.frame_under_pointer().map(|(w, _, _)| w);
+                    if target.is_none() {
+                        if let Some(tree) = self.conn.query_tree(self.root).ok().and_then(|c| c.reply().ok()) {
+                            for &child in tree.children.iter().rev() {
+                                if let Some(attrs) = self.conn.get_window_attributes(child).ok().and_then(|c| c.reply().ok()) {
+                                    if attrs.map_state == x11rb::protocol::xproto::MapState::VIEWABLE {
+                                        target = Some(child);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if let Some(w) = target {
+                        self.conn
+                            .set_input_focus(
+                                x11rb::protocol::xproto::InputFocus::PARENT,
+                                w,
+                                x11rb::CURRENT_TIME,
+                            )
+                            .map_err(|e| format!("set_input_focus: {e}"))?;
+                    }
+                    // Also enable PointerRoot focus (window 1) so KeyPress routes to whatever window is
+                    // under the pointer, robust when no WM owns focus. Caller positions the pointer first.
+                    self.conn
+                        .set_input_focus(
+                            x11rb::protocol::xproto::InputFocus::POINTER_ROOT,
+                            1u32,
+                            x11rb::CURRENT_TIME,
+                        )
+                        .map_err(|e| format!("set_input_focus(ptrroot): {e}"))?;
+                    self.conn.flush().map_err(|e| format!("x flush: {e}"))?;
+                    Ok(())
+                }
                 _ => Ok(()),
             }
         }

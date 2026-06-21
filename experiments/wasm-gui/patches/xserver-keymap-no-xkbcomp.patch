@@ -1,0 +1,69 @@
+secure-exec: load a precompiled XKB keymap instead of forking xkbcomp
+
+third_party/xserver/ is large and not tracked in VCS (it is fetched/reconstructed
+out of band), so the secure-exec X-server source patches live as patch files here.
+This one makes the wasm X server usable WITHOUT a working keyboard-config toolchain:
+wasi has no fork/exec, so Xvfb cannot run `xkbcomp` to compile a keymap at runtime,
+its keyboard device never activates, and every KeyPress/XTEST event is dropped.
+
+Fix: install a host-precompiled US keymap at /xkb/default.xkm (scripts/prepare-xkb.sh
++ --vm-tree) and load it directly in XkbCompileKeymap(). It is read through fmemopen
+because VFS-backed files do not support per-access fseek/fread streaming under wasi
+(the same limitation freetype hit) and XkmReadFile fseeks to each section offset.
+
+After applying, rebuild + REMEMBER to re-apply wasm-opt --fpcast-emu:
+    scripts/link-xvfb.sh && wasm-opt --fpcast-emu -O0 Xvfb.wasm -o Xvfb.wasm
+
+Apply with: patch -p1 < patches/xserver-keymap-no-xkbcomp.patch   (from third_party/xserver)
+
+--- a/xkb/ddxLoad.c
++++ b/xkb/ddxLoad.c
+@@ XkbCompileKeymap @@
+     /* These are the components we really really need */
+     need = XkmSymbolsMask | XkmCompatMapMask | XkmTypesMask |
+         XkmKeyNamesMask | XkmVirtualModsMask;
+
++    /* secure-exec: wasi has no fork/exec, so the server cannot run xkbcomp to compile a keymap (and the
++     * rules->components lookup also needs the xkb config tree). Prefer a keymap precompiled on the host
++     * and installed at /xkb/default.xkm: XkmReadFile is pure file I/O and works under wasi. This gives
++     * the server a real keymap so the keyboard device activates and KeyPress/XTEST + XLookupString work
++     * (e.g. typing into the st terminal emulator). Falls through to the normal xkbcomp path if absent. */
++    {
++        FILE *pf = fopen("/xkb/default.xkm", "rb");
++        if (pf) {
++            /* secure-exec: VFS-backed files don't support per-access fseek/fread streaming under wasi
++             * (same limitation freetype hit), and XkmReadFile fseeks to each section offset. Slurp the
++             * whole file and hand XkmReadFile a real seekable in-memory stream via fmemopen. */
++            long sz;
++            char *blob = NULL;
++            if (fseek(pf, 0, SEEK_END) == 0 && (sz = ftell(pf)) > 0 &&
++                fseek(pf, 0, SEEK_SET) == 0 && (blob = malloc((size_t) sz)) != NULL &&
++                fread(blob, 1, (size_t) sz, pf) == (size_t) sz) {
++                fclose(pf);
++                FILE *mf = fmemopen(blob, (size_t) sz, "rb");
++                if (mf) {
++                    XkbDescPtr pre = NULL;
++                    unsigned missing = XkmReadFile(mf, need, XkmAllIndicesMask, &pre);
++                    fclose(mf);
++                    if (pre != NULL && ((need & ~missing) == need)) {
++                        free(blob);
++                        ErrorF("secure-exec: loaded precompiled keymap /xkb/default.xkm\n");
++                        return pre;
++                    }
++                    if (pre != NULL)
++                        XkbFreeKeyboard(pre, 0, TRUE);
++                    ErrorF("secure-exec: /xkb/default.xkm unusable (missing=0x%x)\n", missing);
++                }
++                free(blob);
++            } else {
++                free(blob);
++                fclose(pf);
++                ErrorF("secure-exec: failed to slurp /xkb/default.xkm\n");
++            }
++        }
++    }
++
+     xkb = XkbCompileKeymapForDevice(dev, rmlvo, need);
+
+     return KeymapOrDefaults(dev, xkb);
+ }

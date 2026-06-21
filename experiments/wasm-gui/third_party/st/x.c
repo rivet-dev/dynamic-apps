@@ -1078,6 +1078,14 @@ ximopen(Display *dpy)
 	XIMCallback imdestroy = { .client_data = NULL, .callback = ximdestroy };
 	XICCallback icdestroy = { .client_data = NULL, .callback = xicdestroy };
 
+	/* secure-exec: there is no XIM input-method server under wasi. If we open an XIM and create an
+	 * XIC, XFilterEvent() in the main loop consumes every KeyPress for the (non-functional) input
+	 * method, so kpress() never runs and typing is swallowed. Skip XIM entirely; kpress() then uses
+	 * core XLookupString against the precompiled keymap. */
+	xw.ime.xim = NULL;
+	xw.ime.xic = NULL;
+	return 0;
+
 	xw.ime.xim = XOpenIM(xw.dpy, NULL, NULL, NULL);
 	if (xw.ime.xim == NULL)
 		return 0;
@@ -1849,7 +1857,10 @@ kpress(XEvent *ev)
 	if (IS_SET(MODE_KBDLOCK))
 		return;
 
-	if (xw.ime.xic) {
+	/* secure-exec: there is no XIM input-method server under wasi, so XmbLookupString through a
+	 * (possibly half-initialized) XIC yields no characters. Use core XLookupString against the
+	 * precompiled keymap the server loaded — this translates keycodes to keysyms/chars correctly. */
+	if (0 && xw.ime.xic) {
 		len = XmbLookupString(xw.ime.xic, e, buf, sizeof buf, &ksym, &status);
 		if (status == XBufferOverflow)
 			return;
