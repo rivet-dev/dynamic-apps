@@ -449,16 +449,44 @@ Until every box is checked, `SPEC.md` M8 stays blocked.
 
 ---
 
+## 11a. Implementation status (M7.5.0 spike — in progress)
+
+- **DONE — threaded build profile.** `scripts/build-threads-spike.sh` produces a correct wasi-threads
+  ABI: imported + shared + growable + re-exported `env.memory`, `wasi.thread-spawn` import,
+  `wasi_thread_start`/`_start` exports. Confirmed ground truth: **only memory is shared; the function
+  table is per-instance** (rebuilt from elem segments) — so no cross-isolate table sharing is needed
+  (this corrects the v2 §2 "table imported/shared" claim).
+- **DONE — negative gate.** The threaded guest now **instantiates and runs `_start` in the real
+  sidecar V8 isolate** with a host-created shared `WebAssembly.Memory` (env.memory) and a reachable
+  `wasi.thread-spawn`; `pthread_create` returns EAGAIN (spawn stub). Runner: `parseWasmThreadInfo` +
+  shared-memory creation + `createWasiThreadsImport` in `node_import_cache.rs` (asset v76). Validation:
+  `wasm.rs` now allows a shared imported memory (still rejects plain imported memory). Test:
+  `scripts/test-threads-spike.sh` (SPIKE NEGATIVE-GATE). All 30 `wasm::` unit tests still pass.
+- **FEASIBILITY CONFIRMED — cross-isolate shared memory (the spike's central unknown).** rusty_v8
+  130.0.7 exposes everything needed: `WasmMemoryObject::buffer()` → `(Shared)ArrayBuffer::get_backing_store`
+  (a `Send` `SharedRef<BackingStore>`), `SharedArrayBuffer::with_backing_store` to rebuild it in the
+  second isolate, `WasmModuleObject::{get_compiled_module, from_compiled_module}` (`CompiledWasmModule`
+  is `Send`) to share compiled code, and `ValueSerializer`/`ValueDeserializer` with SAB + wasm transfer
+  delegates — the structured-clone path that reconstructs a shared `WebAssembly.Memory` in isolate B
+  (the same mechanism node `worker_threads` uses). So Phase 1 is buildable in `crates/v8-runtime`.
+- **NEXT — Phase 1 real spawn (increment 3).** A `crates/v8-runtime` primitive: on `thread-spawn`,
+  start a new isolate on a new OS thread, reconstruct the shared memory from the backing store,
+  instantiate the (shared compiled) module, call `wasi_thread_start(tid, start_arg)`; wire that isolate's
+  host calls to the same VM's kernel (Phase 2 per-VM lock). Then the spike flips to SPIKE PASS.
+
 ## 11. Open questions (resolve in review)
 
-1. Isolate spawning in `crates/v8-runtime`: what is the cleanest primitive to create a V8 isolate on a
-   new OS thread bound to one shared `WebAssembly.Memory` + `WebAssembly.Table`? (Confirmed by the §0
-   spike.) Does it reuse `session.rs`'s per-thread-isolate machinery?
+1. **(RESOLVED — feasible)** Isolate spawning in `crates/v8-runtime`: create a new isolate on a new OS
+   thread (mirroring `session.rs:287` `session_thread`), reconstruct the shared memory via the
+   backing-store + `ValueSerializer` mechanism above, share the compiled module via `CompiledWasmModule`.
+   No table sharing needed (per-instance). Open sub-question: reuse `SessionManager` or a dedicated
+   lighter-weight thread-isolate type?
 2. `--max-memory` for GTK (512 MiB?) and `max_threads` default (64?). How do they compose with the
    existing runtime memory cap clamp?
-3. Which WASI shim does the **core** target use (node:wasi vs custom in-isolate), and does it tolerate
-   per-isolate use over one shared memory, or do we need a dedicated threaded preview1 shim (R3)? Settle
-   in the §0 spike before committing.
+3. **(RESOLVED)** The WASI shim is a **custom in-isolate `WASI` class** (`crates/execution/src/wasm.rs`
+   ~`:2244`, injected as `globalThis.__agentOsWasiModule`) — fully ours, not node:wasi. Each thread
+   isolate gets its own shim instance bound to the shared memory; Phase 3 still kernel-owns stateful WASI
+   for coherence.
 4. Is the single per-VM lock fine-grained enough that GTK is not serialized to uselessness? If not, what
    is the minimal set of independently-lockable kernel subsystems — and how do cross-subsystem resource
    snapshots stay atomic (§Phase 2)?
