@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "71";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "73";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -10951,6 +10951,10 @@ function callSyncRpc(method, args = []) {
 }
 
 const hostNetSockets = new Map();
+// PTY master fd -> spawned child id, so pty_read can drive the child's execution via the standard
+// child_process.poll path while the terminal is alive (a nested child is driven by its parent polling
+// it; the child's stdout flows through the PTY, the poll just gives it CPU/servicing).
+const ptyChildByMaster = new Map();
 let nextHostNetSocketFd = 0x40000000;
 const HOST_NET_TIMEOUT_SENTINEL = '__secure_exec_net_timeout__';
 
@@ -11393,7 +11397,9 @@ const hostNetImport = {
         try { process.stderr.write('[pty] spawn returned no ptyMasterFd\n'); } catch (_) {}
         return WASI_ERRNO_FAULT;
       }
-      return writeGuestUint32(retMasterFdPtr, Number(parsed.ptyMasterFd) >>> 0);
+      const masterFd = Number(parsed.ptyMasterFd) >>> 0;
+      if (parsed.childId != null) ptyChildByMaster.set(masterFd, parsed.childId);
+      return writeGuestUint32(retMasterFdPtr, masterFd);
     } catch (e) {
       try { process.stderr.write('[pty] spawn failed: ' + (e && e.message ? e.message : String(e)) + '\n'); } catch (_) {}
       return WASI_ERRNO_FAULT;
@@ -11402,7 +11408,18 @@ const hostNetImport = {
   pty_read(masterFd, bufPtr, bufLen, retReadPtr) {
     if (permissionTier !== 'full') return WASI_ERRNO_FAULT;
     try {
-      const result = callSyncRpc('__pty_read', [Number(masterFd) >>> 0, Number(bufLen) >>> 0, 0]);
+      // Drive the shell child (standard child_process.poll) so it advances and services its slave
+      // stdin/stdout while this terminal is alive; its output flows through the PTY, which we read
+      // below. Stop once the child is gone.
+      const childId = ptyChildByMaster.get(Number(masterFd) >>> 0);
+      if (childId != null) {
+        try {
+          callSyncRpc('child_process.poll', [childId, 8]);
+        } catch (_) {
+          ptyChildByMaster.delete(Number(masterFd) >>> 0);
+        }
+      }
+      const result = callSyncRpc('__pty_read', [Number(masterFd) >>> 0, Number(bufLen) >>> 0, 5]);
       if (result == null) {
         // EAGAIN: no data available right now (the terminal should poll/retry).
         return writeGuestUint32(retReadPtr, 0);
@@ -11411,10 +11428,18 @@ const hostNetImport = {
       if (parsed && parsed.done) {
         return writeGuestUint32(retReadPtr, 0); // EOF on the slave end
       }
-      const bytes = decodeFsBytesPayload(parsed, 'pty read data');
-      const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      // __pty_read returns { dataBase64 } (mirrors __kernel_stdin_read). Decode with atob (a global);
+      // decodeFsBytesPayload is not in this module's scope.
+      const b64 = parsed && (parsed.dataBase64 ?? parsed.base64);
+      if (typeof b64 !== 'string') {
+        return writeGuestUint32(retReadPtr, 0);
+      }
+      const bin = atob(b64);
+      const view = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i) & 0xff;
       return writeGuestBytes(bufPtr, Number(bufLen) >>> 0, view, retReadPtr);
-    } catch (_e) {
+    } catch (e) {
+      try { process.stderr.write('[pty] read failed: ' + (e && e.message ? e.message : String(e)) + '\n'); } catch (_) {}
       return WASI_ERRNO_FAULT;
     }
   },
@@ -11423,11 +11448,12 @@ const hostNetImport = {
     try {
       const bytes = readGuestBytes(bufPtr, Number(bufLen) >>> 0);
       if (!bytes) return WASI_ERRNO_FAULT;
-      const payload = { __agentOsType: 'bytes', base64: Buffer.from(bytes).toString('base64') };
-      const result = callSyncRpc('__pty_write', [Number(masterFd) >>> 0, payload]);
-      const written = (typeof result === 'number') ? result : (Number(result) >>> 0);
-      return writeGuestUint32(retWrittenPtr, written >>> 0);
-    } catch (_e) {
+      // Pass the raw Uint8Array; callSyncRpc's encoder converts it to the sidecar bytes payload
+      // (matching net_send). Manually base64-wrapping double-encodes and the handler rejects it.
+      const written = Number(callSyncRpc('__pty_write', [Number(masterFd) >>> 0, bytes])) >>> 0;
+      return writeGuestUint32(retWrittenPtr, written);
+    } catch (e) {
+      try { process.stderr.write('[pty] write failed: ' + (e && e.message ? e.message : String(e)) + '\n'); } catch (_) {}
       return WASI_ERRNO_FAULT;
     }
   },

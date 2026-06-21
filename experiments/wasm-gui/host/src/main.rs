@@ -595,6 +595,59 @@ async fn run_exec(sidecar: Option<String>, guest: &str, args: &[String], timeout
     Ok(())
 }
 
+/// M6.3 PTY end-to-end test: install the "shell" wasm into the VM fs, then run the "terminal" wasm,
+/// which spawns the shell over a kernel PTY (host_net.pty_spawn) and echoes data through it. Streams
+/// the terminal's output so a test can assert it read the shell's reply back from the PTY master.
+async fn run_pty_test(
+    sidecar: Option<String>,
+    term: &str,
+    shell: &str,
+    timeout_s: u64,
+) -> Result<()> {
+    let s = Session::connect(sidecar).await?;
+    let term_abs = abs_path(term)?;
+    s.mkdir("/data").await.ok();
+    let shell_bytes = std::fs::read(shell).map_err(|e| format!("read {shell}: {e}"))?;
+    s.write_file("/pty-shell.wasm", &shell_bytes).await?;
+    eprintln!(
+        "secure-exec: installed /pty-shell.wasm ({} bytes)",
+        shell_bytes.len()
+    );
+    let mut events = s.t.subscribe_wire_events();
+    s.execute("proc-pty", &term_abs, &[]).await?;
+    eprintln!("secure-exec: started pty-term {term_abs}");
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_s);
+    loop {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            break;
+        }
+        match tokio::time::timeout(remaining, events.recv()).await {
+            Ok(Ok((_, wire::EventPayload::ProcessOutputEvent(o)))) if o.process_id == "proc-pty" => {
+                let txt = String::from_utf8_lossy(&o.chunk);
+                let ch = if matches!(o.channel, wire::StreamChannel::Stderr) {
+                    "err"
+                } else {
+                    "out"
+                };
+                eprint!("[{ch}] {txt}");
+            }
+            Ok(Ok((_, wire::EventPayload::ProcessExitedEvent(e)))) if e.process_id == "proc-pty" => {
+                eprintln!("\nsecure-exec: pty-term exited with code {}", e.exit_code);
+                s.shutdown();
+                return Ok(());
+            }
+            Ok(Ok(_)) => continue,
+            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
+            Ok(Err(_)) => break,
+            Err(_) => break,
+        }
+    }
+    eprintln!("\nsecure-exec: pty-test timeout ({timeout_s}s) reached");
+    s.shutdown();
+    Ok(())
+}
+
 /// Run an X server guest and an X client guest concurrently in the SAME VM, so they share the
 /// kernel socket table and the client can connect to the server's AF_UNIX socket
 /// (/tmp/.X11-unix/X0). After the client finishes, read the server's framebuffer file back out.
@@ -901,6 +954,8 @@ struct Args {
     locale_dir: Option<String>,
     vm_trees: Vec<String>,
     inject: Vec<(String, String)>,
+    pty_test: bool,
+    pty_shell: Option<String>,
 }
 
 fn parse_args() -> Args {
@@ -922,6 +977,8 @@ fn parse_args() -> Args {
         locale_dir: None,
         vm_trees: Vec::new(),
         inject: Vec::new(),
+        pty_test: false,
+        pty_shell: None,
     };
     let mut i = 1;
     while i < argv.len() {
@@ -930,6 +987,11 @@ fn parse_args() -> Args {
             "--desktop" => a.mode_desktop = true,
             "--exec" => a.exec = true,
             "--xdemo" => a.xdemo = true,
+            "--pty-test" => a.pty_test = true,
+            "--pty-shell" => {
+                i += 1;
+                a.pty_shell = argv.get(i).cloned();
+            }
             "--server" => {
                 i += 1;
                 a.server = argv.get(i).cloned();
@@ -1063,6 +1125,20 @@ async fn main() {
         .await
         {
             eprintln!("xdemo failed: {e}");
+            std::process::exit(1);
+        }
+        return;
+    }
+
+    if args.pty_test {
+        let shell = args.pty_shell.clone().unwrap_or_else(|| {
+            eprintln!("--pty-test requires --pty-shell <pty-shell.wasm> (and --guest <pty-term.wasm>)");
+            std::process::exit(2);
+        });
+        if let Err(e) =
+            run_pty_test(args.sidecar.clone(), &args.guest, &shell, args.timeout).await
+        {
+            eprintln!("pty-test failed: {e}");
             std::process::exit(1);
         }
         return;

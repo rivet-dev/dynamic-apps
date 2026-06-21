@@ -369,6 +369,39 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      stream. Build helper: `build-xclient.sh`. This unblocks xterm-with-Xft and the M8 GTK stack.
   3. **Stock apps as content.** Cross-compile and run standard X apps (`xclock`, `xterm`, maybe `xcalc`)
      as guests so the desktop has real, interactive programs.
+     **M6.3 PTY primitive DONE (2026-06-20):** the kernel-PTY-spawn syscall surface a terminal needs is
+     implemented and proven end-to-end through the FULL wasm stack (`test-m6-3-pty.sh`). A wasm
+     "terminal" guest (`guest-xclient/pty-term.c`) spawns a wasm child (`pty-shell.c`) over a real
+     kernel PTY and round-trips data: writes the master, reads the line-discipline echo back. Stack:
+       - kernel `open_pty_split(parent_pid, child_pid)` — allocates a PTY pair, master fd into the
+         parent (terminal) fd table, slave fd into the child; unit-tested in `kernel/tests/api_surface`.
+       - sidecar `configure_child_stdio` 'pty' stdio mode on `child_process.spawn` (dups the slave onto
+         the child's 0/1/2, returns `ptyMasterFd`) + `__pty_read`/`__pty_write` sync-RPC handlers.
+       - bridge `_ptyReadRaw`/`_ptyWriteRaw` facades (v8-bridge.source.js + `SYNC_BRIDGE_FNS` +
+         v8_runtime map + wasm runner switch); `host_net.pty_spawn`/`pty_read`/`pty_write` wasm imports
+         in `node_import_cache.rs` (ASSET_VERSION 72). Host `--pty-test` mode drives it.
+     **M6.3 INTERACTIVE SHELL SESSION DONE (2026-06-20):** `test-m6-3-pty.sh` drives a SUSTAINED
+     multi-command interactive session between two wasm guests over the kernel PTY: the terminal sends
+     `echo hello`->`hello`, `ping`->`pong`, `exit`->`bye` (clean shutdown), asserting
+     `PTY_CHILD_REPLY_OK`/`PTY_CHILD_PING_OK`/`PTY_CHILD_EXIT_OK`/`PTY_SESSION_OK`. `pty-shell.c` is a
+     real line-oriented interpreter loop (prompt -> read line from slave stdin -> respond), proving
+     repeated bidirectional terminal I/O, not a one-shot echo. (A real shell like dash/bash needs
+     fork/exec/job-control, which wasi lacks; this interpreter is faithful to what a terminal emulator
+     drives over the PTY.)
+       - The "child never runs" gap was fixed earlier by driving the nested child with the standard
+         `child_process.poll` from the `pty_read` shim (`PTY_CHILD_RAN`).
+       - The "stdin never reaches the child" gap (long mis-diagnosed) is now fixed. Real root cause: the
+         v8-runtime session intercepts `_kernelStdinReadRaw` IN-SESSION (`javascript.rs` ~2931) from a
+         `LocalKernelStdinBridge` that, for a pty child, was never fed (its input lives in the kernel PTY
+         slave). Fix: `pump_pty_child_stdin` (`crates/sidecar/src/execution.rs`) drains the kernel PTY
+         slave (fd 0) on each `poll_descendant` tick and forwards it to `child.execution.write_stdin`,
+         mirroring the pipe-child stdin pump. Sidecar-side only, no runner/asset change. See
+         `M6.3-FINDINGS.md` (the earlier "two-pipe mismatch"/"node:wasi fd_read" theories were wrong —
+         corrected there). Regression: sidecar lib+service suites (1 pre-existing unrelated loopback-port
+         test aside) + M1–M7 + `test-m6-3-pty.sh` green.
+     **Remaining for a real xterm (separable):** (a) a real cross-compiled terminal emulator (st/xterm)
+     wired to forkpty->pty_spawn. (b) a wasm shell. The PTY syscall + interactive stdin plumbing is done;
+     these two userspace ports remain.
   4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
      many clients can start simultaneously without the `usleep`/ordering hack. (Likely: per-client
      sync-RPC fairness, or a smarter net_poll/recv path.)

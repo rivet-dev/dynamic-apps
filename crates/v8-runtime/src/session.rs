@@ -1613,6 +1613,8 @@ pub(crate) const SYNC_BRIDGE_FNS: &[&str] = &[
     "_kernelStdioWriteRaw",
     "_kernelPollRaw",
     "_ptySetRawMode",
+    "_ptyReadRaw",
+    "_ptyWriteRaw",
 ];
 
 pub(crate) const ASYNC_BRIDGE_FNS: &[&str] = &[

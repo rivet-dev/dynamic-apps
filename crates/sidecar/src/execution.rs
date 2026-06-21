@@ -6104,6 +6104,7 @@ where
                 process_id,
                 &child_path,
             )?;
+            self.pump_pty_child_stdin(vm_id, process_id, current_process_path, child_process_id)?;
             enum ChildPollResult {
                 Event(Box<Option<ActiveExecutionEvent>>),
                 RecoverRuntimeExit,
@@ -6558,6 +6559,62 @@ where
             return Err(error);
         }
         write_kernel_process_stdin(&mut vm.kernel, child, chunk)
+    }
+
+    /// Pump a PTY child's stdin from the kernel PTY slave (fd 0) into its in-session stdin bridge.
+    ///
+    /// A WASM/JS guest reads stdin via the v8-runtime session's `LocalKernelStdinBridge`, which is
+    /// intercepted in-session (never surfaced to the sidecar). For a "pipe" child that bridge is fed by
+    /// `write_descendant_javascript_child_process_stdin`; for a "pty" child the input lives in the
+    /// kernel PTY slave instead, so nothing ever feeds the bridge and the guest blocks forever on
+    /// `read(0)`. This drains whatever the line discipline has delivered to the slave (non-blocking)
+    /// and forwards it to the bridge, exactly mirroring the pipe path. Called on each poll tick.
+    fn pump_pty_child_stdin(
+        &mut self,
+        vm_id: &str,
+        process_id: &str,
+        current_process_path: &[&str],
+        child_process_id: &str,
+    ) -> Result<(), SidecarError> {
+        let Some(vm) = self.vms.get_mut(vm_id) else {
+            return Ok(());
+        };
+        let Some(root) = vm.active_processes.get_mut(process_id) else {
+            return Ok(());
+        };
+        let Some(parent) = Self::active_process_by_path_mut(root, current_process_path) else {
+            return Ok(());
+        };
+        let Some(child) = parent.child_processes.get_mut(child_process_id) else {
+            return Ok(());
+        };
+        if child.pty_master_fd.is_none() {
+            return Ok(());
+        }
+        let child_pid = child.kernel_pid;
+        let chunk = match vm
+            .kernel
+            .fd_read_with_timeout_result(
+                EXECUTION_DRIVER_NAME,
+                child_pid,
+                0,
+                DEFAULT_KERNEL_STDIN_READ_MAX_BYTES,
+                Some(Duration::ZERO),
+            )
+            .map_err(kernel_error)
+        {
+            Ok(Some(chunk)) if !chunk.is_empty() => chunk,
+            Ok(_) => return Ok(()),
+            Err(SidecarError::Kernel(error)) if error.starts_with("EAGAIN:") => return Ok(()),
+            Err(error) => return Err(error),
+        };
+        if let Err(error) = child.execution.write_stdin(&chunk) {
+            if is_broken_pipe_error(&error) {
+                return Ok(());
+            }
+            return Err(error);
+        }
+        Ok(())
     }
 
     fn close_descendant_javascript_child_process_stdin(
