@@ -36,5 +36,10 @@ int sigaction(int, const struct sigaction *, struct sigaction *);
 int sigemptyset(sigset_t *);
 int sigfillset(sigset_t *);
 int sigaddset(sigset_t *, int);
+/* kill()/killpg() are gated behind __wasilibc_unmodified_upstream in the threaded sysroot (wasi has no
+ * signals). GTK's gtkmountoperation-x11.c calls kill() to stop a mount helper (dead code in the
+ * sandbox); declare it so the call compiles. Weak no-op stub lives in wasi-compat.c. */
+int kill(pid_t, int);
+int killpg(pid_t, int);
 #endif /* SECURE_EXEC_WASM_THREADS */
 #endif /* WASM_COMPAT_SIGNAL_H */

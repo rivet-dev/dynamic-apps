@@ -117,6 +117,18 @@ if [ ! -f "$PREFIX/lib/libcairo.a" ]; then
   ninja -C "$BD" src/libcairo.a util/cairo-gobject/libcairo-gobject.a >/dev/null 2>&1
   meson install -C "$BD" --tags devel --no-rebuild >/dev/null 2>&1 || true
   cp -f ${BD}/src/libcairo.a "$PREFIX/lib/" 2>/dev/null
+  cp -f "$BD"/util/cairo-gobject/libcairo-gobject.a "$PREFIX/lib/" 2>/dev/null
+  # cairo's `meson install --tags devel` is unreliable in this cross env; install the generated .pc set
+  # (meson-private) + headers explicitly so GTK finds the system cairo (else it pulls a cairo subproject
+  # whose meson.build runs a test exe and fails: "Can not run test applications in this cross environment").
+  for p in cairo cairo-gobject cairo-xlib cairo-ft cairo-png cairo-fc cairo-xlib-xrender; do
+    [ -f "$BD/meson-private/$p.pc" ] && cp -f "$BD/meson-private/$p.pc" "$PREFIX/lib/pkgconfig/"
+  done
+  mkdir -p "$PREFIX/include/cairo"
+  find . -maxdepth 3 -name "cairo*.h" -path "*src*" -exec cp -f {} "$PREFIX/include/cairo/" \; 2>/dev/null
+  # cairo-gobject.h lives under util/, not src/ (GTK's gtkcellrendererpixbuf.c includes it).
+  find . -name "cairo-gobject.h" -exec cp -f {} "$PREFIX/include/cairo/" \; 2>/dev/null
+  find "$BD" -name "cairo-features.h" -exec cp -f {} "$PREFIX/include/cairo/" \; 2>/dev/null
 fi
 echo "cairo: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversion cairo 2>/dev/null)"
 
