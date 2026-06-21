@@ -662,6 +662,7 @@ async fn run_xdemo(
     locale_dir: Option<&str>,
     vm_trees: &[String],
     inject: &[(String, String)],
+    pty_shell: Option<&str>,
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let server_abs = abs_path(server)?;
@@ -726,6 +727,14 @@ async fn run_xdemo(
     for tree in vm_trees {
         let n = s.install_tree(std::path::Path::new(tree), "").await?;
         eprintln!("secure-exec: installed {n} files from {tree} into the VM root");
+    }
+
+    // Install the PTY child shell so a terminal-emulator client (st) can pty_spawn("/pty-shell.wasm").
+    if let Some(shell) = pty_shell {
+        let shell_abs = abs_path(shell)?;
+        let bytes = std::fs::read(&shell_abs).map_err(|e| format!("read pty-shell {shell_abs}: {e}"))?;
+        s.write_file("/pty-shell.wasm", &bytes).await?;
+        eprintln!("secure-exec: installed /pty-shell.wasm ({} bytes)", bytes.len());
     }
 
     let mut events = s.t.subscribe_wire_events();
@@ -1121,6 +1130,7 @@ async fn main() {
             args.locale_dir.as_deref(),
             &args.vm_trees,
             &args.inject,
+            args.pty_shell.as_deref(),
         )
         .await
         {

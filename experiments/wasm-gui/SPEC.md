@@ -399,9 +399,24 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
          `M6.3-FINDINGS.md` (the earlier "two-pipe mismatch"/"node:wasi fd_read" theories were wrong —
          corrected there). Regression: sidecar lib+service suites (1 pre-existing unrelated loopback-port
          test aside) + M1–M7 + `test-m6-3-pty.sh` green.
-     **Remaining for a real xterm (separable):** (a) a real cross-compiled terminal emulator (st/xterm)
-     wired to forkpty->pty_spawn. (b) a wasm shell. The PTY syscall + interactive stdin plumbing is done;
-     these two userspace ports remain.
+     **M6.3 REAL TERMINAL EMULATOR DONE (2026-06-20):** the suckless terminal **`st` 0.9.2**,
+     cross-compiled from source to `wasm32-wasip1` (`scripts/build-st.sh`), runs as a wasm guest in
+     secure-exec, spawns the wasm shell (`/pty-shell.wasm`) over a real kernel PTY, and renders the
+     shell's terminal output via Xft to the wasm X server. `scripts/test-m6-3-st.sh` asserts the
+     framebuffer shows the shell's prompt as antialiased Xft text; proof PNG `~/tmp/gui-progress/m6-3-st.png`
+     (shows `wsh ready` + `$` prompt + cursor). Integration: st's forkpty/openpty + select/read/write PTY
+     backend is replaced by `third_party/st/wasmpty.c` (host_net `pty_spawn`/`pty_read`/`pty_write`); the
+     `pselect` event loop in `x.c` becomes a non-blocking poll loop (ttyread via pty_read + XPending +
+     nanosleep idle throttle); `stty`/`termios`/`TIOCSWINSZ` neutralized (wasi has no termios). Host
+     `run_xdemo` gained `--pty-shell` to install the child shell into the VM. The terminal emulation core
+     + Xft rendering compile unchanged. A real shell (dash/bash) needs fork/exec, which wasi lacks, so
+     the child is our line-oriented interpreter `wsh` (pty-shell.c).
+     **One separable gap — keyboard over X:** typing INTO st through the X server does not yet work because
+     this Xvfb build cannot compile an XKB keymap (`xkbcomp` is exec'd, and wasi has no fork/exec), so the
+     server has no functional keyboard device ("XTest keyboard not activated"). This is an X-server-side
+     limitation, NOT a terminal/PTY one: st's keypress->`ttywrite`->pty_write path is wired, and the
+     terminal<->shell bidirectional I/O is proven deterministically by `test-m6-3-pty.sh`. Closing it
+     needs a precompiled/core keymap path in Xvfb (avoiding the xkbcomp exec) — a separate X-on-wasi task.
   4. **Robust concurrency.** Fix the flaky concurrent-libX11-init over the single sync-RPC bridge so
      many clients can start simultaneously without the `usleep`/ordering hack. (Likely: per-client
      sync-RPC fairness, or a smarter net_poll/recv path.)
