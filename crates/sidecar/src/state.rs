@@ -402,6 +402,10 @@ pub(crate) struct ActiveProcess {
     pub(crate) pty_master_fd: Option<u32>,
     pub(crate) runtime: GuestRuntimeKind,
     pub(crate) detached: bool,
+    /// True for a wasi-threads worker: this process SHARES another process's `kernel_pid` (the thread
+    /// group leader). On exit it must only end its own session — it must NOT finish/reap the shared
+    /// kernel process or terminate its children, or it would kill the leader and its sibling threads.
+    pub(crate) is_thread: bool,
     pub(crate) execution: ActiveExecution,
     pub(crate) guest_cwd: String,
     pub(crate) env: BTreeMap<String, String>,

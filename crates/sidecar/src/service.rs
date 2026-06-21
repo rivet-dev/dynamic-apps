@@ -1796,6 +1796,17 @@ where
                 let (payload, _) = parse_javascript_child_process_spawn_request(vm, &request.args)?;
                 self.spawn_javascript_child_process(vm_id, process_id, payload)
             }
+            "wasm.thread_spawn" => {
+                let token = javascript_sync_rpc_arg_u64(
+                    &request.args,
+                    0,
+                    "wasm.thread_spawn token",
+                )?;
+                let module_path =
+                    javascript_sync_rpc_arg_str(&request.args, 1, "wasm.thread_spawn module path")?
+                        .to_owned();
+                self.spawn_wasm_thread(vm_id, process_id, token, module_path)
+            }
             "child_process.spawn_sync" => {
                 let Some(vm) = self.vms.get(vm_id) else {
                     log_stale_process_event(

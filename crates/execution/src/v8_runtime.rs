@@ -227,6 +227,9 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
         "fs.fstatSync" => ("fs.fstatSync", false),
         "fs.futimesSync" => ("fs.futimesSync", false),
 
+        // wasi-threads worker spawn
+        "_wasmThreadSpawn" => ("wasm.thread_spawn", false),
+
         // Child process operations
         "_childProcessSpawnStart" => ("child_process.spawn", false),
         "_childProcessPoll" => ("child_process.poll", false),

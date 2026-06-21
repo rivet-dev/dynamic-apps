@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "78";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "84";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -13886,11 +13886,37 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
 function createWasiThreadsImport() {
   return {
     'thread-spawn'(startArg) {
-      // Spawn a V8 isolate-thread sharing guestSharedMemory and enter it at
-      // wasi_thread_start(tid, startArg) (handled natively by __agentOsWasmThreadSpawn).
-      // Returns a positive tid on success, negative on failure (-> EAGAIN in wasi-libc).
-      if (typeof globalThis.__agentOsWasmThreadSpawn !== 'function') return -1;
-      return globalThis.__agentOsWasmThreadSpawn(startArg, module, guestSharedMemory) | 0;
+      // Preferred path: a sidecar-mediated worker SESSION sharing the parent's kernel process (so
+      // worker kernel calls hit the shared fd table). Register the shared module+memory -> token,
+      // then ask the sidecar to start the worker session. Returns a positive tid, or negative on
+      // failure (-> EAGAIN in wasi-libc).
+      if (
+        typeof globalThis.__agentOsWasmThreadRegister === 'function' &&
+        modulePath
+      ) {
+        const reg = globalThis.__agentOsWasmThreadRegister(startArg, module, guestSharedMemory);
+        if (reg) {
+          let ok = false;
+          try {
+            const res = callSyncRpc('wasm.thread_spawn', [reg.token, modulePath]);
+            ok = !!(res && res.ok);
+          } catch (e) {
+            ok = false;
+          }
+          if (ok) return reg.tid | 0;
+          // Sidecar spawn failed: reclaim the reserved slot + registry entry.
+          if (typeof globalThis.__agentOsWasmThreadCancel === 'function') {
+            globalThis.__agentOsWasmThreadCancel(reg.token);
+          }
+          return -1;
+        }
+      }
+      // Fallback (no sidecar method / no module path): a bare-isolate direct spawn. Real threads but
+      // compute-only (stub wasi imports) — used by standalone/compute guests.
+      if (typeof globalThis.__agentOsWasmThreadSpawn === 'function') {
+        return globalThis.__agentOsWasmThreadSpawn(startArg, module, guestSharedMemory) | 0;
+      }
+      return -1;
     },
   };
 }

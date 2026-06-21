@@ -529,6 +529,20 @@ fn wasm_thread_release_callback<'s>(
     release_worker_thread_slot();
 }
 
+/// Native `__agentOsWasmThreadCancel(token)` — reclaim a reserved-but-never-spawned worker: drop the
+/// registry entry and release its slot. Called by the spawner when the sidecar `wasm.thread_spawn`
+/// fails after `__agentOsWasmThreadRegister` reserved the slot.
+fn wasm_thread_cancel_callback<'s>(
+    scope: &mut v8::HandleScope<'s>,
+    args: v8::FunctionCallbackArguments<'s>,
+    _rv: v8::ReturnValue,
+) {
+    let token = args.get(0).number_value(scope).unwrap_or(0.0) as u64;
+    if ThreadSpawnRegistry::global().take(token).is_some() {
+        release_worker_thread_slot();
+    }
+}
+
 /// Register the wasm-threads native functions on the current context so the wasm runner can reach
 /// them. Inert for non-threaded guests (they never call them).
 pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
@@ -539,6 +553,7 @@ pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
         ("__agentOsWasmThreadRegister", v8::FunctionTemplate::builder(wasm_thread_register_callback).build(scope)),
         ("__agentOsWasmThreadBootstrap", v8::FunctionTemplate::builder(wasm_thread_bootstrap_callback).build(scope)),
         ("__agentOsWasmReleaseThreadSlot", v8::FunctionTemplate::builder(wasm_thread_release_callback).build(scope)),
+        ("__agentOsWasmThreadCancel", v8::FunctionTemplate::builder(wasm_thread_cancel_callback).build(scope)),
     ] {
         if let Some(func) = tmpl.get_function(scope) {
             if let Some(key) = v8::String::new(scope, name) {

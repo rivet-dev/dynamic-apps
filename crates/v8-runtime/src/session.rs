@@ -1531,6 +1531,8 @@ pub(crate) const SYNC_BRIDGE_FNS: &[&str] = &[
     "fs.readSync",
     "fs.writeSync",
     "fs.fstatSync",
+    // wasi-threads worker spawn (sync)
+    "_wasmThreadSpawn",
     // Child process (sync)
     "_childProcessSpawnStart",
     "_childProcessPoll",

@@ -23,6 +23,9 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 const WASM_MODULE_PATH_ENV: &str = "AGENT_OS_WASM_MODULE_PATH";
+/// Set on a wasi-threads worker execution's env: the registry token for the `ThreadStart` it should
+/// consume (shared module + memory). Its presence marks the execution as a worker thread.
+const WASM_THREAD_TOKEN_ENV: &str = "AGENT_OS_WASM_THREAD_TOKEN";
 const WASM_GUEST_ARGV_ENV: &str = "AGENT_OS_GUEST_ARGV";
 const WASM_GUEST_ENV_ENV: &str = "AGENT_OS_GUEST_ENV";
 const WASM_PERMISSION_TIER_ENV: &str = "AGENT_OS_WASM_PERMISSION_TIER";
@@ -828,18 +831,27 @@ impl WasmExecutionEngine {
             .import_caches
             .get(&context.vm_id)
             .expect("vm import cache should exist after materialization");
-        let warmup_metrics = match prewarm_wasm_path(
-            import_cache,
-            &mut self.javascript_engine,
-            &javascript_context_id,
-            &resolved_module,
-            &request,
-            frozen_time_ms,
-            prewarm_timeout,
-        ) {
-            Ok(metrics) => metrics,
-            Err(WasmExecutionError::WarmupTimeout(_)) => None,
-            Err(error) => return Err(error),
+        // wasi-threads worker session: a worker reuses the spawning execution's already-compiled
+        // module + shared memory (handed off via the registry by token) and enters at
+        // wasi_thread_start. It must NOT prewarm — a prewarm run would consume the one-shot registry
+        // token before the real worker run. (The module is already warm from the parent execution.)
+        let is_worker_thread = request.env.contains_key(WASM_THREAD_TOKEN_ENV);
+        let warmup_metrics = if is_worker_thread {
+            None
+        } else {
+            match prewarm_wasm_path(
+                import_cache,
+                &mut self.javascript_engine,
+                &javascript_context_id,
+                &resolved_module,
+                &request,
+                frozen_time_ms,
+                prewarm_timeout,
+            ) {
+                Ok(metrics) => metrics,
+                Err(WasmExecutionError::WarmupTimeout(_)) => None,
+                Err(error) => return Err(error),
+            }
         };
 
         self.next_execution_id += 1;
@@ -4270,6 +4282,11 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             JSON.stringify(request?.options ?? {{}}),
           ]);
         }}
+        case "wasm.thread_spawn":
+          if (typeof _wasmThreadSpawn === "undefined") {{
+            throw new Error("secure-exec WASM thread spawn bridge is unavailable");
+          }}
+          return _wasmThreadSpawn.applySync(void 0, args);
         case "child_process.poll":
           if (typeof _childProcessPoll === "undefined") {{
             throw new Error("secure-exec WASM child_process poll bridge is unavailable");

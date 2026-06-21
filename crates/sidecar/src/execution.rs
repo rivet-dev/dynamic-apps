@@ -325,6 +325,7 @@ impl ActiveProcess {
             pty_master_fd: None,
             runtime,
             detached: false,
+            is_thread: false,
             execution,
             guest_cwd: String::from("/"),
             env: BTreeMap::new(),
@@ -395,6 +396,11 @@ impl ActiveProcess {
 
     pub(crate) fn with_detached(mut self, detached: bool) -> Self {
         self.detached = detached;
+        self
+    }
+
+    pub(crate) fn with_thread(mut self, is_thread: bool) -> Self {
+        self.is_thread = is_thread;
         self
     }
 
@@ -4390,9 +4396,15 @@ where
         }
         let detached_children = Self::adopt_detached_child_processes(process_id, &mut process);
         sync_process_host_writes_to_kernel(vm, &process)?;
-        terminate_child_process_tree(&mut vm.kernel, &mut process);
-        process.kernel_handle.finish(exit_code);
-        let _ = vm.kernel.wait_and_reap(process.kernel_pid);
+        if process.is_thread {
+            // A worker thread shares the leader's kernel process; ending its session must NOT finish or
+            // reap that shared kernel pid (it would kill the leader + sibling threads). Just drop the
+            // worker's session/handle clone and remove its active_process entry (already removed above).
+        } else {
+            terminate_child_process_tree(&mut vm.kernel, &mut process);
+            process.kernel_handle.finish(exit_code);
+            let _ = vm.kernel.wait_and_reap(process.kernel_pid);
+        }
         vm.signal_states.remove(process_id);
         for (detached_process_id, detached_child) in detached_children {
             vm.detached_child_processes
@@ -5423,6 +5435,91 @@ where
             "args": resolved.process_args,
             "ptyMasterFd": pty_master_fd,
         }))
+    }
+
+    /// wasi-threads (WASM-THREADS-SPEC.md Phase 2, approach a): start a WORKER wasm execution for one
+    /// guest thread. Unlike a child process, a thread shares the parent's address space AND its kernel
+    /// process (so it shares the process fd table): the worker reuses the parent's `kernel_pid` +
+    /// handle and enters at `wasi_thread_start`, consuming the registered `ThreadStart` (shared module
+    /// + memory) by `token`. Its host calls dispatch against this worker process_id but use the shared
+    /// `kernel_pid`, so they hit the parent's fd table. The single-threaded sidecar loop serializes
+    /// these concurrent calls (no new lock needed).
+    pub(crate) fn spawn_wasm_thread(
+        &mut self,
+        vm_id: &str,
+        parent_process_id: &str,
+        token: u64,
+        module_path: String,
+    ) -> Result<Value, SidecarError> {
+        let (parent_kernel_pid, parent_handle, parent_env, parent_guest_cwd, parent_host_cwd, thread_id) = {
+            let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
+            let parent = vm
+                .active_processes
+                .get_mut(parent_process_id)
+                .ok_or_else(|| missing_process_error(vm_id, parent_process_id))?;
+            (
+                parent.kernel_pid,
+                parent.kernel_handle.clone(),
+                parent.env.clone(),
+                parent.guest_cwd.clone(),
+                parent.host_cwd.clone(),
+                parent.allocate_child_process_id(),
+            )
+        };
+
+        let mut env = parent_env.clone();
+        env.insert(String::from("AGENT_OS_WASM_THREAD_TOKEN"), token.to_string());
+        env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
+
+        let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
+        let wasm_limits = wasm_execution_limits(vm);
+        let wasm_guest_runtime = guest_runtime_identity(
+            vm,
+            Some(u64::from(parent_kernel_pid)),
+            Some(u64::from(parent_kernel_pid)),
+        );
+
+        let context = self.wasm_engine.create_context(CreateWasmContextRequest {
+            vm_id: vm_id.to_owned(),
+            module_path: Some(module_path.clone()),
+        });
+        let execution = self
+            .wasm_engine
+            .start_execution(StartWasmExecutionRequest {
+                vm_id: vm_id.to_owned(),
+                context_id: context.context_id,
+                argv: vec![module_path],
+                env,
+                cwd: parent_host_cwd.clone(),
+                permission_tier: execution_wasm_permission_tier(WasmPermissionTier::Full),
+                limits: wasm_limits,
+                guest_runtime: wasm_guest_runtime,
+            })
+            .map_err(wasm_error)?;
+
+        // Register the worker as a TOP-LEVEL active process (not a child of the parent) so the event
+        // pump (pump_process_events, which only polls vm.active_processes) drives it autonomously —
+        // the worker runs concurrently while the parent blocks in pthread_join, so it cannot rely on
+        // the parent polling it. It shares the parent's kernel pid + handle (cloned; no kill-on-drop),
+        // so its host calls hit the shared process fd table. The thread_id namespaces it under the
+        // parent for clarity.
+        let worker_process_id = format!("{parent_process_id}~thread~{thread_id}");
+        let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
+        vm.active_processes.insert(
+            worker_process_id.clone(),
+            ActiveProcess::new(
+                parent_kernel_pid,
+                parent_handle,
+                GuestRuntimeKind::WebAssembly,
+                ActiveExecution::Wasm(Box::new(execution)),
+            )
+            .with_guest_cwd(parent_guest_cwd)
+            .with_env(parent_env)
+            .with_host_cwd(parent_host_cwd)
+            .with_thread(true),
+        );
+
+        Ok(json!({ "ok": true, "threadId": worker_process_id, "pid": parent_kernel_pid }))
     }
 
     pub(crate) fn spawn_javascript_child_process_sync(
