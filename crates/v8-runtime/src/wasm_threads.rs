@@ -300,8 +300,9 @@ fn set_global<'s>(
 /// transferred handles, and run the worker bootstrap (which calls `wasi_thread_start`). Best-effort:
 /// errors are swallowed (a trapping guest thread would, in the production path, fault the whole VM —
 /// see the spec; for the spike a failed worker simply never flips the join flag and the test fails).
-fn run_worker(start: ThreadStart) {
-    // Release the reserved thread slot when this worker exits (normal return or early bail).
+/// Worker OS-thread entry: consume the registered [`ThreadStart`] for `token` and run it. The slot is
+/// released here so a missing/duplicate token (already taken) still reclaims the reservation.
+fn run_worker_from_token(token: u64) {
     struct SlotGuard;
     impl Drop for SlotGuard {
         fn drop(&mut self) {
@@ -310,6 +311,13 @@ fn run_worker(start: ThreadStart) {
     }
     let _slot = SlotGuard;
 
+    let Some(start) = ThreadSpawnRegistry::global().take(token) else {
+        return;
+    };
+    run_worker(start);
+}
+
+fn run_worker(start: ThreadStart) {
     crate::isolate::init_v8_platform();
     let mut isolate = crate::isolate::create_isolate(None);
     let context = crate::isolate::create_context(&mut isolate);
@@ -389,11 +397,18 @@ fn wasm_thread_spawn_callback<'s>(
         tid,
         start_arg,
     };
+    // Hand the payload off via the process-global registry + an opaque token. This decouples
+    // extraction (here, in the spawning isolate) from the worker bootstrap (in the worker isolate) —
+    // the same handoff the sidecar-mediated worker-session path (spec Phase 2, approach a) will use,
+    // where the token travels through a `wasm.thread_spawn` sidecar call instead of a direct spawn.
+    let token = ThreadSpawnRegistry::global().register(start);
     if std::thread::Builder::new()
         .name(format!("wasm-thread-{tid}"))
-        .spawn(move || run_worker(start))
+        .spawn(move || run_worker_from_token(token))
         .is_err()
     {
+        // Reclaim the slot and the orphaned registry entry.
+        ThreadSpawnRegistry::global().take(token);
         global_thread_slots().release();
         return fail(&mut rv);
     }
