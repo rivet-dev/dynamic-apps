@@ -477,6 +477,17 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      input events in the xcb event queue (XCB special-event / sequence handling) so Xlib XPending never
      surfaces them. Reproduce the working baseline with `build-xclient.sh xpoll-target` + the green-test
      inject flow.
+     CRYSTALLIZED SYMPTOM (2026-06-21, ~22 passes): st receives WINDOW events (Expose, VisibilityNotify,
+     MapNotify, AND FocusIn/FocusOut once it self-focuses via `XSetInputFocus(xw.win)`) but ZERO DEVICE
+     events -- no KeyPress AND no ButtonPress -- even with focus CONFIRMED on st (FocusIn received) and a
+     button injected over its on-screen location. A minimal client (xpoll-target / xinput-target) gets
+     both. So this is specifically a DEVICE-EVENT delivery problem for st's connection, NOT focus/loop/
+     PTY/window-creation/visual (all ruled out). Device events flow via XI2 and core events are
+     SYNTHESIZED from them for core clients; the next session should look at the XI2->core synthesis /
+     per-client device-event selection for st's connection (e.g. whether st's libxcb implicitly selects
+     XI2 in a way that suppresses core synthesis, or a master-device/coreEvents gate). Focus and the
+     keymap both work (xinput-target green via the same path); the gap is core device-event synthesis to
+     st specifically.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
