@@ -37,19 +37,22 @@ Libs: -L\${libdir} -lintl
 Cflags: -I\${includedir}
 EOF
 
-# 2) PCRE2 (GLib regex dependency).
+# 2) PCRE2 (GLib regex dependency). Use a per-profile source dir so the threaded build never reuses
+# the non-threaded build tree's config.status / objects.
 PV="10.43"
+PCRE2DIR="$TP/pcre2${SECURE_EXEC_WASM_THREADS:+-threads}"
 if [ ! -f "$PREFIX/lib/libpcre2-8.a" ]; then
-  if [ ! -d "$TP/pcre2" ]; then
-    curl -fsSL -o "$TP/pcre2.tar.gz" "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PV/pcre2-$PV.tar.gz"
-    ( cd "$TP" && tar xf pcre2.tar.gz && mv "pcre2-$PV" pcre2 )
+  if [ ! -d "$PCRE2DIR" ]; then
+    [ -f "$TP/pcre2.tar.gz" ] || curl -fsSL -o "$TP/pcre2.tar.gz" "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PV/pcre2-$PV.tar.gz"
+    ( cd "$TP" && tar xf pcre2.tar.gz && mv "pcre2-$PV" "$(basename "$PCRE2DIR")" )
   fi
-  ( cd "$TP/pcre2" && CC="$CC" CFLAGS="$CFLAGS" AR="$AR" RANLIB="$WASI_SDK/bin/llvm-ranlib" \
+  ( cd "$PCRE2DIR" && CC="$CC" CFLAGS="$CFLAGS" AR="$AR" RANLIB="$RANLIB" \
       ./configure --host=wasm32-wasi --prefix="$PREFIX" --enable-static --disable-shared --disable-jit >/dev/null 2>&1
     make -j4 libpcre2-8.la >/dev/null 2>&1 || true
     cp -f .libs/libpcre2-8.a "$PREFIX/lib/"; cp -f src/pcre2.h "$PREFIX/include/"
     find . -name libpcre2-8.pc -exec cp -f {} "$PREFIX/lib/pkgconfig/" \; )
 fi
+[ -f "$PREFIX/lib/libpcre2-8.a" ] || { echo "FATAL: PCRE2 ($PCRE2DIR) failed to build into $PREFIX"; exit 1; }
 echo "deps installed: libffi.a libpcre2-8.a libintl.a"
 
 # 3) GLib: download, configure, build the core libs.
