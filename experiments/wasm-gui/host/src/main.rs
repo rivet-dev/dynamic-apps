@@ -457,7 +457,78 @@ mod xinput {
         /// presses begin a host-side opaque window drag (the frame under the pointer follows the
         /// cursor on subsequent motions) so dragging works without relying on the WM's own move grab
         /// — XTEST FakeMotion does not warp the pointer while the WM holds a pointer grab in our Xvfb.
+        /// Build a keysym -> (keycode, needs-shift) lookup from the server's keyboard mapping, so we can
+        /// translate an ASCII string into XTEST keystrokes against whatever keymap the server loaded.
+        fn keysym_map(&self) -> Result<std::collections::HashMap<u32, (u8, bool)>, String> {
+            let setup = self.conn.setup();
+            let min = setup.min_keycode;
+            let max = setup.max_keycode;
+            let count = max - min + 1;
+            let m = self
+                .conn
+                .get_keyboard_mapping(min, count)
+                .map_err(|e| format!("get_keyboard_mapping: {e}"))?
+                .reply()
+                .map_err(|e| format!("get_keyboard_mapping reply: {e}"))?;
+            let per = m.keysyms_per_keycode as usize;
+            let mut map = std::collections::HashMap::new();
+            for kc in 0..count as usize {
+                let base = kc * per;
+                let keycode = min + kc as u8;
+                if let Some(&ks0) = m.keysyms.get(base) {
+                    if ks0 != 0 {
+                        map.entry(ks0).or_insert((keycode, false));
+                    }
+                }
+                if per > 1 {
+                    if let Some(&ks1) = m.keysyms.get(base + 1) {
+                        if ks1 != 0 {
+                            map.entry(ks1).or_insert((keycode, true));
+                        }
+                    }
+                }
+            }
+            Ok(map)
+        }
+
+        /// Type an ASCII string as XTEST keystrokes (KeyPress/KeyRelease, with Shift for shifted glyphs).
+        fn type_text(&mut self, text: &str) -> Result<(), String> {
+            let map = self.keysym_map()?;
+            // Shift_L keysym = 0xffe1.
+            let shift_kc = map.get(&0xffe1).map(|&(kc, _)| kc);
+            for ch in text.chars() {
+                // ASCII printables map keysym==codepoint; a couple of control chars map to named keysyms.
+                let ks: u32 = match ch {
+                    '\n' => 0xff0d, // Return
+                    '\t' => 0xff09, // Tab
+                    c if (0x20..=0x7e).contains(&(c as u32)) => c as u32,
+                    _ => continue,
+                };
+                let Some(&(code, shift)) = map.get(&ks) else { continue };
+                if shift {
+                    if let Some(sk) = shift_kc {
+                        self.key(sk, true)?;
+                    }
+                }
+                self.key(code, true)?;
+                self.key(code, false)?;
+                if shift {
+                    if let Some(sk) = shift_kc {
+                        self.key(sk, false)?;
+                    }
+                }
+                // Pace keystrokes like a human typist so the terminal's polling loop drains each one
+                // (a zero-delay burst can outrun the guest's read/redraw cycle).
+                std::thread::sleep(std::time::Duration::from_millis(15));
+            }
+            Ok(())
+        }
+
         pub fn run(&mut self, line: &str) -> Result<(), String> {
+            // `type <string>` keeps the remainder verbatim (it may contain spaces).
+            if let Some(rest) = line.strip_prefix("type ") {
+                return self.type_text(rest);
+            }
             let parts: Vec<&str> = line.split_whitespace().collect();
             let Some(&cmd) = parts.first() else { return Ok(()) };
             let num = |i: usize| -> i32 { parts.get(i).and_then(|s| s.parse().ok()).unwrap_or(0) };
@@ -926,6 +997,9 @@ async fn run_xdemo(
                 let sock = xinput::server_socket(dir);
                 match xinput::XInput::connect(&sock) {
                     Ok(mut xi) => {
+                        // Let clients finish mapping/realizing their windows before the first inject so
+                        // focus targets a real window and early keystrokes are not dropped.
+                        tokio::time::sleep(std::time::Duration::from_millis(800)).await;
                         for (_, cmd) in inject {
                             if let Err(e) = xi.run(cmd) {
                                 eprintln!("secure-exec: XTEST inject '{cmd}' failed: {e}");

@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "73";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "75";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11334,6 +11334,48 @@ const hostNetImport = {
       return WASI_ERRNO_FAULT;
     }
   },
+  // M8 libffi spike: a secure-exec-native dynamic FFI call. wasm32-wasi has no libffi (no runtime
+  // trampolines), but our guests run in V8, whose WebAssembly reflection CAN call a guest function by
+  // its indirect-function-table index with dynamically-typed args. This implements ffi_call: marshal
+  // args (per a kind array) out of guest memory, call the guest function the pointer refers to, and
+  // write the result back. Arg/return kinds: 0=i32, 1=i64, 2=f32, 3=f64, 255=void. Each arg value
+  // occupies an 8-byte slot in argValsPtr; the result is written to retPtr (8 bytes). Returns 0 on
+  // success, -1 on error. This is the keystone GObject's g_cclosure_marshal_generic needs.
+  ffi_call(fnIndex, retKind, nargs, argKindsPtr, argValsPtr, retPtr) {
+    try {
+      const tbl = instance.exports.__indirect_function_table;
+      if (!(tbl instanceof WebAssembly.Table)) return -1;
+      const fn = tbl.get(Number(fnIndex) >>> 0);
+      if (typeof fn !== 'function') return -1;
+      const n = Number(nargs) >>> 0;
+      const ak = Number(argKindsPtr) >>> 0;
+      const av = Number(argValsPtr) >>> 0;
+      let view = new DataView(instanceMemory.buffer);
+      const args = [];
+      for (let i = 0; i < n; i++) {
+        const kind = view.getUint8(ak + i);
+        const vb = av + i * 8;
+        if (kind === 0) args.push(view.getInt32(vb, true));
+        else if (kind === 1) args.push(view.getBigInt64(vb, true));
+        else if (kind === 2) args.push(view.getFloat32(vb, true));
+        else if (kind === 3) args.push(view.getFloat64(vb, true));
+        else return -1;
+      }
+      const r = fn(...args);
+      const rk = Number(retKind) >>> 0;
+      const rp = Number(retPtr) >>> 0;
+      view = new DataView(instanceMemory.buffer); // re-read: a re-entrant call may have grown memory
+      if (rk === 255) { /* void: nothing to write */ }
+      else if (rk === 0) view.setInt32(rp, Number(r) | 0, true);
+      else if (rk === 1) view.setBigInt64(rp, typeof r === 'bigint' ? r : BigInt(Math.trunc(Number(r))), true);
+      else if (rk === 2) view.setFloat32(rp, Number(r), true);
+      else if (rk === 3) view.setFloat64(rp, Number(r), true);
+      else return -1;
+      return 0;
+    } catch (_e) {
+      return -1;
+    }
+  },
   net_socket(domain, sockType, protocol, retFdPtr) {
     try {
       const numericDomain = Number(domain) >>> 0;
@@ -12750,6 +12792,15 @@ wrapReadOnlyPathMutation('path_create_directory', (fd, pathPtr, pathLen) =>
 wrapReadOnlyPathMutation('path_filestat_set_times', (fd, _flags, pathPtr, pathLen) =>
   resolvedGuestPathIsReadOnly(fd, pathPtr, pathLen),
 );
+/* Some node:wasi versions omit the *_filestat_set_times imports entirely; wrapReadOnlyPathMutation then
+ * leaves them undefined, so a guest that imports them (e.g. GTK/GLib calling utime) fails to
+ * instantiate. Provide no-op fallbacks (the sandbox does not need to persist file mtimes). */
+if (typeof wasiImport.path_filestat_set_times !== 'function') {
+  wasiImport.path_filestat_set_times = () => 0;
+}
+if (typeof wasiImport.fd_filestat_set_times !== 'function') {
+  wasiImport.fd_filestat_set_times = () => 0;
+}
 wrapReadOnlyPathMutation(
   'path_link',
   (oldFd, _oldFlags, oldPathPtr, oldPathLen, newFd, newPathPtr, newPathLen) =>

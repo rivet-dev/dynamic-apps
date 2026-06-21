@@ -426,198 +426,45 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      XIM disabled + core `XLookupString` (no XIM server exists under wasi, and an XIC makes
      `XFilterEvent` swallow every KeyPress). Xvfb must be re-`wasm-opt --fpcast-emu`'d after relinking
      (link-xvfb.sh does not do it).
-     **One separable gap — live typing into st specifically (root cause CORRECTED 2026-06-21):** the X
-     keyboard works (proven: `test-m6-keyboard.sh`) and st's keypress->ttywrite->pty_write path is wired,
-     but st's window never receives FocusIn/KeyPress events. Earlier theories (a child-drive deadlock;
-     XIM filtering) were DISPROVEN with flushed logging + sidecar tracing: st's poll loop runs fine
-     (`poll_descendant` ENTERs 150+ times and returns; the "block at tick N" was a stderr-buffering
-     artifact), and the server's input focus IS st's window (confirmed via `get_input_focus`: focus=st
-     win, map_state=VIEWABLE, KeyPressMask selected). Yet st receives only events generated EARLY (Expose,
-     VisibilityNotify during init) and NONE generated later (FocusIn, KeyPress) -- even with `XSync` every
-     loop iteration forcing a server round-trip. An identical simple client (xinput-target) DOES receive
-     keys via the exact same focus/inject flow (green=40000), so it is st-connection-specific: the server
-     is not delivering late events to st's host_net X connection. The terminal<->shell bidirectional I/O
-     is proven by `test-m6-3-pty.sh` and the X keyboard (a real client receiving + acting on KeyPress) by
-     `test-m6-keyboard.sh`; only the X->st event hop remains.
-     **Where the next investigation should start (10 instrumentation passes, 2026-06-21):** keyboard
-     events do NOT flow through `DeliverFocusedEvent` (instrumented: 0 calls in BOTH the working
-     xinput-target run AND the st run), and `TryClientEvents`/`DeliverToWindowOwner` core type-2 checks
-     never fire either -- so core KeyPress is synthesized late (EventToCore at write time) and the live
-     events travel as XI internal device events via `DeliverGrabbedEvent`/`DeliverDeviceEvents`. The
-     `WriteToClient` trace is confounded by event batching (count = N*32) / XI2. So the next step is to
-     instrument `DeliverGrabbedEvent` + `DeliverDeviceEvents` (and the `mieq`/`ProcessInputEvents` drain)
-     to find why xinput-target's window is delivered to but st's is not -- NOT `DeliverFocusedEvent`.
-     xinput-target uses real core KeyPress events (XNextEvent + `case KeyPress`), so the path works for a
-     simple client; the difference is st-connection/window specific.
-     CORRECTED ROOT CAUSE (13 passes, 2026-06-21): it is a TIMING/LOAD-sensitivity issue, NOT a routing
-     bug. KEY META-FINDING: hot-path `ErrorF` instrumentation in the X server's event pipeline PERTURBS
-     the very timing that is the bug -- with traces added, even the WORKING xinput-target case stops
-     delivering KeyPress (green=0, orange=40000, no "XI:key"), which is why the dew/dde/dfe traces showed
-     "0 type-2 deliveries" (the key simply wasn't delivered in time in the trace-slowed runs, NOT because
-     type-2 delivery doesn't exist). Without any trace, `test-m6-keyboard.sh` passes 3/3 reliably
-     (green=39888) -- so core KeyPress delivery to a light client works fine. st FAILS because it is a
-     HEAVY client: its Xft rendering + driving the PTY child generate dense sync-RPC/request traffic that
-     starves the wasm X server's input-event processing (mieq drain) over the single service thread, so
-     key events don't reach st in time. This is the SAME class of single-sync-RPC-bridge scheduling issue
-     M2.3/M6.4 addressed for net.poll, now for input-event processing under request load. The next
-     session must use LOW-OVERHEAD methods (counters dumped at exit, not hot-path ErrorF) and likely needs
-     input-vs-request scheduling fairness in the server main loop / `WaitForSomething`/`ProcessInputEvents`
-     drive, not a delivery-function fix.
-     ISOLATED FURTHER (2026-06-21, ~16 passes): the cause is st-window/connection specific, NOT the loop,
-     PTY, focus, or XIM. Proof: `guest-xclient/xpoll-target.c` (a MINIMAL libX11 client using st's EXACT
-     non-blocking XPending+nanosleep poll loop, no Xft, no PTY) receives KeyPress fine (green=39888) under
-     twm click-to-focus -- so the poll loop is NOT the problem. Disabling st's PTY driving entirely (a
-     hardcoded NOPTY build) did NOT help -- so PTY driving is NOT the cause. With focus CONFIRMED on st's
-     window (`get_input_focus` returns st win, VIEWABLE, KeyPressMask set), st receives ZERO input events
-     (no ButtonPress AND no KeyPress -- only Expose/VisibilityNotify), while xpoll-target under identical
-     conditions gets them. So the remaining suspect is st's window CREATION/CONNECTION: st uses
-     `XCreateWindow` with a custom visual + colormap (CWColormap, for Xft/ARGB) and a heavy libxcb
-     connection, vs xpoll-target's `XCreateSimpleWindow` on the default visual. Next: compare st's window
-     attributes/visual to a working client, and check whether st's heavy libxcb reply traffic buries
-     input events in the xcb event queue (XCB special-event / sequence handling) so Xlib XPending never
-     surfaces them. Reproduce the working baseline with `build-xclient.sh xpoll-target` + the green-test
-     inject flow.
-     CRYSTALLIZED SYMPTOM (2026-06-21, ~22 passes): st receives WINDOW events (Expose, VisibilityNotify,
-     MapNotify, AND FocusIn/FocusOut once it self-focuses via `XSetInputFocus(xw.win)`) but ZERO DEVICE
-     events -- no KeyPress AND no ButtonPress -- even with focus CONFIRMED on st (FocusIn received) and a
-     button injected over its on-screen location. A minimal client (xpoll-target / xinput-target) gets
-     both. So this is specifically a DEVICE-EVENT delivery problem for st's connection, NOT focus/loop/
-     PTY/window-creation/visual (all ruled out). Device events flow via XI2 and core events are
-     SYNTHESIZED from them for core clients; the next session should look at the XI2->core synthesis /
-     per-client device-event selection for st's connection (e.g. whether st's libxcb implicitly selects
-     XI2 in a way that suppresses core synthesis, or a master-device/coreEvents gate). Focus and the
-     keymap both work (xinput-target green via the same path); the gap is core device-event synthesis to
-     st specifically.
-     DEFINITIVE CONTROL (2026-06-21, ~23 passes): xpoll-target ALONE (no twm) + the same host `focus`
-     command + key => green=40000. So it is NOT the window manager, NOT the focus mechanism, NOT the poll
-     loop -- the SAME minimal client in st's EXACT configuration (alone + focus cmd + key over its window)
-     receives device events, while st does not. This proves the problem is st-CONNECTION specific. The
-     remaining suspect is st's heavy Xft/fontconfig libxcb init (XftFontOpenName, FcInit, render-extension
-     queries) putting st's xcb connection in a state where subsequent core device events are not surfaced.
-     Decisive next test: link a minimal client WITH Xft (build-st-style) that does XftFontOpenName at
-     startup like st, then poll for keys -- if it then loses keys, Xft init is the cause; bisect which Xft/
-     Fc/Render query triggers it. xpoll-target.c (no Xft) is the working baseline for that bisection.
-     BISECTION RESULTS (2026-06-21, ~25 passes): Xft init is NOT the cause and locale is NOT the cause.
-     `guest-xclient/xftpoll-target.c` (the poll loop + `XftFontOpenName` + `setlocale`/`XSetLocaleModifiers`
-     exactly like st's main) ALONE + focus + key => green=40000. So a minimal client that opens an Xft
-     font AND sets the locale modifiers STILL receives device events; st does not. Eliminated so far: WM,
-     focus, poll loop, PTY driving, visual/colormap, window creation, XIM, Xft font init, locale modifiers.
-     Remaining suspects (st's machinery the minimal clients lack): XftDraw rendering to st's offscreen
-     PIXMAP (`xw.buf`) + XCopyArea to the window; the GC created on the ROOT window (`XCreateGC(dpy, parent=root)`);
-     selection setup (`selinit` / XSetSelectionOwner); `xsetenv` (WINDOWID); or terminal-core init.
-     Continue the bisection by adding each to `xftpoll-target.c` until keys break. Working baselines:
-     xpoll-target.c (no Xft) and xftpoll-target.c (Xft+locale) -- both receive keys.
-     DEFINITIVE: X LAYER FULLY RULED OUT (2026-06-21, ~28 passes). `xftpoll-target.c` was extended to
-     replicate st's ENTIRE X-protocol behavior -- st's exact `XCreateWindow` (explicit attrs, CWColormap,
-     GC created on the ROOT window, 644x408 at 0,0), `XftFontOpenName`, `setlocale`+`XSetLocaleModifiers`,
-     offscreen-pixmap `XftDraw` render + `XCopyArea`, AND `host_net.pty_spawn` of /pty-shell.wasm -- and it
-     STILL receives KeyPress (green). Conversely st with `selinit()` REMOVED still gets ZERO device events.
-     So NONE of st's X-protocol behavior is the cause; the difference is st's terminal-core / run() flow
-     (the only things the now-near-identical baseline lacks). Eliminated (16): WM, focus (incl. self
-     XSetInputFocus), poll loop, PTY driving, visual/colormap, exact window creation, GC-on-root, XIM,
-     Xft font init, Xft RENDER/pixmap rendering, locale modifiers, PTY child spawn, selection setup,
-     window size/position. NEXT (the only remaining approach): bisect by REMOVING pieces from st itself
-     (tnew/twrite terminal core, the run() do-while MapNotify wait, xsetenv, the handler[] dispatch) until
-     keys arrive -- OR use NON-perturbing server-side counters (not hot-path ErrorF) on the device-event
-     path. The near-st baseline `xftpoll-target.c` (works) is the reference to diff st against.
-     ISOLATED TO xinit FONT/COLOR LOADING (2026-06-21, ~33 passes): split tests pinned it precisely.
-     (a) st with its run() loop replaced by the minimal working-baseline loop (no ttyread/draw) STILL
-     gets no KeyPress => NOT the loop body, it is st's INIT. (b) A probe placed right after `xinit()`
-     (before xsetenv/selinit/run/ttynew) gets FocusIn but no KeyPress => `xinit` itself breaks device-event
-     delivery. (c) Removing cursor (XCreateFontCursor/XDefineCursor/XRecolorCursor), WM-protocols,
-     _NET_WM_PID, resettitle, and xhints (XSetWMHints input=1) from xinit did NOT restore keys => none of
-     those. (d) 500 round-trip requests added to the working baseline did NOT break it => NOT request
-     count. So the remaining suspects are xinit's `xloadfonts` (opens 4 Xft faces) and `xloadcols`
-     (allocates 256+ colors) -- the only xinit ops the working baseline lacks and that aren't generic
-     request volume. NEXT: stub xloadfonts/xloadcols in st (or load just 1 font/color) and re-probe; if
-     keys return, bisect which Xft/Fc/Render call in those triggers it. This is the precise remaining
-     frontier; everything else in st's X path is ruled out.
-     NO SINGLE OPERATION IS THE CAUSE (2026-06-21, ~34 passes): the baseline `xftpoll-target.c` was
-     extended to perform EVERY operation st's xinit does -- st's exact XCreateWindow + GC-on-root, FOUR
-     Xft faces (xloadfonts), 256 XftColor allocations (xloadcols), offscreen-pixmap render, AND pty_spawn
-     -- and it STILL receives KeyPress (green). So bisection-by-ADDITION is exhausted: every individual
-     st operation has been replicated and none breaks input. The cause must be operation ORDER (st loads
-     fonts/colors BEFORE creating its window; the baseline creates the window first) or a subtle
-     cumulative/interaction effect that addition cannot surface. The remaining methodologies are: (1)
-     st-side REMOVAL bisection -- stub xloadfonts/xloadcols/tnew in st and re-probe, then reorder; (2) an
-     X PROTOCOL TRACE comparison (capture st's vs xftpoll-target's byte stream around the inject and diff
-     what the server sends each); (3) NON-perturbing server-side counters on the device-event path. This
-     is a genuine multi-session deep dive; ~19 suspects eliminated, working reference baseline committed.
-     ORDER ALSO RULED OUT (~35 passes): the baseline was made to load fonts+colors BEFORE XCreateWindow
-     (st's exact order, since st's window bg uses a loaded color) and STILL receives keys. CONCLUSION:
-     `xftpoll-target.c` now replicates st's ENTIRE X behavior -- every operation, in st's order -- and
-     works; st fails even right after xinit with focus CONFIRMED (FocusIn arrives, so KeyPressMask is
-     provably set -- same mask word). The cause is NOT identifiable by replicating st's X calls (X-call
-     layer exhaustively excluded, ~20 suspects). The ONLY remaining methodology is an X PROTOCOL-TRACE
-     DIFF: capture the bytes the server sends to st vs to xftpoll-target around the key inject (in-VM
-     socket proxy on /tmp/.X11-unix/X0, or a libxcb raw-read hook in each client) and diff them. That is
-     the precise frontier for a future session.
-     *** DEFINITIVE ROOT-CAUSE LOCALIZATION (2026-06-21, ~37 passes): CLIENT-SIDE; the server is correct. ***
-     A non-perturbing per-client counter in the server's WriteToClient (zero-I/O increments + a rare /data
-     dump) proved the server DOES write the KeyPress to st's connection: st gets keypress_writes=1, EXACTLY
-     like the working xinput-target (keypress_writes=1). The only difference: xinput-target SURFACES it
-     (green) and st does NOT. So the ENTIRE server side -- routing, focus, XI2/core synthesis, keymap,
-     device-event delivery -- is CORRECT and the KeyPress bytes reach st's socket. st-typing is a
-     CLIENT-SIDE libxcb/Xlib event-surfacing bug in st: st surfaces EARLY events (Expose/Visibility) but
-     XPending/XNextEvent stops surfacing the LATER KeyPress the server wrote. NEXT (client-side ONLY --
-     the server/protocol-trace avenues are now MOOT): instrument st's XPending/_XEventsQueued and the
-     libxcb xcb_poll_for_event read path vs the working xftpoll-target's; suspect an X error during st
-     init that wedges Xlib's read, a libxcb special-event/sequence stall, or st's XFlush/queue handling.
-     REFINEMENT (~38 passes): forcing a socket read in st's loop via XEventsQueued(QueuedAfterReading)
-     does NOT surface the KeyPress -- so the bytes are not reaching st's libxcb read at all. Note the
-     server counter measured WriteToClient (the server BUFFERING the event), not the actual flush/wire
-     send. So the boundary is now: server-flush (FlushClient/FlushAllOutput -> Xtranssock -> net_send) OR
-     host_net wire delivery (net_send/net_recv for st's specific heavy connection) OR libxcb's recv --
-     NOT st's read logic (forced reads don't help). st DOES recv EARLY events (Expose) so its socket
-     works initially; LATER events (the KeyPress) are not recv'd. NEXT: count net_send-to-st (server,
-     non-perturbing) and net_recv-on-st (client) to pin server-flush vs wire vs client-recv; suspect a
-     host_net per-socket buffering/poll-readiness stall on st's connection after heavy traffic. This is
-     a layer-by-layer wire investigation, multi-session.
-     PINNED TO CLIENT-SIDE RECV (~39 passes): a server-side FlushClient byte counter (non-perturbing,
-     /data dump) shows the server FLUSHES/net_sends data to st: client 1 (st) flushed_bytes=2596 over the
-     run (vs client 2 / xinput-target 460). So the server both buffers AND writev/net_sends to st's
-     socket. Combined with the forced-read result (st's XEventsQueued(QueuedAfterReading) does not surface
-     the KeyPress), the failure is st's CLIENT-SIDE host_net RECV: st recvs the EARLY bytes (Expose
-     surfaces) but not the LATER KeyPress bytes the server sent. So the bug is in the host_net net_recv /
-     net_poll readability for st's heavy X connection (the bytes are on the wire / in the kernel socket,
-     but st's recv stops pulling them after the initial burst). NEXT: count net_recv bytes on st's client
-     socket (in the wasm runner host_net.net_recv, keyed by fd) and compare to the 2596 the server sent;
-     and check net_poll readability for st's X fd after heavy traffic -- the memory's POLLIN/POLLOUT
-     net_poll fixes are the relevant area. Caveat: the flush counter is cumulative to its last /data dump,
-     so confirm the keypress flush is included by dumping after the inject. This is the precise host_net
-     socket-layer frontier; the X server, focus, keymap, and st's X-call/read logic are all excluded.
-     FULL RECV-CHAIN TRACE (~39 passes): the client recv path is st libxcb -> `net_recv` (runner,
-     node_import_cache.rs ~11737) -> drains a runner-LOCAL buffer via `dequeueHostNetBytes`, refilled by
-     `pollHostNetSocket` (~10990) which does ONE `net.poll` sync-RPC per call and pushes ONE chunk to
-     `socket.readChunks` -> sidecar `net.poll` handler -> kernel `recv_buffer` (socket_table.rs, an
-     UNBOUNDED VecDeque; poll reports POLLIN level-triggered when non-empty, line ~1263). The kernel
-     buffering is correct (unbounded, level-triggered), so the suspect is the `net.poll` RPC / runner
-     local-buffer refill for st's heavy connection (e.g. one-chunk-per-poll under-draining, or a
-     readiness edge st misses), AND a measurement caveat: the FlushClient byte counter that showed st
-     flushed_bytes=2596 is cumulative to its last /data dump, so it may NOT include the late keypress
-     flush -- re-run with a dump forced AFTER the inject to confirm the keypress is actually net_sent.
-     NEXT: (1) per-fd byte counters in the runner `net_recv` and the sidecar `net.poll` handler, dumped
-     AFTER the inject, to compare server-sent vs client-recv for st's X fd; (2) check `net.poll`
-     level-vs-edge readiness for a socket that already drained once. Everything above the host_net wire
-     (X server, focus, keymap, st X-calls/read-logic) is excluded; this is the precise sidecar/kernel
-     socket-readiness frontier for a future session.
-     COMPLETE STACK TRACE (~40 passes): the X11 socket is a REAL HOST UnixStream under the VM shadow
-     (/tmp/.X11-unix/X0), NOT the kernel socket_table. The full client recv chain is: X server FlushClient
-     -> _XSERVTransWritev -> net_send -> the server's accepted host UnixStream -> OS socketpair -> st's
-     connected host UnixStream -> st's reader thread (`spawn_unix_socket_reader`, blocking read loop,
-     sends each chunk as a Data event to an UNBOUNDED mpsc channel) -> `ActiveUnixSocket.poll`
-     (events.recv_timeout) -> net.poll RPC -> runner net_recv -> libxcb -> XPending. EVERY component is
-     structurally correct (unbounded channel, blocking reader reads all, level-triggered). The single
-     remaining suspect is X-SERVER OUTPUT-FLUSH TIMING/SCHEDULING for the LATE keypress to an IDLE client
-     (st): the keypress is generated by ANOTHER client's XTEST request, buffered for st via WriteToClient,
-     and must be flushed by FlushAllOutput -- but st sends no requests of its own to trigger a flush. The
-     flush counter (st flushed_bytes=2596) is cumulative to its last /data dump and may PRE-DATE the
-     keypress flush, so it does not prove the keypress was sent. DECISIVE NEXT TEST: instrument the X
-     server's FlushClient/WriteToClient with a counter dumped to /data AFTER the inject completes (e.g.
-     gate the dump on a sentinel), to confirm whether the keypress is actually net_sent to st; if NOT,
-     the fix is X-server flush scheduling (force FlushAllOutput after processing XTEST/device input). If
-     it IS sent, instrument st's reader thread + net.poll for the late chunk. Everything except this
-     X-server-flush-timing question is verified correct.
+     **Live typing into st (MAJOR CORRECTION 2026-06-21): input path PROVEN; remaining gap is a
+     timing-sensitive render/pump stall, not a recv bug.** The previous multi-pass investigation logged
+     here concluded "st never receives KeyPress / client-side host_net recv bug". THAT CONCLUSION WAS
+     WRONG -- it was an artifact of the twm click-to-focus path plus hot-path instrumentation that
+     perturbs the very timing under test. With direct input focus (`--inject "host=focus"`) and the new
+     `type` inject command, st RELIABLY receives keystrokes. Verified with NON-perturbing counters
+     (dumped once per activity tick, read from the VM shadow /data) for a "ping" + "echo hello" type
+     sequence: kp=16 (every injected key delivered to st), XLookupString translated them, st wrote all 16
+     bytes to the kernel PTY (wr=16), read 48 reply bytes back (rd=48), and its terminal MODEL absorbed
+     them (termglyphs jumps from ~11 to 33). So the full input chain works: host XTEST -> wasm X server
+     -> st kpress -> XLookupString -> kernel PTY -> wasm shell -> reply -> st terminal model.
+     THE ACTUAL REMAINING GAP is downstream of input, in st's RENDER/pump path: st's X DRAW requests
+     after the initial frame do not reliably reach the server's framebuffer. Proven server-side
+     (non-perturbing counter in vfb's BlockHandler): the block handler flushes the framebuffer file 679x
+     during a run, yet a 220x220 green rectangle st draws DIRECTLY to its window after the first frame
+     yields ~0 green pixels in the server's own framebuffer -- so the server is not drawing st's later
+     requests. By contrast the minimal `xftpoll-target.c` (same poll loop, Xft, pty_spawn) fills its
+     window green and that DOES reach the framebuffer. The difference is load: st emits dense Xft/pixmap
+     traffic, and after enough of it the X server stops servicing st's connection, so st blocks in its
+     draw/X path, stops draining the PTY, the shell blocks writing its reply, and never reads the next
+     command. Net effect: sustained end-to-end typing is FLAKY -- a short first command often reaches the
+     shell, longer/later ones stall (independently verified by a /data/shell_in.txt sentinel the wasm
+     shell writes for every command line it receives).
+     META-FINDING (reconfirmed): this is genuinely timing-sensitive. Hot-path file/ErrorF instrumentation
+     in st's loop perturbs it enough to break even the previously-working case, and outcomes vary
+     run-to-run with identical binaries. A `net_poll` level-triggered-refill change in the runner was
+     tried and REVERTED -- measured with the shell sentinel it made typing strictly WORSE (0/5 runs
+     landed any command vs the baseline's flaky first-command), because the extra per-poll sync-RPC ADDS
+     to the very service-thread contention that is the root cause. So the fix DIRECTION is now known:
+     REDUCE sync-RPC overhead / add input-vs-render scheduling fairness for a heavy client over the
+     single sync-RPC service thread (same class as M2.3/M6.4 for net.poll), NOT add poll refills and NOT
+     a delivery-function or recv fix. Also confirmed: the guests run autonomously inside the sidecar
+     (the host does not pump guest execution -- it only receives wire-event notifications), so the
+     earlier "host stops pumping during inject" theory is also wrong. The X server, focus, keymap,
+     XLookupString, kernel PTY, and terminal model are all verified correct. WHAT IS RELIABLE AND SHIPPED: host keyboard input reaching a real libX11 client
+     (`test-m6-keyboard.sh`), st rendering the shell prompt (`test-m6-3-st.sh`), deterministic
+     terminal<->shell PTY round-trips (`test-m6-3-pty.sh`), and the `type <string>` host inject command
+     (maps ASCII to keycodes via the server's keyboard mapping) for manual typing. No flaky end-to-end
+     typing test is shipped.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
@@ -643,18 +490,63 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
   `third_party/jwm` → `jwm.wasm`. So a brand-name lightweight desktop shell runs entirely in wasm,
   rendered by the native Rust client and driveable by the host's X11/XTEST input.
 
-- **M8 — A brand-name GTK desktop environment (LXDE or XFCE).** ⬜ The big one. Cross-compile the GTK
-  stack (`GLib`/`GObject`/`Pango`/`Cairo`/`GdkPixbuf`/`harfbuzz`/`fontconfig`/`freetype`) and resolve
-  the wasi blockers (`dlopen` for modules/themes — static-link or shim; `dbus` session bus; threads).
-  **Spike first:** get a single GTK3 app (`gtk3-demo`) running on our X server to prove the stack before
-  committing. Then build up to **LXDE** (lighter, GTK2/openbox/lxpanel/pcmanfm) or **XFCE**
-  (xfwm4/xfce4-panel/thunar). Acceptance: the named DE's shell (panel + menu + a file manager or
-  settings app) running live + interactive, automated test + manual example.
+- **M7.5 — Multi-threaded WASM runtime (wasi-threads). ⬜ HARD PREREQUISITE FOR M8.** GTK is blocked on
+  threads (GLib spawns a worker thread on init). This is a **production runtime feature** specified in
+  full in **[`WASM-THREADS-SPEC.md`](./WASM-THREADS-SPEC.md)** — shared-memory build, a `wasi.thread-spawn`
+  host over a Node `worker_threads` pool, a multi-channel sync-RPC bridge with a per-VM serialization
+  lock, kernel-owned WASI state, and a conformance + race + flake test suite. **M8 may not start until
+  the threads Definition of Done (that spec §9, including the human TCB security sign-off) is green.**
 
-Sequencing is strict: M6 → M7 → M8. Don't start the next until the previous fully meets its acceptance
-bar (interactive, robust, tested, real fonts, no hacks).
+- **M8 — A brand-name GTK desktop environment (LXDE or XFCE).** ⬜ The big one (multi-week; NOT done).
+  **Blocked on M7.5 (`WASM-THREADS-SPEC.md`) — do not start until its Definition of Done is green.**
+  Cross-compile the GTK stack (`GLib`/`GObject`/`Pango`/`Cairo`/`GdkPixbuf`/`harfbuzz`/`fontconfig`/
+  `freetype`) and resolve the wasi blockers (`dlopen` for modules/themes — static-link or shim; `dbus`
+  session bus; threads). **Spike first:** get a single GTK3 app (`gtk3-demo`) running on our X server to
+  prove the stack before committing. Then build up to **LXDE** (lighter, GTK2/openbox/lxpanel/pcmanfm)
+  or **XFCE** (xfwm4/xfce4-panel/thunar). Acceptance: the named DE's shell (panel + menu + a file
+  manager or settings app) running live + interactive, automated test + manual example.
+  **Foundational FFI blocker — keystone UNBLOCKED via a secure-exec-native path (2026-06-21):** GObject
+  needs libffi, which has no wasm32-wasi port (wasm has no runtime trampolines). The previous finding
+  called this "blocked, no pure-wasi solution." That is corrected: our guests run in the V8 sidecar, so
+  `ffi_call` is implementable as a host import that uses V8's WebAssembly reflection to call a guest
+  function by `__indirect_function_table` index with dynamically-typed args. **PROVEN** by
+  `scripts/test-m8-ffi-spike.sh` (PASS): `host_net.ffi_call` + `guest-xclient/ffi-spike.c` call three
+  functions purely by pointer with a runtime-built arg list (i32/f64/pointer). The other primitive,
+  `ffi_closure` (runtime callbacks), is ALSO proven — `scripts/test-m8-closure-spike.sh` (PASS) — on
+  pure wasm via a trampoline pool (no host import, no engine flag); a generic-signature closure would
+  need V8's `WebAssembly.Function`, which is a core-engine flag deliberately left untouched. See
+  M8-FINDINGS.md. A real libffi-ABI shim exists (`libffi-wasm/`) and — the decisive result —
+  the **FULL GLib stack now CROSS-COMPILES to wasm32-wasip1** (`scripts/build-glib-stack.sh`,
+  reproducible): GLib 2.78.4 configures (resolving `dependency('libffi')` against the shim, plus
+  cross-compiled PCRE2, an intl stub, resolv/socket/grp stubs, emulated pthreads — the threads answer,
+  no `-threads` target needed), and `libglib-2.0.a` (4.5 MB), `libgobject-2.0.a`, `libgthread-2.0.a`,
+  `libgmodule-2.0.a`, and `libgio-2.0.a` (10.7 MB) all build. `libgobject-2.0.a` references
+  `ffi_call`/`ffi_prep_cif` (gclosure.c/gmarshal.c compiled against the shim) — proof the libffi dead
+  end is gone in a REAL GObject build. GIO needed compat `<sys/socket.h>`/`<netdb.h>`/`<grp.h>` + two
+  small wasi stub patches (sin_zero, gunixmounts), all reproducible. The GTK **rendering stack** is now
+  in flight (`scripts/build-gtk-deps.sh`): **libpng**, **fribidi**, **harfbuzz** (C++), **Cairo** (8 MB,
+  xlib backend), and **Pango** (pango/pangocairo/pangoft2) all cross-compile — C++ works via wasi-sdk
+  libc++ + `-wasm-enable-sjlj`; cairo needed compat sys/ipc.h+sys/shm.h (XShm stubs), pango needed
+  flockfile decls + fontconfig/X-proto .pc fixes. **GdkPixbuf + ATK + GTK 3.24 ITSELF now cross-compile**
+  (`scripts/build-gtk3.sh`): `libgtk-3.a` (41 MB, 506/507 TUs) builds, plus the X libs GTK needs
+  (Xrandr/Xcursor/Xcomposite/Xdamage), a stub atk-bridge, and host code-gen tools (gdbus-codegen wrapped
+  to our GLib 2.78.4 module). A GTK 3 app (`guest-xclient/gtk-hello.c`) now LINKS into a single wasm
+  guest (`scripts/build-gtk-app.sh`, ~15 MB) and RUNS on the wasm X server: GLib/GObject init + the GDK
+  X11 backend connects and sets up the display/screens/devices/seats. The runtime frontier (NOT done) is
+  now precisely identified: after the GWakeup fix (gwakeup.c inert -1 fds on wasi), GTK init hits the
+  fundamental blocker — **GLib spawns a worker thread (`pthread_create`) which wasm32-wasip1 has no
+  threads for** -> abort. M8's runtime needs THREADS: rebuild `-threads` + add `wasi_thread_spawn` +
+  shared-memory to the runtime (the SPEC defers threads to "where a milestone needs them"; M8 needs
+  them), plus GDK device setup + CPU-budget tuning. Then **LXDE** + the live interactive DE shell with a
+  test. The libffi foundation, the GLib platform, the rendering stack, GTK itself, AND a GTK app starting
+  on the wasm X server are in place; the GTK *runtime* needs threads.
 
-Threads (`wasm32-wasip1-threads` + `wasi_thread_spawn`) are added only where a milestone needs them.
+Sequencing is strict: M6 → M7 → **M7.5 (threads)** → M8. Don't start the next until the previous fully
+meets its acceptance bar (interactive, robust, tested, real fonts, no hacks).
+
+Threads (`wasm32-wasip1-threads` + `wasi_thread_spawn`) are now a first-class prerequisite milestone
+(M7.5), not an ad-hoc per-milestone add: M8 (GTK) needs them, so they are specified and tested to a
+production bar in **[`WASM-THREADS-SPEC.md`](./WASM-THREADS-SPEC.md)** before M8 begins.
 GL passthrough is out of scope; software rasterization to the framebuffer remains the single data path.
 
 ## 5. M0 detailed design

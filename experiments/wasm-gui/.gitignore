@@ -3,7 +3,9 @@
 *.wasm
 target/
 third_party/wasm-prefix/lib/
+third_party/wasm-prefix/include/
 third_party/wasm-prefix/share/
+third_party/wasm-prefix/bin/
 third_party/*/build-wasm/
 third_party/xserver/build-wasm/
 **/*.o
@@ -11,8 +13,35 @@ third_party/xserver/build-wasm/
 **/*.lo
 **/*.la
 toolchain/wasi-sdk-cross.gen.ini
-# M8 spike download (large; reproduce with scripts/spike-m8-glib.sh)
+# M8 spike download (large; reproduce with scripts/spike-m8-glib.sh / build-glib-stack.sh)
 third_party/glib/
 third_party/glib.tar.xz
+# M8 GLib dependency download (rebuildable via scripts/build-glib-stack.sh). All of wasm-prefix
+# (lib/include/share/bin) is install output, rebuilt by the X + glib/gtk dep build scripts.
+third_party/pcre2/
+third_party/pcre2.tar.gz
 # st download tarball (the patched source tree third_party/st/ is tracked; the tarball is not)
 third_party/st.tar.gz
+# M8 GTK-rendering-stack dependency downloads (rebuildable via scripts/build-gtk-deps.sh)
+third_party/libpng/
+third_party/libpng.tar.gz
+third_party/fribidi/
+third_party/fribidi.tar.xz
+third_party/harfbuzz/
+third_party/harfbuzz.tar.xz
+third_party/cairo/
+third_party/cairo.tar.xz
+third_party/pango/
+third_party/pango.tar.xz
+third_party/gdk-pixbuf/
+third_party/gdk-pixbuf.tar.xz
+third_party/atk/
+third_party/atk.tar.xz
+third_party/gtk3/
+third_party/gtk3.tar.xz
+third_party/libXrandr/
+third_party/libXcursor/
+third_party/libXcomposite/
+third_party/libXdamage/
+third_party/lib*.tar.xz
+third_party/glib/gio/gdbus-2.0/codegen/config.py

@@ -8,6 +8,7 @@
  * interactive interpreter over the same PTY primitive a terminal emulator would drive. */
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 static void puts1(const char *s) { (void) write(1, s, strlen(s)); }
 
@@ -39,6 +40,14 @@ int main(void) {
         puts1("$ ");                      /* prompt */
         int n = read_line(line, sizeof(line));
         if (n < 0) break;
+        /* secure-exec: append every received command line to a VM file so a test harness can
+         * INDEPENDENTLY verify that host-typed keystrokes traversed the whole interactive chain
+         * (host XTEST -> X server -> terminal emulator -> kernel PTY -> this shell), without relying
+         * on the terminal's own reporting or on the rendered framebuffer. */
+        if (n > 0) {
+            FILE *fp = fopen("/data/shell_in.txt", "a");
+            if (fp) { fprintf(fp, "%s\n", line); fclose(fp); }
+        }
         if (strcmp(line, "exit") == 0) { puts1("bye\n"); break; }
         if (strcmp(line, "ping") == 0) { puts1("pong\n"); continue; }
         if (starts_with(line, "echo ")) {

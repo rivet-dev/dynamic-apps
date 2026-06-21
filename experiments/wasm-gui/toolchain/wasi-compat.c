@@ -91,3 +91,108 @@ char *dlerror(void) { return 0; }
 void *getpwnam(const char *n) { (void)n; return 0; }
 /* XkbStdBell (audio bell) isn't compiled into our libX11 XKB; no audio in the sandbox. Stub it. */
 int XkbStdBell(void *dpy, unsigned long w, int percent, unsigned long name) { (void)dpy;(void)w;(void)percent;(void)name; return 1; }
+
+/* DNS resolver (res_query family): wasi has no <resolv.h>, but GLib's GIO GResolver build requires
+ * res_query() to link. Guest DNS in secure-exec goes through the kernel socket/DNS path, not libresolv,
+ * so these are link-time stubs (GResolver's libresolv backend is unused at runtime). */
+int res_query(const char *dname, int cls, int type, unsigned char *answer, int anslen) {
+    (void)dname; (void)cls; (void)type; (void)answer; (void)anslen; return -1;
+}
+int res_search(const char *dname, int cls, int type, unsigned char *answer, int anslen) {
+    (void)dname; (void)cls; (void)type; (void)answer; (void)anslen; return -1;
+}
+int res_init(void) { return 0; }
+int dn_expand(const unsigned char *msg, const unsigned char *eom, const unsigned char *src,
+              char *dst, int dstsiz) {
+    (void)msg; (void)eom; (void)src; (void)dst; (void)dstsiz; return -1;
+}
+int dn_comp(const char *src, unsigned char *dst, int dstsiz, unsigned char **dnptrs,
+            unsigned char **lastdnptr) {
+    (void)src; (void)dst; (void)dstsiz; (void)dnptrs; (void)lastdnptr; return -1;
+}
+
+/* BSD socket-creation API: wasi-libc has no socket()/socketpair() (guests do network I/O through
+ * secure-exec's host_net path, not libc sockets), but GLib's GIO GSocket build requires these symbols
+ * to link. WEAK link-time stubs (so they never clash if a future wasi-libc provides real ones); GSocket
+ * is unused at runtime in the sandbox. errno EAFNOSUPPORT-ish via -1. */
+__attribute__((weak)) int socket(int domain, int type, int protocol) {
+    (void)domain; (void)type; (void)protocol; return -1;
+}
+__attribute__((weak)) int socketpair(int domain, int type, int protocol, int sv[2]) {
+    (void)domain; (void)type; (void)protocol; (void)sv; return -1;
+}
+__attribute__((weak)) unsigned if_nametoindex(const char *ifname) { (void)ifname; return 0; }
+__attribute__((weak)) char *if_indextoname(unsigned ifindex, char *ifname) {
+    (void)ifindex; (void)ifname; return 0;
+}
+__attribute__((weak)) int getnameinfo(const void *sa, unsigned salen, char *host, unsigned hostlen,
+                                       char *serv, unsigned servlen, int flags) {
+    (void)sa; (void)salen; (void)host; (void)hostlen; (void)serv; (void)servlen; (void)flags; return -1;
+}
+
+/* h_errno: GLib's GIO threaded resolver references this libresolv global; wasi-libc omits it. */
+int h_errno = 0;
+
+/* Process primitives wasi-libc omits: GLib builds helper executables (gio-launch-desktop, gtester)
+ * that reference getpid()/kill()/getppid(). The sandbox is single-process; stub them. */
+__attribute__((weak)) int getpid(void) { return 1; }
+__attribute__((weak)) int getppid(void) { return 0; }
+__attribute__((weak)) int kill(int pid, int sig) { (void)pid; (void)sig; return -1; }
+__attribute__((weak)) int killpg(int pgrp, int sig) { (void)pgrp; (void)sig; return -1; }
+__attribute__((weak)) int waitpid(int pid, int *status, int options) {
+    (void)pid; (void)status; (void)options; return -1;
+}
+
+/* POSIX signal API: wasi has no signals. GLib's gmain.c (child-watch / unix-signal sources) references
+ * these; stub them (sets/masks are no-ops, sigaction/sigsuspend fail). Pointer args as void* — symbol
+ * names are what the linker needs; arg counts match the real prototypes (all ptrs are i32 on wasm32). */
+__attribute__((weak)) int sigemptyset(void *set) { (void)set; return 0; }
+__attribute__((weak)) int sigfillset(void *set) { (void)set; return 0; }
+__attribute__((weak)) int sigaction(int signo, const void *act, void *oact) {
+    (void)signo; (void)act; (void)oact; return -1;
+}
+
+/* User/identity + fd-dup + name-resolution functions wasi-libc omits but GLib/GIO reference (and the
+ * final GTK app link will need too). Single-user sandbox -> fixed ids; getpw lookups return empty. */
+__attribute__((weak)) unsigned getuid(void) { return 0; }
+__attribute__((weak)) unsigned geteuid(void) { return 0; }
+__attribute__((weak)) unsigned getgid(void) { return 0; }
+__attribute__((weak)) unsigned getegid(void) { return 0; }
+__attribute__((weak)) int dup(int fd) { (void)fd; return -1; }
+__attribute__((weak)) int dup2(int a, int b) { (void)a; (void)b; return -1; }
+__attribute__((weak)) void *getpwuid(unsigned uid) { (void)uid; return 0; }
+__attribute__((weak)) int getpwuid_r(unsigned uid, void *pwd, char *buf, unsigned long buflen, void **result) {
+    (void)uid; (void)pwd; (void)buf; (void)buflen; if (result) *result = 0; return 0;
+}
+__attribute__((weak)) int getpwnam_r(const char *name, void *pwd, char *buf, unsigned long buflen, void **result) {
+    (void)name; (void)pwd; (void)buf; (void)buflen; if (result) *result = 0; return 0;
+}
+
+/* Misc symbols GTK/GDK reference that wasi-libc + our libs lack (stubs; unused in the sandbox). */
+__attribute__((weak)) int chown(const char *p, unsigned u, unsigned g) { (void)p;(void)u;(void)g; return 0; }
+__attribute__((weak)) int pthread_attr_setinheritsched(void *attr, int inherit) { (void)attr;(void)inherit; return 0; }
+
+/* NOTE: GLib's worker thread (g_system_thread_new -> pthread_create) is the fundamental M8 runtime
+ * blocker on wasm32-wasip1 (no threads). A fake "success without running" pthread_create override was
+ * explored and rejected: it fights <pthread.h>'s declarations here, and GLib's architecture assumes a
+ * real preemptive worker thread (downstream code waits on it), so a no-op thread would deadlock rather
+ * than render. The real fix is the wasm32-wasip1-threads target + wasi_thread_spawn in the runtime
+ * (see M8-FINDINGS.md). pthread_create is left to libwasi-emulated-pthread (which fails, as expected). */
+__attribute__((weak)) int raise(int sig) { (void)sig; return -1; }
+__attribute__((weak)) long recvmsg(int fd, void *msg, int flags) { (void)fd;(void)msg;(void)flags; return -1; }
+__attribute__((weak)) long sendmsg(int fd, const void *msg, int flags) { (void)fd;(void)msg;(void)flags; return -1; }
+__attribute__((weak)) int getservbyname_r(const char *n, const char *p, void *r, char *b, unsigned long bl, void **res) {
+    (void)n;(void)p;(void)r;(void)b;(void)bl; if (res) *res = 0; return -1;
+}
+/* libepoxy GLX entrypoints: our libepoxy is built without GLX (no GL in the sandbox). GTK's GL paths
+ * query these and fall back to cairo software rendering when GLX is absent. */
+__attribute__((weak)) int epoxy_glx_version(void *dpy, int screen) { (void)dpy;(void)screen; return 0; }
+__attribute__((weak)) int epoxy_has_glx(void *dpy) { (void)dpy; return 0; }
+__attribute__((weak)) int epoxy_has_glx_extension(void *dpy, int screen, const char *ext) { (void)dpy;(void)screen;(void)ext; return 0; }
+
+/* SysV shared memory: wasi has none. Cairo's Xlib XShm backend references these; all fail so cairo
+ * falls back to plain XPutImage (no shared memory between guests in the sandbox anyway). */
+__attribute__((weak)) int shmget(int key, unsigned long size, int flag) { (void)key; (void)size; (void)flag; return -1; }
+__attribute__((weak)) void *shmat(int id, const void *addr, int flag) { (void)id; (void)addr; (void)flag; return (void *) -1; }
+__attribute__((weak)) int shmdt(const void *addr) { (void)addr; return -1; }
+__attribute__((weak)) int shmctl(int id, int cmd, void *buf) { (void)id; (void)cmd; (void)buf; return -1; }

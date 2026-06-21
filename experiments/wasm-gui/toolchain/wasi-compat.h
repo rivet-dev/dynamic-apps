@@ -1,5 +1,9 @@
 #ifndef SECURE_EXEC_WASI_COMPAT_H
 #define SECURE_EXEC_WASI_COMPAT_H
+/* NOTE: flockfile/funlockfile/ftrylockfile are declared by wasi-libc's <stdio.h> (and the symbols exist
+ * in libc), so we do NOT redeclare them here — doing so conflicts with stdio.h's FILE* prototypes.
+ * Code that hit implicit-declaration warnings for them compiles under -Wno-error=implicit-function-
+ * declaration (already in the cross args). */
 /* sysroot fcntl.h lacks F_DUPFD; wasi has no real fcntl(F_DUPFD) but the value lets code compile. */
 #ifndef F_DUPFD
 #define F_DUPFD 0
