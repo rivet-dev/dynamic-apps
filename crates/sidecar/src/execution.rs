@@ -322,6 +322,7 @@ impl ActiveProcess {
             kernel_pid,
             kernel_handle,
             kernel_stdin_writer_fd: None,
+            pty_master_fd: None,
             runtime,
             detached: false,
             execution,
@@ -5206,7 +5207,7 @@ where
             .vms
             .get_mut(vm_id)
             .ok_or_else(|| missing_vm_error(vm_id))?;
-        let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd) = if resolved
+        let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd, pty_master_fd) = if resolved
             .tool_command
         {
             let tool_resolution = resolve_tool_command(
@@ -5254,6 +5255,7 @@ where
                 kernel_pid,
                 kernel_handle,
                 ActiveExecution::Tool(tool_execution),
+                None,
                 None,
             )
         } else {
@@ -5375,18 +5377,19 @@ where
                     unreachable!("python child_process execution is rejected")
                 }
             };
-            let kernel_stdin_writer_fd = match javascript_child_process_stdin_mode(&request) {
-                "pipe" => Some(install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?),
-                "ignore" => {
-                    vm.kernel
-                        .fd_close(EXECUTION_DRIVER_NAME, kernel_pid, 0)
-                        .map_err(kernel_error)?;
-                    None
-                }
-                "inherit" => None,
-                _ => Some(install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?),
-            };
-            (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd)
+            let (kernel_stdin_writer_fd, pty_master_fd) = configure_child_stdio(
+                &mut vm.kernel,
+                javascript_child_process_stdin_mode(&request),
+                parent_kernel_pid,
+                kernel_pid,
+            )?;
+            (
+                kernel_pid,
+                kernel_handle,
+                execution,
+                kernel_stdin_writer_fd,
+                pty_master_fd,
+            )
         };
 
         let process = vm
@@ -5401,22 +5404,24 @@ where
                 .with_env(resolved.env.clone())
                 .with_host_cwd(resolved.host_cwd.clone()),
         );
-        if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
-            process
+        if kernel_stdin_writer_fd.is_some() || pty_master_fd.is_some() {
+            let child = process
                 .child_processes
                 .get_mut(&child_process_id)
                 .ok_or_else(|| {
                     SidecarError::InvalidState(format!(
                         "child process {child_process_id} disappeared during spawn"
                     ))
-                })?
-                .kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+                })?;
+            child.kernel_stdin_writer_fd = kernel_stdin_writer_fd;
+            child.pty_master_fd = pty_master_fd;
         }
         Ok(json!({
             "childId": child_process_id,
             "pid": kernel_pid,
             "command": resolved.command,
             "args": resolved.process_args,
+            "ptyMasterFd": pty_master_fd,
         }))
     }
 
@@ -5599,7 +5604,7 @@ where
         };
         let mut child_path = current_process_path.to_vec();
         child_path.push(child_process_id.as_str());
-        let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd) = if resolved
+        let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd, pty_master_fd) = if resolved
             .tool_command
         {
             let tool_resolution = resolve_tool_command(
@@ -5647,6 +5652,7 @@ where
                 kernel_pid,
                 kernel_handle,
                 ActiveExecution::Tool(tool_execution),
+                None,
                 None,
             )
         } else {
@@ -5767,18 +5773,19 @@ where
                     unreachable!("python child_process execution is rejected")
                 }
             };
-            let kernel_stdin_writer_fd = match javascript_child_process_stdin_mode(&request) {
-                "pipe" => Some(install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?),
-                "ignore" => {
-                    vm.kernel
-                        .fd_close(EXECUTION_DRIVER_NAME, kernel_pid, 0)
-                        .map_err(kernel_error)?;
-                    None
-                }
-                "inherit" => None,
-                _ => Some(install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?),
-            };
-            (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd)
+            let (kernel_stdin_writer_fd, pty_master_fd) = configure_child_stdio(
+                &mut vm.kernel,
+                javascript_child_process_stdin_mode(&request),
+                parent_kernel_pid,
+                kernel_pid,
+            )?;
+            (
+                kernel_pid,
+                kernel_handle,
+                execution,
+                kernel_stdin_writer_fd,
+                pty_master_fd,
+            )
         };
 
         let root = vm
@@ -5799,22 +5806,24 @@ where
                 .with_env(resolved.env.clone())
                 .with_host_cwd(resolved.host_cwd.clone()),
         );
-        if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
-            parent
+        if kernel_stdin_writer_fd.is_some() || pty_master_fd.is_some() {
+            let child = parent
                 .child_processes
                 .get_mut(&child_process_id)
                 .ok_or_else(|| {
                     SidecarError::InvalidState(format!(
                         "child process {child_process_id} disappeared during nested spawn"
                     ))
-                })?
-                .kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+                })?;
+            child.kernel_stdin_writer_fd = kernel_stdin_writer_fd;
+            child.pty_master_fd = pty_master_fd;
         }
         Ok(json!({
             "childId": child_process_id,
             "pid": kernel_pid,
             "command": resolved.command,
             "args": resolved.process_args,
+            "ptyMasterFd": pty_master_fd,
         }))
     }
 
@@ -13483,6 +13492,8 @@ where
         "__pty_set_raw_mode" => {
             service_javascript_pty_set_raw_mode_sync_rpc(kernel, process, request)
         }
+        "__pty_read" => service_javascript_pty_read_sync_rpc(kernel, process, request),
+        "__pty_write" => service_javascript_pty_write_sync_rpc(kernel, process, request),
         "crypto.hashDigest"
         | "crypto.hmacDigest"
         | "crypto.pbkdf2"
@@ -15942,6 +15953,58 @@ fn service_javascript_kernel_stdin_sync_rpc(
     }
 }
 
+/// Read from a PTY master fd held by the calling process (the terminal emulator). The master fd was
+/// returned by a `child_process.spawn` with stdio "pty" (`ptyMasterFd`); it lives in this process's
+/// kernel fd table. Mirrors `__kernel_stdin_read` semantics (base64 chunk / null on EAGAIN / done on
+/// EOF) but targets an arbitrary fd instead of fd 0.
+fn service_javascript_pty_read_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &mut ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let master_fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__pty_read master fd")?;
+    let max_bytes = javascript_sync_rpc_arg_u64_optional(&request.args, 1, "__pty_read max bytes")?
+        .map(|value| value.clamp(1, DEFAULT_KERNEL_STDIN_READ_MAX_BYTES as u64) as usize)
+        .unwrap_or(DEFAULT_KERNEL_STDIN_READ_MAX_BYTES);
+    let timeout_ms =
+        javascript_sync_rpc_arg_u64_optional(&request.args, 2, "__pty_read timeout ms")?
+            .unwrap_or(DEFAULT_KERNEL_STDIN_READ_TIMEOUT_MS);
+
+    match kernel
+        .fd_read_with_timeout_result(
+            EXECUTION_DRIVER_NAME,
+            process.kernel_pid,
+            master_fd,
+            max_bytes,
+            Some(Duration::from_millis(timeout_ms)),
+        )
+        .map_err(kernel_error)
+    {
+        Ok(Some(chunk)) if !chunk.is_empty() => Ok(json!({
+            "dataBase64": base64::engine::general_purpose::STANDARD.encode(chunk),
+        })),
+        Ok(Some(_)) => Ok(Value::Null),
+        Ok(None) => Ok(json!({ "done": true })),
+        Err(SidecarError::Kernel(error)) if error.starts_with("EAGAIN:") => Ok(Value::Null),
+        Err(error) => Err(error),
+    }
+}
+
+/// Write to a PTY master fd held by the calling process (the terminal emulator). This is the input
+/// the user types; the kernel line discipline delivers it to the shell on the slave end.
+fn service_javascript_pty_write_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &mut ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let master_fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__pty_write master fd")?;
+    let chunk = javascript_sync_rpc_bytes_arg(&request.args, 1, "__pty_write chunk")?;
+    let written = kernel
+        .fd_write(EXECUTION_DRIVER_NAME, process.kernel_pid, master_fd, &chunk)
+        .map_err(kernel_error)?;
+    Ok(json!(written))
+}
+
 fn service_javascript_pty_set_raw_mode_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &mut ActiveProcess,
@@ -16070,6 +16133,48 @@ fn javascript_child_process_stdin_mode(request: &JavascriptChildProcessSpawnRequ
         .first()
         .map(String::as_str)
         .unwrap_or("pipe")
+}
+
+/// Wire a freshly-spawned child's stdio according to the requested mode. Returns
+/// `(kernel_stdin_writer_fd, pty_master_fd)`:
+/// - `"pipe"` (and the default): a kernel pipe; the parent writes the returned writer fd to feed the
+///   child's stdin.
+/// - `"ignore"`: the child's fd 0 is closed.
+/// - `"inherit"`: stdio is left as spawned.
+/// - `"pty"`: allocate a PTY split across the parent and child (`open_pty_split`), dup the slave end
+///   onto the child's stdin/stdout/stderr, and return the master fd (which lives in the *parent's* fd
+///   table) so the terminal can drive it via `__pty_read`/`__pty_write`. This is the M6.3 primitive
+///   that lets a wasm terminal emulator run a wasm shell over a real kernel PTY.
+fn configure_child_stdio(
+    kernel: &mut SidecarKernel,
+    mode: &str,
+    parent_kernel_pid: u32,
+    child_kernel_pid: u32,
+) -> Result<(Option<u32>, Option<u32>), SidecarError> {
+    match mode {
+        "pty" => {
+            let (master_fd, slave_fd, _path) = kernel
+                .open_pty_split(EXECUTION_DRIVER_NAME, parent_kernel_pid, child_kernel_pid)
+                .map_err(kernel_error)?;
+            for target in [0u32, 1, 2] {
+                kernel
+                    .fd_dup2(EXECUTION_DRIVER_NAME, child_kernel_pid, slave_fd, target)
+                    .map_err(kernel_error)?;
+            }
+            kernel
+                .fd_close(EXECUTION_DRIVER_NAME, child_kernel_pid, slave_fd)
+                .map_err(kernel_error)?;
+            Ok((None, Some(master_fd)))
+        }
+        "ignore" => {
+            kernel
+                .fd_close(EXECUTION_DRIVER_NAME, child_kernel_pid, 0)
+                .map_err(kernel_error)?;
+            Ok((None, None))
+        }
+        "inherit" => Ok((None, None)),
+        _ => Ok((Some(install_kernel_stdin_pipe(kernel, child_kernel_pid)?), None)),
+    }
 }
 
 pub(crate) fn write_kernel_process_stdin(

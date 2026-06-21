@@ -311,6 +311,9 @@ const ENV_ALLOW: &[&str] = &[
     "crates/v8-runtime/src/bridge.rs",
     "crates/sidecar/src/execution.rs",
     "crates/sidecar/src/plugins/s3.rs",
+    // reads NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS, a process-wide build/test timeout knob
+    // (bucket 1: host/build/test config shared across all VMs, not per-VM wire config).
+    "crates/execution/src/node_import_cache.rs",
 ];
 
 fn fs_class() -> BannedClass {

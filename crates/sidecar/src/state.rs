@@ -396,6 +396,10 @@ pub(crate) struct ActiveProcess {
     pub(crate) kernel_pid: u32,
     pub(crate) kernel_handle: KernelProcessHandle,
     pub(crate) kernel_stdin_writer_fd: Option<u32>,
+    /// For a child spawned with stdio "pty": the PTY master fd (in the *parent's* kernel fd table)
+    /// that pairs with this child's slave stdin/stdout/stderr. The terminal emulator drives it via
+    /// __pty_read/__pty_write; tracked here so the parent can release it when the child is reaped.
+    pub(crate) pty_master_fd: Option<u32>,
     pub(crate) runtime: GuestRuntimeKind,
     pub(crate) detached: bool,
     pub(crate) execution: ActiveExecution,
