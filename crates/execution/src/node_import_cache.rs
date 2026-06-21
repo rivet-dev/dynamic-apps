@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "77";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "78";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8776,6 +8776,12 @@ if (!modulePath) {
   throw new Error('AGENT_OS_WASM_MODULE_PATH is required');
 }
 const moduleBase64 = process.env.AGENT_OS_WASM_MODULE_BASE64;
+// wasi-threads sidecar-mediated worker session: this execution runs ONE guest thread, sharing the
+// spawning execution's module + shared memory (handed off via the process-global registry by token)
+// and entering at wasi_thread_start instead of _start. Set by the sidecar's wasm.thread_spawn.
+const wasmThreadToken = process.env.AGENT_OS_WASM_THREAD_TOKEN
+  ? Number(process.env.AGENT_OS_WASM_THREAD_TOKEN)
+  : null;
 
 const guestArgv = JSON.parse(process.env.AGENT_OS_GUEST_ARGV ?? '[]');
 const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
@@ -9345,12 +9351,12 @@ const wasmThreadInfo = parseWasmThreadInfo(moduleBytes);
 // A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
 // memory section) is a no-op for it; sizing happens on the host-created shared memory below.
 const moduleBinary = enforceMemoryLimit(moduleBytes, maxMemoryPages);
-const module = new WebAssembly.Module(moduleBinary);
+let module = new WebAssembly.Module(moduleBinary);
 
 // wasi-threads: the host owns the single shared linear memory and supplies it to every isolate-thread
 // (env.memory). Create it here, sized from the module's imported-memory limits, clamped to the
 // runtime cap. Only MEMORY is shared across isolates; the function table is per-instance.
-const guestSharedMemory = (() => {
+let guestSharedMemory = (() => {
   if (!wasmThreadInfo.threaded) return null;
   if (!wasmThreadInfo.memImported || !wasmThreadInfo.memShared) {
     throw new Error(
@@ -9367,6 +9373,23 @@ const guestSharedMemory = (() => {
   const initial = Math.min(wasmThreadInfo.memInitialPages, maximum);
   return new WebAssembly.Memory({ initial, maximum, shared: true });
 })();
+
+// wasi-threads worker session: replace the freshly-compiled module + freshly-created memory with the
+// shared compiled module + shared memory handed off from the spawning execution via the registry
+// (so this worker instantiates against the SAME linear memory). The worker's host imports below are
+// the full set wired to this session's bridge, so its kernel calls reach the same VM's kernel.
+if (wasmThreadToken != null) {
+  if (typeof globalThis.__agentOsWasmThreadBootstrap !== 'function') {
+    throw new Error('secure-exec wasi-threads: worker bootstrap native unavailable');
+  }
+  if (!globalThis.__agentOsWasmThreadBootstrap(wasmThreadToken)) {
+    throw new Error(
+      'secure-exec wasi-threads: worker thread payload missing/failed (token=' + wasmThreadToken + ')',
+    );
+  }
+  module = globalThis.__threadMod;
+  guestSharedMemory = globalThis.__threadMem;
+}
 
 if (prewarmOnly) {
   process.exit(0);
@@ -13922,7 +13945,29 @@ Object.defineProperty(globalThis, '__secureExecWasmSignalDispatch', {
   },
 });
 
-if (typeof instance.exports._start === 'function') {
+if (wasmThreadToken != null) {
+  // wasi-threads worker session: enter the guest at wasi_thread_start(tid, start_arg) rather than
+  // _start. Bind the WASI shim's instance (so its host calls see the shared memory) without running
+  // _start. start_arg points into the shared linear memory (valid here because the memory is shared).
+  if (typeof instance.exports.wasi_thread_start !== 'function') {
+    throw new Error('secure-exec wasi-threads: worker module does not export wasi_thread_start');
+  }
+  wasi.instance = instance;
+  try {
+    instance.exports.wasi_thread_start(globalThis.__threadTid | 0, globalThis.__threadStartArg | 0);
+  } catch (error) {
+    // A trapped worker thread corrupts shared memory; surface as a nonzero exit (the sidecar faults
+    // the VM). Release the reserved slot first.
+    if (typeof globalThis.__agentOsWasmReleaseThreadSlot === 'function') {
+      globalThis.__agentOsWasmReleaseThreadSlot();
+    }
+    throw error;
+  }
+  if (typeof globalThis.__agentOsWasmReleaseThreadSlot === 'function') {
+    globalThis.__agentOsWasmReleaseThreadSlot();
+  }
+  process.exit(0);
+} else if (typeof instance.exports._start === 'function') {
   // The `RuntimeError: unreachable` reports that used to point at
   // `WASI.start()` were caused by the host shim around guest startup, not by
   // V8 itself. Standalone runs must keep ordinary stdio on local process

@@ -519,6 +519,16 @@ pub fn release_worker_thread_slot() {
     global_thread_slots().release();
 }
 
+/// Native `__agentOsWasmReleaseThreadSlot()` — the worker session's runner calls this when its thread
+/// finishes, so the live-thread cap reflects the freed slot.
+fn wasm_thread_release_callback<'s>(
+    _scope: &mut v8::HandleScope<'s>,
+    _args: v8::FunctionCallbackArguments<'s>,
+    _rv: v8::ReturnValue,
+) {
+    release_worker_thread_slot();
+}
+
 /// Register the wasm-threads native functions on the current context so the wasm runner can reach
 /// them. Inert for non-threaded guests (they never call them).
 pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
@@ -528,6 +538,7 @@ pub fn register_thread_spawn(scope: &mut v8::HandleScope) {
         ("__agentOsWasmThreadSpawn", v8::FunctionTemplate::builder(wasm_thread_spawn_callback).build(scope)),
         ("__agentOsWasmThreadRegister", v8::FunctionTemplate::builder(wasm_thread_register_callback).build(scope)),
         ("__agentOsWasmThreadBootstrap", v8::FunctionTemplate::builder(wasm_thread_bootstrap_callback).build(scope)),
+        ("__agentOsWasmReleaseThreadSlot", v8::FunctionTemplate::builder(wasm_thread_release_callback).build(scope)),
     ] {
         if let Some(func) = tmpl.get_function(scope) {
             if let Some(key) = v8::String::new(scope, name) {
