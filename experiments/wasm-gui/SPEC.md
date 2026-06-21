@@ -507,6 +507,19 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
      selection setup (`selinit` / XSetSelectionOwner); `xsetenv` (WINDOWID); or terminal-core init.
      Continue the bisection by adding each to `xftpoll-target.c` until keys break. Working baselines:
      xpoll-target.c (no Xft) and xftpoll-target.c (Xft+locale) -- both receive keys.
+     DEFINITIVE: X LAYER FULLY RULED OUT (2026-06-21, ~28 passes). `xftpoll-target.c` was extended to
+     replicate st's ENTIRE X-protocol behavior -- st's exact `XCreateWindow` (explicit attrs, CWColormap,
+     GC created on the ROOT window, 644x408 at 0,0), `XftFontOpenName`, `setlocale`+`XSetLocaleModifiers`,
+     offscreen-pixmap `XftDraw` render + `XCopyArea`, AND `host_net.pty_spawn` of /pty-shell.wasm -- and it
+     STILL receives KeyPress (green). Conversely st with `selinit()` REMOVED still gets ZERO device events.
+     So NONE of st's X-protocol behavior is the cause; the difference is st's terminal-core / run() flow
+     (the only things the now-near-identical baseline lacks). Eliminated (16): WM, focus (incl. self
+     XSetInputFocus), poll loop, PTY driving, visual/colormap, exact window creation, GC-on-root, XIM,
+     Xft font init, Xft RENDER/pixmap rendering, locale modifiers, PTY child spawn, selection setup,
+     window size/position. NEXT (the only remaining approach): bisect by REMOVING pieces from st itself
+     (tnew/twrite terminal core, the run() do-while MapNotify wait, xsetenv, the handler[] dispatch) until
+     keys arrive -- OR use NON-perturbing server-side counters (not hot-path ErrorF) on the device-event
+     path. The near-st baseline `xftpoll-target.c` (works) is the reference to diff st against.
   4. **Robust concurrency. DONE (2026-06-21).** Concurrent libX11 init over the single sync-RPC bridge
      now works without the settle/ordering hack: host `--xdemo --concurrent` launches every client at
      once (no per-client settle gating), and `scripts/test-m2-3-concurrent.sh` starts twm + xclock +
