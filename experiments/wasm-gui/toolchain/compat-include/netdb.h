@@ -18,6 +18,46 @@ extern "C" {
 extern int h_errno;
 #endif
 
+/* The threaded sysroot has no <netdb.h>, so struct addrinfo + AI_/EAI_ + getaddrinfo are absent (the
+ * patched non-threaded sysroot provided them). GIO's ginetsocketaddress.c / gresolver need them to
+ * COMPILE; guest name resolution actually goes through secure-exec's host_net path at runtime.
+ * Guarded on AI_NUMERICHOST so this never clashes with a sysroot that already provides netdb. */
+#ifndef AI_NUMERICHOST
+#include <sys/socket.h>
+#include <stddef.h>
+struct addrinfo {
+  int ai_flags;
+  int ai_family;
+  int ai_socktype;
+  int ai_protocol;
+  unsigned ai_addrlen;
+  struct sockaddr *ai_addr;
+  char *ai_canonname;
+  struct addrinfo *ai_next;
+};
+#define AI_PASSIVE     0x0001
+#define AI_CANONNAME   0x0002
+#define AI_NUMERICHOST 0x0004
+#define AI_NUMERICSERV 0x0008
+#define AI_V4MAPPED    0x0800
+#define AI_ALL         0x0100
+#define AI_ADDRCONFIG  0x0400
+#define NI_NUMERICHOST 0x0001
+#define NI_NUMERICSERV 0x0002
+#define NI_MAXHOST     1025
+#define NI_MAXSERV     32
+#define EAI_BADFLAGS   -1
+#define EAI_NONAME     -2
+#define EAI_AGAIN      -3
+#define EAI_FAIL       -4
+#define EAI_FAMILY     -6
+#define EAI_MEMORY     -10
+#define EAI_SYSTEM     -11
+int getaddrinfo(const char *, const char *, const struct addrinfo *, struct addrinfo **);
+void freeaddrinfo(struct addrinfo *);
+const char *gai_strerror(int);
+#endif /* AI_NUMERICHOST */
+
 #ifndef HOST_NOT_FOUND
 #define HOST_NOT_FOUND 1
 #define TRY_AGAIN 2
