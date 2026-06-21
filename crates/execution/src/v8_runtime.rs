@@ -373,6 +373,8 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
 
         // PTY
         "_ptySetRawMode" => ("__pty_set_raw_mode", false),
+        "_ptyReadRaw" => ("__pty_read", false),
+        "_ptyWriteRaw" => ("__pty_write", false),
 
         // Pass through unknown methods
         _ => (method, false),

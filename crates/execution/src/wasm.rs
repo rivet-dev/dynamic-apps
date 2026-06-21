@@ -4249,6 +4249,16 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM kernel poll bridge is unavailable");
           }}
           return _kernelPollRaw.applySync(void 0, args);
+        case "__pty_read":
+          if (typeof _ptyReadRaw === "undefined") {{
+            throw new Error("secure-exec WASM pty read bridge is unavailable");
+          }}
+          return _ptyReadRaw.applySync(void 0, args);
+        case "__pty_write":
+          if (typeof _ptyWriteRaw === "undefined") {{
+            throw new Error("secure-exec WASM pty write bridge is unavailable");
+          }}
+          return _ptyWriteRaw.applySync(void 0, args);
         case "child_process.spawn": {{
           if (typeof _childProcessSpawnStart === "undefined") {{
             throw new Error("secure-exec WASM child_process bridge is unavailable");

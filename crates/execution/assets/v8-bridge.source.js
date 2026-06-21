@@ -3944,6 +3944,16 @@ var __bridge = (() => {
       rationale: "Host PTY bridge reference for stdin.setRawMode()."
     },
     {
+      name: "_ptyReadRaw",
+      classification: "hardened",
+      rationale: "Host PTY bridge reference for reading a terminal's PTY master fd (__pty_read)."
+    },
+    {
+      name: "_ptyWriteRaw",
+      classification: "hardened",
+      rationale: "Host PTY bridge reference for writing a terminal's PTY master fd (__pty_write)."
+    },
+    {
       name: "require",
       classification: "hardened",
       rationale: "Runtime-owned global require shim entrypoint."
@@ -6404,6 +6414,8 @@ var __bridge = (() => {
   var _processResourceUsage = createBridgeSyncFacade("process.resourceUsage");
   var _processVersions = createBridgeSyncFacade("process.versions");
   var _kernelPollRaw = createBridgeSyncFacade("_kernelPollRaw");
+  var _ptyReadRaw = createBridgeSyncFacade("_ptyReadRaw");
+  var _ptyWriteRaw = createBridgeSyncFacade("_ptyWriteRaw");
   function decodeBridgeJson(value) {
     return typeof value === "string" ? JSON.parse(value) : value;
   }

@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "70";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "71";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11366,6 +11366,70 @@ const hostNetImport = {
     if (!socket) return WASI_ERRNO_BADF;
     socket.nonblock = (Number(enable) >>> 0) !== 0;
     return WASI_ERRNO_SUCCESS;
+  },
+  // PTY spawn/read/write for terminal emulators (M6.3). pty_spawn launches a child command over a
+  // kernel PTY: the child's stdin/stdout/stderr become the slave, and the master fd (returned in
+  // *retMasterFdPtr) lives in this — the terminal — process. pty_read/pty_write drive that master.
+  // Routes through the engine-level child_process.spawn bridge (stdio 'pty') and the
+  // __pty_read/__pty_write sync-RPC handlers. permissionTier 'full' only (host-backed like net_*).
+  pty_spawn(cmdPtr, cmdLen, argvJsonPtr, argvJsonLen, retMasterFdPtr) {
+    if (permissionTier !== 'full') return WASI_ERRNO_FAULT;
+    try {
+      const command = String(readGuestString(cmdPtr, cmdLen) ?? '');
+      let argv = [];
+      if ((Number(argvJsonLen) >>> 0) > 0) {
+        const raw = String(readGuestString(argvJsonPtr, argvJsonLen) ?? '');
+        if (raw) {
+          try { argv = JSON.parse(raw); } catch (_) { argv = []; }
+        }
+      }
+      const result = callSyncRpc('child_process.spawn', [{
+        command,
+        args: Array.isArray(argv) ? argv : [],
+        options: { stdio: ['pty'] },
+      }]);
+      const parsed = (typeof result === 'string') ? JSON.parse(result) : result;
+      if (!parsed || parsed.ptyMasterFd == null) {
+        try { process.stderr.write('[pty] spawn returned no ptyMasterFd\n'); } catch (_) {}
+        return WASI_ERRNO_FAULT;
+      }
+      return writeGuestUint32(retMasterFdPtr, Number(parsed.ptyMasterFd) >>> 0);
+    } catch (e) {
+      try { process.stderr.write('[pty] spawn failed: ' + (e && e.message ? e.message : String(e)) + '\n'); } catch (_) {}
+      return WASI_ERRNO_FAULT;
+    }
+  },
+  pty_read(masterFd, bufPtr, bufLen, retReadPtr) {
+    if (permissionTier !== 'full') return WASI_ERRNO_FAULT;
+    try {
+      const result = callSyncRpc('__pty_read', [Number(masterFd) >>> 0, Number(bufLen) >>> 0, 0]);
+      if (result == null) {
+        // EAGAIN: no data available right now (the terminal should poll/retry).
+        return writeGuestUint32(retReadPtr, 0);
+      }
+      const parsed = (typeof result === 'string') ? JSON.parse(result) : result;
+      if (parsed && parsed.done) {
+        return writeGuestUint32(retReadPtr, 0); // EOF on the slave end
+      }
+      const bytes = decodeFsBytesPayload(parsed, 'pty read data');
+      const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      return writeGuestBytes(bufPtr, Number(bufLen) >>> 0, view, retReadPtr);
+    } catch (_e) {
+      return WASI_ERRNO_FAULT;
+    }
+  },
+  pty_write(masterFd, bufPtr, bufLen, retWrittenPtr) {
+    if (permissionTier !== 'full') return WASI_ERRNO_FAULT;
+    try {
+      const bytes = readGuestBytes(bufPtr, Number(bufLen) >>> 0);
+      if (!bytes) return WASI_ERRNO_FAULT;
+      const payload = { __agentOsType: 'bytes', base64: Buffer.from(bytes).toString('base64') };
+      const result = callSyncRpc('__pty_write', [Number(masterFd) >>> 0, payload]);
+      const written = (typeof result === 'number') ? result : (Number(result) >>> 0);
+      return writeGuestUint32(retWrittenPtr, written >>> 0);
+    } catch (_e) {
+      return WASI_ERRNO_FAULT;
+    }
   },
   net_connect(fd, addrPtr, addrLen) {
     const socket = getHostNetSocket(fd);
