@@ -63,7 +63,7 @@ resolved node:os via require -> linux
 
 Put package bytes on the guest filesystem, then let the in-kernel resolver walk them. Three ways to project them:
 
-- `create({ nodeModules })`: project a whole host `node_modules` tree in one call. Read-only, defaulting to `/tmp/node_modules`, which is where the resolution walk begins for a program run by `exec()` / `run()` (each program is written under `/tmp`). Pass the object form (`{ hostPath, guestPath }`) to mount it elsewhere.
+- `create({ nodeModules })`: a convenience for a read-only host-directory mount that projects a whole host `node_modules` tree in one call. It uses the same mount machinery as `mounts`, defaulting to guest `/tmp/node_modules`, which is where the resolution walk begins for a program run by `exec()` / `run()` (each program is written under `/tmp`). Pass the object form (`{ hostPath, guestPath }`) to mount it elsewhere.
 - `create({ mounts })`: project one host directory at a time onto a guest path, Docker-style. Use a `mounts` entry per package when you want fine-grained control instead of the whole tree.
 - `create({ files })` or `rt.writeFile`: write bytes directly into the VM when you want to seed files instead of projecting a host tree.
 
