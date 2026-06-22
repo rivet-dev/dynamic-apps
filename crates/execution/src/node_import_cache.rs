@@ -11469,7 +11469,11 @@ const hostNetImport = {
         for (let i = 0; i < n; i++) {
           const fd = v2.getInt32(base0 + i * 8, true);
           const s = getHostNetSocket(fd);
-          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 10);
+          // A blocking net.poll holds the sidecar's single sync-RPC event-loop thread for the whole
+          // wait, during which a peer VM's net.write cannot be serviced (e.g. an X server replying to
+          // this client). A short 1ms slice keeps the cross-VM ping-pong latency low without the
+          // busy-poll storm that wait=0 causes. (Deeper fix: async net.poll that doesn't hold the loop.)
+          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 1);
         }
       }
     } catch (_e) {
