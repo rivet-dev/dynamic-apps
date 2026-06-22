@@ -62,7 +62,11 @@ use http::{HeaderMap, HeaderName, HeaderValue, Method, Request, Response, Uri};
 use md5::Md5;
 use nix::libc;
 use nix::sys::signal::{kill as send_signal, Signal};
-use nix::sys::wait::{waitid as wait_on_child, Id as WaitId, WaitPidFlag, WaitStatus};
+use nix::sys::wait::WaitStatus;
+#[cfg(not(target_os = "macos"))]
+use nix::sys::wait::{waitid as wait_on_child, Id as WaitId, WaitPidFlag};
+#[cfg(target_os = "macos")]
+use nix::sys::wait::{waitpid, WaitPidFlag};
 use nix::unistd::Pid;
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::derive::Deriver;
@@ -20991,6 +20995,7 @@ pub(crate) fn runtime_child_is_alive(child_pid: u32) -> Result<bool, SidecarErro
     Ok(runtime_child_exit_status(child_pid)?.is_none())
 }
 
+#[cfg(not(target_os = "macos"))]
 fn runtime_child_exit_status(child_pid: u32) -> Result<Option<i32>, SidecarError> {
     if child_pid == 0 {
         return Ok(Some(0));
@@ -21009,6 +21014,30 @@ fn runtime_child_exit_status(child_pid: u32) -> Result<Option<i32>, SidecarError
         Ok(WaitStatus::Signaled(_, signal, _)) => Ok(Some(128 + signal as i32)),
         #[cfg(any(target_os = "linux", target_os = "android"))]
         Ok(WaitStatus::PtraceEvent(_, _, _) | WaitStatus::PtraceSyscall(_)) => Ok(None),
+        Err(nix::errno::Errno::ECHILD) => Ok(Some(0)),
+        Err(error) => Err(SidecarError::Execution(format!(
+            "failed to inspect guest runtime process {child_pid}: {error}"
+        ))),
+    }
+}
+
+// macOS nix exposes no `waitid`/`WNOWAIT`, so we poll with `waitpid(WNOHANG)`.
+// NOTE: unlike Linux's `waitid(WNOWAIT)`, `waitpid` REAPS an exited child rather
+// than leaving it waitable. That is correct for this poll (the sidecar is the
+// reaping parent), but a second status query after exit returns ECHILD → treated
+// as "exited(0)" below.
+#[cfg(target_os = "macos")]
+fn runtime_child_exit_status(child_pid: u32) -> Result<Option<i32>, SidecarError> {
+    if child_pid == 0 {
+        return Ok(Some(0));
+    }
+
+    match waitpid(Pid::from_raw(child_pid as i32), Some(WaitPidFlag::WNOHANG)) {
+        Ok(WaitStatus::StillAlive)
+        | Ok(WaitStatus::Stopped(_, _))
+        | Ok(WaitStatus::Continued(_)) => Ok(None),
+        Ok(WaitStatus::Exited(_, status)) => Ok(Some(status)),
+        Ok(WaitStatus::Signaled(_, signal, _)) => Ok(Some(128 + signal as i32)),
         Err(nix::errno::Errno::ECHILD) => Ok(Some(0)),
         Err(error) => Err(SidecarError::Execution(format!(
             "failed to inspect guest runtime process {child_pid}: {error}"

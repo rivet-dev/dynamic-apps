@@ -11,6 +11,8 @@ pub mod generated_protocol;
 #[allow(dead_code)]
 pub(crate) mod json_rpc;
 pub mod limits;
+#[cfg(target_os = "macos")]
+pub(crate) mod macos_fs;
 pub(crate) mod metadata;
 pub(crate) mod plugins;
 pub mod protocol;

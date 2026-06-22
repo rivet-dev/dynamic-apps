@@ -776,6 +776,9 @@ fn non_negative_c_long(value: libc::c_long) -> i64 {
     normalized.min(i128::from(i64::MAX)) as i64
 }
 
+// Used only by the non-macOS `getrusage(RUSAGE_THREAD)` path; macOS reads CPU
+// time from Mach `time_value_t` instead.
+#[cfg(not(target_os = "macos"))]
 fn timeval_to_micros(value: libc::timeval) -> u64 {
     let seconds = i128::from(value.tv_sec).max(0);
     let micros = i128::from(value.tv_usec).max(0);
@@ -785,6 +788,7 @@ fn timeval_to_micros(value: libc::timeval) -> u64 {
         .min(i128::from(u64::MAX))) as u64
 }
 
+#[cfg(not(target_os = "macos"))]
 fn current_thread_resource_usage() -> Result<ThreadResourceUsageSnapshot, String> {
     let mut usage = MaybeUninit::<libc::rusage>::uninit();
     let result = unsafe { libc::getrusage(libc::RUSAGE_THREAD, usage.as_mut_ptr()) };
@@ -799,6 +803,81 @@ fn current_thread_resource_usage() -> Result<ThreadResourceUsageSnapshot, String
         user_cpu_us: timeval_to_micros(usage.ru_utime),
         system_cpu_us: timeval_to_micros(usage.ru_stime),
         max_rss_kib: non_negative_c_long(usage.ru_maxrss),
+        shared_memory_size: non_negative_c_long(usage.ru_ixrss),
+        unshared_data_size: non_negative_c_long(usage.ru_idrss),
+        unshared_stack_size: non_negative_c_long(usage.ru_isrss),
+        minor_page_faults: non_negative_c_long(usage.ru_minflt),
+        major_page_faults: non_negative_c_long(usage.ru_majflt),
+        swapped_out: non_negative_c_long(usage.ru_nswap),
+        fs_read: non_negative_c_long(usage.ru_inblock),
+        fs_write: non_negative_c_long(usage.ru_oublock),
+        ipc_sent: non_negative_c_long(usage.ru_msgsnd),
+        ipc_received: non_negative_c_long(usage.ru_msgrcv),
+        signals_count: non_negative_c_long(usage.ru_nsignals),
+        voluntary_context_switches: non_negative_c_long(usage.ru_nvcsw),
+        involuntary_context_switches: non_negative_c_long(usage.ru_nivcsw),
+    })
+}
+
+// macOS has no `RUSAGE_THREAD`, so per-thread CPU time comes from the Mach
+// `thread_info(THREAD_BASIC_INFO)` call. The remaining rusage fields have no
+// per-thread source on Apple platforms, so they are filled best-effort from the
+// process-wide `getrusage(RUSAGE_SELF)` (mirroring libuv's macOS behaviour).
+#[cfg(target_os = "macos")]
+fn macos_thread_cpu_micros() -> Result<(u64, u64), String> {
+    // SAFETY: `pthread_mach_thread_np` yields the calling thread's Mach port;
+    // `thread_info` fully initialises `info` on KERN_SUCCESS.
+    unsafe {
+        let port = libc::pthread_mach_thread_np(libc::pthread_self());
+        if port == 0 {
+            return Err("pthread_mach_thread_np returned MACH_PORT_NULL".to_string());
+        }
+        let mut info = MaybeUninit::<libc::thread_basic_info>::zeroed();
+        let mut count = (std::mem::size_of::<libc::thread_basic_info>()
+            / std::mem::size_of::<libc::integer_t>())
+            as libc::mach_msg_type_number_t;
+        let rc = libc::thread_info(
+            port,
+            libc::THREAD_BASIC_INFO as libc::thread_flavor_t,
+            info.as_mut_ptr() as libc::thread_info_t,
+            &mut count,
+        );
+        if rc != libc::KERN_SUCCESS {
+            return Err(format!("thread_info(THREAD_BASIC_INFO) failed: {rc}"));
+        }
+        let info = info.assume_init();
+        let to_micros = |t: libc::time_value_t| -> u64 {
+            let secs = i128::from(t.seconds).max(0);
+            let micros = i128::from(t.microseconds).max(0);
+            (secs
+                .saturating_mul(1_000_000)
+                .saturating_add(micros)
+                .min(i128::from(u64::MAX))) as u64
+        };
+        Ok((to_micros(info.user_time), to_micros(info.system_time)))
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn current_thread_resource_usage() -> Result<ThreadResourceUsageSnapshot, String> {
+    let (user_cpu_us, system_cpu_us) = macos_thread_cpu_micros()?;
+
+    let mut usage = MaybeUninit::<libc::rusage>::uninit();
+    let result = unsafe { libc::getrusage(libc::RUSAGE_SELF, usage.as_mut_ptr()) };
+    if result != 0 {
+        return Err(format!(
+            "getrusage(RUSAGE_SELF) failed: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    let usage = unsafe { usage.assume_init() };
+    Ok(ThreadResourceUsageSnapshot {
+        // Per-thread CPU time (accurate, from Mach thread_info).
+        user_cpu_us,
+        system_cpu_us,
+        // macOS reports ru_maxrss in bytes; normalise to KiB to match Linux.
+        max_rss_kib: non_negative_c_long(usage.ru_maxrss) / 1024,
+        // Process-wide best-effort: no per-thread source on macOS.
         shared_memory_size: non_negative_c_long(usage.ru_ixrss),
         unshared_data_size: non_negative_c_long(usage.ru_idrss),
         unshared_stack_size: non_negative_c_long(usage.ru_isrss),

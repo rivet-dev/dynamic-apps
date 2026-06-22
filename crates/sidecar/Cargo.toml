@@ -56,6 +56,11 @@ url = "2"
 vbare = { workspace = true }
 vfs = { workspace = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+# macOS has no openat2/RESOLVE_BENEATH; cap-std provides the audited
+# resolve-beneath path resolution used in place of openat2 on this platform.
+cap-std = "3"
+
 [build-dependencies]
 vbare-compiler = { workspace = true }
 

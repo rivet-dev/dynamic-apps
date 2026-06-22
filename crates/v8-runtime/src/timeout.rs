@@ -38,7 +38,11 @@ const CPU_BUDGET_POLL_INTERVAL: Duration = Duration::from_millis(50);
 /// The POSIX per-thread CPU clock id is derived from the thread's `pthread_t`
 /// and remains valid for the lifetime of that thread, so the watchdog can poll
 /// it via `clock_gettime` without running on the execution thread itself.
-#[cfg(unix)]
+///
+/// macOS has no `pthread_getcpuclockid`/per-thread POSIX clock, so it uses a
+/// separate Mach-based implementation below (`pthread_mach_thread_np` +
+/// `thread_info`) that exposes the same opaque `ThreadCpuClock` interface.
+#[cfg(all(unix, not(target_os = "macos")))]
 #[cfg_attr(test, allow(dead_code))]
 #[derive(Clone, Copy)]
 pub(crate) struct ThreadCpuClock {
@@ -50,7 +54,7 @@ pub(crate) struct ThreadCpuClock {
 ///
 /// Returns `None` if the platform refuses to expose a per-thread CPU clock, in
 /// which case no CPU budget can be enforced.
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[cfg_attr(test, allow(dead_code))]
 pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
     // SAFETY: `pthread_self` is always callable; `pthread_getcpuclockid` writes
@@ -66,7 +70,7 @@ pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
     }
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 impl ThreadCpuClock {
     /// Read accumulated CPU time for the captured thread, in milliseconds.
     /// Returns `None` if the clock read fails.
@@ -82,6 +86,64 @@ impl ThreadCpuClock {
             } else {
                 None
             }
+        }
+    }
+}
+
+/// macOS per-thread CPU clock. There is no `pthread_getcpuclockid` on Apple
+/// platforms, so the thread's CPU time is read through the Mach
+/// `thread_info(THREAD_BASIC_INFO)` call. The Mach thread port obtained via
+/// `pthread_mach_thread_np` stays valid for the thread's lifetime and may be
+/// inspected from another (watchdog) thread, matching the opaque-handle
+/// contract above.
+#[cfg(target_os = "macos")]
+#[cfg_attr(test, allow(dead_code))]
+#[derive(Clone, Copy)]
+pub(crate) struct ThreadCpuClock {
+    port: libc::mach_port_t,
+}
+
+#[cfg(target_os = "macos")]
+#[cfg_attr(test, allow(dead_code))]
+pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
+    // SAFETY: `pthread_mach_thread_np` returns the Mach thread port for the
+    // calling pthread; the port is valid for the thread's lifetime.
+    let port = unsafe { libc::pthread_mach_thread_np(libc::pthread_self()) };
+    // MACH_PORT_NULL is 0.
+    if port == 0 {
+        None
+    } else {
+        Some(ThreadCpuClock { port })
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl ThreadCpuClock {
+    /// Read accumulated CPU time (user + system) for the captured thread, in
+    /// milliseconds. Returns `None` if the Mach query fails.
+    #[cfg_attr(test, allow(dead_code))]
+    fn elapsed_ms(self) -> Option<u64> {
+        // SAFETY: `thread_info` fully initialises `info` when it returns
+        // KERN_SUCCESS; the count is the documented THREAD_BASIC_INFO length.
+        unsafe {
+            let mut info = std::mem::MaybeUninit::<libc::thread_basic_info>::zeroed();
+            let mut count = (std::mem::size_of::<libc::thread_basic_info>()
+                / std::mem::size_of::<libc::integer_t>())
+                as libc::mach_msg_type_number_t;
+            let rc = libc::thread_info(
+                self.port,
+                libc::THREAD_BASIC_INFO as libc::thread_flavor_t,
+                info.as_mut_ptr() as libc::thread_info_t,
+                &mut count,
+            );
+            if rc != libc::KERN_SUCCESS {
+                return None;
+            }
+            let info = info.assume_init();
+            let ms = (info.user_time.seconds as i128 + info.system_time.seconds as i128) * 1_000
+                + (info.user_time.microseconds as i128 + info.system_time.microseconds as i128)
+                    / 1_000;
+            Some(ms.max(0) as u64)
         }
     }
 }
