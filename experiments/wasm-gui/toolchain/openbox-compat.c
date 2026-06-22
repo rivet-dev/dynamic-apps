@@ -54,3 +54,17 @@ unsigned long ns_get32(const unsigned char *cp) {
     return cp ? (((unsigned long)cp[0] << 24) | ((unsigned long)cp[1] << 16) |
                  ((unsigned long)cp[2] << 8) | (unsigned long)cp[3]) : 0ul;
 }
+
+/* wasi-libc omits tmpfile(); lxpanel (and other GTK apps) use it. Implement via the VFS: create a
+ * uniquely-named file under /tmp, open r/w, and unlink it so it's anonymous (freed on close). */
+#include <stdio.h>
+extern int unlink(const char *);
+extern int getpid(void);
+FILE *tmpfile(void) {
+    static unsigned ctr = 0;
+    char path[64];
+    snprintf(path, sizeof path, "/tmp/.se-tmpfile-%d-%u", getpid(), ctr++);
+    FILE *f = fopen(path, "w+b");
+    if (f) unlink(path);
+    return f;
+}

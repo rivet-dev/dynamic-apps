@@ -77,5 +77,8 @@ make -j4 LIBS="$SETJMP $LIBC" >/tmp/make-openbox.log 2>&1 \
   && echo "  OK openbox/openbox ($(stat -c%s openbox/openbox) bytes)" || { echo "  FAIL openbox make"; tail -12 /tmp/make-openbox.log; exit 1; }
 
 # --- 5. fpcast-emu (openbox casts fn-ptrs across signatures in its action dispatch) ---
-wasm-opt --fpcast-emu --enable-bulk-memory --enable-threads -O0 openbox/openbox -o "$EXP/openbox.wasm" 2>/dev/null
+# --strip-debug/--strip-dwarf: the linked X/glib libs carry DWARF that bloats the module ~3-4x
+# (openbox 21MB -> 6MB), which slows V8 JIT and, with multiple guests, worsens the cross-process
+# X-latency starvation. Strip it (runtime needs no debug info).
+wasm-opt --fpcast-emu --strip-debug --strip-dwarf --enable-bulk-memory --enable-threads -O0 openbox/openbox -o "$EXP/openbox.wasm" 2>/dev/null
 echo "OK: openbox.wasm ($(stat -c%s "$EXP/openbox.wasm") bytes). Stage config/theme with prepare-openbox-fixtures.sh."
