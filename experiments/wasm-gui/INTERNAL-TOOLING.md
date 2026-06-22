@@ -75,12 +75,19 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
 - [ ] **P3 resource counters** — fuel, memory, live-threads-vs-cap.
 
 ### 4b. ANALYZE — wasm-aware introspection we build (our gdb/helgrind/perf)
-- [~] **P1 all-isolate stack-dump** (our `gdb thread apply all bt`, `SECURE_EXEC_STACKDUMP_AFTER_MS`).
-      Watchdog interrupts every registered isolate and prints the interrupted thread's **native**
-      backtrace (`crates/v8-runtime/src/isolate.rs`). Works + confirmed both M8 guest threads spin in
-      JIT'd wasm. LIMIT: rusty_v8 forbids a HandleScope inside an interrupt (the guest's scope chain is
-      active → abort), so V8's wasm-aware frame walk is unreachable there → native frames bottom out at
-      the JIT CEntry trampoline (no wasm function names). Naming needs V8 `--prof` (below).
+- [x] **P1 all-isolate stack-dump + per-thread verdict** (our `gdb thread apply all bt`,
+      `SECURE_EXEC_STACKDUMP_AFTER_MS`). Watchdog interrupts every registered isolate and prints, per
+      thread, a one-line **classification** (`[stackdump] <label> => …`) followed by the **native**
+      backtrace (`crates/v8-runtime/src/isolate.rs`, `classify_stack`). The verdict is the
+      **deadlock-vs-livelock** call that was the hard part of M8.0: `PARKED-ON-FUTEX` (V8
+      `FutexEmulation`/`Runtime_Wasm*AtomicWait` = a guest `pthread_mutex`/`cond`/raw `atomic.wait` —
+      deadlock candidate), `BLOCKED-IN-HOST` (sidecar/kernel wait, e.g. `net.poll`/`recv`), or `RUNNING`
+      (JIT'd wasm / V8 builtin — livelock/CPU-spin candidate if it stays across rounds). Proven both ways
+      (`~/tmp/gui-progress/proof-m8.1-stackdump-verdict.txt`): `threads-atomicwait` → PARKED, healthy
+      `gtk-hello` mid-init → RUNNING. LIMIT: still no wasm function NAMES (rusty_v8 forbids a HandleScope
+      inside an interrupt → V8's wasm frame walk is unreachable → native frames bottom out at the JIT
+      CEntry trampoline; naming needs the DWARF symbolizer below) and no futex ADDRESS / lock-owner
+      (those live in wasm linear memory — needs the threaded-libc futex trace, a follow-up).
 - [~] **P1 V8 `--prof` wasm sampler** (`SECURE_EXEC_V8PROF=1` → `/tmp/secure-exec-v8.log`;
       `scripts/v8prof-top.py` symbolizes; `scripts/diag.sh v8prof <guest>`). Works: profiles all
       isolates, names JS frames, surfaces the hot wasm call chain. On the M8 hang it showed a sustained

@@ -183,6 +183,34 @@ fn diag_stackdump_after_ms() -> Option<u64> {
         .filter(|&n| n > 0)
 }
 
+/// Classify an interrupted guest OS thread from its native backtrace. This is the cheap
+/// deadlock-vs-livelock verdict: a guest `pthread_mutex`/`pthread_cond`/raw `memory.atomic.wait`
+/// parks inside V8's `FutexEmulation` (C++), a guest blocked in a kernel/sync-RPC call sits in the
+/// sidecar's poll/recv, and otherwise the thread is actively running JIT'd wasm (a CPU spin if it
+/// stays here across rounds). We can't recover the futex ADDRESS or lock owner from the native frames
+/// (those live in wasm linear memory) — that needs the threaded-libc futex trace (a follow-up); this
+/// verdict is the part that was the hard call in the M8.0 gtk_init debugging.
+fn classify_stack(bt: &str) -> &'static str {
+    if bt.contains("FutexEmulation")
+        || bt.contains("AtomicWait") // V8 Runtime_WasmI32/I64AtomicWait
+        || bt.contains("AtomicsWait")
+        || bt.contains("atomic_wait")
+    {
+        "PARKED-ON-FUTEX (memory.atomic.wait — pthread mutex/cond or raw atomics; deadlock candidate)"
+    } else if bt.contains("recv_timeout")
+        || bt.contains("epoll")
+        || bt.contains("::poll")
+        || bt.contains("read_generic")
+        || bt.contains("condvar")
+        || bt.contains("Condvar")
+        || bt.contains("parking_lot")
+    {
+        "BLOCKED-IN-HOST (sidecar/kernel wait — e.g. net.poll/recv; normal if it makes progress)"
+    } else {
+        "RUNNING (JIT/wasm or a V8 builtin — livelock/CPU-spin candidate if it stays here across rounds)"
+    }
+}
+
 extern "C" fn diag_stack_dump_callback(_isolate: &mut v8::Isolate, data: *mut c_void) {
     // `data` is a leaked Box<String> label produced per request; reclaim it here.
     let label = if data.is_null() {
@@ -196,7 +224,10 @@ extern "C" fn diag_stack_dump_callback(_isolate: &mut v8::Isolate, data: *mut c_
     // frames (reveals a spin inside a V8 builtin: atomics/GC/futex) and shows raw addresses for JIT'd
     // wasm (a busy-spin in pure guest code). See experiments/wasm-gui/INTERNAL-TOOLING.md.
     let bt = std::backtrace::Backtrace::force_capture();
-    eprintln!("[stackdump] {label} native backtrace:\n{bt}");
+    let bt_str = format!("{bt}");
+    // One-line per-thread verdict first (greppable: `[stackdump] ... => `), then the full backtrace.
+    eprintln!("[stackdump] {label} => {}", classify_stack(&bt_str));
+    eprintln!("[stackdump] {label} native backtrace:\n{bt_str}");
 }
 
 /// Register an isolate so the stack-dump watchdog can interrupt it. No-op (and no handle retained)
