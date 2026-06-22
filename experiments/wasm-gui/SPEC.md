@@ -620,11 +620,19 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
 - **M8.0 — GTK3 app spike. ✅ DONE (2026-06-22).** `gtk-hello` renders a live GTK 3 window with widgets
   on the wasm X server (proof above). This is the "spike first" step; it is NOT M8 acceptance.
 
-- **M8.1 — Out-of-band debugging toolchain (build BEFORE any DE component). ⬜** The only guest-visible
-  probes today are synchronous host calls that *perturb the race they measure*; build host-side observers
-  that watch without participating. The sidecar IS the kernel, so most of this is a structured read of
-  state we already own. Acceptance: each tool below works on a live hung guest and is documented in
-  `INTERNAL-TOOLING.md`. Priority order (1-3 are the must-haves before M8.2; 4-5 as needed):
+- **M8.1 — Out-of-band debugging toolchain. 🟡 core deliverable DONE; rest build-on-demand.** The only
+  guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
+  host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —
+  the per-thread **deadlock-vs-livelock verdict** on `SECURE_EXEC_STACKDUMP` (`classify_stack` in
+  `crates/v8-runtime/src/isolate.rs`: PARKED-ON-FUTEX / BLOCKED-IN-HOST / RUNNING), proven both ways
+  (`~/tmp/gui-progress/proof-m8.1-stackdump-verdict.txt`). **Re-scope (evidence-based):** the built wasm
+  **already retains a name section** (C function names survive; only `byn$fpcast` indirect-call thunks are
+  nameless), so v8prof already names most frames and the DWARF symbolizer's marginal value is low — and
+  the verdict tool + existing `SECURE_EXEC_TRACE` (RPC + byte flow) cover the thread-state and
+  liveness axes that were decisive in M8.0. So tools 2-3 below are reclassified **build-on-first-demand
+  during M8.2+** (just-in-time at the point of a real hang — still "observability before guessing,"
+  applied where it pays), not speculative blockers. Catalog/status in `INTERNAL-TOOLING.md`. The tools, by
+  value:
     1. **Thread-state / lock-holder dump (≈`gstack` + lock tracing) — highest value.** For every guest
        pthread, report what it is parked on (which futex/cond/mutex) and, for mutexes, the **current
        holder thread id**. Owns-the-thread-table read; extend `SECURE_EXEC_STACKDUMP`. This one tool
