@@ -702,13 +702,23 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   with its new deps **libXres -> libwnck-3.0** (taskbar/window-list) + **keybinder-3.0** (hotkeys), and
   **instantiates + runs** in the V8 sidecar. Built `--with-plugins=none` so only the internal plugins
   (menu/launchtaskbar/dclock/pager) are in — dlopen-loadable plugins are out (no wasi dlopen yet, the
-  M8.1 decision). One new wasi gap filled platform-side: `tmpfile` via the VFS (`openbox-compat.c`).
+  M8.1 decision). Two new wasi gaps filled platform-side: `tmpfile` via the VFS (`openbox-compat.c`),
+  and the **GNU 3-arg `main(argc,argv,envp)` entry** — lxpanel's 3-arg main has wasm type
+  `(i32,i32,i32)->i32` which doesn't match the wasi crt's 2-arg `main` reference, leaving `main`
+  undefined-weak (calling it traps); fixed by `toolchain/main3arg-shim.c` overriding the crt's weak
+  `__main_void` to fetch argv via WASI and call the real 3-arg main (linked via `--whole-archive
+  -lmain3arg`; verified on a minimal 3-arg-main guest; reusable for pcmanfm). **This argues tool #3
+  (the DWARF symbolizer) should now be built** — it's exactly what the lxpanel trap below needs.
   **KEY INSIGHT:** the linked X/glib/gtk libs carry huge DWARF — lxpanel was 44MB (38MB `.debug_*`), which
   **OOMed the V8 isolate during compile**; `wasm-opt --strip-debug --strip-dwarf` drops it to 5MB (openbox
   21MB->6MB), now in the build scripts. Smaller modules also cut V8 JIT pressure, which should ease the
-  M8.2 multi-guest X-latency starvation. **Remaining:** lxpanel traps early in init (before any RPC — a
-  static ctor / very-early main from libwnck/keybinder; needs the same `-g`-bisection openbox required);
-  then stage a panel config + run on openbox for the live panel (menu + taskbar + clock). Test
+  M8.2 multi-guest X-latency starvation. **Remaining:** after the 3-arg-main fix, lxpanel STILL traps
+  before `main` at `function[53]` (invariant to the main fix, so it's earlier). Narrowed: NOT the
+  libraries (a guest linking libwnck+keybinder+libfm-gtk3 reaches main fine) and NOT a classic
+  constructor (lxpanel has no `G_DEFINE_CONSTRUCTOR`/`__attribute__((constructor))`/GResource/`.init_array`).
+  It resists the `_start`-range-only DWARF symbolization — **this is the concrete case that justifies
+  building tool #3 (the DWARF line-symbolizer for fpcast'd wasm)** to name `function[53]`. Then stage a
+  panel config + run on openbox for the live panel (menu + taskbar + clock). Test
   `scripts/test-m8-lxpanel.sh` (TODO), screenshot proof.
 
 - **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
