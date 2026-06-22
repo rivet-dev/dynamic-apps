@@ -20,6 +20,12 @@ struct group {
 
 static inline struct group *getgrgid(gid_t gid) { (void) gid; return 0; }
 static inline struct group *getgrnam(const char *name) { (void) name; return 0; }
+/* Group-database enumeration (openbox obt/paths.c find_uid_gid uses these). The sandbox has no
+ * /etc/group, so enumeration is empty. Declaring them with correct signatures avoids the implicit-int
+ * wasm-ABI mismatch that otherwise traps when the caller's expected return type differs from the stub. */
+static inline struct group *getgrent(void) { return 0; }
+static inline void setgrent(void) { }
+static inline void endgrent(void) { }
 static inline int getgrgid_r(gid_t gid, struct group *grp, char *buf, size_t buflen,
                              struct group **result) {
     (void) gid; (void) grp; (void) buf; (void) buflen;

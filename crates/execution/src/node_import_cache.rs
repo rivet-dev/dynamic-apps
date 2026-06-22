@@ -13621,6 +13621,32 @@ wasiImport.fd_close = (fd) => {
   return delegateManagedFdClose ? delegateManagedFdClose(fd) : WASI_ERRNO_BADF;
 };
 
+// WASI fd_renumber(from, to): atomically make `to` refer to `from`'s description (closing `to`'s old
+// description), then close `from` (a MOVE, not a dup). The base Node WASI does not implement it, so
+// some guests (openbox via libSM/libICE + wasi-libc's dup path) import it raw. Reuse the same handle
+// model as host_process.fd_dup2 (clone source -> install at target), then close the source fd.
+wasiImport.fd_renumber = (from, to) => {
+  try {
+    const sourceFd = Number(from) >>> 0;
+    const targetFd = Number(to) >>> 0;
+    if (sourceFd === targetFd) {
+      return lookupFdHandle(sourceFd) ? WASI_ERRNO_SUCCESS : WASI_ERRNO_BADF;
+    }
+    const sourceHandle = cloneFdHandle(sourceFd);
+    if (!sourceHandle) {
+      return WASI_ERRNO_BADF;
+    }
+    closeSyntheticFd(targetFd);
+    closePassthroughFd(targetFd);
+    syntheticFdEntries.set(targetFd, sourceHandle);
+    // Renumber moves the source away; close the original fd (the handle was cloned to the target).
+    wasiImport.fd_close(sourceFd);
+    return WASI_ERRNO_SUCCESS;
+  } catch {
+    return WASI_ERRNO_FAULT;
+  }
+};
+
 wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
   if (!(instanceMemory instanceof WebAssembly.Memory)) {
     return delegateManagedPollOneoff
