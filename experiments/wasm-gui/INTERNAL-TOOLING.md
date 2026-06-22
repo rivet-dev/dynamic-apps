@@ -81,10 +81,17 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       JIT'd wasm. LIMIT: rusty_v8 forbids a HandleScope inside an interrupt (the guest's scope chain is
       active → abort), so V8's wasm-aware frame walk is unreachable there → native frames bottom out at
       the JIT CEntry trampoline (no wasm function names). Naming needs V8 `--prof` (below).
-- [ ] **P1 V8 `--prof` wasm sampler/symbolizer** — set V8 `--prof` flags (gated), let V8's tick
-      sampler log code-creation (incl. wasm names) + ticks, parse the log for the hot wasm function
-      during the spin window. The supported path to *name* the spinning wasm function. Needs a
-      non-stripped guest build (keep the name section) for symbols. ≈ `perf` + symbols.
+- [~] **P1 V8 `--prof` wasm sampler** (`SECURE_EXEC_V8PROF=1` → `/tmp/secure-exec-v8.log`;
+      `scripts/v8prof-top.py` symbolizes; `scripts/diag.sh v8prof <guest>`). Works: profiles all
+      isolates, names JS frames, surfaces the hot wasm call chain. On the M8 hang it showed a sustained
+      wasm busy-spin in fpcast-emu thunks (indirect fn-ptr calls) with no `net.poll` = GLib dispatching
+      an always-ready GSource without polling. LIMIT: V8 logs wasm as `wasm-function[N]`, and the only
+      build that keeps a name section (`SECURE_EXEC_KEEP_NAMES=1`) names just the `byn$fpcast-emu$N`
+      thunks — `--fpcast-emu` (required for GTK's cross-signature fn-ptr casts) erases the C names. So
+      the exact GSource is not named via `--prof`.
+- [ ] **P1 DWARF line-symbolizer off the pre-fpcast binary** — map `wasm-function[N]`/byte-offset to
+      `func:file:line` using the DWARF in the guest `.wasm` *before* the fpcast-emu pass (reuse
+      `llvm-symbolizer`/`gimli`, host-side). The way around the fpcast-emu name wall. ≈ `addr2line`.
 - [ ] **P1 lock/contention tracer** (our `helgrind`/`mutrace`) — instrument the wasm pthread
       mutex/cond / futex `atomic.wait`/`notify`: log acquire/release/contention per (thread, lock-addr),
       flag lock-order inversions. Names the two locks in the current livelock.
