@@ -654,14 +654,23 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
        TSan build of a threaded guest flags pthread/cond/futex races directly. Higher setup cost; reach
        for it only if a multi-guest race resists tools 1-4.
 
-- **M8.2 — `openbox` (the LXDE window manager). ⬜** Cross-compile openbox + its config/theme dep
-  `libxml2` (new to the tree; XML parser, no network), using a pixmap/PNG theme so no `librsvg` closure
-  is needed initially (theme choice is a staged fixture, not a source change). Acceptance: openbox
-  decorates and manages the GTK `gtk-hello` window (titlebar, borders), interactive move/resize via
-  injected pointer events works, and the openbox **root menu** opens. Test `scripts/test-m8-openbox.sh`.
-  The standing caution (line ~289) to avoid openbox was about its `libxml2`/glib/pango/cairo deps — now
-  acceptable because M8 built glib/pango/cairo and `libxml2` is the only new closure (pure-C, no net).
-  Any wasi breakage is fixed in the platform layer, not by editing openbox.
+- **M8.2 — `openbox` (the LXDE window manager). 🟡 BUILDS + DECORATES (2026-06-22); move/resize + menu
+  remain.** openbox 3.6.1 cross-compiles from UNMODIFIED upstream (`scripts/build-openbox.sh`) against
+  new deps `libxml2` + `pangoxft`, runs as the WM on the wasm X server, and **decorates a real GTK 3
+  window** — Clearlooks titlebar + min/max/close buttons + border + the window title
+  ("secure-exec GTK3 (wasm)"). Proof: `~/tmp/gui-progress/proof-m8.2-openbox-decorates-gtk.png`. Every
+  wasi gap was fixed in the **platform layer per constraint #5, never in openbox**: runtime wasi
+  `fd_renumber`; `toolchain/openbox-compat.c` (`getpwuid`/`getpwuid_r` valid stub identity — else
+  `find_uid_gid` null-derefs `pw->pw_name`; `pthread_exit`; `alarm`/`gethostbyaddr`);
+  `compat-include/grp.h` (declares the `setgrent`/`getgrent`/`endgrent` API wasi-libc omits, so callers
+  don't get an implicit-int wasm-ABI mismatch that traps); `libhostcompat.a` archive; config/theme staged
+  as a VFS fixture (`scripts/prepare-openbox-fixtures.sh`). **Remaining for full M8.2 acceptance:** the
+  GTK content repaint inside the openbox frame in the combined run (decoration lands; the client's
+  re-expose after reparent didn't paint in the captured frame), **interactive move/resize** via injected
+  pointer events, and the openbox **root menu** opening — plus an automated `scripts/test-m8-openbox.sh`.
+  Pixmap/PNG theme (Clearlooks) so no `librsvg` closure is needed. NOTE the standing line-~289 caution to
+  avoid openbox was about its `libxml2`/glib/pango/cairo deps; now acceptable since M8 built
+  glib/pango/cairo and `libxml2`/`pangoxft` are the only new closures (pure-C / our pango build).
 
 - **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). ⬜** Cross-compile `menu-cache` (freedesktop
   `.menu`/`.desktop` aggregation) and `libfm`/`libfm-extra` (GTK3) — the shared engine under both lxpanel
