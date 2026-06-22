@@ -60,6 +60,50 @@ memory). The *only* new attack surface is concurrent access to **kernel/sidecar 
 
 ---
 
+## 0a. ROOT BUG (the current blocker, found 2026-06-21) — contended locks busy-spin instead of parking
+
+**Symptom.** A real threaded guest (GTK `gtk_init`) hangs. Traced with the in-tree tools
+(`SECURE_EXEC_TRACE` ≈ strace, `SECURE_EXEC_STACKDUMP` ≈ gdb, `SECURE_EXEC_V8PROF` ≈ perf; see
+`INTERNAL-TOOLING.md`) to a **livelock during threaded X setup** (`XOpenDisplay` →
+`xcb_get_extension_data`, then `XCreateGC` — systemic, not one call).
+
+**Root cause.** In the threaded runtime, a guest thread that **loses a lock contention busy-spins at
+100% CPU instead of sleeping and yielding** the CPU. On native Linux a contended `pthread_mutex_lock`
+parks the loser in `futex_wait` (state `S`, 0% CPU) until the holder releases; here it stays in a
+userspace CAS retry loop (state `R`, 100% CPU) and never yields. So sustained contention between two
+guest threads becomes a **livelock** instead of a brief block. This **violates the §0 step-3(c) /
+§Phase-2 "blocking op parks" invariant** — but for the *in-wasm* `pthread_mutex`/`pthread_cond` futex,
+not just the per-VM host-call lock the spec already covers.
+
+**Evidence (all four agree):** both guest threads `R` at ~103% + 27% CPU (`/proc`); **zero host calls**
+during the hang (RPC trace) → not in `poll`/`recv`/host-futex; an `fprintf` (a `__kernel_stdio_write`
+host call = a momentary yield) **unblocks** it (heisenbug); single-threaded clients (cairoxlib/xwin)
+render fine → it only triggers with a second contending thread (GTK calls `XInitThreads` + spawns the
+GLib worker).
+
+**Why it hid.** Spawn + one-shot `pthread_join` (`atomic.wait` on the join futex) + atomics were tested
+and pass; **sustained `pthread_mutex` contention was never tested** and `test-threads-deadlock` was
+never written. So the wasi-libc mutex *slow path* (`memory.atomic.wait`) was never exercised under real
+contention.
+
+**Likely mechanism (to confirm in the fix):** the libc mutex slow path is supposed to fall into
+`memory.atomic.wait` and block, woken by another thread's `memory.atomic.notify`. That blocking wait is
+not taking effect on the contending guest thread (candidate: `atomic.wait` is restricted/no-op on the
+guest's "main"/leader isolate thread, so the mutex loop spins; or the futex wait/notify wiring isn't
+connected the way `join` is). Note the `xcb` extension-cache mutex (`global_lock`) is a **process-global
+`static` mutex shared across isolates** in the shared linear memory, so it is genuinely contended by
+leader + worker.
+
+**Fix requirement (gates M8):** contended `pthread_mutex`/`pthread_cond` must **block-and-yield** —
+park the OS thread (real `atomic.wait`/`notify` semantics for *every* guest thread, or a runtime
+fallback that yields the OS thread when a guest spins), so the "blocking op parks" invariant holds under
+contention. **Regression test (`test-threads-contend`):** two guest threads heavily contend one
+`pthread_mutex` (or a barrier with a producer/consumer hand-off); the run must complete and the threads
+must be **`S`/parked while waiting, not `R`/spinning**. This is also a **correctness/DoS issue beyond
+GTK** — any contended-lock guest pegs a core.
+
+---
+
 ## 1. Background: the real execution model (corrected) and why threads don't work today
 
 Verified against the wasmgui workspace and `crates/v8-runtime` / `crates/execution`:
@@ -490,8 +534,10 @@ Threads is **DONE** — and M8 may start — only when **all** hold:
       disabled** (test-threads-kernel-io).
 - [ ] Race/stress gate passes **0/≥200** with real nondeterminism, under sanitizer where supported
       (test-threads-stress).
-- [ ] No deadlock/starvation under inter-thread dependencies, fairness invariant holds
-      (test-threads-deadlock).
+- [ ] **No deadlock/starvation under inter-thread dependencies** — contended `pthread_mutex`/
+      `pthread_cond` must **block-and-yield** (park in `memory.atomic.wait`), not busy-spin
+      (test-threads-deadlock / test-threads-contend). **🔴 KNOWN-FAILING — see §0a root bug.** This is
+      the current blocker: a real threaded guest (GTK) livelocks here.
 - [ ] Clean teardown + trap→VM-fault with parked threads, no leaks (test-threads-teardown).
 - [ ] libffi call+closure thread-safe (test-threads-ffi; R5 work done in Phase 0).
 - [ ] A threaded **GLib** build runs its worker thread + a thread-pool job (test-threads-glib).
@@ -541,12 +587,15 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
 - 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
   satisfied autonomously.
 
-**Honest completion note.** The hard technical risk of wasi-threads in this runtime is **retired**:
-real multi-threaded guests run reliably (spike + multi + nested). The remaining DoD is large and partly
-out of autonomous reach: worker→kernel host-call routing (a substantial sidecar-session integration),
-the **multi-week** threaded GTK closure rebuild (Phase 0), the full conformance/stress/teardown suite,
-`max_threads` wire plumbing, and a **human security sign-off**. M8 (GTK desktop) is gated behind all of
-that. Progress continues on the next implementable block (worker host-call routing).
+**Honest completion note (CORRECTED 2026-06-21).** Earlier this section claimed the hard threading risk
+was "retired" and guests "run reliably". **That was premature and is now disproven** — see §0a. Spawn +
+one-shot `join` + atomics work, but the tests never exercised *sustained lock contention*, and the
+`test-threads-deadlock` gate was never written. A real multi-threaded guest (GTK) **livelocks** on
+contended locks: the contended thread busy-spins at 100% CPU instead of parking. So the runtime does
+**not** yet satisfy the "blocking op parks" invariant under contention. The remaining DoD includes that
+**root-bug fix (§0a — the current blocker)**, the threaded GTK closure (Phase 0, built), the full
+conformance/stress/teardown suite, and a **human security sign-off**. M8 (GTK desktop) is gated behind
+the root-bug fix.
 
 ## 11a. Implementation status (M7.5.0 spike — in progress)
 
