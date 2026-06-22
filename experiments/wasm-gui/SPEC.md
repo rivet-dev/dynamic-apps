@@ -683,13 +683,19 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   avoid openbox was about its `libxml2`/glib/pango/cairo deps; now acceptable since M8 built
   glib/pango/cairo and `libxml2`/`pangoxft` are the only new closures (pure-C / our pango build).
 
-- **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). ⬜** Cross-compile `menu-cache` (freedesktop
-  `.menu`/`.desktop` aggregation) and `libfm`/`libfm-extra` (GTK3) — the shared engine under both lxpanel
-  and pcmanfm. wasi blockers expected, all fixed NATIVELY (constraint #5): `gio` file monitoring (provide
-  it from the platform / inert monitor, do not edit libfm), volume/mount backends (present an empty
-  static gio volume monitor — the truth in-sandbox — do not compile them out), and `dbus` (native stub
-  or `--disable` configure flag). Acceptance: `test-m8-libfm.sh` enumerates a staged
-  `/usr/share/applications` menu fixture from the VFS and lists a directory through `libfm` with no hang.
+- **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). 🟡 BUILDS + LISTS THE VFS (2026-06-22);
+  menu-cache runtime enumeration remains.** `libfm-extra` -> `menu-cache` (library) -> `libfm-gtk3` all
+  cross-compile from UNMODIFIED upstream (`scripts/build-libfm.sh`), and `libfm` enumerates a kernel-VFS
+  directory headless (19 entries, clean exit — `scripts/test-m8-libfm.sh`, proof
+  `~/tmp/gui-progress/proof-m8.3-libfm-lists-vfs.txt`). Per constraint #5 every gap is platform-layer:
+  `execv`/`execve` stubs + `ns_get16`/`ns_get32` (gio resolver) in `openbox-compat.c`; weak `strsignal`
+  in `wasi-compat.c` (the SDK owns the real one); fake host-side intltool tools + a stub perl
+  `XML::Parser` (intltool is translation-only, `--disable-nls`); `--disable-old-actions` skips libfm's
+  Vala component (no valac). **Remaining:** the **menu-cache freedesktop enumeration** uses `menu-cached`
+  + `menu-cache-gen` via **fork/exec**, which the sandbox lacks — so the app-menu data path (needed by
+  M8.4 lxpanel's menu) needs a native answer: run the generator in-process, or provide a process-spawn
+  path, or pre-bake the cache. The libfm folder/listing path (what pcmanfm needs) is proven. Note: the
+  host `--vm-tree` fixture isn't applied in `--exec` mode, so the test lists the base-fs VFS directly.
 
 - **M8.4 — `lxpanel` (the panel/taskbar/menu). ⬜** Cross-compile lxpanel (GTK3) on top of M8.3.
   Acceptance: the panel renders at a screen edge with (a) an **application menu** that opens and lists the
