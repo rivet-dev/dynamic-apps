@@ -58,10 +58,13 @@ echo "== fpcast-emu + size-optimize =="
 OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
 # SECURE_EXEC_KEEP_NAMES=1 keeps the wasm name section (skip --strip-debug) so V8 --prof / the
 # stack-dump can name guest functions. Larger binary; for diagnostics, not release.
-wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT -O0 "$OUT" -o "$OUT.1"
+# --debuginfo on the FPCAST pass preserves the linker's original C name section through fpcast-emu
+# (without it, fpcast keeps only its own byn$fpcast-emu$N thunk names). KEEP_NAMES then -Oz with
+# --debuginfo (size + names kept) so the binary still reproduces the same behaviour as release.
+PASS1_DBG=""; [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ] && PASS1_DBG="--debuginfo"
+wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
 if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
-  # Diagnostics: keep the linker's full name section (skip the -Oz strip pass). Larger binary.
-  wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT --debuginfo -O1 "$OUT.1" -o "$OUT"
+  wasm-opt -Oz --debuginfo $OPTFEAT "$OUT.1" -o "$OUT"
 else
   wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers $OPTFEAT "$OUT.1" -o "$OUT"
 fi
