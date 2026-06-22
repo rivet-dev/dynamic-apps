@@ -20,6 +20,13 @@ export interface DiscoverPackagesOptions {
 
 export const EXCLUDED = new Set<string>([
 	"publish",
+	// @secure-exec/core vendors the WASM command binaries (packages/core/commands)
+	// and its `prepack --require` refuses to ship without them. CI no longer
+	// builds WASM, so core — like the @agent-os-pkgs/* registry software — is
+	// always published MANUALLY: build the commands locally, then publish core at
+	// the matching release version so dependents resolve. See CLAUDE.md →
+	// "Publishing".
+	"@secure-exec/core",
 ]);
 
 export interface MetaPackageSpec {
@@ -149,9 +156,10 @@ export function buildMetaPlatformMap(
 
 export function assertDiscoverySanity(packages: Package[]): void {
 	const byName = new Set(packages.map((p) => p.name));
+	// @secure-exec/core is intentionally absent: it vendors WASM commands and is
+	// published manually (see EXCLUDED above), so it is not part of the CI set.
 	const required = [
 		"@secure-exec/browser",
-		"@secure-exec/core",
 		"@secure-exec/google-drive",
 		"@secure-exec/registry-types",
 		"@secure-exec/s3",

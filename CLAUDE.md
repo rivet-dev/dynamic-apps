@@ -67,6 +67,13 @@ Two corollaries that are easy to get wrong:
 - Publish platform binary packages with `npm publish`, not `pnpm publish`, so executable bits are preserved.
 - Resolver packages must return an absolute binary path. Callers pass that typed path to process spawning instead of relying on global environment mutation.
 
+## Publishing
+
+- CI (`.github/workflows/publish.yaml`) does NOT build or publish the WASM command binaries. There is no `build-commands` job and nothing restores a `wasm-commands` artifact — the workflow only builds/publishes the sidecar binary and the pure-TS packages.
+- WASM-bearing packages are ALWAYS published MANUALLY: `@secure-exec/core` (which vendors `registry/native` commands into `packages/core/commands` via `copy-wasm-commands.mjs`, guarded by its `prepack --require`) and the `@agent-os-pkgs/*` registry software. `@secure-exec/core` is in `EXCLUDED` in `scripts/publish/src/lib/packages.ts`, so CI never publishes it.
+- Manual core flow: build the commands locally (`make -C registry/native wasm`), then `npm publish` (not `pnpm publish`) `@secure-exec/core` at the **same version** CI used for that release so dependents resolving `@secure-exec/core@<version>` succeed. `prepack` vendors the commands and fails loud if they are absent.
+- Rationale: building WASM in CI was slow/flaky and repeatedly shipped tarballs missing the command set (the `wasm/` output is a gitignored build artifact). Keeping the WASM publish manual makes the vendored command set authoritative and avoids empty-package regressions.
+
 ## Website
 
 - `website/` is `@secure-exec/website`, a unified Astro app serving the public site at **secureexec.dev**: `/` is the React/Tailwind landing page and `/docs/*` is the Starlight documentation.

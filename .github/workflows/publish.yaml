@@ -102,50 +102,15 @@ jobs:
           path: ${{ steps.build.outputs.dir }}
           if-no-files-found: error
 
-  build-commands:
-    needs: [context]
-    name: "Build WASM commands"
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      # The Rust toolchain (nightly + wasm32-wasip1 target + rust-src) is pinned
-      # by registry/native/rust-toolchain.toml and auto-selected by rustup there.
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2026-03-01
-          targets: wasm32-wasip1
-          components: rust-src
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: registry/native -> target
-          key: wasm-commands-${{ needs.context.outputs.trigger }}
-      # Fetch a prebuilt wasm-opt binary instead of compiling the wasm-opt
-      # crate from source (`cargo install wasm-opt` took several minutes cold).
-      # The Makefile's wasm-opt-check then finds it on PATH and skips its own
-      # install. wasm-opt is optimization-only, so this never affects build
-      # correctness, only size and CI time.
-      - name: Install wasm-opt
-        uses: taiki-e/install-action@v2
-        with:
-          tool: wasm-opt
-      - name: Build WASM command binaries
-        run: make -C registry/native wasm
-      - name: Verify command set built
-        run: |
-          set -euo pipefail
-          dir="registry/native/target/wasm32-wasip1/release/commands"
-          test -f "$dir/sh" || { echo "::error::sh binary missing from $dir"; exit 1; }
-          echo "Built $(ls "$dir" | wc -l) command entries"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wasm-commands
-          path: registry/native/target/wasm32-wasip1/release/commands
-          if-no-files-found: error
+  # NOTE: WASM command binaries are intentionally NOT built or published here.
+  # The wasm-bearing packages (@secure-exec/core, which vendors the command set,
+  # and the @agent-os-pkgs/* registry software) are always published MANUALLY.
+  # See CLAUDE.md → "Publishing" for the manual flow.
 
   publish-npm:
-    needs: [context, build-sidecar, build-commands]
+    needs: [context, build-sidecar]
     name: "Publish npm"
-    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && needs.build-commands.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -161,21 +126,6 @@ jobs:
         with:
           pattern: sidecar-*
           path: artifacts
-      - name: Place WASM commands for @secure-exec/core
-        uses: actions/download-artifact@v4
-        with:
-          name: wasm-commands
-          # Restore into the in-repo build path so the core `build` script's
-          # `copy-commands` step vendors them into packages/core/commands. The
-          # uploaded artifact dereferenced the build's alias symlinks to real
-          # files, so the full command set (sh, bash, the stub aliases) lands here.
-          path: registry/native/target/wasm32-wasip1/release/commands
-      - name: Verify WASM commands restored
-        run: |
-          set -euo pipefail
-          dir="registry/native/target/wasm32-wasip1/release/commands"
-          test -f "$dir/sh" || { echo "::error::sh missing after artifact restore"; exit 1; }
-          echo "Restored $(ls "$dir" | wc -l) command entries for packaging"
       - name: Place sidecar binaries into platform packages
         run: |
           set -euo pipefail
