@@ -728,15 +728,26 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   the GLib loop's FIRST dispatch of the queued X events (the panel's first draw) does not complete in
   200s; the framebuffer stays black (cursor only). This is the SAME cross-VM X-latency / poll-scheduling
   starvation as **M8.2 GTK-client content** (openbox's frame draws; the client interior does not).
-  Stackdump (tool #1) at t=55s: 3 isolate threads RUNNING (busy-spin on `poll()`, staying RUNNING across
-  rounds = livelock) + 1 PARKED-ON-FUTEX (normal parked worker) — proof
-  `~/tmp/gui-progress/proof-m8.4-stackdump-livelock.txt`. The guests busy-spin on `poll()` instead of
-  blocking on a cross-VM socket-readable wakeup; the sanctioned non-TCB mitigation
-  (`JAVASCRIPT_NET_POLL_MAX_WAIT` 3ms->1ms) is committed but insufficient. A proper fix (epoll-style
-  cross-VM socket-readable wakeup so guest `poll()` blocks instead of spinning) changes sidecar
-  scheduling = **the TCB security sign-off (human gate)**. Secondary, non-blocking: a multi-plugin panel
-  (all 5 together) additionally hits a wasm "memory access out of bounds" trap in the first dispatch
-  (layout/combination effect; each plugin is fine alone) — moot until render is unblocked.
+  **TCB cross-VM poll fix (DONE, human sign-off obtained 2026-06-22):** implemented a proper
+  wake-on-ANY-socket primitive — `net.poll_wait` + a per-process `SocketReadiness` condvar (reader
+  threads `notify()` on data; the guest `net_poll` drains non-blocking then blocks once on
+  `net.poll_wait` instead of round-robin-blocking each fd). Verified the early-wake fires when data
+  flows; `socket_state_queries` green; no conformance regression (the `extended_builtin_polyfills`
+  `os.totalmem` flake reproduces on the parent without these changes). Commit: `feat(net): cross-VM
+  wake-on-any-socket poll`.
+  **STILL BLOCKED — the real cause is NOT poll efficiency.** With the fix, lxpanel still reaches
+  `gtk_main` + constructs the full panel but the first GLib dispatch (the panel's first draw) does not
+  complete. Stackdump at the stall: **3 guest VM threads RUNNING (spinning IN WASM) across all sample
+  rounds** + 1 parked worker — the guests spin inside the GTK/cairo/Xlib **first-draw dispatch**, NOT in
+  the poll path (so `net.poll_wait`'s early-wake never engages). Empirically the draw stall is
+  independent of poll ceiling (1ms-3ms reach `gtk_main`; 50ms is too slow to finish init; none finish the
+  draw). Proof `~/tmp/gui-progress/proof-m8.4-stackdump-livelock.txt` + `proof-m8.4-lxpanel-gtkinit.txt`.
+  **NEXT:** build **tool #3** (a wasm-level stack symbolizer / JS-stack-capable stackdump) to NAME the
+  wasm function the 3 guests spin in during the first GTK draw — tool #1 captures only native V8 frames
+  (`HandleInterrupts -> CEntry -> wasm`), enough to classify RUNNING/PARKED but not to name the spin.
+  Secondary, non-blocking: a multi-plugin panel (all 5 together) additionally hits a wasm "memory access
+  out of bounds" trap in the first dispatch (layout/combination effect; each plugin is fine alone) — moot
+  until the draw livelock is resolved.
 
 - **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
   pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
