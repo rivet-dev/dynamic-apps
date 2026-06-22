@@ -60,47 +60,48 @@ memory). The *only* new attack surface is concurrent access to **kernel/sidecar 
 
 ---
 
-## 0a. ROOT BUG (the current blocker, found 2026-06-21) — contended locks busy-spin instead of parking
+## 0a. Threading primitives: PARK correctly (verified 2026-06-21). GTK hang reclassified to SPEC.md M8.
 
-**Symptom.** A real threaded guest (GTK `gtk_init`) hangs. Traced with the in-tree tools
-(`SECURE_EXEC_TRACE` ≈ strace, `SECURE_EXEC_STACKDUMP` ≈ gdb, `SECURE_EXEC_V8PROF` ≈ perf; see
-`INTERNAL-TOOLING.md`) to a **livelock during threaded X setup** (`XOpenDisplay` →
-`xcb_get_extension_data`, then `XCreateGC` — systemic, not one call).
+> **History/correction.** An earlier draft of this section claimed the root bug was "contended locks
+> busy-spin instead of parking." **That claim is DISPROVEN** by three minimal reproducers run under the
+> in-tree tools (`/proc` thread states + `SECURE_EXEC_TRACE`). The threading primitives park correctly.
+> Kept here as the negative result so the wrong theory is not re-investigated.
 
-**Root cause.** In the threaded runtime, a guest thread that **loses a lock contention busy-spins at
-100% CPU instead of sleeping and yielding** the CPU. On native Linux a contended `pthread_mutex_lock`
-parks the loser in `futex_wait` (state `S`, 0% CPU) until the holder releases; here it stays in a
-userspace CAS retry loop (state `R`, 100% CPU) and never yields. So sustained contention between two
-guest threads becomes a **livelock** instead of a brief block. This **violates the §0 step-3(c) /
-§Phase-2 "blocking op parks" invariant** — but for the *in-wasm* `pthread_mutex`/`pthread_cond` futex,
-not just the per-VM host-call lock the spec already covers.
+**What was verified (proof in `~/tmp/gui-progress/proof-parking-evidence.txt`):**
 
-**Evidence (all four agree):** both guest threads `R` at ~103% + 27% CPU (`/proc`); **zero host calls**
-during the hang (RPC trace) → not in `poll`/`recv`/host-futex; an `fprintf` (a `__kernel_stdio_write`
-host call = a momentary yield) **unblocks** it (heisenbug); single-threaded clients (cairoxlib/xwin)
-render fine → it only triggers with a second contending thread (GTK calls `XInitThreads` + spawns the
-GLib worker).
+- **`test-threads-contend`** (`guest-xclient/test-threads-contend.c`) — leader holds one `pthread_mutex`
+  across a 3 s sleep while two consumer threads contend it. During the hold, **all three
+  `session-v8-exec` threads are state `S` / `futex_wait_queue`** (the two consumers are *parked*, not
+  spinning at `R`/100%); the run completes with the correct count. Contended `pthread_mutex` **parks**.
+- **`threads-atomicwait`** (`guest-xclient/threads-atomicwait.c`) — the **leader** isolate calls
+  `memory.atomic.wait32` on a never-notified address (6 s timeout); `/proc` shows it state `S` /
+  `futex_wait_queue` and it returns `2` (timeout). **`atomic.wait` parks on the leader isolate**, not
+  just on worker isolates — refuting the "atomic.wait is a no-op on the leader" hypothesis.
+- **`threads-condwait`** — `pthread_cond_wait` on the leader blocks and is woken by a worker's
+  `pthread_cond_signal`. Cond-var wait/signal works across isolates.
+- Earlier: spawn, one-shot `pthread_join`, atomics, loopback recv/send split across threads — all pass.
 
-**Why it hid.** Spawn + one-shot `pthread_join` (`atomic.wait` on the join futex) + atomics were tested
-and pass; **sustained `pthread_mutex` contention was never tested** and `test-threads-deadlock` was
-never written. So the wasi-libc mutex *slow path* (`memory.atomic.wait`) was never exercised under real
-contention.
+**Conclusion.** `pthread_mutex`, `pthread_cond`, and raw `memory.atomic.wait/notify` all **block-and-yield
+(park, state `S`)** on *both* the leader and worker isolates, via real `atomic.wait`/`notify` over shared
+linear memory. The §0 step-3(c) / §Phase-2 "blocking op parks" invariant **holds under contention**. The
+WASM-THREADS-SPEC threading model is sound; its DoD deadlock/starvation gate **passes** (see §10).
 
-**Likely mechanism (to confirm in the fix):** the libc mutex slow path is supposed to fall into
-`memory.atomic.wait` and block, woken by another thread's `memory.atomic.notify`. That blocking wait is
-not taking effect on the contending guest thread (candidate: `atomic.wait` is restricted/no-op on the
-guest's "main"/leader isolate thread, so the mutex loop spins; or the futex wait/notify wiring isn't
-connected the way `join` is). Note the `xcb` extension-cache mutex (`global_lock`) is a **process-global
-`static` mutex shared across isolates** in the shared linear memory, so it is genuinely contended by
-leader + worker.
+**The GTK `gtk_init` hang is therefore NOT a threading-primitive defect — it is reclassified to a
+SPEC.md M8 application-integration livelock.** Evidence still points at threaded X/GLib setup
+(`XOpenDisplay` → `xcb_get_extension_data`; `SECURE_EXEC_V8PROF` shows the spin in **GLib GSource
+dispatch via fpcast-emu thunks with no `net.poll`** = a main-context iteration dispatching an
+always-ready source without ever blocking in `poll`, *not* a stuck libc futex). That is a GLib/GDK
+event-source wiring bug in the wasm build, tracked and fixed under SPEC.md M8 — see §0b.
 
-**Fix requirement (gates M8):** contended `pthread_mutex`/`pthread_cond` must **block-and-yield** —
-park the OS thread (real `atomic.wait`/`notify` semantics for *every* guest thread, or a runtime
-fallback that yields the OS thread when a guest spins), so the "blocking op parks" invariant holds under
-contention. **Regression test (`test-threads-contend`):** two guest threads heavily contend one
-`pthread_mutex` (or a barrier with a producer/consumer hand-off); the run must complete and the threads
-must be **`S`/parked while waiting, not `R`/spinning**. This is also a **correctness/DoS issue beyond
-GTK** — any contended-lock guest pegs a core.
+## 0b. SPEC.md M8 follow-up — threaded GTK GSource livelock (not a threads-spec gate)
+
+Single-threaded X clients (`cairoxlib`, `xwin`, `xcbprobe`) connect, round-trip, and render fine
+(`~/tmp/gui-progress/m8-cairo-threaded.png`). The hang appears only once GTK calls `XInitThreads` and
+GLib spawns its worker thread. Since the primitives park (§0a), the remaining work is to identify the
+GSource whose `prepare()`/`check()` reports ready (or 0-timeout) so `g_main_context_iterate` spins
+dispatching it without reaching `poll`, and fix that source's readiness wiring in the wasm build. This
+is M8 desktop-integration work, gated by human review only where it touches runtime code, and does not
+block declaring the WASM-THREADS-SPEC threading model complete.
 
 ---
 
@@ -534,10 +535,13 @@ Threads is **DONE** — and M8 may start — only when **all** hold:
       disabled** (test-threads-kernel-io).
 - [ ] Race/stress gate passes **0/≥200** with real nondeterminism, under sanitizer where supported
       (test-threads-stress).
-- [ ] **No deadlock/starvation under inter-thread dependencies** — contended `pthread_mutex`/
-      `pthread_cond` must **block-and-yield** (park in `memory.atomic.wait`), not busy-spin
-      (test-threads-deadlock / test-threads-contend). **🔴 KNOWN-FAILING — see §0a root bug.** This is
-      the current blocker: a real threaded guest (GTK) livelocks here.
+- [x] **No deadlock/starvation under inter-thread dependencies** — contended `pthread_mutex`/
+      `pthread_cond` **block-and-yield** (park in `memory.atomic.wait`, state `S`/`futex_wait_queue`), not
+      busy-spin. **✅ VERIFIED — see §0a.** `test-threads-contend` (2 consumers park on a held mutex,
+      all `S`, correct count), `threads-atomicwait` (leader isolate parks in `atomic.wait`), and
+      `threads-condwait` (cond wait/signal across isolates) all pass. Proof:
+      `~/tmp/gui-progress/proof-parking-evidence.txt`. (The GTK `gtk_init` hang is an app-level GLib
+      GSource livelock, reclassified to SPEC.md M8 §0b — not a primitive defect.)
 - [ ] Clean teardown + trap→VM-fault with parked threads, no leaks (test-threads-teardown).
 - [ ] libffi call+closure thread-safe (test-threads-ffi; R5 work done in Phase 0).
 - [ ] A threaded **GLib** build runs its worker thread + a thread-pool job (test-threads-glib).
@@ -587,15 +591,17 @@ Against §10's gates (✅ done / 🟡 partial / ⬜ not started / 👤 human-gat
 - 👤 **TCB security sign-off** — a human gate by design (threads touch the sandbox boundary); cannot be
   satisfied autonomously.
 
-**Honest completion note (CORRECTED 2026-06-21).** Earlier this section claimed the hard threading risk
-was "retired" and guests "run reliably". **That was premature and is now disproven** — see §0a. Spawn +
-one-shot `join` + atomics work, but the tests never exercised *sustained lock contention*, and the
-`test-threads-deadlock` gate was never written. A real multi-threaded guest (GTK) **livelocks** on
-contended locks: the contended thread busy-spins at 100% CPU instead of parking. So the runtime does
-**not** yet satisfy the "blocking op parks" invariant under contention. The remaining DoD includes that
-**root-bug fix (§0a — the current blocker)**, the threaded GTK closure (Phase 0, built), the full
-conformance/stress/teardown suite, and a **human security sign-off**. M8 (GTK desktop) is gated behind
-the root-bug fix.
+**Honest completion note (RE-CORRECTED 2026-06-21).** This note has swung twice; here is the
+evidence-backed state. (1) An early draft over-claimed the threading risk was "retired / runs reliably".
+(2) A second draft over-corrected, asserting a "root bug" that contended locks busy-spin. **Both were
+wrong.** The verified truth (§0a, proof in `~/tmp/gui-progress/`): `pthread_mutex`/`pthread_cond`/raw
+`memory.atomic.wait` **park correctly (state `S`) under sustained contention on both leader and worker
+isolates** — `test-threads-contend`, `threads-atomicwait`, `threads-condwait` all pass. The "blocking op
+parks" invariant **holds**. What is *not* yet done: the full conformance/stress/teardown suite (§10
+remaining boxes), and the **human TCB security sign-off** (a gate by design). The GTK `gtk_init` hang is
+a real, separate problem but it is an **application-level GLib GSource livelock** (§0b), tracked under
+SPEC.md M8 — it does **not** indicate a threading-primitive defect and does not block the threading
+model itself.
 
 ## 11a. Implementation status (M7.5.0 spike — in progress)
 
