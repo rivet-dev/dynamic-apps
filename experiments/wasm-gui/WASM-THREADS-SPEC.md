@@ -116,10 +116,12 @@ vendored/gitignored working tree for stray uncommitted diagnostics.**
 `gtk_init` → `gdk_display_open_default` → **`XOpenDisplay` COMPLETES** → `precache_atoms` →
 `gdk_screen_new` → RANDR `XRRGetScreenResourcesCurrent`/`XRRGetMonitors` round-trips **succeed**.
 
-**✅ M8 RENDER MILESTONE MET (2026-06-22) — a real GTK 3 window renders.** Proof:
+**✅ M8 "spike first" step DONE + gtk_init runtime blocker CLEARED (2026-06-22). NOT M8 acceptance**
+(which is a brand-name LXDE/XFCE DE shell — panel + menu + file manager/settings, live + interactive,
+automated test; see `SPEC.md` M8). Proof of the spike:
 `~/tmp/gui-progress/proof-m8-gtk-window.png` (live GTK 3 window: label + themed "Click me" button,
 cairo-painted through `Xvfb.wasm`). `gtk-hello` runs `gtk_init` → widget tree shown → draw signal →
-`gtk_main` → clean exit. Both remaining `gtk_init` hangs are RESOLVED, **entirely in the guest's
+`gtk_main` → clean exit. Both `gtk_init` hangs are RESOLVED, **entirely in the guest's
 vendored X libraries; the TCB (`crates/`) is unchanged → NO security-boundary delta** (surfaced for
 human confirmation). The earlier "GLib-worker busy-spin" diagnosis was SUPERSEDED: `gtk-hello` is
 **single-threaded** (0 guest `pthread_create`; the "150% R worker" was a V8 JIT background thread). Both
