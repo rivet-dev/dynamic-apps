@@ -40,7 +40,7 @@ sequencing:
    every milestone (including the M7.5 wasm-threads runtime + Phase-0 build milestones) gets a dated
    `progress.html` entry with proof (passing test output / built-artifact sizes / a screenshot under
    `~/tmp/gui-progress/`) **in the same change that lands it**. Do not let it go stale.
-4. **Build observability tools that parallel native debugging — when stuck, ask "what would I do on a
+4. **Build observability tools that parallel native debugging** (see `INTERNAL-TOOLING.md` for the catalog + checklist) — when stuck, ask "what would I do on a
    native host?"** Most of the hard time on this project is not fixing bugs, it is *seeing* them: the
    guest runs as wasm inside a sidecar with none of the native toolkit. So when a milestone is blocked
    on a hang / crash / wrong behavior, first name the native technique you'd reach for (`gdb bt`,
