@@ -95,6 +95,10 @@ const SHADOW_ROOT_BOOTSTRAP_DIRS: &[(&str, u32)] = &[
     ("/var/spool", 0o755),
     ("/var/tmp", 0o1777),
     ("/etc/agentos", 0o755),
+    // Non-Alpine default agent working directory (also present in the base
+    // filesystem snapshot); scaffold it here so it exists even when the
+    // default base layer is disabled.
+    ("/workspace", 0o755),
 ];
 
 pub(crate) const DEFAULT_GUEST_PATH_ENV: &str =

@@ -3,10 +3,11 @@
     "snapshotPath": "alpine-defaults.json",
     "image": "alpine:3.22",
     "snapshotCreatedAt": "2026-04-01T18:44:12.482Z",
-    "builtAt": "2026-06-12T21:26:11.555Z",
+    "builtAt": "2026-06-22T11:48:27.123Z",
     "transforms": [
       "Normalize HOSTNAME to secure-exec",
-      "Preserve the captured user-level environment and filesystem layout as the secure-exec base layer"
+      "Preserve the captured user-level environment and filesystem layout as the secure-exec base layer",
+      "Add the non-Alpine /workspace directory (default agent working directory) owned by the base user"
     ]
   },
   "environment": {
@@ -522,6 +523,13 @@
         "mode": "1777",
         "uid": 0,
         "gid": 0
+      },
+      {
+        "path": "/workspace",
+        "type": "directory",
+        "mode": "755",
+        "uid": 1000,
+        "gid": 1000
       }
     ]
   }
