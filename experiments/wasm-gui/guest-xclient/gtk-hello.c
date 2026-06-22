@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 
     gtk_widget_show_all(win);
     g_printerr("M8-GTK: widget tree shown; entering gtk_main()\n");
-    g_timeout_add(6000, quit_timer, NULL);
+    g_timeout_add(90000, quit_timer, NULL);
     gtk_main();
     g_printerr("M8-GTK: gtk_main returned (clean exit)\n");
     return 0;

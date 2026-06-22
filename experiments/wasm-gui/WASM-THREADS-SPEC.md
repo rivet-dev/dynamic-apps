@@ -116,17 +116,26 @@ vendored/gitignored working tree for stray uncommitted diagnostics.**
 `gtk_init` → `gdk_display_open_default` → **`XOpenDisplay` COMPLETES** → `precache_atoms` →
 `gdk_screen_new` → RANDR `XRRGetScreenResourcesCurrent`/`XRRGetMonitors` round-trips **succeed**.
 
-**Current M8 frontier (genuine, not corruption — verified glib/gmain.c == pristine):** during
-`_gdk_x11_screen_new` → `init_multihead`, a **GLib worker thread busy-spins (150% R) on its main
-context** while the main thread parks at `xcb_take_socket`'s `pthread_mutex_lock(&c->iolock)` (the worker
-holds `iolock`). This is the genuine always-ready-GSource livelock (the originally-suspected issue, now
-correctly located *past* `XOpenDisplay`). Remaining work: identify which GSource on the GLib worker
-context reports ready / 0-timeout so `g_main_context_iterate` spins without reaching `poll`, and fix its
-readiness wiring (candidate: a poll-fd that always reports ready — the same POLLOUT-always-ready class as
-`net_poll` line ~11458, or a GLib wakeup-pipe fd). **Also discovered (in-scope runtime bug, not the
-spin cause):** the runtime's `clock_gettime(CLOCK_REALTIME)` is frozen at a constant while
-`CLOCK_MONOTONIC` advances. This is M8 desktop-integration work; the WASM-THREADS-SPEC threading model
-itself is complete (§0a).
+**✅ M8 RENDER MILESTONE MET (2026-06-22) — a real GTK 3 window renders.** Proof:
+`~/tmp/gui-progress/proof-m8-gtk-window.png` (live GTK 3 window: label + themed "Click me" button,
+cairo-painted through `Xvfb.wasm`). `gtk-hello` runs `gtk_init` → widget tree shown → draw signal →
+`gtk_main` → clean exit. Both remaining `gtk_init` hangs are RESOLVED, **entirely in the guest's
+vendored X libraries; the TCB (`crates/`) is unchanged → NO security-boundary delta** (surfaced for
+human confirmation). The earlier "GLib-worker busy-spin" diagnosis was SUPERSEDED: `gtk-hello` is
+**single-threaded** (0 guest `pthread_create`; the "150% R worker" was a V8 JIT background thread). Both
+hangs stem from building libxcb/libX11 with the wasi-threads ABI while the guest is single-threaded:
+- **(1) Lost-wakeup cond deadlock** — libxcb/libX11 infinite `pthread_cond_wait` (socket-handoff +
+  reply-notify) parks forever on a missed intra-process broadcast. Fix: MONOTONIC
+  `pthread_cond_timedwait` 4ms bound (`_xcb_cond_*` in `libxcb-threads/src/xcb_conn.c`; `_X_xcond_*` in
+  `libX11-threads/src/locking.c` via `xorgproto`'s `Xthreads.h`). MONOTONIC because the runtime's
+  `clock_gettime(CLOCK_REALTIME)` is frozen at a constant (in-scope runtime quirk) while
+  `CLOCK_MONOTONIC` advances.
+- **(2) Mutex self-deadlock at `XRRGetOutputInfo`** (`init_multihead`/`init_randr15`) — libX11's
+  `LockDisplay` re-enters the non-recursive display mutex on the one thread. Fix: RECURSIVE X mutexes
+  (`_X_xmutex_init_recursive`, same files).
+Verified: `xinitthreads-probe` passes, `gtk-hello` renders, no regression. The WASM-THREADS-SPEC
+threading model itself remains complete (§0a). The full brand-name DE (LXDE/XFCE shell) is the open M8
+ambition, now on a working GTK runtime.
 
 ---
 

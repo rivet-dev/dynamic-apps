@@ -561,14 +561,32 @@ must work), use **real fonts**, be **fully automated-tested**, and have a **manu
   (Xrandr/Xcursor/Xcomposite/Xdamage), a stub atk-bridge, and host code-gen tools (gdbus-codegen wrapped
   to our GLib 2.78.4 module). A GTK 3 app (`guest-xclient/gtk-hello.c`) now LINKS into a single wasm
   guest (`scripts/build-gtk-app.sh`, ~15 MB) and RUNS on the wasm X server: GLib/GObject init + the GDK
-  X11 backend connects and sets up the display/screens/devices/seats. The runtime frontier (NOT done) is
-  now precisely identified: after the GWakeup fix (gwakeup.c inert -1 fds on wasi), GTK init hits the
-  fundamental blocker — **GLib spawns a worker thread (`pthread_create`) which wasm32-wasip1 has no
-  threads for** -> abort. M8's runtime needs THREADS: rebuild `-threads` + add `wasi_thread_spawn` +
-  shared-memory to the runtime (the SPEC defers threads to "where a milestone needs them"; M8 needs
-  them), plus GDK device setup + CPU-budget tuning. Then **LXDE** + the live interactive DE shell with a
-  test. The libffi foundation, the GLib platform, the rendering stack, GTK itself, AND a GTK app starting
-  on the wasm X server are in place; the GTK *runtime* needs threads.
+  X11 backend connects and sets up the display/screens/devices/seats.
+  **✅ M8 RENDER MILESTONE MET (2026-06-22) — a real GTK 3 window renders, all wasm in secure-exec.**
+  Proof: `~/tmp/gui-progress/proof-m8-gtk-window.png` — a live GTK 3 window with a label
+  ("Hello from GTK 3 on wasm32-wasip1") and a themed "Click me" button, painted via cairo through the
+  wasm X server (`Xvfb.wasm`); `gtk-hello` runs the full path `gtk_init` -> `gtk_widget_show_all` ->
+  draw signal (cairo paint) -> `gtk_main` -> clean exit. The two `gtk_init` runtime hangs are RESOLVED,
+  and the fixes are **entirely in the guest's vendored X libraries; the TCB (sidecar `crates/`) is
+  unchanged, so there is NO security-boundary delta** (surfaced for human confirmation; nothing to
+  self-approve). Root cause + fix (both stem from building libxcb/libX11 with the wasi-threads ABI while
+  the guest runs single-threaded, so the threaded lock/cond machinery has no sibling thread to
+  signal/contend):
+    1. **Lost-wakeup cond deadlock at `XOpenDisplay`** (the original blocker): libxcb's and libX11's
+       infinite `pthread_cond_wait`s (socket-handoff + reply-notify paths) park forever when an
+       intra-process broadcast is missed. Fix: route them through MONOTONIC `pthread_cond_timedwait`
+       with a 4ms bound (`_xcb_cond_*` in `libxcb-threads/src/xcb_conn.c`; `_X_xcond_*` in
+       `libX11-threads/src/locking.c` via `xorgproto`'s `Xthreads.h`), so a missed wakeup degrades to
+       bounded latency. CLOCK_REALTIME is frozen in the runtime, hence MONOTONIC.
+    2. **Mutex self-deadlock at `XRRGetOutputInfo`** (`init_multihead`/`init_randr15`): libX11's
+       display-lock `LockDisplay` re-enters on the one thread (no real contention), self-deadlocking a
+       non-recursive mutex. Fix: make X mutexes RECURSIVE (`_X_xmutex_init_recursive`, same files).
+  Verified: the `xinitthreads-probe` (XInitThreads + round-trips) passes, and `gtk-hello` renders with
+  no regression. Diagnosis used the prior session's `SECURE_EXEC_TRACE` (sync-RPC strace) + `/proc`
+  thread-state reads + sidecar-side `net.write`/`net.poll` byte counters (decisive: writes frozen =
+  deadlock-not-latency; zero client RPCs at the hang = parked on an in-guest futex = mutex, not a
+  reply wait). The remaining M8 ambition (a full brand-name DE: LXDE/XFCE shell with panel + menu +
+  file manager, live + interactive) is still open and builds on this now-working GTK runtime.
 
 Sequencing is strict: M6 → M7 → **M7.5 (threads)** → M8. Don't start the next until the previous fully
 meets its acceptance bar (interactive, robust, tested, real fonts, no hacks).
