@@ -40,6 +40,32 @@ sequencing:
    every milestone (including the M7.5 wasm-threads runtime + Phase-0 build milestones) gets a dated
    `progress.html` entry with proof (passing test output / built-artifact sizes / a screenshot under
    `~/tmp/gui-progress/`) **in the same change that lands it**. Do not let it go stale.
+4. **Build observability tools that parallel native debugging — when stuck, ask "what would I do on a
+   native host?"** Most of the hard time on this project is not fixing bugs, it is *seeing* them: the
+   guest runs as wasm inside a sidecar with none of the native toolkit. So when a milestone is blocked
+   on a hang / crash / wrong behavior, first name the native technique you'd reach for (`gdb bt`,
+   `strace -f`, `/proc/<pid>/wchan`, `GDK_DEBUG`/`GTK_DEBUG`/`GDK_SYNCHRONIZE`, `xtrace`, `ltrace`,
+   `perf`), then ask **can we build a parallel tool for the secure-exec/wasm runtime?** If yes, build it
+   — it is reusable, it pays for itself immediately, and developing it is an expected part of the work,
+   not a detour. If there is no reasonable parallel, don't over-invest — fall back to ad-hoc probes and
+   move on. Prefer general, reusable instrumentation over one-off `fprintf`-and-rebuild bisection.
+   High-leverage parallels already identified (build the cheap, high-payoff ones first):
+   - **`gdb bt` → on-demand guest stack dump.** Guests are wasm built with `-g` (DWARF) in V8 isolates;
+     a `--dump-stacks-on-timeout` that walks each isolate's wasm frames and symbolizes via the `.wasm`
+     DWARF turns a multi-hour bisection into one line. The X server's `XMARK:` prints are a hand-rolled
+     version of this.
+   - **`strace -f` → a sync-RPC trace.** Every guest↔sidecar call (net.poll/net.send/fd_read/
+     thread-spawn/kernel ops) funnels through one dispatch point; a `SECURE_EXEC_TRACE` logging
+     `[pid] rpc args → ret (Nms)` per process exposes cross-process liveness (e.g. "client loops
+     net.poll while the X server does nothing" = a scheduling deadlock). Highest ROI; build first.
+   - **`top`/`/proc` + scheduler view → process-table + pump-decision dump.** The sidecar owns the
+     `ActiveProcess` table + pump; dumping per-process run-state / `last_pumped_at` and the pump's
+     per-cycle "advanced X / yielded because Y" makes scheduling/liveness bugs visible.
+   - **app debug env → env passthrough to guests.** Nearly free (`--client-env KEY=VAL`); unlocks GTK's
+     own `GDK_DEBUG`/`G_MESSAGES_DEBUG` and `GDK_SYNCHRONIZE` (which pinpoints a hanging X call).
+   - **`xtrace` → built-in X wire tracer.** The X transport *is* the kernel socket table, so the sidecar
+     can optionally log X11 request/reply/error bytes between client and server — distinguishes
+     "request not sent" vs "reply not produced" vs "reply not read."
 
 ## 2. Hard constraints (from runtime survey + research, verified against the codebase)
 
@@ -647,5 +673,12 @@ Opens a real OS window showing the rendered desktop frame; mouse moves the curso
   cross-engine test from PNG-byte to raw-RGBA SHA-256 equality; pinned protocol endianness/pixel
   order; switched node:wasi I/O to preopened files + `returnOnExit`; added guest determinism
   contract; feature-gated winit; swapped wasmtime crate → installed `wasmer` CLI + `node:wasi`;
-  added trust-model constraint (X/parsing stays in executor, host shuttle does no parsing); noted
-  node:wasi ≠ product bridge and M1-blocks-M2 dependency.
+  added trust-model constraint (X/parsing stays in executor, host shuttle does no parsing).
+- **v3** (M8 threaded GTK closure): added strict constraint #4 — build observability tools that
+  parallel native debugging (`gdb`/`strace`/`xtrace`/`GDK_DEBUG`/`/proc`). Motivation: the threaded
+  GTK stack builds + the threaded cairo+X stack renders to the wasm Xvfb (proof in progress.html), but
+  diagnosing the remaining `gtk_init` hang (a cross-VM poll-scheduling deadlock: a threaded guest
+  blocked in `net.poll` doesn't let the sibling X-server process run) cost far more than the fix would,
+  purely for lack of native-equivalent observability. When blocked, name the native tool and build the
+  parallel if feasible (sync-RPC trace + guest stack dump + env passthrough are the high-ROI ones).
+- (v2 note, retained) node:wasi ≠ product bridge and M1-blocks-M2 dependency.
