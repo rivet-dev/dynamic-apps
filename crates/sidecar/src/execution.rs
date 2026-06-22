@@ -13658,6 +13658,51 @@ fn javascript_sync_rpc_base64_arg(
         })
 }
 
+// --- SECURE_EXEC_TRACE: a guest<->sidecar sync-RPC trace (the wasm `strace`). Set SECURE_EXEC_TRACE=1
+// to log every guest sync RPC per process with timing. Cross-process liveness is visible directly
+// (e.g. one process looping `net.poll` while a sibling does nothing = a scheduling deadlock). Pure
+// instrumentation, no behavior change. See experiments/wasm-gui/SPEC.md constraint #4.
+fn rpc_trace_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_TRACE")
+            .map(|v| !v.is_empty() && v != "0")
+            .unwrap_or(false)
+    })
+}
+fn rpc_trace_base() -> std::time::Instant {
+    static B: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    *B.get_or_init(std::time::Instant::now)
+}
+fn rpc_trace_arg0(args: &[Value]) -> String {
+    match args.first() {
+        None => String::new(),
+        Some(v) => v.to_string().chars().take(48).collect(),
+    }
+}
+fn rpc_trace_enter(pid: u32, method: &str, args: &[Value]) -> Option<std::time::Instant> {
+    if !rpc_trace_enabled() {
+        return None;
+    }
+    let ms = rpc_trace_base().elapsed().as_millis();
+    eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} -> {method} {}", rpc_trace_arg0(args));
+    Some(std::time::Instant::now())
+}
+fn rpc_trace_exit(
+    pid: u32,
+    method: &str,
+    t0: Option<std::time::Instant>,
+    result: &Result<Value, SidecarError>,
+) {
+    let Some(t0) = t0 else {
+        return;
+    };
+    let ms = rpc_trace_base().elapsed().as_millis();
+    let us = t0.elapsed().as_micros();
+    let tag = if result.is_ok() { "ok" } else { "ERR" };
+    eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} <- {method} {tag} ({us}us)");
+}
+
 pub(crate) fn service_javascript_sync_rpc<B>(
     request: JavascriptSyncRpcServiceRequest<'_, B>,
 ) -> Result<Value, SidecarError>
@@ -13676,7 +13721,10 @@ where
         resource_limits,
         network_counts,
     } = request;
-    match request.method.as_str() {
+    let __rpc_pid = process.kernel_pid;
+    let __rpc_method = request.method.clone();
+    let __rpc_t0 = rpc_trace_enter(__rpc_pid, &__rpc_method, &request.args);
+    let __rpc_result = match request.method.as_str() {
         // Module resolution / loading / format detection read the kernel VFS so
         // the resolver sees exactly what the guest and `kernel.readFile()` see.
         "_resolveModule"
@@ -13903,7 +13951,9 @@ where
             Ok(response)
         }
         _ => service_javascript_fs_sync_rpc(kernel, process, process.kernel_pid, request),
-    }
+    };
+    rpc_trace_exit(__rpc_pid, &__rpc_method, __rpc_t0, &__rpc_result);
+    __rpc_result
 }
 
 fn service_javascript_internal_bridge_sync_rpc(
