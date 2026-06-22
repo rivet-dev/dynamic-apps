@@ -159,6 +159,91 @@ pub fn install_heap_limit_guard(isolate: &mut v8::OwnedIsolate) {
     isolate.add_near_heap_limit_callback(near_heap_limit_callback, data);
 }
 
+// --- SECURE_EXEC_STACKDUMP: the wasm `gdb thread apply all bt`. When SECURE_EXEC_STACKDUMP_AFTER_MS
+// is set, a watchdog interrupts every registered session isolate after that delay and prints its
+// current JS/wasm stack to stderr, repeating SECURE_EXEC_STACKDUMP_SAMPLES times (default 3, 600ms
+// apart) so a busy-spin (stack varies) is distinguishable from a clean block (stack identical). Pure
+// instrumentation; off (zero cost) unless the env var is set. See experiments/wasm-gui/INTERNAL-TOOLING.md.
+static DIAG_ISOLATES: std::sync::OnceLock<std::sync::Mutex<Vec<(String, v8::IsolateHandle)>>> =
+    std::sync::OnceLock::new();
+static DIAG_WATCHDOG: std::sync::Once = std::sync::Once::new();
+
+fn diag_stackdump_after_ms() -> Option<u64> {
+    std::env::var("SECURE_EXEC_STACKDUMP_AFTER_MS")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .filter(|&n| n > 0)
+}
+
+extern "C" fn diag_stack_dump_callback(_isolate: &mut v8::Isolate, data: *mut c_void) {
+    // `data` is a leaked Box<String> label produced per request; reclaim it here.
+    let label = if data.is_null() {
+        String::from("?")
+    } else {
+        *unsafe { Box::from_raw(data as *mut String) }
+    };
+    // We canNOT create a rusty_v8 HandleScope here: this runs at a safepoint while the guest's own
+    // scope chain is active, and a second root scope aborts ("active scope can't be dropped"). So we
+    // capture the NATIVE backtrace of the interrupted guest OS thread instead — symbolizes V8/Rust
+    // frames (reveals a spin inside a V8 builtin: atomics/GC/futex) and shows raw addresses for JIT'd
+    // wasm (a busy-spin in pure guest code). See experiments/wasm-gui/INTERNAL-TOOLING.md.
+    let bt = std::backtrace::Backtrace::force_capture();
+    eprintln!("[stackdump] {label} native backtrace:\n{bt}");
+}
+
+/// Register an isolate so the stack-dump watchdog can interrupt it. No-op (and no handle retained)
+/// unless SECURE_EXEC_STACKDUMP_AFTER_MS is set, so there is zero cost in normal runs.
+pub fn register_isolate_for_diag(isolate: &mut v8::OwnedIsolate) {
+    let after_ms = match diag_stackdump_after_ms() {
+        Some(ms) => ms,
+        None => return,
+    };
+    let tid = unsafe { libc::syscall(libc::SYS_gettid) };
+    let name = std::thread::current()
+        .name()
+        .map(|s| s.to_owned())
+        .unwrap_or_else(|| String::from("isolate"));
+    let label = format!("{name}#tid{tid}");
+    DIAG_ISOLATES
+        .get_or_init(|| std::sync::Mutex::new(Vec::new()))
+        .lock()
+        .unwrap()
+        .push((label, isolate.thread_safe_handle()));
+
+    DIAG_WATCHDOG.call_once(|| {
+        let samples: u64 = std::env::var("SECURE_EXEC_STACKDUMP_SAMPLES")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(3);
+        let interval: u64 = std::env::var("SECURE_EXEC_STACKDUMP_INTERVAL_MS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(600);
+        std::thread::Builder::new()
+            .name("secure-exec-stackdump".into())
+            .spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(after_ms));
+                for round in 0..samples.max(1) {
+                    eprintln!("[stackdump] === round {round} (t={after_ms}ms+{round}x{interval}ms) ===");
+                    if let Some(reg) = DIAG_ISOLATES.get() {
+                        let guard = reg.lock().unwrap();
+                        for (label, handle) in guard.iter() {
+                            let data = Box::into_raw(Box::new(label.clone())) as *mut c_void;
+                            // If the isolate is gone, request_interrupt returns false and the leaked
+                            // label would leak; reclaim it in that case.
+                            if !handle.request_interrupt(diag_stack_dump_callback, data) {
+                                drop(unsafe { Box::from_raw(data as *mut String) });
+                            }
+                        }
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(interval));
+                }
+                eprintln!("[stackdump] === done ===");
+            })
+            .ok();
+    });
+}
+
 /// Create a new V8 isolate with an optional heap limit in MB.
 pub fn create_isolate(heap_limit_mb: Option<u32>) -> v8::OwnedIsolate {
     let mut params = v8::CreateParams::default();
@@ -171,15 +256,19 @@ pub fn create_isolate(heap_limit_mb: Option<u32>) -> v8::OwnedIsolate {
     if heap_limit_mb.is_some() {
         install_heap_limit_guard(&mut isolate);
     }
+    register_isolate_for_diag(&mut isolate);
     isolate
 }
 
 /// Create a new V8 context on the given isolate.
 /// Returns a Global handle so the context can be reused across scopes.
 pub fn create_context(isolate: &mut v8::OwnedIsolate) -> v8::Global<v8::Context> {
-    let scope = &mut v8::HandleScope::new(isolate);
-    let context = v8::Context::new(scope, Default::default());
-    v8::Global::new(scope, context)
+    let global = {
+        let scope = &mut v8::HandleScope::new(isolate);
+        let context = v8::Context::new(scope, Default::default());
+        v8::Global::new(scope, context)
+    };
+    global
 }
 
 // V8 lifecycle tests are consolidated in execution::tests to avoid
