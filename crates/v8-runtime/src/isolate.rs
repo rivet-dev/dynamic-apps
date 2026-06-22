@@ -211,6 +211,183 @@ fn classify_stack(bt: &str) -> &'static str {
     }
 }
 
+// --- Tool #3: wasm-frame symbolizer for a LIVELOCKED guest -----------------------------------------
+// The native backtrace (above) stops at the V8 C++/JIT boundary — it cannot unwind JIT'd wasm frames
+// (no frame-pointer/unwind info), and the interrupt callback cannot open a HandleScope to ask V8 for
+// the JS/wasm stack. So we NAME the spinning wasm function two ways that DON'T need a scope:
+//   1. SetJitCodeEventHandler (pure-C ABI; callable straight from Rust) records every JIT'd code blob's
+//      [address range, name] as V8 compiles it — for wasm, V8 names them `wasm-function[N]` (or the
+//      real name if the module kept its name section).
+//   2. At the interrupt safepoint we run on the spinning thread, so a CONSERVATIVE SCAN of this thread's
+//      own stack for return addresses that land in a recorded wasm range reveals the live call chain.
+// Both are gated on SECURE_EXEC_STACKDUMP_AFTER_MS, so there is zero cost in normal runs.
+
+/// V8 130 `JitCodeEvent` ABI (x86_64). Only the prefix fields + the `name` arm of the trailing union
+/// are read; layout must match v8/include/v8-callbacks.h exactly.
+#[repr(C)]
+struct JitCodeEventRaw {
+    event_type: i32,            // 0: CODE_ADDED=0, CODE_MOVED=1, ...
+    code_type: i32,             // 4: BYTE_CODE=0, JIT_CODE=1, WASM_CODE=2
+    code_start: *const u8,      // 8
+    code_len: usize,            // 16
+    _script: *const c_void,     // 24: Local<UnboundScript>
+    _user_data: *const c_void,  // 32
+    _wasm_source_info: *const c_void, // 40
+    name_str: *const u8,        // 48: union { name_t { str, len } } arm
+    name_len: usize,            // 56
+    _isolate: *const c_void,    // 64
+}
+
+/// Recorded JIT code blobs: (start_addr, end_addr, name). Process-global — JIT addresses are unique
+/// across isolates in one address space, so a single map serves all guest VMs.
+static JIT_CODE_MAP: std::sync::OnceLock<std::sync::Mutex<Vec<(usize, usize, String)>>> =
+    std::sync::OnceLock::new();
+
+extern "C" fn jit_code_event_handler(event: *const JitCodeEventRaw) {
+    if event.is_null() {
+        return;
+    }
+    let ev = unsafe { &*event };
+    if ev.event_type != 0 {
+        return; // only CODE_ADDED
+    }
+    let start = ev.code_start as usize;
+    if start == 0 || ev.code_len == 0 {
+        return;
+    }
+    let name = if !ev.name_str.is_null() && ev.name_len > 0 && ev.name_len < 4096 {
+        let bytes = unsafe { std::slice::from_raw_parts(ev.name_str, ev.name_len) };
+        String::from_utf8_lossy(bytes).into_owned()
+    } else {
+        // BYTE_CODE/JIT_CODE/WASM_CODE without a name string.
+        format!("<{}@{:#x}>", ["bytecode", "jit", "wasm"].get(ev.code_type as usize).unwrap_or(&"code"), start)
+    };
+    if let Ok(mut map) = JIT_CODE_MAP
+        .get_or_init(|| std::sync::Mutex::new(Vec::new()))
+        .lock()
+    {
+        map.push((start, start + ev.code_len, name));
+    }
+}
+
+extern "C" {
+    // v8::Isolate::SetJitCodeEventHandler(JitCodeEventOptions, JitCodeEventHandler) — a non-static member,
+    // so the SysV ABI passes `this` (the isolate) as the first integer arg. Pure-C signature: no std types.
+    #[link_name = "_ZN2v87Isolate22SetJitCodeEventHandlerENS_19JitCodeEventOptionsEPFvPKNS_12JitCodeEventEE"]
+    fn v8_isolate_set_jit_code_event_handler(
+        isolate: *mut c_void,
+        options: i32,
+        handler: extern "C" fn(*const JitCodeEventRaw),
+    );
+}
+
+/// Install the JIT-code recorder on this isolate (only when the stackdump watchdog is armed).
+pub(crate) fn install_jit_code_recorder(isolate: &mut v8::Isolate) {
+    if diag_stackdump_after_ms().is_none() {
+        return;
+    }
+    let isolate_ptr = isolate as *mut v8::Isolate as *mut c_void;
+    // kJitCodeEventDefault = 0: report code as it is added. wasm is compiled during guest execution
+    // (after this call), so its functions are captured.
+    unsafe { v8_isolate_set_jit_code_event_handler(isolate_ptr, 0, jit_code_event_handler) };
+}
+
+/// Conservatively scan THIS thread's stack for return addresses that land inside a recorded wasm
+/// code range, and print the matching function names innermost-first. Heuristic (may include
+/// stale/false-positive addresses), but the cluster nearest the stack pointer names the live frame.
+fn scan_stack_for_wasm_frames(label: &str) {
+    let map_lock = match JIT_CODE_MAP.get() {
+        Some(m) => m,
+        None => return,
+    };
+    let map = match map_lock.lock() {
+        Ok(m) => m,
+        Err(_) => return,
+    };
+    if map.is_empty() {
+        return;
+    }
+    // Bound the scan by this thread's actual stack extent so we never read unmapped memory.
+    let (stack_lo, stack_hi) = match current_thread_stack_bounds() {
+        Some(b) => b,
+        None => return,
+    };
+    // Sort by start for a quick range summary; report map size + the code span it covers.
+    let mut ranges: Vec<(usize, usize, &str)> =
+        map.iter().map(|(s, e, n)| (*s, *e, n.as_str())).collect();
+    ranges.sort_by_key(|r| r.0);
+    let span_lo = ranges.first().map(|r| r.0).unwrap_or(0);
+    let span_hi = ranges.last().map(|r| r.1).unwrap_or(0);
+    let probe = 0usize;
+    let sp = (&probe as *const usize) as usize;
+    eprintln!(
+        "[stackdump] {label} wasm-frame scan: {} code blobs in [{:#x},{:#x}), stack [{:#x},{:#x}), sp={:#x}:",
+        ranges.len(),
+        span_lo,
+        span_hi,
+        stack_lo,
+        stack_hi,
+        sp
+    );
+    let mut addr = sp & !7; // 8-byte aligned
+    let top = stack_hi;
+    let mut printed = 0usize;
+    while addr + 8 <= top && addr >= stack_lo {
+        let word = unsafe { (addr as *const usize).read() };
+        if word >= span_lo && word < span_hi {
+            // binary search the sorted ranges
+            if let Ok(i) | Err(i) = ranges.binary_search_by(|r| {
+                if word < r.0 {
+                    std::cmp::Ordering::Greater
+                } else if word >= r.1 {
+                    std::cmp::Ordering::Less
+                } else {
+                    std::cmp::Ordering::Equal
+                }
+            }) {
+                if let Some((start, end, name)) = ranges.get(i) {
+                    if word >= *start && word < *end {
+                        eprintln!(
+                            "[stackdump]   +{:#08x}  ra={:#x}  {} (+{:#x})",
+                            addr - sp,
+                            word,
+                            name,
+                            word - start
+                        );
+                        printed += 1;
+                    }
+                }
+            }
+        }
+        if printed >= 80 {
+            break;
+        }
+        addr += 8;
+    }
+    if printed == 0 {
+        eprintln!("[stackdump]   (no JIT return addresses found on stack — frame may be in a V8 C++ builtin)");
+    }
+}
+
+/// (lowest, highest) address of the current thread's stack, via pthread, so the scan stays in-bounds.
+fn current_thread_stack_bounds() -> Option<(usize, usize)> {
+    unsafe {
+        let mut attr: libc::pthread_attr_t = std::mem::zeroed();
+        if libc::pthread_getattr_np(libc::pthread_self(), &mut attr) != 0 {
+            return None;
+        }
+        let mut base: *mut c_void = std::ptr::null_mut();
+        let mut size: libc::size_t = 0;
+        let rc = libc::pthread_attr_getstack(&attr, &mut base, &mut size);
+        libc::pthread_attr_destroy(&mut attr);
+        if rc != 0 || base.is_null() || size == 0 {
+            return None;
+        }
+        let lo = base as usize;
+        Some((lo, lo + size))
+    }
+}
+
 extern "C" fn diag_stack_dump_callback(_isolate: &mut v8::Isolate, data: *mut c_void) {
     // `data` is a leaked Box<String> label produced per request; reclaim it here.
     let label = if data.is_null() {
@@ -228,6 +405,11 @@ extern "C" fn diag_stack_dump_callback(_isolate: &mut v8::Isolate, data: *mut c_
     // One-line per-thread verdict first (greppable: `[stackdump] ... => `), then the full backtrace.
     eprintln!("[stackdump] {label} => {}", classify_stack(&bt_str));
     eprintln!("[stackdump] {label} native backtrace:\n{bt_str}");
+    // Tool #3: when the verdict is RUNNING (a wasm spin), name the live wasm frames by scanning this
+    // thread's stack against the JIT code map. (For PARKED/BLOCKED the native frames already suffice.)
+    if classify_stack(&bt_str).starts_with("RUNNING") {
+        scan_stack_for_wasm_frames(&label);
+    }
 }
 
 /// Register an isolate so the stack-dump watchdog can interrupt it. No-op (and no handle retained)
@@ -295,6 +477,7 @@ pub fn create_isolate(heap_limit_mb: Option<u32>) -> v8::OwnedIsolate {
     if heap_limit_mb.is_some() {
         install_heap_limit_guard(&mut isolate);
     }
+    install_jit_code_recorder(&mut isolate);
     register_isolate_for_diag(&mut isolate);
     isolate
 }

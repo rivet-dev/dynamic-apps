@@ -186,6 +186,7 @@ where
         // exhaustion instead of fatal-aborting the shared process (F-003).
         crate::isolate::install_heap_limit_guard(&mut isolate);
     }
+    crate::isolate::install_jit_code_recorder(&mut isolate);
     crate::isolate::register_isolate_for_diag(&mut isolate);
     isolate
 }
