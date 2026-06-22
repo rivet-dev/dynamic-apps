@@ -602,109 +602,160 @@ freedesktop files from the VFS; config is keyfiles, not a bus. Build the **GTK3*
 pieces (lxpanel/pcmanfm/libfm have GTK3 builds) since M8 already has the GTK3 stack; do **not** pull in
 GTK2. XFCE stays the documented fallback only if an LXDE component proves unportable.
 
-Each sub-milestone is its own cross-compile against the threaded sysroot (`build-xlib.sh`-style), each
-with its own wasi blockers; per working-rule #4 build native-parallel observability before guessing and
-`jj diff` the vendored `*-threads` trees for stray diagnostics first. Strict order; each must hit its
-acceptance bar (live + interactive + automated test + manual-example screenshot in `~/tmp/gui-progress/`)
-before the next starts.
+**Commitment: real LXDE with real `openbox` — no substitutes.** We build the actual brand-name DE:
+`openbox` (not our existing twm/JWM standing in), `lxpanel`, `pcmanfm`. Do NOT relax "brand-name DE" by
+swapping in an already-working lighter WM; the point of M8 is the real stack running unmodified. XFCE is
+a documented last resort *only* if a specific LXDE component proves genuinely unportable to wasm (not
+merely hard).
+
+**Ordering: debugging tools FIRST, then the desktop.** M8.1 builds the out-of-band debugging toolchain
+before any DE component, because the single-app spike (M8.0) cost multiple sessions purely for lack of
+native-equivalent observability, and the multi-guest DE work will be far harder to reason about. Each
+later sub-milestone is its own cross-compile against the threaded sysroot (`build-xlib.sh`-style) with
+its own wasi blockers; per working-rule #4 and constraint #5, build/keep observability before guessing,
+`jj diff` the vendored trees for stray diagnostics, and fix breakage in the **native/platform layer, not
+the component source**. Strict order; each must hit its acceptance bar (live + interactive + automated
+test + manual-example screenshot in `~/tmp/gui-progress/`) before the next starts.
 
 - **M8.0 — GTK3 app spike. ✅ DONE (2026-06-22).** `gtk-hello` renders a live GTK 3 window with widgets
   on the wasm X server (proof above). This is the "spike first" step; it is NOT M8 acceptance.
 
-- **M8.1 — `openbox` (the LXDE window manager). ⬜** Cross-compile openbox + its config/theme dep
-  `libxml2` (new to the tree; XML parser, no network) and `librsvg`-free theme path (use a pixmap/simple
-  theme to avoid the rsvg/cairo-svg closure initially). Acceptance: openbox decorates and manages the
-  GTK `gtk-hello` window (titlebar, borders), interactive move/resize via injected pointer events works,
-  and the openbox **root menu** opens. Test `scripts/test-m8-openbox.sh`. NOTE the standing spec caution
-  (line ~289) to avoid openbox for its `libxml2`/glib/pango/cairo deps — now acceptable because M8 built
-  glib/pango/cairo; `libxml2` is the only genuinely new closure and is pure-C/no-net.
+- **M8.1 — Out-of-band debugging toolchain (build BEFORE any DE component). ⬜** The only guest-visible
+  probes today are synchronous host calls that *perturb the race they measure*; build host-side observers
+  that watch without participating. The sidecar IS the kernel, so most of this is a structured read of
+  state we already own. Acceptance: each tool below works on a live hung guest and is documented in
+  `INTERNAL-TOOLING.md`. Priority order (1-3 are the must-haves before M8.2; 4-5 as needed):
+    1. **Thread-state / lock-holder dump (≈`gstack` + lock tracing) — highest value.** For every guest
+       pthread, report what it is parked on (which futex/cond/mutex) and, for mutexes, the **current
+       holder thread id**. Owns-the-thread-table read; extend `SECURE_EXEC_STACKDUMP`. This one tool
+       makes both M8.0-class deadlocks (lost-wakeup cond vs. self-held `LockDisplay` mutex) obvious in
+       seconds instead of inferred from wire silence.
+    2. **X11 protocol decoder on the loopback socket (≈`x11trace`/`xtrace`).** The sidecar already sees
+       the guest↔Xvfb byte stream; add a request/reply/event decoder behind an env flag. Names the exact
+       stalling round-trip (e.g. `XRRGetOutputInfo`) directly. Exactly on-point for X-protocol hangs.
+    3. **DWARF line-symbolizer for the pre-`--fpcast-emu` `.wasm` (≈symbols for `gdb`/`perf`).** Map
+       `wasm-function[N]`+offset → `func:file:line` host-side off the DWARF in the un-fpcast module, so
+       the native stack-dump (`crates/v8-runtime`) and the V8 tick profiler name guest C frames.
+       `--fpcast-emu` (required for GTK's cross-signature fn-ptr casts) erases the name section, leaving
+       only `byn$fpcast` thunks — this is what bottoms out every stack today.
+    4. **Permanent per-`kernel_pid` sync-RPC trace view** (generalize `SECURE_EXEC_TRACE`): per-guest
+       write/read byte totals + rate, so "deadlock vs. latency" and "which guest went silent" are one
+       grep, not a hand-edited `eprintln!` (replaces the ad-hoc `net.write`/`net.poll` counters used in
+       M8.0).
+    5. **TSan-compiled guest builds (optional, for the threading bug class).** LLVM TSan targets wasm; a
+       TSan build of a threaded guest flags pthread/cond/futex races directly. Higher setup cost; reach
+       for it only if a multi-guest race resists tools 1-4.
 
-- **M8.2 — `menu-cache` + `libfm` (the LXDE data layer). ⬜** Cross-compile `menu-cache` (freedesktop
+- **M8.2 — `openbox` (the LXDE window manager). ⬜** Cross-compile openbox + its config/theme dep
+  `libxml2` (new to the tree; XML parser, no network), using a pixmap/PNG theme so no `librsvg` closure
+  is needed initially (theme choice is a staged fixture, not a source change). Acceptance: openbox
+  decorates and manages the GTK `gtk-hello` window (titlebar, borders), interactive move/resize via
+  injected pointer events works, and the openbox **root menu** opens. Test `scripts/test-m8-openbox.sh`.
+  The standing caution (line ~289) to avoid openbox was about its `libxml2`/glib/pango/cairo deps — now
+  acceptable because M8 built glib/pango/cairo and `libxml2` is the only new closure (pure-C, no net).
+  Any wasi breakage is fixed in the platform layer, not by editing openbox.
+
+- **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). ⬜** Cross-compile `menu-cache` (freedesktop
   `.menu`/`.desktop` aggregation) and `libfm`/`libfm-extra` (GTK3) — the shared engine under both lxpanel
-  and pcmanfm. wasi blockers to expect: `gio` file monitoring (inotify → stub/poll), volume/mount
-  backends (no udisks/gvfs in-sandbox → compile those out), and `dbus` (build dbus-optional / stub the
-  session bus). Acceptance: a headless test (`test-m8-libfm.sh`) enumerates a staged
+  and pcmanfm. wasi blockers expected, all fixed NATIVELY (constraint #5): `gio` file monitoring (provide
+  it from the platform / inert monitor, do not edit libfm), volume/mount backends (present an empty
+  static gio volume monitor — the truth in-sandbox — do not compile them out), and `dbus` (native stub
+  or `--disable` configure flag). Acceptance: `test-m8-libfm.sh` enumerates a staged
   `/usr/share/applications` menu fixture from the VFS and lists a directory through `libfm` with no hang.
 
-- **M8.3 — `lxpanel` (the panel/taskbar/menu). ⬜** Cross-compile lxpanel (GTK3) on top of M8.2.
+- **M8.4 — `lxpanel` (the panel/taskbar/menu). ⬜** Cross-compile lxpanel (GTK3) on top of M8.3.
   Acceptance: the panel renders at a screen edge with (a) an **application menu** that opens and lists the
   staged `.desktop` apps, (b) a **taskbar** that shows the managed `gtk-hello` window and reflects
   focus/minimize, and (c) a live **clock** plugin. Live + interactive (inject a menu click that launches
-  an app). Test `scripts/test-m8-lxpanel.sh`, screenshot proof.
+  an app). Plugins load via the M8.1/`dlopen` decision (native wasm `dlopen` preferred; static-link is
+  the build-config fallback). Test `scripts/test-m8-lxpanel.sh`, screenshot proof.
 
-- **M8.4 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.2. Acceptance:
+- **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
   pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
   subdirectory and back, and (if desktop mode) draws desktop icons on the root window. Test
-  `scripts/test-m8-pcmanfm.sh`, screenshot proof. (Mounting/trash/volume features are out of scope — the
-  sandbox VFS has no removable media; compile them out, do not stub fake devices.)
+  `scripts/test-m8-pcmanfm.sh`, screenshot proof. Mounting/trash/volume features need no work — the
+  empty native volume monitor (M8.3) makes unmodified pcmanfm correctly show no removable media; do not
+  edit pcmanfm or fake devices.
 
-- **M8.5 — LXDE session integration (= M8 ACCEPTANCE). ⬜** Bring up the full shell together via a
+- **M8.6 — LXDE session integration (= M8 ACCEPTANCE). ⬜** Bring up the full shell together via a
   minimal session launcher (`lxsession`, or a hand-written launcher if lxsession's dbus/autostart proves
   heavy): `openbox` + `lxpanel` + `pcmanfm` (desktop) running as one coherent, live, interactive LXDE
   desktop. Acceptance (the spec's M8 bar): the named DE's shell — panel + menu + file manager — live +
   interactive, with an automated end-to-end test (`scripts/test-m8-lxde.sh`) and a manual example +
-  screenshot. Only when M8.5 is green is **M8 done**.
+  screenshot. Only when M8.6 is green is **M8 done**.
 
-### M8 — additional things to specify (decide/stage before the relevant sub-milestone)
+### M8 — overriding constraint #5: UNMODIFIED upstream; fix in the native/platform layer
 
-- **Settings/config backend.** GSettings must NOT use dconf (dconf needs dbus). Force the **keyfile**
-  GSettings backend (`GSETTINGS_BACKEND=keyfile`, staged schema dir + writable keyfile in the VFS). Same
-  principle as the existing bucket-3 config rule: per-VM, on the wire/VFS, not an ambient daemon.
-- **dbus session bus.** Default position: **no dbus daemon**; build every component dbus-optional /
-  `--disable-dbus` where possible. If a component hard-requires a session bus, the minimum viable answer
-  is a tiny in-VFS unix-socket dbus *stub* that answers `Hello`/`RequestName` and drops the rest — NOT a
-  real `dbus-daemon`. Specify which components actually need it before building the stub.
-- **`dlopen`.** Already a known M8 blocker: GTK theme engines, GIO modules, openbox theme loaders, panel
-  plugins. Policy: **static-link / register-at-init**, no real `dlopen` of host `.so`s. Panel plugins are
-  the sharp edge (lxpanel loads plugins via `g_module`) — build the needed plugins (menu/taskbar/clock)
-  **statically into lxpanel** and register them, rather than as loadable modules.
-- **VFS fixtures (staged via `--vm-tree`, like the Xft fonts).** A freedesktop **menu fixture**
-  (`/etc/xdg/menus/*.menu` + `/usr/share/applications/*.desktop` for the apps shown), an **icon theme**
-  (at least `hicolor` + one fallback theme so menu/taskbar/file icons resolve; otherwise GTK draws
-  blanks), and **MIME data** (`/usr/share/mime`) for pcmanfm file typing. Specify and check these in as
-  prepared trees (`prepare-lxde-fixtures.sh`) so runs are reproducible.
-- **Process model / launching apps.** lxpanel menu entries and pcmanfm "open" must spawn new guest
-  processes inside the same VM (the existing host `execute_env`→one-Session model, like the multi-client
-  twm substrate). Specify how a guest `exec`/`g_spawn` of a `.desktop` `Exec=` maps to launching another
-  wasm guest in the VM — reuse the M5 multi-client substrate; do not shell out to the host.
-- **Resource/CPU budget.** Several GTK guests live at once (WM + panel + fm + apps) sharing the sidecar
-  sync-RPC thread; carry forward the M5 net.poll round-robin tuning (3ms clamp) and verify it scales to
-  4-5 concurrent GTK guests without starving any (the panel clock must keep ticking while pcmanfm loads).
-- **`librsvg`/SVG.** Modern GTK icon themes and some openbox/panel themes are SVG. `librsvg` is Rust +
-  a heavy cairo/pango closure. Decide up front: prefer **pixmap/PNG themes + a raster icon theme** to
-  avoid librsvg entirely for M8; only port librsvg if a chosen theme is SVG-only.
+The DE components (`openbox`, `lxpanel`, `pcmanfm`, `libfm`, `menu-cache`, …) and the toolkit/X
+libraries (`GTK`, `GLib`, `libxcb`, `libX11`, …) must build and run from **stock upstream source** —
+the same rule the repo applies to npm packages ("must work unmodified") and to tools generally ("Fix
+runtime compatibility in secure-exec instead of patching callers around runtime quirks"). When a
+component breaks, the fix goes in the **native/platform layer**, never in the component's source. The
+boundary:
 
-### M8 — debugging tools to build (the gaps this session hit; cheap because the sidecar IS the kernel)
+- **Platform (ours to change — fix here):** the Rust runtime/sidecar/kernel + the wasm host imports
+  (`crates/*`); the VFS and the wasm X server (`Xvfb.wasm`); the **toolchain layer** — the patched
+  wasi-libc/musl sysroot, `wasi-compat.{c,h}`, and `toolchain/compat-include/*` shims. A fix in the
+  libc/sysroot is preferred to a per-library fix because **one** platform change makes **every**
+  unmodified upstream consumer work.
+- **Upstream (do NOT patch source):** the DE component repos and the GTK/X library repos. Allowed
+  knobs are **build-time configure flags** (standard packaging, e.g. `--disable-foo`) and **runtime
+  config/data/fixtures staged into the VFS** — these are not source modifications. Editing a `.c`/`.h`
+  in `third_party/<lib|app>/` to work around a runtime quirk is the anti-pattern.
 
-The single GTK-app spike alone took multi-session debugging because the only guest-visible probes were
-synchronous host calls that *perturb the race they measure*. Before the multi-guest DE work (which will
-be far harder to reason about), build these out-of-band, host-side observers (they watch without
-participating). Priority order:
+> **Known deviation to repay (tech-debt):** the M8.0 gtk_init fixes currently live as edits to
+> `third_party/libxcb-threads` + `libX11-threads` + `xorgproto/Xthreads.h` (timed-cond + recursive
+> mutex). Per this constraint the correct home is the **platform layer** — most likely the wasi-libc
+> pthread implementation in the sysroot (make the default `pthread_mutex` self-deadlock-safe and give
+> `pthread_cond_wait` a bounded internal re-check) so unmodified `libxcb`/`libX11`/openbox/GTK all work
+> with no per-repo patches. Risk to weigh: a global libc pthread change affects genuinely-multithreaded
+> guests (GLib worker, wasi-threads tests) and `pthread_cond_wait`-with-recursive-mutex semantics —
+> validate against the M7.5 thread suite before adopting. Until moved, the per-lib edits are a
+> documented exception (backed up in `~/tmp/gui-progress/fixes/`), not the pattern to copy for M8.2+
+> (the DE components). Ideally repay this as part of M8.1 (the platform/observability work).
 
-1. **Thread-state / lock-holder dump (≈`gstack` + lock tracing) — highest value.** For every guest
-   pthread, report what it is parked on (which futex/cond/mutex) and, for mutexes, the **current holder
-   thread id**. The sidecar owns the process/thread table and the wasm atomics/futex layer, so this is a
-   structured read of state we already hold. This one tool would have made BOTH M8.0 deadlocks obvious in
-   seconds (lost-wakeup cond vs. self-held `LockDisplay` mutex) instead of inferring them from wire
-   silence. Extend `SECURE_EXEC_STACKDUMP`.
-2. **X11 protocol decoder on the loopback socket (≈`x11trace`/`xtrace`).** The sidecar already sees the
-   guest↔Xvfb byte stream; add a request/reply/event decoder gated by an env flag. Names the exact
-   stalling round-trip (e.g. `XRRGetOutputInfo`) directly instead of via raw byte counters. Narrow but
-   exactly on-point for X-protocol hangs, which is most of this work.
-3. **DWARF line-symbolizer for the pre-`--fpcast-emu` `.wasm` (≈symbols for `gdb`/`perf`).** Map
-   `wasm-function[N]`+offset → `func:file:line` host-side off the DWARF in the un-fpcast module, so the
-   native stack-dump (`crates/v8-runtime`) and the V8 tick profiler can name guest C frames. `--fpcast-emu`
-   (required for GTK's cross-signature fn-ptr casts) erases the name section, leaving only `byn$fpcast`
-   thunks — this is the missing piece that bottoms out every stack today.
-4. **Promote the ad-hoc `net.write`/`net.poll` byte counters into a permanent, per-`kernel_pid` sync-RPC
-   trace view** (generalize `SECURE_EXEC_TRACE`): per-guest write/read byte totals + rate, so
-   "deadlock vs. latency" and "which guest went silent" are one grep, not a hand-edited `eprintln!`.
-5. **TSan-compiled guest builds (optional, for the threading bug class).** LLVM TSan targets wasm; a TSan
-   build of a threaded guest would flag pthread/cond/futex races directly. Higher setup cost; reach for it
-   only if a multi-guest race resists tools 1-4.
+### M8 — additional things to specify (resolve in the native/platform layer per constraint #5)
+
+- **Settings/config backend.** GSettings must NOT use dconf (dconf needs dbus). Select the **keyfile**
+  backend via env + a staged schema dir / writable keyfile in the VFS (`GSETTINGS_BACKEND=keyfile`).
+  This is runtime config, not a source change. Same spirit as the bucket-3 config rule: per-VM, on the
+  wire/VFS, not an ambient daemon.
+- **dbus session bus.** Prefer to **provide the capability natively** so components built with dbus run
+  unmodified: a tiny sidecar/VFS unix-socket dbus *stub* that answers `Hello`/`RequestName` and no-ops
+  the rest. `--disable-dbus` configure flags are an acceptable fallback (packaging knob, not a source
+  patch) where a component supports it. Decide which components actually open a bus before building the
+  stub. Do NOT run a real `dbus-daemon`.
+- **`dlopen` (modules/plugins/theme engines).** Known M8 blocker: GTK theme/IM modules, GIO modules,
+  panel plugins (`lxpanel` uses `g_module`), openbox theme loaders. **Preferred native fix: implement
+  `dlopen` of guest wasm modules in the runtime** (load a sibling `.wasm` and resolve symbols), so
+  unmodified components load their plugins as they expect. Build-config static-linking (link the
+  needed plugins in, register at init) is the acceptable fallback — it's a packaging choice, not a
+  source edit — but the native `dlopen` is the faithful answer and unblocks the general case.
+- **`gio` volume/mount backends.** No removable media exists in the sandbox. **Native answer: present
+  the gio/gvfs interfaces from the platform reporting an empty/static volume monitor** (which is the
+  truth), so unmodified `libfm`/`pcmanfm` just see "no volumes". Do NOT compile the backends out of the
+  component and do NOT stub fake devices.
+- **VFS fixtures (staged via `--vm-tree`, like the Xft fonts — pure data, no source change).** A
+  freedesktop **menu fixture** (`/etc/xdg/menus/*.menu` + `/usr/share/applications/*.desktop`), an
+  **icon theme** (`hicolor` + one fallback so menu/taskbar/file icons resolve; else GTK draws blanks),
+  and **MIME data** (`/usr/share/mime`) for pcmanfm typing. Check in `prepare-lxde-fixtures.sh` for
+  reproducibility.
+- **Process model / launching apps.** Menu entries and pcmanfm "open" must spawn new guest processes in
+  the same VM (host `execute_env`→one-Session model, like the M5 multi-client twm substrate). Specify
+  how a guest `g_spawn`/`exec` of a `.desktop` `Exec=` maps to launching another wasm guest — fix in the
+  runtime's process layer; do not shell out to the host and do not patch the component's spawn code.
+- **Resource/CPU budget.** WM + panel + fm + apps share the sidecar sync-RPC thread; carry forward the
+  M5 net.poll round-robin (3ms clamp) and verify it scales to 4-5 concurrent GTK guests without starving
+  any (the panel clock must keep ticking while pcmanfm loads). Runtime tuning, not a component change.
+- **SVG icons/themes (clarified — a fixture choice, not a modification).** Choosing a **raster (PNG)
+  icon theme** as the staged VFS fixture is normal Linux configuration and needs no source/build change
+  to any component — make that the default for M8 to keep the closure small. If a genuinely SVG-only
+  asset is required, the native answer is to **render SVG in the platform stack** (port `librsvg`, which
+  is Rust→wasm-capable, as a normal dependency), NOT to compile SVG support out of a component.
 
 Sequencing is strict: M6 → M7 → **M7.5 (threads)** → M8. Don't start the next until the previous fully
-meets its acceptance bar (interactive, robust, tested, real fonts, no hacks).
+meets its acceptance bar (interactive, robust, tested, real fonts, no hacks). Within M8: **M8.1 tools →
+M8.2 openbox → M8.3 menu-cache/libfm → M8.4 lxpanel → M8.5 pcmanfm → M8.6 LXDE session = acceptance.**
 
 Threads (`wasm32-wasip1-threads` + `wasi_thread_spawn`) are now a first-class prerequisite milestone
 (M7.5), not an ad-hoc per-milestone add: M8 (GTK) needs them, so they are specified and tested to a
@@ -816,13 +867,18 @@ Opens a real OS window showing the rendered desktop frame; mouse moves the curso
   parallel if feasible (sync-RPC trace + guest stack dump + env passthrough are the high-ROI ones).
 - **v4** (M8 decomposition, 2026-06-22): the GTK-app **spike (M8.0) is done** and the two `gtk_init`
   runtime deadlocks are fixed (lost-wakeup cond → MONOTONIC timed-wait; `LockDisplay` self-deadlock →
-  recursive X mutex; all in the guest's vendored X libs, TCB unchanged). Corrected the earlier
-  overstatement that this "met M8" — per the spec the single app is only the "spike first" step. Split
-  M8 into per-component sub-milestones (M8.1 `openbox` → M8.2 `menu-cache`/`libfm` → M8.3 `lxpanel` →
-  M8.4 `pcmanfm` → **M8.5 LXDE session integration = M8 acceptance**), committed to **LXDE over XFCE**
-  (lighter, dbus-optional vs XFCE's hard `xfconf`/dbus), and specified the cross-cutting decisions
-  (keyfile GSettings, no dbus daemon, static-linked plugins/no `dlopen`, staged VFS menu/icon/MIME
-  fixtures, in-VM app launching, CPU-budget for N concurrent GTK guests, PNG themes over librsvg) plus
-  the priority list of out-of-band debugging tools to build (thread/lock-holder dump, X11 protocol
-  decoder, DWARF symbolizer for fpcast'd wasm, permanent per-pid sync-RPC trace, optional TSan guest).
+  recursive X mutex). Corrected the earlier overstatement that this "met M8" — per the spec the single
+  app is only the "spike first" step. Added **constraint #5: unmodified upstream; fix in the
+  native/platform layer** (the npm "must work unmodified" rule applied to the DE/X/GTK repos — fix the
+  runtime/sidecar/VFS/X-server or the toolchain sysroot/shim, never patch a component's source; the
+  M8.0 per-lib X edits are flagged as a deviation to repay in the libc/sysroot pthread layer).
+  Split M8 into sub-milestones with **debugging tools FIRST**: M8.1 out-of-band debug toolchain
+  (thread/lock-holder dump, X11 protocol decoder, DWARF symbolizer for fpcast'd wasm, permanent per-pid
+  sync-RPC trace, optional TSan) → M8.2 `openbox` → M8.3 `menu-cache`/`libfm` → M8.4 `lxpanel` →
+  M8.5 `pcmanfm` → **M8.6 LXDE session integration = M8 acceptance**. Committed firmly to **real LXDE
+  with real openbox** (no JWM/twm substitute; XFCE only a last resort if a component is truly
+  unportable). Cross-cutting decisions all framed as native/config (keyfile GSettings, native dbus stub
+  over `--disable`, native wasm `dlopen` over static-link, native empty volume monitor instead of
+  compiling backends out, staged VFS menu/icon/MIME fixtures, in-VM app launching, N-guest CPU budget,
+  PNG-theme fixture over librsvg).
 - (v2 note, retained) node:wasi ≠ product bridge and M1-blocks-M2 dependency.
