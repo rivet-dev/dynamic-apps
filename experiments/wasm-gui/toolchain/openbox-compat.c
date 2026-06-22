@@ -41,3 +41,16 @@ int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct p
     *result = pwd;
     return 0;
 }
+
+/* libfm/gio reference these. exec* isn't supported in the sandbox (no process-image replacement);
+ * stub to failure. ns_get16/ns_get32 are trivial big-endian DNS field readers (gio's resolver);
+ * implement them (harmless, correct). */
+int execv(const char *p, char *const a[]) { (void)p; (void)a; return -1; }
+int execve(const char *p, char *const a[], char *const e[]) { (void)p; (void)a; (void)e; return -1; }
+unsigned ns_get16(const unsigned char *cp) {
+    return cp ? (((unsigned)cp[0] << 8) | (unsigned)cp[1]) : 0u;
+}
+unsigned long ns_get32(const unsigned char *cp) {
+    return cp ? (((unsigned long)cp[0] << 24) | ((unsigned long)cp[1] << 16) |
+                 ((unsigned long)cp[2] << 8) | (unsigned long)cp[3]) : 0ul;
+}

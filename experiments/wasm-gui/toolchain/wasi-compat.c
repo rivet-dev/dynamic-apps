@@ -85,7 +85,9 @@ char *inet_ntoa(unsigned in) {
 int seteuid(unsigned u) { (void)u; return 0; }
 int setuid(unsigned u) { (void)u; return 0; }
 int setgid(unsigned g) { (void)g; return 0; }
-char *strsignal(int s) { (void)s; return (char *)"signal"; }
+/* weak: libwasi-emulated-signal provides a real strsignal; ours is only a fallback when that lib
+ * isn't linked. Strong here caused a duplicate-symbol link error in guests (libfm) that pull both. */
+__attribute__((weak)) char *strsignal(int s) { (void)s; return (char *)"signal"; }
 /* twm (WM) references these; stubbed: the WM runs in a single sandboxed process with no
    subprocess exec, no real uid, and uses tempnam only for a session id. */
 int execlp(const char *f, const char *a, ...) { (void)f; (void)a; return -1; }

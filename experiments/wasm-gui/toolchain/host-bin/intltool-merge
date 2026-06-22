@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+args=("$@"); n=${#args[@]}
+in="${args[$((n-2))]}"; out="${args[$((n-1))]}"
+if [ -f "$in" ]; then sed -E 's/^_([A-Za-z0-9]+=)/\1/' "$in" > "$out"; else exit 0; fi
