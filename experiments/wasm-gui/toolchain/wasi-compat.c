@@ -14,9 +14,10 @@ int setpgid(int p, int g) { (void)p; (void)g; return 0; }
 int setsid(void) { return 1; }              /* no process sessions on wasi (JWM/WMs call it once) */
 void tzset(void) {}                          /* no timezone db on wasi; localtime stays UTC */
 unsigned umask(unsigned m) { (void)m; return 0; }
-#ifndef SECURE_EXEC_WASM_THREADS
+/* pthread_sigmask: wasi has no signals, so a no-op is correct on both profiles. The threaded sysroot
+ * neither defines nor (in libc) provides it, and GLib references it, so define it unconditionally.
+ * (wasi-compat.c doesn't include <pthread.h>, so the void* signature can't clash with its prototype.) */
 int pthread_sigmask(int how, const void *set, void *old) { (void)how; (void)set; (void)old; return 0; }
-#endif
 #include <string.h>
 struct utsname;
 int uname(struct utsname *u) {

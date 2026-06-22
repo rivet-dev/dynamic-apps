@@ -18,28 +18,45 @@ cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-PREFIX="$EXP/third_party/wasm-prefix"; P="$PREFIX/lib"
+PREFIX="$EXP/third_party/wasm-prefix${SECURE_EXEC_WASM_THREADS:+-threads}"; P="$PREFIX/lib"
 NAME="${1:-gtk-hello}"
-SETJMP="$WSDK/share/wasi-sysroot/lib/wasm32-wasip1/libsetjmp.a"
-LIBC="$SYSROOT/lib/wasm32-wasip1/libc.a"
-COMPAT="$EXP/toolchain/wasi-compat.o"
-VANILLA="$WSDK/share/wasi-sysroot/lib/wasm32-wasip1"
+WASMSUB="wasm32-wasip1${SECURE_EXEC_WASM_THREADS:+-threads}"
+SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"
+LIBC="$THREADS_SYSROOT/lib/$WASMSUB/libc.a"
+COMPAT="$EXP/toolchain/wasi-compat${SECURE_EXEC_WASM_THREADS:+-threads}.o"
+VANILLA="$WSDK/share/wasi-sysroot/lib/$WASMSUB"
 OUT="$EXP/guest-xclient/$NAME.wasm"
+# Threaded: real BSD sockets come from the patched host_socket.o (host_net ABI); the vanilla threaded
+# sysroot has none. Also use real pthreads (-lwasi-emulated-signal), NOT the single-threaded emulation.
+if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
+  # host_socket.o (sockets) + host_pipe_dup.o (pipe/dup/dup2) route to the kernel host_net/host_fd ABI;
+  # the vanilla threaded sysroot has neither. pipe() is required for GLib's cross-thread main-loop
+  # wakeup (GWakeup), which real threads now exercise. Both objects are feature-agnostic (no atomics).
+  HOSTSOCK="$EXP/toolchain/threads-libs/host_socket.o $EXP/toolchain/threads-libs/host_pipe_dup.o"
+  THREAD_LIBS="-lwasi-emulated-signal"
+  THREAD_LINK="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$((512*1024*1024)) -Wl,--export=wasi_thread_start"
+  MEMFLAG=""   # threaded memory is host-supplied (imported), growable via --max-memory above
+else
+  HOSTSOCK=""; THREAD_LIBS="-lwasi-emulated-pthread"; THREAD_LINK=""; MEMFLAG="-Wl,--max-memory=134217728"
+fi
 
 [ -f "$P/libgtk-3.a" ] || { echo "GTK not built; run scripts/build-gtk3.sh first"; exit 1; }
 GFLAGS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --cflags gtk+-3.0)"
 GLIBS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --static --libs gtk+-3.0 | sed 's/-pthread//g')"
 
-echo "== linking $NAME against the GTK stack =="
-"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features -Wl,--max-memory=134217728 \
-  -o "$OUT" "$EXP/guest-xclient/$NAME.c" "$COMPAT" $GLIBS \
-  -L"$VANILLA" -lwasi-emulated-mman -lwasi-emulated-process-clocks -lwasi-emulated-pthread \
+echo "== linking $NAME against the GTK stack ($WASMSUB) =="
+"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $MEMFLAG $THREAD_LINK \
+  -o "$OUT" "$EXP/guest-xclient/$NAME.c" "$COMPAT" $HOSTSOCK $GLIBS \
+  -L"$VANILLA" -lwasi-emulated-mman -lwasi-emulated-process-clocks $THREAD_LIBS \
   "$SETJMP" "$LIBC"
 ENV_IMPORTS="$(wasm-dis "$OUT" 2>/dev/null | grep -coE '\(import "env" "')"
 echo "linked ($(stat -c%s "$OUT") bytes); unresolved env imports: $ENV_IMPORTS (should be 0)"
 
 echo "== fpcast-emu + size-optimize =="
-wasm-opt --fpcast-emu -pa max-func-params@128 --enable-bulk-memory -O0 "$OUT" -o "$OUT.1"
-wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory "$OUT.1" -o "$OUT"
+# Threaded modules carry shared memory + atomics; --enable-threads keeps wasm-opt from rejecting/lowering
+# them (memory is imported, so its growable limits are fixed at link, not by wasm-opt).
+OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
+wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT -O0 "$OUT" -o "$OUT.1"
+wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers $OPTFEAT "$OUT.1" -o "$OUT"
 rm -f "$OUT.1"
 echo "built guest-xclient/$NAME.wasm ($(stat -c%s "$OUT") bytes); mem: $(wasm-dis "$OUT" 2>/dev/null | grep -oE '\(memory[^)]*\)' | head -1)"

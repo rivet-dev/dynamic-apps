@@ -97,5 +97,18 @@ cd gtk3 && rm -rf "$BD"
 meson setup "$BD" --cross-file "$CROSS_INI" --prefix="$PREFIX" \
   -Dx11_backend=true -Dwayland_backend=false -Dintrospection=false -Ddemos=false -Dexamples=false \
   -Dtests=false -Dprint_backends=file -Dcolord=no -Dtracker3=false -Ddefault_library=static
-ninja -C "$BD" gtk/libgtk-3.a
-echo "== M8: GTK 3.24 cross-compiles to wasm32-wasip1${SECURE_EXEC_WASM_THREADS:+-threads} -> $(stat -c%s "$BD"/gtk/libgtk-3.a) bytes =="
+ninja -C "$BD" gtk/libgtk-3.a gdk/libgdk-3.a
+# Install the toolkit + .pc into $PREFIX so build-gtk-app.sh's pkg-config resolves gtk+-3.0.
+cp -f "$BD"/gtk/libgtk-3.a "$BD"/gdk/libgdk-3.a "$PREFIX/lib/"
+for pc in gtk+-3.0.pc gdk-3.0.pc gtk+-x11-3.0.pc gdk-x11-3.0.pc; do [ -f "$BD/$pc" ] && cp -f "$BD/$pc" "$PCDIR/"; done
+# libepoxy: GTK needs the GL-dispatch symbols (epoxy_gl*). Building the standalone libepoxy.a target
+# pulls egl/glx_generated dispatch which need EGL/GL platform headers absent here; but the only epoxy
+# objects GTK references are gl_generated_dispatch + dispatch_common (pure function-pointer dispatch, no
+# atomics), so reuse the non-threaded libepoxy.a + epoxy.pc verbatim (linked with --no-check-features).
+NTPREFIX="$TP/wasm-prefix"
+if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && [ ! -f "$PREFIX/lib/libepoxy.a" ] && [ -f "$NTPREFIX/lib/libepoxy.a" ]; then
+  cp -f "$NTPREFIX/lib/libepoxy.a" "$PREFIX/lib/"
+  [ -f "$NTPREFIX/lib/pkgconfig/epoxy.pc" ] && cp -f "$NTPREFIX/lib/pkgconfig/epoxy.pc" "$PCDIR/"
+  cp -rf "$NTPREFIX/include/epoxy" "$PREFIX/include/" 2>/dev/null
+fi
+echo "== M8: GTK 3.24 cross-compiles to wasm32-wasip1${SECURE_EXEC_WASM_THREADS:+-threads} -> $(stat -c%s "$BD"/gtk/libgtk-3.a) bytes (libgtk-3 + libgdk-3 + epoxy installed) =="
