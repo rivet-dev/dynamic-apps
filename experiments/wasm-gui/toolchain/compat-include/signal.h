@@ -38,7 +38,11 @@ int sigfillset(sigset_t *);
 int sigaddset(sigset_t *, int);
 /* kill()/killpg() are gated behind __wasilibc_unmodified_upstream in the threaded sysroot (wasi has no
  * signals). GTK's gtkmountoperation-x11.c calls kill() to stop a mount helper (dead code in the
- * sandbox); declare it so the call compiles. Weak no-op stub lives in wasi-compat.c. */
+ * sandbox); declare it so the call compiles. Weak no-op stub lives in wasi-compat.c.
+ * Pull in pid_t directly (musl __NEED mechanism) so this header is self-contained: gbacktrace.c and
+ * others include <signal.h> before <sys/types.h>, so pid_t would otherwise be undefined here. */
+#define __NEED_pid_t
+#include <bits/alltypes.h>
 int kill(pid_t, int);
 int killpg(pid_t, int);
 #endif /* SECURE_EXEC_WASM_THREADS */
