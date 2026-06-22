@@ -668,6 +668,17 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   GTK content repaint inside the openbox frame in the combined run (decoration lands; the client's
   re-expose after reparent didn't paint in the captured frame), **interactive move/resize** via injected
   pointer events, and the openbox **root menu** opening — plus an automated `scripts/test-m8-openbox.sh`.
+  **CORE REMAINING ISSUE (diagnosed 2026-06-22) — cross-process X scheduling latency.** With openbox +
+  gtk + the X server all active, gtk's GLib event loop **stalls at `GDKEVT prepare #1`** then drains
+  slowly (gtk drew at ~80s, vs ~45s alone); the staged XKB keyboard device adds focus-event load that can
+  fully starve it. This is **latency, not deadlock** (gtk eventually progresses), and it's why the client
+  area stays black (the post-reparent repaint + the periodic redraw timer can't run while the loop is
+  starved). Root: the sidecar's net.poll runs on the single sync-RPC thread (3ms clamp) round-robined
+  across all guests, so each X round-trip is slow when N guests compete — exactly the "scale to 4-5
+  concurrent GTK guests" risk flagged below, surfacing already at N=3. **This is the key thing to fix for
+  M8.2 content AND M8.6** (multi-component): improve the sidecar's concurrent-guest net.poll scheduling so
+  a guest's X round-trips aren't starved by sibling guests. Keyboard device now loads
+  (`prepare-xkb.sh` → `/xkb/default.xkm`), clearing the GDK_IS_DEVICE focus assertions.
   Pixmap/PNG theme (Clearlooks) so no `librsvg` closure is needed. NOTE the standing line-~289 caution to
   avoid openbox was about its `libxml2`/glib/pango/cairo deps; now acceptable since M8 built
   glib/pango/cairo and `libxml2`/`pangoxft` are the only new closures (pure-C / our pango build).

@@ -23,6 +23,13 @@ static gboolean quit_timer(gpointer data) {
     return G_SOURCE_REMOVE;
 }
 
+/* Force a periodic repaint so the content survives a window-manager reparent/resize even if the
+ * post-reparent Expose is dropped (under openbox the client area was going black). */
+static gboolean redraw_timer(gpointer data) {
+    if (GTK_IS_WIDGET(data)) gtk_widget_queue_draw(GTK_WIDGET(data));
+    return G_SOURCE_CONTINUE;
+}
+
 int main(int argc, char **argv) {
     g_printerr("M8-GTK: before gtk_init\n");
     gtk_init(&argc, &argv);
@@ -48,6 +55,7 @@ int main(int argc, char **argv) {
     gtk_widget_show_all(win);
     g_printerr("M8-GTK: widget tree shown; entering gtk_main()\n");
     g_timeout_add(90000, quit_timer, NULL);
+    g_timeout_add(500, redraw_timer, win);
     gtk_main();
     g_printerr("M8-GTK: gtk_main returned (clean exit)\n");
     return 0;
