@@ -19,7 +19,7 @@ export * from "./protocol-client.js";
 export * from "./protocol-frames.js";
 export * from "./request-payloads.js";
 export * from "./response-payloads.js";
-export { SidecarProcess } from "./sidecar-process.js";
+export { SidecarProcess, Sidecar } from "./sidecar-process.js";
 export type { SidecarSpawnOptions } from "./sidecar-process.js";
 export * from "./state.js";
 export * as protocol from "./generated-protocol.js";
