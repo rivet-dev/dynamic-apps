@@ -32,7 +32,7 @@ if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
   # host_socket.o (sockets) + host_pipe_dup.o (pipe/dup/dup2) route to the kernel host_net/host_fd ABI;
   # the vanilla threaded sysroot has neither. pipe() is required for GLib's cross-thread main-loop
   # wakeup (GWakeup), which real threads now exercise. Both objects are feature-agnostic (no atomics).
-  HOSTSOCK="$EXP/toolchain/threads-libs/host_socket.o $EXP/toolchain/threads-libs/host_pipe_dup.o"
+  HOSTSOCK="$EXP/toolchain/threads-libs/host_socket.o $EXP/toolchain/threads-libs/host_pipe_dup.o $EXP/toolchain/threads-libs/override_fcntl.o"
   THREAD_LIBS="-lwasi-emulated-signal"
   THREAD_LINK="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$((512*1024*1024)) -Wl,--export=wasi_thread_start"
   MEMFLAG=""   # threaded memory is host-supplied (imported), growable via --max-memory above
