@@ -24,12 +24,12 @@ Bundle size as vendored in this directory:
 `python-runner.mjs` points `indexURL` at this local directory and defaults `packageBaseUrl` to the same bundled asset root so `pyodide.loadPackage()` and the built-in `micropip` bootstrap stay offline.
 
 Dynamic package installs:
-- `AGENT_OS_PYODIDE_PACKAGE_BASE_URL` can override the package base used by Pyodide package resolution when a Python execution needs to install additional wheels from a network-visible host.
+- `AGENTOS_PYODIDE_PACKAGE_BASE_URL` can override the package base used by Pyodide package resolution when a Python execution needs to install additional wheels from a network-visible host.
 - The bundled `micropip` wheel is still loaded from the local asset directory first so package-manager bootstrap does not depend on external network access.
 - `await micropip.install("https://.../package.whl")` goes through the Python runner's bridge-backed fetch path, which means network permissions are enforced by the secure-exec kernel rather than bypassing it.
 
 Debug timing output:
-- Set `AGENT_OS_PYTHON_WARMUP_DEBUG=1` on a Python execution request to emit `__AGENT_OS_PYTHON_WARMUP_METRICS__:` JSON lines on stderr.
+- Set `AGENTOS_PYTHON_WARMUP_DEBUG=1` on a Python execution request to emit `__AGENTOS_PYTHON_WARMUP_METRICS__:` JSON lines on stderr.
 - The Rust execution engine emits a `phase:"prewarm"` line that reports whether warmup executed or reused the cached compile-cache path, plus the measured warmup duration in milliseconds.
 - `python-runner.mjs` emits a `phase:"startup"` line just before guest code runs, including total startup time, `loadPyodide()` time, package-load time, package count, and whether the source was inline code, a file, or prewarm-only.
 

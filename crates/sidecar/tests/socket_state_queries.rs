@@ -390,7 +390,7 @@ fn sidecar_queries_listener_udp_and_signal_state() {
         GuestRuntimeKind::JavaScript,
         &cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+            String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
             allowed_builtins,
         )]),
     );
@@ -689,7 +689,7 @@ fn sidecar_tracks_javascript_sigchld_and_delivers_it_on_child_exit() {
         GuestRuntimeKind::JavaScript,
         &cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+            String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
             allowed_builtins,
         )]),
     );

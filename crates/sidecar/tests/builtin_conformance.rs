@@ -271,7 +271,7 @@ fn run_guest_probe_with_config(
     let allowed_builtins =
         serde_json::to_string(allowed_builtins).expect("serialize builtin allowlist");
     metadata.insert(
-        String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
         allowed_builtins,
     );
     let vm_id = create_vm_with_metadata_and_permissions(
@@ -332,7 +332,7 @@ fn run_guest_probe_in_existing_session(
     let allowed_builtins =
         serde_json::to_string(ALLOWED_NODE_BUILTINS).expect("serialize builtin allowlist");
     metadata.insert(
-        String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
         allowed_builtins,
     );
 
@@ -417,7 +417,7 @@ fn run_isolated_builtin_conformance_test(test_name: &str) {
         .arg("--exact")
         .arg("__builtin_conformance_extra_test_runner")
         .arg("--nocapture")
-        .env("AGENT_OS_BUILTIN_CONFORMANCE_EXTRA_TEST", test_name)
+        .env("AGENTOS_BUILTIN_CONFORMANCE_EXTRA_TEST", test_name)
         .status()
         .unwrap_or_else(|error| {
             panic!("spawn builtin conformance extra runner for {test_name}: {error}")
@@ -764,11 +764,11 @@ agent.destroy();
     let allowed_builtins = serde_json::to_string(&["http"]).expect("serialize builtin allowlist");
     let guest_env = HashMap::from([
         (
-            String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+            String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
             allowed_builtins,
         ),
         (
-            String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
             format!("[{port}]"),
         ),
     ]);
@@ -1082,7 +1082,7 @@ process.exit(0);
         &cwd,
         &entrypoint,
         HashMap::from([(
-            String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
             format!("[{request_socket_port}]"),
         )]),
         wire_permissions_allow_all(),
@@ -1346,7 +1346,7 @@ console.log(JSON.stringify({ callbackAnswer, promiseAnswer }));
         &cwd,
         HashMap::from([
             (
-                String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
                 serde_json::to_string(&["readline"]).expect("serialize builtin allowlist"),
             ),
             (
@@ -1920,10 +1920,10 @@ console.log(JSON.stringify({
     // Virtual identity must reflect the configured VM (distinct from the loader's
     // hardcoded root/"/root" defaults) — this is the sidecar-level coverage that
     // exercises the guestOs/`import os` path, which an engine-only test does not.
-    assert_eq!(constrained["username"], "user");
-    assert_eq!(constrained["homedir"], "/home/user");
-    assert_eq!(expanded["username"], "user");
-    assert_eq!(expanded["homedir"], "/home/user");
+    assert_eq!(constrained["username"], "agentos");
+    assert_eq!(constrained["homedir"], "/home/agentos");
+    assert_eq!(expanded["username"], "agentos");
+    assert_eq!(expanded["homedir"], "/home/agentos");
 
     assert_eq!(constrained["availableParallelism"], 2);
     assert_eq!(constrained["cpusLength"], 2);
@@ -1955,8 +1955,8 @@ fn dns_conformance_matches_host_node() {
         r#"
 import dns from "node:dns";
 
-if (process.env.AGENT_OS_TEST_DNS_SERVER) {
-  dns.setServers([process.env.AGENT_OS_TEST_DNS_SERVER]);
+if (process.env.AGENTOS_TEST_DNS_SERVER) {
+  dns.setServers([process.env.AGENTOS_TEST_DNS_SERVER]);
 }
 
 function sortStrings(values) {
@@ -2005,7 +2005,7 @@ console.log(JSON.stringify(results));
     let host = run_host_probe_with_env(
         &cwd,
         &entrypoint,
-        &[("AGENT_OS_TEST_DNS_SERVER", dns_server_addr.as_str())],
+        &[("AGENTOS_TEST_DNS_SERVER", dns_server_addr.as_str())],
     );
     let guest = run_guest_probe_with_config(
         "dns",
@@ -2199,11 +2199,11 @@ fn fs_conformance_matches_host_node() {
         r#"
 import fs from "node:fs";
 
-fs.mkdirSync("workspace");
-fs.mkdirSync("workspace/nested");
-fs.writeFileSync("workspace/nested/alpha.txt", Buffer.from("alpha-sync", "utf8"));
+fs.mkdirSync("scratchdir");
+fs.mkdirSync("scratchdir/nested");
+fs.writeFileSync("scratchdir/nested/alpha.txt", Buffer.from("alpha-sync", "utf8"));
 await new Promise((resolve, reject) => {
-  fs.writeFile("workspace/beta.txt", Buffer.from("beta-async", "utf8"), (error) => {
+  fs.writeFile("scratchdir/beta.txt", Buffer.from("beta-async", "utf8"), (error) => {
     if (error) {
       reject(error);
       return;
@@ -2214,7 +2214,7 @@ await new Promise((resolve, reject) => {
 
 let missingStatCode = null;
 try {
-  fs.statSync("workspace/missing.txt");
+  fs.statSync("scratchdir/missing.txt");
 } catch (error) {
   missingStatCode = error?.code ?? null;
 }
@@ -2222,7 +2222,7 @@ try {
 let missingReadCode = null;
 try {
   await new Promise((resolve, reject) => {
-    fs.readFile("workspace/missing.txt", "utf8", (error, value) => {
+    fs.readFile("scratchdir/missing.txt", "utf8", (error, value) => {
       if (error) {
         reject(error);
         return;
@@ -2235,7 +2235,7 @@ try {
 }
 
 const asyncRead = await new Promise((resolve, reject) => {
-  fs.readFile("workspace/beta.txt", "utf8", (error, value) => {
+  fs.readFile("scratchdir/beta.txt", "utf8", (error, value) => {
     if (error) {
       reject(error);
       return;
@@ -2245,12 +2245,12 @@ const asyncRead = await new Promise((resolve, reject) => {
 });
 
 console.log(JSON.stringify({
-  syncRead: fs.readFileSync("workspace/nested/alpha.txt", "utf8"),
+  syncRead: fs.readFileSync("scratchdir/nested/alpha.txt", "utf8"),
   asyncRead,
-  entries: fs.readdirSync("workspace").sort(),
-  statSize: fs.statSync("workspace/nested/alpha.txt").size,
-  existsAlpha: fs.existsSync("workspace/nested/alpha.txt"),
-  existsBeta: fs.existsSync("workspace/beta.txt"),
+  entries: fs.readdirSync("scratchdir").sort(),
+  statSize: fs.statSync("scratchdir/nested/alpha.txt").size,
+  existsAlpha: fs.existsSync("scratchdir/nested/alpha.txt"),
+  existsBeta: fs.existsSync("scratchdir/beta.txt"),
   missingStatCode,
   missingReadCode,
 }));
@@ -3892,7 +3892,7 @@ console.log(JSON.stringify({ hasRefAfterUnref: timer.hasRef() }));
         serde_json::to_string(&["timers"]).expect("serialize timer builtin allowlist");
     let mut metadata = HashMap::new();
     metadata.insert(
-        String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
         allowed_builtins,
     );
     let vm_id = create_vm_with_metadata_and_permissions(
@@ -3976,7 +3976,7 @@ fn builtin_conformance_cases() {
             .arg("--exact")
             .arg("__builtin_conformance_case_runner")
             .arg("--nocapture")
-            .env("AGENT_OS_BUILTIN_CONFORMANCE_CASE", case_name)
+            .env("AGENTOS_BUILTIN_CONFORMANCE_CASE", case_name)
             .status()
             .unwrap_or_else(|error| {
                 panic!("spawn builtin conformance runner for {case_name}: {error}")
@@ -3991,7 +3991,7 @@ fn builtin_conformance_cases() {
 
 #[test]
 fn __builtin_conformance_case_runner() {
-    let Ok(case_name) = std::env::var("AGENT_OS_BUILTIN_CONFORMANCE_CASE") else {
+    let Ok(case_name) = std::env::var("AGENTOS_BUILTIN_CONFORMANCE_CASE") else {
         return;
     };
 
@@ -4000,7 +4000,7 @@ fn __builtin_conformance_case_runner() {
 
 #[test]
 fn __builtin_conformance_extra_test_runner() {
-    let Ok(test_name) = std::env::var("AGENT_OS_BUILTIN_CONFORMANCE_EXTRA_TEST") else {
+    let Ok(test_name) = std::env::var("AGENTOS_BUILTIN_CONFORMANCE_EXTRA_TEST") else {
         return;
     };
 

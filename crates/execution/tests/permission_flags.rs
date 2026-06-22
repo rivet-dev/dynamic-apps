@@ -82,7 +82,7 @@ fn node_permission_flags_allow_workers_for_internal_javascript_loader_runtime() 
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node-args.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let js_cwd = temp.path().join("js-project");
     fs::create_dir_all(&js_cwd).expect("create js cwd");
@@ -119,7 +119,7 @@ fn node_permission_flags_allow_workers_for_internal_javascript_loader_runtime() 
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
             env: BTreeMap::from([(
-                String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                 String::from("[\"worker_threads\"]"),
             )]),
             cwd: js_cwd,
@@ -142,7 +142,7 @@ fn node_permission_flags_only_propagate_nested_child_capabilities_when_parent_ex
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node-args.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let js_cwd = temp.path().join("js-project");
     fs::create_dir_all(&js_cwd).expect("create js cwd");
@@ -158,15 +158,15 @@ fn node_permission_flags_only_propagate_nested_child_capabilities_when_parent_ex
     let nested_env = |allow_child_process: &str, allow_worker: &str| {
         BTreeMap::from([
             (
-                String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                 String::from("[\"child_process\",\"worker_threads\"]"),
             ),
             (
-                String::from("AGENT_OS_PARENT_NODE_ALLOW_CHILD_PROCESS"),
+                String::from("AGENTOS_PARENT_NODE_ALLOW_CHILD_PROCESS"),
                 allow_child_process.to_owned(),
             ),
             (
-                String::from("AGENT_OS_PARENT_NODE_ALLOW_WORKER"),
+                String::from("AGENTOS_PARENT_NODE_ALLOW_WORKER"),
                 allow_worker.to_owned(),
             ),
         ])
@@ -314,7 +314,7 @@ fn wasm_execution_applies_runtime_memory_and_fuel_limits_inside_v8_runtime() {
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node-args.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let wasm_cwd = temp.path().join("wasm-project");
     fs::create_dir_all(&wasm_cwd).expect("create wasm cwd");
@@ -356,7 +356,7 @@ fn wasm_permission_tiers_do_not_fall_back_to_host_node_binary() {
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node-args.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let mut engine = WasmExecutionEngine::default();
     let tiers = [

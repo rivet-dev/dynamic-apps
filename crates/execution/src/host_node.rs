@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-const NODE_BINARY_ENV: &str = "AGENT_OS_NODE_BINARY";
+const NODE_BINARY_ENV: &str = "AGENTOS_NODE_BINARY";
 const DEFAULT_NODE_BINARY: &str = "node";
 
 pub(crate) fn node_binary() -> String {

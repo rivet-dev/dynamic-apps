@@ -367,7 +367,7 @@ fn run_guest_probe(entrypoint: &Path, arg: &str) -> Value {
         GuestRuntimeKind::JavaScript,
         cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+            String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
             allowed_builtins_json(),
         )]),
     );

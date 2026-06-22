@@ -18,7 +18,7 @@ use std::collections::BTreeSet;
 const BUNDLED_BASE_FILESYSTEM_JSON: &str =
     include_str!(concat!(env!("OUT_DIR"), "/base-filesystem.json"));
 pub const ROOT_FILESYSTEM_SNAPSHOT_FORMAT: &str = "secure_exec_filesystem_snapshot_v1";
-const LEGACY_AGENT_OS_ROOT_FILESYSTEM_SNAPSHOT_FORMAT: &str = "agent_os_filesystem_snapshot_v1";
+const LEGACY_AGENTOS_ROOT_FILESYSTEM_SNAPSHOT_FORMAT: &str = "agentos_filesystem_snapshot_v1";
 const ROOT_FILESYSTEM_SNAPSHOT_FIXED_OVERHEAD_BYTES: usize = 4 * 1024;
 const ROOT_FILESYSTEM_SNAPSHOT_ENTRY_OVERHEAD_BYTES: usize = MAX_PATH_LENGTH + 1024;
 const DEFAULT_ROOT_DIRECTORIES: &[&str] = &[
@@ -532,7 +532,7 @@ pub fn decode_snapshot_with_import_limits(
 
 pub fn is_supported_root_filesystem_snapshot_format(format: &str) -> bool {
     format == ROOT_FILESYSTEM_SNAPSHOT_FORMAT
-        || format == LEGACY_AGENT_OS_ROOT_FILESYSTEM_SNAPSHOT_FORMAT
+        || format == LEGACY_AGENTOS_ROOT_FILESYSTEM_SNAPSHOT_FORMAT
 }
 
 fn load_bundled_base_snapshot_with_limits(

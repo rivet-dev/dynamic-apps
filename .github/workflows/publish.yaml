@@ -20,7 +20,7 @@ concurrency:
 env:
   R2_BUCKET: rivet-releases
   R2_ENDPOINT: https://2a94c6a0ced8d35ea63cddc86c2681e7.r2.cloudflarestorage.com
-  SIDECAR_PLATFORMS: "linux-x64-gnu"
+  SIDECAR_PLATFORMS: "linux-x64-gnu linux-arm64-gnu darwin-x64 darwin-arm64"
 
 jobs:
   context:
@@ -36,10 +36,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - name: Install publish scripts
@@ -53,23 +53,43 @@ jobs:
     name: "Build sidecar (${{ matrix.platform }})"
     strategy:
       fail-fast: false
+      # The target set is dictated by the embedded V8 (rusty_v8): the build links
+      # a prebuilt `librusty_v8` static lib, and rusty_v8 publishes prebuilts for
+      # EXACTLY these four triples (linux-gnu + darwin, x64/arm64). musl has no
+      # prebuilt (would force a 30+ min V8 source build). Keep this list in
+      # lockstep with the rusty_v8 release assets when bumping the v8 crate.
       matrix:
         include:
           - platform: linux-x64-gnu
             runner: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+            binary: secure-exec-sidecar
+          - platform: linux-arm64-gnu
+            runner: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            binary: secure-exec-sidecar
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
+        shell: bash
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+      - name: Add Rust target to the pinned toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The repo pins a toolchain via rust-toolchain.toml; cross targets
+          # must be added to *that* toolchain (not just `stable`), or cargo
+          # fails with "can't find crate for `core`" for the cross target.
+          channel=$(awk -F'"' '/channel/ {print $2; exit}' rust-toolchain.toml)
+          echo "Pinned toolchain channel: ${channel}"
+          rustup toolchain install "${channel}" --profile minimal
+          rustup target add --toolchain "${channel}" "${{ matrix.target }}"
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: . -> target
@@ -80,21 +100,35 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-rusty-v8-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-rusty-v8-
-      - run: pnpm install --frozen-lockfile
+      # The v8-runtime build script generates the V8 bridge assets from
+      # packages/build-tools/node_modules, so the workspace must be installed
+      # before cargo build. Exclude the `website` package: it is a leaf nothing
+      # depends on, and pnpm 10.x intermittently loses a symlink-ordering race
+      # creating website/node_modules (ENOENT before linking pixelmatch).
+      - name: Install workspace dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile --filter='!@secure-exec/website'
       - name: Build sidecar binary
         id: build
+        shell: bash
+        env:
+          MATRIX_TARGET: ${{ matrix.target }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
+          MATRIX_BINARY: ${{ matrix.binary }}
+          TRIGGER: ${{ needs.context.outputs.trigger }}
         run: |
           set -euo pipefail
-          out="target/sidecar-artifacts/${{ matrix.platform }}"
+
+          out="target/sidecar-artifacts/${MATRIX_PLATFORM}"
           mkdir -p "$out"
-          if [ "${{ needs.context.outputs.trigger }}" = "release" ]; then
-            cargo build --release -p secure-exec-sidecar --target ${{ matrix.target }}
+          if [ "$TRIGGER" = "release" ]; then
+            cargo build --release -p secure-exec-sidecar --target "$MATRIX_TARGET"
             profile="release"
           else
-            cargo build -p secure-exec-sidecar --target ${{ matrix.target }}
+            cargo build -p secure-exec-sidecar --target "$MATRIX_TARGET"
             profile="debug"
           fi
-          cp "target/${{ matrix.target }}/${profile}/secure-exec-sidecar" "$out/secure-exec-sidecar"
+          cp "target/${MATRIX_TARGET}/${profile}/${MATRIX_BINARY}" "$out/${MATRIX_BINARY}"
           echo "dir=$out" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
@@ -102,26 +136,76 @@ jobs:
           path: ${{ steps.build.outputs.dir }}
           if-no-files-found: error
 
+  # darwin is cross-compiled via osxcross in a Linux container (rivet's approach)
+  # rather than on macOS runners — those queue for scarce macos-13/14 capacity and
+  # stall the whole publish. The osxcross base image carries the macOS SDK + Node
+  # + pnpm; we build on plain ubuntu with `docker build`. No Depot needed.
+  build-sidecar-darwin:
+    needs: [context]
+    name: "Build sidecar (${{ matrix.platform }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: darwin-x64
+            target: x86_64-apple-darwin
+            clang: x86_64-apple-darwin20.4
+          - platform: darwin-arm64
+            target: aarch64-apple-darwin
+            clang: aarch64-apple-darwin20.4
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to ghcr.io (pull the osxcross base image)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Cross-compile via osxcross
+        run: |
+          set -euo pipefail
+          DOCKER_BUILDKIT=1 docker build \
+            -f docker/build/darwin.Dockerfile \
+            --build-arg TARGET=${{ matrix.target }} \
+            --build-arg CLANG=${{ matrix.clang }} \
+            --build-arg TRIGGER=${{ needs.context.outputs.trigger }} \
+            -t sidecar-${{ matrix.platform }} .
+          out="target/sidecar-artifacts/${{ matrix.platform }}"
+          mkdir -p "$out"
+          cid=$(docker create sidecar-${{ matrix.platform }})
+          docker cp "$cid:/artifacts/secure-exec-sidecar" "$out/secure-exec-sidecar"
+          docker rm "$cid"
+          test -f "$out/secure-exec-sidecar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidecar-${{ matrix.platform }}
+          path: target/sidecar-artifacts/${{ matrix.platform }}
+          if-no-files-found: error
+
   # NOTE: WASM command binaries are intentionally NOT built or published here.
   # The wasm-bearing packages (@secure-exec/core, which vendors the command set,
-  # and the @agent-os-pkgs/* registry software) are always published MANUALLY.
+  # and the @agentos-software/* registry software) are always published MANUALLY.
   # See CLAUDE.md → "Publishing" for the manual flow.
 
   publish-npm:
-    needs: [context, build-sidecar]
+    needs: [context, build-sidecar, build-sidecar-darwin]
     name: "Publish npm"
-    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' }}
+    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && needs.build-sidecar-darwin.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           registry-url: https://registry.npmjs.org
-      - run: pnpm install --frozen-lockfile
+      # Install the full workspace except the `website` package. website is a
+      # leaf (nothing depends on it, and it is not published here), and pnpm 10.x
+      # intermittently loses a symlink-ordering race creating website/node_modules
+      # (ENOENT before linking pixelmatch). Excluding it deterministically avoids
+      # the flake. `--frozen-lockfile` still validates the full lockfile.
+      - name: Install workspace dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile --filter='!@secure-exec/website'
       - uses: actions/download-artifact@v4
         with:
           pattern: sidecar-*
@@ -130,7 +214,8 @@ jobs:
         run: |
           set -euo pipefail
           for p in $SIDECAR_PLATFORMS; do
-            bin="artifacts/sidecar-${p}/secure-exec-sidecar"
+            binname="secure-exec-sidecar"
+            bin="artifacts/sidecar-${p}/${binname}"
             dest="packages/sidecar/npm/${p}"
             if [ ! -f "$bin" ]; then
               echo "::error::missing secure-exec-sidecar binary artifact for ${p}"
@@ -140,8 +225,8 @@ jobs:
               echo "::error::missing platform package dir $dest"
               exit 1
             fi
-            cp "$bin" "${dest}/secure-exec-sidecar"
-            chmod +x "${dest}/secure-exec-sidecar"
+            cp "$bin" "${dest}/${binname}"
+            chmod +x "${dest}/${binname}"
             echo "Placed binary for ${p}"
           done
       - name: Bump package versions for build
@@ -152,7 +237,8 @@ jobs:
       - name: Build TypeScript packages
         run: |
           npx turbo build \
-            --filter='!./examples/*'
+            --filter='!./examples/*' \
+            --filter='!@secure-exec/website'
       - name: Finalize package versions for publish
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts bump-versions \
@@ -168,9 +254,9 @@ jobs:
             ${{ needs.context.outputs.trigger == 'release' && '--release-mode' || '' }}
 
   release-assets:
-    needs: [context, build-sidecar]
+    needs: [context, build-sidecar, build-sidecar-darwin]
     name: "Release assets"
-    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && needs.context.outputs.trigger == 'release' }}
+    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && needs.build-sidecar-darwin.result == 'success' && needs.context.outputs.trigger == 'release' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -178,10 +264,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --filter=publish
@@ -196,13 +282,18 @@ jobs:
           set -euo pipefail
           declare -A PLATFORM_TARGET=(
             [linux-x64-gnu]=x86_64-unknown-linux-gnu
+            [linux-arm64-gnu]=aarch64-unknown-linux-gnu
+            [darwin-x64]=x86_64-apple-darwin
+            [darwin-arm64]=aarch64-apple-darwin
           )
           mkdir -p release-assets
           for p in $SIDECAR_PLATFORMS; do
-            bin="artifacts/sidecar-${p}/secure-exec-sidecar"
+            binname="secure-exec-sidecar"
+            suffix=""
+            bin="artifacts/sidecar-${p}/${binname}"
             if [ -f "$bin" ]; then
               target="${PLATFORM_TARGET[$p]}"
-              cp "$bin" "release-assets/secure-exec-sidecar-${target}"
+              cp "$bin" "release-assets/secure-exec-sidecar-${target}${suffix}"
             else
               echo "::warning::missing secure-exec-sidecar binary for ${p}"
             fi
@@ -230,19 +321,19 @@ jobs:
           gh release upload "v${VERSION}" release-assets/* --clobber
       - name: Keep Agent OS Pyodide release assets reachable
         env:
-          GH_TOKEN: ${{ secrets.AGENT_OS_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.AGENTOS_RELEASES_TOKEN }}
           VERSION: ${{ needs.context.outputs.version }}
           NPM_TAG: ${{ needs.context.outputs.npm_tag }}
         run: |
           set -euo pipefail
           if [ -z "${GH_TOKEN:-}" ]; then
-            echo "AGENT_OS_RELEASES_TOKEN not configured; skipping Agent OS compatibility upload."
+            echo "AGENTOS_RELEASES_TOKEN not configured; skipping Agent OS compatibility upload."
             exit 0
           fi
-          if ! gh release view "v${VERSION}" --repo rivet-dev/agent-os >/dev/null 2>&1; then
+          if ! gh release view "v${VERSION}" --repo rivet-dev/agentos >/dev/null 2>&1; then
             PRERELEASE=""
             if [ "${NPM_TAG}" = "rc" ]; then PRERELEASE="--prerelease"; fi
-            gh release create "v${VERSION}" --repo rivet-dev/agent-os --title "v${VERSION}" --generate-notes $PRERELEASE
+            gh release create "v${VERSION}" --repo rivet-dev/agentos --title "v${VERSION}" --generate-notes $PRERELEASE
           fi
           gh release upload "v${VERSION}" \
             release-assets/pyodide.asm.wasm \
@@ -250,7 +341,7 @@ jobs:
             release-assets/python_stdlib.zip \
             release-assets/numpy-2.2.5-cp313-cp313-pyodide_2025_0_wasm32.whl \
             release-assets/pandas-2.3.3-cp313-cp313-pyodide_2025_0_wasm32.whl \
-            --repo rivet-dev/agent-os \
+            --repo rivet-dev/agentos \
             --clobber
       - name: Upload sidecar binaries to R2
         env:
@@ -272,16 +363,20 @@ jobs:
             --sha "$SHA" --version "$VERSION" --latest "$LATEST"
 
   publish-crates:
-    needs: [context, build-sidecar, release-assets]
+    needs: [context, build-sidecar, build-sidecar-darwin, release-assets]
     name: "Publish crates.io"
-    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && (needs.release-assets.result == 'success' || needs.release-assets.result == 'skipped') }}
+    # Release-only: on previews the crates publish is a dry-run that still does a
+    # full compile/package, and any error there reddened the WHOLE run even though
+    # the npm deliverable published fine (FALLING_OUT.md §4b). The 4 build-sidecar
+    # legs already compile every crate, so the preview dry-run added only noise.
+    if: ${{ !cancelled() && needs.build-sidecar.result == 'success' && needs.release-assets.result == 'success' && needs.context.outputs.trigger == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - run: corepack enable
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
       - uses: dtolnay/rust-toolchain@stable
@@ -294,7 +389,14 @@ jobs:
           key: ${{ runner.os }}-x86_64-unknown-linux-gnu-rusty-v8-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-x86_64-unknown-linux-gnu-rusty-v8-
-      - run: pnpm install --frozen-lockfile
+      # Install the full workspace except the `website` package. website is a
+      # leaf (nothing depends on it, and it is not published here), and pnpm 10.x
+      # intermittently loses a symlink-ordering race creating website/node_modules
+      # (ENOENT before linking pixelmatch). Excluding it deterministically avoids
+      # the flake. `--frozen-lockfile` still validates the full lockfile.
+      - name: Install workspace dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile --filter='!@secure-exec/website'
       - name: Bump Cargo versions
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts bump-versions \

@@ -43,7 +43,7 @@ fn wasm_runner_write_intent_uses_write_bit_not_read_bit() {
 
     // The WRITE right constant must be defined as bit 6 (64n), not the read bit.
     assert!(
-        wasm_src.contains("const __agentOsWasiRightFdWrite = 1n << 6n;"),
+        wasm_src.contains("const __agentOSWasiRightFdWrite = 1n << 6n;"),
         "expected RIGHT_FD_WRITE to be defined as `1n << 6n` (64n) in wasm.rs; \
          the write-intent constant is the foundation of the read-vs-write distinction"
     );
@@ -53,9 +53,9 @@ fn wasm_runner_write_intent_uses_write_bit_not_read_bit() {
 
     // Write-intent must be masked against the WRITE bit.
     assert!(
-        body.contains("(BigInt(rights) & __agentOsWasiRightFdWrite) !== 0n"),
+        body.contains("(BigInt(rights) & __agentOSWasiRightFdWrite) !== 0n"),
         "_hasWriteRights must check write-intent against RIGHT_FD_WRITE \
-         (__agentOsWasiRightFdWrite); found body: {body}"
+         (__agentOSWasiRightFdWrite); found body: {body}"
     );
 
     // Guard against reintroducing the original typo: write-intent must NOT be

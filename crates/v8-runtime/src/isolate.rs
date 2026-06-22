@@ -60,7 +60,7 @@ impl PromiseRejectState {
                     "unhandled promise rejection registry exceeded limit of {MAX_UNHANDLED_PROMISE_REJECTIONS} rejections"
                 ),
                 stack: String::new(),
-                code: Some("ERR_AGENT_OS_UNHANDLED_REJECTION_LIMIT".into()),
+                code: Some("ERR_AGENTOS_UNHANDLED_REJECTION_LIMIT".into()),
             });
         }
         self.unhandled.drain().next().map(|(_, err)| err)

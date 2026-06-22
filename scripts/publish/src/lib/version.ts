@@ -108,8 +108,14 @@ export async function bumpPackageJsons(
 					const isWorkspace =
 						typeof spec === "string" && spec.startsWith("workspace:");
 					if (!isWorkspace) continue;
+					// Convert workspace:* deps on any in-repo package to the literal
+					// version. `packageNames` only covers DISCOVERED (CI-published)
+					// packages, so a dep on a manually-published-but-excluded package
+					// (e.g. @secure-exec/core) would otherwise leak `workspace:*` into
+					// the published tarball and break consumers. The whole @secure-exec
+					// set publishes at one version, so pin those too.
 					const isOurPkg =
-						packageNames.has(dep);
+						packageNames.has(dep) || dep.startsWith("@secure-exec/");
 					if (!isOurPkg) continue;
 					deps[dep] = version;
 				}
@@ -149,8 +155,14 @@ export async function bumpCargoVersions(
 		/(\[workspace\.package\]\n(?:[^\n]*\n)*?[ \t]*version = )"[^"]+"/,
 		`$1"${version}"`,
 	);
+	// Match EVERY internal path-dep, not just `agentos-*`/`secure-exec-*`: the
+	// presence of a `path = "..."` is what marks an in-repo workspace crate, so
+	// unprefixed members (e.g. `vfs = { path = "crates/vfs", version = "..." }`)
+	// must be bumped in lock-step too. Missing one leaves a dependent pinned to
+	// the old `^0.3.0-rc.1` while the crate itself moved to the preview version,
+	// which fails cargo resolution ("failed to select a version for `vfs`").
 	next = next.replace(
-		/((?:agent-os|secure-exec)-[a-z0-9-]+ = \{ path = "[^"]+", version = ")[^"]+(" \})/g,
+		/^([a-zA-Z0-9_-]+ = \{ path = "[^"]+", version = ")[^"]+(" \})/gm,
 		`$1${version}$2`,
 	);
 

@@ -12,8 +12,18 @@ const DEFAULT_OUTPUT = fileURLToPath(
 );
 
 const BASE_HOSTNAME = "secure-exec";
-const BASE_USER = "user";
+const BASE_USER = "agentos";
 const BASE_HOME = `/home/${BASE_USER}`;
+const BASE_UID = 1000;
+const BASE_GID = 1000;
+
+// Non-Alpine directories the secure-exec base layer always provides on top of the
+// captured snapshot. `/workspace` is the default agent working directory (cwd) and
+// the conventional mount root; it is kept separate from `$HOME` (/home/agentos),
+// which is never a mount.
+const EXTRA_DIRECTORIES = [
+	{ path: "/workspace", type: "directory", mode: "755", uid: BASE_UID, gid: BASE_GID },
+];
 
 function readJson(pathname) {
 	return JSON.parse(readFileSync(pathname, "utf-8"));
@@ -30,6 +40,12 @@ function normalizeEntry(entry) {
 	return entry;
 }
 
+function withExtraDirectories(entries) {
+	const existing = new Set(entries.map((entry) => entry.path));
+	const additions = EXTRA_DIRECTORIES.filter((entry) => !existing.has(entry.path));
+	return [...entries, ...additions];
+}
+
 function buildBaseFilesystem(snapshot, inputPath) {
 	return {
 		source: {
@@ -40,6 +56,7 @@ function buildBaseFilesystem(snapshot, inputPath) {
 			transforms: [
 				"Normalize HOSTNAME to secure-exec",
 				"Preserve the captured user-level environment and filesystem layout as the secure-exec base layer",
+				"Add the non-Alpine /workspace directory (default agent working directory) owned by the base user",
 			],
 		},
 		environment: {
@@ -53,7 +70,7 @@ function buildBaseFilesystem(snapshot, inputPath) {
 			prompt: snapshot.environment.prompt,
 		},
 		filesystem: {
-			entries: snapshot.filesystem.entries.map(normalizeEntry),
+			entries: withExtraDirectories(snapshot.filesystem.entries.map(normalizeEntry)),
 		},
 	};
 }

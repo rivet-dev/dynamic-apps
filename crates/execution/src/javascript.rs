@@ -34,35 +34,35 @@ use tokio::sync::mpsc::{
 };
 use tokio::time;
 
-const NODE_ENTRYPOINT_ENV: &str = "AGENT_OS_ENTRYPOINT";
-const NODE_BOOTSTRAP_ENV: &str = "AGENT_OS_BOOTSTRAP_MODULE";
-const NODE_GUEST_ARGV_ENV: &str = "AGENT_OS_GUEST_ARGV";
-const NODE_PREWARM_IMPORTS_ENV: &str = "AGENT_OS_NODE_PREWARM_IMPORTS";
+const NODE_ENTRYPOINT_ENV: &str = "AGENTOS_ENTRYPOINT";
+const NODE_BOOTSTRAP_ENV: &str = "AGENTOS_BOOTSTRAP_MODULE";
+const NODE_GUEST_ARGV_ENV: &str = "AGENTOS_GUEST_ARGV";
+const NODE_PREWARM_IMPORTS_ENV: &str = "AGENTOS_NODE_PREWARM_IMPORTS";
 const NODE_IMPORT_COMPILE_CACHE_NAMESPACE_VERSION: &str = "3";
-const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_LOADER_PATH";
-const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_PATH";
+const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_LOADER_PATH";
+const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_PATH";
 const NODE_KEEP_STDIN_OPEN_ENV: &str = "SECURE_EXEC_KEEP_STDIN_OPEN";
-const NODE_GUEST_ENTRYPOINT_ENV: &str = "AGENT_OS_GUEST_ENTRYPOINT";
-const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENT_OS_GUEST_PATH_MAPPINGS";
-const NODE_VIRTUAL_PROCESS_EXEC_PATH_ENV: &str = "AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH";
-const NODE_VIRTUAL_PROCESS_PID_ENV: &str = "AGENT_OS_VIRTUAL_PROCESS_PID";
-const NODE_VIRTUAL_PROCESS_PPID_ENV: &str = "AGENT_OS_VIRTUAL_PROCESS_PPID";
-const NODE_VIRTUAL_PROCESS_UID_ENV: &str = "AGENT_OS_VIRTUAL_PROCESS_UID";
-const NODE_VIRTUAL_PROCESS_GID_ENV: &str = "AGENT_OS_VIRTUAL_PROCESS_GID";
-const NODE_PARENT_ALLOW_CHILD_PROCESS_ENV: &str = "AGENT_OS_PARENT_NODE_ALLOW_CHILD_PROCESS";
-const NODE_PARENT_ALLOW_WORKER_ENV: &str = "AGENT_OS_PARENT_NODE_ALLOW_WORKER";
-const NODE_EXTRA_FS_READ_PATHS_ENV: &str = "AGENT_OS_EXTRA_FS_READ_PATHS";
-const NODE_EXTRA_FS_WRITE_PATHS_ENV: &str = "AGENT_OS_EXTRA_FS_WRITE_PATHS";
-const NODE_ALLOWED_BUILTINS_ENV: &str = "AGENT_OS_ALLOWED_NODE_BUILTINS";
-const NODE_LOOPBACK_EXEMPT_PORTS_ENV: &str = "AGENT_OS_LOOPBACK_EXEMPT_PORTS";
-const NODE_SYNC_RPC_ENABLE_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_ENABLE";
-const NODE_SYNC_RPC_REQUEST_FD_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_REQUEST_FD";
-const NODE_SYNC_RPC_RESPONSE_FD_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_RESPONSE_FD";
-const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_DATA_BYTES";
-const NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS";
+const NODE_GUEST_ENTRYPOINT_ENV: &str = "AGENTOS_GUEST_ENTRYPOINT";
+const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENTOS_GUEST_PATH_MAPPINGS";
+const NODE_VIRTUAL_PROCESS_EXEC_PATH_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_EXEC_PATH";
+const NODE_VIRTUAL_PROCESS_PID_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_PID";
+const NODE_VIRTUAL_PROCESS_PPID_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_PPID";
+const NODE_VIRTUAL_PROCESS_UID_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_UID";
+const NODE_VIRTUAL_PROCESS_GID_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_GID";
+const NODE_PARENT_ALLOW_CHILD_PROCESS_ENV: &str = "AGENTOS_PARENT_NODE_ALLOW_CHILD_PROCESS";
+const NODE_PARENT_ALLOW_WORKER_ENV: &str = "AGENTOS_PARENT_NODE_ALLOW_WORKER";
+const NODE_EXTRA_FS_READ_PATHS_ENV: &str = "AGENTOS_EXTRA_FS_READ_PATHS";
+const NODE_EXTRA_FS_WRITE_PATHS_ENV: &str = "AGENTOS_EXTRA_FS_WRITE_PATHS";
+const NODE_ALLOWED_BUILTINS_ENV: &str = "AGENTOS_ALLOWED_NODE_BUILTINS";
+const NODE_LOOPBACK_EXEMPT_PORTS_ENV: &str = "AGENTOS_LOOPBACK_EXEMPT_PORTS";
+const NODE_SYNC_RPC_ENABLE_ENV: &str = "AGENTOS_NODE_SYNC_RPC_ENABLE";
+const NODE_SYNC_RPC_REQUEST_FD_ENV: &str = "AGENTOS_NODE_SYNC_RPC_REQUEST_FD";
+const NODE_SYNC_RPC_RESPONSE_FD_ENV: &str = "AGENTOS_NODE_SYNC_RPC_RESPONSE_FD";
+const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENTOS_NODE_SYNC_RPC_DATA_BYTES";
+const NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV: &str = "AGENTOS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS";
 static NEXT_V8_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 // V8 heap cap migrated to the typed `JavascriptExecutionLimits.v8_heap_limit_mb`
-// request field; the `AGENT_OS_V8_HEAP_LIMIT_MB` env const is no longer read.
+// request field; the `AGENTOS_V8_HEAP_LIMIT_MB` env const is no longer read.
 /// Opt-in TRUE CPU-time budget (ms) for guest JavaScript. Unset/`0` => no limit.
 ///
 /// Guest inline code (e.g. `while (true) {}`) runs on the shared, slot-bounded V8
@@ -71,14 +71,14 @@ static NEXT_V8_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 /// default: with this unset the guest runs CPU-uncapped by design — the
 /// platform/operator MUST set it to cap a guest. A wall-clock backstop is
 /// intentionally NOT part of this knob (deferred to a follow-up).
-const V8_CPU_TIME_LIMIT_MS_ENV: &str = "AGENT_OS_V8_CPU_TIME_LIMIT_MS";
+const V8_CPU_TIME_LIMIT_MS_ENV: &str = "AGENTOS_V8_CPU_TIME_LIMIT_MS";
 /// Opt-in WALL-CLOCK execution backstop (ms). INDEPENDENT of the CPU-time budget:
 /// this counts elapsed real time INCLUDING idle/await, so it can cap a guest that
 /// blocks or awaits indefinitely. There is NO default — with this unset the guest
 /// has no wall-clock limit (long-lived ACP adapters must run indefinitely). When
-/// both this and `AGENT_OS_V8_CPU_TIME_LIMIT_MS` are set, both guards are armed and
+/// both this and `AGENTOS_V8_CPU_TIME_LIMIT_MS` are set, both guards are armed and
 /// whichever fires first terminates execution.
-const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENT_OS_V8_WALL_CLOCK_LIMIT_MS";
+const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENTOS_V8_WALL_CLOCK_LIMIT_MS";
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
@@ -273,7 +273,7 @@ pub struct JavascriptContext {
 }
 
 /// Per-execution JavaScript runtime limits, carried as typed fields on the
-/// execution request rather than `AGENT_OS_*` env vars. The sidecar populates
+/// execution request rather than `AGENTOS_*` env vars. The sidecar populates
 /// these from the per-VM `VmLimits` (which originate from `CreateVmConfig` on
 /// the BARE wire); `None` selects the engine default. See the env-vs-wire rule
 /// in `crates/sidecar/CLAUDE.md`.
@@ -286,7 +286,7 @@ pub struct JavascriptExecutionLimits {
 }
 
 /// Per-execution guest-runtime config carried as typed fields rather than
-/// `AGENT_OS_*` env vars. The sidecar populates these from kernel state
+/// `AGENTOS_*` env vars. The sidecar populates these from kernel state
 /// (`user_profile()`, `resource_limits()`) and `CreateVmConfig`; the runtime
 /// shim interpolates them into a `_processConfig` object the guest reads, so the
 /// guest's virtual identity no longer rides the ambient env channel. `None`
@@ -455,7 +455,7 @@ enum GuestModuleResolution {
 
 impl GuestModuleResolution {
     fn from_env(env: &BTreeMap<String, String>) -> Self {
-        match env.get("AGENT_OS_JS_MODULE_RESOLUTION").map(String::as_str) {
+        match env.get("AGENTOS_JS_MODULE_RESOLUTION").map(String::as_str) {
             Some("relative") => Self::Relative,
             Some("none") => Self::None,
             _ => Self::Node,
@@ -1057,7 +1057,7 @@ fn translate_v8_bridge_value_to_legacy(value: &Value) -> Value {
         ),
         Value::Object(map) if map.get("__type").and_then(Value::as_str) == Some("Buffer") => {
             json!({
-                "__agentOsType": "bytes",
+                "__agentOSType": "bytes",
                 "base64": map.get("data").cloned().unwrap_or(Value::String(String::new())),
             })
         }
@@ -1079,7 +1079,7 @@ fn translate_request_args_for_legacy(method: &str, args: &[Value]) -> Vec<Value>
     if matches!(method, "fs.writeFileSync" | "fs.promises.writeFile") {
         if let Some(Value::String(data)) = translated.get(1) {
             translated[1] = json!({
-                "__agentOsType": "bytes",
+                "__agentOSType": "bytes",
                 "base64": v8_runtime::base64_encode_pub(data.as_bytes()),
             });
         }
@@ -1096,7 +1096,7 @@ fn translate_legacy_bridge_value_to_v8(value: &Value) -> Value {
                 .map(translate_legacy_bridge_value_to_v8)
                 .collect(),
         ),
-        Value::Object(map) if map.get("__agentOsType").and_then(Value::as_str) == Some("bytes") => {
+        Value::Object(map) if map.get("__agentOSType").and_then(Value::as_str) == Some("bytes") => {
             json!({
                 "__type": "Buffer",
                 "data": map.get("base64").cloned().unwrap_or(Value::String(String::new())),
@@ -1116,7 +1116,7 @@ fn decode_bridge_output_arg(value: &Value) -> Vec<u8> {
         Value::String(s) => s.as_bytes().to_vec(),
         Value::Object(map)
             if map.get("__type").and_then(Value::as_str) == Some("Buffer")
-                || map.get("__agentOsType").and_then(Value::as_str) == Some("bytes") =>
+                || map.get("__agentOSType").and_then(Value::as_str) == Some("bytes") =>
         {
             let base64_value = map
                 .get("data")
@@ -1942,7 +1942,7 @@ fn javascript_heap_limit_mb(request: &StartJavascriptExecutionRequest) -> u32 {
 
 /// Resolve the TRUE CPU-time budget (ms) for a JavaScript execution.
 ///
-/// Read from `AGENT_OS_V8_CPU_TIME_LIMIT_MS`, falling back to a bounded default
+/// Read from `AGENTOS_V8_CPU_TIME_LIMIT_MS`, falling back to a bounded default
 /// when unset/unparsable. `0` remains an explicit trusted opt-out and is
 /// normalized to `None` by the V8 session.
 fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
@@ -1958,7 +1958,7 @@ fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u3
 
 /// Resolve the opt-in WALL-CLOCK backstop (ms) for a JavaScript execution.
 ///
-/// Opt-in with NO default: read from `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS`, falling
+/// Opt-in with NO default: read from `AGENTOS_V8_WALL_CLOCK_LIMIT_MS`, falling
 /// back to `0` (no limit) when unset/unparsable. `0` is normalized to `None` by
 /// the V8 session, so the wall-clock `TimeoutGuard` is NOT armed and the guest
 /// runs without a wall-clock limit. This is INDEPENDENT of the CPU-time budget:
@@ -2003,7 +2003,7 @@ fn spawn_javascript_sync_rpc_timeout(
                 "id": id,
                 "ok": false,
                 "error": {
-                    "code": "ERR_AGENT_OS_NODE_SYNC_RPC_TIMEOUT",
+                    "code": "ERR_AGENTOS_NODE_SYNC_RPC_TIMEOUT",
                     "message": format!(
                         "guest JavaScript sync RPC request {id} timed out after {}ms",
                         timeout.as_millis()
@@ -2112,7 +2112,7 @@ fn build_v8_user_code(entrypoint: &str, env: &BTreeMap<String, String>) -> Strin
     // For inline code (-e flag), we execute directly.
     if entrypoint == "-e" || entrypoint == "--eval" {
         // Inline code from NODE_EVAL or similar
-        env.get("AGENT_OS_NODE_EVAL").cloned().unwrap_or_default()
+        env.get("AGENTOS_NODE_EVAL").cloned().unwrap_or_default()
     } else {
         // Module entrypoint - use require to load it
         format!(
@@ -2384,10 +2384,10 @@ fn prepend_v8_runtime_shim(
     env: &BTreeMap<String, String>,
     // V8 heap cap in MB (`0` = engine default). Threaded from the typed wire
     // limit and interpolated into the shim so guest heap-stats reporting no
-    // longer depends on an `AGENT_OS_V8_HEAP_LIMIT_MB` env var.
+    // longer depends on an `AGENTOS_V8_HEAP_LIMIT_MB` env var.
     heap_limit_mb: u32,
     // Typed guest-runtime identity, interpolated into the shim so virtual
-    // `process.*` identity no longer rides `AGENT_OS_VIRTUAL_PROCESS_*` env vars.
+    // `process.*` identity no longer rides `AGENTOS_VIRTUAL_PROCESS_*` env vars.
     guest_runtime: &GuestRuntimeConfig,
 ) -> String {
     let argv_json = serde_json::to_string(argv).unwrap_or_else(|_| String::from("[\"node\"]"));
@@ -2407,8 +2407,8 @@ fn prepend_v8_runtime_shim(
     })
     .to_string();
     // Virtual OS identity (os.cpus/totalmem/freemem/homedir/userInfo/...). Read
-    // by the bridge + node-import-cache os polyfill from the `__agentOsVirtualOs`
-    // global instead of `AGENT_OS_VIRTUAL_OS_*` env vars. Absent fields stay
+    // by the bridge + node-import-cache os polyfill from the `__agentOSVirtualOs`
+    // global instead of `AGENTOS_VIRTUAL_OS_*` env vars. Absent fields stay
     // `null`, so the consumers fall back to their built-in defaults.
     let virtual_os_json = serde_json::json!({
         "cpuCount": guest_runtime.os_cpu_count,
@@ -2424,7 +2424,7 @@ fn prepend_v8_runtime_shim(
     format!(
         r#"(function () {{
   const __guestIdentity = {identity_json};
-  Object.defineProperty(globalThis, "__agentOsVirtualOs", {{
+  Object.defineProperty(globalThis, "__agentOSVirtualOs", {{
     configurable: true,
     enumerable: false,
     value: {virtual_os_json},
@@ -2434,14 +2434,14 @@ fn prepend_v8_runtime_shim(
   const entryFile = {entry_json};
   const nextCwd = {cwd_json};
   const nextEnv = {env_json};
-  Object.defineProperty(globalThis, "__agentOsProcessConfigEnv", {{
+  Object.defineProperty(globalThis, "__agentOSProcessConfigEnv", {{
     configurable: true,
     enumerable: false,
     value: nextEnv,
     writable: true,
   }});
   const visibleEnv = Object.fromEntries(
-    Object.entries(nextEnv).filter(([key]) => !key.startsWith("AGENT_OS_"))
+    Object.entries(nextEnv).filter(([key]) => !key.startsWith("AGENTOS_"))
   );
 
   if (typeof process !== "undefined") {{
@@ -2453,23 +2453,23 @@ fn prepend_v8_runtime_shim(
     }};
     const configuredHeapLimitMb = {heap_limit_mb};
     if (Number.isFinite(configuredHeapLimitMb) && configuredHeapLimitMb > 0) {{
-      Object.defineProperty(globalThis, "__agentOsV8HeapLimitBytes", {{
+      Object.defineProperty(globalThis, "__agentOSV8HeapLimitBytes", {{
         configurable: true,
         enumerable: false,
         value: configuredHeapLimitMb * 1024 * 1024,
         writable: true,
       }});
     }}
-    if (nextEnv.AGENT_OS_ALLOW_PROCESS_BINDINGS === "1" && typeof process.binding === "function") {{
+    if (nextEnv.AGENTOS_ALLOW_PROCESS_BINDINGS === "1" && typeof process.binding === "function") {{
       const originalProcessBinding = process.binding.bind(process);
       process.binding = (name) => {{
         const bindingName = String(name);
         if (
           bindingName === "constants" &&
-          typeof __agentOsConstantsBinding !== "undefined"
+          typeof __agentOSConstantsBinding !== "undefined"
         ) {{
           const constantsBinding =
-            __agentOsConstantsBinding.default ?? __agentOsConstantsBinding;
+            __agentOSConstantsBinding.default ?? __agentOSConstantsBinding;
           return {{
             fs: constantsBinding,
             crypto: constantsBinding,
@@ -2520,7 +2520,7 @@ fn prepend_v8_runtime_shim(
     if (typeof __guestIdentity.execPath === "string" && __guestIdentity.execPath.length > 0) {{
       process.execPath = __guestIdentity.execPath;
     }}
-    if (nextEnv.AGENT_OS_NODE_IPC === "1" && typeof __runtimeInstallProcessIpcBridge === "function") {{
+    if (nextEnv.AGENTOS_NODE_IPC === "1" && typeof __runtimeInstallProcessIpcBridge === "function") {{
       process.connected = true;
       __runtimeInstallProcessIpcBridge();
     }}
@@ -2559,8 +2559,8 @@ fn prepend_v8_runtime_shim(
     const requireEntryFile =
       entryFile === "-e" || entryFile === "--eval"
         ? nextCwd === "/"
-          ? "/__agent_os_eval__.js"
-          : `${{nextCwd.replace(/\/+$/, "")}}/__agent_os_eval__.js`
+          ? "/__agentos_eval__.js"
+          : `${{nextCwd.replace(/\/+$/, "")}}/__agentos_eval__.js`
         : entryFile;
     globalThis.require =
       globalThis._moduleModule.createRequire(requireEntryFile);
@@ -2569,20 +2569,20 @@ fn prepend_v8_runtime_shim(
   // jsRuntime platform tiering: the guest JS host surface is baked into the
   // shared V8 snapshot, so non-node platforms are produced by subtractively
   // scrubbing baked globals here, per execution.
-  const __jsPlatform = nextEnv.AGENT_OS_JS_PLATFORM || "node";
+  const __jsPlatform = nextEnv.AGENTOS_JS_PLATFORM || "node";
   // Install the builtin allow-list gate consulted by the bridge's
   // rejectRestrictedBuiltinRequest (covers require + ESM builtin loads). Present
   // for non-node platforms (empty => deny all) and node + explicit allow-list;
   // absent => unrestricted (node default).
   {{
-    const __builtinAllowRaw = nextEnv.AGENT_OS_JS_BUILTIN_ALLOWLIST;
+    const __builtinAllowRaw = nextEnv.AGENTOS_JS_BUILTIN_ALLOWLIST;
     if (typeof __builtinAllowRaw === "string") {{
       let __allowList = [];
       try {{ __allowList = JSON.parse(__builtinAllowRaw); }} catch (_e) {{ __allowList = []; }}
-      if (typeof globalThis.__agentOsInitJsRuntime === "function") {{
-        globalThis.__agentOsInitJsRuntime(Array.isArray(__allowList) ? __allowList : []);
+      if (typeof globalThis.__agentOSInitJsRuntime === "function") {{
+        globalThis.__agentOSInitJsRuntime(Array.isArray(__allowList) ? __allowList : []);
       }}
-      try {{ delete globalThis.__agentOsInitJsRuntime; }} catch (_e) {{}}
+      try {{ delete globalThis.__agentOSInitJsRuntime; }} catch (_e) {{}}
     }}
   }}
   if (__jsPlatform !== "node") {{
@@ -2607,7 +2607,7 @@ fn prepend_v8_runtime_shim(
     [
       "process", "Buffer", "require", "module", "exports",
       "__dirname", "__filename", "global",
-      "_processConfig", "__agentOsProcessConfigEnv", "__agentOsVirtualOs",
+      "_processConfig", "__agentOSProcessConfigEnv", "__agentOSVirtualOs",
     ].forEach(__dropGlobal);
     if (__jsPlatform === "browser") {{
       // Narrow `crypto` from the full node:crypto module to the WebCrypto object
@@ -3722,7 +3722,7 @@ impl LocalKernelStdinBridge {
     }
 
     fn read_python_raw(&self, args: &[Value]) -> Value {
-        const PYTHON_STDIN_DONE_SENTINEL: &str = "__AGENT_OS_PYTHON_STDIN_DONE__";
+        const PYTHON_STDIN_DONE_SENTINEL: &str = "__AGENTOS_PYTHON_STDIN_DONE__";
 
         let max_bytes = args
             .first()
@@ -5180,10 +5180,10 @@ export const writeFile = _m.writeFile;
 function createInterface(...args) {
   const interfaceValue = _m.createInterface(...args);
   if (interfaceValue && typeof interfaceValue === "object") {
-    if (interfaceValue.__agentOsReadlineWrapped === true) {
+    if (interfaceValue.__agentOSReadlineWrapped === true) {
       return interfaceValue;
     }
-    Object.defineProperty(interfaceValue, "__agentOsReadlineWrapped", {
+    Object.defineProperty(interfaceValue, "__agentOSReadlineWrapped", {
       value: true,
       configurable: true,
       enumerable: false,
@@ -5393,7 +5393,7 @@ function getHeapCodeStatistics() {
 }
 
 function configuredHeapLimitBytes() {
-  const configured = Number(globalThis.__agentOsV8HeapLimitBytes);
+  const configured = Number(globalThis.__agentOSV8HeapLimitBytes);
   if (!Number.isFinite(configured) || configured <= 0) {
     return 0;
   }
@@ -6427,11 +6427,11 @@ mod tests {
 
     #[test]
     fn javascript_limits_are_read_from_typed_fields_and_env_is_inert() {
-        // Misleading env values: a reader that still consulted `AGENT_OS_*` would
+        // Misleading env values: a reader that still consulted `AGENTOS_*` would
         // observe these instead of the typed wire limits.
         let env = std::collections::BTreeMap::from([
             (
-                String::from("AGENT_OS_V8_HEAP_LIMIT_MB"),
+                String::from("AGENTOS_V8_HEAP_LIMIT_MB"),
                 String::from("999999"),
             ),
             (
@@ -6456,7 +6456,7 @@ mod tests {
         assert_eq!(
             javascript_heap_limit_mb(&request),
             64,
-            "heap must come from the typed wire limit, not AGENT_OS_V8_HEAP_LIMIT_MB"
+            "heap must come from the typed wire limit, not AGENTOS_V8_HEAP_LIMIT_MB"
         );
         assert_eq!(
             javascript_sync_rpc_timeout(&request),
@@ -6549,7 +6549,7 @@ mod tests {
         assert_eq!(response["ok"], Value::from(false));
         assert_eq!(
             response["error"]["code"],
-            Value::String(String::from("ERR_AGENT_OS_NODE_SYNC_RPC_TIMEOUT"))
+            Value::String(String::from("ERR_AGENTOS_NODE_SYNC_RPC_TIMEOUT"))
         );
         assert!(response["error"]["message"]
             .as_str()
@@ -6820,7 +6820,7 @@ mod tests {
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::new(),
                 cwd: temp.path().to_path_buf(),
-                inline_code: Some(String::from("globalThis.__agentOsDropCleanup = true;")),
+                inline_code: Some(String::from("globalThis.__agentOSDropCleanup = true;")),
             })
             .expect("start JavaScript execution");
         let session_id = execution.v8_session.session_id().to_owned();

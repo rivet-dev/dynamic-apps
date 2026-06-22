@@ -181,7 +181,7 @@ fn mounted_agentos_command_paths_resolve_to_registered_drivers() {
     let process = kernel
         .spawn_process(
             "/__secure_exec/commands/0/xu",
-            vec![String::from("hello-agent-os")],
+            vec![String::from("hello-agentos")],
             SpawnOptions::default(),
         )
         .expect("spawn mounted command path");

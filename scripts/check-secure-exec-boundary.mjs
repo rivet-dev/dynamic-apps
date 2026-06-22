@@ -3,7 +3,7 @@ import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const agentOsPackagePattern = /^@rivet-dev\/agent-os(?:-|$)/;
+const agentOSPackagePattern = /^@rivet-dev\/agentos(?:-|$)/;
 const dependencySections = [
 	'dependencies',
 	'devDependencies',
@@ -27,14 +27,14 @@ const importSpecifierPatterns = [
 	/\brequire\s*\(\s*[\"']([^\"']+)[\"']\s*\)/g,
 ];
 const forbiddenCargoPatterns = [
-	[/\bagent-os-protocol\b/g, 'agent-os-protocol'],
-	[/\bagent-os-client\b/g, 'agent-os-client'],
-	[/\bagent-os-sidecar\b/g, 'agent-os-sidecar'],
+	[/\bagentos-protocol\b/g, 'agentos-protocol'],
+	[/\bagentos-client\b/g, 'agentos-client'],
+	[/\bagentos-sidecar\b/g, 'agentos-sidecar'],
 ];
 const forbiddenRustPatterns = [
-	[/\bagent_os_protocol\b/g, 'agent_os_protocol'],
-	[/\bagent_os_client\b/g, 'agent_os_client'],
-	[/\bagent_os_sidecar\b/g, 'agent_os_sidecar'],
+	[/\bagentos_protocol\b/g, 'agentos_protocol'],
+	[/\bagentos_client\b/g, 'agentos_client'],
+	[/\bagentos_sidecar\b/g, 'agentos_sidecar'],
 ];
 
 function parseArgs(argv) {
@@ -81,7 +81,7 @@ function checkPackageManifest(root, relPath, violations) {
 		const dependencies = manifest[section];
 		if (!dependencies || typeof dependencies !== 'object') continue;
 		for (const name of Object.keys(dependencies)) {
-			if (agentOsPackagePattern.test(name)) {
+			if (agentOSPackagePattern.test(name)) {
 				violations.push(`${relPath} ${section} references ${name}`);
 			}
 		}
@@ -91,7 +91,7 @@ function checkPackageManifest(root, relPath, violations) {
 function checkSourceFile(root, relPath, violations) {
 	const source = readFileSync(join(root, relPath), 'utf8');
 	for (const specifier of collectImportSpecifiers(source)) {
-		if (agentOsPackagePattern.test(specifier)) {
+		if (agentOSPackagePattern.test(specifier)) {
 			violations.push(`${relPath} imports ${specifier}`);
 		}
 	}

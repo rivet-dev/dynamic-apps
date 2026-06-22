@@ -1,37 +1,37 @@
 {
-	"name": "@secure-exec/sandbox",
-	"version": "0.3.0-rc.1",
-	"type": "module",
-	"license": "Apache-2.0",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"files": [
-		"dist"
-	],
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
-		"./mount": {
-			"types": "./dist/mount.d.ts",
-			"import": "./dist/mount.js",
-			"default": "./dist/mount.js"
-		}
-	},
-	"scripts": {
-		"check-types": "tsc --noEmit",
-		"build": "tsc",
-		"test": "vitest run"
-	},
-	"dependencies": {
-		"@secure-exec/core": "workspace:*",
-		"sandbox-agent": "^0.4.2"
-	},
-	"devDependencies": {
-		"@types/node": "^22.10.2",
-		"typescript": "^5.7.2",
-		"vitest": "^2.1.8"
-	}
+  "name": "@secure-exec/sandbox",
+  "version": "0.3.0-rc.1",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./mount": {
+      "types": "./dist/mount.d.ts",
+      "import": "./dist/mount.js",
+      "default": "./dist/mount.js"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@secure-exec/core": "workspace:*",
+    "sandbox-agent": "^0.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
 }

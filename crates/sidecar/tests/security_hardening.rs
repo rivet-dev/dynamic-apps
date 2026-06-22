@@ -23,7 +23,7 @@ use support::{
 const ARG_PREFIX: &str = "ARG=";
 const INVOCATION_BREAK: &str = "--END--";
 const DEFAULT_GUEST_PATH_ENV: &str = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
-const DEFAULT_GUEST_HOME: &str = "/home/user";
+const DEFAULT_GUEST_HOME: &str = "/home/agentos";
 const MAX_SECURITY_HARDENING_STREAM_BYTES: usize = 1024 * 1024;
 struct EnvVarGuard {
     key: &'static str,
@@ -230,7 +230,7 @@ fn guest_execution_clears_host_env_and_blocks_escape_paths() {
 
     let _host_path = EnvVarGuard::set_value("PATH", "/host/sbin:/host/bin");
     let _host_home = EnvVarGuard::set_value("HOME", "/host/home");
-    let _host_internal = EnvVarGuard::set_value("AGENT_OS_ALLOWED", "host-internal");
+    let _host_internal = EnvVarGuard::set_value("AGENTOS_ALLOWED", "host-internal");
     let mut sidecar = support::new_sidecar("security-hardening");
     let cwd = temp_dir("security-hardening-cwd");
     let entry = cwd.join("entry.cjs");
@@ -243,11 +243,11 @@ const result = {
   home: process.env.HOME ?? null,
   pwd: process.env.PWD ?? null,
   marker: process.env.VISIBLE_MARKER ?? null,
-  internalMarker: process.env.AGENT_OS_ALLOWED ?? null,
-  guestPathMappings: process.env.AGENT_OS_GUEST_PATH_MAPPINGS ?? null,
-  importCachePath: process.env.AGENT_OS_NODE_IMPORT_CACHE_PATH ?? null,
-  hasInternalMarker: 'AGENT_OS_ALLOWED' in process.env,
-  keys: Object.keys(process.env).filter((key) => key.startsWith('AGENT_OS_')),
+  internalMarker: process.env.AGENTOS_ALLOWED ?? null,
+  guestPathMappings: process.env.AGENTOS_GUEST_PATH_MAPPINGS ?? null,
+  importCachePath: process.env.AGENTOS_NODE_IMPORT_CACHE_PATH ?? null,
+  hasInternalMarker: 'AGENTOS_ALLOWED' in process.env,
+  keys: Object.keys(process.env).filter((key) => key.startsWith('AGENTOS_')),
 };
 
 try {
@@ -547,7 +547,7 @@ fn execute_ignores_host_node_binary_override_for_javascript_runtime() {
     let fake_node_path = root.join("fake-node.sh");
     let log_path = root.join("node-args.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set_path("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set_path("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let mut sidecar = support::new_sidecar("execute-cwd-permission-root");
     let cwd = root.join("workspace");

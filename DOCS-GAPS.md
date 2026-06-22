@@ -94,7 +94,7 @@ Needs a real architecture page (or a deep section) covering:
   accept non-loopback connections (e.g. exposing a dev server beyond loopback).
   Explain it's trusted isolation-policy config that *loosens* the default
   confinement, not an egress control. Today it rides the
-  `AGENT_OS_LOOPBACK_EXEMPT_PORTS` env channel (bucket-3, not yet on the BARE
+  `AGENTOS_LOOPBACK_EXEMPT_PORTS` env channel (bucket-3, not yet on the BARE
   wire — see `crates/sidecar/CLAUDE.md`).
 - Relationship to the **permission policy** (`network.listen`/`network.connect`)
   vs. loopback confinement vs. the DNS/egress allowlist — three distinct layers

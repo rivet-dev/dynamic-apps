@@ -151,8 +151,8 @@ mod service {
         use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
         const TEST_AUTH_TOKEN: &str = "sidecar-test-token";
-        const ISOLATED_SERVICE_TEST_ENV: &str = "AGENT_OS_SERVICE_ISOLATED_TEST";
-        const ISOLATED_SERVICE_CACHE_SUFFIX_ENV: &str = "AGENT_OS_SERVICE_ISOLATED_CACHE_SUFFIX";
+        const ISOLATED_SERVICE_TEST_ENV: &str = "AGENTOS_SERVICE_ISOLATED_TEST";
+        const ISOLATED_SERVICE_CACHE_SUFFIX_ENV: &str = "AGENTOS_SERVICE_ISOLATED_CACHE_SUFFIX";
         const MAX_SERVICE_PROCESS_STREAM_BYTES: usize = 1024 * 1024;
         const TLS_TEST_KEY_PEM: &str = "-----BEGIN PRIVATE KEY-----\n\
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQClvETzHfSyd1Y+\n\
@@ -3361,7 +3361,7 @@ ykAheWCsAteSEWVc0w==\n\
                     args: vec![
                         json!(server_socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
                         }),
                     ],
@@ -3594,7 +3594,7 @@ ykAheWCsAteSEWVc0w==\n\
                     args: vec![
                         json!(client_socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
                         }),
                     ],
@@ -4173,7 +4173,7 @@ ykAheWCsAteSEWVc0w==\n\
                     args: vec![
                         json!(socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
                         }),
                     ],
@@ -4447,7 +4447,7 @@ ykAheWCsAteSEWVc0w==\n\
                     args: vec![
                         json!(client_socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
                         }),
                     ],
@@ -4518,7 +4518,7 @@ ykAheWCsAteSEWVc0w==\n\
                     args: vec![
                         json!(socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("pong"),
                         }),
                     ],
@@ -4747,7 +4747,7 @@ ykAheWCsAteSEWVc0w==\n\
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
                     env: BTreeMap::from([(
-                        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                        String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                         String::from(
                             "[\"assert\",\"buffer\",\"console\",\"events\",\"fs\",\"path\",\"readline\",\"stream\",\"string_decoder\",\"timers\",\"util\"]",
                         ),
@@ -8549,7 +8549,7 @@ ykAheWCsAteSEWVc0w==\n\
                     vec![
                         String::from("sh"),
                         String::from("-c"),
-                        String::from("cd '/home/user' && echo hello"),
+                        String::from("cd '/workspace' && echo hello"),
                     ],
                 ),
                 (
@@ -9913,7 +9913,7 @@ await new Promise(() => {});
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
                     env: BTreeMap::from([(
-                        String::from("AGENT_OS_NODE_SYNC_RPC_ENABLE"),
+                        String::from("AGENTOS_NODE_SYNC_RPC_ENABLE"),
                         String::from("1"),
                     )]),
                     cwd: cwd.clone(),
@@ -10264,7 +10264,7 @@ console.log(
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"child_process\",\"console\",\"crypto\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -10465,11 +10465,11 @@ console.log(
                 "proc-js-open-wx",
                 BTreeMap::from([
                     (
-                        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                        String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                         String::from("[\"buffer\",\"console\",\"fs\",\"os\",\"path\"]"),
                     ),
                     (
-                        String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+                        String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
                         serde_json::to_string(&vec![json!({
                             "guestPath": "/tmp",
                             "hostPath": mapped_tmp.display().to_string(),
@@ -10477,11 +10477,11 @@ console.log(
                         .expect("serialize mapped tmp path"),
                     ),
                     (
-                        String::from("AGENT_OS_EXTRA_FS_READ_PATHS"),
+                        String::from("AGENTOS_EXTRA_FS_READ_PATHS"),
                         mapped_tmp_json.clone(),
                     ),
                     (
-                        String::from("AGENT_OS_EXTRA_FS_WRITE_PATHS"),
+                        String::from("AGENTOS_EXTRA_FS_WRITE_PATHS"),
                         mapped_tmp_json,
                     ),
                 ]),
@@ -10553,7 +10553,7 @@ await new Promise(() => {});
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"child_process\",\"crypto\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -11825,7 +11825,7 @@ console.log(JSON.stringify({ lookup, resolve4 }));
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -12017,7 +12017,7 @@ process.exit(0);
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"crypto\",\"dns\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -12717,7 +12717,7 @@ console.log(JSON.stringify(summary));
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"tls\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -15059,7 +15059,7 @@ console.log(JSON.stringify(summary));
                     args: vec![
                         json!(client_socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("ping"),
                         }),
                     ],
@@ -15108,7 +15108,7 @@ console.log(JSON.stringify(summary));
                     args: vec![
                         json!(socket_id.clone()),
                         json!({
-                            "__agentOsType": "bytes",
+                            "__agentOSType": "bytes",
                             "base64": base64::engine::general_purpose::STANDARD.encode("pong:ping"),
                         }),
                     ],
@@ -15959,7 +15959,7 @@ console.log(JSON.stringify(summary));
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"crypto\",\"events\",\"fs\",\"net\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -16215,7 +16215,7 @@ console.log(JSON.stringify(summary));
                         args: vec![
                             json!(client_socket_id),
                             json!({
-                                "__agentOsType": "bytes",
+                                "__agentOSType": "bytes",
                                 "base64": "cGluZw==",
                             }),
                         ],
@@ -16346,7 +16346,7 @@ console.log(JSON.stringify(summary));
                         args: vec![
                             json!(server_socket_id),
                             json!({
-                                "__agentOsType": "bytes",
+                                "__agentOSType": "bytes",
                                 "base64": "cG9uZw==",
                             }),
                         ],
@@ -16616,7 +16616,7 @@ console.log(JSON.stringify({
                 context_id: context.context_id,
                 argv: vec![String::from("./entry.mjs")],
                 env: BTreeMap::from([(
-                    String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                    String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                     String::from(
                         "[\"assert\",\"buffer\",\"console\",\"child_process\",\"crypto\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                     ),
@@ -16830,7 +16830,7 @@ console.log(JSON.stringify({
                     context_id: context.context_id,
                     argv: vec![String::from("./entry.mjs")],
                     env: BTreeMap::from([(
-                        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                        String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                         String::from(
                             "[\"assert\",\"buffer\",\"console\",\"child_process\",\"crypto\",\"events\",\"fs\",\"path\",\"querystring\",\"stream\",\"string_decoder\",\"timers\",\"url\",\"util\",\"zlib\"]",
                         ),
@@ -17022,27 +17022,27 @@ console.log(JSON.stringify({
             let filtered =
                 sanitize_javascript_child_process_internal_bootstrap_env(&BTreeMap::from([
                     (
-                        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                        String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                         String::from("[\"fs\"]"),
                     ),
                     (
-                        String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+                        String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
                         String::from("[]"),
                     ),
                     (
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_UID"),
+                        String::from("AGENTOS_VIRTUAL_PROCESS_UID"),
                         String::from("0"),
                     ),
                     (
-                        String::from("AGENT_OS_VIRTUAL_PROCESS_VERSION"),
+                        String::from("AGENTOS_VIRTUAL_PROCESS_VERSION"),
                         String::from("v24.0.0"),
                     ),
                     (
-                        String::from("AGENT_OS_VIRTUAL_OS_HOSTNAME"),
+                        String::from("AGENTOS_VIRTUAL_OS_HOSTNAME"),
                         String::from("secure-exec-test"),
                     ),
                     (
-                        String::from("AGENT_OS_PARENT_NODE_ALLOW_CHILD_PROCESS"),
+                        String::from("AGENTOS_PARENT_NODE_ALLOW_CHILD_PROCESS"),
                         String::from("1"),
                     ),
                     (
@@ -17052,26 +17052,26 @@ console.log(JSON.stringify({
                 ]));
 
             assert_eq!(
-                filtered.get("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                filtered.get("AGENTOS_ALLOWED_NODE_BUILTINS"),
                 Some(&String::from("[\"fs\"]"))
             );
             assert_eq!(
-                filtered.get("AGENT_OS_GUEST_PATH_MAPPINGS"),
+                filtered.get("AGENTOS_GUEST_PATH_MAPPINGS"),
                 Some(&String::from("[]"))
             );
             assert_eq!(
-                filtered.get("AGENT_OS_VIRTUAL_PROCESS_UID"),
+                filtered.get("AGENTOS_VIRTUAL_PROCESS_UID"),
                 Some(&String::from("0"))
             );
             assert_eq!(
-                filtered.get("AGENT_OS_VIRTUAL_PROCESS_VERSION"),
+                filtered.get("AGENTOS_VIRTUAL_PROCESS_VERSION"),
                 Some(&String::from("v24.0.0"))
             );
             assert_eq!(
-                filtered.get("AGENT_OS_VIRTUAL_OS_HOSTNAME"),
+                filtered.get("AGENTOS_VIRTUAL_OS_HOSTNAME"),
                 Some(&String::from("secure-exec-test"))
             );
-            assert!(!filtered.contains_key("AGENT_OS_PARENT_NODE_ALLOW_CHILD_PROCESS"));
+            assert!(!filtered.contains_key("AGENTOS_PARENT_NODE_ALLOW_CHILD_PROCESS"));
             assert!(!filtered.contains_key("VISIBLE_MARKER"));
         }
         fn run_service_suite() {

@@ -401,7 +401,7 @@ fn legacy_listen_config(
 }
 
 fn legacy_loopback_exempt_ports(env: &std::collections::BTreeMap<String, String>) -> Vec<u16> {
-    let Some(value) = env.get("AGENT_OS_LOOPBACK_EXEMPT_PORTS") else {
+    let Some(value) = env.get("AGENTOS_LOOPBACK_EXEMPT_PORTS") else {
         return Vec::new();
     };
     serde_json::from_str::<Vec<serde_json::Value>>(value)

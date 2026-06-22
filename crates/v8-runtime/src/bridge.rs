@@ -1509,7 +1509,7 @@ fn vm_create_context_value<'s>(
             return Ok(vm_throw_error(
                 scope,
                 &message,
-                Some("ERR_AGENT_OS_VM_CONTEXT_LIMIT"),
+                Some("ERR_AGENTOS_VM_CONTEXT_LIMIT"),
                 false,
             ));
         }
@@ -1973,7 +1973,7 @@ fn async_bridge_callback(
                 scope,
                 resolver,
                 &err_msg,
-                Some("ERR_AGENT_OS_BRIDGE_PENDING_PROMISE_LIMIT"),
+                Some("ERR_AGENTOS_BRIDGE_PENDING_PROMISE_LIMIT"),
             );
             rv.set(promise.into());
             return;
@@ -2142,9 +2142,9 @@ pub fn resolve_pending_promise(
 
 fn bridge_error_code(message: &str) -> Option<&str> {
     const TRUSTED_PREFIXES: &[&str] = &[
-        "ERR_AGENT_OS_NODE_SYNC_RPC",
-        "ERR_AGENT_OS_PYTHON_VFS_RPC",
-        "ERR_AGENT_OS_BRIDGE",
+        "ERR_AGENTOS_NODE_SYNC_RPC",
+        "ERR_AGENTOS_PYTHON_VFS_RPC",
+        "ERR_AGENTOS_BRIDGE",
     ];
 
     let mut segments = message.split(':').map(str::trim);
@@ -2219,17 +2219,17 @@ mod tests {
             bridge_error_code("prefix: user said 'EPERM': more text"),
             None
         );
-        assert_eq!(bridge_error_code("ERR_AGENT_OS_FAKE: EACCES: denied"), None);
+        assert_eq!(bridge_error_code("ERR_AGENTOS_FAKE: EACCES: denied"), None);
     }
 
     #[test]
     fn bridge_error_code_accepts_trusted_secure_exec_prefixes() {
         assert_eq!(
-            bridge_error_code("ERR_AGENT_OS_NODE_SYNC_RPC: EACCES: permission denied on /foo"),
+            bridge_error_code("ERR_AGENTOS_NODE_SYNC_RPC: EACCES: permission denied on /foo"),
             Some("EACCES")
         );
         assert_eq!(
-            bridge_error_code("ERR_AGENT_OS_PYTHON_VFS_RPC: ENOENT: missing file"),
+            bridge_error_code("ERR_AGENTOS_PYTHON_VFS_RPC: ENOENT: missing file"),
             Some("ENOENT")
         );
         assert_eq!(bridge_error_code("EEXIST: already exists"), Some("EEXIST"));
@@ -2237,7 +2237,7 @@ mod tests {
 
     #[test]
     fn bridge_v8_hardening_rejects_cbor_abuse_and_vm_context_reentry_overflow() {
-        const SUBPROCESS_ENV: &str = "AGENT_OS_V8_BRIDGE_HARDENING_SUBPROCESS";
+        const SUBPROCESS_ENV: &str = "AGENTOS_V8_BRIDGE_HARDENING_SUBPROCESS";
         if std::env::var_os(SUBPROCESS_ENV).is_none() {
             let output = Command::new(std::env::current_exe().expect("current test binary"))
                 .arg("bridge::tests::bridge_v8_hardening_rejects_cbor_abuse_and_vm_context_reentry_overflow")
@@ -2380,7 +2380,7 @@ mod tests {
                 .to_rust_string_lossy(tc);
             assert_eq!(
                 details,
-                r#"{"innerCode":"ERR_AGENT_OS_VM_CONTEXT_LIMIT","limitCode":"ERR_AGENT_OS_VM_CONTEXT_LIMIT","outerIsInteger":true}"#,
+                r#"{"innerCode":"ERR_AGENTOS_VM_CONTEXT_LIMIT","limitCode":"ERR_AGENTOS_VM_CONTEXT_LIMIT","outerIsInteger":true}"#,
                 "vm context cap script should observe limit errors"
             );
         }
@@ -2479,7 +2479,7 @@ mod tests {
             let code = rejection.get(scope, code_key.into()).unwrap();
             assert_eq!(
                 code.to_rust_string_lossy(scope),
-                "ERR_AGENT_OS_BRIDGE_PENDING_PROMISE_LIMIT"
+                "ERR_AGENTOS_BRIDGE_PENDING_PROMISE_LIMIT"
             );
         }
 
@@ -2539,7 +2539,7 @@ mod tests {
             let code = rejection.get(scope, code_key.into()).unwrap();
             assert_eq!(
                 code.to_rust_string_lossy(scope),
-                "ERR_AGENT_OS_BRIDGE_PENDING_PROMISE_LIMIT"
+                "ERR_AGENTOS_BRIDGE_PENDING_PROMISE_LIMIT"
             );
         }
 

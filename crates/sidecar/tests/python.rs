@@ -1245,7 +1245,7 @@ if (mode === 'write') {
 
     let js_fs_env = HashMap::from([
         (
-            String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+            String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
             json!([{
                 "guestPath": "/workspace",
                 "hostPath": workspace_host_dir.to_string_lossy().into_owned(),
@@ -1253,11 +1253,11 @@ if (mode === 'write') {
             .to_string(),
         ),
         (
-            String::from("AGENT_OS_EXTRA_FS_READ_PATHS"),
+            String::from("AGENTOS_EXTRA_FS_READ_PATHS"),
             json!([workspace_host_dir.to_string_lossy().into_owned()]).to_string(),
         ),
         (
-            String::from("AGENT_OS_EXTRA_FS_WRITE_PATHS"),
+            String::from("AGENTOS_EXTRA_FS_WRITE_PATHS"),
             json!([workspace_host_dir.to_string_lossy().into_owned()]).to_string(),
         ),
     ]);
@@ -1510,7 +1510,7 @@ import os
 result = {}
 
 try:
-    stat = os.stat("/__agent_os_pyodide_cache/pkg/link")
+    stat = os.stat("/__agentos_pyodide_cache/pkg/link")
     result["stat"] = {
         "ok": True,
         "size": stat.st_size,
@@ -1525,7 +1525,7 @@ except OSError as error:
     }
 
 try:
-    result["entries"] = sorted(os.listdir("/__agent_os_pyodide_cache/pkg"))
+    result["entries"] = sorted(os.listdir("/__agentos_pyodide_cache/pkg"))
 except OSError as error:
     result["entries"] = []
     result["entriesError"] = {
@@ -1535,9 +1535,9 @@ except OSError as error:
 print(json.dumps(result))
 "#,
         HashMap::from([(
-            String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+            String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
             serde_json::to_string(&vec![json!({
-                "guestPath": "/__agent_os_pyodide_cache",
+                "guestPath": "/__agentos_pyodide_cache",
                 "hostPath": mapped_cache_root.to_string_lossy().into_owned(),
             })])
             .expect("serialize mapped cache root"),
@@ -1660,7 +1660,7 @@ import json
 result = {"safe": 0, "outside": 0, "errors": 0, "unexpected": []}
 for _ in range(4000):
     try:
-        with open("/__agent_os_pyodide_cache/pkg/secret.txt", "r", encoding="utf-8") as handle:
+        with open("/__agentos_pyodide_cache/pkg/secret.txt", "r", encoding="utf-8") as handle:
             value = handle.read().strip()
         if value == "safe secret":
             result["safe"] += 1
@@ -1674,9 +1674,9 @@ for _ in range(4000):
 print(json.dumps(result))
 "#,
         HashMap::from([(
-            String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+            String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
             serde_json::to_string(&vec![json!({
-                "guestPath": "/__agent_os_pyodide_cache",
+                "guestPath": "/__agentos_pyodide_cache",
                 "hostPath": mapped_cache_root.to_string_lossy().into_owned(),
             })])
             .expect("serialize mapped cache root"),
@@ -2081,7 +2081,7 @@ fn python_runtime_imports_bundled_numpy_without_network() {
         "proc-python-numpy",
         "import numpy\nprint(numpy.__version__)",
         HashMap::from([(
-            String::from("AGENT_OS_PYTHON_PRELOAD_PACKAGES"),
+            String::from("AGENTOS_PYTHON_PRELOAD_PACKAGES"),
             String::from("[\"numpy\"]"),
         )]),
     );
@@ -2131,7 +2131,7 @@ fn python_runtime_imports_bundled_pandas_without_network() {
         "proc-python-pandas",
         "import pandas\nprint(pandas.__version__)",
         HashMap::from([(
-            String::from("AGENT_OS_PYTHON_PRELOAD_PACKAGES"),
+            String::from("AGENTOS_PYTHON_PRELOAD_PACKAGES"),
             String::from("[\"pandas\"]"),
         )]),
     );
@@ -2172,7 +2172,7 @@ fn python_runtime_supports_micropip_package_installation() {
         GuestRuntimeKind::Python,
         &cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
             serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
         )]),
         wire_permissions_allow_all(),
@@ -2200,7 +2200,7 @@ print(json.dumps({{
 "#,
         ),
         HashMap::from([(
-            String::from("AGENT_OS_PYODIDE_PACKAGE_BASE_URL"),
+            String::from("AGENTOS_PYODIDE_PACKAGE_BASE_URL"),
             format!("http://127.0.0.1:{port}/"),
         )]),
     );
@@ -2242,7 +2242,7 @@ fn python_runtime_micropip_install_respects_network_permissions() {
         GuestRuntimeKind::Python,
         &cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
             serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
         )]),
         PermissionsPolicy {
@@ -2269,7 +2269,7 @@ await micropip.install("http://127.0.0.1:{port}/click-8.3.1-py3-none-any.whl")
 "#,
         ),
         HashMap::from([(
-            String::from("AGENT_OS_PYODIDE_PACKAGE_BASE_URL"),
+            String::from("AGENTOS_PYODIDE_PACKAGE_BASE_URL"),
             format!("http://127.0.0.1:{port}/"),
         )]),
     );
@@ -2320,7 +2320,7 @@ fn python_runtime_routes_dns_and_http_through_sidecar_bridge() {
         &cwd,
         HashMap::from([
             (
-                String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+                String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
                 serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
             ),
             (
@@ -2409,7 +2409,7 @@ fn python_runtime_routes_requests_through_sidecar_bridge() {
         &cwd,
         HashMap::from([
             (
-                String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+                String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
                 serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
             ),
             (

@@ -63,7 +63,7 @@ impl UserManager {
     pub fn from_config(config: UserConfig) -> Self {
         let uid = config.uid.unwrap_or(1000);
         let gid = config.gid.unwrap_or(1000);
-        let username = config.username.unwrap_or_else(|| String::from("user"));
+        let username = config.username.unwrap_or_else(|| String::from("agentos"));
         let supplementary_gids = normalize_supplementary_gids(gid, config.supplementary_gids);
 
         Self {
@@ -72,7 +72,7 @@ impl UserManager {
             euid: config.euid.unwrap_or(uid),
             egid: config.egid.unwrap_or(gid),
             username: username.clone(),
-            homedir: config.homedir.unwrap_or_else(|| String::from("/home/user")),
+            homedir: config.homedir.unwrap_or_else(|| String::from("/home/agentos")),
             shell: config.shell.unwrap_or_else(|| String::from("/bin/sh")),
             gecos: config.gecos.unwrap_or_default(),
             group_name: config.group_name.unwrap_or(username),

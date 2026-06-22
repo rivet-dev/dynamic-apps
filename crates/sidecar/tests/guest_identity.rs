@@ -86,7 +86,7 @@ console.log(JSON.stringify({
   envShell: process.env.SHELL ?? null,
   envPath: process.env.PATH ?? null,
   internalKeys: Object.keys(process.env).filter((key) =>
-    key.startsWith("AGENT_OS_") || key.startsWith("NODE_SYNC_RPC_")
+    key.startsWith("AGENTOS_") || key.startsWith("NODE_SYNC_RPC_")
   ),
   uid: process.getuid(),
   gid: process.getgid(),
@@ -128,8 +128,8 @@ console.log(JSON.stringify({
     );
 
     let parsed = parse_json_stdout(&stdout);
-    assert_eq!(parsed["envUser"], "user");
-    assert_eq!(parsed["envHome"], "/home/user");
+    assert_eq!(parsed["envUser"], "agentos");
+    assert_eq!(parsed["envHome"], "/home/agentos");
     assert_eq!(parsed["envPwd"], "/");
     assert_eq!(parsed["envShell"], "/bin/sh");
     assert_eq!(parsed["envPath"], DEFAULT_GUEST_PATH_ENV);
@@ -139,13 +139,13 @@ console.log(JSON.stringify({
     assert_eq!(parsed["euid"], 1000);
     assert_eq!(parsed["egid"], 1000);
     assert_eq!(parsed["groups"], Value::Array(vec![Value::from(1000)]));
-    assert_eq!(parsed["homedir"], "/home/user");
+    assert_eq!(parsed["homedir"], "/home/agentos");
     assert_eq!(parsed["cwd"], "/");
-    assert_eq!(parsed["userInfo"]["username"], "user");
+    assert_eq!(parsed["userInfo"]["username"], "agentos");
     assert_eq!(parsed["userInfo"]["uid"], 1000);
     assert_eq!(parsed["userInfo"]["gid"], 1000);
     assert_eq!(parsed["userInfo"]["shell"], "/bin/sh");
-    assert_eq!(parsed["userInfo"]["homedir"], "/home/user");
+    assert_eq!(parsed["userInfo"]["homedir"], "/home/agentos");
 }
 
 fn python_guest_identity_uses_kernel_owned_defaults() {
@@ -198,7 +198,7 @@ print(json.dumps({
     "env_path": os.environ.get("PATH"),
     "internal_keys": sorted([
         key for key in os.environ
-        if key.startswith("AGENT_OS_") or key.startswith("NODE_SYNC_RPC_")
+        if key.startswith("AGENTOS_") or key.startswith("NODE_SYNC_RPC_")
     ]),
     "path_home": str(Path.home()),
 }))
@@ -239,13 +239,13 @@ print(json.dumps({
     );
 
     let parsed = parse_json_stdout(&stdout);
-    assert_eq!(parsed["env_user"], "user");
-    assert_eq!(parsed["env_home"], "/home/user");
+    assert_eq!(parsed["env_user"], "agentos");
+    assert_eq!(parsed["env_home"], "/home/agentos");
     assert_eq!(parsed["env_pwd"], "/");
     assert_eq!(parsed["env_shell"], "/bin/sh");
     assert_eq!(parsed["env_path"], DEFAULT_GUEST_PATH_ENV);
     assert_eq!(parsed["internal_keys"], Value::Array(Vec::new()));
-    assert_eq!(parsed["path_home"], "/home/user");
+    assert_eq!(parsed["path_home"], "/home/agentos");
 }
 
 fn wasm_guest_identity_commands_use_kernel_owned_defaults() {
@@ -367,7 +367,7 @@ fn wasm_guest_identity_commands_use_kernel_owned_defaults() {
         stderr.is_empty(),
         "unexpected stderr from wasm identity execution: {stderr}"
     );
-    assert_eq!(stdout, "user:x:1000:1000::/home/user:/bin/sh");
+    assert_eq!(stdout, "agentos:x:1000:1000::/home/agentos:/bin/sh");
 }
 
 fn wasm_guest_env_filters_internal_control_vars_and_uses_kernel_defaults() {
@@ -513,12 +513,12 @@ fn wasm_guest_env_filters_internal_control_vars_and_uses_kernel_defaults() {
     let env = parse_env_stdout(&stdout);
     let leaked_internal = env
         .keys()
-        .filter(|key| key.starts_with("AGENT_OS_") || key.starts_with("NODE_SYNC_RPC_"))
+        .filter(|key| key.starts_with("AGENTOS_") || key.starts_with("NODE_SYNC_RPC_"))
         .cloned()
         .collect::<BTreeSet<_>>();
 
-    assert_eq!(env.get("HOME").map(String::as_str), Some("/home/user"));
-    assert_eq!(env.get("USER").map(String::as_str), Some("user"));
+    assert_eq!(env.get("HOME").map(String::as_str), Some("/home/agentos"));
+    assert_eq!(env.get("USER").map(String::as_str), Some("agentos"));
     assert_eq!(
         env.get("PATH").map(String::as_str),
         Some(DEFAULT_GUEST_PATH_ENV)
@@ -565,7 +565,7 @@ fn guest_identity_cases() {
             .arg("--exact")
             .arg("__guest_identity_case_runner")
             .arg("--nocapture")
-            .env("AGENT_OS_GUEST_IDENTITY_CASE", case_name)
+            .env("AGENTOS_GUEST_IDENTITY_CASE", case_name)
             .status()
             .unwrap_or_else(|error| panic!("spawn guest_identity runner for {case_name}: {error}"));
 
@@ -578,7 +578,7 @@ fn guest_identity_cases() {
 
 #[test]
 fn __guest_identity_case_runner() {
-    let Ok(case_name) = std::env::var("AGENT_OS_GUEST_IDENTITY_CASE") else {
+    let Ok(case_name) = std::env::var("AGENTOS_GUEST_IDENTITY_CASE") else {
         return;
     };
 

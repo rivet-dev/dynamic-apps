@@ -428,16 +428,15 @@ describeIf(hasWasmBinaries, "wasmvm-shell-terminal", () => {
 
 	it("shell started with non-root cwd — 'pwd' builtin reports that cwd", async () => {
 		const { kernel, vfs } = await createShellKernel();
-		await vfs.createDir("/home");
-		await vfs.createDir("/home/user");
-		harness = new TerminalHarness(kernel, { cwd: "/home/user" });
+		await vfs.createDir("/workspace");
+		harness = new TerminalHarness(kernel, { cwd: "/workspace" });
 
 		await harness.waitFor(PROMPT);
 		await harness.type("pwd\n");
 		await harness.waitFor(PROMPT, 2);
 
 		const screen = harness.screenshotTrimmed();
-		expect(screen).toContain("/home/user");
+		expect(screen).toContain("/workspace");
 	});
 
 	it("cd then external /bin/pwd — spawned command inherits shell cwd via PWD env", async () => {

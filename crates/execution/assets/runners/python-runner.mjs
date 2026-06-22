@@ -7,22 +7,22 @@ import readline from 'node:readline';
 import { URL } from 'node:url';
 
 const ACCESS_DENIED_CODE = 'ERR_ACCESS_DENIED';
-const ASSET_ROOT_ENV = 'AGENT_OS_NODE_IMPORT_CACHE_ASSET_ROOT';
-const PYODIDE_INDEX_URL_ENV = 'AGENT_OS_PYODIDE_INDEX_URL';
-const PYODIDE_PACKAGE_BASE_URL_ENV = 'AGENT_OS_PYODIDE_PACKAGE_BASE_URL';
-const PYODIDE_PACKAGE_CACHE_DIR_ENV = 'AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR';
-const PYODIDE_PACKAGE_CACHE_GUEST_ROOT = '/__agent_os_pyodide_cache';
-const PYTHON_CODE_ENV = 'AGENT_OS_PYTHON_CODE';
-const PYTHON_FILE_ENV = 'AGENT_OS_PYTHON_FILE';
-const PYTHON_PREWARM_ONLY_ENV = 'AGENT_OS_PYTHON_PREWARM_ONLY';
-const PYTHON_WARMUP_DEBUG_ENV = 'AGENT_OS_PYTHON_WARMUP_DEBUG';
-const PYTHON_WARMUP_METRICS_PREFIX = '__AGENT_OS_PYTHON_WARMUP_METRICS__:';
-const PYTHON_PRELOAD_PACKAGES_ENV = 'AGENT_OS_PYTHON_PRELOAD_PACKAGES';
-const PYTHON_VFS_RPC_REQUEST_FD_ENV = 'AGENT_OS_PYTHON_VFS_RPC_REQUEST_FD';
-const PYTHON_VFS_RPC_RESPONSE_FD_ENV = 'AGENT_OS_PYTHON_VFS_RPC_RESPONSE_FD';
+const ASSET_ROOT_ENV = 'AGENTOS_NODE_IMPORT_CACHE_ASSET_ROOT';
+const PYODIDE_INDEX_URL_ENV = 'AGENTOS_PYODIDE_INDEX_URL';
+const PYODIDE_PACKAGE_BASE_URL_ENV = 'AGENTOS_PYODIDE_PACKAGE_BASE_URL';
+const PYODIDE_PACKAGE_CACHE_DIR_ENV = 'AGENTOS_PYODIDE_PACKAGE_CACHE_DIR';
+const PYODIDE_PACKAGE_CACHE_GUEST_ROOT = '/__agentos_pyodide_cache';
+const PYTHON_CODE_ENV = 'AGENTOS_PYTHON_CODE';
+const PYTHON_FILE_ENV = 'AGENTOS_PYTHON_FILE';
+const PYTHON_PREWARM_ONLY_ENV = 'AGENTOS_PYTHON_PREWARM_ONLY';
+const PYTHON_WARMUP_DEBUG_ENV = 'AGENTOS_PYTHON_WARMUP_DEBUG';
+const PYTHON_WARMUP_METRICS_PREFIX = '__AGENTOS_PYTHON_WARMUP_METRICS__:';
+const PYTHON_PRELOAD_PACKAGES_ENV = 'AGENTOS_PYTHON_PRELOAD_PACKAGES';
+const PYTHON_VFS_RPC_REQUEST_FD_ENV = 'AGENTOS_PYTHON_VFS_RPC_REQUEST_FD';
+const PYTHON_VFS_RPC_RESPONSE_FD_ENV = 'AGENTOS_PYTHON_VFS_RPC_RESPONSE_FD';
 const PYTHON_RUNTIME_ENV_NAMES = ['HOME', 'USER', 'LOGNAME', 'SHELL', 'PWD', 'TMPDIR', 'PATH'];
-const INTERNAL_ENV = globalThis.__agentOsPythonInternalEnv ?? Object.create(null);
-const ALLOW_PROCESS_BINDINGS = readRunnerEnv('AGENT_OS_ALLOW_PROCESS_BINDINGS') === '1';
+const INTERNAL_ENV = globalThis.__agentOSPythonInternalEnv ?? Object.create(null);
+const ALLOW_PROCESS_BINDINGS = readRunnerEnv('AGENTOS_ALLOW_PROCESS_BINDINGS') === '1';
 const STDIN_FD = 0;
 const SUPPORTED_PRELOAD_PACKAGES = ['numpy', 'pandas'];
 const SUPPORTED_PRELOAD_PACKAGE_SET = new Set(SUPPORTED_PRELOAD_PACKAGES);
@@ -52,7 +52,7 @@ const originalRequire =
   typeof globalThis.require === 'function'
     ? globalThis.require.bind(globalThis)
     : null;
-const PYTHON_STDIN_DONE_SENTINEL = '__AGENT_OS_PYTHON_STDIN_DONE__';
+const PYTHON_STDIN_DONE_SENTINEL = '__AGENTOS_PYTHON_STDIN_DONE__';
 function canCallBridgeSync(bridge) {
   return (
     typeof bridge?.applySyncPromise === 'function' ||
@@ -91,7 +91,7 @@ const originalGetBuiltinModule =
   typeof process.getBuiltinModule === 'function'
     ? process.getBuiltinModule.bind(process)
     : null;
-const CONTROL_PIPE_FD = parseControlPipeFd(readRunnerEnv('AGENT_OS_CONTROL_PIPE_FD'));
+const CONTROL_PIPE_FD = parseControlPipeFd(readRunnerEnv('AGENTOS_CONTROL_PIPE_FD'));
 const register = typeof moduleBuiltin?.register === 'function' ? moduleBuiltin.register.bind(moduleBuiltin) : null;
 
 function readRunnerEnv(name) {
@@ -336,7 +336,7 @@ function emitWarmupStage(stage) {
     return;
   }
 
-  writeStream(process.stderr, `__AGENT_OS_PYTHON_WARMUP_STAGE__:${stage}`);
+  writeStream(process.stderr, `__AGENTOS_PYTHON_WARMUP_STAGE__:${stage}`);
 }
 
 function emitPythonDebug(channel, message) {
@@ -344,7 +344,7 @@ function emitPythonDebug(channel, message) {
     return;
   }
 
-  writeStream(process.stderr, `__AGENT_OS_PYTHON_${channel}__:${message}`);
+  writeStream(process.stderr, `__AGENTOS_PYTHON_${channel}__:${message}`);
 }
 
 function formatError(error) {
@@ -522,7 +522,7 @@ function normalizePythonBridgeError(error) {
     }
   }
   if (typeof normalized.code !== 'string') {
-    normalized.code = 'ERR_AGENT_OS_PYTHON_VFS_RPC';
+    normalized.code = 'ERR_AGENTOS_PYTHON_VFS_RPC';
   }
   return normalized;
 }
@@ -711,7 +711,7 @@ function createPythonFdRpcBridge() {
     }
 
     const error = new Error(message?.error?.message || `secure-exec Python VFS RPC request ${id} failed`);
-    error.code = message?.error?.code || 'ERR_AGENT_OS_PYTHON_VFS_RPC';
+    error.code = message?.error?.code || 'ERR_AGENTOS_PYTHON_VFS_RPC';
     throw error;
   }
 
@@ -823,74 +823,74 @@ function accessDenied(subject) {
 }
 
 const PYTHON_GUEST_IMPORT_BLOCKLIST_SOURCE = String.raw`
-import builtins as _agent_os_builtins
-import sys as _agent_os_sys
-import types as _agent_os_types
+import builtins as _agentos_builtins
+import sys as _agentos_sys
+import types as _agentos_types
 
 try:
-    import agent_os_internal_js as _agent_os_safe_js
-    import agent_os_internal_pyodide_js as _agent_os_safe_pyodide_js
-    import agent_os_internal_pyodide_js_api as _agent_os_safe_pyodide_js_api
+    import agentos_internal_js as _agentos_safe_js
+    import agentos_internal_pyodide_js as _agentos_safe_pyodide_js
+    import agentos_internal_pyodide_js_api as _agentos_safe_pyodide_js_api
 except Exception:
-    _agent_os_safe_js = None
-    _agent_os_safe_pyodide_js = None
-    _agent_os_safe_pyodide_js_api = None
+    _agentos_safe_js = None
+    _agentos_safe_pyodide_js = None
+    _agentos_safe_pyodide_js_api = None
 
-def _agent_os_raise_access_denied(module_name):
+def _agentos_raise_access_denied(module_name):
     raise RuntimeError(f"{module_name} is not available in the secure-exec guest Python runtime")
 
-class _SecureExecBlockedModule(_agent_os_types.ModuleType):
+class _SecureExecBlockedModule(_agentos_types.ModuleType):
     def __init__(self, name):
         super().__init__(name)
         self.__dict__['__all__'] = ()
 
     def __getattr__(self, _name):
-        _agent_os_raise_access_denied(self.__name__)
+        _agentos_raise_access_denied(self.__name__)
 
     def __dir__(self):
         return []
 
-_agent_os_blocked_modules = {
-    _agent_os_module_name: _SecureExecBlockedModule(_agent_os_module_name)
-    for _agent_os_module_name in ('js', 'pyodide_js')
+_agentos_blocked_modules = {
+    _agentos_module_name: _SecureExecBlockedModule(_agentos_module_name)
+    for _agentos_module_name in ('js', 'pyodide_js')
 }
 
-_agent_os_safe_modules = {
-    "js": _agent_os_safe_js,
-    "pyodide_js": _agent_os_safe_pyodide_js,
-    "pyodide_js._api": _agent_os_safe_pyodide_js_api,
+_agentos_safe_modules = {
+    "js": _agentos_safe_js,
+    "pyodide_js": _agentos_safe_pyodide_js,
+    "pyodide_js._api": _agentos_safe_pyodide_js_api,
 }
 
-_agent_os_original_import = _agent_os_builtins.__import__
+_agentos_original_import = _agentos_builtins.__import__
 
-def _agent_os_allow_internal_js(globals):
+def _agentos_allow_internal_js(globals):
     module_name = str((globals or {}).get("__name__", ""))
     return module_name.startswith("micropip") or module_name.startswith("pyodide.http")
 
-def _agent_os_import(name, globals=None, locals=None, fromlist=(), level=0):
-    if name in _agent_os_safe_modules and _agent_os_safe_modules[name] is not None and _agent_os_allow_internal_js(globals):
-        return _agent_os_safe_modules[name]
-    if name in _agent_os_blocked_modules:
-        return _agent_os_blocked_modules[name]
-    return _agent_os_original_import(name, globals, locals, fromlist, level)
+def _agentos_import(name, globals=None, locals=None, fromlist=(), level=0):
+    if name in _agentos_safe_modules and _agentos_safe_modules[name] is not None and _agentos_allow_internal_js(globals):
+        return _agentos_safe_modules[name]
+    if name in _agentos_blocked_modules:
+        return _agentos_blocked_modules[name]
+    return _agentos_original_import(name, globals, locals, fromlist, level)
 
-_agent_os_builtins.__import__ = _agent_os_import
-_agent_os_sys.modules.update(_agent_os_blocked_modules)
+_agentos_builtins.__import__ = _agentos_import
+_agentos_sys.modules.update(_agentos_blocked_modules)
 `;
 
 const PYTHON_KERNEL_RPC_SHIMS_SOURCE = String.raw`
-import base64 as _agent_os_base64
-import json as _agent_os_json
-import socket as _agent_os_socket
-import subprocess as _agent_os_subprocess
-import sys as _agent_os_sys
-import types as _agent_os_types
-import urllib.error as _agent_os_urllib_error
-import urllib.request as _agent_os_urllib_request
+import base64 as _agentos_base64
+import json as _agentos_json
+import socket as _agentos_socket
+import subprocess as _agentos_subprocess
+import sys as _agentos_sys
+import types as _agentos_types
+import urllib.error as _agentos_urllib_error
+import urllib.request as _agentos_urllib_request
 from email.message import Message as _SecureExecMessage
-from js import __agentOsPythonVfsRpc as _agent_os_rpc
+from js import __agentOSPythonVfsRpc as _agentos_rpc
 
-def _agent_os_raise_from_error(error):
+def _agentos_raise_from_error(error):
     if not isinstance(error, dict):
         raise RuntimeError(str(error))
     message = str(error.get("message", "secure-exec Python bridge request failed"))
@@ -900,22 +900,22 @@ def _agent_os_raise_from_error(error):
         raise FileNotFoundError(message)
     raise OSError(message)
 
-def _agent_os_normalize_family(family):
+def _agentos_normalize_family(family):
     if family in (None, 0):
         return None
-    if family == _agent_os_socket.AF_INET:
+    if family == _agentos_socket.AF_INET:
         return 4
-    if family == _agent_os_socket.AF_INET6:
+    if family == _agentos_socket.AF_INET6:
         return 6
     return None
 
-def _agent_os_dns_lookup(hostname, family=None):
+def _agentos_dns_lookup(hostname, family=None):
     try:
-        result = _agent_os_json.loads(
-            _agent_os_rpc.dnsLookupSync(hostname, _agent_os_normalize_family(family))
+        result = _agentos_json.loads(
+            _agentos_rpc.dnsLookupSync(hostname, _agentos_normalize_family(family))
         )
     except Exception as error:
-        _agent_os_raise_from_error({"message": str(error)})
+        _agentos_raise_from_error({"message": str(error)})
     addresses = result.get("addresses") or []
     if not addresses:
         raise OSError(f"secure-exec DNS lookup returned no addresses for {hostname}")
@@ -926,7 +926,7 @@ class _SecureExecHttpResponse:
         self.status = int(payload.get("status", 0))
         self.reason = str(payload.get("reason", ""))
         self.url = str(payload.get("url", ""))
-        self._body = _agent_os_base64.b64decode(payload.get("bodyBase64", "") or "")
+        self._body = _agentos_base64.b64decode(payload.get("bodyBase64", "") or "")
         headers = payload.get("headers") or {}
         self.headers = _SecureExecMessage()
         for name, values in headers.items():
@@ -960,7 +960,7 @@ class _SecureExecPyfetchResponse:
         self.status_text = str(payload.get("reason", ""))
         self.url = str(payload.get("url", ""))
         self.headers = {str(name): ", ".join(values) for name, values in (payload.get("headers") or {}).items()}
-        self._body = _agent_os_base64.b64decode(payload.get("bodyBase64", "") or "")
+        self._body = _agentos_base64.b64decode(payload.get("bodyBase64", "") or "")
 
     async def bytes(self):
         return self._body
@@ -972,8 +972,8 @@ class _SecureExecPyfetchResponse:
         if self.status >= 400:
             raise RuntimeError(f"{self.status} {self.status_text}")
 
-def _agent_os_extract_request_parts(url_or_request, data=None):
-    if isinstance(url_or_request, _agent_os_urllib_request.Request):
+def _agentos_extract_request_parts(url_or_request, data=None):
+    if isinstance(url_or_request, _agentos_urllib_request.Request):
         request = url_or_request
         url = request.full_url
         method = request.get_method()
@@ -988,20 +988,20 @@ def _agent_os_extract_request_parts(url_or_request, data=None):
     if payload is not None:
         if isinstance(payload, str):
             payload = payload.encode("utf-8")
-        body_base64 = _agent_os_base64.b64encode(payload).decode("ascii")
+        body_base64 = _agentos_base64.b64encode(payload).decode("ascii")
     return url, method, headers, body_base64
 
-def _agent_os_http_request(url_or_request, data=None):
-    url, method, headers, body_base64 = _agent_os_extract_request_parts(url_or_request, data)
+def _agentos_http_request(url_or_request, data=None):
+    url, method, headers, body_base64 = _agentos_extract_request_parts(url_or_request, data)
     try:
-        payload = _agent_os_json.loads(
-            _agent_os_rpc.httpRequestSync(url, method, _agent_os_json.dumps(headers), body_base64)
+        payload = _agentos_json.loads(
+            _agentos_rpc.httpRequestSync(url, method, _agentos_json.dumps(headers), body_base64)
         )
     except Exception as error:
-        _agent_os_raise_from_error({"message": str(error)})
+        _agentos_raise_from_error({"message": str(error)})
     response = _SecureExecHttpResponse(payload)
     if response.status >= 400:
-        raise _agent_os_urllib_error.HTTPError(
+        raise _agentos_urllib_error.HTTPError(
             url,
             response.status,
             response.reason,
@@ -1010,54 +1010,54 @@ def _agent_os_http_request(url_or_request, data=None):
         )
     return response
 
-async def _agent_os_pyfetch(url, **kwargs):
+async def _agentos_pyfetch(url, **kwargs):
     headers = dict(kwargs.get("headers") or {})
     method = str(kwargs.get("method", "GET")).upper()
     body = kwargs.get("body")
     if body is not None and isinstance(body, str):
         body = body.encode("utf-8")
-    body_base64 = None if body is None else _agent_os_base64.b64encode(body).decode("ascii")
+    body_base64 = None if body is None else _agentos_base64.b64encode(body).decode("ascii")
     try:
-        payload = _agent_os_json.loads(
-            _agent_os_rpc.httpRequestSync(
+        payload = _agentos_json.loads(
+            _agentos_rpc.httpRequestSync(
                 str(url),
                 method,
-                _agent_os_json.dumps(headers),
+                _agentos_json.dumps(headers),
                 body_base64,
             )
         )
     except Exception as error:
-        _agent_os_raise_from_error({"message": str(error)})
+        _agentos_raise_from_error({"message": str(error)})
     return _SecureExecPyfetchResponse(payload)
 
-def _agent_os_urlopen(url, data=None, timeout=None, *args, **kwargs):
+def _agentos_urlopen(url, data=None, timeout=None, *args, **kwargs):
     del timeout, args, kwargs
-    return _agent_os_http_request(url, data=data)
+    return _agentos_http_request(url, data=data)
 
-_agent_os_urllib_request.urlopen = _agent_os_urlopen
+_agentos_urllib_request.urlopen = _agentos_urlopen
 
 try:
-    import pyodide.http as _agent_os_pyodide_http
+    import pyodide.http as _agentos_pyodide_http
 except ModuleNotFoundError:
-    _agent_os_pyodide_http = None
+    _agentos_pyodide_http = None
 else:
-    _agent_os_pyodide_http.pyfetch = _agent_os_pyfetch
+    _agentos_pyodide_http.pyfetch = _agentos_pyfetch
 
-_agent_os_original_getaddrinfo = _agent_os_socket.getaddrinfo
+_agentos_original_getaddrinfo = _agentos_socket.getaddrinfo
 
-def _agent_os_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+def _agentos_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
     if host in (None, "", "0.0.0.0", "::"):
-        return _agent_os_original_getaddrinfo(host, port, family, type, proto, flags)
-    addresses = _agent_os_dns_lookup(host, family)
-    socktype = type or _agent_os_socket.SOCK_STREAM
+        return _agentos_original_getaddrinfo(host, port, family, type, proto, flags)
+    addresses = _agentos_dns_lookup(host, family)
+    socktype = type or _agentos_socket.SOCK_STREAM
     protocol = proto or 0
-    normalized_family = family or _agent_os_socket.AF_INET
+    normalized_family = family or _agentos_socket.AF_INET
     results = []
     for address in addresses:
-        entry_family = _agent_os_socket.AF_INET6 if ":" in address else _agent_os_socket.AF_INET
+        entry_family = _agentos_socket.AF_INET6 if ":" in address else _agentos_socket.AF_INET
         if family not in (0, entry_family):
             continue
-        if entry_family == _agent_os_socket.AF_INET6:
+        if entry_family == _agentos_socket.AF_INET6:
             sockaddr = (address, port, 0, 0)
         else:
             sockaddr = (address, port)
@@ -1066,11 +1066,11 @@ def _agent_os_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
         raise OSError(f"secure-exec DNS lookup returned no matching addresses for {host}")
     return results
 
-def _agent_os_gethostbyname(host):
-    return _agent_os_dns_lookup(host, _agent_os_socket.AF_INET)[0]
+def _agentos_gethostbyname(host):
+    return _agentos_dns_lookup(host, _agentos_socket.AF_INET)[0]
 
-_agent_os_socket.getaddrinfo = _agent_os_getaddrinfo
-_agent_os_socket.gethostbyname = _agent_os_gethostbyname
+_agentos_socket.getaddrinfo = _agentos_getaddrinfo
+_agentos_socket.gethostbyname = _agentos_gethostbyname
 
 class _SecureExecRequestsResponse:
     def __init__(self, payload):
@@ -1078,7 +1078,7 @@ class _SecureExecRequestsResponse:
         self.reason = str(payload.get("reason", ""))
         self.url = str(payload.get("url", ""))
         self.headers = {str(name): ", ".join(values) for name, values in (payload.get("headers") or {}).items()}
-        self.content = _agent_os_base64.b64decode(payload.get("bodyBase64", "") or "")
+        self.content = _agentos_base64.b64decode(payload.get("bodyBase64", "") or "")
         self.encoding = "utf-8"
         self.ok = self.status_code < 400
 
@@ -1087,7 +1087,7 @@ class _SecureExecRequestsResponse:
         return self.content.decode(self.encoding, errors="replace")
 
     def json(self):
-        return _agent_os_json.loads(self.text)
+        return _agentos_json.loads(self.text)
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -1099,42 +1099,42 @@ class _SecureExecRequestsSession:
         data = kwargs.get("data")
         if data is not None and isinstance(data, str):
             data = data.encode("utf-8")
-        body_base64 = None if data is None else _agent_os_base64.b64encode(data).decode("ascii")
+        body_base64 = None if data is None else _agentos_base64.b64encode(data).decode("ascii")
         try:
-            payload = _agent_os_json.loads(
-                _agent_os_rpc.httpRequestSync(
+            payload = _agentos_json.loads(
+                _agentos_rpc.httpRequestSync(
                     str(url),
                     str(method).upper(),
-                    _agent_os_json.dumps(headers),
+                    _agentos_json.dumps(headers),
                     body_base64,
                 )
             )
         except Exception as error:
-            _agent_os_raise_from_error({"message": str(error)})
+            _agentos_raise_from_error({"message": str(error)})
         return _SecureExecRequestsResponse(payload)
 
     def get(self, url, **kwargs):
         return self.request("GET", url, **kwargs)
 
-def _agent_os_install_requests_module():
-    module = _agent_os_types.ModuleType("requests")
+def _agentos_install_requests_module():
+    module = _agentos_types.ModuleType("requests")
     session = _SecureExecRequestsSession
     module.Session = session
     module.Response = _SecureExecRequestsResponse
     module.request = lambda method, url, **kwargs: session().request(method, url, **kwargs)
     module.get = lambda url, **kwargs: session().get(url, **kwargs)
-    module.exceptions = _agent_os_types.SimpleNamespace(RequestException=RuntimeError)
-    _agent_os_sys.modules["requests"] = module
+    module.exceptions = _agentos_types.SimpleNamespace(RequestException=RuntimeError)
+    _agentos_sys.modules["requests"] = module
 
 try:
-    import requests as _agent_os_requests
+    import requests as _agentos_requests
 except ModuleNotFoundError:
-    _agent_os_install_requests_module()
+    _agentos_install_requests_module()
 else:
-    _agent_os_requests.Session = _SecureExecRequestsSession
-    _agent_os_requests.Response = _SecureExecRequestsResponse
-    _agent_os_requests.request = lambda method, url, **kwargs: _SecureExecRequestsSession().request(method, url, **kwargs)
-    _agent_os_requests.get = lambda url, **kwargs: _SecureExecRequestsSession().get(url, **kwargs)
+    _agentos_requests.Session = _SecureExecRequestsSession
+    _agentos_requests.Response = _SecureExecRequestsResponse
+    _agentos_requests.request = lambda method, url, **kwargs: _SecureExecRequestsSession().request(method, url, **kwargs)
+    _agentos_requests.get = lambda url, **kwargs: _SecureExecRequestsSession().get(url, **kwargs)
 
 class _SecureExecCompletedProcess:
     def __init__(self, args, returncode, stdout, stderr):
@@ -1143,7 +1143,7 @@ class _SecureExecCompletedProcess:
         self.stdout = stdout
         self.stderr = stderr
 
-def _agent_os_subprocess_run(args, *, capture_output=False, check=False, cwd=None, env=None, input=None, shell=False, text=False, encoding="utf-8", errors="strict", stdout=None, stderr=None, timeout=None, **kwargs):
+def _agentos_subprocess_run(args, *, capture_output=False, check=False, cwd=None, env=None, input=None, shell=False, text=False, encoding="utf-8", errors="strict", stdout=None, stderr=None, timeout=None, **kwargs):
     del kwargs, stdout, stderr, timeout
     if isinstance(args, (str, bytes)):
         command = args.decode("utf-8") if isinstance(args, bytes) else args
@@ -1155,21 +1155,21 @@ def _agent_os_subprocess_run(args, *, capture_output=False, check=False, cwd=Non
         command = str(values[0])
         argv = [str(value) for value in values[1:]]
     merged_env = dict(env or {})
-    resolved_cwd = cwd if cwd is not None else _agent_os_os.environ.get("PWD")
+    resolved_cwd = cwd if cwd is not None else _agentos_os.environ.get("PWD")
     if input is not None:
         raise NotImplementedError("subprocess.run input is not supported in the secure-exec Python runtime")
     try:
-        payload = _agent_os_json.loads(
-            _agent_os_rpc.subprocessRunSync(
+        payload = _agentos_json.loads(
+            _agentos_rpc.subprocessRunSync(
                 command,
-                _agent_os_json.dumps(argv),
+                _agentos_json.dumps(argv),
                 resolved_cwd,
-                _agent_os_json.dumps(merged_env),
+                _agentos_json.dumps(merged_env),
                 bool(shell),
             )
         )
     except Exception as error:
-        _agent_os_raise_from_error({"message": str(error)})
+        _agentos_raise_from_error({"message": str(error)})
     stdout_bytes = payload.get("stdout", "").encode("utf-8")
     stderr_bytes = payload.get("stderr", "").encode("utf-8")
     if text or encoding is not None:
@@ -1185,7 +1185,7 @@ def _agent_os_subprocess_run(args, *, capture_output=False, check=False, cwd=Non
         stderr_value if capture_output else None,
     )
     if check and result.returncode != 0:
-        raise _agent_os_subprocess.CalledProcessError(
+        raise _agentos_subprocess.CalledProcessError(
             result.returncode,
             args,
             output=result.stdout,
@@ -1193,7 +1193,7 @@ def _agent_os_subprocess_run(args, *, capture_output=False, check=False, cwd=Non
         )
     return result
 
-_agent_os_subprocess.run = _agent_os_subprocess_run
+_agentos_subprocess.run = _agentos_subprocess_run
 `;
 
 function hardenProperty(target, key, value) {
@@ -1250,16 +1250,16 @@ function installPythonRuntimeEnv(pyodide) {
   const runtimeEnv = buildPythonRuntimeEnv();
 
   pyodide.runPython(`
-import json as _agent_os_json
-import os as _agent_os_os
+import json as _agentos_json
+import os as _agentos_os
 
-for _agent_os_key, _agent_os_value in _agent_os_json.loads(${JSON.stringify(JSON.stringify(runtimeEnv))}).items():
-    _agent_os_os.environ[_agent_os_key] = _agent_os_value
+for _agentos_key, _agentos_value in _agentos_json.loads(${JSON.stringify(JSON.stringify(runtimeEnv))}).items():
+    _agentos_os.environ[_agentos_key] = _agentos_value
 `);
 }
 
 function installPythonKernelRpcShims(pyodide) {
-  if (typeof pyodide?.runPython !== 'function' || !globalThis.__agentOsPythonVfsRpc) {
+  if (typeof pyodide?.runPython !== 'function' || !globalThis.__agentOSPythonVfsRpc) {
     return;
   }
 
@@ -1299,7 +1299,7 @@ function installPythonMicropipCompat(pyodide) {
     return controller.signal;
   };
 
-  pyodide.registerJsModule('agent_os_internal_js', {
+  pyodide.registerJsModule('agentos_internal_js', {
     AbortController,
     AbortSignal,
     Object,
@@ -1313,13 +1313,13 @@ function installPythonMicropipCompat(pyodide) {
     lockfile_info: pyodide?._api?.lockfile_info,
     lockfile_packages: pyodide?._api?.lockfile_packages,
   };
-  pyodide.registerJsModule('agent_os_internal_pyodide_js', {
+  pyodide.registerJsModule('agentos_internal_pyodide_js', {
     loadedPackages: pyodide.loadedPackages,
     loadPackage: pyodide.loadPackage?.bind(pyodide),
     lockfileBaseUrl: pyodide?._api?.config?.packageBaseUrl ?? '',
     _api: pyodideApiCompat,
   });
-  pyodide.registerJsModule('agent_os_internal_pyodide_js_api', pyodideApiCompat);
+  pyodide.registerJsModule('agentos_internal_pyodide_js_api', pyodideApiCompat);
 }
 
 function installPythonGuestPreloadHardening(bridge = null) {
@@ -1424,7 +1424,7 @@ function installPythonVfsRpcBridge() {
     return null;
   }
 
-  hardenProperty(globalThis, '__agentOsPythonVfsRpc', bridge);
+  hardenProperty(globalThis, '__agentOSPythonVfsRpc', bridge);
   return bridge;
 }
 
@@ -1450,7 +1450,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
   }
 
   function nodeGuestPath(node) {
-    return node.agentOsGuestPath || node.mount?.mountpoint || '/workspace';
+    return node.agentOSGuestPath || node.mount?.mountpoint || '/workspace';
   }
 
   function createFsError(error) {
@@ -1493,17 +1493,17 @@ function installPythonWorkspaceFs(pyodide, bridge) {
 
     node.mode = stat.mode;
     node.timestamp = Date.now();
-    if (FS.isFile(stat.mode) && !node.agentOsDirty) {
-      node.agentOsRemoteSize = stat.size;
+    if (FS.isFile(stat.mode) && !node.agentOSDirty) {
+      node.agentOSRemoteSize = stat.size;
     }
   }
 
   function createWorkspaceNode(parent, name, mode, dev, guestPath) {
     const node = MEMFS.createNode(parent, name, mode, dev);
-    node.agentOsGuestPath = guestPath;
-    node.agentOsDirty = false;
-    node.agentOsLoaded = FS.isDir(mode);
-    node.agentOsRemoteSize = 0;
+    node.agentOSGuestPath = guestPath;
+    node.agentOSDirty = false;
+    node.agentOSLoaded = FS.isDir(mode);
+    node.agentOSRemoteSize = 0;
     if (FS.isDir(mode)) {
       node.node_ops = workspaceDirNodeOps;
       node.stream_ops = workspaceDirStreamOps;
@@ -1547,10 +1547,10 @@ function installPythonWorkspaceFs(pyodide, bridge) {
             memfsDirNodeOps.unlink(node, name);
           }
         } else {
-          existing.agentOsGuestPath = childPath;
+          existing.agentOSGuestPath = childPath;
           updateNodeFromRemoteStat(existing, stat);
-          if (FS.isFile(existing.mode) && !existing.agentOsDirty) {
-            existing.agentOsLoaded = false;
+          if (FS.isFile(existing.mode) && !existing.agentOSDirty) {
+            existing.agentOSLoaded = false;
           }
           continue;
         }
@@ -1563,7 +1563,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
   }
 
   function loadFileContents(node) {
-    if (node.agentOsDirty) {
+    if (node.agentOSDirty) {
       return;
     }
 
@@ -1573,22 +1573,22 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     const bytes = Uint8Array.from(Buffer.from(contentBase64, 'base64'));
     node.contents = bytes;
     node.usedBytes = bytes.length;
-    node.agentOsLoaded = true;
-    node.agentOsRemoteSize = bytes.length;
+    node.agentOSLoaded = true;
+    node.agentOSRemoteSize = bytes.length;
   }
 
   function persistFile(node) {
     const contents = node.contents ? MEMFS.getFileDataAsTypedArray(node) : new Uint8Array(0);
     withFsErrors(() => bridge.fsWriteSync(nodeGuestPath(node), contents));
-    node.agentOsDirty = false;
-    node.agentOsLoaded = true;
-    node.agentOsRemoteSize = contents.length;
+    node.agentOSDirty = false;
+    node.agentOSLoaded = true;
+    node.agentOSRemoteSize = contents.length;
     node.timestamp = Date.now();
   }
 
   function makeStat(node, stat) {
     const mode = stat?.mode ?? node.mode;
-    const size = FS.isDir(mode) ? 4096 : (node.agentOsDirty ? node.usedBytes : (stat?.size ?? node.usedBytes ?? 0));
+    const size = FS.isDir(mode) ? 4096 : (node.agentOSDirty ? node.usedBytes : (stat?.size ?? node.usedBytes ?? 0));
     const timestamp = new Date(node.timestamp || Date.now());
 
     return {
@@ -1610,7 +1610,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
 
   const workspaceFileNodeOps = {
     getattr(node) {
-      const stat = node.agentOsDirty
+      const stat = node.agentOSDirty
         ? null
         : withFsErrors(() => bridge.fsStatSync(nodeGuestPath(node)));
       if (stat) {
@@ -1621,8 +1621,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     setattr(node, attr) {
       memfsFileNodeOps.setattr(node, attr);
       if (attr?.size != null) {
-        node.agentOsDirty = true;
-        node.agentOsLoaded = true;
+        node.agentOSDirty = true;
+        node.agentOSLoaded = true;
       }
     },
   };
@@ -1632,29 +1632,29 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       return memfsFileStreamOps.llseek(stream, offset, whence);
     },
     read(stream, buffer, offset, length, position) {
-      if (!stream.node.agentOsLoaded && !stream.node.agentOsDirty) {
+      if (!stream.node.agentOSLoaded && !stream.node.agentOSDirty) {
         loadFileContents(stream.node);
       }
       return memfsFileStreamOps.read(stream, buffer, offset, length, position);
     },
     write(stream, buffer, offset, length, position, canOwn) {
-      if (!stream.node.agentOsLoaded && !stream.node.agentOsDirty) {
+      if (!stream.node.agentOSLoaded && !stream.node.agentOSDirty) {
         loadFileContents(stream.node);
       }
       const written = memfsFileStreamOps.write(stream, buffer, offset, length, position, canOwn);
-      stream.node.agentOsDirty = true;
+      stream.node.agentOSDirty = true;
       persistFile(stream.node);
       return written;
     },
     mmap(stream, length, position, prot, flags) {
-      if (!stream.node.agentOsLoaded && !stream.node.agentOsDirty) {
+      if (!stream.node.agentOSLoaded && !stream.node.agentOSDirty) {
         loadFileContents(stream.node);
       }
       return memfsFileStreamOps.mmap(stream, length, position, prot, flags);
     },
     msync(stream, buffer, offset, length, mmapFlags) {
       const result = memfsFileStreamOps.msync(stream, buffer, offset, length, mmapFlags);
-      stream.node.agentOsDirty = true;
+      stream.node.agentOSDirty = true;
       persistFile(stream.node);
       return result;
     },
@@ -1693,7 +1693,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       } else if (FS.isFile(mode)) {
         node.contents = new Uint8Array(0);
         node.usedBytes = 0;
-        node.agentOsDirty = true;
+        node.agentOSDirty = true;
         persistFile(node);
       }
       return node;
@@ -1728,10 +1728,10 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     {
       mount(mount) {
         const root = MEMFS.mount(mount);
-        root.agentOsGuestPath = mount.mountpoint;
-        root.agentOsDirty = false;
-        root.agentOsLoaded = true;
-        root.agentOsRemoteSize = 0;
+        root.agentOSGuestPath = mount.mountpoint;
+        root.agentOSDirty = false;
+        root.agentOSLoaded = true;
+        root.agentOSRemoteSize = 0;
         root.node_ops = workspaceDirNodeOps;
         root.stream_ops = workspaceDirStreamOps;
         return root;

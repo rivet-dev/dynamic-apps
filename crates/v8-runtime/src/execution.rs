@@ -3315,7 +3315,7 @@ export const file = new File([], "empty.txt");
             let error = error.expect("unhandled rejection limit error");
             assert_eq!(
                 error.code.as_deref(),
-                Some("ERR_AGENT_OS_UNHANDLED_REJECTION_LIMIT")
+                Some("ERR_AGENTOS_UNHANDLED_REJECTION_LIMIT")
             );
             assert!(error
                 .message
@@ -3353,7 +3353,7 @@ export const file = new File([], "empty.txt");
             let context = isolate::create_context(&mut isolate);
 
             let mut env = HashMap::new();
-            env.insert("HOME".into(), "/home/user".into());
+            env.insert("HOME".into(), "/home/agentos".into());
             env.insert("PATH".into(), "/usr/bin".into());
 
             let process_config = ProcessConfig {
@@ -3363,7 +3363,7 @@ export const file = new File([], "empty.txt");
                 frozen_time_ms: Some(1700000000000.0),
             };
             let os_config = OsConfig {
-                homedir: "/home/user".into(),
+                homedir: "/home/agentos".into(),
                 tmpdir: "/tmp".into(),
                 platform: "linux".into(),
                 arch: "x64".into(),
@@ -3389,7 +3389,7 @@ export const file = new File([], "empty.txt");
             );
             assert_eq!(
                 eval(&mut isolate, &context, "_processConfig.env.HOME"),
-                "/home/user"
+                "/home/agentos"
             );
             assert_eq!(
                 eval(&mut isolate, &context, "_processConfig.env.PATH"),
@@ -3399,7 +3399,7 @@ export const file = new File([], "empty.txt");
             // Verify _osConfig values
             assert_eq!(
                 eval(&mut isolate, &context, "_osConfig.homedir"),
-                "/home/user"
+                "/home/agentos"
             );
             assert_eq!(eval(&mut isolate, &context, "_osConfig.tmpdir"), "/tmp");
             assert_eq!(eval(&mut isolate, &context, "_osConfig.platform"), "linux");
@@ -3416,7 +3416,7 @@ export const file = new File([], "empty.txt");
                 r#"({
                     processConfig: {
                         cwd: "/app",
-                        env: { HOME: "/home/user" },
+                        env: { HOME: "/home/agentos" },
                         timing_mitigation: "none",
                         frozen_time_ms: null
                     }
@@ -3458,7 +3458,7 @@ export const file = new File([], "empty.txt");
                 r#"({
                     processConfig: "not-an-object",
                     osConfig: {
-                        homedir: "/home/user",
+                        homedir: "/home/agentos",
                         tmpdir: "/tmp",
                         platform: "linux",
                         arch: "x64"
@@ -3501,7 +3501,7 @@ export const file = new File([], "empty.txt");
                         frozen_time_ms: null
                     },
                     osConfig: {
-                        homedir: "/home/user",
+                        homedir: "/home/agentos",
                         tmpdir: "/tmp",
                         platform: "linux",
                         arch: "x64"
@@ -3543,7 +3543,7 @@ export const file = new File([], "empty.txt");
                         frozen_time_ms: null
                     },
                     osConfig: {
-                        homedir: "/home/user",
+                        homedir: "/home/agentos",
                         tmpdir: "/tmp",
                         platform: "linux",
                         arch: "x64"
@@ -3586,7 +3586,7 @@ export const file = new File([], "empty.txt");
                         frozen_time_ms: null
                     },
                     osConfig: {
-                        homedir: "/home/user",
+                        homedir: "/home/agentos",
                         tmpdir: "/tmp",
                         platform: "linux",
                         arch: "x64"
@@ -3625,12 +3625,12 @@ export const file = new File([], "empty.txt");
                 r#"({
                     processConfig: {
                         cwd: "/app",
-                        env: { HOME: "/home/user" },
+                        env: { HOME: "/home/agentos" },
                         timing_mitigation: "none",
                         frozen_time_ms: null
                     },
                     osConfig: {
-                        homedir: "/home/user",
+                        homedir: "/home/agentos",
                         tmpdir: "/tmp",
                         platform: "linux",
                         arch: "x64"
@@ -3648,7 +3648,7 @@ export const file = new File([], "empty.txt");
             assert_eq!(eval(&mut isolate, &context, "_processConfig.cwd"), "/app");
             assert_eq!(
                 eval(&mut isolate, &context, "_processConfig.env.HOME"),
-                "/home/user"
+                "/home/agentos"
             );
             assert!(eval_bool(
                 &mut isolate,

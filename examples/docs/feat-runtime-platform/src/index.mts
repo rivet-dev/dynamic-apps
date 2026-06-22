@@ -39,7 +39,7 @@ try {
 			// node:* builtin modules resolve and run inside the isolate
 			// (dynamic import() keeps this snippet a single expression body).
 			sha256,
-			joinedPath: join("/home/user", "report.txt"),
+			joinedPath: join("/home/agentos", "report.txt"),
 		});
 	`);
 

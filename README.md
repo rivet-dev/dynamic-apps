@@ -52,7 +52,7 @@ npm install secure-exec
 
 **2. Create a runtime**
 
-`NodeRuntime.create()` boots a fully virtualized VM behind the native sidecar. Guest code runs inside the kernel isolation boundary with no host escapes. All options are optional: `cwd` defaults to `/home/user`, and permissions default to a secure policy that denies network access (see step 4).
+`NodeRuntime.create()` boots a fully virtualized VM behind the native sidecar. Guest code runs inside the kernel isolation boundary with no host escapes. All options are optional: `cwd` defaults to `/workspace`, and permissions default to a secure policy that denies network access (see step 4).
 
 ```ts
 import { NodeRuntime } from "secure-exec";

@@ -509,7 +509,7 @@ fn no_secure_exec_crate_depends_on_agent_acp_session() {
             if key.is_empty() {
                 continue;
             }
-            // Only consider secure-exec / agent-os style crate names, and skip
+            // Only consider secure-exec / agentos style crate names, and skip
             // false positives like "tokio" containing none of the markers.
             for marker in banned_dep_markers {
                 if key.contains(marker) {

@@ -67,15 +67,15 @@ fn browser_sidecar_accepts_extension_signature() {
     let mut sidecar = BrowserSidecar::with_extensions(
         RecordingBridge::default(),
         BrowserSidecarConfig::default(),
-        vec![Box::new(SmokeExtension("dev.rivet.agent-os.browser-smoke"))],
+        vec![Box::new(SmokeExtension("dev.rivet.agentos.browser-smoke"))],
     )
     .expect("construct browser sidecar with extension");
 
     assert_eq!(sidecar.extension_count(), 1);
-    assert!(sidecar.has_extension("dev.rivet.agent-os.browser-smoke"));
+    assert!(sidecar.has_extension("dev.rivet.agentos.browser-smoke"));
 
     let error = sidecar
-        .register_extension(Box::new(SmokeExtension("dev.rivet.agent-os.browser-smoke")))
+        .register_extension(Box::new(SmokeExtension("dev.rivet.agentos.browser-smoke")))
         .expect_err("duplicate extension namespace should fail");
     assert!(error
         .to_string()
@@ -87,18 +87,18 @@ fn browser_sidecar_dispatches_extension_requests_by_namespace() {
     let mut sidecar = BrowserSidecar::with_extensions(
         RecordingBridge::default(),
         BrowserSidecarConfig::default(),
-        vec![Box::new(SmokeExtension("dev.rivet.agent-os.browser-smoke"))],
+        vec![Box::new(SmokeExtension("dev.rivet.agentos.browser-smoke"))],
     )
     .expect("construct browser sidecar with extension");
 
     let response = sidecar
         .dispatch_extension_request(BrowserExtensionRequest {
-            namespace: String::from("dev.rivet.agent-os.browser-smoke"),
+            namespace: String::from("dev.rivet.agentos.browser-smoke"),
             payload: b"ping".to_vec(),
         })
         .expect("dispatch extension request");
-    assert_eq!(response.namespace, "dev.rivet.agent-os.browser-smoke");
-    assert_eq!(response.payload, b"dev.rivet.agent-os.browser-smoke:ping");
+    assert_eq!(response.namespace, "dev.rivet.agentos.browser-smoke");
+    assert_eq!(response.payload, b"dev.rivet.agentos.browser-smoke:ping");
 
     let error = sidecar
         .dispatch_extension_request(BrowserExtensionRequest {
@@ -116,7 +116,7 @@ fn browser_extension_context_exposes_vm_filesystem_primitives() {
     let mut sidecar = BrowserSidecar::with_extensions(
         RecordingBridge::default(),
         BrowserSidecarConfig::default(),
-        vec![Box::new(SmokeExtension("dev.rivet.agent-os.browser-smoke"))],
+        vec![Box::new(SmokeExtension("dev.rivet.agentos.browser-smoke"))],
     )
     .expect("construct browser sidecar with extension");
     sidecar
@@ -125,7 +125,7 @@ fn browser_extension_context_exposes_vm_filesystem_primitives() {
 
     let response = sidecar
         .dispatch_extension_request(BrowserExtensionRequest {
-            namespace: String::from("dev.rivet.agent-os.browser-smoke"),
+            namespace: String::from("dev.rivet.agentos.browser-smoke"),
             payload: b"context-fs".to_vec(),
         })
         .expect("dispatch extension request through context");

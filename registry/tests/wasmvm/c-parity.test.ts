@@ -885,7 +885,7 @@ describeIf(!skipReason(), 'C parity: native vs WASM', { timeout: 30_000 }, () =>
 
   itIf(!tier5Skip, 'json_parse: cJSON parse and format parity', async () => {
     const sampleJson = JSON.stringify({
-      name: 'agent-os',
+      name: 'agentos',
       version: 2,
       enabled: true,
       tags: ['alpha', 'beta'],
@@ -902,7 +902,7 @@ describeIf(!skipReason(), 'C parity: native vs WASM', { timeout: 30_000 }, () =>
     expect(wasm.stdout).toBe(native.stdout);
     expect(normalizeStderr(wasm.stderr)).toBe(normalizeStderr(native.stderr));
     // Verify key structural elements are present
-    expect(wasm.stdout).toContain('"name": "agent-os"');
+    expect(wasm.stdout).toContain('"name": "agentos"');
     expect(wasm.stdout).toContain('"enabled": true');
     expect(wasm.stdout).toContain('"timeout": null');
     expect(wasm.stdout).toContain('"ratio": 3.14');

@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 
 pub(crate) const NODE_COMPILE_CACHE_ENV: &str = "NODE_COMPILE_CACHE";
 pub(crate) const NODE_DISABLE_COMPILE_CACHE_ENV: &str = "NODE_DISABLE_COMPILE_CACHE";
-pub(crate) const NODE_FROZEN_TIME_ENV: &str = "AGENT_OS_FROZEN_TIME_MS";
-pub(crate) const NODE_SANDBOX_ROOT_ENV: &str = "AGENT_OS_SANDBOX_ROOT";
+pub(crate) const NODE_FROZEN_TIME_ENV: &str = "AGENTOS_FROZEN_TIME_MS";
+pub(crate) const NODE_SANDBOX_ROOT_ENV: &str = "AGENTOS_SANDBOX_ROOT";
 
 pub(crate) fn env_flag_enabled(env: &BTreeMap<String, String>, key: &str) -> bool {
     env.get(key).is_some_and(|value| value == "1")

@@ -14,7 +14,10 @@ signal-hook = "0.3"
 libc = "0.2"
 ciborium = "0.2"
 serde = "1.0"
-openssl = "0.10"
+# `vendored` builds OpenSSL from source → self-contained binary with no
+# system-openssl discovery on any runner (ubuntu/macOS). openssl backs the
+# guest crypto runtime (RSA/EC/DH/AES), so it cannot be a TLS-only stack.
+openssl = { version = "0.10", features = ["vendored"] }
 
 [[test]]
 name = "v8_bridge_build"

@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::tempdir;
 
-const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENT_OS_PYTHON_WARMUP_METRICS__:";
+const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_PYTHON_WARMUP_METRICS__:";
 
 fn setup_engine() -> (PythonExecutionEngine, String, PathBuf) {
     let mut engine = PythonExecutionEngine::default();
@@ -36,7 +36,7 @@ fn run_python_execution(
             code: code.to_string(),
             file_path: None,
             env: BTreeMap::from([(
-                String::from("AGENT_OS_PYTHON_WARMUP_DEBUG"),
+                String::from("AGENTOS_PYTHON_WARMUP_DEBUG"),
                 String::from("1"),
             )]),
             cwd: cwd.to_path_buf(),

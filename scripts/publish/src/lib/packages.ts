@@ -22,7 +22,7 @@ export const EXCLUDED = new Set<string>([
 	"publish",
 	// @secure-exec/core vendors the WASM command binaries (packages/core/commands)
 	// and its `prepack --require` refuses to ship without them. CI no longer
-	// builds WASM, so core — like the @agent-os-pkgs/* registry software — is
+	// builds WASM, so core — like the @agentos-software/* registry software — is
 	// always published MANUALLY: build the commands locally, then publish core at
 	// the matching release version so dependents resolve. See CLAUDE.md →
 	// "Publishing".

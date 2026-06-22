@@ -124,7 +124,7 @@ const DEFAULT_PERMISSIONS: Permissions = {
 export interface NodeRuntimeCreateOptions {
 	/** Environment variables visible to guest processes. */
 	env?: Record<string, string>;
-	/** Initial working directory for guest processes. Defaults to `/home/user`. */
+	/** Initial working directory for guest processes. Defaults to `/workspace`. */
 	cwd?: string;
 	/**
 	 * Permission policy for the VM. Merged over a secure default that **denies

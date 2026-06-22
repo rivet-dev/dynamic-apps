@@ -567,7 +567,7 @@ try {
     assert_eq!(output.get("mode"), Some(&json!("error")));
     assert_eq!(
         output.get("code"),
-        Some(&json!("ERR_AGENT_OS_MODULE_FORMAT_BRIDGE_MISSING"))
+        Some(&json!("ERR_AGENTOS_MODULE_FORMAT_BRIDGE_MISSING"))
     );
     let message = output
         .get("message")
@@ -824,14 +824,14 @@ console.log(JSON.stringify({
 
 fn runtime_require_json_returns_the_parsed_object() {
     let fixture = Fixture::new();
-    fixture.write("data.json", r#"{ "name": "agent-os", "ok": true }"#);
+    fixture.write("data.json", r#"{ "name": "agentos", "ok": true }"#);
     fixture.write(
         "entry.cjs",
         r#"console.log(JSON.stringify(require("./data.json")));"#,
     );
 
     let output = run_guest_json(&fixture, "./entry.cjs");
-    assert_eq!(output, json!({ "name": "agent-os", "ok": true }));
+    assert_eq!(output, json!({ "name": "agentos", "ok": true }));
 }
 
 fn runtime_require_invalid_json_surfaces_a_parse_error() {
@@ -1075,7 +1075,7 @@ console.log(JSON.stringify({ answer, label }));
 
 fn runtime_esm_json_imports_return_the_parsed_object() {
     let fixture = Fixture::new();
-    fixture.write("data.json", r#"{ "name": "agent-os", "ok": true }"#);
+    fixture.write("data.json", r#"{ "name": "agentos", "ok": true }"#);
     fixture.write(
         "entry.mjs",
         r#"
@@ -1085,7 +1085,7 @@ console.log(JSON.stringify(data));
     );
 
     let output = run_guest_json(&fixture, "./entry.mjs");
-    assert_eq!(output, json!({ "name": "agent-os", "ok": true }));
+    assert_eq!(output, json!({ "name": "agentos", "ok": true }));
 }
 
 fn runtime_intl_datetime_format_does_not_crash() {

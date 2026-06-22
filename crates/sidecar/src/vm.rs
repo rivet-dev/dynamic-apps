@@ -72,7 +72,7 @@ const SHADOW_ROOT_BOOTSTRAP_DIRS: &[(&str, u32)] = &[
     ("/mnt", 0o755),
     ("/media", 0o755),
     ("/home", 0o755),
-    ("/home/user", 0o755),
+    ("/home/agentos", 0o755),
     ("/usr", 0o755),
     ("/usr/bin", 0o755),
     ("/usr/games", 0o755),
@@ -95,6 +95,11 @@ const SHADOW_ROOT_BOOTSTRAP_DIRS: &[(&str, u32)] = &[
     ("/var/spool", 0o755),
     ("/var/tmp", 0o1777),
     ("/etc/agentos", 0o755),
+    // Non-Alpine default agent working directory (also present in the base
+    // filesystem snapshot); scaffold it here so it exists even when the
+    // default base layer is disabled. It is the default cwd and mount root,
+    // kept separate from $HOME (/home/agentos).
+    ("/workspace", 0o755),
 ];
 
 pub(crate) const DEFAULT_GUEST_PATH_ENV: &str =
@@ -1542,7 +1547,7 @@ fn dedupe_overlay_bootstrap_entries(
 fn resolve_guest_cwd(value: Option<&String>) -> String {
     value
         .map(|path| normalize_guest_path(path))
-        .unwrap_or_else(|| String::from("/home/user"))
+        .unwrap_or_else(|| String::from("/workspace"))
 }
 
 fn resolve_vm_cwds(
@@ -2115,7 +2120,7 @@ mod tests {
             filesystem,
             MountOptions::new(native_root.plugin.id.clone()),
         );
-        assert!(mount_table.exists("/home/user"));
+        assert!(mount_table.exists("/home/agentos"));
         assert_eq!(
             mount_table
                 .read_file("/etc/agentos/boot.txt")
@@ -2123,7 +2128,7 @@ mod tests {
             b"booted".to_vec()
         );
         mount_table
-            .write_file("/home/user/persist.txt", b"persisted".to_vec())
+            .write_file("/home/agentos/persist.txt", b"persisted".to_vec())
             .expect("write through sqlite root should succeed");
         let mut kernel_config = KernelVmConfig::new("vm-test");
         kernel_config.permissions = Permissions::allow_all();
@@ -2151,7 +2156,7 @@ mod tests {
         let mut reopened = MountTable::new_boxed_root(reopened, MountOptions::new("chunked_local"));
         assert_eq!(
             reopened
-                .read_file("/home/user/persist.txt")
+                .read_file("/home/agentos/persist.txt")
                 .expect("persisted file should survive reopen"),
             b"persisted".to_vec()
         );
@@ -2174,7 +2179,7 @@ mod tests {
             entries: vec![FilesystemEntry::file("/large.txt", b"four".to_vec())],
         };
         let loaded_snapshot = FilesystemSnapshot {
-            format: String::from("agent_os_filesystem_snapshot_v1"),
+            format: String::from("agentos_filesystem_snapshot_v1"),
             bytes: encode_snapshot(&snapshot).expect("encode restored snapshot"),
         };
         let resource_limits = ResourceLimits {

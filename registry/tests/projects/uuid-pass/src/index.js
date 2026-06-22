@@ -7,7 +7,7 @@ const ver4 = version(id4);
 
 // Deterministic v5 UUID with DNS namespace
 const DNS_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-const id5 = v5("agent-os.test", DNS_NAMESPACE);
+const id5 = v5("agentos.test", DNS_NAMESPACE);
 const isValid5 = validate(id5);
 const ver5 = version(id5);
 

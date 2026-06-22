@@ -540,7 +540,7 @@ fn drain_child_output(child: &mut HostChildRecord) {
 
 fn encode_guest_bytes(bytes: &[u8]) -> Value {
     json!({
-        "__agentOsType": "bytes",
+        "__agentOSType": "bytes",
         "base64": base64::engine::general_purpose::STANDARD.encode(bytes),
     })
 }
@@ -754,7 +754,7 @@ fn javascript_execution_uses_v8_runtime_without_spawning_guest_node_binary() {
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set_path("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set_path("AGENTOS_NODE_BINARY", &fake_node_path);
 
     let mut engine = JavascriptExecutionEngine::default();
     let context = engine.create_context(CreateJavascriptContextRequest {
@@ -807,7 +807,7 @@ fn javascript_execution_virtual_os_identity_comes_from_guest_runtime_not_env() {
         .start_execution(StartJavascriptExecutionRequest {
             limits: Default::default(),
             // os.* identity rides the typed guest_runtime; the env carries
-            // contradictory values to prove the AGENT_OS_VIRTUAL_OS_* knobs are
+            // contradictory values to prove the AGENTOS_VIRTUAL_OS_* knobs are
             // inert.
             guest_runtime: secure_exec_execution::GuestRuntimeConfig {
                 os_cpu_count: Some(7),
@@ -820,11 +820,11 @@ fn javascript_execution_virtual_os_identity_comes_from_guest_runtime_not_env() {
             argv: vec![String::from("./entry.mjs")],
             env: BTreeMap::from([
                 (
-                    String::from("AGENT_OS_VIRTUAL_OS_CPU_COUNT"),
+                    String::from("AGENTOS_VIRTUAL_OS_CPU_COUNT"),
                     String::from("99"),
                 ),
                 (
-                    String::from("AGENT_OS_VIRTUAL_OS_TOTALMEM"),
+                    String::from("AGENTOS_VIRTUAL_OS_TOTALMEM"),
                     String::from("123"),
                 ),
             ]),
@@ -859,7 +859,7 @@ fn javascript_execution_virtualizes_process_metadata_for_inline_v8_code() {
         .start_execution(StartJavascriptExecutionRequest {
             limits: Default::default(),
             // Identity rides the typed guest_runtime; the env carries different
-            // values to prove the `AGENT_OS_VIRTUAL_PROCESS_*` knobs are inert.
+            // values to prove the `AGENTOS_VIRTUAL_PROCESS_*` knobs are inert.
             guest_runtime: secure_exec_execution::GuestRuntimeConfig {
                 virtual_pid: Some(4242),
                 virtual_ppid: Some(41),
@@ -870,11 +870,11 @@ fn javascript_execution_virtualizes_process_metadata_for_inline_v8_code() {
             argv: vec![String::from("./entry.mjs"), String::from("alpha")],
             env: BTreeMap::from([
                 (
-                    String::from("AGENT_OS_VIRTUAL_PROCESS_PID"),
+                    String::from("AGENTOS_VIRTUAL_PROCESS_PID"),
                     String::from("1"),
                 ),
                 (
-                    String::from("AGENT_OS_VIRTUAL_PROCESS_PPID"),
+                    String::from("AGENTOS_VIRTUAL_PROCESS_PPID"),
                     String::from("2"),
                 ),
             ]),
@@ -2119,7 +2119,7 @@ if (summary.rinfo.address !== "127.0.0.1" || summary.rinfo.port !== 7) {
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
             env: BTreeMap::from([(
-                String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+                String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
                 String::from("[\"dgram\"]"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -2165,7 +2165,7 @@ if (summary.rinfo.address !== "127.0.0.1" || summary.rinfo.port !== 7) {
         vec![
             json!("udp-1"),
             json!({
-                "__agentOsType": "bytes",
+                "__agentOSType": "bytes",
                 "base64": "cGluZw==",
             }),
             json!({
@@ -2195,7 +2195,7 @@ if (summary.rinfo.address !== "127.0.0.1" || summary.rinfo.port !== 7) {
             json!({
                 "type": "message",
                 "data": {
-                    "__agentOsType": "bytes",
+                    "__agentOSType": "bytes",
                     "base64": "cG9uZw==",
                 },
                 "remoteAddress": "127.0.0.1",
@@ -2327,7 +2327,7 @@ fn javascript_execution_resolves_pnpm_store_dependencies_from_symlinked_entrypoi
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("/root/node_modules/pkg/dist/index.js")],
-            env: BTreeMap::from([(String::from("AGENT_OS_GUEST_PATH_MAPPINGS"), guest_mappings)]),
+            env: BTreeMap::from([(String::from("AGENTOS_GUEST_PATH_MAPPINGS"), guest_mappings)]),
             cwd: temp.path().to_path_buf(),
             inline_code: None,
         })
@@ -2405,7 +2405,7 @@ fn javascript_execution_resolves_dependencies_from_package_specific_symlink_moun
             vm_id: String::from("vm-js"),
             context_id: context.context_id,
             argv: vec![String::from("/root/node_modules/pkg/dist/index.js")],
-            env: BTreeMap::from([(String::from("AGENT_OS_GUEST_PATH_MAPPINGS"), guest_mappings)]),
+            env: BTreeMap::from([(String::from("AGENTOS_GUEST_PATH_MAPPINGS"), guest_mappings)]),
             cwd: temp.path().to_path_buf(),
             inline_code: None,
         })
@@ -4307,15 +4307,15 @@ fn js_runtime_bare_platform_strips_all_host_globals() {
     // constructors / property-name tricks. Language + WebAssembly remain.
     assert_js_runtime_guest_ok(
         js_runtime_env(&[
-            ("AGENT_OS_JS_PLATFORM", "bare"),
-            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ("AGENTOS_JS_PLATFORM", "bare"),
+            ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
         ]),
         r#"
         const banned = [
           "process","Buffer","require","module","exports","__dirname","__filename","global",
           "fetch","Headers","Request","Response","URL","URLSearchParams","crypto","structuredClone",
           "console","setTimeout","setInterval","setImmediate","queueMicrotask",
-          "_processConfig","__agentOsProcessConfigEnv",
+          "_processConfig","__agentOSProcessConfigEnv",
         ];
         for (const name of banned) {
           if (typeof globalThis[name] !== "undefined") throw new Error("leaked global: " + name);
@@ -4333,11 +4333,11 @@ fn js_runtime_bare_platform_strips_all_host_globals() {
         }
         // The allow-list plumbing must leave no reachable global: the shim calls the
         // one-shot init fn and deletes it, and the old reachable allow-list is gone.
-        if (typeof globalThis.__agentOsBuiltinAllowlist !== "undefined") {
-          throw new Error("__agentOsBuiltinAllowlist is still reachable");
+        if (typeof globalThis.__agentOSBuiltinAllowlist !== "undefined") {
+          throw new Error("__agentOSBuiltinAllowlist is still reachable");
         }
-        if (typeof globalThis.__agentOsInitJsRuntime !== "undefined") {
-          throw new Error("__agentOsInitJsRuntime is still reachable");
+        if (typeof globalThis.__agentOSInitJsRuntime !== "undefined") {
+          throw new Error("__agentOSInitJsRuntime is still reachable");
         }
         "#,
     );
@@ -4346,11 +4346,11 @@ fn js_runtime_bare_platform_strips_all_host_globals() {
 fn js_runtime_browser_platform_exposes_web_without_node() {
     assert_js_runtime_guest_ok(
         js_runtime_env(&[
-            ("AGENT_OS_JS_PLATFORM", "browser"),
-            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ("AGENTOS_JS_PLATFORM", "browser"),
+            ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
         ]),
         r#"
-        for (const name of ["process","Buffer","require","module","_processConfig","__agentOsProcessConfigEnv"]) {
+        for (const name of ["process","Buffer","require","module","_processConfig","__agentOSProcessConfigEnv"]) {
           if (typeof globalThis[name] !== "undefined") throw new Error("node global leaked: " + name);
         }
         for (const name of ["fetch","URL","TextEncoder","TextDecoder","structuredClone","console","setTimeout"]) {
@@ -4377,8 +4377,8 @@ fn js_runtime_browser_platform_exposes_web_without_node() {
 fn js_runtime_neutral_platform_drops_web_keeps_universal() {
     assert_js_runtime_guest_ok(
         js_runtime_env(&[
-            ("AGENT_OS_JS_PLATFORM", "neutral"),
-            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ("AGENTOS_JS_PLATFORM", "neutral"),
+            ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
         ]),
         r#"
         for (const name of ["process","Buffer","require","fetch","URL","crypto","structuredClone"]) {
@@ -4392,12 +4392,12 @@ fn js_runtime_neutral_platform_drops_web_keeps_universal() {
 }
 
 fn js_runtime_module_resolution_none_denies_all_imports() {
-    // AGENT_OS_JS_BUILTIN_ALLOWLIST=[] denies builtins; moduleResolution=none denies
+    // AGENTOS_JS_BUILTIN_ALLOWLIST=[] denies builtins; moduleResolution=none denies
     // bare AND relative specifiers via static import, dynamic import, and require.
     assert_js_runtime_guest_ok(
         js_runtime_env(&[
-            ("AGENT_OS_JS_MODULE_RESOLUTION", "none"),
-            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ("AGENTOS_JS_MODULE_RESOLUTION", "none"),
+            ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
         ]),
         r#"
         let n = 0;
@@ -4429,8 +4429,8 @@ fn js_runtime_module_resolution_relative_allows_local_denies_bare() {
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
             env: js_runtime_env(&[
-                ("AGENT_OS_JS_MODULE_RESOLUTION", "relative"),
-                ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+                ("AGENTOS_JS_MODULE_RESOLUTION", "relative"),
+                ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
             ]),
             cwd: temp.path().to_path_buf(),
             inline_code: Some(String::from(
@@ -4459,7 +4459,7 @@ fn js_runtime_node_platform_allow_list_restricts_builtins() {
     // platform=node with an explicit allow-list of just "path": node:path resolves,
     // node:fs is denied.
     assert_js_runtime_guest_ok(
-        js_runtime_env(&[("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[\"path\"]")]),
+        js_runtime_env(&[("AGENTOS_JS_BUILTIN_ALLOWLIST", "[\"path\"]")]),
         r#"
         const path = await import("node:path");
         if (typeof path.join !== "function") throw new Error("node:path should be allowed");
@@ -4474,7 +4474,7 @@ fn js_runtime_browser_loads_cjs_npm_package() {
     // Regression guard: the per-execution shim must NOT scrub the internal CJS
     // helpers under browser, so an npm CommonJS package still loads via the
     // ESM->CJS interop path. node resolution is the browser default (do not set
-    // AGENT_OS_JS_MODULE_RESOLUTION).
+    // AGENTOS_JS_MODULE_RESOLUTION).
     let temp = tempdir().expect("create temp dir");
     let pkg_dir = temp.path().join("node_modules").join("demo-pkg");
     std::fs::create_dir_all(&pkg_dir).expect("create demo-pkg dir");
@@ -4502,8 +4502,8 @@ fn js_runtime_browser_loads_cjs_npm_package() {
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
             env: js_runtime_env(&[
-                ("AGENT_OS_JS_PLATFORM", "browser"),
-                ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+                ("AGENTOS_JS_PLATFORM", "browser"),
+                ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
             ]),
             cwd: temp.path().to_path_buf(),
             inline_code: Some(String::from(
@@ -4529,8 +4529,8 @@ fn js_runtime_browser_fetch_is_callable() {
     // rather than throwing synchronously or being undefined.
     assert_js_runtime_guest_ok(
         js_runtime_env(&[
-            ("AGENT_OS_JS_PLATFORM", "browser"),
-            ("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[]"),
+            ("AGENTOS_JS_PLATFORM", "browser"),
+            ("AGENTOS_JS_BUILTIN_ALLOWLIST", "[]"),
         ]),
         r#"
         if (typeof fetch !== "function") throw new Error("fetch missing");
@@ -4554,7 +4554,7 @@ fn js_runtime_browser_fetch_is_callable() {
 // tight busy loop burns its budget quickly and is killed.
 //
 // This is the BOUNDED variant: it sets a small explicit CPU budget via
-// `AGENT_OS_V8_CPU_TIME_LIMIT_MS` so the watchdog fires fast. The guest run is
+// `AGENTOS_V8_CPU_TIME_LIMIT_MS` so the watchdog fires fast. The guest run is
 // fenced behind a worker thread + recv timeout so a regression surfaces as a
 // clear failure instead of a CI hang.
 fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
@@ -4580,7 +4580,7 @@ fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
             argv: vec![String::from("./entry.mjs")],
             // Small bounded budget so the watchdog terminates the runaway fast.
             env: BTreeMap::from([(
-                String::from("AGENT_OS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
                 String::from("750"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -4663,7 +4663,7 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
             // CPU budget (300ms) much SMALLER than the wall time the guest spends
             // awaiting (~1.5s). A correct CPU-time budget excludes the idle wait.
             env: BTreeMap::from([(
-                String::from("AGENT_OS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
                 String::from("300"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -4719,7 +4719,7 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
     }
 }
 
-// SE-EXEC-04 (F-001): with NO `AGENT_OS_V8_CPU_TIME_LIMIT_MS` set, the
+// SE-EXEC-04 (F-001): with NO `AGENTOS_V8_CPU_TIME_LIMIT_MS` set, the
 // CPU-budget watchdog uses the bounded default. A short CPU-bound guest still
 // runs to completion because it stays below that generous active-CPU budget. We
 // deliberately use a SHORT, self-terminating busy loop (not an infinite one) so
@@ -4807,7 +4807,7 @@ fn javascript_default_cpu_budget_allows_short_cpu_work() {
 }
 
 // WALL-CLOCK BACKSTOP (opt-in, complements the CPU-time budget): with
-// `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` set, a guest that exceeds the wall-clock limit
+// `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` set, a guest that exceeds the wall-clock limit
 // must be terminated and the result attributed to the WALL-CLOCK reason. Crucially,
 // the wall-clock limit counts elapsed REAL time INCLUDING idle/await, so a guest
 // that merely AWAITS past the limit (burning almost no CPU) is still killed — this
@@ -4844,7 +4844,7 @@ fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
             // it must terminate the guest even though it burns almost no CPU. No CPU
             // budget is set, proving the two knobs are independent.
             env: BTreeMap::from([(
-                String::from("AGENT_OS_V8_WALL_CLOCK_LIMIT_MS"),
+                String::from("AGENTOS_V8_WALL_CLOCK_LIMIT_MS"),
                 String::from("300"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -4911,7 +4911,7 @@ fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
 // WALL-CLOCK / CPU-BUDGET INDEPENDENCE: setting ONLY the CPU budget must NOT impose
 // any wall-clock limit. A guest that awaits past a window which the wall-clock limit
 // (if it were armed) would have killed, but burns almost no CPU, must run to
-// completion when only `AGENT_OS_V8_CPU_TIME_LIMIT_MS` is set. This confirms the CPU
+// completion when only `AGENTOS_V8_CPU_TIME_LIMIT_MS` is set. This confirms the CPU
 // budget does not secretly behave like a wall-clock timer and that the knobs are
 // independent.
 fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
@@ -4939,7 +4939,7 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
             // time but burns no CPU, so neither guard should fire — proving the CPU
             // budget alone does NOT arm a wall-clock limit.
             env: BTreeMap::from([(
-                String::from("AGENT_OS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
                 String::from("300"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -4996,7 +4996,7 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
     }
 }
 
-// WALL-CLOCK OPT-IN: with no `AGENT_OS_V8_WALL_CLOCK_LIMIT_MS` set, there is no
+// WALL-CLOCK OPT-IN: with no `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` set, there is no
 // wall-clock limit. A guest that awaits well past any default a former
 // wall-clock timer might have imposed must run to completion. This guards the
 // requirement that long-lived ACP adapters (which run indefinitely on
@@ -5088,7 +5088,7 @@ fn javascript_no_time_limit_when_neither_env_set() {
 // the offending isolate, NOT by letting V8 fatal-abort (SIGTRAP) the process-global
 // runtime and take down every concurrent tenant. Before the fix, no
 // near-heap-limit/OOM callback was registered, so reaching the operator-configured
-// `AGENT_OS_V8_HEAP_LIMIT_MB` cap triggered V8's default fatal-OOM abort.
+// `AGENTOS_V8_HEAP_LIMIT_MB` cap triggered V8's default fatal-OOM abort.
 //
 // BOUNDED safeguard variant: with a small heap cap the guard fires fast, terminates
 // the isolate, and the run returns a nonzero exit WITHOUT aborting the process. The
@@ -5118,7 +5118,7 @@ fn javascript_heap_allocation_bomb_is_capped_by_oom_guard() {
             argv: vec![String::from("./entry.mjs")],
             // Small bounded heap cap so the OOM guard fires quickly. The cap now
             // rides the typed `limits` field (migrated off the dead
-            // `AGENT_OS_V8_HEAP_LIMIT_MB` env knob).
+            // `AGENTOS_V8_HEAP_LIMIT_MB` env knob).
             env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             inline_code: Some(String::from(
@@ -5190,7 +5190,7 @@ console.log("BOMB_COMPLETED_WITHOUT_CAP");
 fn javascript_execution_denies_dns_and_subpaths_on_every_resolution_path() {
     assert_js_runtime_guest_ok(
         // node platform, allow-list excludes `dns` (only `path`/`module`).
-        js_runtime_env(&[("AGENT_OS_JS_BUILTIN_ALLOWLIST", "[\"path\",\"module\"]")]),
+        js_runtime_env(&[("AGENTOS_JS_BUILTIN_ALLOWLIST", "[\"path\",\"module\"]")]),
         r#"
         import { createRequire } from "node:module";
         const require = createRequire(import.meta.url);

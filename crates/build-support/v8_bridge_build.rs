@@ -5,11 +5,11 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const ENV_NODE: &str = "SECURE_EXEC_NODE";
-const LEGACY_ENV_NODE: &str = "AGENT_OS_NODE";
+const LEGACY_ENV_NODE: &str = "AGENTOS_NODE";
 const ENV_BUILD_SCRIPT: &str = "SECURE_EXEC_V8_BRIDGE_BUILD_SCRIPT";
-const LEGACY_ENV_BUILD_SCRIPT: &str = "AGENT_OS_V8_BRIDGE_BUILD_SCRIPT";
+const LEGACY_ENV_BUILD_SCRIPT: &str = "AGENTOS_V8_BRIDGE_BUILD_SCRIPT";
 const ENV_DEBUG: &str = "SECURE_EXEC_GENERATED_ASSET_DEBUG";
-const LEGACY_ENV_DEBUG: &str = "AGENT_OS_GENERATED_ASSET_DEBUG";
+const LEGACY_ENV_DEBUG: &str = "AGENTOS_GENERATED_ASSET_DEBUG";
 const DEFAULT_BUILD_SCRIPTS: &[&str] = &[
     "packages/build-tools/scripts/build-v8-bridge.mjs",
     "packages/secure-exec-core/scripts/build-v8-bridge.mjs",

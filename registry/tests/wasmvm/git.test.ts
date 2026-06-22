@@ -369,7 +369,7 @@ describeIf(hasGit, 'git command', () => {
   it('clone rejects SSH-style remotes with a typed unsupported-subcommand error', async () => {
     ({ kernel, dispose } = await createGitKernel());
 
-    const result = await kernel.exec('git clone git@github.com:rivet-dev/agent-os.git /tmp/clone');
+    const result = await kernel.exec('git clone git@github.com:rivet-dev/agentos.git /tmp/clone');
     expect(result.exitCode).not.toBe(0);
     expect(result.stderr).toContain('GitSubcommandUnsupported');
     expect(result.stderr).toContain('git clone');

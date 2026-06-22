@@ -10,11 +10,11 @@ use std::thread;
 use std::time::{Duration, Instant};
 use tempfile::tempdir;
 
-const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENT_OS_PYTHON_WARMUP_METRICS__:";
-const PYTHON_EXECUTION_TIMEOUT_MS_ENV: &str = "AGENT_OS_PYTHON_EXECUTION_TIMEOUT_MS";
-const PYTHON_MAX_OLD_SPACE_MB_ENV: &str = "AGENT_OS_PYTHON_MAX_OLD_SPACE_MB";
-const PYTHON_OUTPUT_BUFFER_MAX_BYTES_ENV: &str = "AGENT_OS_PYTHON_OUTPUT_BUFFER_MAX_BYTES";
-const PYTHON_VFS_RPC_TIMEOUT_MS_ENV: &str = "AGENT_OS_PYTHON_VFS_RPC_TIMEOUT_MS";
+const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_PYTHON_WARMUP_METRICS__:";
+const PYTHON_EXECUTION_TIMEOUT_MS_ENV: &str = "AGENTOS_PYTHON_EXECUTION_TIMEOUT_MS";
+const PYTHON_MAX_OLD_SPACE_MB_ENV: &str = "AGENTOS_PYTHON_MAX_OLD_SPACE_MB";
+const PYTHON_OUTPUT_BUFFER_MAX_BYTES_ENV: &str = "AGENTOS_PYTHON_OUTPUT_BUFFER_MAX_BYTES";
+const PYTHON_VFS_RPC_TIMEOUT_MS_ENV: &str = "AGENTOS_PYTHON_VFS_RPC_TIMEOUT_MS";
 
 #[derive(Debug, Clone, PartialEq)]
 struct PythonPrewarmMetrics {
@@ -36,7 +36,7 @@ struct PythonStartupMetrics {
 }
 
 fn assert_node_available() {
-    let binary = std::env::var("AGENT_OS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
+    let binary = std::env::var("AGENTOS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
     let output = Command::new(binary)
         .arg("--version")
         .output()
@@ -246,7 +246,7 @@ export async function loadPyodide(options) {
     assert_eq!(exit_code, 0);
     assert_eq!(stdout, "stdout:print('hello')\n");
     assert!(
-        stderr.starts_with("stderr:/__agent_os_pyodide/"),
+        stderr.starts_with("stderr:/__agentos_pyodide/"),
         "unexpected stderr: {stderr}"
     );
 }
@@ -419,7 +419,7 @@ export async function loadPyodide() {
         pyodide_dist_path: pyodide_dir.clone(),
     });
     let debug_env = BTreeMap::from([(
-        String::from("AGENT_OS_PYTHON_WARMUP_DEBUG"),
+        String::from("AGENTOS_PYTHON_WARMUP_DEBUG"),
         String::from("1"),
     )]);
 
@@ -615,7 +615,7 @@ export async function loadPyodide(options) {
   return {
     setStdin(_stdin) {},
     async runPythonAsync(code) {
-      const rpc = globalThis.__agentOsPythonVfsRpc;
+      const rpc = globalThis.__agentOSPythonVfsRpc;
       await rpc.fsMkdir('/workspace', { recursive: true });
       await rpc.fsWrite(
         '/workspace/note.txt',
@@ -904,7 +904,7 @@ export async function loadPyodide() {
   return {
     setStdin(_stdin) {},
     async runPythonAsync() {
-      globalThis.__agentOsPythonVfsRpc.fsReadSync('/workspace/never.txt');
+      globalThis.__agentOSPythonVfsRpc.fsReadSync('/workspace/never.txt');
     },
   };
 }
@@ -985,7 +985,7 @@ export async function loadPyodide() {
 
     let stderr = String::from_utf8(stderr).expect("stderr utf8");
     assert!(
-        stderr.contains("ERR_AGENT_OS_PYTHON_VFS_RPC_TIMEOUT")
+        stderr.contains("ERR_AGENTOS_PYTHON_VFS_RPC_TIMEOUT")
             || stderr.contains("timed out waiting for a response")
             || stderr.contains("timed out after 50ms"),
         "unexpected stderr: {stderr}"

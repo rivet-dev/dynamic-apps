@@ -47,7 +47,7 @@ test('rejects Agent OS package dependencies', () => {
 			encoding: 'utf8',
 		});
 		assert.notEqual(result.status, 0);
-		assert.match(result.stderr, /@rivet-dev\/agent-os-core/);
+		assert.match(result.stderr, /@rivet-dev\/agentos-core/);
 	});
 });
 
@@ -56,11 +56,11 @@ test('rejects Agent OS Rust crate references', () => {
 		writeJson(root, 'package.json', { name: 'secure-exec-workspace' });
 		const cargoPath = join(root, 'crates/sidecar/Cargo.toml');
 		mkdirSync(dirname(cargoPath), { recursive: true });
-		writeFileSync(cargoPath, '[dependencies]\nagent-os-sidecar = { path = "../sidecar" }\n');
+		writeFileSync(cargoPath, '[dependencies]\nagentos-sidecar = { path = "../sidecar" }\n');
 		const result = spawnSync(process.execPath, [scriptPath, '--root', root], {
 			encoding: 'utf8',
 		});
 		assert.notEqual(result.status, 0);
-		assert.match(result.stderr, /agent-os-sidecar/);
+		assert.match(result.stderr, /agentos-sidecar/);
 	});
 });

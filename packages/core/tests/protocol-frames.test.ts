@@ -40,7 +40,7 @@ describe("protocol frame conversion", () => {
 			ownership,
 			payload: {
 				type: "authenticate",
-				client_name: "agent-os",
+				client_name: "agentos",
 				auth_token: "token",
 				protocol_version: 7,
 				bridge_version: 1,
@@ -129,7 +129,7 @@ describe("protocol frame conversion", () => {
 				ownership,
 				payload: {
 					type: "authenticate",
-					client_name: "agent-os",
+					client_name: "agentos",
 					auth_token: "token",
 					protocol_version: 7,
 					bridge_version: 1,

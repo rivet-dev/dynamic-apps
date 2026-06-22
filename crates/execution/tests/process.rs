@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 use tempfile::tempdir;
 
 fn assert_node_available() {
-    let binary = std::env::var("AGENT_OS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
+    let binary = std::env::var("AGENTOS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
     let output = Command::new(binary)
         .arg("--version")
         .output()

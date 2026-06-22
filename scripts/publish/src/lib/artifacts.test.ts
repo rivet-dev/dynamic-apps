@@ -37,7 +37,7 @@ test("supports secure-exec release artifact namespace", () => {
 
 test("rejects invalid release artifact namespaces", () => {
 	assert.throws(
-		() => releaseArtifactNamespace({ RELEASE_ARTIFACT_NAMESPACE: "../agent-os" }),
+		() => releaseArtifactNamespace({ RELEASE_ARTIFACT_NAMESPACE: "../agentos" }),
 		/invalid RELEASE_ARTIFACT_NAMESPACE/,
 	);
 });

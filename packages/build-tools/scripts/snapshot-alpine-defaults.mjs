@@ -191,12 +191,12 @@ function main() {
 		DEFAULT_IMAGE,
 		"sh",
 		"-lc",
-		"adduser -D user >/dev/null 2>&1 && sleep infinity",
+		"adduser -D agentos >/dev/null 2>&1 && sleep infinity",
 	]).trim();
 
 	try {
 		const rawEnv = parseEnv(
-			dockerExec(containerId, ["sh", "-lc", "su user -c env"]),
+			dockerExec(containerId, ["sh", "-lc", "su agentos -c env"]),
 		);
 		const env = Object.fromEntries(
 			DEFAULT_ENV_KEYS

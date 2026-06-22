@@ -83,7 +83,7 @@ fn run_guest(case_name: &str, script: &str, allowed_builtins: &[&str]) -> (Value
 
     let mut metadata = HashMap::new();
     metadata.insert(
-        String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
         serde_json::to_string(allowed_builtins).expect("serialize builtin allowlist"),
     );
 

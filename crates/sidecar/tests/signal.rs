@@ -792,7 +792,7 @@ fn embedded_runtime_signal_delivers_sigchld_on_child_exit() {
         GuestRuntimeKind::JavaScript,
         &cwd,
         HashMap::from([(
-            String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+            String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
             allowed_builtins,
         )]),
     );

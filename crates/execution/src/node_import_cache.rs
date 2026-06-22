@@ -7,18 +7,18 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
-pub(crate) const NODE_IMPORT_CACHE_DEBUG_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_DEBUG";
-pub(crate) const NODE_IMPORT_CACHE_METRICS_PREFIX: &str = "__AGENT_OS_NODE_IMPORT_CACHE_METRICS__:";
-pub(crate) const NODE_IMPORT_CACHE_ASSET_ROOT_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_ASSET_ROOT";
+pub(crate) const NODE_IMPORT_CACHE_DEBUG_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_DEBUG";
+pub(crate) const NODE_IMPORT_CACHE_METRICS_PREFIX: &str = "__AGENTOS_NODE_IMPORT_CACHE_METRICS__:";
+pub(crate) const NODE_IMPORT_CACHE_ASSET_ROOT_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_ASSET_ROOT";
 
-const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_PATH";
-const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENT_OS_NODE_IMPORT_CACHE_LOADER_PATH";
+const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_PATH";
+const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_LOADER_PATH";
 const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
-    "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
+    "AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
 const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "70";
-const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
+const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agentos-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
 const SECURE_EXEC_BUILTIN_SPECIFIER_PREFIX: &str = "secure-exec:builtin/";
@@ -114,19 +114,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
-const ALLOWED_BUILTINS = new Set(parseJsonArray(process.env.AGENT_OS_ALLOWED_NODE_BUILTINS));
+const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENTOS_GUEST_PATH_MAPPINGS);
+const ALLOWED_BUILTINS = new Set(parseJsonArray(process.env.AGENTOS_ALLOWED_NODE_BUILTINS));
 const CACHE_PATH = process.env.__NODE_IMPORT_CACHE_PATH_ENV__;
 const CACHE_ROOT = CACHE_PATH ? path.dirname(CACHE_PATH) : null;
-const GUEST_INTERNAL_CACHE_ROOT = '/.agent-os/node-import-cache';
+const GUEST_INTERNAL_CACHE_ROOT = '/.agentos/node-import-cache';
 const HOST_CWD = process.cwd();
 const DEFAULT_GUEST_CWD =
   typeof process.env.PWD === 'string' &&
   process.env.PWD.startsWith('/')
     ? path.posix.normalize(process.env.PWD)
-    : typeof (globalThis.__agentOsVirtualOs||{}).homedir === 'string' &&
-        (globalThis.__agentOsVirtualOs||{}).homedir.startsWith('/')
-      ? path.posix.normalize((globalThis.__agentOsVirtualOs||{}).homedir)
+    : typeof (globalThis.__agentOSVirtualOs||{}).homedir === 'string' &&
+        (globalThis.__agentOSVirtualOs||{}).homedir.startsWith('/')
+      ? path.posix.normalize((globalThis.__agentOSVirtualOs||{}).homedir)
     : '/root';
 const UNMAPPED_GUEST_PATH = '/unknown';
 const PROJECTED_SOURCE_CACHE_ROOT = CACHE_PATH
@@ -134,7 +134,7 @@ const PROJECTED_SOURCE_CACHE_ROOT = CACHE_PATH
   : null;
 const ASSET_ROOT = process.env.__NODE_IMPORT_CACHE_ASSET_ROOT_ENV__;
 const DEBUG_ENABLED = process.env.__NODE_IMPORT_CACHE_DEBUG_ENV__ === '1';
-const CONTROL_PIPE_FD = parseControlPipeFd(process.env.AGENT_OS_CONTROL_PIPE_FD);
+const CONTROL_PIPE_FD = parseControlPipeFd(process.env.AGENTOS_CONTROL_PIPE_FD);
 const SCHEMA_VERSION = '__NODE_IMPORT_CACHE_SCHEMA_VERSION__';
 const LOADER_VERSION = '__NODE_IMPORT_CACHE_LOADER_VERSION__';
 const ASSET_VERSION = '__NODE_IMPORT_CACHE_ASSET_VERSION__';
@@ -439,7 +439,7 @@ function emitControlMessage(message) {
       typeof process?.stdout?.write === 'function'
     ) {
       try {
-        process.stdout.write(`__AGENT_OS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
+        process.stdout.write(`__AGENTOS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
       } catch {
         // Ignore control-channel fallback failures during teardown.
       }
@@ -455,7 +455,7 @@ function emitControlMessage(message) {
       typeof process?.stdout?.write === 'function'
     ) {
       try {
-        process.stdout.write(`__AGENT_OS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
+        process.stdout.write(`__AGENTOS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
       } catch {
         // Ignore control-channel fallback failures during teardown.
       }
@@ -1958,7 +1958,7 @@ function parseJsonArray(value) {
 }
 
 function isInternalImportCachePath(filePath) {
-  return typeof filePath === 'string' && filePath.includes(`${path.sep}agent-os-node-import-cache-`);
+  return typeof filePath === 'string' && filePath.includes(`${path.sep}agentos-node-import-cache-`);
 }
 
 function parseGuestPathMappings(value) {
@@ -2026,7 +2026,7 @@ if (!fs || !path || typeof pathToFileURL !== 'function') {
 }
 
 const HOST_PROCESS_ENV = { ...process.env };
-const ALLOW_PROCESS_BINDINGS = HOST_PROCESS_ENV.AGENT_OS_ALLOW_PROCESS_BINDINGS === '1';
+const ALLOW_PROCESS_BINDINGS = HOST_PROCESS_ENV.AGENTOS_ALLOW_PROCESS_BINDINGS === '1';
 const Module =
   typeof process.getBuiltinModule === 'function'
     ? process.getBuiltinModule('node:module')
@@ -2035,9 +2035,9 @@ const syncBuiltinESMExports =
   typeof Module?.syncBuiltinESMExports === 'function'
     ? Module.syncBuiltinESMExports.bind(Module)
     : () => {};
-const GUEST_PATH_MAPPINGS = parseGuestPathMappings(HOST_PROCESS_ENV.AGENT_OS_GUEST_PATH_MAPPINGS);
-const ALLOWED_BUILTINS = new Set(parseJsonArray(HOST_PROCESS_ENV.AGENT_OS_ALLOWED_NODE_BUILTINS));
-const LOOPBACK_EXEMPT_PORTS = new Set(parseJsonArray(HOST_PROCESS_ENV.AGENT_OS_LOOPBACK_EXEMPT_PORTS));
+const GUEST_PATH_MAPPINGS = parseGuestPathMappings(HOST_PROCESS_ENV.AGENTOS_GUEST_PATH_MAPPINGS);
+const ALLOWED_BUILTINS = new Set(parseJsonArray(HOST_PROCESS_ENV.AGENTOS_ALLOWED_NODE_BUILTINS));
+const LOOPBACK_EXEMPT_PORTS = new Set(parseJsonArray(HOST_PROCESS_ENV.AGENTOS_LOOPBACK_EXEMPT_PORTS));
 const DENIED_BUILTINS = new Set([
   'child_process',
   'cluster',
@@ -2089,7 +2089,7 @@ const hostHttps = hostRequire('node:https');
 const hostTls = hostRequire('node:tls');
 const { EventEmitter } = hostRequire('node:events');
 const { Duplex, Readable, Writable } = hostRequire('node:stream');
-const NODE_SYNC_RPC_ENABLE = HOST_PROCESS_ENV.AGENT_OS_NODE_SYNC_RPC_ENABLE === '1';
+const NODE_SYNC_RPC_ENABLE = HOST_PROCESS_ENV.AGENTOS_NODE_SYNC_RPC_ENABLE === '1';
 const hostWorkerThreads = NODE_SYNC_RPC_ENABLE ? hostRequire('node:worker_threads') : null;
 const SIGNAL_EVENTS = new Set(
   Object.keys(hostOs.constants?.signals ?? {}).filter((name) =>
@@ -2098,7 +2098,7 @@ const SIGNAL_EVENTS = new Set(
 );
 const TRACKED_PROCESS_SIGNAL_EVENTS = new Set(['SIGCHLD']);
 const guestEntryPoint =
-  HOST_PROCESS_ENV.AGENT_OS_GUEST_ENTRYPOINT ?? HOST_PROCESS_ENV.AGENT_OS_ENTRYPOINT;
+  HOST_PROCESS_ENV.AGENTOS_GUEST_ENTRYPOINT ?? HOST_PROCESS_ENV.AGENTOS_ENTRYPOINT;
 const DEFAULT_VIRTUAL_EXEC_PATH = '/usr/bin/node';
 const DEFAULT_VIRTUAL_PID = 1;
 const DEFAULT_VIRTUAL_PPID = 0;
@@ -2119,58 +2119,58 @@ const DEFAULT_VIRTUAL_OS_USER = 'root';
 const DEFAULT_VIRTUAL_OS_HOMEDIR = '/root';
 const DEFAULT_VIRTUAL_OS_SHELL = '/bin/sh';
 const DEFAULT_VIRTUAL_OS_TMPDIR = '/tmp';
-const NODE_SYNC_RPC_REQUEST_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENT_OS_NODE_SYNC_RPC_REQUEST_FD);
-const NODE_SYNC_RPC_RESPONSE_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENT_OS_NODE_SYNC_RPC_RESPONSE_FD);
+const NODE_SYNC_RPC_REQUEST_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENTOS_NODE_SYNC_RPC_REQUEST_FD);
+const NODE_SYNC_RPC_RESPONSE_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENTOS_NODE_SYNC_RPC_RESPONSE_FD);
 const NODE_SYNC_RPC_DATA_BYTES = parsePositiveInt(
-  HOST_PROCESS_ENV.AGENT_OS_NODE_SYNC_RPC_DATA_BYTES,
+  HOST_PROCESS_ENV.AGENTOS_NODE_SYNC_RPC_DATA_BYTES,
   4 * 1024 * 1024,
 );
 const NODE_SYNC_RPC_WAIT_TIMEOUT_MS = parsePositiveInt(
-  HOST_PROCESS_ENV.AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS,
+  HOST_PROCESS_ENV.AGENTOS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS,
   30_000,
 );
-const NODE_IMPORT_CACHE_PATH = HOST_PROCESS_ENV.AGENT_OS_NODE_IMPORT_CACHE_PATH ?? null;
+const NODE_IMPORT_CACHE_PATH = HOST_PROCESS_ENV.AGENTOS_NODE_IMPORT_CACHE_PATH ?? null;
 const NODE_IMPORT_CACHE_ROOT =
   typeof NODE_IMPORT_CACHE_PATH === 'string' && NODE_IMPORT_CACHE_PATH.length > 0
     ? path.dirname(NODE_IMPORT_CACHE_PATH)
     : null;
-const CONTROL_PIPE_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENT_OS_CONTROL_PIPE_FD);
-const GUEST_INTERNAL_NODE_IMPORT_CACHE_ROOT = '/.agent-os/node-import-cache';
+const CONTROL_PIPE_FD = parseOptionalFd(HOST_PROCESS_ENV.AGENTOS_CONTROL_PIPE_FD);
+const GUEST_INTERNAL_NODE_IMPORT_CACHE_ROOT = '/.agentos/node-import-cache';
 const UNMAPPED_GUEST_PATH = '/unknown';
 const VIRTUAL_EXEC_PATH = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_EXEC_PATH,
   DEFAULT_VIRTUAL_EXEC_PATH,
 );
 const VIRTUAL_PID = parseVirtualProcessNumber(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_PID,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_PID,
   DEFAULT_VIRTUAL_PID,
 );
 const VIRTUAL_PPID = parseVirtualProcessNumber(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_PPID,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_PPID,
   DEFAULT_VIRTUAL_PPID,
 );
 const VIRTUAL_UID = parseVirtualProcessNumber(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_UID,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_UID,
   DEFAULT_VIRTUAL_UID,
 );
 const VIRTUAL_GID = parseVirtualProcessNumber(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_GID,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_GID,
   DEFAULT_VIRTUAL_GID,
 );
 const DEFAULT_GUEST_CWD = resolveVirtualPath(
-  (globalThis.__agentOsVirtualOs||{}).homedir,
+  (globalThis.__agentOSVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_USER = parseVirtualProcessString(
-  (globalThis.__agentOsVirtualOs||{}).user,
+  (globalThis.__agentOSVirtualOs||{}).user,
   DEFAULT_VIRTUAL_OS_USER,
 );
 const VIRTUAL_OS_HOMEDIR = resolveVirtualPath(
-  (globalThis.__agentOsVirtualOs||{}).homedir,
+  (globalThis.__agentOSVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_SHELL = resolveVirtualPath(
-  (globalThis.__agentOsVirtualOs||{}).shell,
+  (globalThis.__agentOSVirtualOs||{}).shell,
   DEFAULT_VIRTUAL_OS_SHELL,
 );
 
@@ -2276,7 +2276,7 @@ function parseVirtualProcessString(value, fallback) {
 }
 
 function isInternalProcessEnvKey(key) {
-  return typeof key === 'string' && key.startsWith('AGENT_OS_');
+  return typeof key === 'string' && key.startsWith('AGENTOS_');
 }
 
 function createGuestProcessEnv(env) {
@@ -2834,7 +2834,7 @@ function createGuestFsStats(stat) {
 }
 
 function requireSecureExecSyncRpcBridge() {
-  const bridge = globalThis.__agentOsSyncRpc;
+  const bridge = globalThis.__agentOSSyncRpc;
   if (
     bridge &&
     typeof bridge.call === 'function' &&
@@ -2844,7 +2844,7 @@ function requireSecureExecSyncRpcBridge() {
   }
 
   const error = new Error('secure-exec sync RPC bridge is unavailable');
-  error.code = 'ERR_AGENT_OS_NODE_SYNC_RPC_UNAVAILABLE';
+  error.code = 'ERR_AGENTOS_NODE_SYNC_RPC_UNAVAILABLE';
   throw error;
 }
 
@@ -2853,7 +2853,7 @@ function requireFsSyncRpcBridge() {
 }
 
 function isPythonWarmupDebugEnabled() {
-  return process.env.AGENT_OS_PYTHON_WARMUP_DEBUG === '1';
+  return process.env.AGENTOS_PYTHON_WARMUP_DEBUG === '1';
 }
 
 function emitPythonWarmupFsDebug(message) {
@@ -2862,7 +2862,7 @@ function emitPythonWarmupFsDebug(message) {
   }
 
   try {
-    process.stderr.write(`__AGENT_OS_PYTHON_FS_DEBUG__:${message}\n`);
+    process.stderr.write(`__AGENTOS_PYTHON_FS_DEBUG__:${message}\n`);
   } catch {
     // Ignore debug logging failures.
   }
@@ -3374,7 +3374,7 @@ function createFsWatchUnavailableError(methodName) {
   const error = new Error(
     `secure-exec ${methodName} is unavailable because the kernel has no file-watching API`,
   );
-  error.code = 'ERR_AGENT_OS_FS_WATCH_UNAVAILABLE';
+  error.code = 'ERR_AGENTOS_FS_WATCH_UNAVAILABLE';
   return error;
 }
 
@@ -3963,19 +3963,19 @@ function createRpcBackedChildProcessModule(fromGuestDir = '/') {
   const RPC_POLL_WAIT_MS = 50;
   const RPC_IDLE_POLL_DELAY_MS = 10;
   const INTERNAL_BOOTSTRAP_ENV_KEYS = [
-    'AGENT_OS_ALLOWED_NODE_BUILTINS',
-    'AGENT_OS_GUEST_PATH_MAPPINGS',
-    'AGENT_OS_LOOPBACK_EXEMPT_PORTS',
-    'AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH',
-    'AGENT_OS_VIRTUAL_PROCESS_UID',
-    'AGENT_OS_VIRTUAL_PROCESS_GID',
-    'AGENT_OS_VIRTUAL_PROCESS_VERSION',
+    'AGENTOS_ALLOWED_NODE_BUILTINS',
+    'AGENTOS_GUEST_PATH_MAPPINGS',
+    'AGENTOS_LOOPBACK_EXEMPT_PORTS',
+    'AGENTOS_VIRTUAL_PROCESS_EXEC_PATH',
+    'AGENTOS_VIRTUAL_PROCESS_UID',
+    'AGENTOS_VIRTUAL_PROCESS_GID',
+    'AGENTOS_VIRTUAL_PROCESS_VERSION',
   ];
 
   const bridge = () => requireSecureExecSyncRpcBridge();
   const createUnsupportedChildProcessError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec child_process polyfill`);
-    error.code = 'ERR_AGENT_OS_CHILD_PROCESS_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_CHILD_PROCESS_UNSUPPORTED';
     return error;
   };
   const normalizeSpawnInvocation = (args, options) => {
@@ -4045,9 +4045,9 @@ function createRpcBackedChildProcessModule(fromGuestDir = '/') {
         bootstrapEnv[key] = HOST_PROCESS_ENV[key];
       }
     }
-    // Virtual OS identity is no longer carried as `AGENT_OS_VIRTUAL_OS_*` env;
+    // Virtual OS identity is no longer carried as `AGENTOS_VIRTUAL_OS_*` env;
     // nested child executions receive it via the typed `guest_runtime` →
-    // `__agentOsVirtualOs` global like every other guest execution.
+    // `__agentOSVirtualOs` global like every other guest execution.
 
     return bootstrapEnv;
   };
@@ -4133,7 +4133,7 @@ function createRpcBackedChildProcessModule(fromGuestDir = '/') {
         ? `${subject} exited with code ${exitCode ?? 'unknown'}`
         : `${subject} terminated by signal ${signal}`,
     );
-    error.code = signal == null ? 'ERR_AGENT_OS_CHILD_PROCESS_EXIT' : signal;
+    error.code = signal == null ? 'ERR_AGENTOS_CHILD_PROCESS_EXIT' : signal;
     error.killed = signal != null;
     error.signal = signal;
     error.stdout = stdout;
@@ -4593,7 +4593,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       : 250;
   const createUnsupportedNetError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec net polyfill yet`);
-    error.code = 'ERR_AGENT_OS_NET_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_NET_UNSUPPORTED';
     return error;
   };
   const normalizeNetPort = (value) => {
@@ -4759,12 +4759,12 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
   const callServerClose = (serverId) => bridge().call('net.server_close', [serverId]);
 
   const finalizeSocketClose = (socket, hadError = false) => {
-    if (socket._agentOsClosed) {
+    if (socket._agentOSClosed) {
       return;
     }
-    socket._agentOsClosed = true;
-    socket._agentOsCloseHadError = hadError === true;
-    socket._agentOsSocketId = null;
+    socket._agentOSClosed = true;
+    socket._agentOSCloseHadError = hadError === true;
+    socket._agentOSSocketId = null;
     socket.connecting = false;
     socket.pending = false;
     socket._pollTimer && clearTimeout(socket._pollTimer);
@@ -4776,19 +4776,19 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
   };
 
   const scheduleSocketPoll = (socket, delayMs) => {
-    if (socket._agentOsClosed || socket._agentOsSocketId == null || socket._pollTimer != null) {
+    if (socket._agentOSClosed || socket._agentOSSocketId == null || socket._pollTimer != null) {
       return;
     }
 
     socket._pollTimer = setTimeout(() => {
       socket._pollTimer = null;
-      if (socket._agentOsClosed || socket._agentOsSocketId == null) {
+      if (socket._agentOSClosed || socket._agentOSSocketId == null) {
         return;
       }
 
       let event;
       try {
-        event = callPoll(socket._agentOsSocketId, RPC_POLL_WAIT_MS);
+        event = callPoll(socket._agentOSSocketId, RPC_POLL_WAIT_MS);
       } catch (error) {
         socket.destroy(error);
         return;
@@ -4809,7 +4809,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
 
       if (event.type === 'end') {
         socket.push(null);
-        if (!socket._agentOsAllowHalfOpen && !socket.writableEnded) {
+        if (!socket._agentOSAllowHalfOpen && !socket.writableEnded) {
           socket.end();
         }
         scheduleSocketPoll(socket, 0);
@@ -4836,13 +4836,13 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       scheduleSocketPoll(socket, 0);
     }, delayMs);
 
-    if (!socket._agentOsRefed) {
+    if (!socket._agentOSRefed) {
       socket._pollTimer.unref?.();
     }
   };
   const attachSocketState = (socket, result, options = {}, emitConnect = false) => {
-    socket._agentOsAllowHalfOpen = options.allowHalfOpen === true;
-    socket._agentOsSocketId = String(result.socketId);
+    socket._agentOSAllowHalfOpen = options.allowHalfOpen === true;
+    socket._agentOSSocketId = String(result.socketId);
     socket.localPath =
       typeof result.localPath === 'string'
         ? result.localPath
@@ -4867,10 +4867,10 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
         : result.remoteFamily ?? socketFamilyForAddress(socket.remoteAddress);
     socket.connecting = false;
     socket.pending = false;
-    socket._agentOsClosed = false;
+    socket._agentOSClosed = false;
     if (emitConnect) {
       queueMicrotask(() => {
-        if (socket._agentOsClosed) {
+        if (socket._agentOSClosed) {
           return;
         }
         socket.emit('connect');
@@ -4883,12 +4883,12 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
   class SecureExecSocket extends Duplex {
     constructor(options = undefined) {
       super(options);
-      this._agentOsAllowHalfOpen = options?.allowHalfOpen === true;
-      this._agentOsClosed = false;
-      this._agentOsCloseHadError = false;
-      this._agentOsExplicitDestroy = false;
-      this._agentOsRefed = true;
-      this._agentOsSocketId = null;
+      this._agentOSAllowHalfOpen = options?.allowHalfOpen === true;
+      this._agentOSClosed = false;
+      this._agentOSCloseHadError = false;
+      this._agentOSExplicitDestroy = false;
+      this._agentOSRefed = true;
+      this._agentOSSocketId = null;
       this._pollTimer = null;
       this.bytesRead = 0;
       this.bytesWritten = 0;
@@ -4902,13 +4902,13 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       this.remotePort = undefined;
       this.remotePath = undefined;
       this.emit = (eventName, ...eventArgs) => {
-        if (eventName === 'close' && eventArgs.length === 0 && this._agentOsClosed) {
-          eventArgs = [this._agentOsCloseHadError === true];
+        if (eventName === 'close' && eventArgs.length === 0 && this._agentOSClosed) {
+          eventArgs = [this._agentOSCloseHadError === true];
         }
         return Duplex.prototype.emit.call(this, eventName, ...eventArgs);
       };
       this.destroy = (error) => {
-        this._agentOsExplicitDestroy = true;
+        this._agentOSExplicitDestroy = true;
         return Duplex.prototype.destroy.call(this, error);
       };
     }
@@ -4916,13 +4916,13 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     _read() {}
 
     _write(chunk, encoding, callback) {
-      if (this._agentOsSocketId == null) {
+      if (this._agentOSSocketId == null) {
         callback(new Error('secure-exec net socket is not connected'));
         return;
       }
       const payload =
         typeof chunk === 'string' ? Buffer.from(chunk, encoding) : Buffer.from(chunk);
-      callWrite(this._agentOsSocketId, payload).then(
+      callWrite(this._agentOSSocketId, payload).then(
         (written) => {
           if (typeof written === 'number') {
             this.bytesWritten += written;
@@ -4936,27 +4936,27 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     }
 
     _final(callback) {
-      if (this._agentOsSocketId == null || this._agentOsClosed) {
+      if (this._agentOSSocketId == null || this._agentOSClosed) {
         callback();
         return;
       }
-      callShutdown(this._agentOsSocketId).then(
+      callShutdown(this._agentOSSocketId).then(
         () => callback(),
         (error) => callback(error),
       );
     }
 
     _destroy(error, callback) {
-      const socketId = this._agentOsSocketId;
-      this._agentOsSocketId = null;
+      const socketId = this._agentOSSocketId;
+      this._agentOSSocketId = null;
       const finishDestroy = () => {
         finalizeSocketClose(this, Boolean(error));
         callback(error);
       };
       if (
         socketId == null ||
-        this._agentOsClosed ||
-        (error == null && !this._agentOsExplicitDestroy)
+        this._agentOSClosed ||
+        (error == null && !this._agentOSExplicitDestroy)
       ) {
         finishDestroy();
         return;
@@ -4983,11 +4983,11 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         this.once('connect', callback);
       }
-      if (this._agentOsSocketId != null || this.connecting) {
+      if (this._agentOSSocketId != null || this.connecting) {
         throw new Error('secure-exec net socket is already connected');
       }
 
-      this._agentOsAllowHalfOpen = options.allowHalfOpen;
+      this._agentOSAllowHalfOpen = options.allowHalfOpen;
       this.connecting = true;
       this.pending = true;
 
@@ -5014,13 +5014,13 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     }
 
     ref() {
-      this._agentOsRefed = true;
+      this._agentOSRefed = true;
       this._pollTimer?.ref?.();
       return this;
     }
 
     unref() {
-      this._agentOsRefed = false;
+      this._agentOSRefed = false;
       this._pollTimer?.unref?.();
       return this;
     }
@@ -5037,7 +5037,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         if (Number(timeout) > 0) {
           setTimeout(() => {
-            if (!this._agentOsClosed) {
+            if (!this._agentOSClosed) {
               this.emit('timeout');
               callback();
             }
@@ -5051,30 +5051,30 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
   }
 
   const finalizeServerClose = (server) => {
-    if (server._agentOsClosed) {
+    if (server._agentOSClosed) {
       return;
     }
-    server._agentOsClosed = true;
+    server._agentOSClosed = true;
     server.listening = false;
-    server._agentOsServerId = null;
+    server._agentOSServerId = null;
     server._pollTimer && clearTimeout(server._pollTimer);
     server._pollTimer = null;
     queueMicrotask(() => server.emit('close'));
   };
   const scheduleServerPoll = (server, delayMs) => {
-    if (server._agentOsClosed || server._agentOsServerId == null || server._pollTimer != null) {
+    if (server._agentOSClosed || server._agentOSServerId == null || server._pollTimer != null) {
       return;
     }
 
     server._pollTimer = setTimeout(() => {
       server._pollTimer = null;
-      if (server._agentOsClosed || server._agentOsServerId == null) {
+      if (server._agentOSClosed || server._agentOSServerId == null) {
         return;
       }
 
       let event;
       try {
-        event = callServerPoll(server._agentOsServerId, RPC_POLL_WAIT_MS);
+        event = callServerPoll(server._agentOSServerId, RPC_POLL_WAIT_MS);
       } catch (error) {
         server.emit('error', error);
         finalizeServerClose(server);
@@ -5117,7 +5117,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       scheduleServerPoll(server, 0);
     }, delayMs);
 
-    if (!server._agentOsRefed) {
+    if (!server._agentOSRefed) {
       server._pollTimer.unref?.();
     }
   };
@@ -5129,9 +5129,9 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       this.pauseOnConnect = options.pauseOnConnect === true;
       this.listening = false;
       this.maxConnections = undefined;
-      this._agentOsClosed = false;
-      this._agentOsRefed = true;
-      this._agentOsServerId = null;
+      this._agentOSClosed = false;
+      this._agentOSRefed = true;
+      this._agentOSServerId = null;
       this._pollTimer = null;
       this._address = null;
       if (typeof connectionListener === 'function') {
@@ -5144,7 +5144,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     }
 
     close(callback) {
-      if (this._agentOsServerId == null || this._agentOsClosed) {
+      if (this._agentOSServerId == null || this._agentOSClosed) {
         const error = new Error('secure-exec net server is not running');
         error.code = 'ERR_SERVER_NOT_RUNNING';
         if (typeof callback === 'function') {
@@ -5157,7 +5157,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         this.once('close', callback);
       }
-      const serverId = this._agentOsServerId;
+      const serverId = this._agentOSServerId;
       callServerClose(serverId).then(
         () => finalizeServerClose(this),
         (error) => this.emit('error', error),
@@ -5166,7 +5166,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     }
 
     getConnections(callback) {
-      if (this._agentOsServerId == null || this._agentOsClosed) {
+      if (this._agentOSServerId == null || this._agentOSClosed) {
         const error = new Error('secure-exec net server is not running');
         error.code = 'ERR_SERVER_NOT_RUNNING';
         if (typeof callback === 'function') {
@@ -5177,7 +5177,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       }
 
       try {
-        const count = callServerConnections(this._agentOsServerId);
+        const count = callServerConnections(this._agentOSServerId);
         if (typeof callback === 'function') {
           queueMicrotask(() => callback(null, count));
         }
@@ -5197,14 +5197,14 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         this.once('listening', callback);
       }
-      if (this._agentOsServerId != null || this.listening) {
+      if (this._agentOSServerId != null || this.listening) {
         throw new Error('secure-exec net server is already listening');
       }
 
-      this._agentOsClosed = false;
+      this._agentOSClosed = false;
       try {
         const result = callListen(options);
-        this._agentOsServerId = String(result.serverId);
+        this._agentOSServerId = String(result.serverId);
         this._address =
           typeof result.path === 'string'
             ? result.path
@@ -5215,14 +5215,14 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
               };
         this.listening = true;
         queueMicrotask(() => {
-          if (this._agentOsClosed) {
+          if (this._agentOSClosed) {
             return;
           }
           this.emit('listening');
         });
         scheduleServerPoll(this, 0);
       } catch (error) {
-        this._agentOsServerId = null;
+        this._agentOSServerId = null;
         this._address = null;
         this.listening = false;
         throw error;
@@ -5232,13 +5232,13 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
     }
 
     ref() {
-      this._agentOsRefed = true;
+      this._agentOSRefed = true;
       this._pollTimer?.ref?.();
       return this;
     }
 
     unref() {
-      this._agentOsRefed = false;
+      this._agentOSRefed = false;
       this._pollTimer?.unref?.();
       return this;
     }
@@ -5316,7 +5316,7 @@ function createRpcBackedNetModule(netModule, fromGuestDir = '/') {
 function createRpcBackedTlsModule(tlsModule, netModule) {
   const createUnsupportedTlsError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec tls polyfill yet`);
-    error.code = 'ERR_AGENT_OS_TLS_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_TLS_UNSUPPORTED';
     return error;
   };
   const defineSocketMetadataPassthrough = (tlsSocket, rawSocket) => {
@@ -5727,11 +5727,11 @@ function parseRequestTargetFromUrl(value, defaultProtocol) {
 
 function createRpcBackedHttpModule(httpModule, transportModule, defaultProtocol = 'http:') {
   const debugHttpLog = (...args) => {
-    console.error('[agent-os http polyfill]', ...args);
+    console.error('[agentos http polyfill]', ...args);
   };
   const createUnsupportedHttpError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec http polyfill yet`);
-    error.code = 'ERR_AGENT_OS_HTTP_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_HTTP_UNSUPPORTED';
     return error;
   };
   const normalizeRequestInvocation = (args) => {
@@ -5898,11 +5898,11 @@ function createRpcBackedHttpModule(httpModule, transportModule, defaultProtocol 
 
 function createRpcBackedHttpsModule(httpsModule, tlsModule) {
   const debugHttpLog = (...args) => {
-    console.error('[agent-os http polyfill]', ...args);
+    console.error('[agentos http polyfill]', ...args);
   };
   const createUnsupportedHttpsError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec https polyfill yet`);
-    error.code = 'ERR_AGENT_OS_HTTPS_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_HTTPS_UNSUPPORTED';
     return error;
   };
   const normalizeRequestInvocation = (args) => {
@@ -6078,7 +6078,7 @@ function createRpcBackedHttpsModule(httpsModule, tlsModule) {
 function createRpcBackedHttp2Module(http2Module, netModule, tlsModule) {
   const createUnsupportedHttp2Error = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec http2 polyfill yet`);
-    error.code = 'ERR_AGENT_OS_HTTP2_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_HTTP2_UNSUPPORTED';
     return error;
   };
   const normalizeConnectInvocation = (args) => {
@@ -6215,7 +6215,7 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
   const bridge = () => requireSecureExecSyncRpcBridge();
   const createUnsupportedDgramError = (subject) => {
     const error = new Error(`${subject} is not supported by the secure-exec dgram polyfill yet`);
-    error.code = 'ERR_AGENT_OS_DGRAM_UNSUPPORTED';
+    error.code = 'ERR_AGENTOS_DGRAM_UNSUPPORTED';
     return error;
   };
   const normalizeDgramInteger = (value, label) => {
@@ -6370,18 +6370,18 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
   const callClose = (socketId) => bridge().call('dgram.close', [socketId]);
 
   const finalizeDatagramClose = (socket) => {
-    if (socket._agentOsClosed) {
+    if (socket._agentOSClosed) {
       return;
     }
-    socket._agentOsClosed = true;
-    socket._agentOsBound = false;
-    socket._agentOsPollTimer && clearTimeout(socket._agentOsPollTimer);
-    socket._agentOsPollTimer = null;
+    socket._agentOSClosed = true;
+    socket._agentOSBound = false;
+    socket._agentOSPollTimer && clearTimeout(socket._agentOSPollTimer);
+    socket._agentOSPollTimer = null;
     queueMicrotask(() => socket.emit('close'));
   };
   const attachDatagramBindState = (socket, result, emitListening = false) => {
-    const alreadyBound = socket._agentOsBound;
-    socket._agentOsBound = true;
+    const alreadyBound = socket._agentOSBound;
+    socket._agentOSBound = true;
     socket._address = {
       address: result.localAddress,
       family: result.family ?? socketFamilyForAddress(result.localAddress),
@@ -6389,7 +6389,7 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
     };
     if (emitListening && !alreadyBound) {
       queueMicrotask(() => {
-        if (!socket._agentOsClosed) {
+        if (!socket._agentOSClosed) {
           socket.emit('listening');
         }
       });
@@ -6398,27 +6398,27 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
   };
   const scheduleDatagramPoll = (socket, delayMs) => {
     if (
-      socket._agentOsClosed ||
-      socket._agentOsSocketId == null ||
-      !socket._agentOsBound ||
-      socket._agentOsPollTimer != null
+      socket._agentOSClosed ||
+      socket._agentOSSocketId == null ||
+      !socket._agentOSBound ||
+      socket._agentOSPollTimer != null
     ) {
       return;
     }
 
-    socket._agentOsPollTimer = setTimeout(() => {
-      socket._agentOsPollTimer = null;
+    socket._agentOSPollTimer = setTimeout(() => {
+      socket._agentOSPollTimer = null;
       if (
-        socket._agentOsClosed ||
-        socket._agentOsSocketId == null ||
-        !socket._agentOsBound
+        socket._agentOSClosed ||
+        socket._agentOSSocketId == null ||
+        !socket._agentOSBound
       ) {
         return;
       }
 
       let event;
       try {
-        event = callPoll(socket._agentOsSocketId, RPC_POLL_WAIT_MS);
+        event = callPoll(socket._agentOSSocketId, RPC_POLL_WAIT_MS);
       } catch (error) {
         socket.emit('error', error);
         scheduleDatagramPoll(socket, 0);
@@ -6460,8 +6460,8 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
       scheduleDatagramPoll(socket, 0);
     }, delayMs);
 
-    if (!socket._agentOsRefed) {
-      socket._agentOsPollTimer.unref?.();
+    if (!socket._agentOSRefed) {
+      socket._agentOSPollTimer.unref?.();
     }
   };
 
@@ -6469,17 +6469,17 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
     constructor(options = {}, messageListener = undefined) {
       super();
       this.type = options.type;
-      this._agentOsClosed = false;
-      this._agentOsRefed = true;
-      this._agentOsBound = false;
-      this._agentOsSocketId = null;
-      this._agentOsPollTimer = null;
+      this._agentOSClosed = false;
+      this._agentOSRefed = true;
+      this._agentOSBound = false;
+      this._agentOSSocketId = null;
+      this._agentOSPollTimer = null;
       this._address = null;
       if (typeof messageListener === 'function') {
         this.on('message', messageListener);
       }
       const result = callCreateSocket(options);
-      this._agentOsSocketId = String(result.socketId);
+      this._agentOSSocketId = String(result.socketId);
     }
 
     address() {
@@ -6491,10 +6491,10 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         this.once('listening', callback);
       }
-      if (this._agentOsClosed) {
+      if (this._agentOSClosed) {
         throw new Error('secure-exec dgram socket is closed');
       }
-      attachDatagramBindState(this, callBind(this._agentOsSocketId, options), true);
+      attachDatagramBindState(this, callBind(this._agentOSSocketId, options), true);
       return this;
     }
 
@@ -6502,15 +6502,15 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
       if (typeof callback === 'function') {
         this.once('close', callback);
       }
-      if (this._agentOsClosed || this._agentOsSocketId == null) {
+      if (this._agentOSClosed || this._agentOSSocketId == null) {
         queueMicrotask(() => finalizeDatagramClose(this));
         return this;
       }
-      this._agentOsBound = false;
-      this._agentOsPollTimer && clearTimeout(this._agentOsPollTimer);
-      this._agentOsPollTimer = null;
-      const socketId = this._agentOsSocketId;
-      this._agentOsSocketId = null;
+      this._agentOSBound = false;
+      this._agentOSPollTimer && clearTimeout(this._agentOSPollTimer);
+      this._agentOSPollTimer = null;
+      const socketId = this._agentOSSocketId;
+      this._agentOSSocketId = null;
       callClose(socketId).then(
         () => finalizeDatagramClose(this),
         (error) => this.emit('error', error),
@@ -6519,7 +6519,7 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
     }
 
     send(...args) {
-      if (this._agentOsClosed || this._agentOsSocketId == null) {
+      if (this._agentOSClosed || this._agentOSSocketId == null) {
         const error = new Error('secure-exec dgram socket is closed');
         const callback =
           typeof args[args.length - 1] === 'function' ? args[args.length - 1] : null;
@@ -6531,7 +6531,7 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
       }
 
       const { callback, options, payload } = normalizeDgramSendInvocation(args);
-      callSend(this._agentOsSocketId, payload, options).then(
+      callSend(this._agentOSSocketId, payload, options).then(
         (result) => {
           attachDatagramBindState(this, result, true);
           if (typeof callback === 'function') {
@@ -6549,14 +6549,14 @@ function createRpcBackedDgramModule(dgramModule, fromGuestDir = '/') {
     }
 
     ref() {
-      this._agentOsRefed = true;
-      this._agentOsPollTimer?.ref?.();
+      this._agentOSRefed = true;
+      this._agentOSPollTimer?.ref?.();
       return this;
     }
 
     unref() {
-      this._agentOsRefed = false;
-      this._agentOsPollTimer?.unref?.();
+      this._agentOSRefed = false;
+      this._agentOSPollTimer?.unref?.();
       return this;
     }
 
@@ -7171,7 +7171,7 @@ const hostFsPromises = fs.promises;
 const hostFsWriteSync = fs.writeSync.bind(fs);
 const hostFsCloseSync = fs.closeSync.bind(fs);
 const guestFs = wrapFsModule(hostFs);
-globalThis.__agentOsGuestFs = guestFs;
+globalThis.__agentOSGuestFs = guestFs;
 const guestChildProcess = createRpcBackedChildProcessModule(INITIAL_GUEST_CWD);
 const guestNet = createRpcBackedNetModule(hostNet, INITIAL_GUEST_CWD);
 const guestDgram = createRpcBackedDgramModule(hostDgram, INITIAL_GUEST_CWD);
@@ -7186,11 +7186,11 @@ const guestMonotonicNow =
   globalThis.performance && typeof globalThis.performance.now === 'function'
     ? globalThis.performance.now.bind(globalThis.performance)
     : Date.now;
-// Virtual OS identity is carried as the typed `__agentOsVirtualOs` structured
+// Virtual OS identity is carried as the typed `__agentOSVirtualOs` structured
 // global (populated by the runtime shim from `guest_runtime`), not
-// `AGENT_OS_VIRTUAL_OS_*` env vars. Absent fields are `undefined` and fall back
+// `AGENTOS_VIRTUAL_OS_*` env vars. Absent fields are `undefined` and fall back
 // to the defaults below.
-const VIRTUAL_OS = globalThis.__agentOsVirtualOs || {};
+const VIRTUAL_OS = globalThis.__agentOSVirtualOs || {};
 const VIRTUAL_OS_HOSTNAME = parseVirtualProcessString(
   VIRTUAL_OS.hostname,
   DEFAULT_VIRTUAL_OS_HOSTNAME,
@@ -7237,7 +7237,7 @@ const VIRTUAL_OS_FREEMEM = Math.min(
 );
 const DEFAULT_VIRTUAL_PROCESS_VERSION = 'v24.0.0';
 const VIRTUAL_PROCESS_VERSION = parseVirtualProcessString(
-  HOST_PROCESS_ENV.AGENT_OS_VIRTUAL_PROCESS_VERSION,
+  HOST_PROCESS_ENV.AGENTOS_VIRTUAL_PROCESS_VERSION,
   DEFAULT_VIRTUAL_PROCESS_VERSION,
 );
 const VIRTUAL_PROCESS_RELEASE = deepFreezeObject({
@@ -7377,19 +7377,19 @@ function createGuestProcessUptime() {
 
 function createGuestOsModule(osModule) {
   const virtualHomeDir = resolveVirtualPath(
-    (globalThis.__agentOsVirtualOs||{}).homedir,
+    (globalThis.__agentOSVirtualOs||{}).homedir,
     DEFAULT_VIRTUAL_OS_HOMEDIR,
   );
   const virtualTmpDir = resolveVirtualPath(
-    (globalThis.__agentOsVirtualOs||{}).tmpdir,
+    (globalThis.__agentOSVirtualOs||{}).tmpdir,
     DEFAULT_VIRTUAL_OS_TMPDIR,
   );
   const virtualUserName = parseVirtualProcessString(
-    (globalThis.__agentOsVirtualOs||{}).user,
+    (globalThis.__agentOSVirtualOs||{}).user,
     DEFAULT_VIRTUAL_OS_USER,
   );
   const virtualShell = resolveVirtualPath(
-    (globalThis.__agentOsVirtualOs||{}).shell,
+    (globalThis.__agentOSVirtualOs||{}).shell,
     DEFAULT_VIRTUAL_OS_SHELL,
   );
   const virtualCpuInfo = Object.freeze(
@@ -7479,7 +7479,7 @@ function emitControlMessage(message) {
       typeof process?.stdout?.write === 'function'
     ) {
       try {
-        process.stdout.write(`__AGENT_OS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
+        process.stdout.write(`__AGENTOS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
       } catch {
         // Ignore signal-state bridge failures during teardown.
       }
@@ -7771,7 +7771,7 @@ function createGuestRequire(fromGuestDir) {
   }
 
   const baseRequire = Module.createRequire(
-    pathToFileURL(path.posix.join(normalizedGuestDir, '__agent_os_require__.cjs')),
+    pathToFileURL(path.posix.join(normalizedGuestDir, '__agentos_require__.cjs')),
   );
 
   const guestRequire = function(specifier) {
@@ -7831,21 +7831,21 @@ function encodeSyncRpcValue(value) {
 
   if (typeof Buffer === 'function' && Buffer.isBuffer(value)) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: value.toString('base64'),
     };
   }
 
   if (ArrayBuffer.isView(value)) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: Buffer.from(value.buffer, value.byteOffset, value.byteLength).toString('base64'),
     };
   }
 
   if (value instanceof ArrayBuffer) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: Buffer.from(value).toString('base64'),
     };
   }
@@ -7881,7 +7881,7 @@ function decodeSyncRpcValue(value) {
       return Buffer.from(value.data, 'base64');
     }
 
-    if (value.__agentOsType === 'bytes' && typeof value.base64 === 'string') {
+    if (value.__agentOSType === 'bytes' && typeof value.base64 === 'string') {
       return Buffer.from(value.base64, 'base64');
     }
 
@@ -7969,7 +7969,7 @@ function createNodeSyncRpcBridge() {
       if (payload.byteLength > data.byteLength) {
         payload = encoder.encode(JSON.stringify({
           message: 'secure-exec Node sync RPC payload exceeded shared buffer capacity',
-          code: 'ERR_AGENT_OS_NODE_SYNC_RPC_PAYLOAD_TOO_LARGE',
+          code: 'ERR_AGENTOS_NODE_SYNC_RPC_PAYLOAD_TOO_LARGE',
         }));
         nextStatus = STATUS_ERROR;
       }
@@ -8027,7 +8027,7 @@ function createNodeSyncRpcBridge() {
             STATUS_ERROR,
             encoder.encode(JSON.stringify({
               message: error instanceof Error ? error.message : String(error),
-              code: typeof error?.code === 'string' ? error.code : 'ERR_AGENT_OS_NODE_SYNC_RPC',
+              code: typeof error?.code === 'string' ? error.code : 'ERR_AGENTOS_NODE_SYNC_RPC',
             })),
           );
         }
@@ -8079,7 +8079,7 @@ function createNodeSyncRpcBridge() {
     );
     if (payload.byteLength > data.byteLength) {
       const error = new Error('secure-exec Node sync RPC request exceeded shared buffer capacity');
-      error.code = 'ERR_AGENT_OS_NODE_SYNC_RPC_PAYLOAD_TOO_LARGE';
+      error.code = 'ERR_AGENTOS_NODE_SYNC_RPC_PAYLOAD_TOO_LARGE';
       throw error;
     }
 
@@ -8408,44 +8408,44 @@ function installGuestHardening() {
   }
 }
 
-const entrypoint = HOST_PROCESS_ENV.AGENT_OS_ENTRYPOINT;
+const entrypoint = HOST_PROCESS_ENV.AGENTOS_ENTRYPOINT;
 if (!entrypoint) {
-  throw new Error('AGENT_OS_ENTRYPOINT is required');
+  throw new Error('AGENTOS_ENTRYPOINT is required');
 }
 
 const guestSyncRpc = createNodeSyncRpcBridge();
 installGuestHardening();
 rootGuestRequire = createGuestRequire('/root/node_modules');
 if (ALLOWED_BUILTINS.has('child_process')) {
-  hardenProperty(globalThis, '__agentOsBuiltinChildProcess', guestChildProcess);
+  hardenProperty(globalThis, '__agentOSBuiltinChildProcess', guestChildProcess);
 }
-hardenProperty(globalThis, '__agentOsBuiltinFs', guestFs);
+hardenProperty(globalThis, '__agentOSBuiltinFs', guestFs);
 if (ALLOWED_BUILTINS.has('net')) {
-  hardenProperty(globalThis, '__agentOsBuiltinNet', guestNet);
+  hardenProperty(globalThis, '__agentOSBuiltinNet', guestNet);
 }
 if (ALLOWED_BUILTINS.has('dgram')) {
-  hardenProperty(globalThis, '__agentOsBuiltinDgram', guestDgram);
+  hardenProperty(globalThis, '__agentOSBuiltinDgram', guestDgram);
 }
 if (ALLOWED_BUILTINS.has('dns')) {
-  hardenProperty(globalThis, '__agentOsBuiltinDns', guestDns);
+  hardenProperty(globalThis, '__agentOSBuiltinDns', guestDns);
 }
 if (ALLOWED_BUILTINS.has('http')) {
-  hardenProperty(globalThis, '__agentOsBuiltinHttp', guestHttp);
+  hardenProperty(globalThis, '__agentOSBuiltinHttp', guestHttp);
 }
 if (ALLOWED_BUILTINS.has('http2')) {
-  hardenProperty(globalThis, '__agentOsBuiltinHttp2', guestHttp2);
+  hardenProperty(globalThis, '__agentOSBuiltinHttp2', guestHttp2);
 }
 if (ALLOWED_BUILTINS.has('https')) {
-  hardenProperty(globalThis, '__agentOsBuiltinHttps', guestHttps);
+  hardenProperty(globalThis, '__agentOSBuiltinHttps', guestHttps);
 }
 if (ALLOWED_BUILTINS.has('tls')) {
-  hardenProperty(globalThis, '__agentOsBuiltinTls', guestTls);
+  hardenProperty(globalThis, '__agentOSBuiltinTls', guestTls);
 }
 if (ALLOWED_BUILTINS.has('os')) {
-  hardenProperty(globalThis, '__agentOsBuiltinOs', guestOs);
+  hardenProperty(globalThis, '__agentOSBuiltinOs', guestOs);
 }
 if (guestSyncRpc) {
-  hardenProperty(globalThis, '__agentOsSyncRpc', guestSyncRpc);
+  hardenProperty(globalThis, '__agentOSSyncRpc', guestSyncRpc);
 }
 hardenProperty(globalThis, '_requireFrom', (specifier, fromDir = '/') =>
   createGuestRequire(fromDir)(specifier),
@@ -8471,8 +8471,8 @@ if (HOST_PROCESS_ENV.SECURE_EXEC_KEEP_STDIN_OPEN === '1') {
   process.stdin.once('error', releaseStdinKeepalive);
 }
 
-const guestArgv = JSON.parse(HOST_PROCESS_ENV.AGENT_OS_GUEST_ARGV ?? '[]');
-const bootstrapModule = HOST_PROCESS_ENV.AGENT_OS_BOOTSTRAP_MODULE;
+const guestArgv = JSON.parse(HOST_PROCESS_ENV.AGENTOS_GUEST_ARGV ?? '[]');
+const bootstrapModule = HOST_PROCESS_ENV.AGENTOS_BOOTSTRAP_MODULE;
 const entrypointPath = isPathLike(entrypoint)
   ? path.resolve(process.cwd(), entrypoint)
   : entrypoint;
@@ -8495,7 +8495,7 @@ try {
 "#;
 
 const NODE_TIMING_BOOTSTRAP_SOURCE: &str = r#"
-const frozenTimeValue = Number(process.env.AGENT_OS_FROZEN_TIME_MS);
+const frozenTimeValue = Number(process.env.AGENTOS_FROZEN_TIME_MS);
 const frozenTimeMs = Number.isFinite(frozenTimeValue) ? Math.trunc(frozenTimeValue) : Date.now();
 const frozenDateNow = () => frozenTimeMs;
 const OriginalDate = Date;
@@ -8613,7 +8613,7 @@ function toImportSpecifier(specifier) {
   return specifier;
 }
 
-const imports = JSON.parse(process.env.AGENT_OS_NODE_PREWARM_IMPORTS ?? '[]');
+const imports = JSON.parse(process.env.AGENTOS_NODE_PREWARM_IMPORTS ?? '[]');
 for (const specifier of imports) {
   await import(toImportSpecifier(specifier));
 }
@@ -8623,18 +8623,18 @@ const NODE_WASM_RUNNER_SOURCE: &str = r#"
 const fsModule =
   typeof globalThis._requireFrom === 'function'
     ? globalThis._requireFrom('node:fs', '/')
-    : __agentOsRequireBuiltin('node:fs');
+    : __agentOSRequireBuiltin('node:fs');
 const fs = fsModule.promises;
 const { readSync, writeSync } = fsModule;
 const path =
   typeof globalThis._requireFrom === 'function'
     ? globalThis._requireFrom('node:path', '/')
-    : __agentOsRequireBuiltin('node:path');
-const { WASI } = globalThis.__agentOsWasiModule;
+    : __agentOSRequireBuiltin('node:path');
+const { WASI } = globalThis.__agentOSWasiModule;
 const HOST_CWD =
-  typeof process?.env?.AGENT_OS_WASM_HOST_CWD === 'string' &&
-  process.env.AGENT_OS_WASM_HOST_CWD.length > 0
-    ? path.resolve(process.env.AGENT_OS_WASM_HOST_CWD)
+  typeof process?.env?.AGENTOS_WASM_HOST_CWD === 'string' &&
+  process.env.AGENTOS_WASM_HOST_CWD.length > 0
+    ? path.resolve(process.env.AGENTOS_WASM_HOST_CWD)
     : path.resolve('.');
 
 const WASI_ERRNO_SUCCESS = 0;
@@ -8771,22 +8771,22 @@ function parseGuestPathMappings(value) {
   }
 }
 
-const modulePath = process.env.AGENT_OS_WASM_MODULE_PATH;
+const modulePath = process.env.AGENTOS_WASM_MODULE_PATH;
 if (!modulePath) {
-  throw new Error('AGENT_OS_WASM_MODULE_PATH is required');
+  throw new Error('AGENTOS_WASM_MODULE_PATH is required');
 }
-const moduleBase64 = process.env.AGENT_OS_WASM_MODULE_BASE64;
+const moduleBase64 = process.env.AGENTOS_WASM_MODULE_BASE64;
 
-const guestArgv = JSON.parse(process.env.AGENT_OS_GUEST_ARGV ?? '[]');
-const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
-const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
-const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
-const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
-const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
+const guestArgv = JSON.parse(process.env.AGENTOS_GUEST_ARGV ?? '[]');
+const guestEnv = JSON.parse(process.env.AGENTOS_GUEST_ENV ?? '{}');
+const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENTOS_GUEST_PATH_MAPPINGS);
+const permissionTier = process.env.AGENTOS_WASM_PERMISSION_TIER ?? 'full';
+const prewarmOnly = process.env.AGENTOS_WASM_PREWARM_ONLY === '1';
+const maxMemoryBytesValue = Number(process.env.AGENTOS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
   ? Math.max(0, Math.floor(maxMemoryBytesValue / WASM_PAGE_BYTES))
   : null;
-const maxStackBytesValue = Number(process.env.AGENT_OS_WASM_MAX_STACK_BYTES);
+const maxStackBytesValue = Number(process.env.AGENTOS_WASM_MAX_STACK_BYTES);
 const maxStackBytes =
   Number.isFinite(maxStackBytesValue) && maxStackBytesValue > 0
     ? Math.floor(maxStackBytesValue)
@@ -8794,7 +8794,7 @@ const maxStackBytes =
 
 // A guest can drive WebAssembly into never-returning recursion. V8's default
 // native stack guard already traps that as a generic `RangeError`, but the
-// operator-configured `AGENT_OS_WASM_MAX_STACK_BYTES` budget was previously
+// operator-configured `AGENTOS_WASM_MAX_STACK_BYTES` budget was previously
 // never consulted, so the cap was dead. When a stack byte budget is set, treat
 // a stack-exhaustion trap as enforcement of THAT budget: terminate the guest
 // nonzero and attribute the failure to the configured limit instead of leaking
@@ -8819,42 +8819,42 @@ function reportConfiguredStackLimitExceeded(error) {
     );
   }
 }
-const frozenTimeValue = Number(process.env.AGENT_OS_FROZEN_TIME_MS);
+const frozenTimeValue = Number(process.env.AGENTOS_FROZEN_TIME_MS);
 const frozenTimeMs = Number.isFinite(frozenTimeValue) ? Math.trunc(frozenTimeValue) : Date.now();
 const frozenTimeNs = BigInt(frozenTimeMs) * 1000000n;
 const VIRTUAL_UID = parseVirtualProcessNumber(
-  process.env.AGENT_OS_VIRTUAL_PROCESS_UID,
+  process.env.AGENTOS_VIRTUAL_PROCESS_UID,
   DEFAULT_VIRTUAL_UID,
 );
 const VIRTUAL_GID = parseVirtualProcessNumber(
-  process.env.AGENT_OS_VIRTUAL_PROCESS_GID,
+  process.env.AGENTOS_VIRTUAL_PROCESS_GID,
   DEFAULT_VIRTUAL_GID,
 );
 const VIRTUAL_PID = parseVirtualProcessNumber(
-  process.env.AGENT_OS_VIRTUAL_PROCESS_PID,
+  process.env.AGENTOS_VIRTUAL_PROCESS_PID,
   DEFAULT_VIRTUAL_PID,
 );
 const VIRTUAL_PPID = parseVirtualProcessNumber(
-  process.env.AGENT_OS_VIRTUAL_PROCESS_PPID,
+  process.env.AGENTOS_VIRTUAL_PROCESS_PPID,
   DEFAULT_VIRTUAL_PPID,
 );
 const VIRTUAL_OS_USER = parseVirtualProcessString(
-  (globalThis.__agentOsVirtualOs||{}).user,
+  (globalThis.__agentOSVirtualOs||{}).user,
   DEFAULT_VIRTUAL_OS_USER,
 );
 const VIRTUAL_OS_HOMEDIR = resolveVirtualPath(
-  (globalThis.__agentOsVirtualOs||{}).homedir,
+  (globalThis.__agentOSVirtualOs||{}).homedir,
   DEFAULT_VIRTUAL_OS_HOMEDIR,
 );
 const VIRTUAL_OS_SHELL = resolveVirtualPath(
-  (globalThis.__agentOsVirtualOs||{}).shell,
+  (globalThis.__agentOSVirtualOs||{}).shell,
   DEFAULT_VIRTUAL_OS_SHELL,
 );
-const CONTROL_PIPE_FD = parseControlPipeFd(process.env.AGENT_OS_CONTROL_PIPE_FD);
-const NODE_SYNC_RPC_ENABLE = process.env.AGENT_OS_NODE_SYNC_RPC_ENABLE === '1';
-const NODE_SYNC_RPC_REQUEST_FD = parseControlPipeFd(process.env.AGENT_OS_NODE_SYNC_RPC_REQUEST_FD);
-const NODE_SYNC_RPC_RESPONSE_FD = parseControlPipeFd(process.env.AGENT_OS_NODE_SYNC_RPC_RESPONSE_FD);
-const KERNEL_STDIO_SYNC_RPC = process.env.AGENT_OS_WASI_STDIO_SYNC_RPC === '1';
+const CONTROL_PIPE_FD = parseControlPipeFd(process.env.AGENTOS_CONTROL_PIPE_FD);
+const NODE_SYNC_RPC_ENABLE = process.env.AGENTOS_NODE_SYNC_RPC_ENABLE === '1';
+const NODE_SYNC_RPC_REQUEST_FD = parseControlPipeFd(process.env.AGENTOS_NODE_SYNC_RPC_REQUEST_FD);
+const NODE_SYNC_RPC_RESPONSE_FD = parseControlPipeFd(process.env.AGENTOS_NODE_SYNC_RPC_RESPONSE_FD);
+const KERNEL_STDIO_SYNC_RPC = process.env.AGENTOS_WASI_STDIO_SYNC_RPC === '1';
 let nextSyncRpcId = 1;
 let syncRpcResponseBuffer = '';
 const spawnedChildren = new Map();
@@ -8863,7 +8863,7 @@ let nextSyntheticChildPid = 0x40000000;
 const syntheticFdEntries = new Map();
 const delegateManagedFdRefCounts = new Map();
 const closedPassthroughFds = new Set();
-globalThis.__agentOsWasiDelegateFdRefCount = (fd) =>
+globalThis.__agentOSWasiDelegateFdRefCount = (fd) =>
   delegateManagedFdRefCounts.get(Number(fd) >>> 0) ?? 0;
 const passthroughHandles = new Map([
   [0, { kind: 'passthrough', targetFd: 0, displayFd: 0, refCount: 0, open: true }],
@@ -8881,13 +8881,13 @@ function traceHostProcess(event, details) {
   const enabled =
     (typeof TRACE_HOST_PROCESS === 'boolean' && TRACE_HOST_PROCESS) ||
     (typeof HOST_PROCESS_ENV !== 'undefined' &&
-      HOST_PROCESS_ENV?.AGENT_OS_TRACE_HOST_PROCESS === '1') ||
-    (typeof process !== 'undefined' && process?.env?.AGENT_OS_TRACE_HOST_PROCESS === '1');
+      HOST_PROCESS_ENV?.AGENTOS_TRACE_HOST_PROCESS === '1') ||
+    (typeof process !== 'undefined' && process?.env?.AGENTOS_TRACE_HOST_PROCESS === '1');
   if (!enabled) {
     return;
   }
   try {
-    process.stderr.write(`[agent-os-host-process] ${event} ${JSON.stringify(details)}\n`);
+    process.stderr.write(`[agentos-host-process] ${event} ${JSON.stringify(details)}\n`);
   } catch {
     // Ignore tracing failures.
   }
@@ -9337,7 +9337,7 @@ function emitControlMessage(message) {
       typeof process?.stdout?.write === 'function'
     ) {
       try {
-        process.stdout.write(`__AGENT_OS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
+        process.stdout.write(`__AGENTOS_WASM_SIGNAL_STATE__:${JSON.stringify(message)}\n`);
       } catch {
         // Ignore signal-state bridge failures during teardown.
       }
@@ -10835,21 +10835,21 @@ function encodeSyncRpcValue(value) {
 
   if (typeof Buffer === 'function' && Buffer.isBuffer(value)) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: value.toString('base64'),
     };
   }
 
   if (ArrayBuffer.isView(value)) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: Buffer.from(value.buffer, value.byteOffset, value.byteLength).toString('base64'),
     };
   }
 
   if (value instanceof ArrayBuffer) {
     return {
-      __agentOsType: 'bytes',
+      __agentOSType: 'bytes',
       base64: Buffer.from(value).toString('base64'),
     };
   }
@@ -10885,7 +10885,7 @@ function decodeSyncRpcValue(value) {
       return Buffer.from(value.data, 'base64');
     }
 
-    if (value.__agentOsType === 'bytes' && typeof value.base64 === 'string') {
+    if (value.__agentOSType === 'bytes' && typeof value.base64 === 'string') {
       return Buffer.from(value.base64, 'base64');
     }
 
@@ -10917,15 +10917,15 @@ function readSyncRpcLine() {
 
 function callSyncRpc(method, args = []) {
   if (
-    globalThis.__agentOsSyncRpc &&
-    typeof globalThis.__agentOsSyncRpc.callSync === 'function'
+    globalThis.__agentOSSyncRpc &&
+    typeof globalThis.__agentOSSyncRpc.callSync === 'function'
   ) {
-    return globalThis.__agentOsSyncRpc.callSync(method, args);
+    return globalThis.__agentOSSyncRpc.callSync(method, args);
   }
 
   if (!NODE_SYNC_RPC_ENABLE || NODE_SYNC_RPC_REQUEST_FD == null || NODE_SYNC_RPC_RESPONSE_FD == null) {
     const error = new Error(`secure-exec WASM sync RPC is unavailable for ${method}`);
-    error.code = 'ERR_AGENT_OS_WASM_SYNC_RPC_UNAVAILABLE';
+    error.code = 'ERR_AGENTOS_WASM_SYNC_RPC_UNAVAILABLE';
     throw error;
   }
 
@@ -12852,8 +12852,8 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
     passthroughHandles.get(0) === handle
   ) {
     const sidecarManagedProcess =
-      typeof process?.env?.AGENT_OS_SANDBOX_ROOT === 'string' &&
-      process.env.AGENT_OS_SANDBOX_ROOT.length > 0;
+      typeof process?.env?.AGENTOS_SANDBOX_ROOT === 'string' &&
+      process.env.AGENTOS_SANDBOX_ROOT.length > 0;
     if (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC) {
       try {
         const requestedLength = (() => {
@@ -13268,8 +13268,8 @@ wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
     try {
       const bytes = collectGuestIovBytes(iovs, iovsLen);
       const sidecarManagedProcess =
-        typeof process?.env?.AGENT_OS_SANDBOX_ROOT === 'string' &&
-        process.env.AGENT_OS_SANDBOX_ROOT.length > 0;
+        typeof process?.env?.AGENTOS_SANDBOX_ROOT === 'string' &&
+        process.env.AGENTOS_SANDBOX_ROOT.length > 0;
       if (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC) {
         const written = Number(
           callSyncRpc('__kernel_stdio_write', [numericFd, bytes]),
@@ -13358,8 +13358,8 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
   let hasSyntheticSubscription = false;
   let hasRemappedPassthroughSubscription = false;
   const sidecarManagedProcess =
-    typeof process?.env?.AGENT_OS_SANDBOX_ROOT === 'string' &&
-    process.env.AGENT_OS_SANDBOX_ROOT.length > 0;
+    typeof process?.env?.AGENTOS_SANDBOX_ROOT === 'string' &&
+    process.env.AGENTOS_SANDBOX_ROOT.length > 0;
   let timeoutMs = null;
 
   for (let index = 0; index < subscriptionCount; index += 1) {
@@ -13686,147 +13686,147 @@ const BUILTIN_ASSETS: &[BuiltinAsset] = &[
     BuiltinAsset {
         name: "async-hooks",
         module_specifier: "node:async_hooks",
-        init_counter_key: "__agentOsBuiltinAsyncHooksInitCount",
+        init_counter_key: "__agentOSBuiltinAsyncHooksInitCount",
     },
     BuiltinAsset {
         name: "assert",
         module_specifier: "node:assert",
-        init_counter_key: "__agentOsBuiltinAssertInitCount",
+        init_counter_key: "__agentOSBuiltinAssertInitCount",
     },
     BuiltinAsset {
         name: "buffer",
         module_specifier: "node:buffer",
-        init_counter_key: "__agentOsBuiltinBufferInitCount",
+        init_counter_key: "__agentOSBuiltinBufferInitCount",
     },
     BuiltinAsset {
         name: "constants",
         module_specifier: "node:constants",
-        init_counter_key: "__agentOsBuiltinConstantsInitCount",
+        init_counter_key: "__agentOSBuiltinConstantsInitCount",
     },
     BuiltinAsset {
         name: "events",
         module_specifier: "node:events",
-        init_counter_key: "__agentOsBuiltinEventsInitCount",
+        init_counter_key: "__agentOSBuiltinEventsInitCount",
     },
     BuiltinAsset {
         name: "fs",
         module_specifier: "node:fs",
-        init_counter_key: "__agentOsBuiltinFsInitCount",
+        init_counter_key: "__agentOSBuiltinFsInitCount",
     },
     BuiltinAsset {
         name: "path",
         module_specifier: "node:path",
-        init_counter_key: "__agentOsBuiltinPathInitCount",
+        init_counter_key: "__agentOSBuiltinPathInitCount",
     },
     BuiltinAsset {
         name: "url",
         module_specifier: "node:url",
-        init_counter_key: "__agentOsBuiltinUrlInitCount",
+        init_counter_key: "__agentOSBuiltinUrlInitCount",
     },
     BuiltinAsset {
         name: "fs-promises",
         module_specifier: "node:fs/promises",
-        init_counter_key: "__agentOsBuiltinFsPromisesInitCount",
+        init_counter_key: "__agentOSBuiltinFsPromisesInitCount",
     },
     BuiltinAsset {
         name: "child-process",
         module_specifier: "node:child_process",
-        init_counter_key: "__agentOsBuiltinChildProcessInitCount",
+        init_counter_key: "__agentOSBuiltinChildProcessInitCount",
     },
     BuiltinAsset {
         name: "net",
         module_specifier: "node:net",
-        init_counter_key: "__agentOsBuiltinNetInitCount",
+        init_counter_key: "__agentOSBuiltinNetInitCount",
     },
     BuiltinAsset {
         name: "dgram",
         module_specifier: "node:dgram",
-        init_counter_key: "__agentOsBuiltinDgramInitCount",
+        init_counter_key: "__agentOSBuiltinDgramInitCount",
     },
     BuiltinAsset {
         name: "diagnostics-channel",
         module_specifier: "node:diagnostics_channel",
-        init_counter_key: "__agentOsBuiltinDiagnosticsChannelInitCount",
+        init_counter_key: "__agentOSBuiltinDiagnosticsChannelInitCount",
     },
     BuiltinAsset {
         name: "dns",
         module_specifier: "node:dns",
-        init_counter_key: "__agentOsBuiltinDnsInitCount",
+        init_counter_key: "__agentOSBuiltinDnsInitCount",
     },
     BuiltinAsset {
         name: "dns-promises",
         module_specifier: "node:dns/promises",
-        init_counter_key: "__agentOsBuiltinDnsPromisesInitCount",
+        init_counter_key: "__agentOSBuiltinDnsPromisesInitCount",
     },
     BuiltinAsset {
         name: "http",
         module_specifier: "node:http",
-        init_counter_key: "__agentOsBuiltinHttpInitCount",
+        init_counter_key: "__agentOSBuiltinHttpInitCount",
     },
     BuiltinAsset {
         name: "http2",
         module_specifier: "node:http2",
-        init_counter_key: "__agentOsBuiltinHttp2InitCount",
+        init_counter_key: "__agentOSBuiltinHttp2InitCount",
     },
     BuiltinAsset {
         name: "https",
         module_specifier: "node:https",
-        init_counter_key: "__agentOsBuiltinHttpsInitCount",
+        init_counter_key: "__agentOSBuiltinHttpsInitCount",
     },
     BuiltinAsset {
         name: "tls",
         module_specifier: "node:tls",
-        init_counter_key: "__agentOsBuiltinTlsInitCount",
+        init_counter_key: "__agentOSBuiltinTlsInitCount",
     },
     BuiltinAsset {
         name: "os",
         module_specifier: "node:os",
-        init_counter_key: "__agentOsBuiltinOsInitCount",
+        init_counter_key: "__agentOSBuiltinOsInitCount",
     },
     BuiltinAsset {
         name: "punycode",
         module_specifier: "node:punycode",
-        init_counter_key: "__agentOsBuiltinPunycodeInitCount",
+        init_counter_key: "__agentOSBuiltinPunycodeInitCount",
     },
     BuiltinAsset {
         name: "querystring",
         module_specifier: "node:querystring",
-        init_counter_key: "__agentOsBuiltinQuerystringInitCount",
+        init_counter_key: "__agentOSBuiltinQuerystringInitCount",
     },
     BuiltinAsset {
         name: "stream",
         module_specifier: "node:stream",
-        init_counter_key: "__agentOsBuiltinStreamInitCount",
+        init_counter_key: "__agentOSBuiltinStreamInitCount",
     },
     BuiltinAsset {
         name: "string-decoder",
         module_specifier: "node:string_decoder",
-        init_counter_key: "__agentOsBuiltinStringDecoderInitCount",
+        init_counter_key: "__agentOSBuiltinStringDecoderInitCount",
     },
     BuiltinAsset {
         name: "util",
         module_specifier: "node:util",
-        init_counter_key: "__agentOsBuiltinUtilInitCount",
+        init_counter_key: "__agentOSBuiltinUtilInitCount",
     },
     BuiltinAsset {
         name: "v8",
         module_specifier: "node:v8",
-        init_counter_key: "__agentOsBuiltinV8InitCount",
+        init_counter_key: "__agentOSBuiltinV8InitCount",
     },
     BuiltinAsset {
         name: "vm",
         module_specifier: "node:vm",
-        init_counter_key: "__agentOsBuiltinVmInitCount",
+        init_counter_key: "__agentOSBuiltinVmInitCount",
     },
     BuiltinAsset {
         name: "worker-threads",
         module_specifier: "node:worker_threads",
-        init_counter_key: "__agentOsBuiltinWorkerThreadsInitCount",
+        init_counter_key: "__agentOSBuiltinWorkerThreadsInitCount",
     },
     BuiltinAsset {
         name: "zlib",
         module_specifier: "node:zlib",
-        init_counter_key: "__agentOsBuiltinZlibInitCount",
+        init_counter_key: "__agentOSBuiltinZlibInitCount",
     },
 ];
 
@@ -13874,7 +13874,7 @@ const DENIED_BUILTIN_ASSETS: &[DeniedBuiltinAsset] = &[
 ];
 
 const PATH_POLYFILL_ASSET_NAME: &str = "path";
-const PATH_POLYFILL_INIT_COUNTER_KEY: &str = "__agentOsPolyfillPathInitCount";
+const PATH_POLYFILL_INIT_COUNTER_KEY: &str = "__agentOSPolyfillPathInitCount";
 
 #[derive(Debug)]
 pub(crate) struct NodeImportCache {
@@ -13944,7 +13944,7 @@ fn cleanup_stale_node_import_caches(base_dir: &Path) {
         Err(error) if error.kind() == io::ErrorKind::NotFound => return,
         Err(error) => {
             eprintln!(
-                "agent-os: failed to scan node import cache root {}: {error}",
+                "agentos: failed to scan node import cache root {}: {error}",
                 base_dir.display()
             );
             return;
@@ -13972,7 +13972,7 @@ fn cleanup_stale_node_import_caches(base_dir: &Path) {
         if let Err(error) = fs::remove_dir_all(&path) {
             if error.kind() != io::ErrorKind::NotFound {
                 eprintln!(
-                    "agent-os: failed to clean up stale node import cache {}: {error}",
+                    "agentos: failed to clean up stale node import cache {}: {error}",
                     path.display()
                 );
             }
@@ -14014,7 +14014,7 @@ impl Drop for NodeImportCacheCleanup {
         if let Err(error) = fs::remove_dir_all(&self.root_dir) {
             if error.kind() != io::ErrorKind::NotFound {
                 eprintln!(
-                    "agent-os: failed to clean up node import cache {}: {error}",
+                    "agentos: failed to clean up node import cache {}: {error}",
                     self.root_dir.display()
                 );
             }
@@ -14289,7 +14289,7 @@ fn render_passthrough_builtin_asset_source(
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
 const builtin = namespace.default ?? namespace;\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default builtin;\n\
 export * from {module_specifier};\n"
     )
@@ -14303,7 +14303,7 @@ fn render_util_builtin_asset_source(init_counter_key: &str) -> String {
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
 const builtin = namespace.default ?? namespace;\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default builtin;\n\
 export const formatWithOptions = builtin.formatWithOptions;\n\
 export * from \"node:util\";\n"
@@ -14316,11 +14316,11 @@ fn render_fs_builtin_asset_source(init_counter_key: &str) -> String {
     format!(
         "const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-const mod = globalThis.__agentOsBuiltinFs ?? globalThis.__agentOsGuestFs ?? process.getBuiltinModule?.(\"node:fs\");\n\
+const mod = globalThis.__agentOSBuiltinFs ?? globalThis.__agentOSGuestFs ?? process.getBuiltinModule?.(\"node:fs\");\n\
 if (!mod) {{\n\
   throw new Error('secure-exec guest fs polyfill was not initialized');\n\
 }}\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Dir = mod.Dir;\n\
 export const Dirent = mod.Dirent;\n\
@@ -14411,7 +14411,7 @@ fn render_fs_promises_builtin_asset_source(init_counter_key: &str) -> String {
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
 const mod = fsModule.promises;\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const constants = fsModule.constants;\n\
 export const FileHandle = mod.FileHandle;\n\
@@ -14527,7 +14527,7 @@ const mod = {{\n\
   triggerAsyncId,\n\
 }};\n\
 \n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export {{ AsyncLocalStorage, AsyncResource, createHook, executionAsyncId, triggerAsyncId }};\n"
     )
@@ -14540,13 +14540,13 @@ fn render_child_process_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinChildProcess) {{\n\
+if (!globalThis.__agentOSBuiltinChildProcess) {{\n\
   const error = new Error(\"node:child_process is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinChildProcess;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinChildProcess;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const ChildProcess = mod.ChildProcess;\n\
 export const _forkChild = mod._forkChild;\n\
@@ -14567,13 +14567,13 @@ fn render_net_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinNet) {{\n\
+if (!globalThis.__agentOSBuiltinNet) {{\n\
   const error = new Error(\"node:net is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinNet;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinNet;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const BlockList = mod.BlockList;\n\
 export const Server = mod.Server;\n\
@@ -14600,13 +14600,13 @@ fn render_dgram_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinDgram) {{\n\
+if (!globalThis.__agentOSBuiltinDgram) {{\n\
   const error = new Error(\"node:dgram is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinDgram;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinDgram;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Socket = mod.Socket;\n\
 export const createSocket = mod.createSocket;\n"
@@ -14727,7 +14727,7 @@ function tracingChannel(name = '') {{
 
 const mod = {{ Channel, channel, hasSubscribers, subscribe, tracingChannel, unsubscribe }};
 
-export const __agentOsInitCount = initCount;
+export const __agentOSInitCount = initCount;
 export default mod;
 export {{ Channel, channel, hasSubscribers, subscribe, tracingChannel, unsubscribe }};
 "#
@@ -14741,13 +14741,13 @@ fn render_dns_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinDns) {{\n\
+if (!globalThis.__agentOSBuiltinDns) {{\n\
   const error = new Error(\"node:dns is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinDns;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinDns;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const ADDRCONFIG = mod.ADDRCONFIG;\n\
 export const ALL = mod.ALL;\n\
@@ -14775,13 +14775,13 @@ fn render_dns_promises_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinDns) {{\n\
+if (!globalThis.__agentOSBuiltinDns) {{\n\
   const error = new Error(\"node:dns/promises is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinDns.promises;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinDns.promises;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Resolver = mod.Resolver;\n\
 export const lookup = mod.lookup;\n\
@@ -14808,13 +14808,13 @@ fn render_http_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinHttp) {{\n\
+if (!globalThis.__agentOSBuiltinHttp) {{\n\
   const error = new Error(\"node:http is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinHttp;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinHttp;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Agent = mod.Agent;\n\
 export const ClientRequest = mod.ClientRequest;\n\
@@ -14842,13 +14842,13 @@ fn render_http2_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinHttp2) {{\n\
+if (!globalThis.__agentOSBuiltinHttp2) {{\n\
   const error = new Error(\"node:http2 is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinHttp2;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinHttp2;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Http2ServerRequest = mod.Http2ServerRequest;\n\
 export const Http2ServerResponse = mod.Http2ServerResponse;\n\
@@ -14872,13 +14872,13 @@ fn render_https_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinHttps) {{\n\
+if (!globalThis.__agentOSBuiltinHttps) {{\n\
   const error = new Error(\"node:https is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinHttps;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinHttps;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Agent = mod.Agent;\n\
 export const Server = mod.Server;\n\
@@ -14896,13 +14896,13 @@ fn render_tls_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinTls) {{\n\
+if (!globalThis.__agentOSBuiltinTls) {{\n\
   const error = new Error(\"node:tls is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinTls;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinTls;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const CLIENT_RENEG_LIMIT = mod.CLIENT_RENEG_LIMIT;\n\
 export const CLIENT_RENEG_WINDOW = mod.CLIENT_RENEG_WINDOW;\n\
@@ -14931,13 +14931,13 @@ fn render_os_builtin_asset_source(init_counter_key: &str) -> String {
         "const ACCESS_DENIED_CODE = \"ERR_ACCESS_DENIED\";\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\
-if (!globalThis.__agentOsBuiltinOs) {{\n\
+if (!globalThis.__agentOSBuiltinOs) {{\n\
   const error = new Error(\"node:os is not available in the secure-exec guest runtime\");\n\
   error.code = ACCESS_DENIED_CODE;\n\
   throw error;\n\
 }}\n\n\
-const mod = globalThis.__agentOsBuiltinOs;\n\n\
-export const __agentOsInitCount = initCount;\n\
+const mod = globalThis.__agentOSBuiltinOs;\n\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const EOL = mod.EOL;\n\
 export const arch = mod.arch;\n\
@@ -14975,7 +14975,7 @@ const mod = process.getBuiltinModule?.(\"node:v8\");\n\
 if (!mod) {{\n\
   throw new Error(\"secure-exec guest v8 compatibility module was not initialized\");\n\
 }}\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const GCProfiler = mod.GCProfiler;\n\
 export const Deserializer = mod.Deserializer;\n\
@@ -15011,7 +15011,7 @@ const mod = process.getBuiltinModule?.(\"node:vm\");\n\
 if (!mod) {{\n\
   throw new Error(\"secure-exec guest vm compatibility module was not initialized\");\n\
 }}\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const Script = mod.Script;\n\
 export const createContext = mod.createContext;\n\
@@ -15101,7 +15101,7 @@ const mod = {{\n\
   workerData: null,\n\
 }};\n\
 \n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export default mod;\n\
 export const BroadcastChannel = mod.BroadcastChannel;\n\
 export const MessageChannel = mod.MessageChannel;\n\
@@ -15137,7 +15137,7 @@ fn render_path_polyfill_source() -> String {
         "import path from \"node:path\";\n\n\
 const initCount = (globalThis[{init_counter_key}] ?? 0) + 1;\n\
 globalThis[{init_counter_key}] = initCount;\n\n\
-export const __agentOsInitCount = initCount;\n\
+export const __agentOSInitCount = initCount;\n\
 export const basename = (...args) => path.basename(...args);\n\
 export const dirname = (...args) => path.dirname(...args);\n\
 export const join = (...args) => path.join(...args);\n\
@@ -15209,12 +15209,12 @@ mod tests {
             .arg("--import")
             .arg(import_cache.timing_bootstrap_path())
             .arg(import_cache.python_runner_path())
-            .env("AGENT_OS_PYODIDE_INDEX_URL", pyodide_index_url)
+            .env("AGENTOS_PYODIDE_INDEX_URL", pyodide_index_url)
             .env(
-                "AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR",
+                "AGENTOS_PYODIDE_PACKAGE_CACHE_DIR",
                 pyodide_index_url.join("pyodide-package-cache"),
             )
-            .env("AGENT_OS_PYTHON_CODE", code);
+            .env("AGENTOS_PYTHON_CODE", code);
 
         for (key, value) in env {
             command.env(key, value);
@@ -15233,12 +15233,12 @@ mod tests {
             .arg("--import")
             .arg(import_cache.timing_bootstrap_path())
             .arg(import_cache.python_runner_path())
-            .env("AGENT_OS_PYODIDE_INDEX_URL", pyodide_index_url)
+            .env("AGENTOS_PYODIDE_INDEX_URL", pyodide_index_url)
             .env(
-                "AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR",
+                "AGENTOS_PYODIDE_PACKAGE_CACHE_DIR",
                 pyodide_index_url.join("pyodide-package-cache"),
             )
-            .env("AGENT_OS_PYTHON_PREWARM_ONLY", "1");
+            .env("AGENTOS_PYTHON_PREWARM_ONLY", "1");
 
         for (key, value) in env {
             command.env(key, value);
@@ -15259,12 +15259,12 @@ mod tests {
             .arg("--import")
             .arg(import_cache.timing_bootstrap_path())
             .arg(import_cache.python_runner_path())
-            .env("AGENT_OS_PYODIDE_INDEX_URL", pyodide_index_url)
+            .env("AGENTOS_PYODIDE_INDEX_URL", pyodide_index_url)
             .env(
-                "AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR",
+                "AGENTOS_PYODIDE_PACKAGE_CACHE_DIR",
                 pyodide_index_url.join("pyodide-package-cache"),
             )
-            .env("AGENT_OS_PYTHON_CODE", code)
+            .env("AGENTOS_PYTHON_CODE", code)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
@@ -15430,7 +15430,7 @@ export async function loadPyodide(options) {
             &import_cache,
             pyodide_dir.path(),
             "print('ignored')",
-            &[("AGENT_OS_PYTHON_FILE", "/workspace/script.py")],
+            &[("AGENTOS_PYTHON_FILE", "/workspace/script.py")],
         );
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -15481,7 +15481,7 @@ export async function loadPyodide(options) {
         let output = run_python_runner_prewarm(
             &import_cache,
             pyodide_dir.path(),
-            &[("AGENT_OS_PYTHON_CODE", "print('ignored')")],
+            &[("AGENTOS_PYTHON_CODE", "print('ignored')")],
         );
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -15656,7 +15656,7 @@ print(json.dumps({
     "iso": utc_now.isoformat(timespec="milliseconds"),
 }))
 "#,
-            &[("AGENT_OS_FROZEN_TIME_MS", "1704067200123")],
+            &[("AGENTOS_FROZEN_TIME_MS", "1704067200123")],
         );
 
         let stdout = String::from_utf8_lossy(&output.stdout);
@@ -15712,7 +15712,7 @@ export async function loadPyodide(options) {
             &import_cache,
             pyodide_dir.path(),
             "print('hello')",
-            &[("AGENT_OS_PYTHON_PRELOAD_PACKAGES", "[\"numpy\",\"pandas\"]")],
+            &[("AGENTOS_PYTHON_PRELOAD_PACKAGES", "[\"numpy\",\"pandas\"]")],
         );
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -15766,7 +15766,7 @@ export async function loadPyodide() {
             &import_cache,
             pyodide_dir.path(),
             "print('hello')",
-            &[("AGENT_OS_PYTHON_PRELOAD_PACKAGES", "[\"requests\"]")],
+            &[("AGENTOS_PYTHON_PRELOAD_PACKAGES", "[\"requests\"]")],
         );
         let stderr = String::from_utf8_lossy(&output.stderr);
 
@@ -15951,7 +15951,7 @@ export async function loadPyodide(options) {
         let temp_root = tempdir().expect("create node import cache temp root");
         let stale_cache_dir = temp_root
             .path()
-            .join("agent-os-node-import-cache-stale-test");
+            .join("agentos-node-import-cache-stale-test");
         let unrelated_dir = temp_root.path().join("keep-me");
         fs::create_dir_all(&stale_cache_dir).expect("create stale cache dir");
         fs::create_dir_all(&unrelated_dir).expect("create unrelated dir");
@@ -16007,9 +16007,9 @@ for (let index = 0; index < 600; index += 1) {
             .arg(&driver_path)
             .arg(&import_cache.loader_path)
             .arg(workspace.path())
-            .env("AGENT_OS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
+            .env("AGENTOS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
             .env(
-                "AGENT_OS_NODE_IMPORT_CACHE_ASSET_ROOT",
+                "AGENTOS_NODE_IMPORT_CACHE_ASSET_ROOT",
                 import_cache.asset_root(),
             )
             .output()
@@ -16072,9 +16072,9 @@ await loader.resolve('pkg-fresh', { parentURL }, async () => ({
             .arg(&driver_path)
             .arg(&import_cache.loader_path)
             .arg(workspace.path())
-            .env("AGENT_OS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
+            .env("AGENTOS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
             .env(
-                "AGENT_OS_NODE_IMPORT_CACHE_ASSET_ROOT",
+                "AGENTOS_NODE_IMPORT_CACHE_ASSET_ROOT",
                 import_cache.asset_root(),
             )
             .output()
@@ -16147,12 +16147,12 @@ for (let index = 0; index < 520; index += 1) {
             .arg(&driver_path)
             .arg(&import_cache.loader_path)
             .arg(workspace.path())
-            .env("AGENT_OS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
+            .env("AGENTOS_NODE_IMPORT_CACHE_PATH", import_cache.cache_path())
             .env(
-                "AGENT_OS_NODE_IMPORT_CACHE_ASSET_ROOT",
+                "AGENTOS_NODE_IMPORT_CACHE_ASSET_ROOT",
                 import_cache.asset_root(),
             )
-            .env("AGENT_OS_GUEST_PATH_MAPPINGS", guest_path_mappings)
+            .env("AGENTOS_GUEST_PATH_MAPPINGS", guest_path_mappings)
             .output()
             .expect("run projected source cache driver");
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -16267,7 +16267,7 @@ for (let index = 0; index < 520; index += 1) {
             fs::read_to_string(import_cache.asset_root().join("builtins").join("os.mjs"))
                 .expect("read os builtin asset");
 
-        assert!(os_asset.contains("__agentOsBuiltinOs"));
+        assert!(os_asset.contains("__agentOSBuiltinOs"));
         assert!(os_asset.contains("export const hostname = mod.hostname"));
         assert!(os_asset.contains("export const userInfo = mod.userInfo"));
     }
@@ -16287,11 +16287,11 @@ for (let index = 0; index < 520; index += 1) {
         let https_asset =
             fs::read_to_string(builtins_root.join("https.mjs")).expect("read https builtin asset");
 
-        assert!(http_asset.contains("__agentOsBuiltinHttp"));
+        assert!(http_asset.contains("__agentOSBuiltinHttp"));
         assert!(http_asset.contains("export const request = mod.request"));
-        assert!(http2_asset.contains("__agentOsBuiltinHttp2"));
+        assert!(http2_asset.contains("__agentOSBuiltinHttp2"));
         assert!(http2_asset.contains("export const connect = mod.connect"));
-        assert!(https_asset.contains("__agentOsBuiltinHttps"));
+        assert!(https_asset.contains("__agentOSBuiltinHttps"));
         assert!(https_asset.contains("export const createServer = mod.createServer"));
     }
 
@@ -16306,7 +16306,7 @@ for (let index = 0; index < 520; index += 1) {
             fs::read_to_string(import_cache.asset_root().join("builtins").join("net.mjs"))
                 .expect("read net builtin asset");
 
-        assert!(net_asset.contains("__agentOsBuiltinNet"));
+        assert!(net_asset.contains("__agentOSBuiltinNet"));
         assert!(net_asset.contains("export const connect = mod.connect"));
         assert!(net_asset.contains("export const createServer = mod.createServer"));
     }
@@ -16322,7 +16322,7 @@ for (let index = 0; index < 520; index += 1) {
             fs::read_to_string(import_cache.asset_root().join("builtins").join("dgram.mjs"))
                 .expect("read dgram builtin asset");
 
-        assert!(dgram_asset.contains("__agentOsBuiltinDgram"));
+        assert!(dgram_asset.contains("__agentOSBuiltinDgram"));
         assert!(dgram_asset.contains("export const Socket = mod.Socket"));
         assert!(dgram_asset.contains("export const createSocket = mod.createSocket"));
     }
@@ -16338,7 +16338,7 @@ for (let index = 0; index < 520; index += 1) {
             fs::read_to_string(import_cache.asset_root().join("builtins").join("dns.mjs"))
                 .expect("read dns builtin asset");
 
-        assert!(dns_asset.contains("__agentOsBuiltinDns"));
+        assert!(dns_asset.contains("__agentOSBuiltinDns"));
         assert!(dns_asset.contains("export const Resolver = mod.Resolver"));
         assert!(dns_asset.contains("export const lookup = mod.lookup"));
         assert!(dns_asset.contains("export const resolve4 = mod.resolve4"));
@@ -16359,7 +16359,7 @@ for (let index = 0; index < 520; index += 1) {
         )
         .expect("read dns promises builtin asset");
 
-        assert!(dns_promises_asset.contains("__agentOsBuiltinDns.promises"));
+        assert!(dns_promises_asset.contains("__agentOSBuiltinDns.promises"));
         assert!(dns_promises_asset.contains("export const Resolver = mod.Resolver"));
         assert!(dns_promises_asset.contains("export const resolve4 = mod.resolve4"));
     }
@@ -16409,7 +16409,7 @@ for (let index = 0; index < 520; index += 1) {
             fs::read_to_string(import_cache.asset_root().join("builtins").join("tls.mjs"))
                 .expect("read tls builtin asset");
 
-        assert!(tls_asset.contains("__agentOsBuiltinTls"));
+        assert!(tls_asset.contains("__agentOSBuiltinTls"));
         assert!(tls_asset.contains("export const connect = mod.connect"));
         assert!(tls_asset.contains("export const createServer = mod.createServer"));
     }

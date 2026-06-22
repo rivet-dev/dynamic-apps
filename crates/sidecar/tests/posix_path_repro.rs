@@ -136,7 +136,7 @@ fn run_guest_probe_process(
     let allowed_builtins =
         serde_json::to_string(ALLOWED_NODE_BUILTINS).expect("serialize builtin allowlist");
     let mut metadata = HashMap::from([(
-        String::from("env.AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("env.AGENTOS_ALLOWED_NODE_BUILTINS"),
         allowed_builtins,
     )]);
     metadata.extend(extra_metadata);

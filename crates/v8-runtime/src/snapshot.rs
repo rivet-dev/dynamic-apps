@@ -1062,7 +1062,7 @@ pub fn run_snapshot_consolidated_checks() {
         // Create a V8 payload to override _processConfig
         let payload_code = r#"({
                 processConfig: { cwd: "/app", env: { FOO: "bar" }, timing_mitigation: "off", frozen_time_ms: null },
-                osConfig: { homedir: "/home/user", tmpdir: "/tmp", platform: "linux", arch: "arm64" }
+                osConfig: { homedir: "/home/agentos", tmpdir: "/tmp", platform: "linux", arch: "arm64" }
             })"#;
         let payload_source = v8::String::new(scope, payload_code).unwrap();
         let payload_script = v8::Script::compile(scope, payload_source, None).unwrap();

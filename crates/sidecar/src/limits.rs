@@ -98,7 +98,7 @@ pub struct AcpLimits {
 pub struct JsRuntimeLimits {
     /// `None` keeps the V8 engine default heap. Carried as the typed
     /// `JavascriptExecutionLimits.v8_heap_limit_mb` on the execution request
-    /// (no longer the `AGENT_OS_V8_HEAP_LIMIT_MB` env knob).
+    /// (no longer the `AGENTOS_V8_HEAP_LIMIT_MB` env knob).
     pub v8_heap_limit_mb: Option<u32>,
     /// Sync-RPC blocking-wait ceiling in ms. `None` keeps the engine default.
     pub sync_rpc_wait_timeout_ms: Option<u64>,

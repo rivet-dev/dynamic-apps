@@ -59,7 +59,7 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::fs::{symlink, FileExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
-const PYTHON_PYODIDE_GUEST_ROOT: &str = "/__agent_os_pyodide";
+const PYTHON_PYODIDE_GUEST_ROOT: &str = "/__agentos_pyodide";
 
 fn kernel_path_error(
     operation: &str,
@@ -75,7 +75,7 @@ fn kernel_path_error(
         other => other,
     }
 }
-const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agent_os_pyodide_cache";
+const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agentos_pyodide_cache";
 const UTIME_NOW_NSEC: i64 = libc::UTIME_NOW;
 const UTIME_OMIT_NSEC: i64 = libc::UTIME_OMIT;
 
@@ -796,7 +796,7 @@ where
             .respond_python_vfs_rpc_success(request.id, payload),
         Err(error) => process.execution.respond_python_vfs_rpc_error(
             request.id,
-            "ERR_AGENT_OS_PYTHON_VFS_RPC",
+            "ERR_AGENTOS_PYTHON_VFS_RPC",
             error.to_string(),
         ),
     }
@@ -1855,7 +1855,7 @@ fn mapped_runtime_host_path(
     };
     let mappings = process
         .env
-        .get("AGENT_OS_GUEST_PATH_MAPPINGS")
+        .get("AGENTOS_GUEST_PATH_MAPPINGS")
         .and_then(|value| serde_json::from_str::<Vec<RuntimeGuestPathMappingWire>>(value).ok())?;
     let mut sorted_mappings = mappings
         .into_iter()
@@ -1867,9 +1867,9 @@ fn mapped_runtime_host_path(
         })
         .collect::<Vec<_>>();
     sorted_mappings.sort_by_key(|mapping| std::cmp::Reverse(mapping.0.len()));
-    let readable_roots = runtime_host_access_roots(process, "AGENT_OS_EXTRA_FS_READ_PATHS")?;
+    let readable_roots = runtime_host_access_roots(process, "AGENTOS_EXTRA_FS_READ_PATHS")?;
     let writable_roots = writable
-        .then(|| runtime_host_access_roots(process, "AGENT_OS_EXTRA_FS_WRITE_PATHS"))
+        .then(|| runtime_host_access_roots(process, "AGENTOS_EXTRA_FS_WRITE_PATHS"))
         .flatten()
         .unwrap_or_default();
 
@@ -2020,7 +2020,7 @@ fn mapped_runtime_child_mount_basenames(process: &ActiveProcess, guest_path: &st
     let normalized = normalize_path(guest_path);
     let mappings = process
         .env
-        .get("AGENT_OS_GUEST_PATH_MAPPINGS")
+        .get("AGENTOS_GUEST_PATH_MAPPINGS")
         .and_then(|value| serde_json::from_str::<Vec<RuntimeGuestPathMappingWire>>(value).ok())
         .unwrap_or_default();
     let mut basenames = BTreeSet::new();

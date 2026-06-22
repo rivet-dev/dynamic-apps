@@ -304,10 +304,10 @@ oFnGY0OFksX/ye0/XGpy2SFxYRwGU98HPYeBvAQQrVjdkzfy7BmXQQ==\n\
         }
 
         #[test]
-        fn google_drive_plugin_accepts_legacy_agent_os_manifest_format() {
+        fn google_drive_plugin_accepts_legacy_agentos_manifest_format() {
             let server = MockGoogleDriveServer::start();
             let manifest = PersistedFilesystemManifest {
-                format: String::from(LEGACY_AGENT_OS_MANIFEST_FORMAT),
+                format: String::from(LEGACY_AGENTOS_MANIFEST_FORMAT),
                 path_index: BTreeMap::from([
                     (String::from("/"), 1),
                     (String::from("/legacy.txt"), 2),

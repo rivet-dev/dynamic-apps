@@ -531,10 +531,10 @@ fn decode_snapshot_accepts_zero_mode_strings() {
 }
 
 #[test]
-fn decode_snapshot_accepts_legacy_agent_os_format() {
+fn decode_snapshot_accepts_legacy_agentos_format() {
     let decoded = decode_snapshot(
         br#"{
-            "format": "agent_os_filesystem_snapshot_v1",
+            "format": "agentos_filesystem_snapshot_v1",
             "filesystem": {
                 "entries": [
                     {

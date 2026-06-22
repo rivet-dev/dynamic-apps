@@ -15,10 +15,10 @@
 import { NodeRuntime } from "secure-exec";
 
 // Boot a VM. Every option here is optional; these are the defaults made
-// explicit. `cwd` defaults to "/home/user" and permissions default to allow-all.
+// explicit. `cwd` defaults to "/workspace" and permissions default to allow-all.
 const rt = await NodeRuntime.create({
   env: { GREETING: "hello from the VM env" },
-  cwd: "/home/user",
+  cwd: "/workspace",
 });
 
 try {

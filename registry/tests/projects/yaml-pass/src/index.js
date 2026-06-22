@@ -2,7 +2,7 @@ import { parse, stringify, parseDocument } from "yaml";
 
 // Parse a YAML string
 const yamlStr = `
-name: agent-os
+name: agentos
 version: 1.0.0
 features:
   - sandboxing

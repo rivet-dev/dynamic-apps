@@ -39,7 +39,7 @@ try {
 			hasBuffer: typeof Buffer !== "undefined",
 			nodeVersion: typeof process !== "undefined" ? process.versions.node : "(none)",
 			sha256,
-			joinedPath: join("/home/user", "report.txt"),
+			joinedPath: join("/home/agentos", "report.txt"),
 		});
 	`);
 
@@ -60,7 +60,7 @@ Output, the guest host environment as seen from inside the isolate:
   hasBuffer: true,
   nodeVersion: '22.0.0',
   sha256: 'fa7ce60dac0cc1bfe7424a68e47ad3d712345cf936431bb147cd5f5de0371a4a',
-  joinedPath: '/home/user/report.txt'
+  joinedPath: '/home/agentos/report.txt'
 }
 ```
 
@@ -95,7 +95,7 @@ spawns kernel-managed processes.
 ```ts
 const rt = await NodeRuntime.create({
 	env: { API_BASE: "https://example.test" },   // guest process env
-	cwd: "/home/user",                            // default working dir
+	cwd: "/workspace",                            // default working dir
 	files: { "/root/data.json": '{"ok":true}' },  // seed VFS bytes
 	mounts: [                                      // project host dirs, Docker-style, lazy
 		{ guestPath: "/root/node_modules/typescript", hostPath: "/abs/typescript", readOnly: true },

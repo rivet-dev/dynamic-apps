@@ -150,8 +150,8 @@ use url::Url;
 const DEFAULT_KERNEL_STDIN_READ_MAX_BYTES: usize = 64 * 1024;
 const DEFAULT_KERNEL_STDIN_READ_TIMEOUT_MS: u64 = 100;
 const JAVASCRIPT_NET_TIMEOUT_SENTINEL: &str = "__secure_exec_net_timeout__";
-const PYTHON_PYODIDE_GUEST_ROOT: &str = "/__agent_os_pyodide";
-const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agent_os_pyodide_cache";
+const PYTHON_PYODIDE_GUEST_ROOT: &str = "/__agentos_pyodide";
+const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agentos_pyodide_cache";
 const TCP_SOCKET_POLL_TIMEOUT: Duration = Duration::from_millis(100);
 const TLS_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP_LOOPBACK_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
@@ -3110,19 +3110,19 @@ where
                 );
                 add_runtime_host_access_path(
                     &mut env,
-                    "AGENT_OS_EXTRA_FS_READ_PATHS",
+                    "AGENTOS_EXTRA_FS_READ_PATHS",
                     &pyodide_dist_path,
                     true,
                 );
                 add_runtime_host_access_path(
                     &mut env,
-                    "AGENT_OS_EXTRA_FS_READ_PATHS",
+                    "AGENTOS_EXTRA_FS_READ_PATHS",
                     &pyodide_cache_path,
                     true,
                 );
                 add_runtime_host_access_path(
                     &mut env,
-                    "AGENT_OS_EXTRA_FS_WRITE_PATHS",
+                    "AGENTOS_EXTRA_FS_WRITE_PATHS",
                     &pyodide_cache_path,
                     false,
                 );
@@ -4848,7 +4848,7 @@ where
                 .respond_python_vfs_rpc_success(request_id, payload),
             Err(error) => process.execution.respond_python_vfs_rpc_error(
                 request_id,
-                "ERR_AGENT_OS_PYTHON_VFS_RPC",
+                "ERR_AGENTOS_PYTHON_VFS_RPC",
                 error.to_string(),
             ),
         };
@@ -4923,8 +4923,8 @@ where
         env.extend(request.options.env.clone());
         // Child JavaScript executions must resolve their own entrypoint/eval state.
         // Reusing the parent's values makes the sidecar load the wrong source file.
-        env.remove("AGENT_OS_GUEST_ENTRYPOINT");
-        env.remove("AGENT_OS_NODE_EVAL");
+        env.remove("AGENTOS_GUEST_ENTRYPOINT");
+        env.remove("AGENTOS_NODE_EVAL");
 
         let (command, process_args) = if request.options.shell {
             let tokens = tokenize_shell_free_command(&request.command);
@@ -5006,8 +5006,8 @@ where
                     }
                 })
             };
-            env.insert(String::from("AGENT_OS_GUEST_ENTRYPOINT"), guest_entrypoint);
-            let guest_entrypoint = env.get("AGENT_OS_GUEST_ENTRYPOINT").cloned();
+            env.insert(String::from("AGENTOS_GUEST_ENTRYPOINT"), guest_entrypoint);
+            let guest_entrypoint = env.get("AGENTOS_GUEST_ENTRYPOINT").cloned();
             prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, guest_entrypoint)?;
 
             return Ok(ResolvedChildProcessExecution {
@@ -5029,14 +5029,14 @@ where
         if is_node_runtime_command(&command) {
             if let Some(cli) = resolve_host_node_cli_entrypoint(&command) {
                 env.insert(
-                    String::from("AGENT_OS_NODE_EVAL"),
+                    String::from("AGENTOS_NODE_EVAL"),
                     build_host_node_cli_eval(&cli),
                 );
                 prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, None)?;
                 add_runtime_guest_path_mapping(&mut env, &cli.guest_root, &cli.package_root);
                 add_runtime_host_access_path(
                     &mut env,
-                    "AGENT_OS_EXTRA_FS_READ_PATHS",
+                    "AGENTOS_EXTRA_FS_READ_PATHS",
                     &cli.package_root,
                     true,
                 );
@@ -5060,7 +5060,7 @@ where
             }
 
             if process_args.is_empty() {
-                env.insert(String::from("AGENT_OS_NODE_EVAL"), String::new());
+                env.insert(String::from("AGENTOS_NODE_EVAL"), String::new());
                 prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, None)?;
 
                 return Ok(ResolvedChildProcessExecution {
@@ -5132,7 +5132,7 @@ where
                         }
                     })
                 };
-                env.insert(String::from("AGENT_OS_GUEST_ENTRYPOINT"), guest_entrypoint);
+                env.insert(String::from("AGENTOS_GUEST_ENTRYPOINT"), guest_entrypoint);
                 (
                     host_entrypoint.to_string_lossy().into_owned(),
                     process_args.iter().skip(1).cloned().collect(),
@@ -5143,7 +5143,7 @@ where
                     process_args.iter().skip(1).cloned().collect(),
                 )
             };
-            let guest_entrypoint = env.get("AGENT_OS_GUEST_ENTRYPOINT").cloned();
+            let guest_entrypoint = env.get("AGENTOS_GUEST_ENTRYPOINT").cloned();
             prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, guest_entrypoint)?;
 
             return Ok(ResolvedChildProcessExecution {
@@ -7456,14 +7456,14 @@ fn resolve_command_execution(
     if is_node_runtime_command(command) {
         if let Some(cli) = resolve_host_node_cli_entrypoint(command) {
             env.insert(
-                String::from("AGENT_OS_NODE_EVAL"),
+                String::from("AGENTOS_NODE_EVAL"),
                 build_host_node_cli_eval(&cli),
             );
             prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, None)?;
             add_runtime_guest_path_mapping(&mut env, &cli.guest_root, &cli.package_root);
             add_runtime_host_access_path(
                 &mut env,
-                "AGENT_OS_EXTRA_FS_READ_PATHS",
+                "AGENTOS_EXTRA_FS_READ_PATHS",
                 &cli.package_root,
                 true,
             );
@@ -7487,7 +7487,7 @@ fn resolve_command_execution(
         }
 
         if args.is_empty() {
-            env.insert(String::from("AGENT_OS_NODE_EVAL"), String::new());
+            env.insert(String::from("AGENTOS_NODE_EVAL"), String::new());
             prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, None)?;
 
             return Ok(ResolvedChildProcessExecution {
@@ -8280,7 +8280,7 @@ fn is_shadow_bootstrap_dir(path: &str) -> bool {
             | "/mnt"
             | "/media"
             | "/home"
-            | "/home/user"
+            | "/home/agentos"
             | "/usr"
             | "/usr/bin"
             | "/usr/games"
@@ -8303,6 +8303,7 @@ fn is_shadow_bootstrap_dir(path: &str) -> bool {
             | "/var/spool"
             | "/var/tmp"
             | "/etc/agentos"
+            | "/workspace"
     )
 }
 
@@ -8313,7 +8314,7 @@ mod shadow_sync_tests {
     #[test]
     fn shadow_bootstrap_sync_skips_virtual_home_tree() {
         assert!(is_shadow_bootstrap_dir("/home"));
-        assert!(is_shadow_bootstrap_dir("/home/user"));
+        assert!(is_shadow_bootstrap_dir("/home/agentos"));
     }
 
     #[test]
@@ -8377,14 +8378,14 @@ fn resolve_special_node_cli_invocation(
     match first.as_str() {
         "-e" | "--eval" => {
             env.insert(
-                String::from("AGENT_OS_NODE_EVAL"),
+                String::from("AGENTOS_NODE_EVAL"),
                 args.get(1).cloned().unwrap_or_default(),
             );
             Some((first.clone(), args.iter().skip(2).cloned().collect()))
         }
         "-v" | "--version" => {
             env.insert(
-                String::from("AGENT_OS_NODE_EVAL"),
+                String::from("AGENTOS_NODE_EVAL"),
                 String::from("console.log(process.version);"),
             );
             Some((String::from("-e"), args.to_vec()))
@@ -8445,22 +8446,22 @@ fn build_host_node_cli_eval(cli: &ResolvedHostNodeCliEntrypoint) -> String {
     let guest_display_module = normalize_path(&format!("{}/lib/utils/display.js", cli.guest_root));
     let guest_log_file_module =
         normalize_path(&format!("{}/lib/utils/log-file.js", cli.guest_root));
-    let debug_preamble = "const __agentOsDebugNpmCli = !!process.env.CODEX_DEBUG_NPM_CLI; const __agentOsDebugLog = (...args) => { if (__agentOsDebugNpmCli) { console.error('[secure-exec npm debug]', ...args); } }; const __agentOsIsProcessExitError = (error) => !!(error && typeof error === 'object' && (error._isProcessExit === true || error.name === 'ProcessExitError')); const __agentOsResolveExitCode = (code) => Number.isFinite(code) ? code : (Number.isFinite(process.exitCode) ? process.exitCode : 0); const __agentOsFinish = (code) => { process.exitCode = __agentOsResolveExitCode(code); }; if (__agentOsDebugNpmCli) { const __agentOsWrapAsyncFsMethod = (__agentOsTarget, __agentOsMethod) => { const __agentOsOriginal = __agentOsTarget[__agentOsMethod]; if (typeof __agentOsOriginal !== 'function' || __agentOsOriginal.__agentOsDebugWrapped) { return; } const __agentOsWrapped = async (...args) => { const target = args.length > 0 ? args[0] : '<none>'; __agentOsDebugLog(`fs.${__agentOsMethod}:start`, String(target)); try { const result = await __agentOsOriginal.apply(__agentOsTarget, args); __agentOsDebugLog(`fs.${__agentOsMethod}:done`, String(target)); return result; } catch (error) { __agentOsDebugLog(`fs.${__agentOsMethod}:error`, String(target), error && error.stack ? error.stack : String(error)); throw error; } }; __agentOsWrapped.__agentOsDebugWrapped = true; __agentOsTarget[__agentOsMethod] = __agentOsWrapped; }; const __agentOsWrapSyncFsMethod = (__agentOsTarget, __agentOsMethod) => { const __agentOsOriginal = __agentOsTarget[__agentOsMethod]; if (typeof __agentOsOriginal !== 'function' || __agentOsOriginal.__agentOsDebugWrapped) { return; } const __agentOsWrapped = (...args) => { const target = args.length > 0 ? args[0] : '<none>'; __agentOsDebugLog(`fs.${__agentOsMethod}:start`, String(target)); try { const result = __agentOsOriginal.apply(__agentOsTarget, args); __agentOsDebugLog(`fs.${__agentOsMethod}:done`, String(target)); return result; } catch (error) { __agentOsDebugLog(`fs.${__agentOsMethod}:error`, String(target), error && error.stack ? error.stack : String(error)); throw error; } }; __agentOsWrapped.__agentOsDebugWrapped = true; __agentOsTarget[__agentOsMethod] = __agentOsWrapped; }; const __agentOsFsPromiseModules = [require('fs/promises'), require('node:fs/promises')]; for (const __agentOsFsPromises of __agentOsFsPromiseModules) { for (const __agentOsMethod of ['access', 'lstat', 'mkdir', 'open', 'readFile', 'readdir', 'readlink', 'realpath', 'rename', 'rm', 'rmdir', 'stat', 'symlink', 'unlink', 'writeFile']) { __agentOsWrapAsyncFsMethod(__agentOsFsPromises, __agentOsMethod); } } const __agentOsFsModules = [require('fs'), require('node:fs')]; for (const __agentOsFs of __agentOsFsModules) { for (const __agentOsMethod of ['accessSync', 'existsSync', 'lstatSync', 'mkdirSync', 'openSync', 'readFileSync', 'readdirSync', 'readlinkSync', 'realpathSync', 'renameSync', 'rmSync', 'rmdirSync', 'statSync', 'symlinkSync', 'unlinkSync', 'writeFileSync']) { __agentOsWrapSyncFsMethod(__agentOsFs, __agentOsMethod); } } }";
+    let debug_preamble = "const __agentOSDebugNpmCli = !!process.env.CODEX_DEBUG_NPM_CLI; const __agentOSDebugLog = (...args) => { if (__agentOSDebugNpmCli) { console.error('[secure-exec npm debug]', ...args); } }; const __agentOSIsProcessExitError = (error) => !!(error && typeof error === 'object' && (error._isProcessExit === true || error.name === 'ProcessExitError')); const __agentOSResolveExitCode = (code) => Number.isFinite(code) ? code : (Number.isFinite(process.exitCode) ? process.exitCode : 0); const __agentOSFinish = (code) => { process.exitCode = __agentOSResolveExitCode(code); }; if (__agentOSDebugNpmCli) { const __agentOSWrapAsyncFsMethod = (__agentOSTarget, __agentOSMethod) => { const __agentOSOriginal = __agentOSTarget[__agentOSMethod]; if (typeof __agentOSOriginal !== 'function' || __agentOSOriginal.__agentOSDebugWrapped) { return; } const __agentOSWrapped = async (...args) => { const target = args.length > 0 ? args[0] : '<none>'; __agentOSDebugLog(`fs.${__agentOSMethod}:start`, String(target)); try { const result = await __agentOSOriginal.apply(__agentOSTarget, args); __agentOSDebugLog(`fs.${__agentOSMethod}:done`, String(target)); return result; } catch (error) { __agentOSDebugLog(`fs.${__agentOSMethod}:error`, String(target), error && error.stack ? error.stack : String(error)); throw error; } }; __agentOSWrapped.__agentOSDebugWrapped = true; __agentOSTarget[__agentOSMethod] = __agentOSWrapped; }; const __agentOSWrapSyncFsMethod = (__agentOSTarget, __agentOSMethod) => { const __agentOSOriginal = __agentOSTarget[__agentOSMethod]; if (typeof __agentOSOriginal !== 'function' || __agentOSOriginal.__agentOSDebugWrapped) { return; } const __agentOSWrapped = (...args) => { const target = args.length > 0 ? args[0] : '<none>'; __agentOSDebugLog(`fs.${__agentOSMethod}:start`, String(target)); try { const result = __agentOSOriginal.apply(__agentOSTarget, args); __agentOSDebugLog(`fs.${__agentOSMethod}:done`, String(target)); return result; } catch (error) { __agentOSDebugLog(`fs.${__agentOSMethod}:error`, String(target), error && error.stack ? error.stack : String(error)); throw error; } }; __agentOSWrapped.__agentOSDebugWrapped = true; __agentOSTarget[__agentOSMethod] = __agentOSWrapped; }; const __agentOSFsPromiseModules = [require('fs/promises'), require('node:fs/promises')]; for (const __agentOSFsPromises of __agentOSFsPromiseModules) { for (const __agentOSMethod of ['access', 'lstat', 'mkdir', 'open', 'readFile', 'readdir', 'readlink', 'realpath', 'rename', 'rm', 'rmdir', 'stat', 'symlink', 'unlink', 'writeFile']) { __agentOSWrapAsyncFsMethod(__agentOSFsPromises, __agentOSMethod); } } const __agentOSFsModules = [require('fs'), require('node:fs')]; for (const __agentOSFs of __agentOSFsModules) { for (const __agentOSMethod of ['accessSync', 'existsSync', 'lstatSync', 'mkdirSync', 'openSync', 'readFileSync', 'readdirSync', 'readlinkSync', 'realpathSync', 'renameSync', 'rmSync', 'rmdirSync', 'statSync', 'symlinkSync', 'unlinkSync', 'writeFileSync']) { __agentOSWrapSyncFsMethod(__agentOSFs, __agentOSMethod); } } }";
     let display_stub = format!(
-        "const __agentOsDisplayModulePath = require.resolve({display_module}); const __agentOsLogFileModulePath = require.resolve({log_file_module}); const __agentOsColorPassthrough = new Proxy((value) => value, {{ get: () => __agentOsColorPassthrough, apply: (_target, _thisArg, args) => args[0] }}); class __AgentOsNpmDisplayStub {{ constructor() {{ this.chalk = {{ noColor: __agentOsColorPassthrough, stdout: __agentOsColorPassthrough, stderr: __agentOsColorPassthrough }}; this._logPaused = true; this._logBuffer = []; this._outputBuffer = []; this._write = (stream, values) => {{ if (!Array.isArray(values) || values.length === 0) {{ return; }} const text = values.map((value) => typeof value === 'string' ? value : String(value)).join(' '); if (text.length === 0) {{ return; }} const normalized = text.replace(/\\r\\n/g, '\\n'); if (/^\\n?> npx\\n> /u.test(normalized)) {{ return; }} stream.write(text.endsWith('\\n') ? text : `${{text}}\\n`); }}; this._inputHandler = (level, ...args) => {{ if (level !== 'read') {{ return; }} const [resolve, reject, callback] = args; Promise.resolve().then(() => callback()).then(resolve, reject); }}; this._logHandler = (level, ...args) => {{ if (level === 'resume') {{ this._logPaused = false; for (const entry of this._logBuffer.splice(0)) {{ this._write(process.stderr, entry); }} return; }} if (level === 'pause') {{ this._logPaused = true; return; }} if (this._logPaused) {{ this._logBuffer.push(args); return; }} this._write(process.stderr, args); }}; this._outputHandler = (level, ...args) => {{ if (level === 'buffer') {{ this._outputBuffer.push(['standard', args]); return; }} if (level === 'flush') {{ for (const [bufferLevel, bufferArgs] of this._outputBuffer.splice(0)) {{ this._write(bufferLevel === 'error' ? process.stderr : process.stdout, bufferArgs); }} return; }} this._write(level === 'error' ? process.stderr : process.stdout, args); }}; process.on('input', this._inputHandler); process.on('log', this._logHandler); process.on('output', this._outputHandler); }} async load() {{ process.emit('log', 'resume'); process.emit('output', 'flush'); }} off() {{ if (this._inputHandler) {{ process.off('input', this._inputHandler); }} if (this._logHandler) {{ process.off('log', this._logHandler); }} if (this._outputHandler) {{ process.off('output', this._outputHandler); }} this._logBuffer.length = 0; this._outputBuffer.length = 0; }} }} class __AgentOsNpmLogFileStub {{ constructor() {{ this.files = []; }} async load() {{ return []; }} off() {{}} }} globalThis._moduleCache[__agentOsDisplayModulePath] = {{ exports: __AgentOsNpmDisplayStub }}; globalThis._moduleCache[__agentOsLogFileModulePath] = {{ exports: __AgentOsNpmLogFileStub }};",
+        "const __agentOSDisplayModulePath = require.resolve({display_module}); const __agentOSLogFileModulePath = require.resolve({log_file_module}); const __agentOSColorPassthrough = new Proxy((value) => value, {{ get: () => __agentOSColorPassthrough, apply: (_target, _thisArg, args) => args[0] }}); class __AgentOSNpmDisplayStub {{ constructor() {{ this.chalk = {{ noColor: __agentOSColorPassthrough, stdout: __agentOSColorPassthrough, stderr: __agentOSColorPassthrough }}; this._logPaused = true; this._logBuffer = []; this._outputBuffer = []; this._write = (stream, values) => {{ if (!Array.isArray(values) || values.length === 0) {{ return; }} const text = values.map((value) => typeof value === 'string' ? value : String(value)).join(' '); if (text.length === 0) {{ return; }} const normalized = text.replace(/\\r\\n/g, '\\n'); if (/^\\n?> npx\\n> /u.test(normalized)) {{ return; }} stream.write(text.endsWith('\\n') ? text : `${{text}}\\n`); }}; this._inputHandler = (level, ...args) => {{ if (level !== 'read') {{ return; }} const [resolve, reject, callback] = args; Promise.resolve().then(() => callback()).then(resolve, reject); }}; this._logHandler = (level, ...args) => {{ if (level === 'resume') {{ this._logPaused = false; for (const entry of this._logBuffer.splice(0)) {{ this._write(process.stderr, entry); }} return; }} if (level === 'pause') {{ this._logPaused = true; return; }} if (this._logPaused) {{ this._logBuffer.push(args); return; }} this._write(process.stderr, args); }}; this._outputHandler = (level, ...args) => {{ if (level === 'buffer') {{ this._outputBuffer.push(['standard', args]); return; }} if (level === 'flush') {{ for (const [bufferLevel, bufferArgs] of this._outputBuffer.splice(0)) {{ this._write(bufferLevel === 'error' ? process.stderr : process.stdout, bufferArgs); }} return; }} this._write(level === 'error' ? process.stderr : process.stdout, args); }}; process.on('input', this._inputHandler); process.on('log', this._logHandler); process.on('output', this._outputHandler); }} async load() {{ process.emit('log', 'resume'); process.emit('output', 'flush'); }} off() {{ if (this._inputHandler) {{ process.off('input', this._inputHandler); }} if (this._logHandler) {{ process.off('log', this._logHandler); }} if (this._outputHandler) {{ process.off('output', this._outputHandler); }} this._logBuffer.length = 0; this._outputBuffer.length = 0; }} }} class __AgentOSNpmLogFileStub {{ constructor() {{ this.files = []; }} async load() {{ return []; }} off() {{}} }} globalThis._moduleCache[__agentOSDisplayModulePath] = {{ exports: __AgentOSNpmDisplayStub }}; globalThis._moduleCache[__agentOSLogFileModulePath] = {{ exports: __AgentOSNpmLogFileStub }};",
         display_module = serde_json::to_string(&guest_display_module)
             .unwrap_or_else(|_| format!("\"{guest_display_module}\"")),
         log_file_module = serde_json::to_string(&guest_log_file_module)
             .unwrap_or_else(|_| format!("\"{guest_log_file_module}\"")),
     );
-    let registry_fetch_stub = "const { createRequire: __agentOsCreateRequire } = require('module'); const __agentOsNpmRequire = __agentOsCreateRequire(require.resolve(__AGENT_OS_NPM_MAIN__)); try { const __agentOsMinipassFetchPath = __agentOsNpmRequire.resolve('minipass-fetch'); const __agentOsMinipassFetch = __agentOsNpmRequire(__agentOsMinipassFetchPath); const { FetchError: __agentOsFetchError, Headers: __agentOsFetchHeaders, Request: __agentOsFetchRequest, Response: __agentOsFetchResponse, AbortError: __agentOsAbortError } = __agentOsMinipassFetch; const { Minipass: __agentOsMinipass } = __agentOsNpmRequire('minipass'); const __agentOsCreateBinaryMinipass = () => new __agentOsMinipass({ objectMode: false, encoding: null }); const __agentOsCloneBuffer = (buffer) => Buffer.isBuffer(buffer) ? Buffer.from(buffer) : Buffer.from(buffer ?? []); const __agentOsBufferToArrayBuffer = (buffer) => { const bytes = __agentOsCloneBuffer(buffer); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); }; const __agentOsAttachBufferedBodyMethods = (response, responseBuffer) => { const __agentOsReadBuffer = async () => __agentOsCloneBuffer(responseBuffer); response.__agentOsBufferedBody = __agentOsCloneBuffer(responseBuffer); response.buffer = __agentOsReadBuffer; response.text = async () => (await __agentOsReadBuffer()).toString('utf8'); response.json = async () => JSON.parse(await response.text()); response.arrayBuffer = async () => __agentOsBufferToArrayBuffer(await __agentOsReadBuffer()); response.clone = () => { const clonedBody = __agentOsCreateBinaryMinipass(); const clonedBuffer = __agentOsCloneBuffer(responseBuffer); clonedBody.end(clonedBuffer); const clonedResponse = new __agentOsFetchResponse(clonedBody, { url: response.url, status: response.status, statusText: response.statusText, headers: response.headers, size: response.size, timeout: response.timeout, counter: response.counter, trailer: response.trailer }); return __agentOsAttachBufferedBodyMethods(clonedResponse, clonedBuffer); }; return response; }; const __agentOsNormalizeHeaders = (__agentOsHeaders) => { const normalized = {}; __agentOsHeaders.forEach((value, key) => { if (normalized[key] === undefined) { normalized[key] = value; return; } if (Array.isArray(normalized[key])) { normalized[key].push(value); return; } normalized[key] = [normalized[key], value]; }); return normalized; }; const __agentOsPatchedMinipassFetch = async (input, opts = {}) => { const request = input instanceof __agentOsFetchRequest ? input : new __agentOsFetchRequest(input, opts); const __agentOsController = !request.signal && typeof AbortController === 'function' ? new AbortController() : null; const __agentOsSignal = request.signal ?? __agentOsController?.signal; let __agentOsTimer = null; if (__agentOsController && Number.isFinite(request.timeout) && request.timeout > 0) { __agentOsTimer = setTimeout(() => __agentOsController.abort(new Error(`network timeout at: ${request.url}`)), request.timeout); __agentOsTimer.unref?.(); } try { const requestHeaders = {}; request.headers.forEach((value, key) => { requestHeaders[key] = value; }); const response = await fetch(request.url, { method: request.method, headers: requestHeaders, body: request.body ?? undefined, redirect: request.redirect ?? opts.redirect ?? 'follow', signal: __agentOsSignal, ...(request.body ? { duplex: 'half' } : {}) }); const responseBody = __agentOsCreateBinaryMinipass(); const contentType = String(response.headers.get('content-type') || '').toLowerCase(); const responseBuffer = contentType.includes('json') ? Buffer.from(JSON.stringify(await response.json())) : contentType.startsWith('text/') ? Buffer.from(await response.text()) : Buffer.from(await response.arrayBuffer()); responseBody.end(responseBuffer); return __agentOsAttachBufferedBodyMethods(new __agentOsFetchResponse(responseBody, { url: response.url, status: response.status, statusText: response.statusText, headers: __agentOsNormalizeHeaders(response.headers), size: request.size, timeout: request.timeout, counter: request.counter ?? opts.counter ?? 0, trailer: Promise.resolve(new __agentOsFetchHeaders()) }), responseBuffer); } catch (error) { if (error instanceof Error) { throw error; } throw new __agentOsFetchError(String(error), 'system', error); } finally { if (__agentOsTimer) { clearTimeout(__agentOsTimer); } } }; globalThis.__agentOsPatchedMinipassFetch = __agentOsPatchedMinipassFetch; __agentOsPatchedMinipassFetch.isRedirect = typeof __agentOsMinipassFetch.isRedirect === 'function' ? __agentOsMinipassFetch.isRedirect.bind(__agentOsMinipassFetch) : (code) => code === 301 || code === 302 || code === 303 || code === 307 || code === 308; __agentOsPatchedMinipassFetch.FetchError = __agentOsFetchError; __agentOsPatchedMinipassFetch.Headers = __agentOsFetchHeaders; __agentOsPatchedMinipassFetch.Request = __agentOsFetchRequest; __agentOsPatchedMinipassFetch.Response = __agentOsFetchResponse; __agentOsPatchedMinipassFetch.AbortError = __agentOsAbortError; globalThis._moduleCache[__agentOsMinipassFetchPath] = { exports: __agentOsPatchedMinipassFetch }; __agentOsDebugLog('patched-minipass-fetch', __agentOsMinipassFetchPath); const __agentOsCheckResponsePath = __agentOsNpmRequire.resolve('npm-registry-fetch/lib/check-response.js'); const __agentOsCheckResponse = __agentOsNpmRequire(__agentOsCheckResponsePath); const __agentOsEnsureResponseBodyStream = (response) => { if (!response || (response.body && typeof response.body.on === 'function')) { return response; } const body = __agentOsCreateBinaryMinipass(); const finishWithError = (error) => body.emit('error', error instanceof Error ? error : new Error(String(error))); try { if (typeof response.buffer === 'function') { Promise.resolve(response.buffer()).then((buffer) => body.end(buffer), finishWithError); } else if (Buffer.isBuffer(response.body) || typeof response.body === 'string') { body.end(response.body); } else if (response.body && typeof response.body[Symbol.asyncIterator] === 'function') { (async () => { try { for await (const chunk of response.body) { body.write(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)); } body.end(); } catch (error) { finishWithError(error); body.end(); } })(); } else { body.end(); } } catch (error) { finishWithError(error); body.end(); } return new __agentOsFetchResponse(body, response); }; globalThis._moduleCache[__agentOsCheckResponsePath] = { exports: (payload) => { const normalized = { ...payload, res: __agentOsEnsureResponseBodyStream(payload.res) }; __agentOsDebugLog('check-response-body', normalized.res && normalized.res.status, typeof (normalized.res && normalized.res.body), normalized.res && normalized.res.body && typeof normalized.res.body.on, normalized.res && normalized.res.body && normalized.res.body.constructor && normalized.res.body.constructor.name, !!(normalized.res && normalized.res.__agentOsBufferedBody), normalized.res && typeof normalized.res.json); return __agentOsCheckResponse(normalized); } }; __agentOsDebugLog('patched-check-response', __agentOsCheckResponsePath); } catch (error) { __agentOsDebugLog('patch-minipass-fetch-failed', error && error.stack ? error.stack : String(error)); } try { const __agentOsRegistryFetchPath = __agentOsNpmRequire.resolve('npm-registry-fetch'); const __agentOsRegistryFetch = __agentOsNpmRequire(__agentOsRegistryFetchPath); const __agentOsWrapRegistryFetch = (fn) => { const wrapResult = (promise) => Promise.resolve(promise).then((res) => { __agentOsDebugLog('registry-fetch-result', res && res.status, typeof (res && res.body), res && res.body && typeof res.body.on, res && res.body && res.body.constructor && res.body.constructor.name, !!(res && res.__agentOsBufferedBody), res && typeof res.json); return res; }); const wrapped = (uri, opts = {}) => wrapResult(globalThis.__agentOsPatchedMinipassFetch(uri, { method: opts.method, headers: opts.headers, body: opts.body, redirect: opts.redirect, signal: opts.signal, timeout: opts.timeout, size: opts.size, counter: opts.counter })); if (typeof fn.json === 'function') { wrapped.json = (uri, opts = {}) => wrapped(uri, opts).then((res) => res.json()); } if (fn.json && typeof fn.json.stream === 'function') { wrapped.json = wrapped.json || {}; wrapped.json.stream = (uri, path, opts = {}) => fn.json.stream(uri, path, { ...opts, agent: false }); } if (typeof fn.pickRegistry === 'function') { wrapped.pickRegistry = fn.pickRegistry.bind(fn); } if (typeof fn.getAuth === 'function') { wrapped.getAuth = fn.getAuth.bind(fn); } return wrapped; }; globalThis._moduleCache[__agentOsRegistryFetchPath] = { exports: __agentOsWrapRegistryFetch(__agentOsRegistryFetch) }; __agentOsDebugLog('patched-npm-registry-fetch', __agentOsRegistryFetchPath); } catch (error) { __agentOsDebugLog('patch-npm-registry-fetch-failed', error && error.stack ? error.stack : String(error)); }";
+    let registry_fetch_stub = "const { createRequire: __agentOSCreateRequire } = require('module'); const __agentOSNpmRequire = __agentOSCreateRequire(require.resolve(__AGENTOS_NPM_MAIN__)); try { const __agentOSMinipassFetchPath = __agentOSNpmRequire.resolve('minipass-fetch'); const __agentOSMinipassFetch = __agentOSNpmRequire(__agentOSMinipassFetchPath); const { FetchError: __agentOSFetchError, Headers: __agentOSFetchHeaders, Request: __agentOSFetchRequest, Response: __agentOSFetchResponse, AbortError: __agentOSAbortError } = __agentOSMinipassFetch; const { Minipass: __agentOSMinipass } = __agentOSNpmRequire('minipass'); const __agentOSCreateBinaryMinipass = () => new __agentOSMinipass({ objectMode: false, encoding: null }); const __agentOSCloneBuffer = (buffer) => Buffer.isBuffer(buffer) ? Buffer.from(buffer) : Buffer.from(buffer ?? []); const __agentOSBufferToArrayBuffer = (buffer) => { const bytes = __agentOSCloneBuffer(buffer); return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); }; const __agentOSAttachBufferedBodyMethods = (response, responseBuffer) => { const __agentOSReadBuffer = async () => __agentOSCloneBuffer(responseBuffer); response.__agentOSBufferedBody = __agentOSCloneBuffer(responseBuffer); response.buffer = __agentOSReadBuffer; response.text = async () => (await __agentOSReadBuffer()).toString('utf8'); response.json = async () => JSON.parse(await response.text()); response.arrayBuffer = async () => __agentOSBufferToArrayBuffer(await __agentOSReadBuffer()); response.clone = () => { const clonedBody = __agentOSCreateBinaryMinipass(); const clonedBuffer = __agentOSCloneBuffer(responseBuffer); clonedBody.end(clonedBuffer); const clonedResponse = new __agentOSFetchResponse(clonedBody, { url: response.url, status: response.status, statusText: response.statusText, headers: response.headers, size: response.size, timeout: response.timeout, counter: response.counter, trailer: response.trailer }); return __agentOSAttachBufferedBodyMethods(clonedResponse, clonedBuffer); }; return response; }; const __agentOSNormalizeHeaders = (__agentOSHeaders) => { const normalized = {}; __agentOSHeaders.forEach((value, key) => { if (normalized[key] === undefined) { normalized[key] = value; return; } if (Array.isArray(normalized[key])) { normalized[key].push(value); return; } normalized[key] = [normalized[key], value]; }); return normalized; }; const __agentOSPatchedMinipassFetch = async (input, opts = {}) => { const request = input instanceof __agentOSFetchRequest ? input : new __agentOSFetchRequest(input, opts); const __agentOSController = !request.signal && typeof AbortController === 'function' ? new AbortController() : null; const __agentOSSignal = request.signal ?? __agentOSController?.signal; let __agentOSTimer = null; if (__agentOSController && Number.isFinite(request.timeout) && request.timeout > 0) { __agentOSTimer = setTimeout(() => __agentOSController.abort(new Error(`network timeout at: ${request.url}`)), request.timeout); __agentOSTimer.unref?.(); } try { const requestHeaders = {}; request.headers.forEach((value, key) => { requestHeaders[key] = value; }); const response = await fetch(request.url, { method: request.method, headers: requestHeaders, body: request.body ?? undefined, redirect: request.redirect ?? opts.redirect ?? 'follow', signal: __agentOSSignal, ...(request.body ? { duplex: 'half' } : {}) }); const responseBody = __agentOSCreateBinaryMinipass(); const contentType = String(response.headers.get('content-type') || '').toLowerCase(); const responseBuffer = contentType.includes('json') ? Buffer.from(JSON.stringify(await response.json())) : contentType.startsWith('text/') ? Buffer.from(await response.text()) : Buffer.from(await response.arrayBuffer()); responseBody.end(responseBuffer); return __agentOSAttachBufferedBodyMethods(new __agentOSFetchResponse(responseBody, { url: response.url, status: response.status, statusText: response.statusText, headers: __agentOSNormalizeHeaders(response.headers), size: request.size, timeout: request.timeout, counter: request.counter ?? opts.counter ?? 0, trailer: Promise.resolve(new __agentOSFetchHeaders()) }), responseBuffer); } catch (error) { if (error instanceof Error) { throw error; } throw new __agentOSFetchError(String(error), 'system', error); } finally { if (__agentOSTimer) { clearTimeout(__agentOSTimer); } } }; globalThis.__agentOSPatchedMinipassFetch = __agentOSPatchedMinipassFetch; __agentOSPatchedMinipassFetch.isRedirect = typeof __agentOSMinipassFetch.isRedirect === 'function' ? __agentOSMinipassFetch.isRedirect.bind(__agentOSMinipassFetch) : (code) => code === 301 || code === 302 || code === 303 || code === 307 || code === 308; __agentOSPatchedMinipassFetch.FetchError = __agentOSFetchError; __agentOSPatchedMinipassFetch.Headers = __agentOSFetchHeaders; __agentOSPatchedMinipassFetch.Request = __agentOSFetchRequest; __agentOSPatchedMinipassFetch.Response = __agentOSFetchResponse; __agentOSPatchedMinipassFetch.AbortError = __agentOSAbortError; globalThis._moduleCache[__agentOSMinipassFetchPath] = { exports: __agentOSPatchedMinipassFetch }; __agentOSDebugLog('patched-minipass-fetch', __agentOSMinipassFetchPath); const __agentOSCheckResponsePath = __agentOSNpmRequire.resolve('npm-registry-fetch/lib/check-response.js'); const __agentOSCheckResponse = __agentOSNpmRequire(__agentOSCheckResponsePath); const __agentOSEnsureResponseBodyStream = (response) => { if (!response || (response.body && typeof response.body.on === 'function')) { return response; } const body = __agentOSCreateBinaryMinipass(); const finishWithError = (error) => body.emit('error', error instanceof Error ? error : new Error(String(error))); try { if (typeof response.buffer === 'function') { Promise.resolve(response.buffer()).then((buffer) => body.end(buffer), finishWithError); } else if (Buffer.isBuffer(response.body) || typeof response.body === 'string') { body.end(response.body); } else if (response.body && typeof response.body[Symbol.asyncIterator] === 'function') { (async () => { try { for await (const chunk of response.body) { body.write(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)); } body.end(); } catch (error) { finishWithError(error); body.end(); } })(); } else { body.end(); } } catch (error) { finishWithError(error); body.end(); } return new __agentOSFetchResponse(body, response); }; globalThis._moduleCache[__agentOSCheckResponsePath] = { exports: (payload) => { const normalized = { ...payload, res: __agentOSEnsureResponseBodyStream(payload.res) }; __agentOSDebugLog('check-response-body', normalized.res && normalized.res.status, typeof (normalized.res && normalized.res.body), normalized.res && normalized.res.body && typeof normalized.res.body.on, normalized.res && normalized.res.body && normalized.res.body.constructor && normalized.res.body.constructor.name, !!(normalized.res && normalized.res.__agentOSBufferedBody), normalized.res && typeof normalized.res.json); return __agentOSCheckResponse(normalized); } }; __agentOSDebugLog('patched-check-response', __agentOSCheckResponsePath); } catch (error) { __agentOSDebugLog('patch-minipass-fetch-failed', error && error.stack ? error.stack : String(error)); } try { const __agentOSRegistryFetchPath = __agentOSNpmRequire.resolve('npm-registry-fetch'); const __agentOSRegistryFetch = __agentOSNpmRequire(__agentOSRegistryFetchPath); const __agentOSWrapRegistryFetch = (fn) => { const wrapResult = (promise) => Promise.resolve(promise).then((res) => { __agentOSDebugLog('registry-fetch-result', res && res.status, typeof (res && res.body), res && res.body && typeof res.body.on, res && res.body && res.body.constructor && res.body.constructor.name, !!(res && res.__agentOSBufferedBody), res && typeof res.json); return res; }); const wrapped = (uri, opts = {}) => wrapResult(globalThis.__agentOSPatchedMinipassFetch(uri, { method: opts.method, headers: opts.headers, body: opts.body, redirect: opts.redirect, signal: opts.signal, timeout: opts.timeout, size: opts.size, counter: opts.counter })); if (typeof fn.json === 'function') { wrapped.json = (uri, opts = {}) => wrapped(uri, opts).then((res) => res.json()); } if (fn.json && typeof fn.json.stream === 'function') { wrapped.json = wrapped.json || {}; wrapped.json.stream = (uri, path, opts = {}) => fn.json.stream(uri, path, { ...opts, agent: false }); } if (typeof fn.pickRegistry === 'function') { wrapped.pickRegistry = fn.pickRegistry.bind(fn); } if (typeof fn.getAuth === 'function') { wrapped.getAuth = fn.getAuth.bind(fn); } return wrapped; }; globalThis._moduleCache[__agentOSRegistryFetchPath] = { exports: __agentOSWrapRegistryFetch(__agentOSRegistryFetch) }; __agentOSDebugLog('patched-npm-registry-fetch', __agentOSRegistryFetchPath); } catch (error) { __agentOSDebugLog('patch-npm-registry-fetch-failed', error && error.stack ? error.stack : String(error)); }";
     match cli.command_name.as_str() {
         "npx" => format!(
-            "{debug_preamble} {display_stub} {registry_fetch_stub} process.argv[1] = require.resolve({npm_cli}); process.argv.splice(2, 0, 'exec'); __agentOsDebugLog('argv', JSON.stringify(process.argv), 'cwd', process.cwd()); (async () => {{ const pkg = require({package_json}); if (process.argv.includes('--version') || process.argv.includes('-v')) {{ __agentOsDebugLog('version-shortcut'); console.log(pkg.version); __agentOsFinish(0); return; }} const Npm = require({npm_main}); const npm = new Npm(); __agentOsDebugLog('before-load'); const loaded = await npm.load(); __agentOsDebugLog('after-load', loaded && loaded.command, JSON.stringify(loaded && loaded.args)); if (!loaded.exec) {{ __agentOsDebugLog('no-exec'); __agentOsFinish(); return; }} if (!loaded.command) {{ __agentOsDebugLog('no-command'); const {{ output }} = require('proc-log'); output.standard(npm.usage); __agentOsFinish(1); return; }} __agentOsDebugLog('before-exec', loaded.command, JSON.stringify(loaded.args)); await npm.exec(loaded.command, loaded.args); __agentOsDebugLog('after-exec', __agentOsResolveExitCode()); __agentOsFinish(); }})().catch((error) => {{ if (__agentOsIsProcessExitError(error)) {{ __agentOsDebugLog('process-exit-error', __agentOsResolveExitCode(error.code)); __agentOsFinish(error.code); return; }} console.error(error && error.stack ? error.stack : String(error)); __agentOsFinish(error && typeof error === 'object' && Number.isFinite(error.exitCode) ? error.exitCode : 1); }});",
+            "{debug_preamble} {display_stub} {registry_fetch_stub} process.argv[1] = require.resolve({npm_cli}); process.argv.splice(2, 0, 'exec'); __agentOSDebugLog('argv', JSON.stringify(process.argv), 'cwd', process.cwd()); (async () => {{ const pkg = require({package_json}); if (process.argv.includes('--version') || process.argv.includes('-v')) {{ __agentOSDebugLog('version-shortcut'); console.log(pkg.version); __agentOSFinish(0); return; }} const Npm = require({npm_main}); const npm = new Npm(); __agentOSDebugLog('before-load'); const loaded = await npm.load(); __agentOSDebugLog('after-load', loaded && loaded.command, JSON.stringify(loaded && loaded.args)); if (!loaded.exec) {{ __agentOSDebugLog('no-exec'); __agentOSFinish(); return; }} if (!loaded.command) {{ __agentOSDebugLog('no-command'); const {{ output }} = require('proc-log'); output.standard(npm.usage); __agentOSFinish(1); return; }} __agentOSDebugLog('before-exec', loaded.command, JSON.stringify(loaded.args)); await npm.exec(loaded.command, loaded.args); __agentOSDebugLog('after-exec', __agentOSResolveExitCode()); __agentOSFinish(); }})().catch((error) => {{ if (__agentOSIsProcessExitError(error)) {{ __agentOSDebugLog('process-exit-error', __agentOSResolveExitCode(error.code)); __agentOSFinish(error.code); return; }} console.error(error && error.stack ? error.stack : String(error)); __agentOSFinish(error && typeof error === 'object' && Number.isFinite(error.exitCode) ? error.exitCode : 1); }});",
             debug_preamble = debug_preamble,
             display_stub = display_stub,
             registry_fetch_stub = registry_fetch_stub.replace(
-                "__AGENT_OS_NPM_MAIN__",
+                "__AGENTOS_NPM_MAIN__",
                 &serde_json::to_string(&guest_npm_main)
                     .unwrap_or_else(|_| format!("\"{guest_npm_main}\"")),
             ),
@@ -8472,11 +8473,11 @@ fn build_host_node_cli_eval(cli: &ResolvedHostNodeCliEntrypoint) -> String {
                 .unwrap_or_else(|_| format!("\"{guest_package_json}\"")),
         ),
         _ => format!(
-            "{debug_preamble} {display_stub} {registry_fetch_stub} __agentOsDebugLog('argv', JSON.stringify(process.argv), 'cwd', process.cwd()); (async () => {{ const pkg = require({package_json}); if (process.argv.includes('--version') || process.argv.includes('-v')) {{ __agentOsDebugLog('version-shortcut'); console.log(pkg.version); __agentOsFinish(0); return; }} const Npm = require({npm_main}); const npm = new Npm(); __agentOsDebugLog('before-load'); const loaded = await npm.load(); __agentOsDebugLog('after-load', loaded && loaded.command, JSON.stringify(loaded && loaded.args)); if (!loaded.exec) {{ __agentOsDebugLog('no-exec'); __agentOsFinish(); return; }} if (!loaded.command) {{ __agentOsDebugLog('no-command'); const {{ output }} = require('proc-log'); output.standard(npm.usage); __agentOsFinish(1); return; }} __agentOsDebugLog('before-exec', loaded.command, JSON.stringify(loaded.args)); await npm.exec(loaded.command, loaded.args); __agentOsDebugLog('after-exec', __agentOsResolveExitCode()); __agentOsFinish(); }})().catch((error) => {{ if (__agentOsIsProcessExitError(error)) {{ __agentOsDebugLog('process-exit-error', __agentOsResolveExitCode(error.code)); __agentOsFinish(error.code); return; }} console.error(error && error.stack ? error.stack : String(error)); __agentOsFinish(error && typeof error === 'object' && Number.isFinite(error.exitCode) ? error.exitCode : 1); }});",
+            "{debug_preamble} {display_stub} {registry_fetch_stub} __agentOSDebugLog('argv', JSON.stringify(process.argv), 'cwd', process.cwd()); (async () => {{ const pkg = require({package_json}); if (process.argv.includes('--version') || process.argv.includes('-v')) {{ __agentOSDebugLog('version-shortcut'); console.log(pkg.version); __agentOSFinish(0); return; }} const Npm = require({npm_main}); const npm = new Npm(); __agentOSDebugLog('before-load'); const loaded = await npm.load(); __agentOSDebugLog('after-load', loaded && loaded.command, JSON.stringify(loaded && loaded.args)); if (!loaded.exec) {{ __agentOSDebugLog('no-exec'); __agentOSFinish(); return; }} if (!loaded.command) {{ __agentOSDebugLog('no-command'); const {{ output }} = require('proc-log'); output.standard(npm.usage); __agentOSFinish(1); return; }} __agentOSDebugLog('before-exec', loaded.command, JSON.stringify(loaded.args)); await npm.exec(loaded.command, loaded.args); __agentOSDebugLog('after-exec', __agentOSResolveExitCode()); __agentOSFinish(); }})().catch((error) => {{ if (__agentOSIsProcessExitError(error)) {{ __agentOSDebugLog('process-exit-error', __agentOSResolveExitCode(error.code)); __agentOSFinish(error.code); return; }} console.error(error && error.stack ? error.stack : String(error)); __agentOSFinish(error && typeof error === 'object' && Number.isFinite(error.exitCode) ? error.exitCode : 1); }});",
             debug_preamble = debug_preamble,
             display_stub = display_stub,
             registry_fetch_stub = registry_fetch_stub.replace(
-                "__AGENT_OS_NPM_MAIN__",
+                "__AGENTOS_NPM_MAIN__",
                 &serde_json::to_string(&guest_npm_main)
                     .unwrap_or_else(|_| format!("\"{guest_npm_main}\"")),
             ),
@@ -8650,7 +8651,7 @@ fn prepare_guest_runtime_env(
     let loopback_exempt_ports = configured_loopback_exempt_ports(vm);
 
     env.insert(
-        String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+        String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
         serde_json::to_string(&path_mappings).map_err(|error| {
             SidecarError::InvalidState(format!("failed to encode guest path mappings: {error}"))
         })?,
@@ -8658,7 +8659,7 @@ fn prepare_guest_runtime_env(
     env.entry(String::from(EXECUTION_SANDBOX_ROOT_ENV))
         .or_insert_with(|| normalize_host_path(&vm.cwd).to_string_lossy().into_owned());
     env.insert(
-        String::from("AGENT_OS_EXTRA_FS_READ_PATHS"),
+        String::from("AGENTOS_EXTRA_FS_READ_PATHS"),
         serde_json::to_string(
             &read_paths
                 .iter()
@@ -8670,7 +8671,7 @@ fn prepare_guest_runtime_env(
         })?,
     );
     env.insert(
-        String::from("AGENT_OS_EXTRA_FS_WRITE_PATHS"),
+        String::from("AGENTOS_EXTRA_FS_WRITE_PATHS"),
         serde_json::to_string(
             &write_paths
                 .iter()
@@ -8682,7 +8683,7 @@ fn prepare_guest_runtime_env(
         })?,
     );
     env.insert(
-        String::from("AGENT_OS_ALLOWED_NODE_BUILTINS"),
+        String::from("AGENTOS_ALLOWED_NODE_BUILTINS"),
         serde_json::to_string(&allowed_node_builtins).map_err(|error| {
             SidecarError::InvalidState(format!("failed to encode allowed builtins: {error}"))
         })?,
@@ -8690,13 +8691,13 @@ fn prepare_guest_runtime_env(
     // The guest JS host platform drives subtractive global scrubbing in the
     // per-execution runtime shim (see prepend_v8_runtime_shim).
     env.insert(
-        String::from("AGENT_OS_JS_PLATFORM"),
+        String::from("AGENTOS_JS_PLATFORM"),
         js_runtime_platform_env(vm).to_owned(),
     );
     // Module-resolution mode (omitted when full Node resolution / the default).
     if let Some(resolution) = js_runtime_module_resolution_env(vm) {
         env.insert(
-            String::from("AGENT_OS_JS_MODULE_RESOLUTION"),
+            String::from("AGENTOS_JS_MODULE_RESOLUTION"),
             resolution.to_owned(),
         );
     }
@@ -8705,7 +8706,7 @@ fn prepare_guest_runtime_env(
     // allow-list => exactly those). Absent => unrestricted (node default).
     if let Some(allowlist) = js_runtime_enforced_builtins(vm) {
         env.insert(
-            String::from("AGENT_OS_JS_BUILTIN_ALLOWLIST"),
+            String::from("AGENTOS_JS_BUILTIN_ALLOWLIST"),
             serde_json::to_string(&allowlist).map_err(|error| {
                 SidecarError::InvalidState(format!(
                     "failed to encode jsRuntime builtin allow-list: {error}"
@@ -8715,10 +8716,10 @@ fn prepare_guest_runtime_env(
     }
     // Virtual OS identity (os.cpus/totalmem/freemem/homedir/userInfo/...) now
     // rides the typed `guest_runtime` (see `guest_runtime_identity`), exposed to
-    // the guest as the `__agentOsVirtualOs` structured global by the runtime
-    // shim — no longer the `AGENT_OS_VIRTUAL_OS_*` env vars.
+    // the guest as the `__agentOSVirtualOs` structured global by the runtime
+    // shim — no longer the `AGENTOS_VIRTUAL_OS_*` env vars.
     // Virtual process uid/gid now ride the typed `guest_runtime` identity
-    // (see `guest_runtime_identity`), not the `AGENT_OS_VIRTUAL_PROCESS_*` env.
+    // (see `guest_runtime_identity`), not the `AGENTOS_VIRTUAL_PROCESS_*` env.
     env.entry(String::from("HOME"))
         .or_insert_with(|| user.homedir.clone());
     env.entry(String::from("USER"))
@@ -8745,7 +8746,7 @@ fn prepare_guest_runtime_env(
         );
     }
     if let Some(guest_entrypoint) = guest_entrypoint {
-        env.insert(String::from("AGENT_OS_GUEST_ENTRYPOINT"), guest_entrypoint);
+        env.insert(String::from("AGENTOS_GUEST_ENTRYPOINT"), guest_entrypoint);
     }
     Ok(())
 }
@@ -8768,7 +8769,7 @@ fn virtual_os_freemem_bytes(resource_limits: &ResourceLimits) -> u64 {
 
 /// Build the typed per-execution JavaScript limits from the per-VM `VmLimits`
 /// (sourced from `CreateVmConfig` on the BARE wire). These ride the execution
-/// request, not `AGENT_OS_*` env vars — see the env-vs-wire rule in
+/// request, not `AGENTOS_*` env vars — see the env-vs-wire rule in
 /// `crates/sidecar/CLAUDE.md`.
 fn javascript_execution_limits(vm: &VmState) -> JavascriptExecutionLimits {
     JavascriptExecutionLimits {
@@ -8778,7 +8779,7 @@ fn javascript_execution_limits(vm: &VmState) -> JavascriptExecutionLimits {
 }
 
 /// Build the typed per-execution guest-runtime identity (virtual `process.*`)
-/// from kernel state. Replaces the `AGENT_OS_VIRTUAL_PROCESS_{UID,GID,PID,PPID}`
+/// from kernel state. Replaces the `AGENTOS_VIRTUAL_PROCESS_{UID,GID,PID,PPID}`
 /// env round-trip: the runtime shim reads these from `guest_runtime`, not env.
 /// `uid`/`gid` come from the VM user profile (applied to every guest);
 /// `pid`/`ppid` are per-process and only set for paths that assigned them.
@@ -8831,7 +8832,7 @@ fn python_execution_limits(vm: &VmState) -> PythonExecutionLimits {
 /// Build the typed per-execution WebAssembly limits from the per-VM kernel
 /// `ResourceLimits`. Replaces the old `apply_wasm_limit_env` env round-trip;
 /// notably this is the path that finally enforces the stack cap that the
-/// `AGENT_OS_WASM_MAX_STACK_BYTES` env knob set but no reader consumed.
+/// `AGENTOS_WASM_MAX_STACK_BYTES` env knob set but no reader consumed.
 fn wasm_execution_limits(vm: &VmState) -> WasmExecutionLimits {
     let resource_limits = vm.kernel.resource_limits();
     WasmExecutionLimits {
@@ -9047,7 +9048,7 @@ fn build_module_reader(
 
     let guest_entrypoint = resolved
         .env
-        .get("AGENT_OS_GUEST_ENTRYPOINT")
+        .get("AGENTOS_GUEST_ENTRYPOINT")
         .map(|path| normalize_path(path));
     if let Some(guest_entrypoint) = guest_entrypoint.as_deref() {
         let entrypoint_in_read_only_mount = pairs.iter().any(|(guest_path, _)| {
@@ -9340,7 +9341,7 @@ fn prepare_javascript_shadow(
 ) -> Result<(), SidecarError> {
     let guest_entrypoint = resolved
         .env
-        .get("AGENT_OS_GUEST_ENTRYPOINT")
+        .get("AGENTOS_GUEST_ENTRYPOINT")
         .cloned()
         // An absolute `entrypoint` may be a host path that lives inside the VM's
         // host cwd (callers can pass a fully-qualified host path). The guest sees
@@ -9567,7 +9568,7 @@ fn load_javascript_entrypoint_source(
     };
 
     if let Some(source) = env
-        .get("AGENT_OS_GUEST_ENTRYPOINT")
+        .get("AGENTOS_GUEST_ENTRYPOINT")
         .filter(|path| path.starts_with('/'))
         .and_then(|path| read_guest_file(path))
     {
@@ -10905,7 +10906,7 @@ fn add_runtime_guest_path_mapping(
     host_path: &Path,
 ) {
     let mut mappings = env
-        .get("AGENT_OS_GUEST_PATH_MAPPINGS")
+        .get("AGENTOS_GUEST_PATH_MAPPINGS")
         .and_then(|value| serde_json::from_str::<Vec<Value>>(value).ok())
         .unwrap_or_default();
     mappings.retain(|mapping| {
@@ -10920,7 +10921,7 @@ fn add_runtime_guest_path_mapping(
         "hostPath": host_path.display().to_string(),
     }));
     if let Ok(serialized) = serde_json::to_string(&mappings) {
-        env.insert(String::from("AGENT_OS_GUEST_PATH_MAPPINGS"), serialized);
+        env.insert(String::from("AGENTOS_GUEST_PATH_MAPPINGS"), serialized);
     }
 }
 
@@ -11158,7 +11159,7 @@ pub(crate) fn host_path_from_runtime_guest_mappings(
     guest_path: &str,
 ) -> Option<PathBuf> {
     let mappings = runtime_env
-        .get("AGENT_OS_GUEST_PATH_MAPPINGS")
+        .get("AGENTOS_GUEST_PATH_MAPPINGS")
         .and_then(|value| serde_json::from_str::<Vec<RuntimeGuestPathMapping>>(value).ok())?;
     let normalized = normalize_path(guest_path);
 
@@ -11261,7 +11262,7 @@ fn guest_path_from_runtime_host_mappings(
     host_path: &Path,
 ) -> Option<String> {
     let mappings = runtime_env
-        .get("AGENT_OS_GUEST_PATH_MAPPINGS")
+        .get("AGENTOS_GUEST_PATH_MAPPINGS")
         .and_then(|value| serde_json::from_str::<Vec<RuntimeGuestPathMapping>>(value).ok())?;
     let normalized = normalize_host_path(host_path);
 
@@ -11405,18 +11406,18 @@ pub(crate) fn sanitize_javascript_child_process_internal_bootstrap_env(
     env: &BTreeMap<String, String>,
 ) -> BTreeMap<String, String> {
     const ALLOWED_KEYS: &[&str] = &[
-        "AGENT_OS_ALLOWED_NODE_BUILTINS",
-        "AGENT_OS_GUEST_PATH_MAPPINGS",
-        "AGENT_OS_LOOPBACK_EXEMPT_PORTS",
-        "AGENT_OS_VIRTUAL_PROCESS_EXEC_PATH",
-        "AGENT_OS_VIRTUAL_PROCESS_UID",
-        "AGENT_OS_VIRTUAL_PROCESS_GID",
-        "AGENT_OS_VIRTUAL_PROCESS_VERSION",
+        "AGENTOS_ALLOWED_NODE_BUILTINS",
+        "AGENTOS_GUEST_PATH_MAPPINGS",
+        "AGENTOS_LOOPBACK_EXEMPT_PORTS",
+        "AGENTOS_VIRTUAL_PROCESS_EXEC_PATH",
+        "AGENTOS_VIRTUAL_PROCESS_UID",
+        "AGENTOS_VIRTUAL_PROCESS_GID",
+        "AGENTOS_VIRTUAL_PROCESS_VERSION",
     ];
 
     env.iter()
         .filter(|(key, _)| {
-            ALLOWED_KEYS.contains(&key.as_str()) || key.starts_with("AGENT_OS_VIRTUAL_OS_")
+            ALLOWED_KEYS.contains(&key.as_str()) || key.starts_with("AGENTOS_VIRTUAL_OS_")
         })
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect()
@@ -13500,7 +13501,7 @@ pub(crate) fn javascript_sync_rpc_bytes_arg(
     }
 
     let Some(base64_value) = value
-        .get("__agentOsType")
+        .get("__agentOSType")
         .and_then(Value::as_str)
         .filter(|kind| *kind == "bytes")
         .and_then(|_| value.get("base64"))
@@ -13520,7 +13521,7 @@ pub(crate) fn javascript_sync_rpc_bytes_arg(
 
 pub(crate) fn javascript_sync_rpc_bytes_value(bytes: &[u8]) -> Value {
     json!({
-        "__agentOsType": "bytes",
+        "__agentOSType": "bytes",
         "base64": base64::engine::general_purpose::STANDARD.encode(bytes),
     })
 }
@@ -16314,7 +16315,7 @@ fn serialize_http_loopback_request(
         "rawHeaders": http_raw_headers_json(headers),
         "bodyBase64": body_base64,
     }))
-    .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+    .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 fn http_request_target(url: &Url) -> String {
@@ -16501,7 +16502,7 @@ fn parse_kernel_http_fetch_response(
         "url": url,
     }))
     .map(Some)
-    .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+    .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 fn find_http_header_end(buffer: &[u8]) -> Option<usize> {
@@ -16948,7 +16949,7 @@ fn outbound_http_response_json(url: &Url, response: ureq::Response) -> Result<Va
         "url": url.as_str(),
     }))
     .map(Value::String)
-    .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+    .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 /// Split a ureq resolver `netloc` (`host:port`, with optional `[..]` IPv6
@@ -17573,13 +17574,13 @@ fn http2_runtime_snapshot() -> Http2RuntimeSnapshot {
 
 fn http2_snapshot_json(snapshot: &Http2SessionSnapshot) -> Result<String, SidecarError> {
     serde_json::to_string(snapshot)
-        .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+        .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 fn http2_event_value(event: &Http2BridgeEvent) -> Result<Value, SidecarError> {
     serde_json::to_string(event)
         .map(Value::String)
-        .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+        .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 fn push_http2_server_event(
@@ -17707,7 +17708,7 @@ fn dispatch_http2_wait_loop(
     loop {
         if let Some(event) = wait_for_http2_event(&process.http2.shared, id, is_server, 50) {
             let payload = serde_json::to_value(&event).map_err(|error| {
-                SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}"))
+                SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}"))
             })?;
             process
                 .execution
@@ -17896,7 +17897,7 @@ fn serialize_http2_headers_map(
         }
     }
     serde_json::to_string(&serialized)
-        .map_err(|error| SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}")))
+        .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
 }
 
 fn serialize_http2_request_headers(
@@ -19932,7 +19933,7 @@ where
             }))
             .map(Value::String)
             .map_err(|error| {
-                SidecarError::Execution(format!("ERR_AGENT_OS_NODE_SYNC_RPC: {error}"))
+                SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}"))
             })
         }
         "net.http_close" => {
@@ -21091,9 +21092,9 @@ pub(crate) fn error_code(error: &SidecarError) -> &'static str {
 
 fn guest_errno_code(message: &str) -> Option<&str> {
     const TRUSTED_PREFIXES: &[&str] = &[
-        "ERR_AGENT_OS_NODE_SYNC_RPC",
-        "ERR_AGENT_OS_PYTHON_VFS_RPC",
-        "ERR_AGENT_OS_BRIDGE",
+        "ERR_AGENTOS_NODE_SYNC_RPC",
+        "ERR_AGENTOS_PYTHON_VFS_RPC",
+        "ERR_AGENTOS_BRIDGE",
     ];
 
     let mut segments = message.split(':').map(str::trim);
@@ -21150,7 +21151,7 @@ pub(crate) fn javascript_sync_rpc_error_code(error: &SidecarError) -> String {
         return String::from("EINVAL");
     }
 
-    String::from("ERR_AGENT_OS_NODE_SYNC_RPC")
+    String::from("ERR_AGENTOS_NODE_SYNC_RPC")
 }
 
 pub(crate) fn ignore_stale_javascript_sync_rpc_response(
@@ -21188,17 +21189,17 @@ mod error_code_tests {
             guest_errno_code("prefix: user said 'EPERM': more text"),
             None
         );
-        assert_eq!(guest_errno_code("ERR_AGENT_OS_FAKE: EACCES: denied"), None);
+        assert_eq!(guest_errno_code("ERR_AGENTOS_FAKE: EACCES: denied"), None);
     }
 
     #[test]
     fn guest_errno_code_accepts_trusted_secure_exec_prefixes() {
         assert_eq!(
-            guest_errno_code("ERR_AGENT_OS_NODE_SYNC_RPC: EACCES: permission denied on /foo"),
+            guest_errno_code("ERR_AGENTOS_NODE_SYNC_RPC: EACCES: permission denied on /foo"),
             Some("EACCES")
         );
         assert_eq!(
-            guest_errno_code("ERR_AGENT_OS_PYTHON_VFS_RPC: ENOENT: missing file"),
+            guest_errno_code("ERR_AGENTOS_PYTHON_VFS_RPC: ENOENT: missing file"),
             Some("ENOENT")
         );
         assert_eq!(guest_errno_code("EEXIST: already exists"), Some("EEXIST"));
@@ -21209,14 +21210,14 @@ mod error_code_tests {
         let error = SidecarError::Execution(String::from("user said 'EACCES: denied'"));
         assert_eq!(
             javascript_sync_rpc_error_code(&error),
-            "ERR_AGENT_OS_NODE_SYNC_RPC"
+            "ERR_AGENTOS_NODE_SYNC_RPC"
         );
     }
 
     #[test]
     fn javascript_sync_rpc_error_code_preserves_real_sidecar_errnos() {
         let error = SidecarError::Execution(String::from(
-            "ERR_AGENT_OS_NODE_SYNC_RPC: EACCES: permission denied on /foo",
+            "ERR_AGENTOS_NODE_SYNC_RPC: EACCES: permission denied on /foo",
         ));
         assert_eq!(javascript_sync_rpc_error_code(&error), "EACCES");
     }

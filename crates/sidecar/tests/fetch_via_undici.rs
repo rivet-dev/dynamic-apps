@@ -103,7 +103,7 @@ console.log(JSON.stringify({{
     let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
     let mut metadata = HashMap::new();
     metadata.insert(
-        String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+        String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
         format!("[{port}]"),
     );
     let (vm_id, _) = create_vm_wire_with_metadata(
@@ -257,7 +257,7 @@ console.log(JSON.stringify({{
     let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
     let mut metadata = HashMap::new();
     metadata.insert(
-        String::from("env.AGENT_OS_LOOPBACK_EXEMPT_PORTS"),
+        String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
         format!("[{port}]"),
     );
     let (vm_id, _) = create_vm_wire_with_metadata(
@@ -339,7 +339,7 @@ fn fetch_via_undici_cases() {
             .arg("--exact")
             .arg("__fetch_via_undici_case_runner")
             .arg("--nocapture")
-            .env("AGENT_OS_FETCH_VIA_UNDICI_CASE", case_name)
+            .env("AGENTOS_FETCH_VIA_UNDICI_CASE", case_name)
             .status()
             .unwrap_or_else(|error| {
                 panic!("spawn fetch_via_undici runner for {case_name}: {error}")
@@ -354,7 +354,7 @@ fn fetch_via_undici_cases() {
 
 #[test]
 fn __fetch_via_undici_case_runner() {
-    let Ok(case_name) = std::env::var("AGENT_OS_FETCH_VIA_UNDICI_CASE") else {
+    let Ok(case_name) = std::env::var("AGENTOS_FETCH_VIA_UNDICI_CASE") else {
         return;
     };
 

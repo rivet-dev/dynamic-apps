@@ -21,19 +21,19 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
-const NODE_ALLOW_PROCESS_BINDINGS_ENV: &str = "AGENT_OS_ALLOW_PROCESS_BINDINGS";
-const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENT_OS_GUEST_PATH_MAPPINGS";
-const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENT_OS_NODE_SYNC_RPC_DATA_BYTES";
-const PYODIDE_INDEX_URL_ENV: &str = "AGENT_OS_PYODIDE_INDEX_URL";
-const PYODIDE_PACKAGE_BASE_URL_ENV: &str = "AGENT_OS_PYODIDE_PACKAGE_BASE_URL";
-const PYODIDE_PACKAGE_CACHE_DIR_ENV: &str = "AGENT_OS_PYODIDE_PACKAGE_CACHE_DIR";
-const PYODIDE_GUEST_ROOT: &str = "/__agent_os_pyodide";
-const PYODIDE_CACHE_GUEST_ROOT: &str = "/__agent_os_pyodide_cache";
-const PYTHON_CODE_ENV: &str = "AGENT_OS_PYTHON_CODE";
-const PYTHON_FILE_ENV: &str = "AGENT_OS_PYTHON_FILE";
-const PYTHON_PREWARM_ONLY_ENV: &str = "AGENT_OS_PYTHON_PREWARM_ONLY";
-const PYTHON_WARMUP_DEBUG_ENV: &str = "AGENT_OS_PYTHON_WARMUP_DEBUG";
-const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENT_OS_PYTHON_WARMUP_METRICS__:";
+const NODE_ALLOW_PROCESS_BINDINGS_ENV: &str = "AGENTOS_ALLOW_PROCESS_BINDINGS";
+const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENTOS_GUEST_PATH_MAPPINGS";
+const NODE_SYNC_RPC_DATA_BYTES_ENV: &str = "AGENTOS_NODE_SYNC_RPC_DATA_BYTES";
+const PYODIDE_INDEX_URL_ENV: &str = "AGENTOS_PYODIDE_INDEX_URL";
+const PYODIDE_PACKAGE_BASE_URL_ENV: &str = "AGENTOS_PYODIDE_PACKAGE_BASE_URL";
+const PYODIDE_PACKAGE_CACHE_DIR_ENV: &str = "AGENTOS_PYODIDE_PACKAGE_CACHE_DIR";
+const PYODIDE_GUEST_ROOT: &str = "/__agentos_pyodide";
+const PYODIDE_CACHE_GUEST_ROOT: &str = "/__agentos_pyodide_cache";
+const PYTHON_CODE_ENV: &str = "AGENTOS_PYTHON_CODE";
+const PYTHON_FILE_ENV: &str = "AGENTOS_PYTHON_FILE";
+const PYTHON_PREWARM_ONLY_ENV: &str = "AGENTOS_PYTHON_PREWARM_ONLY";
+const PYTHON_WARMUP_DEBUG_ENV: &str = "AGENTOS_PYTHON_WARMUP_DEBUG";
+const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_PYTHON_WARMUP_METRICS__:";
 const PYTHON_WARMUP_MARKER_VERSION: &str = "2";
 const DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES: usize = 1024 * 1024;
 const DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS: u64 = 5 * 60 * 1000;
@@ -187,7 +187,7 @@ pub struct PythonContext {
 }
 
 /// Per-execution Python runtime limits, carried as typed fields rather than
-/// `AGENT_OS_*` env vars. Populated by the sidecar from the per-VM `VmLimits`
+/// `AGENTOS_*` env vars. Populated by the sidecar from the per-VM `VmLimits`
 /// (originating from `CreateVmConfig` on the BARE wire); `None` selects the
 /// engine default. See the env-vs-wire rule in `crates/sidecar/CLAUDE.md`.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -947,7 +947,7 @@ fn start_python_javascript_execution(
 
     // The Pyodide runner is itself a V8 execution. Its heap cap (the Python
     // `maxOldSpaceMb` knob) and sync-RPC wait ceiling ride the typed runner
-    // limits, not env — the JS engine reads them from `limits`, not `AGENT_OS_*`.
+    // limits, not env — the JS engine reads them from `limits`, not `AGENTOS_*`.
     let max_old_space_mb = python_max_old_space_mb(request);
     let runner_limits = JavascriptExecutionLimits {
         v8_heap_limit_mb: (max_old_space_mb > 0).then_some(max_old_space_mb as u32),
@@ -980,7 +980,7 @@ fn build_python_internal_env(
     let mut internal_env = request
         .env
         .iter()
-        .filter(|(key, _)| key.starts_with("AGENT_OS_"))
+        .filter(|(key, _)| key.starts_with("AGENTOS_"))
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect::<BTreeMap<_, _>>();
     let pyodide_dist_path = resolved_pyodide_dist_path(&context.pyodide_dist_path, &request.cwd);
@@ -1021,7 +1021,7 @@ fn build_python_internal_env(
     );
     // The runner's V8 heap cap and sync-RPC wait timeout are carried as typed
     // `JavascriptExecutionLimits` on the runner request (see the launch site),
-    // not as `AGENT_OS_V8_HEAP_LIMIT_MB` / `AGENT_OS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS`
+    // not as `AGENTOS_V8_HEAP_LIMIT_MB` / `AGENTOS_NODE_SYNC_RPC_WAIT_TIMEOUT_MS`
     // env knobs, which the JS engine no longer reads.
     internal_env.insert(PYTHON_CODE_ENV.to_string(), request.code.clone());
     internal_env.insert(NODE_FROZEN_TIME_ENV.to_string(), frozen_time_ms.to_string());
@@ -1092,7 +1092,7 @@ fn build_python_runner_module_source(
     let runner_source = fs::read_to_string(import_cache.python_runner_path())
         .map_err(PythonExecutionError::PrepareRuntime)?;
     let runner_source =
-        format!("import * as __agentOsConstantsBinding from 'node:constants';\n{runner_source}");
+        format!("import * as __agentOSConstantsBinding from 'node:constants';\n{runner_source}");
     let bootstrap = build_python_runner_bootstrap(internal_env, warmup_metrics);
     Ok(insert_python_runner_bootstrap(&runner_source, &bootstrap))
 }
@@ -1110,13 +1110,13 @@ fn build_python_runner_bootstrap(
 
     match warmup_metrics_json {
         Some(warmup_metrics_json) => format!(
-            "globalThis.__agentOsPythonInternalEnv = {internal_env_json};\n\
-if (typeof process !== 'undefined') {{\n  process.env = {{ ...(process.env || {{}}), ...globalThis.__agentOsPythonInternalEnv }};\n}}\n\
+            "globalThis.__agentOSPythonInternalEnv = {internal_env_json};\n\
+if (typeof process !== 'undefined') {{\n  process.env = {{ ...(process.env || {{}}), ...globalThis.__agentOSPythonInternalEnv }};\n}}\n\
 if (typeof process?.stderr?.write === 'function') {{\n  process.stderr.write({warmup_metrics_json});\n}}\n"
         ),
         None => format!(
-            "globalThis.__agentOsPythonInternalEnv = {internal_env_json};\n\
-if (typeof process !== 'undefined') {{\n  process.env = {{ ...(process.env || {{}}), ...globalThis.__agentOsPythonInternalEnv }};\n}}\n"
+            "globalThis.__agentOSPythonInternalEnv = {internal_env_json};\n\
+if (typeof process !== 'undefined') {{\n  process.env = {{ ...(process.env || {{}}), ...globalThis.__agentOSPythonInternalEnv }};\n}}\n"
         ),
     }
 }
@@ -1167,7 +1167,7 @@ fn parse_python_bridge_sync_rpc_request(
 
     let method = PythonVfsRpcMethod::from_wire(&wire.method).ok_or_else(|| {
         PythonExecutionError::RpcResponse(format!(
-            "unsupported agent-os python rpc method {} for {}",
+            "unsupported agentos python rpc method {} for {}",
             wire.method, request.id
         ))
     })?;
@@ -1281,7 +1281,7 @@ fn spawn_python_vfs_rpc_timeout(
             id,
             1,
             format!(
-                "ERR_AGENT_OS_PYTHON_VFS_RPC_TIMEOUT: guest Python VFS RPC request {id} timed out after {}ms",
+                "ERR_AGENTOS_PYTHON_VFS_RPC_TIMEOUT: guest Python VFS RPC request {id} timed out after {}ms",
                 timeout.as_millis()
             )
             .into_bytes(),
@@ -1476,7 +1476,7 @@ fn python_javascript_sync_rpc_action(
                     Value::String(String::from_utf8_lossy(&bytes).into_owned()),
                 ),
                 _ => PythonJavascriptSyncRpcAction::Success(json!({
-                    "__agentOsType": "bytes",
+                    "__agentOSType": "bytes",
                     "base64": v8_runtime::base64_encode_pub(&bytes),
                 })),
             }
@@ -1831,7 +1831,7 @@ fn python_sync_rpc_bytes_arg(
     }
 
     let Some(base64_value) = value
-        .get("__agentOsType")
+        .get("__agentOSType")
         .and_then(Value::as_str)
         .filter(|kind| *kind == "bytes")
         .and_then(|_| value.get("base64"))

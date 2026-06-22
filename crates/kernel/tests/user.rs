@@ -8,8 +8,8 @@ fn uses_sensible_defaults_when_not_configured() {
     assert_eq!(user.gid, 1000);
     assert_eq!(user.euid, 1000);
     assert_eq!(user.egid, 1000);
-    assert_eq!(user.username, "user");
-    assert_eq!(user.homedir, "/home/user");
+    assert_eq!(user.username, "agentos");
+    assert_eq!(user.homedir, "/home/agentos");
     assert_eq!(user.shell, "/bin/sh");
     assert_eq!(user.gecos, "");
 }
@@ -20,7 +20,7 @@ fn empty_config_uses_the_same_defaults() {
 
     assert_eq!(user.uid, 1000);
     assert_eq!(user.gid, 1000);
-    assert_eq!(user.username, "user");
+    assert_eq!(user.username, "agentos");
 }
 
 #[test]
@@ -86,7 +86,7 @@ fn getpwuid_returns_configured_entry_for_the_active_user() {
 
     assert_eq!(
         user.getpwuid(1000),
-        Some(String::from("user:x:1000:1000::/home/user:/bin/sh"))
+        Some(String::from("agentos:x:1000:1000::/home/agentos:/bin/sh"))
     );
 
     let with_gecos = UserManager::from_config(UserConfig {
@@ -96,7 +96,7 @@ fn getpwuid_returns_configured_entry_for_the_active_user() {
     assert_eq!(
         with_gecos.getpwuid(1000),
         Some(String::from(
-            "user:x:1000:1000:Test User:/home/user:/bin/sh"
+            "agentos:x:1000:1000:Test User:/home/agentos:/bin/sh"
         ))
     );
 }

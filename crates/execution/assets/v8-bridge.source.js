@@ -39,7 +39,7 @@ function base64ToBase64Url(value) {
   return String(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 function installBase64UrlBufferEncoding(BufferCtor) {
-  if (typeof BufferCtor !== "function" || BufferCtor.__agentOsBase64UrlPatched) {
+  if (typeof BufferCtor !== "function" || BufferCtor.__agentOSBase64UrlPatched) {
     return;
   }
   const originalIsEncoding = typeof BufferCtor.isEncoding === "function" ? BufferCtor.isEncoding.bind(BufferCtor) : null;
@@ -74,7 +74,7 @@ function installBase64UrlBufferEncoding(BufferCtor) {
       return originalWrite.call(this, string, offset, length, encoding);
     };
   }
-  BufferCtor.__agentOsBase64UrlPatched = true;
+  BufferCtor.__agentOSBase64UrlPatched = true;
 }
 installBase64UrlBufferEncoding(EarlyBufferGlobal);
 if (typeof EarlyBufferGlobal === "function") {
@@ -6414,7 +6414,7 @@ var __bridge = (() => {
   }
   function encodeBridgeBytes(value) {
     return {
-      __agentOsType: "bytes",
+      __agentOSType: "bytes",
       base64: import_buffer.Buffer.from(value).toString("base64")
     };
   }
@@ -8280,7 +8280,7 @@ var __bridge = (() => {
     return Number.isFinite(value) ? value : 0;
   }
   function getRuntimeInternalEnv(name) {
-    const bridgedValue = globalThis.__agentOsProcessConfigEnv?.[name];
+    const bridgedValue = globalThis.__agentOSProcessConfigEnv?.[name];
     if (typeof bridgedValue === "string" && bridgedValue.length > 0) {
       return bridgedValue;
     }
@@ -8300,7 +8300,7 @@ var __bridge = (() => {
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
   }
   function getRuntimeVirtualOs() {
-    return globalThis.__agentOsVirtualOs || {};
+    return globalThis.__agentOSVirtualOs || {};
   }
   function runtimeVirtualOsPositiveInt(name, fallback) {
     const parsed = Number(getRuntimeVirtualOs()[name]);
@@ -8708,7 +8708,7 @@ var __bridge = (() => {
           next.data.byteOffset,
           next.data.byteLength
         ).toString("base64");
-      } else if (next.data?.__agentOsType === "bytes" && typeof next.data.base64 === "string") {
+      } else if (next.data?.__agentOSType === "bytes" && typeof next.data.base64 === "string") {
         payload.dataBase64 = next.data.base64;
       }
       childProcessDispatch(`child_${next.type}`, payload);
@@ -8865,7 +8865,7 @@ var __bridge = (() => {
       } else if (ArrayBuffer.isView(directData)) {
         bytes = typeof Buffer !== "undefined" ? Buffer.from(directData.buffer, directData.byteOffset, directData.byteLength) : new Uint8Array(directData.buffer, directData.byteOffset, directData.byteLength);
       } else {
-        const encoded = typeof payload?.dataBase64 === "string" ? payload.dataBase64 : typeof directData === "string" ? directData : directData?.__agentOsType === "bytes" && typeof directData?.base64 === "string" ? directData.base64 : "";
+        const encoded = typeof payload?.dataBase64 === "string" ? payload.dataBase64 : typeof directData === "string" ? directData : directData?.__agentOSType === "bytes" && typeof directData?.base64 === "string" ? directData.base64 : "";
         bytes = typeof Buffer !== "undefined" ? Buffer.from(encoded, "base64") : new Uint8Array(
           atob(encoded).split("").map((char) => char.charCodeAt(0))
         );
@@ -9938,7 +9938,7 @@ var __bridge = (() => {
     const env = {
       ...(typeof process !== "undefined" ? process.env : {}),
       ...(opts.env || {}),
-      AGENT_OS_NODE_IPC: "1"
+      AGENTOS_NODE_IPC: "1"
     };
     const child = spawn(opts.execPath || (typeof process !== "undefined" ? process.execPath : "node"), [
       ...execArgv,
@@ -11056,8 +11056,8 @@ var __bridge = (() => {
         this._agent = null;
       } else if (agentOpt instanceof Agent) {
         this._agent = agentOpt;
-      } else if (this._options._agentOsDefaultAgent instanceof Agent) {
-        this._agent = this._options._agentOsDefaultAgent;
+      } else if (this._options._agentOSDefaultAgent instanceof Agent) {
+        this._agent = this._options._agentOSDefaultAgent;
       } else {
         this._agent = null;
       }
@@ -12511,8 +12511,8 @@ var __bridge = (() => {
       throw new Error("Undici request transport is not available");
     }
     const origin = buildUndiciOrigin(options);
-    if (socket._agentOsUndiciClient && socket._agentOsUndiciOrigin === origin && socket._agentOsUndiciClient.destroyed !== true) {
-      return socket._agentOsUndiciClient;
+    if (socket._agentOSUndiciClient && socket._agentOSUndiciOrigin === origin && socket._agentOSUndiciClient.destroyed !== true) {
+      return socket._agentOSUndiciClient;
     }
     const client = new UndiciClient(origin, {
       pipelining: 1,
@@ -12522,14 +12522,14 @@ var __bridge = (() => {
       }
     });
     const clearClient = () => {
-      if (socket._agentOsUndiciClient === client) {
-        socket._agentOsUndiciClient = null;
-        socket._agentOsUndiciOrigin = null;
+      if (socket._agentOSUndiciClient === client) {
+        socket._agentOSUndiciClient = null;
+        socket._agentOSUndiciOrigin = null;
       }
     };
     socket.once?.("close", clearClient);
-    socket._agentOsUndiciClient = client;
-    socket._agentOsUndiciOrigin = origin;
+    socket._agentOSUndiciClient = client;
+    socket._agentOSUndiciOrigin = origin;
     return client;
   }
   function createHttpRequestSocket(options, callback) {
@@ -14866,7 +14866,7 @@ ${headerLines}\r
       }
       return {
         ...opts,
-        _agentOsDefaultAgent: moduleAgent
+        _agentOSDefaultAgent: moduleAgent
       };
     }
     return {
@@ -17916,7 +17916,7 @@ ${headerLines}\r
       debugBridgeNetwork("socket write", this._socketId, buf.length, base64.slice(0, 64));
       this.bytesWritten += buf.length;
       _netSocketWriteRaw.applySync(void 0, [this._socketId, {
-        __agentOsType: "bytes",
+        __agentOSType: "bytes",
         base64
       }]);
       this._touchTimeout();
@@ -19505,7 +19505,7 @@ ${headerLines}\r
       if (value.__type === "Buffer" && typeof value.data === "string") {
         return Buffer.from(value.data, "base64");
       }
-      if (value.__agentOsType === "bytes" && typeof value.base64 === "string") {
+      if (value.__agentOSType === "bytes" && typeof value.base64 === "string") {
         return Buffer.from(value.base64, "base64");
       }
     }
@@ -22436,7 +22436,7 @@ ${headerLines}\r
     }
   }
   function configuredHeapLimitBytes() {
-    const configured = Number(globalThis.__agentOsV8HeapLimitBytes);
+    const configured = Number(globalThis.__agentOSV8HeapLimitBytes);
     if (Number.isFinite(configured) && configured > 0) {
       return configured;
     }
@@ -23529,7 +23529,7 @@ ${headerLines}\r
     stderr: _stderr,
     stdin: _stdin,
     // Process state
-    connected: config2.env?.AGENT_OS_NODE_IPC === "1",
+    connected: config2.env?.AGENTOS_NODE_IPC === "1",
     // Module info (will be set by createRequire)
     mainModule: void 0,
     // No-op methods for compatibility
@@ -23591,9 +23591,9 @@ ${headerLines}\r
         return;
       }
       process2.connected = false;
-      if (process2._agentOsIpcHandleId && typeof _unregisterHandle === "function") {
-        _unregisterHandle(process2._agentOsIpcHandleId);
-        process2._agentOsIpcHandleId = null;
+      if (process2._agentOSIpcHandleId && typeof _unregisterHandle === "function") {
+        _unregisterHandle(process2._agentOSIpcHandleId);
+        process2._agentOSIpcHandleId = null;
       }
       _emit("disconnect");
     },
@@ -23620,15 +23620,15 @@ ${headerLines}\r
     _umask: 18
   };
   function installProcessIpcBridge() {
-    const ipcEnabled = config2.env?.AGENT_OS_NODE_IPC === "1" || globalThis.__agentOsProcessConfigEnv?.AGENT_OS_NODE_IPC === "1";
-    if (!ipcEnabled || process2._agentOsIpcInstalled) {
+    const ipcEnabled = config2.env?.AGENTOS_NODE_IPC === "1" || globalThis.__agentOSProcessConfigEnv?.AGENTOS_NODE_IPC === "1";
+    if (!ipcEnabled || process2._agentOSIpcInstalled) {
       return;
     }
-    process2._agentOsIpcInstalled = true;
+    process2._agentOSIpcInstalled = true;
     process2.connected = true;
-    if (!process2._agentOsIpcHandleId && typeof _registerHandle === "function") {
-      process2._agentOsIpcHandleId = `process-ipc:${process2.pid}`;
-      _registerHandle(process2._agentOsIpcHandleId, "child_process IPC channel");
+    if (!process2._agentOSIpcHandleId && typeof _registerHandle === "function") {
+      process2._agentOSIpcHandleId = `process-ipc:${process2.pid}`;
+      _registerHandle(process2._agentOSIpcHandleId, "child_process IPC channel");
     }
     let ipcInputBuffer = "";
     process2.stdin.on("data", (chunk) => {
@@ -23667,7 +23667,7 @@ ${headerLines}\r
     process2.argv = nextConfig.argv;
     process2.argv0 = nextConfig.argv[0] || "node";
     process2.env = nextConfig.env;
-    process2.connected = nextConfig.env?.AGENT_OS_NODE_IPC === "1";
+    process2.connected = nextConfig.env?.AGENTOS_NODE_IPC === "1";
     process2._cwd = nextConfig.cwd;
     process2.stdin.paused = true;
     process2.stdin.encoding = null;
@@ -23944,7 +23944,7 @@ ${headerLines}\r
       emitEntry(entry);
       return entry;
     };
-    perf.__agentOsObservers = observers;
+    perf.__agentOSObservers = observers;
     return perf;
   })();
   async function collectReadableChunks(input) {
@@ -24279,7 +24279,7 @@ ${headerLines}\r
         this.disconnect();
         this._entryTypes = new Set(entryTypes);
         this._connected = true;
-        builtinPerformance.__agentOsObservers.add(this);
+        builtinPerformance.__agentOSObservers.add(this);
         if (options?.buffered) {
           for (const entryType of this._entryTypes) {
             for (const entry of builtinPerformance.getEntriesByType(entryType)) {
@@ -24301,7 +24301,7 @@ ${headerLines}\r
       }
       disconnect() {
         this._connected = false;
-        builtinPerformance.__agentOsObservers.delete(this);
+        builtinPerformance.__agentOSObservers.delete(this);
       }
       takeRecords() {
         const records = this._records.slice();
@@ -24567,7 +24567,7 @@ ${headerLines}\r
       return 0;
     }
   };
-  if (!Promise.prototype.__agentOsAsyncLocalStoragePatched) {
+  if (!Promise.prototype.__agentOSAsyncLocalStoragePatched) {
     const nativePromiseThen = Promise.prototype.then;
     Promise.prototype.then = function(onFulfilled, onRejected) {
       const snapshot = snapshotAsyncLocalStorageStores();
@@ -24583,7 +24583,7 @@ ${headerLines}\r
         wrapAsyncLocalStorageCallback(wrappedRejected, snapshot)
       );
     };
-    Object.defineProperty(Promise.prototype, "__agentOsAsyncLocalStoragePatched", {
+    Object.defineProperty(Promise.prototype, "__agentOSAsyncLocalStoragePatched", {
       value: true,
       configurable: true
     });
@@ -26450,7 +26450,7 @@ ${headerLines}\r
     const error = new Error(
       `secure-exec module format bridge is not registered; cannot require ${filename}.`
     );
-    error.code = "ERR_AGENT_OS_MODULE_FORMAT_BRIDGE_MISSING";
+    error.code = "ERR_AGENTOS_MODULE_FORMAT_BRIDGE_MISSING";
     return error;
   }
   function assertCommonjsLoadable(filename) {
@@ -26933,7 +26933,7 @@ ${headerLines}\r
     }
     return normalized;
   }
-  exposeCustomGlobal("__agentOsInitJsRuntime", function (allowlist) {
+  exposeCustomGlobal("__agentOSInitJsRuntime", function (allowlist) {
     __jsRuntimeBuiltinAllowlist = Array.isArray(allowlist)
       ? allowlist.map((name) => String(name).replace(/^node:/, "").split("/")[0])
       : null;

@@ -53,8 +53,8 @@ pub(crate) const JAVASCRIPT_COMMAND: &str = "node";
 pub(crate) const PYTHON_COMMAND: &str = "python";
 pub(crate) const WASM_COMMAND: &str = "wasm";
 pub(crate) const PYTHON_VFS_RPC_GUEST_ROOT: &str = "/workspace";
-pub(crate) const EXECUTION_SANDBOX_ROOT_ENV: &str = "AGENT_OS_SANDBOX_ROOT";
-pub(crate) const WASM_STDIO_SYNC_RPC_ENV: &str = "AGENT_OS_WASI_STDIO_SYNC_RPC";
+pub(crate) const EXECUTION_SANDBOX_ROOT_ENV: &str = "AGENTOS_SANDBOX_ROOT";
+pub(crate) const WASM_STDIO_SYNC_RPC_ENV: &str = "AGENTOS_WASI_STDIO_SYNC_RPC";
 #[cfg(test)]
 #[allow(dead_code)]
 pub(crate) const HOST_REALPATH_MAX_SYMLINK_DEPTH: usize = 40;
@@ -71,7 +71,7 @@ pub(crate) const VM_LISTEN_PORT_MIN_METADATA_KEY: &str = "network.listen.port_mi
 pub(crate) const VM_LISTEN_PORT_MAX_METADATA_KEY: &str = "network.listen.port_max";
 pub(crate) const VM_LISTEN_ALLOW_PRIVILEGED_METADATA_KEY: &str = "network.listen.allow_privileged";
 pub(crate) const DEFAULT_JAVASCRIPT_NET_BACKLOG: u32 = 511;
-pub(crate) const LOOPBACK_EXEMPT_PORTS_ENV: &str = "AGENT_OS_LOOPBACK_EXEMPT_PORTS";
+pub(crate) const LOOPBACK_EXEMPT_PORTS_ENV: &str = "AGENTOS_LOOPBACK_EXEMPT_PORTS";
 pub(crate) const TOOL_DRIVER_NAME: &str = "secure-exec-host-callbacks";
 pub(crate) const MAPPED_HOST_FD_START: u32 = 1_000_000_000;
 

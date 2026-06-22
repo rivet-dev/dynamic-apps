@@ -69,10 +69,10 @@ use tokio::time;
 // Constants and type aliases moved to crate::state
 
 const INTERNAL_JAVASCRIPT_ENTRYPOINT_ENV_KEYS: &[&str] =
-    &["AGENT_OS_ENTRYPOINT", "AGENT_OS_BOOTSTRAP_MODULE"];
+    &["AGENTOS_ENTRYPOINT", "AGENTOS_BOOTSTRAP_MODULE"];
 const INTERNAL_WASM_ENTRYPOINT_ENV_KEYS: &[&str] =
-    &["AGENT_OS_WASM_MODULE_PATH", "AGENT_OS_WASM_MODULE_BASE64"];
-const INTERNAL_PYTHON_ENTRYPOINT_ENV_PREFIXES: &[&str] = &["AGENT_OS_PYTHON_"];
+    &["AGENTOS_WASM_MODULE_PATH", "AGENTOS_WASM_MODULE_BASE64"];
+const INTERNAL_PYTHON_ENTRYPOINT_ENV_PREFIXES: &[&str] = &["AGENTOS_PYTHON_"];
 pub(crate) const MAX_PROCESS_EVENT_QUEUE: usize = 10_000;
 pub(crate) const MAX_PENDING_SIDECAR_RESPONSES: usize = 10_000;
 pub(crate) const MAX_OUTBOUND_SIDECAR_REQUESTS: usize = 10_000;
@@ -3189,7 +3189,7 @@ mod symlinked_node_modules_hint_tests {
         let stderr = "Error: ENOENT: no such file or directory, open '/root/node_modules/.pnpm/@mariozechner+pi-coding-agent@0.60.0_x/node_modules/@mariozechner/pi-coding-agent/dist/package.json'";
         let hint = symlinked_node_modules_hint(stderr).expect("expected hoisted guidance");
         assert!(hint.contains("secure-exec can't load mounted node_modules"));
-        assert!(!hint.contains("agent-os"));
+        assert!(!hint.contains("agentos"));
     }
 
     #[test]

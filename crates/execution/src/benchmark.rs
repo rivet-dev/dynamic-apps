@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-const BENCHMARK_MARKER_PREFIX: &str = "__AGENT_OS_BENCH__:";
+const BENCHMARK_MARKER_PREFIX: &str = "__AGENTOS_BENCH__:";
 const LOCAL_GRAPH_MODULE_COUNT: usize = 24;
 const BENCHMARK_ARTIFACT_VERSION: u32 = 5;
 const BENCHMARK_ARTIFACT_DIR: &str = "target/benchmark-reports/node-import-bench";
@@ -2632,11 +2632,11 @@ fn scenario_env(
 
             BTreeMap::from([
                 (
-                    String::from("AGENT_OS_EXTRA_FS_READ_PATHS"),
+                    String::from("AGENTOS_EXTRA_FS_READ_PATHS"),
                     projected_node_modules_json,
                 ),
                 (
-                    String::from("AGENT_OS_GUEST_PATH_MAPPINGS"),
+                    String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
                     guest_path_mappings,
                 ),
             ])

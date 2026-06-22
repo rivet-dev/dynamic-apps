@@ -19,7 +19,7 @@ use std::thread;
 use std::time::Duration;
 use tempfile::tempdir;
 
-const WASM_WARMUP_METRICS_PREFIX: &str = "__AGENT_OS_WASM_WARMUP_METRICS__:";
+const WASM_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_WASM_WARMUP_METRICS__:";
 
 fn node_binary_env_lock() -> &'static Mutex<()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -29,7 +29,7 @@ fn node_binary_env_lock() -> &'static Mutex<()> {
 fn lock_node_binary_env() -> MutexGuard<'static, ()> {
     node_binary_env_lock()
         .lock()
-        .expect("lock AGENT_OS_NODE_BINARY test guard")
+        .expect("lock AGENTOS_NODE_BINARY test guard")
 }
 
 struct EnvVarGuard {
@@ -77,7 +77,7 @@ struct WasmWarmupMetrics {
 
 fn assert_node_available() {
     let _guard = lock_node_binary_env();
-    let binary = std::env::var("AGENT_OS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
+    let binary = std::env::var("AGENTOS_NODE_BINARY").unwrap_or_else(|_| String::from("node"));
     let output = Command::new(binary)
         .arg("--version")
         .output()
@@ -91,7 +91,7 @@ fn write_fixture(path: &Path, contents: &[u8]) {
 
 fn decode_sync_rpc_bytes(value: &serde_json::Value) -> Vec<u8> {
     let base64 = value
-        .get("__agentOsType")
+        .get("__agentOSType")
         .and_then(serde_json::Value::as_str)
         .is_some_and(|kind| kind == "bytes")
         .then(|| value.get("base64").and_then(serde_json::Value::as_str))
@@ -194,7 +194,7 @@ fn parse_unicode_escape_unit(chars: &mut std::str::Chars<'_>) -> u16 {
 }
 
 /// Mirror the sidecar's config→limits flow for tests that still express WASM
-/// limits via the historical `AGENT_OS_WASM_*` env keys: translate them into the
+/// limits via the historical `AGENTOS_WASM_*` env keys: translate them into the
 /// typed `WasmExecutionLimits` the engine now reads. Production sources these
 /// from the BARE-wire resource limits, never env.
 fn wasm_limits_from_env(env: &BTreeMap<String, String>) -> WasmExecutionLimits {
@@ -494,13 +494,13 @@ fn wasm_stdout_chunks_module(chunks: &[&str]) -> Vec<u8> {
 
 fn wasm_signal_state_line_stdout_module() -> Vec<u8> {
     wasm_stdout_chunks_module(&[
-        "hello\n__AGENT_OS_WASM_SIGNAL_STATE__:{\"signal\":2,\"registration\":{\"action\":\"user\",\"mask\":[15],\"flags\":4660}}\n",
+        "hello\n__AGENTOS_WASM_SIGNAL_STATE__:{\"signal\":2,\"registration\":{\"action\":\"user\",\"mask\":[15],\"flags\":4660}}\n",
     ])
 }
 
 fn wasm_split_signal_state_line_stdout_module() -> Vec<u8> {
     wasm_stdout_chunks_module(&[
-        "__AGENT_OS_WASM_SIGNAL_STATE__:",
+        "__AGENTOS_WASM_SIGNAL_STATE__:",
         "{\"signal\":2,\"registration\":{\"action\":\"user\",\"mask\":[15],\"flags\":4660}}\n",
     ])
 }
@@ -852,7 +852,7 @@ fn wasm_execution_stays_inside_v8_runtime_without_host_node_launches() {
     let fake_node_path = temp.path().join("fake-node.sh");
     let log_path = temp.path().join("node-invocations.log");
     write_fake_node_binary(&fake_node_path, &log_path);
-    let _node_binary = EnvVarGuard::set("AGENT_OS_NODE_BINARY", &fake_node_path);
+    let _node_binary = EnvVarGuard::set("AGENTOS_NODE_BINARY", &fake_node_path);
 
     write_fixture(&temp.path().join("guest.wasm"), &wasm_stdout_module());
 
@@ -878,7 +878,7 @@ fn wasm_execution_stays_inside_v8_runtime_without_host_node_launches() {
     assert!(stdout.contains("stdout:wasm-smoke"), "stdout={stdout}");
     assert!(
         !log_path.exists(),
-        "WASM prewarm/execution should stay inside the shared V8 runtime, not launch AGENT_OS_NODE_BINARY",
+        "WASM prewarm/execution should stay inside the shared V8 runtime, not launch AGENTOS_NODE_BINARY",
     );
 }
 
@@ -976,11 +976,11 @@ fn wasm_execution_ignores_guest_overrides_for_internal_node_env() {
         Vec::new(),
         BTreeMap::from([
             (
-                String::from("AGENT_OS_WASM_MODULE_PATH"),
+                String::from("AGENTOS_WASM_MODULE_PATH"),
                 String::from("./evil.wasm"),
             ),
             (
-                String::from("AGENT_OS_WASM_PREWARM_ONLY"),
+                String::from("AGENTOS_WASM_PREWARM_ONLY"),
                 String::from("1"),
             ),
             (String::from("NODE_OPTIONS"), String::from("--no-warnings")),
@@ -1118,7 +1118,7 @@ fn wasm_execution_can_route_stdio_through_kernel_sync_rpc() {
             context_id: context.context_id,
             argv: Vec::new(),
             env: BTreeMap::from([(
-                String::from("AGENT_OS_WASI_STDIO_SYNC_RPC"),
+                String::from("AGENTOS_WASI_STDIO_SYNC_RPC"),
                 String::from("1"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -1175,7 +1175,7 @@ fn wasm_execution_reads_streaming_stdin_via_kernel_bridge() {
             context_id: context.context_id,
             argv: Vec::new(),
             env: BTreeMap::from([(
-                String::from("AGENT_OS_WASI_STDIO_SYNC_RPC"),
+                String::from("AGENTOS_WASI_STDIO_SYNC_RPC"),
                 String::from("1"),
             )]),
             cwd: temp.path().to_path_buf(),
@@ -1680,7 +1680,7 @@ fn wasm_execution_reuses_shared_warmup_path_across_contexts() {
         module_path: Some(String::from("./guest.wasm")),
     });
     let debug_env = BTreeMap::from([(
-        String::from("AGENT_OS_WASM_WARMUP_DEBUG"),
+        String::from("AGENTOS_WASM_WARMUP_DEBUG"),
         String::from("1"),
     )]);
 
@@ -1743,7 +1743,7 @@ fn wasm_execution_rewarms_when_symlink_target_changes_with_same_size_module() {
         module_path: Some(String::from("./guest.wasm")),
     });
     let debug_env = BTreeMap::from([(
-        String::from("AGENT_OS_WASM_WARMUP_DEBUG"),
+        String::from("AGENTOS_WASM_WARMUP_DEBUG"),
         String::from("1"),
     )]);
 
@@ -1799,7 +1799,7 @@ fn wasm_warmup_metrics_encode_emoji_module_paths_as_json() {
         temp.path(),
         Vec::new(),
         BTreeMap::from([(
-            String::from("AGENT_OS_WASM_WARMUP_DEBUG"),
+            String::from("AGENTOS_WASM_WARMUP_DEBUG"),
             String::from("1"),
         )]),
         WasmPermissionTier::Full,
@@ -2035,7 +2035,7 @@ fn wasm_execution_rejects_modules_that_exceed_parser_file_size_cap() {
         .start_execution(StartWasmExecutionRequest {
             guest_runtime: Default::default(),
             // The memory cap (which gates module-structure validation) is enforced
-            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // from the typed wire limit, not the `AGENTOS_WASM_MAX_MEMORY_BYTES`
             // env knob.
             limits: WasmExecutionLimits {
                 max_memory_bytes: Some(65_536),
@@ -2077,7 +2077,7 @@ fn wasm_execution_rejects_modules_with_too_many_import_entries() {
         .start_execution(StartWasmExecutionRequest {
             guest_runtime: Default::default(),
             // The memory cap (which gates module-structure validation) is enforced
-            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // from the typed wire limit, not the `AGENTOS_WASM_MAX_MEMORY_BYTES`
             // env knob.
             limits: WasmExecutionLimits {
                 max_memory_bytes: Some(65_536),
@@ -2117,7 +2117,7 @@ fn wasm_execution_rejects_modules_with_too_many_memory_entries() {
         .start_execution(StartWasmExecutionRequest {
             guest_runtime: Default::default(),
             // The memory cap (which gates module-structure validation) is enforced
-            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // from the typed wire limit, not the `AGENTOS_WASM_MAX_MEMORY_BYTES`
             // env knob.
             limits: WasmExecutionLimits {
                 max_memory_bytes: Some(65_536),
@@ -2159,7 +2159,7 @@ fn wasm_execution_rejects_varuints_that_exceed_parser_iteration_cap() {
         .start_execution(StartWasmExecutionRequest {
             guest_runtime: Default::default(),
             // The memory cap (which gates module-structure validation) is enforced
-            // from the typed wire limit, not the `AGENT_OS_WASM_MAX_MEMORY_BYTES`
+            // from the typed wire limit, not the `AGENTOS_WASM_MAX_MEMORY_BYTES`
             // env knob.
             limits: WasmExecutionLimits {
                 max_memory_bytes: Some(65_536),
@@ -2405,7 +2405,7 @@ fn expected_format_display(format: NativeBinaryFormat) -> &'static str {
 }
 
 // SE-EXEC-05 (B.1 / F-002): never-returning self-recursion. Under a real
-// configured stack byte cap (`AGENT_OS_WASM_MAX_STACK_BYTES`) this must be bounded
+// configured stack byte cap (`AGENTOS_WASM_MAX_STACK_BYTES`) this must be bounded
 // deterministically and attributed to THAT budget rather than silently ignored.
 fn wasm_unbounded_recursion_module() -> Vec<u8> {
     wat::parse_str(
@@ -2462,7 +2462,7 @@ fn run_wasm_execution_with_watchdog(
 }
 
 // SE-EXEC-05 (B.1) SAFEGUARD [x-ref FAILURES.md#F-002]: with
-// `AGENT_OS_WASM_MAX_STACK_BYTES` configured, never-returning recursion must be
+// `AGENTOS_WASM_MAX_STACK_BYTES` configured, never-returning recursion must be
 // terminated nonzero AND the failure must cite the operator-configured stack
 // byte budget instead of the engine's generic default-guard message. Before the
 // fix the env was never read by the engine (dead cap), so the guest trapped on

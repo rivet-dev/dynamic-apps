@@ -20,7 +20,7 @@ use url::Url;
 const DEFAULT_CHUNK_SIZE: usize = 4 * 1024 * 1024;
 const DEFAULT_INLINE_THRESHOLD: usize = 64 * 1024;
 const MANIFEST_FORMAT: &str = "secure_exec_google_drive_filesystem_manifest_v1";
-const LEGACY_AGENT_OS_MANIFEST_FORMAT: &str = "agent_os_google_drive_filesystem_manifest_v1";
+const LEGACY_AGENTOS_MANIFEST_FORMAT: &str = "agentos_google_drive_filesystem_manifest_v1";
 const DRIVE_SCOPE: &str = "https://www.googleapis.com/auth/drive.file";
 const DEFAULT_TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const DEFAULT_API_BASE_URL: &str = "https://www.googleapis.com";
@@ -873,7 +873,7 @@ fn load_filesystem_from_manifest(
 }
 
 fn is_supported_manifest_format(format: &str) -> bool {
-    format == MANIFEST_FORMAT || format == LEGACY_AGENT_OS_MANIFEST_FORMAT
+    format == MANIFEST_FORMAT || format == LEGACY_AGENTOS_MANIFEST_FORMAT
 }
 
 fn validate_manifest_chunk_key(

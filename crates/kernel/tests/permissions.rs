@@ -307,13 +307,13 @@ fn filter_env_only_keeps_allowed_keys() {
     };
 
     let env = BTreeMap::from([
-        (String::from("HOME"), String::from("/home/user")),
+        (String::from("HOME"), String::from("/home/agentos")),
         (String::from("PATH"), String::from("/usr/bin")),
         (String::from("SECRET_KEY"), String::from("hidden")),
     ]);
 
     let filtered = filter_env("vm-permissions", &env, &permissions);
-    assert_eq!(filtered.get("HOME"), Some(&String::from("/home/user")));
+    assert_eq!(filtered.get("HOME"), Some(&String::from("/home/agentos")));
     assert_eq!(filtered.get("PATH"), Some(&String::from("/usr/bin")));
     assert!(!filtered.contains_key("SECRET_KEY"));
 }
@@ -408,7 +408,7 @@ fn kernel_vm_config_defaults_to_deny_all_permissions() {
 }
 
 #[test]
-fn kernel_default_spawn_cwd_matches_home_user() {
+fn kernel_default_spawn_cwd_matches_workspace() {
     let captured_cwd = Arc::new(Mutex::new(None));
     let captured_cwd_for_permission = Arc::clone(&captured_cwd);
 
@@ -437,7 +437,7 @@ fn kernel_default_spawn_cwd_matches_home_user() {
             .lock()
             .expect("captured cwd lock poisoned")
             .as_deref(),
-        Some("/home/user")
+        Some("/workspace")
     );
 
     process.finish(0);

@@ -127,7 +127,7 @@ impl KernelVmConfig {
         Self {
             vm_id: vm_id.into(),
             env: BTreeMap::new(),
-            cwd: String::from("/home/user"),
+            cwd: String::from("/workspace"),
             user: UserConfig::default(),
             permissions: Permissions::default(),
             dns: DnsConfig::default(),
