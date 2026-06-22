@@ -101,6 +101,14 @@ pub fn configure_isolate(isolate: &mut v8::OwnedIsolate) {
 /// Safe to call multiple times; only the first call takes effect.
 pub fn init_v8_platform() {
     V8_INIT.call_once(|| {
+        // SECURE_EXEC_V8PROF: enable V8's tick profiler (~ perf). V8 writes per-isolate `isolate-*.log`
+        // (cwd) with code-creation (incl. wasm function names if the name section is present) + ticks;
+        // symbolize the spinning function with scripts/v8prof-top.py. See INTERNAL-TOOLING.md.
+        if std::env::var("SECURE_EXEC_V8PROF").map(|v| v != "0" && !v.is_empty()).unwrap_or(false) {
+            v8::V8::set_flags_from_string(
+                "--prof --no-logfile-per-isolate --logfile=/tmp/secure-exec-v8.log --prof-sampling-interval=200",
+            );
+        }
         v8::icu::set_common_data_74(&ICU_COMMON_DATA.0)
             .expect("failed to initialize V8 ICU common data");
         let platform = v8::new_default_platform(0, false).make_shared();

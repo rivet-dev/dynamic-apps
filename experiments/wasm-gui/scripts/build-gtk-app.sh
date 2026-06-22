@@ -56,7 +56,14 @@ echo "== fpcast-emu + size-optimize =="
 # Threaded modules carry shared memory + atomics; --enable-threads keeps wasm-opt from rejecting/lowering
 # them (memory is imported, so its growable limits are fixed at link, not by wasm-opt).
 OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
+# SECURE_EXEC_KEEP_NAMES=1 keeps the wasm name section (skip --strip-debug) so V8 --prof / the
+# stack-dump can name guest functions. Larger binary; for diagnostics, not release.
 wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT -O0 "$OUT" -o "$OUT.1"
-wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers $OPTFEAT "$OUT.1" -o "$OUT"
+if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
+  # Diagnostics: keep the linker's full name section (skip the -Oz strip pass). Larger binary.
+  wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT --debuginfo -O1 "$OUT.1" -o "$OUT"
+else
+  wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers $OPTFEAT "$OUT.1" -o "$OUT"
+fi
 rm -f "$OUT.1"
 echo "built guest-xclient/$NAME.wasm ($(stat -c%s "$OUT") bytes); mem: $(wasm-dis "$OUT" 2>/dev/null | grep -oE '\(memory[^)]*\)' | head -1)"
