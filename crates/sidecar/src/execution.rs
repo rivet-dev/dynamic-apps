@@ -360,6 +360,7 @@ impl ActiveProcess {
             sqlite_statements: BTreeMap::new(),
             next_sqlite_statement_id: 0,
             module_resolution_cache: secure_exec_execution::LocalModuleResolutionCache::default(),
+            socket_readiness: std::sync::Arc::new(crate::state::SocketReadiness::new()),
         }
     }
 
@@ -1102,6 +1103,7 @@ impl ActiveTcpSocket {
             saw_local_shutdown,
             saw_remote_end,
             close_notified,
+            socket_readiness: Arc::new(crate::state::SocketReadiness::new()),
         })
     }
 
@@ -1130,6 +1132,7 @@ impl ActiveTcpSocket {
             saw_local_shutdown: Arc::new(AtomicBool::new(false)),
             saw_remote_end: Arc::new(AtomicBool::new(false)),
             close_notified: Arc::new(AtomicBool::new(false)),
+            socket_readiness: Arc::new(crate::state::SocketReadiness::new()),
         }
     }
 
@@ -1252,6 +1255,7 @@ impl ActiveTcpSocket {
                 Arc::clone(&self.saw_local_shutdown),
                 Arc::clone(&self.saw_remote_end),
                 Arc::clone(&self.close_notified),
+                Arc::clone(&self.socket_readiness),
             );
         }
         Ok(())
@@ -1774,9 +1778,13 @@ impl ActiveTlsStream {
 // Unix socket types moved to crate::state
 
 impl ActiveUnixSocket {
-    fn connect(host_path: &Path, guest_path: &str) -> Result<Self, SidecarError> {
+    fn connect(
+        host_path: &Path,
+        guest_path: &str,
+        readiness: Arc<crate::state::SocketReadiness>,
+    ) -> Result<Self, SidecarError> {
         let stream = UnixStream::connect(host_path).map_err(sidecar_net_error)?;
-        Self::from_stream(stream, None, None, Some(guest_path.to_owned()))
+        Self::from_stream(stream, None, None, Some(guest_path.to_owned()), readiness)
     }
 
     fn from_stream(
@@ -1784,6 +1792,7 @@ impl ActiveUnixSocket {
         listener_id: Option<String>,
         local_path: Option<String>,
         remote_path: Option<String>,
+        readiness: Arc<crate::state::SocketReadiness>,
     ) -> Result<Self, SidecarError> {
         let read_stream = stream.try_clone().map_err(sidecar_net_error)?;
         let stream = Arc::new(Mutex::new(stream));
@@ -1797,6 +1806,7 @@ impl ActiveUnixSocket {
             Arc::clone(&saw_local_shutdown),
             Arc::clone(&saw_remote_end),
             Arc::clone(&close_notified),
+            readiness,
         );
 
         Ok(Self {
@@ -12346,6 +12356,7 @@ fn spawn_tcp_socket_reader(
     saw_local_shutdown: Arc<AtomicBool>,
     saw_remote_end: Arc<AtomicBool>,
     close_notified: Arc<AtomicBool>,
+    readiness: Arc<crate::state::SocketReadiness>,
 ) {
     thread::spawn(move || {
         let mut stream = stream;
@@ -12363,6 +12374,7 @@ fn spawn_tcp_socket_reader(
                     {
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: false });
                     }
+                    readiness.notify();
                     break;
                 }
                 Ok(bytes_read) => {
@@ -12374,6 +12386,7 @@ fn spawn_tcp_socket_reader(
                     {
                         break;
                     }
+                    readiness.notify();
                 }
                 Err(error)
                     if matches!(
@@ -12392,6 +12405,7 @@ fn spawn_tcp_socket_reader(
                     if !close_notified.swap(true, Ordering::SeqCst) {
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: true });
                     }
+                    readiness.notify();
                     break;
                 }
             }
@@ -12484,6 +12498,7 @@ fn spawn_unix_socket_reader(
     saw_local_shutdown: Arc<AtomicBool>,
     saw_remote_end: Arc<AtomicBool>,
     close_notified: Arc<AtomicBool>,
+    readiness: Arc<crate::state::SocketReadiness>,
 ) {
     thread::spawn(move || {
         let mut stream = stream;
@@ -12498,6 +12513,8 @@ fn spawn_unix_socket_reader(
                     {
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: false });
                     }
+                    // Wake any guest poll blocked on this process's sockets so it observes the EOF.
+                    readiness.notify();
                     break;
                 }
                 Ok(bytes_read) => {
@@ -12509,6 +12526,8 @@ fn spawn_unix_socket_reader(
                     {
                         break;
                     }
+                    // Data is now queued on this socket's channel: wake a blocked guest poll.
+                    readiness.notify();
                 }
                 Err(error) => {
                     let code = io_error_code(&error);
@@ -12519,6 +12538,7 @@ fn spawn_unix_socket_reader(
                     if !close_notified.swap(true, Ordering::SeqCst) {
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: true });
                     }
+                    readiness.notify();
                     break;
                 }
             }
@@ -13835,6 +13855,7 @@ where
         | "net.release_tcp_port"
         | "net.listen"
         | "net.poll"
+        | "net.poll_wait"
         | "net.socket_wait_connect"
         | "net.socket_read"
         | "net.socket_set_no_delay"
@@ -19433,12 +19454,20 @@ where
     }
 }
 
-// net.poll blocks the single sync-RPC service thread for up to this long. Keep it SMALL: while the
-// thread sleeps here servicing one guest's poll, no other guest's sync RPC (write/poll/accept) can be
-// serviced, so a chatty client (e.g. an Xt app's main loop polling its X connection) would starve the
-// window manager and other clients sharing the VM. A few ms keeps each guest's poll responsive while
-// letting the service thread round-robin quickly across all guests. Shutdown latency stays bounded.
-const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(1);
+// net.poll blocks the single sync-RPC service thread for up to this long. The unix/TCP socket poll
+// uses recv_timeout on a channel fed by a background reader thread, so it WAKES EARLY the instant peer
+// data arrives — a larger ceiling adds ZERO latency to the data path; it only bounds how long an IDLE
+// poll parks before returning "nothing". A tiny ceiling does NOT make idle polls cheaper — it makes the
+// guest's net_poll loop (which re-issues net.poll when no fd is ready) busy-SPIN at ~1/ceiling Hz,
+// burning CPU across every guest VM and starving cross-VM X rendering (an unmodified GTK client's first
+// draw never completing — see experiments/wasm-gui M8.2/M8.4). 50ms gives ~20Hz idle parking with
+// instant data wakeup. The only cost a larger ceiling buys is co-tenant latency *within a single VM*
+// (multiple processes sharing one sync-RPC thread: while one parks here, a sibling's poll/write waits up
+// to the ceiling) and a bounded ≤ceiling dispose/shutdown delay — both acceptable at 50ms. This matches
+// the documented 50ms contract in crates/sidecar/CLAUDE.md. TCB note: this changes only poll EFFICIENCY,
+// not the boundary — a guest could already poll; it adds no new capability and the ceiling still bounds
+// the thread hold. (Human TCB sign-off obtained for the wasm-gui cross-VM render fix, 2026-06-22.)
+const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(3);
 const EXITED_PROCESS_SNAPSHOT_RETENTION: Duration = Duration::from_secs(2);
 
 fn resolve_http2_file_response_guest_path(process: &ActiveProcess, path: &str) -> String {
@@ -19657,7 +19686,11 @@ where
             if let Some(path) = payload.path.as_deref() {
                 let guest_path = normalize_path(path);
                 let host_path = resolve_guest_socket_host_path(socket_paths, &guest_path);
-                let socket = ActiveUnixSocket::connect(&host_path, &guest_path)?;
+                let socket = ActiveUnixSocket::connect(
+                    &host_path,
+                    &guest_path,
+                    Arc::clone(&process.socket_readiness),
+                )?;
                 let socket_id = process.allocate_unix_socket_id();
                 process.unix_sockets.insert(socket_id.clone(), socket);
                 Ok(json!({
@@ -19705,7 +19738,10 @@ where
                     }
                     return Err(error);
                 }
-                let socket = connect_result?;
+                let mut socket = connect_result?;
+                // Wire this socket's reader to the process readiness signal so a blocked guest
+                // net.poll_wait wakes on this socket's data (the reader is spawned lazily later).
+                socket.socket_readiness = Arc::clone(&process.socket_readiness);
                 let socket_id = process.allocate_tcp_socket_id();
                 let local_addr = socket.guest_local_addr;
                 let remote_addr = socket.guest_remote_addr;
@@ -19885,6 +19921,24 @@ where
                 None => Ok(Value::Null),
             }
         }
+        // Block until ANY of this process's sockets becomes readable (or the timeout elapses), so a
+        // guest poll() that found no fd ready waits on all its fds at once instead of round-robin
+        // polling each in turn. Args: [lastSeenGeneration, timeoutMs]. Returns the readiness generation
+        // observed at return — the guest passes it back as lastSeenGeneration next call so data that
+        // arrived between its readiness scan and this wait is never missed (no lost wakeup). The wait is
+        // clamped to JAVASCRIPT_NET_POLL_MAX_WAIT so it cannot stall dispose/shutdown and so listener
+        // accepts (whose readiness has no reader thread to notify) are still observed within the ceiling.
+        "net.poll_wait" => {
+            let last_seen =
+                javascript_sync_rpc_arg_u64_optional(&request.args, 0, "net.poll_wait generation")?
+                    .unwrap_or_default();
+            let timeout_ms =
+                javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll_wait timeout ms")?
+                    .unwrap_or_default();
+            let wait = clamp_javascript_net_poll_wait(timeout_ms);
+            let generation = process.socket_readiness.wait_changed(last_seen, wait);
+            Ok(json!({ "generation": generation }))
+        }
         "net.socket_wait_connect" => {
             let socket_id =
                 javascript_sync_rpc_arg_str(&request.args, 0, "net.socket_wait_connect socket id")?;
@@ -20046,7 +20100,7 @@ where
                                 }));
                             }
                         }
-                        let socket = if let Some(stream) = stream {
+                        let mut socket = if let Some(stream) = stream {
                             ActiveTcpSocket::from_stream(
                                 stream,
                                 Some(listener_id.to_string()),
@@ -20065,6 +20119,7 @@ where
                                 guest_remote_addr,
                             )
                         };
+                        socket.socket_readiness = Arc::clone(&process.socket_readiness);
                         let socket_id = process.allocate_tcp_socket_id();
                         if let Some(listener) = process.tcp_listeners.get_mut(listener_id) {
                             listener.register_connection(&socket_id);
@@ -20124,6 +20179,7 @@ where
                         Some(listener_id.to_string()),
                         pending.local_path.clone(),
                         pending.remote_path.clone(),
+                        Arc::clone(&process.socket_readiness),
                     )?;
                     let socket_id = process.allocate_unix_socket_id();
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
@@ -20180,7 +20236,7 @@ where
                             "remotePort": guest_remote_addr.port(),
                             "remoteFamily": socket_addr_family(&guest_remote_addr),
                         });
-                        let socket = if let Some(stream) = stream {
+                        let mut socket = if let Some(stream) = stream {
                             ActiveTcpSocket::from_stream(
                                 stream,
                                 Some(listener_id.to_string()),
@@ -20199,6 +20255,7 @@ where
                                 guest_remote_addr,
                             )
                         };
+                        socket.socket_readiness = Arc::clone(&process.socket_readiness);
                         let socket_id = process.allocate_tcp_socket_id();
                         if let Some(listener) = process.tcp_listeners.get_mut(listener_id) {
                             listener.register_connection(&socket_id);
@@ -20246,6 +20303,7 @@ where
                         Some(listener_id.to_string()),
                         pending.local_path,
                         pending.remote_path,
+                        Arc::clone(&process.socket_readiness),
                     )?;
                     let socket_id = process.allocate_unix_socket_id();
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {

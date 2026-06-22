@@ -391,6 +391,53 @@ impl Default for VmListenPolicy {
 // Active process state
 // ---------------------------------------------------------------------------
 
+/// Process-scoped "some socket became readable" signal. Each socket reader thread calls `notify()`
+/// after delivering data/EOF/error to its per-socket channel; a guest `poll()` that found no fd ready
+/// blocks on this (via the `net.poll_wait` sync RPC) until the generation advances. The guest captures
+/// the generation BEFORE its non-blocking readiness scan and passes it back, so data that arrived
+/// between the scan and the wait is never missed (no lost wakeup). This lets the guest's `net_poll`
+/// block on ALL its fds at once (wake-on-any-ready) instead of round-robin-blocking each fd in turn —
+/// the round-robin otherwise serializes a multi-client X server's poll and stalls cross-VM rendering.
+#[derive(Debug)]
+pub(crate) struct SocketReadiness {
+    generation: std::sync::Mutex<u64>,
+    signal: std::sync::Condvar,
+}
+
+impl SocketReadiness {
+    pub(crate) fn new() -> Self {
+        Self {
+            generation: std::sync::Mutex::new(0),
+            signal: std::sync::Condvar::new(),
+        }
+    }
+
+    /// A reader delivered an event: advance the generation and wake any blocked `wait_changed`.
+    pub(crate) fn notify(&self) {
+        if let Ok(mut generation) = self.generation.lock() {
+            *generation = generation.wrapping_add(1);
+            self.signal.notify_all();
+        }
+    }
+
+    /// Block until the generation differs from `last_seen` or `timeout` elapses; return the generation
+    /// observed at return. Returns immediately if it already differs (covers an event delivered between
+    /// the caller's scan and this call). Spurious early returns are harmless: the caller rescans.
+    pub(crate) fn wait_changed(&self, last_seen: u64, timeout: std::time::Duration) -> u64 {
+        let guard = match self.generation.lock() {
+            Ok(guard) => guard,
+            Err(_) => return last_seen,
+        };
+        if *guard != last_seen {
+            return *guard;
+        }
+        match self.signal.wait_timeout(guard, timeout) {
+            Ok((guard, _)) => *guard,
+            Err(_) => last_seen,
+        }
+    }
+}
+
 #[allow(dead_code)]
 pub(crate) struct ActiveProcess {
     pub(crate) kernel_pid: u32,
@@ -446,6 +493,9 @@ pub(crate) struct ActiveProcess {
     /// kernel VFS; the node_modules tree is mounted read-only, so cached
     /// stat/exists/package.json results under it stay valid for the process run.
     pub(crate) module_resolution_cache: secure_exec_execution::LocalModuleResolutionCache,
+    /// Shared "some socket became readable" signal; cloned into each TCP/unix socket reader thread so
+    /// a blocked guest `net.poll_wait` wakes the instant any of this process's sockets has data.
+    pub(crate) socket_readiness: std::sync::Arc<SocketReadiness>,
 }
 
 pub(crate) struct ActiveMappedHostFd {
@@ -706,6 +756,10 @@ pub(crate) struct ActiveTcpSocket {
     pub(crate) saw_local_shutdown: Arc<AtomicBool>,
     pub(crate) saw_remote_end: Arc<AtomicBool>,
     pub(crate) close_notified: Arc<AtomicBool>,
+    /// Process "socket became readable" signal; the lazily-spawned reader notifies it so a guest
+    /// `net.poll_wait` blocked on this process's fds wakes on this socket's data. Defaults to a
+    /// standalone signal and is overwritten with the owning process's signal at attach time.
+    pub(crate) socket_readiness: Arc<SocketReadiness>,
 }
 
 pub(crate) struct LoopbackTlsTransportPair {

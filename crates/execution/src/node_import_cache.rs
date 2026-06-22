@@ -11430,8 +11430,23 @@ const hostNetImport = {
     const POLLOUT = 0x002;
     const t = Number(timeoutMs) | 0;
     const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
+    // Generation of the process socket-readiness signal. Reading it here, BEFORE the first drain/scan,
+    // is what makes the block below race-free: any data that lands during/after the scan advances the
+    // generation past this value, so net.poll_wait returns immediately instead of sleeping through it.
+    const readReadyGen = () => {
+      const r = callSyncRpc('net.poll_wait', [0, 0]);
+      return r && typeof r.generation === 'number' ? r.generation : 0;
+    };
+    let readyGen = readReadyGen();
     try {
       while (true) {
+        // Drain any already-arrived bytes on each connected host-net socket (non-blocking) so the
+        // readiness scan below sees the latest data.
+        const vDrain = new DataView(instanceMemory.buffer);
+        for (let i = 0; i < n; i++) {
+          const s = getHostNetSocket(vDrain.getInt32(base0 + i * 8, true));
+          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 0);
+        }
         const view = new DataView(instanceMemory.buffer);
         let ready = 0;
         for (let i = 0; i < n; i++) {
@@ -11465,12 +11480,15 @@ const hostNetImport = {
           new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
           return 0;
         }
-        const v2 = new DataView(instanceMemory.buffer);
-        for (let i = 0; i < n; i++) {
-          const fd = v2.getInt32(base0 + i * 8, true);
-          const s = getHostNetSocket(fd);
-          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 10);
-        }
+        // Nothing ready: block until ANY of this process's sockets becomes readable (the sidecar wakes
+        // us the instant a reader delivers data on any fd) or the remaining timeout elapses. This waits
+        // on ALL fds at once instead of round-robin-blocking each in turn — the round-robin otherwise
+        // serializes a multi-client X server's poll and stalls cross-VM rendering. The sidecar clamps
+        // the wait to a ceiling, so a pending listener accept (whose readiness isn't reader-notified) is
+        // still rescanned within that ceiling.
+        const remain = deadline == null ? 1000 : Math.max(0, deadline - Date.now());
+        const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
+        readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
       }
     } catch (_e) {
       return WASI_ERRNO_FAULT;

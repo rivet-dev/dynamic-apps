@@ -1576,6 +1576,7 @@ pub(crate) const SYNC_BRIDGE_FNS: &[&str] = &[
     "_networkDnsLookupSyncRaw",
     "_netSocketConnectRaw",
     "_netSocketPollRaw",
+    "_netSocketPollWaitRaw",
     "_netSocketReadRaw",
     "_netSocketSetNoDelayRaw",
     "_netSocketSetKeepAliveRaw",

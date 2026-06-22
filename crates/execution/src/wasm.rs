@@ -4347,6 +4347,11 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM net.poll bridge is unavailable");
           }}
           return _netSocketPollRaw.applySync(void 0, args);
+        case "net.poll_wait":
+          if (typeof _netSocketPollWaitRaw === "undefined") {{
+            throw new Error("secure-exec WASM net.poll_wait bridge is unavailable");
+          }}
+          return _netSocketPollWaitRaw.applySync(void 0, args);
         case "net.write":
           if (typeof _netSocketWriteRaw === "undefined") {{
             throw new Error("secure-exec WASM net.write bridge is unavailable");
