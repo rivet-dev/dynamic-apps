@@ -44,9 +44,12 @@ cd "$TP/lxpanel-threads"
 ( export LDFLAGS="$CLEAN_LDFLAGS" && make distclean >/dev/null 2>&1
   ./configure $CROSS_CONFIGURE_ARGS --disable-maintainer-mode --disable-nls --disable-gtk-doc --enable-gtk3 --disable-man --enable-compile-warnings=no --with-plugins=none >/tmp/conf-lxpanel.log 2>&1
   touch aclocal.m4 configure config.h.in Makefile.in */Makefile.in 2>/dev/null
-  # override LDFLAGS at make (configure appends GNU-ld-only hardening flags wasm-ld rejects);
-  # LIBS appends setjmp+libc at the end for the setjmp intrinsics.
-  make LDFLAGS="$CLEAN_LDFLAGS" LIBS="$SETJMP $LIBC" -j4 ) >/tmp/make-lxpanel.log 2>&1 \
+  # override LDFLAGS at make (configure appends GNU-ld-only hardening flags wasm-ld rejects).
+  # main3arg-shim.o overrides the wasi crt's __main_void to call lxpanel's GNU 3-arg
+  # main(argc,argv,envp) — without it the 3-arg main's wasm type doesn't match the crt's `main`
+  # reference, so main is undefined-weak and calling it traps. LIBS appends setjmp+libc at the end.
+  "$CC" $CFLAGS -c "$EXP/toolchain/main3arg-shim.c" -o "$EXP/toolchain/main3arg-shim.o" 2>/dev/null
+  make LDFLAGS="$CLEAN_LDFLAGS $EXP/toolchain/main3arg-shim.o" LIBS="$SETJMP $LIBC" -j4 ) >/tmp/make-lxpanel.log 2>&1 \
   && echo "  OK lxpanel/lxpanel ($(stat -c%s src/lxpanel) bytes)" || { echo "  FAIL lxpanel"; tail -10 /tmp/make-lxpanel.log; exit 1; }
 
 # fpcast + STRIP DEBUG (the linked libs carry ~38MB of DWARF: 44MB -> 5MB; the bloat OOMs the V8 isolate).
