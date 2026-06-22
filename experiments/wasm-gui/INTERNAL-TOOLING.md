@@ -75,8 +75,16 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
 - [ ] **P3 resource counters** — fuel, memory, live-threads-vs-cap.
 
 ### 4b. ANALYZE — wasm-aware introspection we build (our gdb/helgrind/perf)
-- [ ] **P1 all-isolate stack-dump** (our `gdb thread apply all bt`) — interrupt every session isolate,
-      capture wasm frames, dump **all at once** (a livelock needs both sides). Cracks the current bug.
+- [~] **P1 all-isolate stack-dump** (our `gdb thread apply all bt`, `SECURE_EXEC_STACKDUMP_AFTER_MS`).
+      Watchdog interrupts every registered isolate and prints the interrupted thread's **native**
+      backtrace (`crates/v8-runtime/src/isolate.rs`). Works + confirmed both M8 guest threads spin in
+      JIT'd wasm. LIMIT: rusty_v8 forbids a HandleScope inside an interrupt (the guest's scope chain is
+      active → abort), so V8's wasm-aware frame walk is unreachable there → native frames bottom out at
+      the JIT CEntry trampoline (no wasm function names). Naming needs V8 `--prof` (below).
+- [ ] **P1 V8 `--prof` wasm sampler/symbolizer** — set V8 `--prof` flags (gated), let V8's tick
+      sampler log code-creation (incl. wasm names) + ticks, parse the log for the hot wasm function
+      during the spin window. The supported path to *name* the spinning wasm function. Needs a
+      non-stripped guest build (keep the name section) for symbols. ≈ `perf` + symbols.
 - [ ] **P1 lock/contention tracer** (our `helgrind`/`mutrace`) — instrument the wasm pthread
       mutex/cond / futex `atomic.wait`/`notify`: log acquire/release/contention per (thread, lock-addr),
       flag lock-order inversions. Names the two locks in the current livelock.

@@ -29,6 +29,19 @@ Two corollaries that are easy to get wrong:
 - Every guest syscall goes through kernel-owned VFS, process, socket, pipe, PTY, permission, and DNS paths.
 - Present normal Linux semantics to tools. Fix runtime compatibility in secure-exec instead of patching callers around runtime quirks.
 
+## Debugging / Observability Tools
+
+Guests run as wasm in V8 isolates, so the native toolkit can't reach guest semantics; we build
+host-side parallels (all off by default, zero cost unless enabled). Roadmap/catalog:
+`experiments/wasm-gui/INTERNAL-TOOLING.md`. Available now:
+
+- `SECURE_EXEC_TRACE=1` — per-process guest↔sidecar sync-RPC stream with timing. ≈ `strace`.
+- `SECURE_EXEC_STACKDUMP_AFTER_MS=N` (+ `SECURE_EXEC_STACKDUMP_SAMPLES`, `_INTERVAL_MS`) — watchdog
+  interrupts each guest isolate and prints the interrupted thread's backtrace. ≈ `gdb thread apply all
+  bt` / `pstack` (native frames only; wasm-frame naming via V8 `--prof` is a TODO).
+- The sidecar is a native process, so the real tools work on **it**: `ps -L -p <sidecar-pid>` and
+  `/proc/<sidecar-pid>/task/*/{stat,wchan}` show guest isolate threads (R/futex). ≈ `top` / `ps`.
+
 ## Project Boundaries
 
 - Keep this repo Agent OS-agnostic: no ACP, agents, sessions, `agent-os-protocol`, `agent-os-client`, or `agent-os-sidecar` dependencies in secure-exec code.
