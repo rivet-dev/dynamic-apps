@@ -697,12 +697,19 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   path, or pre-bake the cache. The libfm folder/listing path (what pcmanfm needs) is proven. Note: the
   host `--vm-tree` fixture isn't applied in `--exec` mode, so the test lists the base-fs VFS directly.
 
-- **M8.4 — `lxpanel` (the panel/taskbar/menu). ⬜** Cross-compile lxpanel (GTK3) on top of M8.3.
-  Acceptance: the panel renders at a screen edge with (a) an **application menu** that opens and lists the
-  staged `.desktop` apps, (b) a **taskbar** that shows the managed `gtk-hello` window and reflects
-  focus/minimize, and (c) a live **clock** plugin. Live + interactive (inject a menu click that launches
-  an app). Plugins load via the M8.1/`dlopen` decision (native wasm `dlopen` preferred; static-link is
-  the build-config fallback). Test `scripts/test-m8-lxpanel.sh`, screenshot proof.
+- **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟡 BUILDS + INSTANTIATES (2026-06-22); early trap +
+  live panel remain.** lxpanel 0.10.1 cross-compiles from UNMODIFIED upstream (`scripts/build-lxpanel.sh`)
+  with its new deps **libXres -> libwnck-3.0** (taskbar/window-list) + **keybinder-3.0** (hotkeys), and
+  **instantiates + runs** in the V8 sidecar. Built `--with-plugins=none` so only the internal plugins
+  (menu/launchtaskbar/dclock/pager) are in — dlopen-loadable plugins are out (no wasi dlopen yet, the
+  M8.1 decision). One new wasi gap filled platform-side: `tmpfile` via the VFS (`openbox-compat.c`).
+  **KEY INSIGHT:** the linked X/glib/gtk libs carry huge DWARF — lxpanel was 44MB (38MB `.debug_*`), which
+  **OOMed the V8 isolate during compile**; `wasm-opt --strip-debug --strip-dwarf` drops it to 5MB (openbox
+  21MB->6MB), now in the build scripts. Smaller modules also cut V8 JIT pressure, which should ease the
+  M8.2 multi-guest X-latency starvation. **Remaining:** lxpanel traps early in init (before any RPC — a
+  static ctor / very-early main from libwnck/keybinder; needs the same `-g`-bisection openbox required);
+  then stage a panel config + run on openbox for the live panel (menu + taskbar + clock). Test
+  `scripts/test-m8-lxpanel.sh` (TODO), screenshot proof.
 
 - **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
   pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
