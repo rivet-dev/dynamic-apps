@@ -86,22 +86,47 @@ memory). The *only* new attack surface is concurrent access to **kernel/sidecar 
 linear memory. The §0 step-3(c) / §Phase-2 "blocking op parks" invariant **holds under contention**. The
 WASM-THREADS-SPEC threading model is sound; its DoD deadlock/starvation gate **passes** (see §10).
 
-**The GTK `gtk_init` hang is therefore NOT a threading-primitive defect — it is reclassified to a
-SPEC.md M8 application-integration livelock.** Evidence still points at threaded X/GLib setup
-(`XOpenDisplay` → `xcb_get_extension_data`; `SECURE_EXEC_V8PROF` shows the spin in **GLib GSource
-dispatch via fpcast-emu thunks with no `net.poll`** = a main-context iteration dispatching an
-always-ready source without ever blocking in `poll`, *not* a stuck libc futex). That is a GLib/GDK
-event-source wiring bug in the wasm build, tracked and fixed under SPEC.md M8 — see §0b.
+**The original GTK `gtk_init` hang at `XOpenDisplay` was NOT a threading-primitive defect and NOT a
+runtime bug at all — it was self-inflicted diagnostic corruption (now fixed); see §0b.** After the fix,
+`gtk_init` runs through `XOpenDisplay` + RANDR; a *new, deeper* GLib-worker spin is the live M8 frontier.
 
-## 0b. SPEC.md M8 follow-up — threaded GTK GSource livelock (not a threads-spec gate)
+## 0b. RESOLVED root cause + current M8 frontier
 
-Single-threaded X clients (`cairoxlib`, `xwin`, `xcbprobe`) connect, round-trip, and render fine
-(`~/tmp/gui-progress/m8-cairo-threaded.png`). The hang appears only once GTK calls `XInitThreads` and
-GLib spawns its worker thread. Since the primitives park (§0a), the remaining work is to identify the
-GSource whose `prepare()`/`check()` reports ready (or 0-timeout) so `g_main_context_iterate` spins
-dispatching it without reaching `poll`, and fix that source's readiness wiring in the wasm build. This
-is M8 desktop-integration work, gated by human review only where it touches runtime code, and does not
-block declaring the WASM-THREADS-SPEC threading model complete.
+**Root cause of the original hang (FIXED 2026-06-21):** a previous debugging session left **unbraced
+`fprintf` diagnostics in the working-copy (uncommitted) `third_party/libxcb-threads/src/xcb_out.c`** that
+destroyed two `while(...) pthread_cond_wait(...)` loops (in `get_socket_back()` and `_xcb_out_flush_to()`):
+
+```c
+while(c->out.return_socket && c->out.socket_moving)
+    fprintf(stderr,"XCBWAIT...");   /* loop body is now ONLY the fprintf  */
+    pthread_cond_wait(...);          /* now runs UNCONDITIONALLY -> single-threaded deadlock */
+```
+
+`get_socket_back` runs on the first buffer flush during `XOpenDisplay`, so the client **parked forever**.
+The `/proc` "96% CPU state R" was a *lifetime-average* misread (`ps pcpu`); the thread was actually
+`S`/`futex_wait_queue` = PARKED. The `--prof` "net_poll spin" was the **X server's** normal accept loop,
+not the client. The committed sources were always clean; **the fix = restore the working copy to
+committed-clean** (`jj diff` for those files is now 0; also reverted a `/* DIAG */ if(0)` that had
+disabled the real BigRequests round-trip). **Lesson: before theorizing a deep runtime bug, `jj diff` the
+vendored/gitignored working tree for stray uncommitted diagnostics.**
+
+**Verification:** `guest-xclient/xinitthreads-probe.c` (single-threaded: `XInitThreads` + `XOpenDisplay`
++ `XInternAtom` round-trip + `XNoOp` + `XAllocID` + `XCreateGC` + `XSync`) = **"ALL OK -> no hang"**
+(`~/tmp/gui-progress/proof-xinitthreads-clean.log`). Real `gtk-hello` now passes the original blocker:
+`gtk_init` → `gdk_display_open_default` → **`XOpenDisplay` COMPLETES** → `precache_atoms` →
+`gdk_screen_new` → RANDR `XRRGetScreenResourcesCurrent`/`XRRGetMonitors` round-trips **succeed**.
+
+**Current M8 frontier (genuine, not corruption — verified glib/gmain.c == pristine):** during
+`_gdk_x11_screen_new` → `init_multihead`, a **GLib worker thread busy-spins (150% R) on its main
+context** while the main thread parks at `xcb_take_socket`'s `pthread_mutex_lock(&c->iolock)` (the worker
+holds `iolock`). This is the genuine always-ready-GSource livelock (the originally-suspected issue, now
+correctly located *past* `XOpenDisplay`). Remaining work: identify which GSource on the GLib worker
+context reports ready / 0-timeout so `g_main_context_iterate` spins without reaching `poll`, and fix its
+readiness wiring (candidate: a poll-fd that always reports ready — the same POLLOUT-always-ready class as
+`net_poll` line ~11458, or a GLib wakeup-pipe fd). **Also discovered (in-scope runtime bug, not the
+spin cause):** the runtime's `clock_gettime(CLOCK_REALTIME)` is frozen at a constant while
+`CLOCK_MONOTONIC` advances. This is M8 desktop-integration work; the WASM-THREADS-SPEC threading model
+itself is complete (§0a).
 
 ---
 
