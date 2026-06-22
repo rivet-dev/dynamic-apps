@@ -68,3 +68,7 @@ FILE *tmpfile(void) {
     if (f) unlink(path);
     return f;
 }
+
+/* lxpanel references these; the sandbox is single-process / no FIFOs. */
+int getpgid(int pid) { return pid ? pid : 1; }
+int mkfifo(const char *path, unsigned mode) { (void)path; (void)mode; return -1; }

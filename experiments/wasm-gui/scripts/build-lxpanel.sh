@@ -49,10 +49,15 @@ cd "$TP/lxpanel-threads"
   # main(argc,argv,envp) — without it the 3-arg main's wasm type doesn't match the crt's `main`
   # reference, so main is undefined-weak and calling it traps. LIBS appends setjmp+libc at the end.
   "$CC" $CFLAGS -c "$EXP/toolchain/main3arg-shim.c" -o "$EXP/toolchain/main3arg-shim.o" 2>/dev/null
-  make LDFLAGS="$CLEAN_LDFLAGS $EXP/toolchain/main3arg-shim.o" LIBS="$SETJMP $LIBC" -j4 ) >/tmp/make-lxpanel.log 2>&1 \
+  "$AR" rcs "$PREFIX/lib/libmain3arg.a" "$EXP/toolchain/main3arg-shim.o"
+  # gtk's X-ext/epoxy/atk private deps are NOT pulled by non-static pkg-config; add them so
+  # XRR*/Xcursor*/XComposite*/XDamage*/XFixes*/XI*/epoxy_*/atk_bridge_* resolve. --whole-archive
+  # libmain3arg forces the 3-arg-main __main_void override in.
+  XLIBS="-lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -latk-bridge-2.0 -latk-1.0 -lepoxy -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+  make LDFLAGS="$CLEAN_LDFLAGS -Wl,--whole-archive -lmain3arg -Wl,--no-whole-archive" LIBS="$XLIBS $SETJMP $LIBC" -j4 ) >/tmp/make-lxpanel.log 2>&1 \
   && echo "  OK lxpanel/lxpanel ($(stat -c%s src/lxpanel) bytes)" || { echo "  FAIL lxpanel"; tail -10 /tmp/make-lxpanel.log; exit 1; }
 
 # fpcast + STRIP DEBUG (the linked libs carry ~38MB of DWARF: 44MB -> 5MB; the bloat OOMs the V8 isolate).
-wasm-opt --fpcast-emu --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
+wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
   src/lxpanel -o "$EXP/lxpanel.wasm" 2>/dev/null
 echo "OK: lxpanel.wasm ($(( $(stat -c%s "$EXP/lxpanel.wasm")/1024/1024 ))MB stripped)"
