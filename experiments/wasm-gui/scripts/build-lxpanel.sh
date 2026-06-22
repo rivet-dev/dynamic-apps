@@ -11,7 +11,7 @@ source "$EXP/toolchain/cross-env.sh"
 TP="$EXP/third_party"
 export PATH="$EXP/toolchain/host-bin:/home/linuxbrew/.linuxbrew/bin:$PATH"
 export PERL5LIB="$EXP/toolchain/host-bin/perl5:${PERL5LIB:-}"
-XML2=$(find /nix/store -maxdepth 2 -name "libxml2.so.2" 2>/dev/null | head -1)
+XML2=$(find /nix/store -maxdepth 3 -name "libxml2.so.2" 2>/dev/null | head -1)
 [ -n "$XML2" ] && export LD_LIBRARY_PATH="$(dirname "$XML2"):${LD_LIBRARY_PATH:-}"
 WASMSUB="wasm32-wasip1-threads"
 SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"; LIBC="$THREADS_SYSROOT/lib/$WASMSUB/libc.a"

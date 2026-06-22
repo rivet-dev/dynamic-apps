@@ -697,29 +697,46 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   path, or pre-bake the cache. The libfm folder/listing path (what pcmanfm needs) is proven. Note: the
   host `--vm-tree` fixture isn't applied in `--exec` mode, so the test lists the base-fs VFS directly.
 
-- **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟡 BUILDS + INSTANTIATES (2026-06-22); early trap +
-  live panel remain.** lxpanel 0.10.1 cross-compiles from UNMODIFIED upstream (`scripts/build-lxpanel.sh`)
-  with its new deps **libXres -> libwnck-3.0** (taskbar/window-list) + **keybinder-3.0** (hotkeys), and
-  **instantiates + runs** in the V8 sidecar. Built `--with-plugins=none` so only the internal plugins
-  (menu/launchtaskbar/dclock/pager) are in — dlopen-loadable plugins are out (no wasi dlopen yet, the
-  M8.1 decision). Two new wasi gaps filled platform-side: `tmpfile` via the VFS (`openbox-compat.c`),
-  and the **GNU 3-arg `main(argc,argv,envp)` entry** — lxpanel's 3-arg main has wasm type
-  `(i32,i32,i32)->i32` which doesn't match the wasi crt's 2-arg `main` reference, leaving `main`
-  undefined-weak (calling it traps); fixed by `toolchain/main3arg-shim.c` overriding the crt's weak
-  `__main_void` to fetch argv via WASI and call the real 3-arg main (linked via `--whole-archive
-  -lmain3arg`; verified on a minimal 3-arg-main guest; reusable for pcmanfm). **This argues tool #3
-  (the DWARF symbolizer) should now be built** — it's exactly what the lxpanel trap below needs.
-  **KEY INSIGHT:** the linked X/glib/gtk libs carry huge DWARF — lxpanel was 44MB (38MB `.debug_*`), which
-  **OOMed the V8 isolate during compile**; `wasm-opt --strip-debug --strip-dwarf` drops it to 5MB (openbox
-  21MB->6MB), now in the build scripts. Smaller modules also cut V8 JIT pressure, which should ease the
-  M8.2 multi-guest X-latency starvation. **Remaining:** after the 3-arg-main fix, lxpanel STILL traps
-  before `main` at `function[53]` (invariant to the main fix, so it's earlier). Narrowed: NOT the
-  libraries (a guest linking libwnck+keybinder+libfm-gtk3 reaches main fine) and NOT a classic
-  constructor (lxpanel has no `G_DEFINE_CONSTRUCTOR`/`__attribute__((constructor))`/GResource/`.init_array`).
-  It resists the `_start`-range-only DWARF symbolization — **this is the concrete case that justifies
-  building tool #3 (the DWARF line-symbolizer for fpcast'd wasm)** to name `function[53]`. Then stage a
-  panel config + run on openbox for the live panel (menu + taskbar + clock). Test
-  `scripts/test-m8-lxpanel.sh` (TODO), screenshot proof.
+- **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟡 BUILDS + RUNS gtk_init + CONSTRUCTS ALL PANELS/PLUGINS
+  (2026-06-22); live VISUAL render blocked by the same TCB-gated X-latency starvation as M8.2.** lxpanel
+  0.10.1 cross-compiles from UNMODIFIED upstream (`scripts/build-lxpanel.sh`) with its new deps
+  **libXres -> libwnck-3.0** (taskbar/window-list) + **keybinder-3.0** (hotkeys). **Verified live** on the
+  wasm X server (Xvfb + openbox + lxpanel, all wasm in the sidecar): reaches `main` (3-arg-main shim),
+  runs `gtk_init` FULLY — `XOpenDisplay` succeeds, precache_atoms, `XRRGetScreenResourcesCurrent`,
+  `XRRGetMonitors`, `XRRGetOutputInfo` all return (cross-VM X round-trips WORK), `gdk_display_open_default
+  ret=1` — then `fm_gtk_init` + `lxpanel_prepare_modules` + `init_static_plugins` + `load_global_config`
+  + **`start_all_panels()` SUCCEED**: the panel window and every plugin instance are constructed and
+  lxpanel enters `gtk_main`. **All five daemon-free built-in plugins reach `gtk_main` individually with no
+  trap: `dclock`, `launchtaskbar` (taskbar), `pager`, `dirmenu`, `wincmd`.** Proof:
+  `~/tmp/gui-progress/proof-m8.4-lxpanel-gtkinit.txt`.
+  **Plugin staticness fix:** built `--disable-plugins-loading` (NOT the earlier `--with-plugins=none`,
+  which left `STATIC_*` undefined and registered zero plugins) so the internal plugins compile in; the
+  sandbox has no dlopen. The default `data/default` profile leads with the `menu` plugin, which needs the
+  `menu-cached` daemon (auto-spawned via fork/exec — unavailable), so it blocks panel construction; the
+  panel *profile* is fixture config, so a daemon-free profile (`dirmenu`+`launchtaskbar`+`dclock`+`pager`+
+  `wincmd`) is the right deployment, staged at `/etc/xdg/lxpanel/default/panels/panel`. Platform fixes
+  this milestone: `tmpfile` via the VFS + `getpgid`/`mkfifo` stubs (`openbox-compat.c`); the **GNU 3-arg
+  `main(argc,argv,envp)` entry** (`toolchain/main3arg-shim.c` overrides the crt's weak `__main_void`,
+  linked `--whole-archive -lmain3arg`); the **fpcast wide-signature fix** `wasm-opt --fpcast-emu
+  --pass-arg=max-func-params@128` (without it lxpanel's wide GTK signatures trap — this was the earlier
+  "function[53]" pre-main trap); gtk's X-ext/epoxy/atk **private deps** added to the link (non-static
+  pkg-config doesn't pull `Requires.private`); and `build-lxpanel.sh`'s libxml2 lookup widened to
+  `-maxdepth 3` (the nix `.so.2` is at depth 3). **KEY SIZE INSIGHT** (now in all build scripts): the
+  linked X/glib/gtk libs carry huge DWARF — lxpanel was 44MB (38MB `.debug_*`), which **OOMed the V8
+  isolate during compile**; `wasm-opt --strip-debug --strip-dwarf` drops it to ~15MB.
+  **BLOCKED (critical path, TCB-gated):** the live VISUAL panel does not draw. After entering `gtk_main`,
+  the GLib loop's FIRST dispatch of the queued X events (the panel's first draw) does not complete in
+  200s; the framebuffer stays black (cursor only). This is the SAME cross-VM X-latency / poll-scheduling
+  starvation as **M8.2 GTK-client content** (openbox's frame draws; the client interior does not).
+  Stackdump (tool #1) at t=55s: 3 isolate threads RUNNING (busy-spin on `poll()`, staying RUNNING across
+  rounds = livelock) + 1 PARKED-ON-FUTEX (normal parked worker) — proof
+  `~/tmp/gui-progress/proof-m8.4-stackdump-livelock.txt`. The guests busy-spin on `poll()` instead of
+  blocking on a cross-VM socket-readable wakeup; the sanctioned non-TCB mitigation
+  (`JAVASCRIPT_NET_POLL_MAX_WAIT` 3ms->1ms) is committed but insufficient. A proper fix (epoll-style
+  cross-VM socket-readable wakeup so guest `poll()` blocks instead of spinning) changes sidecar
+  scheduling = **the TCB security sign-off (human gate)**. Secondary, non-blocking: a multi-plugin panel
+  (all 5 together) additionally hits a wasm "memory access out of bounds" trap in the first dispatch
+  (layout/combination effect; each plugin is fine alone) — moot until render is unblocked.
 
 - **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
   pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
