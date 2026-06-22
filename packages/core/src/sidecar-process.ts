@@ -54,6 +54,10 @@ export {
 	SidecarProcessExited,
 } from "./process.js";
 export { SidecarEventBufferOverflow } from "./event-buffer.js";
+// `Sidecar` is the public name for the native sidecar process client. The class
+// is `SidecarProcess` internally; consumers import it as `Sidecar` via the
+// `@secure-exec/core/sidecar-client` subpath and the package root.
+export { SidecarProcess as Sidecar };
 
 const BRIDGE_CONTRACT_VERSION = 1;
 
