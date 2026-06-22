@@ -19438,7 +19438,7 @@ where
 // serviced, so a chatty client (e.g. an Xt app's main loop polling its X connection) would starve the
 // window manager and other clients sharing the VM. A few ms keeps each guest's poll responsive while
 // letting the service thread round-robin quickly across all guests. Shutdown latency stays bounded.
-const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(3);
+const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(1);
 const EXITED_PROCESS_SNAPSHOT_RETENTION: Duration = Duration::from_secs(2);
 
 fn resolve_http2_file_response_guest_path(process: &ActiveProcess, path: &str) -> String {
