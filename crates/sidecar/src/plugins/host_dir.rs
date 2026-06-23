@@ -316,6 +316,14 @@ impl HostDirFilesystem {
     // otherwise open the (non-symlink) target as the metadata anchor.
     #[cfg(target_os = "macos")]
     fn open_metadata_beneath(&self, path: &str, op: &'static str) -> VfsResult<AnchoredFd> {
+        // The mount root has no final component to lstat and is always a
+        // directory (never a symlink), so open it directly as the anchor —
+        // matching Linux, where the `O_PATH | O_NOFOLLOW` open of the root
+        // succeeds. (`split_parent` would otherwise reject `/` with EINVAL.)
+        let (_, root_relative) = self.relative_virtual_path(path);
+        if root_relative.file_name().is_none() {
+            return self.open_beneath(&root_relative, O_PATH_ANCHOR, Mode::empty());
+        }
         let (parent_dir, _, name, normalized) = self.split_parent(path, false)?;
         let stat = fstatat(
             Some(parent_dir.as_raw_fd()),
