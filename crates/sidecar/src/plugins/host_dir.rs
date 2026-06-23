@@ -48,11 +48,25 @@ impl AnchoredFd {
     }
 
     // macOS exposes per-fd paths under `/dev/fd/N` (the kernel dups the fd),
-    // serving the same role as Linux's `/proc/self/fd/N`: operate on the
-    // already-resolved fd without re-resolving through the untrusted tree.
+    // serving the same role as Linux's `/proc/self/fd/N` for re-opening a
+    // *file* fd. Unlike `/proc/self/fd/N` it is NOT a readdir-able directory,
+    // so directory enumeration goes through [`readdir_path`]; child mutations
+    // use the fd-relative `*at` syscalls below.
     #[cfg(target_os = "macos")]
     fn proc_path(&self) -> PathBuf {
         PathBuf::from(format!("/dev/fd/{}", self.fd))
+    }
+
+    // Path to enumerate this fd's directory entries. Linux can `readdir`
+    // `/proc/self/fd/N` directly; macOS `/dev/fd/N` yields `ENOTDIR`, so recover
+    // the fd's real host path via `fcntl(F_GETPATH)` (see [`anchored_fd_real_path`]).
+    #[cfg(not(target_os = "macos"))]
+    fn readdir_path(&self) -> io::Result<PathBuf> {
+        Ok(self.proc_path())
+    }
+    #[cfg(target_os = "macos")]
+    fn readdir_path(&self) -> io::Result<PathBuf> {
+        anchored_fd_real_path(self)
     }
 }
 
@@ -683,7 +697,10 @@ impl VirtualFileSystem for HostDirFilesystem {
     fn read_dir(&mut self, path: &str) -> VfsResult<Vec<String>> {
         let (_, relative) = self.relative_virtual_path(path);
         let directory = self.open_directory_beneath(&relative)?;
-        let mut entries = fs::read_dir(directory.proc_path())
+        let readdir_path = directory
+            .readdir_path()
+            .map_err(|error| io_error_to_vfs("readdir", path, error))?;
+        let mut entries = fs::read_dir(readdir_path)
             .map_err(|error| io_error_to_vfs("readdir", path, error))?
             .map(|entry| {
                 entry
@@ -698,7 +715,10 @@ impl VirtualFileSystem for HostDirFilesystem {
     fn read_dir_with_types(&mut self, path: &str) -> VfsResult<Vec<VirtualDirEntry>> {
         let (_, relative) = self.relative_virtual_path(path);
         let directory = self.open_directory_beneath(&relative)?;
-        let mut entries = fs::read_dir(directory.proc_path())
+        let readdir_path = directory
+            .readdir_path()
+            .map_err(|error| io_error_to_vfs("readdir", path, error))?;
+        let mut entries = fs::read_dir(readdir_path)
             .map_err(|error| io_error_to_vfs("readdir", path, error))?
             .map(|entry| {
                 let entry = entry.map_err(|error| io_error_to_vfs("readdir", path, error))?;

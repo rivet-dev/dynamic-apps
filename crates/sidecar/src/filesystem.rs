@@ -103,11 +103,28 @@ impl AnchoredFd {
         PathBuf::from(format!("/proc/self/fd/{}", self.fd))
     }
 
-    // macOS `/dev/fd/N` mirrors Linux `/proc/self/fd/N`: a path that re-opens
-    // the already-resolved fd without re-resolving through the untrusted tree.
+    // macOS `/dev/fd/N` re-opens a *file* fd (the kernel dups it), standing in
+    // for Linux's `/proc/self/fd/N` at the file read/write/metadata call sites.
+    // It is NOT, however, a drop-in for directory work: `/dev/fd/N` is not a
+    // `readdir`-able directory and child components cannot be appended
+    // (`/dev/fd/N/child` fails). Directory enumeration uses [`readdir_path`];
+    // child mutations use fd-relative `*at` calls.
     #[cfg(target_os = "macos")]
     fn proc_path(&self) -> PathBuf {
         PathBuf::from(format!("/dev/fd/{}", self.fd))
+    }
+
+    // Path to enumerate this fd's directory entries. Linux can `readdir`
+    // `/proc/self/fd/N` directly; macOS `/dev/fd/N` is not a readdir-able
+    // directory (it yields `ENOTDIR`), so recover the fd's real host path via
+    // `fcntl(F_GETPATH)` — the same fd→path recovery used elsewhere on macOS.
+    #[cfg(not(target_os = "macos"))]
+    fn readdir_path(&self) -> std::io::Result<PathBuf> {
+        Ok(self.proc_path())
+    }
+    #[cfg(target_os = "macos")]
+    fn readdir_path(&self) -> std::io::Result<PathBuf> {
+        crate::macos_fs::fd_real_path(self.fd)
     }
 }
 
@@ -1208,7 +1225,14 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 // fstat on the same fd — cheap relative to a per-entry RPC round-trip.
                 // metadata() follows symlinks, matching the prior statSync semantics.
                 let mut typed: BTreeMap<String, bool> = BTreeMap::new();
-                for entry in fs::read_dir(directory.handle.proc_path()).map_err(|error| {
+                let readdir_path = directory.handle.readdir_path().map_err(|error| {
+                    SidecarError::Io(format!(
+                        "failed to resolve mapped guest directory {} -> {}: {error}",
+                        path,
+                        directory.host_path.display()
+                    ))
+                })?;
+                for entry in fs::read_dir(readdir_path).map_err(|error| {
                     SidecarError::Io(format!(
                         "failed to read mapped guest directory {} -> {}: {error}",
                         path,
