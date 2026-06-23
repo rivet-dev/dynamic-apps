@@ -14,7 +14,7 @@ LOCALE="${VMLOCALE:-/tmp/vmlocale}"
 XFT="${VMXFT:-/tmp/vmxft}"
 PANELCFG="${VMLXPANEL:-/tmp/vmlxpanel}"
 OUT="${OUT:-/tmp/lxpanel-run.log}"
-FB="${FB:-$HOME/tmp/gui-progress/proof-m8.4-render-blocked.png}"
+FB="${FB:-$HOME/tmp/gui-progress/proof-m8.4-lxpanel-renders.png}"
 XTRACE_LOG="${XTRACE_LOG:-/tmp/lxpanel-xtrace.log}"
 TIMEOUT="${TIMEOUT:-25}"
 
