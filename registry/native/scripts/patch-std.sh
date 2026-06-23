@@ -47,11 +47,34 @@ for arg in "$@"; do
     esac
 done
 
-# Find all patch files in order (reversed for --reverse mode)
+# `patch-std` mutates rustup's installed rust-src tree. CI runners and local
+# machines can therefore inherit a partially patched std from a prior failed
+# build, and `patch --forward` will skip instead of repairing mismatched hunks.
+# Start apply mode from a pristine rust-src component when rustup owns this
+# sysroot; non-rustup toolchains keep the historical behavior.
+if [ "$MODE" = "apply" ] && command -v rustup >/dev/null 2>&1; then
+    TOOLCHAIN="$(basename "$SYSROOT")"
+    case "$SYSROOT" in
+        */.rustup/toolchains/*)
+            echo "Refreshing rust-src for toolchain $TOOLCHAIN before applying std patches..."
+            rm -rf "$SYSROOT"
+            rustup toolchain install "$TOOLCHAIN" \
+                --profile minimal \
+                --component rust-src \
+                --target wasm32-wasip1 \
+                --force >/dev/null
+            ;;
+    esac
+fi
+
+# Find std patch files in order (reversed for --reverse mode).
+# Only top-level patches/*.patch are std-source patches; subdirectories
+# (patches/crates/*, patches/wasi-libc/*) target vendored crates and wasi-libc
+# and must NOT be applied to the Rust std source tree, so use -maxdepth 1.
 if [ "$MODE" = "reverse" ]; then
-    PATCH_FILES=$(find "$PATCHES_DIR" -name '*.patch' -type f 2>/dev/null | sort -r)
+    PATCH_FILES=$(find "$PATCHES_DIR" -maxdepth 1 -name '*.patch' -type f 2>/dev/null | sort -r)
 else
-    PATCH_FILES=$(find "$PATCHES_DIR" -name '*.patch' -type f 2>/dev/null | sort)
+    PATCH_FILES=$(find "$PATCHES_DIR" -maxdepth 1 -name '*.patch' -type f 2>/dev/null | sort)
 fi
 
 if [ -z "$PATCH_FILES" ]; then
@@ -72,9 +95,9 @@ for PATCH in $PATCH_FILES; do
     case "$MODE" in
         check)
             echo -n "Checking $PATCH_NAME ... "
-            if patch --dry-run $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
+            if patch --batch --dry-run $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
                 echo "OK (applies cleanly)"
-            elif patch --dry-run -R $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
+            elif patch --batch --dry-run -R $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
                 echo "OK (already applied)"
             else
                 # When layered patches modify files created by earlier patches,
@@ -93,12 +116,15 @@ for PATCH in $PATCH_FILES; do
             ;;
         apply)
             echo -n "Applying $PATCH_NAME ... "
-            # Try forward dry-run first; if it succeeds, apply for real.
-            # If forward fails, the patch is already applied (or modified by
-            # a later layered patch). Using forward-first avoids false failures
-            # when later patches modify files created by earlier ones.
-            if patch --dry-run $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
-                patch $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1
+            # Use `--forward` (-N) for idempotency: it applies hunks that are not
+            # yet present and SKIPS hunks already applied (reversed) instead of
+            # applying them a second time. Without this, additive (insert-only)
+            # patches stay forward-applicable after they are applied — their
+            # anchor context is still present — and a naive forward apply inserts
+            # a duplicate copy, producing E0119 conflicting-implementation errors
+            # on a re-run. `--forward` makes a second `make wasm` a no-op.
+            if patch --batch --forward --dry-run $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
+                patch --batch --forward $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1
                 echo "applied"
             else
                 echo "already applied (skipping)"
@@ -106,7 +132,7 @@ for PATCH in $PATCH_FILES; do
             ;;
         reverse)
             echo -n "Reversing $PATCH_NAME ... "
-            if patch -R $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
+            if patch --batch -R $PATCH_FLAGS -d "$STD_SRC" < "$PATCH" > /dev/null 2>&1; then
                 echo "reversed"
             else
                 echo "not applied (skipping)"
@@ -114,6 +140,46 @@ for PATCH in $PATCH_FILES; do
             ;;
     esac
 done
+
+# Install companion source files that a patch declares (e.g. `pub mod process;`)
+# but cannot reliably carry inline: a `diff`/`patch` cannot create a brand-new
+# file in the std source from a `/dev/null` hunk reliably across patch versions
+# (the hunk is silently skipped, leaving the declared module with no source file
+# and a `file not found for module` E0583 build error). Convention mirrors the
+# vendored-crate mechanism in patch-vendor.sh: `patches/copy.manifest` with lines
+# "<src-relative-to-PATCHES_DIR> <dest-relative-to-STD_SRC>". Example:
+# `std/os/wasi/process.rs library/std/src/os/wasi/process.rs` installs the public
+# wasi child-pipe fd traits that 0007-wasi-childpipe-fd.patch's `pub mod process;`
+# references. Without this the patched std fails to compile (missing module).
+MANIFEST="$PATCHES_DIR/copy.manifest"
+if [ -f "$MANIFEST" ]; then
+    while read -r SRC DEST; do
+        # Skip blank lines and comments.
+        case "$SRC" in ""|\#*) continue ;; esac
+        case "$MODE" in
+            apply)
+                if [ ! -f "$PATCHES_DIR/$SRC" ]; then
+                    echo "copy.manifest source missing: $SRC"
+                    FAILED=1
+                    continue
+                fi
+                mkdir -p "$(dirname "$STD_SRC/$DEST")"
+                cp "$PATCHES_DIR/$SRC" "$STD_SRC/$DEST"
+                echo "Installed companion: $SRC -> $DEST"
+                ;;
+            reverse)
+                rm -f "$STD_SRC/$DEST"
+                echo "Removed companion: $DEST"
+                ;;
+            check)
+                if [ ! -f "$PATCHES_DIR/$SRC" ]; then
+                    echo "copy.manifest source missing: $SRC"
+                    FAILED=1
+                fi
+                ;;
+        esac
+    done < "$MANIFEST"
+fi
 
 echo ""
 if [ "$FAILED" -ne 0 ]; then

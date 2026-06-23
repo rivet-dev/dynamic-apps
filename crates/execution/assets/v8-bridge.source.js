@@ -6870,6 +6870,24 @@ var __bridge = (() => {
       if (!pathStr) {
         return false;
       }
+      // NOTE: residual band-aid. The kernel device layer + permission exemption
+      // (is_standard_device_path) now serve readFileSync/statSync on /dev/null
+      // through the host fs path, but `_fs.exists` ("fs.existsSync") still returns
+      // false for standard devices — the host exists path swallows the lookup via
+      // PermissionedFileSystem::exists' error->Ok(false) branch. Until that exists
+      // path is fixed to honor the device layer like read/stat do, keep this guard
+      // so existsSync("/dev/null") matches native Linux. See
+      // ~/.agents/research/v8-bridge-shim-analysis.md.
+      if (
+        pathStr === "/dev/null" ||
+        pathStr === "/dev/zero" ||
+        pathStr === "/dev/urandom" ||
+        pathStr === "/dev/stdin" ||
+        pathStr === "/dev/stdout" ||
+        pathStr === "/dev/stderr"
+      ) {
+        return true;
+      }
       return _fs.exists.applySyncPromise(void 0, [pathStr]);
     },
     statSync(path, _options) {
@@ -7014,6 +7032,11 @@ var __bridge = (() => {
     },
     closeSync(fd) {
       normalizeFdInteger(fd);
+      // If this fd is still bound to a live child's inherited stdio, defer the
+      // actual close until the child exits (node keeps it open for the child).
+      if (deferCloseIfChildInheritedFd(fd)) {
+        return;
+      }
       try {
         _fdClose.applySyncPromise(void 0, [fd]);
       } catch (e) {
@@ -7883,6 +7906,9 @@ var __bridge = (() => {
       async readlink(path) {
         return fsReadlinkAsync(path);
       },
+      async realpath(path, options) {
+        return fs.realpathSync(path, options);
+      },
       async truncate(path, len) {
         return fsTruncateAsync(path, len);
       },
@@ -8624,6 +8650,38 @@ var __bridge = (() => {
     spawnSync: () => spawnSync
   });
   var childProcessInstances = /* @__PURE__ */ new Map();
+  // fds handed to a live child as its inherited stdout/stderr. Node keeps the
+  // underlying file open for the child's lifetime even after the parent closes
+  // its own descriptor (the child dup'd it at fork). We emulate that: the parent's
+  // fs.closeSync on such an fd is deferred until the child exits, so async child
+  // output can still be written to the fd. Per fd we track the number of live
+  // children holding it and whether the parent already requested a close.
+  var _childInheritedFds = /* @__PURE__ */ new Map();
+  function retainChildInheritedFd(fd) {
+    if (typeof fd !== "number") return;
+    const entry = _childInheritedFds.get(fd);
+    if (entry) entry.holders += 1;
+    else _childInheritedFds.set(fd, { holders: 1, closePending: false });
+  }
+  function deferCloseIfChildInheritedFd(fd) {
+    const entry = _childInheritedFds.get(fd);
+    if (!entry) return false;
+    entry.closePending = true;
+    return true;
+  }
+  function releaseChildInheritedFd(fd) {
+    const entry = _childInheritedFds.get(fd);
+    if (!entry) return;
+    entry.holders -= 1;
+    if (entry.holders > 0) return;
+    _childInheritedFds.delete(fd);
+    if (entry.closePending) {
+      try {
+        _fdClose.applySyncPromise(void 0, [fd]);
+      } catch {
+      }
+    }
+  }
   var DETACHED_CHILD_BOOTSTRAP_POLLS = 200;
   var DETACHED_CHILD_IMMEDIATE_BOOTSTRAP_POLLS = 25;
   function normalizeChildProcessSessionId(payload) {
@@ -8786,6 +8844,30 @@ var __bridge = (() => {
     }
     return !child._detachedBootstrapPending;
   }
+  // When a child stdout/stderr is wired to an inherited numeric fd, write the
+  // bytes straight to that descriptor (matching native node, where the child's
+  // output lands in the inherited file/pipe rather than on child.stdout). Returns
+  // true when the data was consumed by the fd so the caller skips stream emission.
+  function writeChildOutputToInheritedFd(fd, buf) {
+    if (typeof fd !== "number") return false;
+    try {
+      const bytes = typeof Buffer !== "undefined" && Buffer.isBuffer(buf) ? buf : typeof Buffer !== "undefined" ? Buffer.from(buf) : buf;
+      fs.writeSync(fd, bytes, 0, bytes.length, null);
+    } catch {
+    }
+    return true;
+  }
+  // Sync-path (spawnSync/execSync/execFileSync) fd inheritance: write the already
+  // captured output value (string or Buffer) to the inherited descriptor.
+  function redirectSyncOutputToInheritedFd(fd, output) {
+    if (typeof fd !== "number" || output == null) return false;
+    try {
+      const bytes = typeof output === "string" ? (typeof Buffer !== "undefined" ? Buffer.from(output) : output) : typeof Buffer !== "undefined" && Buffer.isBuffer(output) ? output : typeof Buffer !== "undefined" ? Buffer.from(output) : output;
+      fs.writeSync(fd, bytes, 0, bytes.length, null);
+    } catch {
+    }
+    return true;
+  }
   function routeChildProcessEvent(sessionId, type, data) {
     const child = childProcessInstances.get(sessionId);
     if (!child) return;
@@ -8800,12 +8882,16 @@ var __bridge = (() => {
         if (parsed.output.length === 0) {
           return;
         }
-        child.stdout.emit("data", typeof Buffer !== "undefined" ? Buffer.from(parsed.output, "utf8") : parsed.output);
+        const outBuf = typeof Buffer !== "undefined" ? Buffer.from(parsed.output, "utf8") : parsed.output;
+        if (writeChildOutputToInheritedFd(child._stdoutFd, outBuf)) return;
+        child.stdout.emit("data", outBuf);
         return;
       }
+      if (writeChildOutputToInheritedFd(child._stdoutFd, buf)) return;
       child.stdout.emit("data", buf);
     } else if (type === "stderr") {
       const buf = typeof Buffer !== "undefined" ? Buffer.from(data) : data;
+      if (writeChildOutputToInheritedFd(child._stderrFd, buf)) return;
       child.stderr.emit("data", buf);
     } else if (type === "exit") {
       completeDetachedChildBootstrap(child);
@@ -8823,6 +8909,10 @@ var __bridge = (() => {
       }
       child.emit("close", child.exitCode, child.signalCode);
       child.emit("exit", child.exitCode, child.signalCode);
+      if (Array.isArray(child._inheritedFds)) {
+        for (const fd of child._inheritedFds) releaseChildInheritedFd(fd);
+        child._inheritedFds = [];
+      }
       childProcessInstances.delete(sessionId);
       if (typeof _unregisterHandle === "function") {
         _unregisterHandle(`child:${sessionId}`);
@@ -8921,6 +9011,26 @@ var __bridge = (() => {
   }
   function hasOutputListeners(stream, event) {
     return (stream._listeners[event]?.length ?? 0) > 0 || (stream._onceListeners[event]?.length ?? 0) > 0;
+  }
+  // Node Readable fidelity: when setEncoding(enc) is configured on a child
+  // stdout/stderr stream, `data` chunks are delivered as strings decoded with
+  // that encoding (and the same string flows through the async iterator), exactly
+  // like node. Without an encoding the raw Buffer is delivered unchanged.
+  function decodeOutputChunk(stream, chunk) {
+    const encoding = stream._readableEncoding;
+    if (!encoding) {
+      return chunk;
+    }
+    if (typeof chunk === "string") {
+      return chunk;
+    }
+    if (typeof Buffer !== "undefined" && Buffer.isBuffer(chunk)) {
+      return chunk.toString(encoding);
+    }
+    if (chunk instanceof Uint8Array) {
+      return typeof Buffer !== "undefined" ? Buffer.from(chunk).toString(encoding) : String(chunk);
+    }
+    return chunk;
   }
   function scheduleOutputFlush(stream) {
     if (stream._flushScheduled) {
@@ -9169,9 +9279,12 @@ var __bridge = (() => {
           return this.off(event, listener);
         },
         emit(event, ...args) {
-          if (event === "data" && !hasOutputListeners(this, "data")) {
-            this._bufferedChunks.push(args[0]);
-            return false;
+          if (event === "data") {
+            args[0] = decodeOutputChunk(this, args[0]);
+            if (!hasOutputListeners(this, "data")) {
+              this._bufferedChunks.push(args[0]);
+              return false;
+            }
           }
           if (event === "end") {
             this._ended = true;
@@ -9191,7 +9304,8 @@ var __bridge = (() => {
         read() {
           return null;
         },
-        setEncoding() {
+        setEncoding(encoding) {
+          this._readableEncoding = encoding == null || encoding === "buffer" ? null : String(encoding);
           return this;
         },
         setMaxListeners(n) {
@@ -9265,9 +9379,12 @@ var __bridge = (() => {
           return this.off(event, listener);
         },
         emit(event, ...args) {
-          if (event === "data" && !hasOutputListeners(this, "data")) {
-            this._bufferedChunks.push(args[0]);
-            return false;
+          if (event === "data") {
+            args[0] = decodeOutputChunk(this, args[0]);
+            if (!hasOutputListeners(this, "data")) {
+              this._bufferedChunks.push(args[0]);
+              return false;
+            }
           }
           if (event === "end") {
             this._ended = true;
@@ -9287,7 +9404,8 @@ var __bridge = (() => {
         read() {
           return null;
         },
-        setEncoding() {
+        setEncoding(encoding) {
+          this._readableEncoding = encoding == null || encoding === "buffer" ? null : String(encoding);
           return this;
         },
         setMaxListeners(n) {
@@ -9578,6 +9696,14 @@ var __bridge = (() => {
       })
     ]);
     const result = typeof jsonResult === "string" ? JSON.parse(jsonResult) : jsonResult;
+    const execSyncStdio = Array.isArray(opts.stdio) ? opts.stdio : opts.stdio === "inherit" ? ["inherit", "inherit", "inherit"] : [];
+    // Node fd inheritance for the sync path: the captured stdout/stderr is written
+    // to the inherited descriptor and removed from the returned value, matching
+    // native node where the redirected stream does not also come back as output.
+    if (redirectSyncOutputToInheritedFd(execSyncStdio[1], result.stdout)) {
+      result.stdout = typeof result.stdout === "string" ? "" : Buffer.from("");
+    }
+    redirectSyncOutputToInheritedFd(execSyncStdio[2], result.stderr);
     if (result.maxBufferExceeded) {
       const err = new Error("stdout maxBuffer length exceeded");
       err.code = "ERR_CHILD_PROCESS_STDIO_MAXBUFFER";
@@ -9614,6 +9740,19 @@ var __bridge = (() => {
     child._detachedBootstrapPending = child.detached;
     child._detachedBootstrapPollsRemaining = child.detached ? DETACHED_CHILD_BOOTSTRAP_POLLS : 0;
     const stdio = Array.isArray(opts.stdio) ? opts.stdio : opts.stdio === "inherit" ? ["inherit", "inherit", "inherit"] : [];
+    // Node fd inheritance: when stdio[1]/stdio[2] is a numeric fd the child's
+    // stdout/stderr is wired to that (host/VFS) descriptor, so the bytes are
+    // written there instead of being delivered on child.stdout/child.stderr
+    // (which native node leaves null in that mode).
+    child._stdoutFd = typeof stdio[1] === "number" ? stdio[1] : null;
+    child._stderrFd = typeof stdio[2] === "number" ? stdio[2] : null;
+    child._inheritedFds = [];
+    for (const fd of [child._stdoutFd, child._stderrFd]) {
+      if (typeof fd === "number") {
+        retainChildInheritedFd(fd);
+        child._inheritedFds.push(fd);
+      }
+    }
     if (typeof _childProcessSpawnStart !== "undefined") {
       let spawnResult;
       try {
@@ -9767,8 +9906,17 @@ var __bridge = (() => {
         })
       ]);
       const result = typeof jsonResult === "string" ? JSON.parse(jsonResult) : jsonResult;
-      const stdoutValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from(result.stdout) : result.stdout;
-      const stderrValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from(result.stderr) : result.stderr;
+      const spawnSyncStdio = Array.isArray(opts.stdio) ? opts.stdio : opts.stdio === "inherit" ? ["inherit", "inherit", "inherit"] : [];
+      let stdoutValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from(result.stdout) : result.stdout;
+      let stderrValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from(result.stderr) : result.stderr;
+      // Node fd inheritance: redirect captured output to the inherited descriptor
+      // and null it out of the returned result, like native node.
+      if (redirectSyncOutputToInheritedFd(spawnSyncStdio[1], stdoutValue)) {
+        stdoutValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from("") : "";
+      }
+      if (redirectSyncOutputToInheritedFd(spawnSyncStdio[2], stderrValue)) {
+        stderrValue = useBufferOutput && typeof Buffer !== "undefined" ? Buffer.from("") : "";
+      }
       if (result.timedOut) {
         const err = new Error(`spawnSync ${command} ETIMEDOUT`);
         err.code = "ETIMEDOUT";
@@ -21787,6 +21935,66 @@ ${headerLines}\r
     return Number.isFinite(this._maxListeners) ? this._maxListeners : eventsDefaultMaxListeners;
   };
   EventEmitter.once = once;
+  // Node 12.16+ async-iterator helper: `for await (const [a] of events.on(emitter, "data")) {}`.
+  EventEmitter.on = function on(emitter, eventName, options) {
+    const signal = options && options.signal;
+    if (signal && signal.aborted) throw signal.reason ?? new Error("The operation was aborted");
+    const removeL = (ev, fn) => (emitter.off ?? emitter.removeListener).call(emitter, ev, fn);
+    const queue = [];
+    const unconsumed = [];
+    let error = null;
+    let finished = false;
+    const cleanup = () => {
+      removeL(eventName, onEvent);
+      removeL("error", onError);
+      if (signal && signal.removeEventListener) signal.removeEventListener("abort", onAbort);
+    };
+    const iterator = {
+      next() {
+        const value = queue.shift();
+        if (value !== undefined) return Promise.resolve({ value, done: false });
+        if (error) { const e = error; error = null; cleanup(); return Promise.reject(e); }
+        if (finished) return Promise.resolve({ value: undefined, done: true });
+        return new Promise((resolve, reject) => unconsumed.push({ resolve, reject }));
+      },
+      return() {
+        finished = true;
+        cleanup();
+        for (const c of unconsumed) c.resolve({ value: undefined, done: true });
+        unconsumed.length = 0;
+        return Promise.resolve({ value: undefined, done: true });
+      },
+      throw(err) { error = err; cleanup(); return Promise.reject(err); },
+      [Symbol.asyncIterator]() { return this; },
+    };
+    function onEvent(...args) {
+      const c = unconsumed.shift();
+      if (c) c.resolve({ value: args, done: false });
+      else queue.push(args);
+    }
+    function onError(err) {
+      const c = unconsumed.shift();
+      if (c) { cleanup(); c.reject(err); }
+      else error = err;
+    }
+    function onAbort() { iterator.return(); }
+    emitter.on(eventName, onEvent);
+    emitter.on("error", onError);
+    if (signal && signal.addEventListener) signal.addEventListener("abort", onAbort, { once: true });
+    return iterator;
+  };
+  EventEmitter.addAbortListener = function addAbortListener(signal, listener) {
+    if (signal && signal.aborted) {
+      queueMicrotask(() => listener(typeof Event === "function" ? new Event("abort") : { type: "abort" }));
+    } else if (signal && signal.addEventListener) {
+      signal.addEventListener("abort", listener, { once: true });
+    }
+    return {
+      [Symbol.dispose]() {
+        if (signal && signal.removeEventListener) signal.removeEventListener("abort", listener);
+      },
+    };
+  };
   EventEmitter.getEventListeners = topLevelGetEventListeners;
   EventEmitter.getMaxListeners = topLevelGetMaxListeners;
   EventEmitter.setMaxListeners = topLevelSetMaxListeners;
@@ -21893,7 +22101,7 @@ ${headerLines}\r
     };
     bufferCtorMutable.allocUnsafe._secureExecPatched = true;
   }
-  var _exitCode = 0;
+  var _exitCode = void 0;
   var _exited = false;
   var ProcessExitError = class extends Error {
     code;
@@ -22177,9 +22385,29 @@ ${headerLines}\r
         }
         return true;
       },
-      end() {
+      end(chunk, encoding, callback) {
+        if (typeof chunk === "function") { callback = chunk; chunk = undefined; }
+        else if (typeof encoding === "function") { callback = encoding; }
+        if (chunk != null) stream.write(chunk);
+        stream.writableEnded = true;
+        if (typeof callback === "function") _queueMicrotask(() => callback());
+        _queueMicrotask(() => emitListeners(listeners, onceListeners, "finish", []));
         return stream;
       },
+      // Node Writable surface that process.stdout/stderr must expose (node-fidelity A7); these
+      // streams are unbuffered host writes, so destroy/cork/uncork are no-ops that keep callers
+      // (and the Claude EPIPE/buffered-destroy guards) on the standard path.
+      destroyed: false,
+      destroy(error) {
+        if (stream.destroyed) return stream;
+        stream.destroyed = true;
+        if (error) _queueMicrotask(() => emitListeners(listeners, onceListeners, "error", [error]));
+        _queueMicrotask(() => emitListeners(listeners, onceListeners, "close", []));
+        return stream;
+      },
+      cork() {},
+      uncork() {},
+      setDefaultEncoding() { return stream; },
       on(event, listener) {
         if (!listeners[event]) listeners[event] = [];
         listeners[event].push(listener);
@@ -23339,10 +23567,10 @@ ${headerLines}\r
       return _exitCode;
     },
     set exitCode(code) {
-      _exitCode = code ?? 0;
+      _exitCode = code == null ? void 0 : code;
     },
     exit(code) {
-      const exitCode = code !== void 0 ? code : _exitCode;
+      const exitCode = code !== void 0 ? code : _exitCode ?? 0;
       _exitCode = exitCode;
       _exited = true;
       try {

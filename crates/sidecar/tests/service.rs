@@ -14097,7 +14097,6 @@ console.log(JSON.stringify(summary));
             );
         }
 
-        #[test]
         fn javascript_fetch_reaches_http_server_in_parallel_guest_process() {
             assert_node_available();
 

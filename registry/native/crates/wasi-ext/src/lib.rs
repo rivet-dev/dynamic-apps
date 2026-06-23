@@ -19,7 +19,19 @@ pub const ERRNO_NOSYS: Errno = 52;
 pub const ERRNO_NOENT: Errno = 44;
 pub const ERRNO_SRCH: Errno = 71; // No such process
 pub const ERRNO_CHILD: Errno = 10; // No child processes
+/// WASI `errno::again` (EAGAIN/EWOULDBLOCK). Returned by a non-blocking `recv`
+/// when no data is currently available.
+pub const ERRNO_AGAIN: Errno = 6;
 const POLLFD_BYTES: usize = 8;
+
+/// `SOL_SOCKET` socket option level (matches the host_net shim's accepted level).
+pub const SOL_SOCKET: u32 = 1;
+/// `SO_RCVTIMEO` recv-timeout socket option name (64-bit timeval layout, which the
+/// host_net shim parses as two little-endian `i64`s: seconds + microseconds).
+pub const SO_RCVTIMEO: u32 = 20;
+/// Size of the `timeval` struct the host_net shim expects for `SO_RCVTIMEO`
+/// (two 64-bit fields: `tv_sec` + `tv_usec`).
+const TIMEVAL_BYTES: usize = 16;
 
 fn checked_u32_len(len: usize) -> Result<u32, Errno> {
     u32::try_from(len).map_err(|_| ERRNO_INVAL)
@@ -581,6 +593,55 @@ pub fn recv(fd: u32, buf: &mut [u8], flags: u32) -> Result<u32, Errno> {
     } else {
         Err(errno)
     }
+}
+
+/// Outcome of a cooperative (non-blocking) `recv`.
+///
+/// Distinguishes "no data right now, try again later" (`WouldBlock`) from real
+/// data, EOF, and hard errors so callers can yield to the runtime instead of
+/// blocking the single guest thread.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecvOutcome {
+    /// Read `usize` bytes into the buffer.
+    Read(usize),
+    /// Peer closed the connection (orderly EOF).
+    Eof,
+    /// No data available yet; the socket has a non-zero `SO_RCVTIMEO` set and the
+    /// host returned `EAGAIN`. Caller should yield and re-poll.
+    WouldBlock,
+}
+
+/// Receive data, mapping the host's `EAGAIN` to [`RecvOutcome::WouldBlock`].
+///
+/// Use this on sockets that have opted into non-blocking behavior via
+/// [`set_recv_timeout_ms`]. On such sockets the host polls briefly then returns
+/// `EAGAIN` instead of blocking the thread, letting the caller cooperatively
+/// yield. Sockets with no recv timeout still block (this returns `Read`/`Eof`).
+pub fn recv_cooperative(fd: u32, buf: &mut [u8], flags: u32) -> Result<RecvOutcome, Errno> {
+    match recv(fd, buf, flags) {
+        Ok(0) => Ok(RecvOutcome::Eof),
+        Ok(n) => Ok(RecvOutcome::Read(n as usize)),
+        Err(ERRNO_AGAIN) => Ok(RecvOutcome::WouldBlock),
+        Err(e) => Err(e),
+    }
+}
+
+/// Mark a socket non-blocking for recv by setting a small, non-zero
+/// `SO_RCVTIMEO`.
+///
+/// The host_net shim polls up to this timeout then returns `EAGAIN` when no data
+/// arrived. A zero timeout is rejected by the host (it would mean "blocking"),
+/// so callers should pass a small non-zero value (e.g. 2ms). Leaving a socket
+/// without ever calling this keeps the default blocking recv behavior, so other
+/// guests are unaffected.
+pub fn set_recv_timeout_ms(fd: u32, millis: u32) -> Result<(), Errno> {
+    let micros: u64 = (millis as u64).saturating_mul(1000);
+    let secs = micros / 1_000_000;
+    let usec = micros % 1_000_000;
+    let mut timeval = [0u8; TIMEVAL_BYTES];
+    timeval[0..8].copy_from_slice(&secs.to_le_bytes());
+    timeval[8..16].copy_from_slice(&usec.to_le_bytes());
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeval)
 }
 
 /// Close a socket.

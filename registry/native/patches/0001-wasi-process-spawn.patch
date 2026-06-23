@@ -14,7 +14,7 @@
 
 --- /dev/null
 +++ b/library/std/src/sys/process/wasi.rs
-@@ -0,0 +1,654 @@
+@@ -0,0 +1,657 @@
 +// WASI process implementation using wasmVM host_process syscalls.
 +//
 +// Replaces the unsupported() stubs with real process management
@@ -587,6 +587,9 @@
 +        let mut ret_pid: u32 = 0;
 +        let errno = unsafe { proc_waitpid(self.pid, 1, &mut exit_code, &mut ret_pid) };
 +        if errno == 0 {
++            if ret_pid == 0 {
++                return Ok(None);
++            }
 +            let status = ExitStatus(encode_wait_status(exit_code));
 +            self.status = Some(status);
 +            Ok(Some(status))

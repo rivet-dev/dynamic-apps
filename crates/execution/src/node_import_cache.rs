@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "70";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "71";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agentos-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8656,6 +8656,7 @@ const WASI_OFLAGS_DIRECTORY = 2;
 const WASI_OFLAGS_EXCL = 4;
 const WASI_OFLAGS_TRUNC = 8;
 const WASI_FDFLAGS_APPEND = 1;
+const WASI_FDFLAGS_NONBLOCK = 0x0004;
 const WASI_WHENCE_SET = 0;
 const WASI_WHENCE_CUR = 1;
 const WASI_WHENCE_END = 2;
@@ -12083,10 +12084,9 @@ const hostProcessImport = {
                 nonBlocking ? 0 : 10,
               );
               if (!event) {
-                if (!pumpChildInputPipe(record, nonBlocking ? 0 : 10)) {
-                  if (nonBlocking) {
-                    return writeGuestUint32(retPidPtr, 0);
-                  }
+                pumpChildInputPipe(record, nonBlocking ? 0 : 10);
+                if (nonBlocking) {
+                  return writeGuestUint32(retPidPtr, 0);
                 }
                 continue;
               }
@@ -12130,7 +12130,19 @@ const hostProcessImport = {
                 return writePidResult;
               }
             }
-          } catch {
+          } catch (error) {
+            if (isChildProcessGoneError(error)) {
+              const status = finalizeChildExit(record, 0, null);
+              if (writeGuestUint32(retStatusPtr, status) !== WASI_ERRNO_SUCCESS) {
+                return WASI_ERRNO_FAULT;
+              }
+              const writePidResult = writeGuestUint32(retPidPtr, record.pid);
+              if (writePidResult !== WASI_ERRNO_SUCCESS) {
+                return writePidResult;
+              }
+              reapSpawnedChild(record);
+              return writePidResult;
+            }
             traceHostProcess('proc-waitpid-fault', {
               requestedPid,
               childId: record.childId,
@@ -12803,6 +12815,14 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
 
         const pumped = pumpPipeProducers(handle.pipe, 10);
         if (!pumped) {
+          // Non-blocking pipe (FDFLAGS_NONBLOCK set via fd_fdstat_set_flags): do
+          // NOT block the single executor thread waiting for bytes. Return EAGAIN
+          // so the guest's cooperative poll_read yields (wake_by_ref + Pending)
+          // and lets other runtime tasks (e.g. the agent turn loop) run. The
+          // child keeps producing via pumpPipeProducers between re-polls.
+          if (handle.nonBlocking) {
+            return WASI_ERRNO_AGAIN;
+          }
           Atomics.wait(syntheticWaitArray, 0, 0, 10);
         }
       }
@@ -13105,6 +13125,14 @@ wasiImport.fd_fdstat_get = (fd, statPtr) => {
 
 wasiImport.fd_fdstat_set_flags = (fd, flags) => {
   const handle = lookupFdHandle(fd);
+  // Pipe handles (child stdio) honor FDFLAGS_NONBLOCK so the guest's async
+  // process readers (tokio wasi ChildStdio::poll_read) get EAGAIN instead of
+  // pinning the single executor thread when no data is available. Record the
+  // flag on the handle; `fd_read` consults it below.
+  if (handle?.kind === 'pipe-read' || handle?.kind === 'pipe-write') {
+    handle.nonBlocking = (Number(flags) >>> 0 & WASI_FDFLAGS_NONBLOCK) !== 0;
+    return WASI_ERRNO_SUCCESS;
+  }
   if (handle && handle.kind !== 'passthrough') {
     return WASI_ERRNO_BADF;
   }

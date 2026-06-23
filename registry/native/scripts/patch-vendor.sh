@@ -133,6 +133,35 @@ for CRATE_DIR in $CRATE_DIRS; do
         esac
     done
 
+    # Install companion source files that a patch needs but cannot carry inline
+    # (a `diff`/`patch` cannot create a brand-new file in vendored sources whose
+    # parent doesn't exist as a tracked /dev/null hunk reliably across patch
+    # versions). Convention: `patches/crates/<crate>/copy.manifest` with lines
+    # "<src-relative-to-crate-patch-dir> <dest-relative-to-vendor-crate>".
+    # Example (tokio): `wasi-process-imp.rs src/process/wasi.rs` installs the
+    # cooperative wasm32-wasip1 process impl that the .patch's `#[path]` wiring
+    # references. Without this the patched tokio fails to compile (missing module).
+    MANIFEST="$CRATE_DIR/copy.manifest"
+    if [ "$MODE" = "apply" ] && [ -f "$MANIFEST" ]; then
+        while read -r SRC DEST; do
+            # Skip blank lines and comments.
+            case "$SRC" in ""|\#*) continue ;; esac
+            if [ ! -f "$CRATE_DIR/$SRC" ]; then
+                echo "  ERROR: copy.manifest source missing: $SRC"
+                FAILED=$((FAILED + 1))
+                continue
+            fi
+            mkdir -p "$(dirname "$VENDOR_CRATE/$DEST")"
+            cp "$CRATE_DIR/$SRC" "$VENDOR_CRATE/$DEST"
+            echo "  Installed companion: $SRC -> $DEST"
+        done < "$MANIFEST"
+    elif [ "$MODE" = "reverse" ] && [ -f "$MANIFEST" ]; then
+        while read -r SRC DEST; do
+            case "$SRC" in ""|\#*) continue ;; esac
+            rm -f "$VENDOR_CRATE/$DEST"
+        done < "$MANIFEST"
+    fi
+
     # Null out .cargo-checksum.json hashes so Cargo accepts patched sources
     if [ "$MODE" = "apply" ]; then
         CHECKSUM_FILE="$VENDOR_CRATE/.cargo-checksum.json"

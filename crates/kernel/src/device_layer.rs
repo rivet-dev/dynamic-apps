@@ -274,6 +274,18 @@ fn is_device_path(path: &str) -> bool {
     DEVICE_PATHS.contains(&path) || path.starts_with("/dev/fd/") || path.starts_with("/dev/pts/")
 }
 
+/// Standard emulated character devices (`/dev/null`, `/dev/zero`, `/dev/urandom`,
+/// `/dev/std{in,out,err}`). On Linux these are world-readable/writable and have no
+/// host backing — they are pure kernel emulations whose semantics this device layer
+/// already enforces (read/write for the stream devices, `EPERM` for unlink/rename).
+/// The permission layer therefore treats them as always accessible, so guest fs ops
+/// (`readFileSync`/`existsSync`/redirects on `/dev/null`, …) behave like native Linux
+/// regardless of the VM file-permission policy. Excludes `/dev/fd` and `/dev/pts`,
+/// which carry process-specific semantics the policy may legitimately govern.
+pub fn is_standard_device_path(path: &str) -> bool {
+    DEVICE_PATHS.contains(&path)
+}
+
 fn is_sink_device_path(path: &str) -> bool {
     matches!(
         path,

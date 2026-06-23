@@ -361,6 +361,14 @@ impl<F> PermissionedFileSystem<F> {
 
     fn check(&self, op: FsOperation, path: &str) -> VfsResult<()> {
         validate_path(path)?;
+        // Standard emulated character devices (/dev/null, /dev/zero, /dev/urandom,
+        // /dev/std{in,out,err}) are world-accessible on Linux and have no host
+        // backing; the device layer enforces their fixed semantics. Exempt them from
+        // the VM file-permission policy so guest fs ops on them (readFileSync /
+        // existsSync / redirects) behave like native Linux regardless of policy.
+        if crate::device_layer::is_standard_device_path(path) {
+            return Ok(());
+        }
         let Some(check) = self.permissions.filesystem.as_ref() else {
             return Err(VfsError::access_denied(op.as_str(), path, None));
         };

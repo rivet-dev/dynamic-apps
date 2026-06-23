@@ -37,9 +37,33 @@ STUB_COMMANDS := \
 	pinky who users uptime \
 	stty sync tty
 
-.PHONY: all wasm wasm-opt-check host test clean patch-std patch-check vendor patch-vendor vendor-patch-check size-report install c-wasm
+.PHONY: all wasm wasm-opt-check host test clean patch-std patch-check vendor patch-vendor vendor-patch-check size-report install c-wasm codex
 
 all: wasm host
+
+# Build the real wasm32-wasip1 `codex-exec` agent engine from the codex fork
+# (branch wasi-port-codex-core). The fork ships a committed, idempotent, self-prepping build script
+# (it prepares the rustup sysroot for -Z build-std and restores it on exit — no manual stash), so
+# this folds codex into the toolchain: `make -C registry/native codex` produces and installs
+# registry/software/codex/wasm/{codex-exec,codex}. Override CODEX_REPO if the fork is not at the
+# default sibling path. See the fork's docs/wasi-build.md for the toolchain constraints, and the
+# remaining work to source the CRT from wasi-sdk so the prebuilt rust target need not be installed.
+SECURE_EXEC_ROOT := $(abspath $(CURDIR)/../..)
+CODEX_REPO ?= $(abspath $(SECURE_EXEC_ROOT)/../codex-rs/codex-rs)
+codex:
+	@if [ -x "$(CODEX_REPO)/scripts/build-wasi-codex-exec.sh" ]; then \
+		SECURE_EXEC_DIR="$(SECURE_EXEC_ROOT)" "$(CODEX_REPO)/scripts/build-wasi-codex-exec.sh"; \
+	else \
+		echo "codex: fork build script not found at $(CODEX_REPO)/scripts/build-wasi-codex-exec.sh — skipping."; \
+		echo "       Set CODEX_REPO=/path/to/codex-rs/codex-rs (the wasi-port-codex-core checkout) to build it."; \
+	fi
+
+# Strict variant (fails if the fork is absent) for environments that require the codex artifact.
+.PHONY: codex-required
+codex-required:
+	@test -x "$(CODEX_REPO)/scripts/build-wasi-codex-exec.sh" || { \
+		echo "ERROR: codex fork build script not found at $(CODEX_REPO); set CODEX_REPO"; exit 1; }
+	@$(MAKE) codex
 
 # Apply std patches if they exist
 patch-std:
@@ -108,7 +132,10 @@ wasm-opt-check:
 
 # Build all standalone command binaries, optimize, strip .wasm extension, create symlinks
 wasm: vendor patch-vendor patch-std wasm-opt-check
-	RUSTFLAGS="-C link-arg=-L$(WASI_SYSROOT_SELF_CONTAINED)" \
+	# --cfg tokio_unstable lifts tokio's wasm `compile_error!` so the patched
+	# tokio process/net modules (patches/crates/tokio) compile on wasm32-wasip1.
+	# Needed by codex (tokio::process/net). Harmless for commands not using tokio.
+	RUSTFLAGS="-C link-arg=-L$(WASI_SYSROOT_SELF_CONTAINED) --cfg tokio_unstable" \
 	cargo build --target $(WASM_TARGET) \
 		-Z build-std=std,panic_abort \
 		--release
@@ -158,6 +185,8 @@ wasm: vendor patch-vendor patch-std wasm-opt-check
 	@TOTAL_FILES=$$(ls -1 $(COMMANDS_DIR) 2>/dev/null | wc -l); \
 	echo "Total:    $$TOTAL_FILES entries in $(COMMANDS_DIR)"; \
 	echo "=== Build complete ==="
+	@# Also produce the real codex-exec engine from the fork when present (skips with a notice if not).
+	@$(MAKE) --no-print-directory codex
 
 # Show per-command binary sizes in COMMANDS_DIR
 size-report:

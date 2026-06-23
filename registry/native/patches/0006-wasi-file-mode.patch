@@ -1,6 +1,6 @@
---- a/library/std/src/sys/fs/unix.rs	2026-03-30 00:00:00.000000000 -0700
-+++ b/library/std/src/sys/fs/unix.rs	2026-03-30 00:00:01.000000000 -0700
-@@ -86,6 +86,22 @@
+--- a/library/std/src/sys/fs/unix.rs
++++ b/library/std/src/sys/fs/unix.rs
+@@ -85,6 +85,21 @@
  use crate::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd};
  #[cfg(target_family = "unix")]
  use crate::os::unix::prelude::*;
@@ -22,8 +22,8 @@
  #[cfg(target_os = "wasi")]
  use crate::os::wasi::prelude::*;
  use crate::path::{Path, PathBuf};
-@@ -1376,6 +1392,12 @@
-
+@@ -1375,6 +1390,11 @@
+ 
          let mut stat: stat64 = unsafe { mem::zeroed() };
          cvt(unsafe { fstat64(fd, &mut stat) })?;
 +        #[cfg(target_os = "wasi")]
@@ -33,9 +33,9 @@
 +        }
          Ok(FileAttr::from_stat64(stat))
      }
-
-@@ -2163,6 +2185,13 @@
-
+ 
+@@ -2162,6 +2182,12 @@
+ 
      let mut stat: stat64 = unsafe { mem::zeroed() };
      cvt(unsafe { stat64(p.as_ptr(), &mut stat) })?;
 +    #[cfg(target_os = "wasi")]
@@ -46,9 +46,9 @@
 +    }
      Ok(FileAttr::from_stat64(stat))
  }
-
-@@ -2180,6 +2209,13 @@
-
+ 
+@@ -2179,6 +2205,12 @@
+ 
      let mut stat: stat64 = unsafe { mem::zeroed() };
      cvt(unsafe { lstat64(p.as_ptr(), &mut stat) })?;
 +    #[cfg(target_os = "wasi")]
@@ -59,4 +59,4 @@
 +    }
      Ok(FileAttr::from_stat64(stat))
  }
-
+ 

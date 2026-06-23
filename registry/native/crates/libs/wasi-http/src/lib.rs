@@ -24,6 +24,10 @@ const MAX_HEADER_COUNT: usize = 1_024;
 const MAX_REQUEST_BODY_BYTES: usize = 16 * 1024 * 1024;
 const MAX_RESPONSE_BODY_BYTES: usize = 16 * 1024 * 1024;
 const MAX_SSE_BUFFER_BYTES: usize = 1024 * 1024;
+/// Small, non-zero recv timeout (milliseconds) applied to every HTTP socket so
+/// the host polls briefly then returns EAGAIN instead of blocking the single
+/// guest thread. Must be non-zero — a zero timeval means "blocking" to the host.
+const HTTP_RECV_TIMEOUT_MS: u32 = 2;
 
 /// HTTP method.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -293,6 +297,21 @@ impl Response {
     }
 }
 
+/// Result of a single non-blocking read step on a streaming body/SSE reader.
+///
+/// `WouldBlock` means no data was available this instant (the socket has a small
+/// recv timeout and the host returned EAGAIN); the async caller should yield to
+/// the runtime and re-poll rather than spinning.
+#[derive(Debug)]
+pub enum ChunkPoll<T> {
+    /// A unit of data is ready.
+    Ready(T),
+    /// End of body/stream.
+    Eof,
+    /// No data available yet; yield and retry.
+    WouldBlock,
+}
+
 /// SSE (Server-Sent Events) event.
 #[derive(Debug, Clone)]
 pub struct SseEvent {
@@ -348,8 +367,11 @@ impl SseReader {
                 return Ok(Some(parse_sse_event(&event_text)));
             }
 
-            // Read more data
-            match wasi_ext::recv(self.socket_fd, &mut recv_buf, 0) {
+            // Read more data. `recv_blocking` transparently retries on the
+            // cooperative WouldBlock (this synchronous SSE reader, used only by the
+            // `http-test` CLI, cannot yield to a runtime), so EOF still surfaces as
+            // `Ok(0)`.
+            match recv_blocking(self.socket_fd, &mut recv_buf) {
                 Ok(0) => {
                     self.done = true;
                     // Parse any remaining buffered data as a final event
@@ -371,9 +393,9 @@ impl SseReader {
                         return Err(HttpError::Protocol("SSE event too large".into()));
                     }
                 }
-                Err(errno) => {
+                Err(e) => {
                     self.done = true;
-                    return Err(HttpError::Socket(format!("recv failed: errno {}", errno)));
+                    return Err(e);
                 }
             }
         }
@@ -486,6 +508,51 @@ impl HttpClient {
         Ok((response, reader))
     }
 
+    /// Send a request and return a reader that yields RAW (de-framed) body bytes
+    /// incrementally. Unlike `send_sse`, this does NOT parse SSE framing, so callers
+    /// that run their own SSE parser over a raw byte stream (e.g. the reqwest shim's
+    /// `bytes_stream`, which codex's `transport.rs` SSE-parses) receive the
+    /// unmodified body. Transfer-Encoding/Content-Length are de-framed; the reader
+    /// owns the socket and closes it on drop.
+    pub fn send_raw_stream(
+        &self,
+        req: &Request,
+    ) -> Result<(Response, RawBodyReader), HttpError> {
+        let request_bytes = req.to_bytes()?;
+        let fd = self.connect(&req.url)?;
+        if let Err(error) = send_all(fd, &request_bytes) {
+            let _ = wasi_ext::net_close_socket(fd);
+            return Err(error);
+        }
+        let (status, status_text, headers, remaining) = match read_headers(fd) {
+            Ok(h) => h,
+            Err(error) => {
+                let _ = wasi_ext::net_close_socket(fd);
+                return Err(error);
+            }
+        };
+        let mode = if Response::is_chunked(&headers) {
+            BodyMode::Chunked
+        } else if let Some(len) = Response::content_length(&headers) {
+            BodyMode::Fixed { remaining: len }
+        } else {
+            BodyMode::Close
+        };
+        let reader = RawBodyReader {
+            fd,
+            buf: remaining,
+            mode,
+            done: false,
+        };
+        let response = Response {
+            status,
+            status_text,
+            headers,
+            body: Vec::new(),
+        };
+        Ok((response, reader))
+    }
+
     /// Establish a TCP connection (with optional TLS upgrade) to the URL's host.
     fn connect(&self, url: &Url) -> Result<u32, HttpError> {
         // Create TCP socket
@@ -513,6 +580,15 @@ impl HttpClient {
             }
         }
 
+        // Opt this socket into cooperative non-blocking recv: with a small,
+        // non-zero recv timeout the host polls briefly then returns EAGAIN
+        // (surfaced as `RecvOutcome::WouldBlock`) instead of monopolizing the
+        // single guest thread while a body is in flight. The async layers
+        // (reqwest-shim) yield on WouldBlock so other runtime tasks make
+        // progress. Best-effort: if the host rejects the option we fall back to
+        // the previous blocking behavior rather than failing the request.
+        let _ = wasi_ext::set_recv_timeout_ms(fd, HTTP_RECV_TIMEOUT_MS);
+
         Ok(fd)
     }
 }
@@ -523,9 +599,180 @@ impl Default for HttpClient {
     }
 }
 
+/// Body framing for an in-progress streamed response.
+enum BodyMode {
+    /// Content-Length: `remaining` bytes of body still to deliver.
+    Fixed { remaining: usize },
+    /// Transfer-Encoding: chunked.
+    Chunked,
+    /// No framing — deliver bytes until the connection closes.
+    Close,
+}
+
+/// Incremental raw-body reader returned by [`HttpClient::send_raw_stream`].
+///
+/// `read_chunk` yields the next piece of de-framed body bytes (one HTTP chunk for
+/// chunked encoding, one `recv` worth otherwise), or `None` at end of body. It does
+/// NOT parse SSE — callers that need SSE events parse the raw bytes themselves.
+/// Owns the socket fd and closes it on drop.
+pub struct RawBodyReader {
+    fd: u32,
+    buf: Vec<u8>,
+    mode: BodyMode,
+    done: bool,
+}
+
+impl RawBodyReader {
+    /// Read the next piece of body cooperatively.
+    ///
+    /// Returns [`ChunkPoll::Ready`] with body bytes, [`ChunkPoll::Eof`] at end of
+    /// body, or [`ChunkPoll::WouldBlock`] when no data is available yet (the async
+    /// caller should yield and re-poll). Partial framing state is retained across
+    /// `WouldBlock` returns, so resuming continues where it left off.
+    pub fn read_chunk(&mut self) -> Result<ChunkPoll<Vec<u8>>, HttpError> {
+        if self.done {
+            return Ok(ChunkPoll::Eof);
+        }
+        match &mut self.mode {
+            BodyMode::Fixed { remaining } => {
+                if *remaining == 0 {
+                    self.done = true;
+                    return Ok(ChunkPoll::Eof);
+                }
+                if !self.buf.is_empty() {
+                    let take = self.buf.len().min(*remaining);
+                    let out: Vec<u8> = self.buf.drain(..take).collect();
+                    *remaining -= take;
+                    if *remaining == 0 {
+                        self.done = true;
+                    }
+                    return Ok(ChunkPoll::Ready(out));
+                }
+                let mut recv_buf = [0u8; 8192];
+                let n = match recv_cooperative_http(self.fd, &mut recv_buf)? {
+                    ChunkPoll::Ready(n) => n,
+                    ChunkPoll::Eof => {
+                        self.done = true;
+                        return Ok(ChunkPoll::Eof);
+                    }
+                    ChunkPoll::WouldBlock => return Ok(ChunkPoll::WouldBlock),
+                };
+                let take = (n as usize).min(*remaining);
+                *remaining -= take;
+                if *remaining == 0 {
+                    self.done = true;
+                }
+                Ok(ChunkPoll::Ready(recv_buf[..take].to_vec()))
+            }
+            BodyMode::Chunked => {
+                let mut recv_buf = [0u8; 8192];
+                loop {
+                    if let Some(pos) = find_crlf(&self.buf) {
+                        let size_str = std::str::from_utf8(&self.buf[..pos]).map_err(|e| {
+                            HttpError::Protocol(format!("invalid chunk size: {}", e))
+                        })?;
+                        let chunk_size = usize::from_str_radix(size_str.trim(), 16)
+                            .map_err(|e| {
+                                HttpError::Protocol(format!("invalid chunk size: {}", e))
+                            })?;
+                        self.buf.drain(..pos + 2); // skip size line + CRLF
+                        if chunk_size == 0 {
+                            self.done = true;
+                            return Ok(ChunkPoll::Eof);
+                        }
+                        if chunk_size > MAX_RESPONSE_BODY_BYTES {
+                            return Err(HttpError::Protocol("response body too large".into()));
+                        }
+                        while self.buf.len() < chunk_size + 2 {
+                            match recv_cooperative_http(self.fd, &mut recv_buf)? {
+                                ChunkPoll::Ready(n) => {
+                                    self.buf.extend_from_slice(&recv_buf[..n as usize]);
+                                }
+                                ChunkPoll::Eof => {
+                                    return Err(HttpError::Protocol(
+                                        "connection closed in chunk".into(),
+                                    ));
+                                }
+                                ChunkPoll::WouldBlock => return Ok(ChunkPoll::WouldBlock),
+                            }
+                        }
+                        if &self.buf[chunk_size..chunk_size + 2] != b"\r\n" {
+                            return Err(HttpError::Protocol("missing chunk terminator".into()));
+                        }
+                        let out: Vec<u8> = self.buf[..chunk_size].to_vec();
+                        self.buf.drain(..chunk_size + 2); // skip chunk + CRLF
+                        return Ok(ChunkPoll::Ready(out));
+                    }
+                    match recv_cooperative_http(self.fd, &mut recv_buf)? {
+                        ChunkPoll::Ready(n) => {
+                            self.buf.extend_from_slice(&recv_buf[..n as usize]);
+                        }
+                        ChunkPoll::Eof => {
+                            return Err(HttpError::Protocol(
+                                "connection closed reading chunk size".into(),
+                            ));
+                        }
+                        ChunkPoll::WouldBlock => return Ok(ChunkPoll::WouldBlock),
+                    }
+                }
+            }
+            BodyMode::Close => {
+                if !self.buf.is_empty() {
+                    return Ok(ChunkPoll::Ready(std::mem::take(&mut self.buf)));
+                }
+                let mut recv_buf = [0u8; 8192];
+                match recv_cooperative_http(self.fd, &mut recv_buf)? {
+                    ChunkPoll::Ready(n) => Ok(ChunkPoll::Ready(recv_buf[..n as usize].to_vec())),
+                    ChunkPoll::Eof => {
+                        self.done = true;
+                        Ok(ChunkPoll::Eof)
+                    }
+                    ChunkPoll::WouldBlock => Ok(ChunkPoll::WouldBlock),
+                }
+            }
+        }
+    }
+}
+
+impl Drop for RawBodyReader {
+    fn drop(&mut self) {
+        let _ = wasi_ext::net_close_socket(self.fd);
+    }
+}
+
 // ============================================================
 // Internal helpers
 // ============================================================
+
+/// Blocking recv that transparently retries on cooperative `WouldBlock`.
+///
+/// HTTP sockets carry a small recv timeout so the host returns EAGAIN instead of
+/// blocking the thread. Synchronous readers (header parsing, the buffered `send`
+/// path) cannot yield to the runtime mid-call, so they simply re-poll: behavior
+/// is byte-identical to the previous always-blocking recv, just split across
+/// short host polls. The streaming readers below DO surface `WouldBlock` so the
+/// async layer can yield.
+fn recv_blocking(fd: u32, buf: &mut [u8]) -> Result<u32, HttpError> {
+    loop {
+        match wasi_ext::recv_cooperative(fd, buf, 0) {
+            Ok(wasi_ext::RecvOutcome::Read(n)) => return Ok(n as u32),
+            Ok(wasi_ext::RecvOutcome::Eof) => return Ok(0),
+            Ok(wasi_ext::RecvOutcome::WouldBlock) => continue,
+            Err(e) => return Err(HttpError::Socket(format!("recv failed: errno {}", e))),
+        }
+    }
+}
+
+/// Cooperative recv for the streaming readers: maps the host's EAGAIN to
+/// [`ChunkPoll::WouldBlock`] so the async layer can yield instead of blocking.
+fn recv_cooperative_http(fd: u32, buf: &mut [u8]) -> Result<ChunkPoll<u32>, HttpError> {
+    match wasi_ext::recv_cooperative(fd, buf, 0) {
+        Ok(wasi_ext::RecvOutcome::Read(n)) => Ok(ChunkPoll::Ready(n as u32)),
+        Ok(wasi_ext::RecvOutcome::Eof) => Ok(ChunkPoll::Eof),
+        Ok(wasi_ext::RecvOutcome::WouldBlock) => Ok(ChunkPoll::WouldBlock),
+        Err(e) => Err(HttpError::Socket(format!("recv failed: errno {}", e))),
+    }
+}
 
 /// Send all bytes on a socket, handling partial sends.
 fn send_all(fd: u32, data: &[u8]) -> Result<(), HttpError> {
@@ -547,8 +794,7 @@ fn read_headers(fd: u32) -> Result<(u16, String, Vec<(String, String)>, Vec<u8>)
     let mut recv_buf = [0u8; 4096];
 
     loop {
-        let n = wasi_ext::recv(fd, &mut recv_buf, 0)
-            .map_err(|e| HttpError::Socket(format!("recv failed: errno {}", e)))?;
+        let n = recv_blocking(fd, &mut recv_buf)?;
         if n == 0 {
             return Err(HttpError::Protocol(
                 "connection closed before headers complete".into(),
@@ -608,8 +854,7 @@ fn read_fixed_body(fd: u32, initial: Vec<u8>, length: usize) -> Result<Vec<u8>, 
     let mut recv_buf = [0u8; 8192];
 
     while body.len() < length {
-        let n = wasi_ext::recv(fd, &mut recv_buf, 0)
-            .map_err(|e| HttpError::Socket(format!("recv failed: errno {}", e)))?;
+        let n = recv_blocking(fd, &mut recv_buf)?;
         if n == 0 {
             break;
         }
@@ -652,8 +897,7 @@ fn read_chunked_body(fd: u32, initial: Vec<u8>) -> Result<Vec<u8>, HttpError> {
 
                 // Read chunk_size bytes + trailing \r\n
                 while buf.len() < chunk_size + 2 {
-                    let n = wasi_ext::recv(fd, &mut recv_buf, 0)
-                        .map_err(|e| HttpError::Socket(format!("recv failed: errno {}", e)))?;
+                    let n = recv_blocking(fd, &mut recv_buf)?;
                     if n == 0 {
                         return Err(HttpError::Protocol("connection closed in chunk".into()));
                     }
@@ -670,8 +914,7 @@ fn read_chunked_body(fd: u32, initial: Vec<u8>) -> Result<Vec<u8>, HttpError> {
             }
 
             // Need more data for chunk size line
-            let n = wasi_ext::recv(fd, &mut recv_buf, 0)
-                .map_err(|e| HttpError::Socket(format!("recv failed: errno {}", e)))?;
+            let n = recv_blocking(fd, &mut recv_buf)?;
             if n == 0 {
                 return Err(HttpError::Protocol(
                     "connection closed reading chunk size".into(),
@@ -690,8 +933,7 @@ fn read_until_close(fd: u32, initial: Vec<u8>) -> Result<Vec<u8>, HttpError> {
     enforce_body_limit(body.len())?;
 
     loop {
-        let n = wasi_ext::recv(fd, &mut recv_buf, 0)
-            .map_err(|e| HttpError::Socket(format!("recv failed: errno {}", e)))?;
+        let n = recv_blocking(fd, &mut recv_buf)?;
         if n == 0 {
             break;
         }

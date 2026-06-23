@@ -2234,6 +2234,7 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
   const __agentOSPath = () => __agentOSRequireBuiltin("node:path");
   const __agentOSCrypto = () => __agentOSRequireBuiltin("node:crypto");
   const __agentOSWasiErrnoSuccess = 0;
+  const __agentOSWasiErrnoAgain = 6;
   const __agentOSWasiErrnoAcces = 2;
   const __agentOSWasiErrnoBadf = 8;
   const __agentOSWasiErrnoExist = 20;
@@ -2333,6 +2334,7 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         fd_write: (...args) => this._fdWrite(...args),
         path_create_directory: (...args) => this._pathCreateDirectory(...args),
         path_filestat_get: (...args) => this._pathFilestatGet(...args),
+        path_filestat_set_times: (...args) => this._pathFilestatSetTimes(...args),
         path_link: (...args) => this._pathLink(...args),
         path_open: (...args) => this._pathOpen(...args),
         path_readlink: (...args) => this._pathReadlink(...args),
@@ -3354,11 +3356,23 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         const handle = this._externalFdHandle(descriptor);
         if (handle?.kind === "pipe-read" && handle.pipe) {{
           const totalLength = this._boundedIovLength(iovs, iovsLen);
+          // When the read fd is marked non-blocking (FDFLAGS_NONBLOCK, set via
+          // fd_fdstat_set_flags), an empty pipe returns EAGAIN instead of
+          // synchronously spinning, so a single-threaded caller (e.g. tokio's
+          // ChildStdio::poll_read on wasm32-wasip1, which has no I/O reactor) can
+          // yield to the executor instead of pinning the only thread. Default
+          // (blocking) reads are byte-identical to before.
+          const __nonblock = ((handle.pipe.fdFlags >>> 0) & 4) !== 0;
           while (handle.pipe.chunks.length === 0) {{
             if (handle.pipe.writeHandleCount === 0 && handle.pipe.producers.size === 0) {{
               return this._writeUint32(nreadPtr, 0);
             }}
-            this._pumpPipeProducers(handle.pipe, 10);
+            // Still drive the child so it keeps producing; in non-blocking mode
+            // pump once without waiting, then return EAGAIN if still empty.
+            this._pumpPipeProducers(handle.pipe, __nonblock ? 0 : 10);
+            if (__nonblock && handle.pipe.chunks.length === 0) {{
+              return __agentOSWasiErrnoAgain;
+            }}
           }}
           const chunk = this._dequeuePipeBytes(handle.pipe, totalLength);
           const written = this._writeToIovs(iovs, iovsLen, chunk);
@@ -3539,12 +3553,21 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
 
     _fdFdstatSetFlags(fd, flags) {{
       try {{
+        const normalizedFlags = (Number(flags) >>> 0) & 0xffff;
         const entry = this._descriptorEntry(fd);
-        if (!entry) {{
-          return __agentOSWasiErrnoBadf;
+        if (entry) {{
+          entry.fdFlags = normalizedFlags;
+          return __agentOSWasiErrnoSuccess;
         }}
-        entry.fdFlags = (Number(flags) >>> 0) & 0xffff;
-        return __agentOSWasiErrnoSuccess;
+        // Pipe-read fds (e.g. a child process's stdout/stderr) have no fdTable
+        // entry; they are external handles backed by a stable pipe object.
+        // Persist the flags on the pipe so _fdRead can honor FDFLAGS_NONBLOCK.
+        const handle = this._externalFdHandle(fd);
+        if (handle?.kind === "pipe-read" && handle.pipe) {{
+          handle.pipe.fdFlags = normalizedFlags;
+          return __agentOSWasiErrnoSuccess;
+        }}
+        return __agentOSWasiErrnoBadf;
       }} catch {{
         return __agentOSWasiErrnoFault;
       }}
@@ -3925,6 +3948,14 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
       }} catch (error) {{
         return this._mapFsError(error);
       }}
+    }}
+
+    _pathFilestatSetTimes(fd, flags, pathPtr, pathLen, atim, mtim, fstFlags) {{
+      const resolved = this._resolveDescriptorPath(fd, pathPtr, pathLen);
+      if (resolved.error !== __agentOSWasiErrnoSuccess) {{
+        return resolved.error;
+      }}
+      return __agentOSWasiErrnoSuccess;
     }}
 
     _pathFilestatGet(fd, flags, pathPtr, pathLen, statPtr) {{

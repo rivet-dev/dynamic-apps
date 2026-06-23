@@ -15,7 +15,7 @@ import fd from "@agentos-software/fd";
 import tree from "@agentos-software/tree";
 import file from "@agentos-software/file";
 import yq from "@agentos-software/yq";
-import codex from "@agentos-software/codex";
+import codex from "@agentos-software/codex-cli";
 
 const everything = [
 	coreutils,
