@@ -761,9 +761,22 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   Secondary, non-blocking: a multi-plugin panel can hit a wasm OOB trap in the first dispatch on some
   plugin combinations (each plugin is fine alone) — a follow-up, not on the render path.
 
-- **M8.5 — `pcmanfm` (the file manager). 🟢 WINDOW RENDERS — real LXDE file manager drawing its full
+- **M8.5 — `pcmanfm` (the file manager). ✅ DONE — real LXDE file manager rendering a VFS DIRECTORY
+  LISTING, all wasm in secure-exec (2026-06-23).** Proof:
+  `~/tmp/gui-progress/proof-m8.5-pcmanfm-DIRECTORY-LISTING.png` — the VFS root `/` shown as 21 folder
+  icons (bin/boot/dev/etc/home/lib/usr/var/...) with a "21 items" status bar, full menu bar +
+  toolbar + path bar + Places side pane. Two fixes beyond the window render: (5) **idle-priority** —
+  `fm-job.c` posts the job-cleanup idle at `G_PRIORITY_DEFAULT` (the GDK X11 event source stays
+  perpetually ready in the headless wasm X setup and STARVED the default-idle, so the folder's
+  finish-loading -> view-populate never dispatched; the dir-list job itself completes fine),
+  persisted via `build-libfm.sh`; (6) point the harness at the VFS root `/` (`/usr/share` is empty in
+  the base fs). **Known cosmetic remaining:** GDK has a valid input seat (core pointer+keyboard are
+  created) but still logs a non-fatal `GDK_IS_DEVICE` critical on stray core focus events under XI2;
+  and the deeper constraint-#5 fix for the GUnixVolumeMonitor workaround (runtime GIO worker-context
+  wakeup) is still open. (Historical sub-status below.)
+  --- WINDOW RENDERS milestone: real LXDE file manager drawing its full
   UI (menu bar, toolbar, `/usr/share` path bar, Places side pane with Home Folder), all wasm in
-  secure-exec (2026-06-23).** Proof: `~/tmp/gui-progress/proof-m8.5-pcmanfm-WINDOW-RENDERS.png`
+  secure-exec (2026-06-23). Proof: `~/tmp/gui-progress/proof-m8.5-pcmanfm-WINDOW-RENDERS.png`
   (framebuffer 307009/307200 px non-black). Reaching a rendered window required clearing a CHAIN of
   cross-thread/GIO deadlocks (each found via temporary `fprintf` instrumentation, then reverted):
   (1) the committed **wasm-threads GWakeup** kernel-pipe fix (the M8-gating blocker); (2) **libfm
