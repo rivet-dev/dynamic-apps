@@ -13815,6 +13815,10 @@ where
             service_javascript_kernel_stdio_write_sync_rpc(kernel, process, request)
         }
         "__kernel_poll" => service_javascript_kernel_poll_sync_rpc(kernel, process, request),
+        "__kernel_pipe" => service_javascript_kernel_pipe_sync_rpc(kernel, process, request),
+        "__kernel_fd_read" => service_javascript_kernel_fd_read_sync_rpc(kernel, process, request),
+        "__kernel_fd_write" => service_javascript_kernel_fd_write_sync_rpc(kernel, process, request),
+        "__kernel_fd_close" => service_javascript_kernel_fd_close_sync_rpc(kernel, process, request),
         "__pty_set_raw_mode" => {
             service_javascript_pty_set_raw_mode_sync_rpc(kernel, process, request)
         }
@@ -16440,6 +16444,87 @@ fn service_javascript_kernel_poll_sync_rpc(
             })
             .collect::<Vec<_>>(),
     }))
+}
+
+/// Create a kernel pipe in the guest's (shared, per-kernel_pid) fd table and return its two kernel
+/// fds. Backs the WASM guest's `pipe()`/`pipe2()` so glib's stock GWakeup (a pipe a worker thread
+/// writes to, to wake the main thread's blocked poll) works: a kernel-pipe write notifies the poll
+/// notifier, so a cross-thread `__kernel_poll` wakes. The runner range-encodes these fds so any
+/// worker isolate resolves the same shared kernel pipe. In-scope per the trust model: a guest only
+/// touches its OWN process fd table (it can already read/write/close those fds via wasi), and pipe
+/// creation is bounded by `check_pipe_allocation` (the applied resource limit).
+fn service_javascript_kernel_pipe_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    _request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let (read_fd, write_fd) = kernel
+        .open_pipe(EXECUTION_DRIVER_NAME, process.kernel_pid)
+        .map_err(kernel_error)?;
+    Ok(json!({ "readFd": read_fd, "writeFd": write_fd }))
+}
+
+/// Non-blocking read of a guest kernel fd (the kernel-pipe read end). Returns `{ dataBase64 }` for
+/// data, `Null` for would-block (EAGAIN; glib drains the wakeup pipe until EAGAIN), and `{ done }`
+/// when all write ends have closed (EOF).
+fn service_javascript_kernel_fd_read_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_fd_read fd")?;
+    let max_bytes =
+        javascript_sync_rpc_arg_u64_optional(&request.args, 1, "__kernel_fd_read max bytes")?
+            .map(|value| value.clamp(1, DEFAULT_KERNEL_STDIN_READ_MAX_BYTES as u64) as usize)
+            .unwrap_or(DEFAULT_KERNEL_STDIN_READ_MAX_BYTES);
+
+    match kernel
+        .fd_read_with_timeout_result(
+            EXECUTION_DRIVER_NAME,
+            process.kernel_pid,
+            fd,
+            max_bytes,
+            Some(Duration::ZERO),
+        )
+        .map_err(kernel_error)
+    {
+        Ok(Some(chunk)) if !chunk.is_empty() => Ok(json!({
+            "dataBase64": base64::engine::general_purpose::STANDARD.encode(chunk),
+        })),
+        // Empty read = pipe drained but writers still open: report would-block (EAGAIN).
+        Ok(Some(_)) => Ok(Value::Null),
+        // None = all write ends closed: EOF.
+        Ok(None) => Ok(json!({ "done": true })),
+        Err(SidecarError::Kernel(error)) if error.starts_with("EAGAIN:") => Ok(Value::Null),
+        Err(error) => Err(error),
+    }
+}
+
+/// Write to a guest kernel fd (the kernel-pipe write end).
+fn service_javascript_kernel_fd_write_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_fd_write fd")?;
+    let chunk = javascript_sync_rpc_bytes_arg(&request.args, 1, "__kernel_fd_write chunk")?;
+    let written = kernel
+        .fd_write(EXECUTION_DRIVER_NAME, process.kernel_pid, fd, &chunk)
+        .map_err(kernel_error)?;
+    Ok(json!(written))
+}
+
+/// Close a guest kernel fd (a kernel-pipe end).
+fn service_javascript_kernel_fd_close_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_fd_close fd")?;
+    kernel
+        .fd_close(EXECUTION_DRIVER_NAME, process.kernel_pid, fd)
+        .map_err(kernel_error)?;
+    Ok(Value::Null)
 }
 
 fn install_kernel_stdin_pipe(kernel: &mut SidecarKernel, pid: u32) -> Result<u32, SidecarError> {

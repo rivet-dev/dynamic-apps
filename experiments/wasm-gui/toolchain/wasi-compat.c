@@ -212,3 +212,23 @@ __attribute__((weak)) int shmget(int key, unsigned long size, int flag) { (void)
 __attribute__((weak)) void *shmat(int id, const void *addr, int flag) { (void)id; (void)addr; (void)flag; return (void *) -1; }
 __attribute__((weak)) int shmdt(const void *addr) { (void)addr; return -1; }
 __attribute__((weak)) int shmctl(int id, int cmd, void *buf) { (void)id; (void)cmd; (void)buf; return -1; }
+
+/* pipe()/pipe2(): wasi-libc omits them (no host pipe syscall). Back them with the runtime's
+ * host_process.fd_pipe import, which creates a REAL kernel pipe shared across this VM's threads (its
+ * write notifies the kernel poll, so a cross-thread write wakes a blocked poll). The runner
+ * range-encodes the returned fds. This is what makes glib's stock GWakeup work, so g_main_context
+ * cross-thread dispatch (libfm/pcmanfm async jobs) wakes the GTK main loop. The O_NONBLOCK/O_CLOEXEC
+ * pipe2 flags are no-ops here: the kernel-pipe read is already non-blocking and there is no exec. */
+__attribute__((import_module("host_process"), import_name("fd_pipe")))
+extern int __secure_exec_host_fd_pipe(int *read_fd, int *write_fd);
+
+__attribute__((weak)) int pipe(int fds[2]) {
+    int r = -1, w = -1;
+    if (__secure_exec_host_fd_pipe(&r, &w) != 0 || r < 0 || w < 0) {
+        return -1;
+    }
+    fds[0] = r;
+    fds[1] = w;
+    return 0;
+}
+__attribute__((weak)) int pipe2(int fds[2], int flags) { (void)flags; return pipe(fds); }

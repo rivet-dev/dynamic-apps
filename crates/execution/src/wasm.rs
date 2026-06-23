@@ -4261,6 +4261,26 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM kernel poll bridge is unavailable");
           }}
           return _kernelPollRaw.applySync(void 0, args);
+        case "__kernel_pipe":
+          if (typeof _kernelPipeRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel pipe bridge is unavailable");
+          }}
+          return _kernelPipeRaw.applySync(void 0, args);
+        case "__kernel_fd_read":
+          if (typeof _kernelFdReadRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel fd-read bridge is unavailable");
+          }}
+          return _kernelFdReadRaw.applySync(void 0, args);
+        case "__kernel_fd_write":
+          if (typeof _kernelFdWriteRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel fd-write bridge is unavailable");
+          }}
+          return _kernelFdWriteRaw.applySync(void 0, args);
+        case "__kernel_fd_close":
+          if (typeof _kernelFdCloseRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel fd-close bridge is unavailable");
+          }}
+          return _kernelFdCloseRaw.applySync(void 0, args);
         case "__pty_read":
           if (typeof _ptyReadRaw === "undefined") {{
             throw new Error("secure-exec WASM pty read bridge is unavailable");

@@ -289,6 +289,10 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
         "_kernelStdinReadRaw" => ("__kernel_stdin_read", false),
         "_kernelStdioWriteRaw" => ("__kernel_stdio_write", false),
         "_kernelPollRaw" => ("__kernel_poll", false),
+        "_kernelPipeRaw" => ("__kernel_pipe", false),
+        "_kernelFdReadRaw" => ("__kernel_fd_read", false),
+        "_kernelFdWriteRaw" => ("__kernel_fd_write", false),
+        "_kernelFdCloseRaw" => ("__kernel_fd_close", false),
 
         // Network operations
         "_networkHttpServerListenRaw" => ("net.http_listen", false),

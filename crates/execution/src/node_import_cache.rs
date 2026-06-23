@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "85";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "88";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -12492,19 +12492,20 @@ const hostProcessImport = {
           return writeGuestUint32(retPidPtr, VIRTUAL_PPID);
         },
         fd_pipe(retReadFdPtr, retWriteFdPtr) {
+          // Back the guest pipe() with a real KERNEL pipe (shared via the per-kernel_pid fd table)
+          // rather than a synthetic per-isolate JS pipe, so a write from a wasi-threads worker wakes
+          // a poll() blocked in another thread (glib's GWakeup -> the libfm/pcmanfm async-job fix).
+          // The two kernel fds are range-encoded (KERNEL_PIPE_FD_BASE + kernelFd) so every isolate
+          // resolves the same shared pipe deterministically; fd_read/fd_write/fd_close/poll_oneoff
+          // route those fds to the kernel.
           try {
-            const pipe = {
-              id: nextSyntheticPipeId++,
-              chunks: [],
-              consumers: new Map(),
-              producers: new Map(),
-              readHandleCount: 0,
-              writeHandleCount: 0,
-            };
-            const readFd = nextSyntheticFd++;
-            const writeFd = nextSyntheticFd++;
-            syntheticFdEntries.set(readFd, createPipeHandle('pipe-read', pipe, readFd));
-            syntheticFdEntries.set(writeFd, createPipeHandle('pipe-write', pipe, writeFd));
+            const result = callSyncRpc('__kernel_pipe', []);
+            const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+            if (!parsed || parsed.readFd == null || parsed.writeFd == null) {
+              return WASI_ERRNO_FAULT;
+            }
+            const readFd = KERNEL_PIPE_FD_BASE + (Number(parsed.readFd) >>> 0);
+            const writeFd = KERNEL_PIPE_FD_BASE + (Number(parsed.writeFd) >>> 0);
             if (writeGuestUint32(retReadFdPtr, readFd) !== WASI_ERRNO_SUCCESS) {
               return WASI_ERRNO_FAULT;
             }
@@ -13098,8 +13099,77 @@ const KERNEL_POLLOUT = 0x0004;
 const KERNEL_POLLERR = 0x0008;
 const KERNEL_POLLHUP = 0x0010;
 
+// Kernel-backed pipe fds. wasi-threads workers share the parent's kernel_pid + fd table, but the
+// runner's synthetic JS pipe state is per-isolate, so a synthetic pipe cannot wake a poll in another
+// thread. A real KERNEL pipe is shared (its write notifies the poll notifier), so it CAN. We
+// range-encode the guest fd as KERNEL_PIPE_FD_BASE + kernelFd: the encoding is deterministic and the
+// kernel fd table is shared, so any worker isolate resolves the same kernel pipe with no per-isolate
+// registration. This backs glib's stock GWakeup (g_main_context_invoke from a worker waking the GTK
+// main loop) — the fix for the libfm/pcmanfm async-job blocker.
+const KERNEL_PIPE_FD_BASE = 0x50000000;
+function isKernelPipeFd(fd) {
+  const n = Number(fd) >>> 0;
+  return n >= KERNEL_PIPE_FD_BASE && n < KERNEL_PIPE_FD_BASE + 0x10000000;
+}
+function kernelPipeKernelFd(fd) {
+  return (Number(fd) >>> 0) - KERNEL_PIPE_FD_BASE;
+}
+function kernelPipeIovTotal(iovs, iovsLen) {
+  if (!(instanceMemory instanceof WebAssembly.Memory)) {
+    return 0;
+  }
+  const view = new DataView(instanceMemory.buffer);
+  let total = 0;
+  for (let index = 0; index < (Number(iovsLen) >>> 0); index += 1) {
+    total += view.getUint32((Number(iovs) >>> 0) + index * 8 + 4, true);
+  }
+  return total >>> 0;
+}
+function kernelPipeFdWrite(fd, iovs, iovsLen, nwrittenPtr) {
+  try {
+    const bytes = collectGuestIovBytes(iovs, iovsLen);
+    const written =
+      Number(callSyncRpc('__kernel_fd_write', [kernelPipeKernelFd(fd), bytes])) >>> 0;
+    return writeGuestUint32(nwrittenPtr, written);
+  } catch {
+    return WASI_ERRNO_FAULT;
+  }
+}
+function kernelPipeFdRead(fd, iovs, iovsLen, nreadPtr) {
+  try {
+    const requestedLength = kernelPipeIovTotal(iovs, iovsLen);
+    if (requestedLength === 0) {
+      return writeGuestUint32(nreadPtr, 0);
+    }
+    const result = callSyncRpc('__kernel_fd_read', [kernelPipeKernelFd(fd), requestedLength]);
+    const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+    if (parsed == null) {
+      return WASI_ERRNO_AGAIN; // pipe drained, writers open -> would block (glib drains until EAGAIN)
+    }
+    if (parsed.done) {
+      return writeGuestUint32(nreadPtr, 0); // all write ends closed -> EOF
+    }
+    const b64 = parsed.dataBase64;
+    if (typeof b64 !== 'string') {
+      return WASI_ERRNO_AGAIN;
+    }
+    const bin = atob(b64);
+    const chunk = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) {
+      chunk[i] = bin.charCodeAt(i) & 0xff;
+    }
+    const written = writeBytesToGuestIovs(iovs, iovsLen, chunk);
+    return writeGuestUint32(nreadPtr, written);
+  } catch {
+    return WASI_ERRNO_FAULT;
+  }
+}
+
 wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
   const numericFd = Number(fd) >>> 0;
+  if (isKernelPipeFd(numericFd)) {
+    return kernelPipeFdRead(numericFd, iovs, iovsLen, nreadPtr);
+  }
   const handle = lookupFdHandle(numericFd);
 
   if (handle?.kind === 'pipe-read') {
@@ -13378,6 +13448,21 @@ wasiImport.fd_tell = (fd, offsetPtr) => {
 };
 
 wasiImport.fd_fdstat_get = (fd, statPtr) => {
+  if (isKernelPipeFd(fd)) {
+    // glib's g_unix_set_fd_nonblocking does fcntl(F_GETFL) -> __wasi_fd_fdstat_get on the kernel-pipe
+    // fd; report a pollable FIFO-like fd so it does not g_error. Flags are reported via set_flags.
+    return writeGuestFdstat(
+      statPtr,
+      WASI_FILETYPE_UNKNOWN,
+      0,
+      WASI_RIGHT_FD_READ |
+        WASI_RIGHT_FD_WRITE |
+        WASI_RIGHT_FD_FDSTAT_SET_FLAGS |
+        WASI_RIGHT_FD_FILESTAT_GET |
+        WASI_RIGHT_POLL_FD_READWRITE,
+      0n,
+    );
+  }
   const handle = lookupFdHandle(fd);
   if (handle?.kind === 'pipe-read') {
     return writeGuestFdstat(
@@ -13425,6 +13510,11 @@ wasiImport.fd_fdstat_get = (fd, statPtr) => {
 };
 
 wasiImport.fd_fdstat_set_flags = (fd, flags) => {
+  if (isKernelPipeFd(fd)) {
+    // O_NONBLOCK/O_CLOEXEC set by glib: a no-op success — the kernel-pipe read is already
+    // non-blocking and there is no exec in the sandbox. Returning success avoids glib's g_error.
+    return WASI_ERRNO_SUCCESS;
+  }
   const handle = lookupFdHandle(fd);
   if (handle && handle.kind !== 'passthrough') {
     return WASI_ERRNO_BADF;
@@ -13546,8 +13636,11 @@ wasiImport.fd_prestat_dir_name = (fd, pathPtr, pathLen) => {
 };
 
 wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
-  const handle = lookupFdHandle(fd);
   const numericFd = Number(fd) >>> 0;
+  if (isKernelPipeFd(numericFd)) {
+    return kernelPipeFdWrite(numericFd, iovs, iovsLen, nwrittenPtr);
+  }
+  const handle = lookupFdHandle(fd);
   if (handle?.kind === 'pipe-write') {
     try {
       const bytes = collectGuestIovBytes(iovs, iovsLen);
@@ -13614,6 +13707,14 @@ wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
 };
 
 wasiImport.fd_close = (fd) => {
+  if (isKernelPipeFd(fd)) {
+    try {
+      callSyncRpc('__kernel_fd_close', [kernelPipeKernelFd(fd)]);
+    } catch {
+      // best-effort close; the kernel reclaims fds on process exit regardless
+    }
+    return WASI_ERRNO_SUCCESS;
+  }
   traceHostProcess('fd-close-begin', {
     fd: Number(fd) >>> 0,
     syntheticKind: syntheticFdEntries.get(Number(fd) >>> 0)?.kind ?? null,
@@ -13728,6 +13829,18 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
     }
 
     const fd = view.getUint32(base + 16, true);
+    if (isKernelPipeFd(fd)) {
+      // Kernel-pipe fds have no per-isolate handle; poll them directly via __kernel_poll so a
+      // cross-thread write (glib GWakeup) wakes a blocked poll. Reuse the kernel-poll gate.
+      hasRemappedPassthroughSubscription = true;
+      subscriptions.push({
+        kind: tag === 1 ? 'fd_read' : 'fd_write',
+        fd,
+        kernelPipeFd: kernelPipeKernelFd(fd),
+        userdata,
+      });
+      continue;
+    }
     const handle = lookupFdHandle(fd);
     if (!handle && rejectClosedPassthroughFd(fd)) {
       hasSyntheticSubscription = true;
@@ -13768,26 +13881,44 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
   const deadline = timeoutMs == null ? null : Date.now() + Math.max(0, timeoutMs);
   const readyEvents = [];
 
+  // The kernel fd a subscription should poll via __kernel_poll, or null if it polls locally. Covers
+  // both remapped passthrough fds (e.g. stdin, dup'd kernel fds) and range-encoded kernel-pipe fds.
+  function pollKernelFdFor(subscription) {
+    if (subscription.kernelPipeFd != null) {
+      return subscription.kernelPipeFd;
+    }
+    if (subscription.handle?.kind === 'passthrough') {
+      const targetFd = Number(subscription.handle.targetFd) >>> 0;
+      const subFd = Number(subscription.fd) >>> 0;
+      if (
+        targetFd !== subFd ||
+        (subFd === 0 && (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC))
+      ) {
+        return targetFd;
+      }
+    }
+    return null;
+  }
+
   function collectKernelReadyEvents(waitMs) {
     if (!hasRemappedPassthroughSubscription) {
       return [];
     }
 
-    const pollTargets = subscriptions
-      .filter(
-        (subscription) =>
-          (subscription.kind === 'fd_read' || subscription.kind === 'fd_write') &&
-          subscription.handle?.kind === 'passthrough' &&
-          (
-            (Number(subscription.handle.targetFd) >>> 0) !== (Number(subscription.fd) >>> 0) ||
-            ((Number(subscription.fd) >>> 0) === 0 &&
-              (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC))
-          )
-      )
-      .map((subscription) => ({
-        fd: Number(subscription.handle.targetFd) >>> 0,
+    const pollTargets = [];
+    for (const subscription of subscriptions) {
+      if (subscription.kind !== 'fd_read' && subscription.kind !== 'fd_write') {
+        continue;
+      }
+      const kernelFd = pollKernelFdFor(subscription);
+      if (kernelFd == null) {
+        continue;
+      }
+      pollTargets.push({
+        fd: kernelFd,
         events: subscription.kind === 'fd_read' ? KERNEL_POLLIN : KERNEL_POLLOUT,
-      }));
+      });
+    }
     if (pollTargets.length === 0) {
       return [];
     }
@@ -13805,23 +13936,16 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
     const responseEntries = Array.isArray(response?.fds) ? response.fds : [];
     const ready = [];
     for (const subscription of subscriptions) {
-      if (
-        (subscription.kind !== 'fd_read' && subscription.kind !== 'fd_write') ||
-        subscription.handle?.kind !== 'passthrough' ||
-        (
-          (Number(subscription.handle.targetFd) >>> 0) === (Number(subscription.fd) >>> 0) &&
-          !(
-            (Number(subscription.fd) >>> 0) === 0 &&
-            (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC)
-          )
-        )
-      ) {
+      if (subscription.kind !== 'fd_read' && subscription.kind !== 'fd_write') {
+        continue;
+      }
+      const kernelFd = pollKernelFdFor(subscription);
+      if (kernelFd == null) {
         continue;
       }
 
-      const targetFd = Number(subscription.handle.targetFd) >>> 0;
       const responseEntry = responseEntries.find(
-        (entry) => (Number(entry?.fd) >>> 0) === targetFd
+        (entry) => (Number(entry?.fd) >>> 0) === kernelFd
       );
       const revents = Number(responseEntry?.revents) >>> 0;
       const interested =
