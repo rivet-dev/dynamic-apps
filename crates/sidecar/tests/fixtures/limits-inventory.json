@@ -528,6 +528,19 @@
 		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
 	},
 	{
+		"name": "DEFAULT_HEAP_LIMIT_MB",
+		"path": "crates/v8-runtime/src/isolate.rs",
+		"class": "policy",
+		"rationale": "Engine-side default JS heap envelope; an isolate is never created without it (mirrors the sidecar default for the wired limit).",
+		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
+	},
+	{
+		"name": "MAX_V8_USERLAND_CODE_BYTES",
+		"path": "crates/v8-runtime/src/snapshot.rs",
+		"class": "invariant",
+		"rationale": "Hard cap on the userland (agent-SDK) bundle baked into the per-sidecar V8 snapshot; protects snapshot generation memory/time."
+	},
+	{
 		"name": "DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES",
 		"path": "crates/sidecar/src/limits.rs",
 		"class": "policy",
