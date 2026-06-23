@@ -1,3 +1,11 @@
+// `host_dir.rs` is `include!`d below rather than linked from the crate, so its
+// macOS-only `crate::macos_fs::…` references must resolve within this test
+// binary too. Wire the same module in (macOS only; on Linux those references
+// are `#[cfg]`d out and this module is unused).
+#[cfg(target_os = "macos")]
+#[path = "../src/macos_fs.rs"]
+mod macos_fs;
+
 mod host_dir {
     include!("../src/plugins/host_dir.rs");
 

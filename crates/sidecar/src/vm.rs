@@ -1596,6 +1596,17 @@ fn create_vm_shadow_root(vm_id: &str) -> Result<PathBuf, SidecarError> {
     let root = std::env::temp_dir().join(format!("secure-exec-sidecar-shadow-{vm_id}-{nonce}"));
     fs::create_dir_all(&root)
         .map_err(|error| SidecarError::Io(format!("failed to create VM shadow root: {error}")))?;
+    // macOS: `std::env::temp_dir()` lives under `/var/folders/…`, but `/var` is a
+    // symlink to `/private/var`, and macOS fd→path recovery (`fcntl(F_GETPATH)`)
+    // reports the resolved `/private/var/…` form. Canonicalize the shadow root up
+    // front so the stored host-root matches those resolved paths; otherwise the
+    // mapped-runtime confinement prefix checks (`strip_prefix(host_root)`) reject
+    // every child and guest `readdir` of a populated dir returns empty. host_dir
+    // mounts already canonicalize their root for the same reason.
+    #[cfg(target_os = "macos")]
+    let root = fs::canonicalize(&root).map_err(|error| {
+        SidecarError::Io(format!("failed to canonicalize VM shadow root: {error}"))
+    })?;
     bootstrap_shadow_root(&root)?;
     Ok(root)
 }
