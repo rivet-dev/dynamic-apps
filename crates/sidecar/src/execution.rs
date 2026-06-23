@@ -92,7 +92,7 @@ use secure_exec_bridge::LifecycleState;
 use secure_exec_execution::wasm::WasmExecutionError;
 use secure_exec_execution::{
     javascript::handle_internal_bridge_call_from_host_context, v8_host::V8SessionHandle,
-    v8_runtime, CreateJavascriptContextRequest, CreatePythonContextRequest,
+    v8_runtime, DeferredSyncRpcResponder, CreateJavascriptContextRequest, CreatePythonContextRequest,
     CreateWasmContextRequest, GuestRuntimeConfig, JavascriptExecutionEvent,
     JavascriptExecutionLimits, JavascriptSyncRpcRequest, ModuleFsReader,
     NodeSignalDispositionAction, NodeSignalHandlerRegistration, PythonExecutionEvent,
@@ -916,6 +916,11 @@ pub(crate) struct JavascriptSyncRpcServiceRequest<'a, B> {
     pub(crate) sync_request: &'a JavascriptSyncRpcRequest,
     pub(crate) resource_limits: &'a ResourceLimits,
     pub(crate) network_counts: NetworkResourceCounts,
+    /// Pool that completes a deferred `net.poll_wait` off the sync-RPC main thread. `None` disables
+    /// deferral for this dispatch (then it blocks inline).
+    pub(crate) poll_waiter: Option<&'a crate::state::PollWaiterPool>,
+    /// Set when `net.poll_wait` is deferred to the pool; the caller then skips inline delivery.
+    pub(crate) poll_deferred: Option<&'a std::cell::Cell<bool>>,
 }
 
 pub(crate) struct JavascriptNetSyncRpcServiceRequest<'a, B> {
@@ -928,6 +933,12 @@ pub(crate) struct JavascriptNetSyncRpcServiceRequest<'a, B> {
     pub(crate) sync_request: &'a JavascriptSyncRpcRequest,
     pub(crate) resource_limits: &'a ResourceLimits,
     pub(crate) network_counts: NetworkResourceCounts,
+    /// Pool that completes a deferred `net.poll_wait` off the sync-RPC main thread. `None` disables
+    /// deferral for this dispatch (e.g. nested child-process re-dispatch), which then blocks inline.
+    pub(crate) poll_waiter: Option<&'a crate::state::PollWaiterPool>,
+    /// Set by the handler when it defers `net.poll_wait` to the pool; the caller then skips inline
+    /// response delivery (the pool will deliver when readiness advances or the deadline elapses).
+    pub(crate) poll_deferred: Option<&'a std::cell::Cell<bool>>,
 }
 
 struct LoopbackHttpResponseWaitRequest<'a, B> {
@@ -2586,6 +2597,18 @@ impl ActiveExecution {
                 .terminate()
                 .map_err(|error| SidecarError::Execution(error.to_string())),
             Self::Tool(_) => Ok(()),
+        }
+    }
+
+    /// A `Send` handle to complete this execution's sync RPC from another thread, if the runtime
+    /// supports it (JavaScript/WASM, which share the V8 bridge). `None` for runtimes without a
+    /// deferred-completion path (the caller then falls back to blocking inline). Used to finish a
+    /// `net.poll_wait` off the single sync-RPC main thread.
+    pub(crate) fn deferred_sync_rpc_responder(&self) -> Option<DeferredSyncRpcResponder> {
+        match self {
+            Self::Javascript(execution) => Some(execution.deferred_sync_rpc_responder()),
+            Self::Wasm(execution) => Some(execution.deferred_sync_rpc_responder()),
+            _ => None,
         }
     }
 
@@ -6553,6 +6576,9 @@ where
                             sync_request: &request,
                             resource_limits: &resource_limits,
                             network_counts,
+                            // Nested child-process re-dispatch: block net.poll_wait inline (no pool).
+                            poll_waiter: None,
+                            poll_deferred: None,
                         })
                     };
 
@@ -13782,6 +13808,8 @@ where
         sync_request: request,
         resource_limits,
         network_counts,
+        poll_waiter,
+        poll_deferred,
     } = request;
     let __rpc_pid = process.kernel_pid;
     let __rpc_method = request.method.clone();
@@ -13860,6 +13888,8 @@ where
                 sync_request: request,
                 resource_limits,
                 network_counts,
+                poll_waiter,
+                poll_deferred,
             })
         }
         "net.http2_server_listen"
@@ -13930,6 +13960,8 @@ where
                 sync_request: request,
                 resource_limits,
                 network_counts,
+                poll_waiter,
+                poll_deferred,
             })
         }
         "dgram.createSocket"
@@ -16910,6 +16942,9 @@ where
                     sync_request: &request,
                     resource_limits,
                     network_counts,
+                    // HTTP-loopback inline pump: block net.poll_wait inline (no pool).
+                    poll_waiter: None,
+                    poll_deferred: None,
                 });
                 match response {
                     Ok(result) => process
@@ -19632,6 +19667,8 @@ where
         sync_request: request,
         resource_limits,
         network_counts,
+        poll_waiter,
+        poll_deferred,
     } = request;
     match request.method.as_str() {
         "net.http_listen" => {
@@ -20060,13 +20097,21 @@ where
                 None => Ok(Value::Null),
             }
         }
-        // Block until ANY of this process's sockets becomes readable (or the timeout elapses), so a
+        // Wait until ANY of this process's sockets becomes readable (or the timeout elapses), so a
         // guest poll() that found no fd ready waits on all its fds at once instead of round-robin
         // polling each in turn. Args: [lastSeenGeneration, timeoutMs]. Returns the readiness generation
         // observed at return — the guest passes it back as lastSeenGeneration next call so data that
         // arrived between its readiness scan and this wait is never missed (no lost wakeup). The wait is
         // clamped to JAVASCRIPT_NET_POLL_MAX_WAIT so it cannot stall dispose/shutdown and so listener
         // accepts (whose readiness has no reader thread to notify) are still observed within the ceiling.
+        //
+        // CRITICAL for multi-guest throughput: this runs on the sidecar's SINGLE sync-RPC main thread.
+        // Blocking it here serializes EVERY guest's sync RPCs — with a wasm X server + a window manager
+        // + GTK apps in one VM, the X server's and apps' round-trips all queue behind each other's idle
+        // polls, inflating latency until the newest guest starves. So when the wait would actually block
+        // and the runtime can complete a response off-thread, we hand the wait to the PollWaiterPool and
+        // return WITHOUT responding inline: a pool worker blocks on this process's readiness and delivers
+        // the response the instant a reader notifies (or the clamp elapses), freeing the main thread.
         "net.poll_wait" => {
             let last_seen =
                 javascript_sync_rpc_arg_u64_optional(&request.args, 0, "net.poll_wait generation")?
@@ -20075,6 +20120,31 @@ where
                 javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll_wait timeout ms")?
                     .unwrap_or_default();
             let wait = clamp_javascript_net_poll_wait(timeout_ms);
+            // Fast path: zero-wait poll, or readiness already advanced past the guest's scan — answer
+            // inline without involving the pool (no lost wakeup: snapshot is taken under the same lock
+            // that `notify()` advances).
+            let current = process.socket_readiness.snapshot();
+            if wait.is_zero() || current != last_seen {
+                return Ok(json!({ "generation": current }));
+            }
+            // Defer the blocking wait off the main thread, if deferral is enabled for this dispatch
+            // and this runtime can complete a response off-thread.
+            if let (Some(pool), Some(deferred), Some(responder)) = (
+                poll_waiter,
+                poll_deferred,
+                process.execution.deferred_sync_rpc_responder(),
+            ) {
+                pool.register(crate::state::PendingPollWait {
+                    responder,
+                    call_id: request.id,
+                    readiness: std::sync::Arc::clone(&process.socket_readiness),
+                    last_seen,
+                    deadline: std::time::Instant::now() + wait,
+                });
+                deferred.set(true);
+                return Ok(Value::Null);
+            }
+            // Fallback for runtimes without off-thread completion: block inline as before.
             let generation = process.socket_readiness.wait_changed(last_seen, wait);
             Ok(json!({ "generation": generation }))
         }

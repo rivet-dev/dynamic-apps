@@ -14,8 +14,8 @@ use rusqlite::Connection;
 use rustls::{ClientConnection, ServerConnection, StreamOwned};
 use secure_exec_bridge::{BridgeTypes, FilesystemSnapshot};
 use secure_exec_execution::{
-    JavascriptExecution, JavascriptSyncRpcRequest, PythonExecution, PythonVfsRpcRequest,
-    WasmExecution,
+    DeferredSyncRpcResponder, JavascriptExecution, JavascriptSyncRpcRequest, PythonExecution,
+    PythonVfsRpcRequest, WasmExecution,
 };
 use secure_exec_kernel::kernel::{KernelProcessHandle, KernelVm};
 use secure_exec_kernel::mount_table::MountTable;
@@ -420,6 +420,12 @@ impl SocketReadiness {
         }
     }
 
+    /// Non-blocking read of the current readiness generation (e.g. to decide, on the sync-RPC main
+    /// thread, whether a `net.poll_wait` can return immediately or must be deferred to a waiter).
+    pub(crate) fn snapshot(&self) -> u64 {
+        self.generation.lock().map(|g| *g).unwrap_or(0)
+    }
+
     /// Block until the generation differs from `last_seen` or `timeout` elapses; return the generation
     /// observed at return. Returns immediately if it already differs (covers an event delivered between
     /// the caller's scan and this call). Spurious early returns are harmless: the caller rescans.
@@ -435,6 +441,98 @@ impl SocketReadiness {
             Ok((guard, _)) => *guard,
             Err(_) => last_seen,
         }
+    }
+}
+
+/// A deferred `net.poll_wait` whose blocking wait runs on a [`PollWaiterPool`] thread instead of the
+/// sidecar's single sync-RPC main thread.
+pub(crate) struct PendingPollWait {
+    /// Off-thread handle that completes the originating sync RPC for the guest.
+    pub(crate) responder: DeferredSyncRpcResponder,
+    /// The sync-RPC call id to complete.
+    pub(crate) call_id: u64,
+    /// The originating process's socket-readiness signal to wait on.
+    pub(crate) readiness: Arc<SocketReadiness>,
+    /// Generation the guest observed before its readiness scan (lost-wakeup guard).
+    pub(crate) last_seen: u64,
+    /// Hard deadline: complete with the current generation no later than this (the poll clamp).
+    pub(crate) deadline: Instant,
+}
+
+/// Thread pool that owns the *blocking* part of `net.poll_wait`. The sidecar's single sync-RPC main
+/// thread MUST NOT block waiting for a socket to become readable: with several concurrent guests
+/// (e.g. a wasm X server plus a window manager plus GTK apps) that block serializes every guest's
+/// X round-trips and starves the slowest. Instead the main thread registers the wait here, returns
+/// immediately, and a pool worker blocks on the process's [`SocketReadiness`] and delivers the
+/// response off-thread the instant a reader notifies (or the poll deadline elapses). Each blocked
+/// guest needs at most one in-flight poll, so a modest pool covers a desktop; a backed-up queue only
+/// adds bounded latency since every wait is clamped to a few ms.
+pub(crate) struct PollWaiterPool {
+    queue: Arc<PollQueue>,
+}
+
+struct PollQueue {
+    inner: Mutex<VecDeque<PendingPollWait>>,
+    signal: Condvar,
+}
+
+impl PollWaiterPool {
+    pub(crate) fn new(workers: usize) -> Self {
+        let queue = Arc::new(PollQueue {
+            inner: Mutex::new(VecDeque::new()),
+            signal: Condvar::new(),
+        });
+        let workers = workers.max(1);
+        for i in 0..workers {
+            let queue = Arc::clone(&queue);
+            std::thread::Builder::new()
+                .name(format!("se-poll-waiter-{i}"))
+                .spawn(move || poll_waiter_loop(queue))
+                .expect("spawn poll-waiter thread");
+        }
+        Self { queue }
+    }
+
+    /// Default pool size: scale with cores but keep a generous floor so a small VM's X server, WM and
+    /// apps never queue behind one another. Tunable via `SECURE_EXEC_POLL_WAITERS`.
+    pub(crate) fn with_default_size() -> Self {
+        let n = std::env::var("SECURE_EXEC_POLL_WAITERS")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or_else(|| {
+                std::thread::available_parallelism()
+                    .map(|p| p.get().saturating_mul(2))
+                    .unwrap_or(8)
+                    .max(16)
+            });
+        Self::new(n)
+    }
+
+    /// Register a deferred poll; a pool worker will complete it.
+    pub(crate) fn register(&self, wait: PendingPollWait) {
+        let mut q = self.queue.inner.lock().expect("poll-waiter queue poisoned");
+        q.push_back(wait);
+        self.queue.signal.notify_one();
+    }
+}
+
+fn poll_waiter_loop(queue: Arc<PollQueue>) {
+    loop {
+        let wait = {
+            let mut q = queue.inner.lock().expect("poll-waiter queue poisoned");
+            loop {
+                if let Some(w) = q.pop_front() {
+                    break w;
+                }
+                q = queue.signal.wait(q).expect("poll-waiter queue poisoned");
+            }
+        };
+        let remaining = wait.deadline.saturating_duration_since(Instant::now());
+        let generation = wait.readiness.wait_changed(wait.last_seen, remaining);
+        // Best-effort: a torn-down guest just no-ops inside the responder.
+        let _ = wait
+            .responder
+            .respond_success(wait.call_id, serde_json::json!({ "generation": generation }));
     }
 }
 

@@ -834,6 +834,10 @@ pub struct NativeSidecar<B> {
     pub(crate) connections: BTreeMap<String, ConnectionState>,
     pub(crate) sessions: BTreeMap<String, SessionState>,
     pub(crate) vms: BTreeMap<String, VmState>,
+    /// Thread pool that completes blocking `net.poll_wait` calls off the single sync-RPC main thread,
+    /// so concurrent guests (e.g. a wasm X server + WM + GTK apps) don't serialize on each other's
+    /// idle polls. Shared (`Arc`) so the dispatch path can clone a handle past the `&mut self` borrow.
+    pub(crate) poll_waiter: std::sync::Arc<crate::state::PollWaiterPool>,
     #[allow(dead_code)]
     pub(crate) process_event_sender: Sender<ProcessEventEnvelope>,
     pub(crate) process_event_receiver: Option<Receiver<ProcessEventEnvelope>>,
@@ -925,6 +929,7 @@ where
             connections: BTreeMap::new(),
             sessions: BTreeMap::new(),
             vms: BTreeMap::new(),
+            poll_waiter: std::sync::Arc::new(crate::state::PollWaiterPool::with_default_size()),
             process_event_sender,
             process_event_receiver: Some(process_event_receiver),
             pending_process_events: VecDeque::new(),
@@ -1782,6 +1787,13 @@ where
             return Ok(());
         }
 
+        // Off-thread `net.poll_wait` completion: the generic dispatch arm may hand a blocking poll to
+        // the waiter pool and set this flag, in which case the response is delivered later by a pool
+        // worker and we must NOT respond inline below. Clone the pool's Arc up front so the dispatch
+        // arm can borrow it without colliding with the `&mut self.vms` borrow.
+        let poll_deferred = std::cell::Cell::new(false);
+        let poll_waiter = std::sync::Arc::clone(&self.poll_waiter);
+
         let response: Result<Value, SidecarError> = match request.method.as_str() {
             "child_process.spawn" => {
                 let Some(vm) = self.vms.get(vm_id) else {
@@ -2097,9 +2109,17 @@ where
                     sync_request: &request,
                     resource_limits: &resource_limits,
                     network_counts,
+                    poll_waiter: Some(&poll_waiter),
+                    poll_deferred: Some(&poll_deferred),
                 })
             }
         };
+
+        // A deferred `net.poll_wait` will be completed off-thread by the waiter pool; skip inline
+        // response delivery so the call id is answered exactly once.
+        if poll_deferred.get() {
+            return Ok(());
+        }
 
         let Some(vm) = self.vms.get_mut(vm_id) else {
             log_stale_process_event(

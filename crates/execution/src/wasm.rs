@@ -419,6 +419,13 @@ impl WasmExecution {
             .map_err(map_javascript_error)
     }
 
+    /// A `Send` handle to complete a sync RPC for this WASM guest from another thread (see
+    /// [`crate::javascript::JavascriptExecution::deferred_sync_rpc_responder`]). Used by the sidecar
+    /// to finish a blocking `net.poll_wait` off the single sync-RPC main thread.
+    pub fn deferred_sync_rpc_responder(&self) -> crate::javascript::DeferredSyncRpcResponder {
+        self.inner.deferred_sync_rpc_responder()
+    }
+
     pub fn respond_sync_rpc_error(
         &mut self,
         id: u64,

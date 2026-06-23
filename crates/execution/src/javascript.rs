@@ -1528,6 +1528,59 @@ impl JavascriptExecution {
             _ => Ok(PendingSyncRpcResolution::Missing),
         }
     }
+
+    /// A `Send` handle that can deliver this execution's sync-RPC response from ANOTHER thread.
+    ///
+    /// Used by the sidecar to complete a blocking `net.poll_wait` off the single sync-RPC main
+    /// thread: the main thread registers the wait and returns immediately (so it can service other
+    /// guests), and a waiter thread delivers the response here when the socket readiness advances or
+    /// the poll deadline elapses. Cloning is cheap (an `Arc` to the shared V8 runtime + the pending
+    /// state `Arc<Mutex>`), and delivery goes through the same path as `respond_sync_rpc_success`
+    /// (clears the pending tracker, then `send_bridge_response`), so the timeout watchdog and the
+    /// main thread can never double-respond to the same call id.
+    pub fn deferred_sync_rpc_responder(&self) -> DeferredSyncRpcResponder {
+        DeferredSyncRpcResponder {
+            v8_session: self.v8_session.clone(),
+            pending_sync_rpc: Arc::clone(&self.pending_sync_rpc),
+        }
+    }
+}
+
+/// See [`JavascriptExecution::deferred_sync_rpc_responder`]. Holds only `Send`, `Arc`-backed handles
+/// so a sidecar waiter thread can complete a deferred sync RPC without touching the main thread.
+#[derive(Clone)]
+pub struct DeferredSyncRpcResponder {
+    v8_session: V8SessionHandle,
+    pending_sync_rpc: Arc<Mutex<Option<PendingSyncRpcState>>>,
+}
+
+impl DeferredSyncRpcResponder {
+    /// Deliver a success response for `id`. No-ops if the call already resolved (timed out by the
+    /// watchdog, or the request id no longer matches), so it is safe to call exactly once per
+    /// deferred poll even if the process is racing teardown.
+    pub fn respond_success(&self, id: u64, result: Value) -> Result<(), JavascriptExecutionError> {
+        {
+            let mut pending = self.pending_sync_rpc.lock().map_err(|_| {
+                JavascriptExecutionError::RpcResponse(String::from(
+                    "sync RPC pending-request state lock poisoned",
+                ))
+            })?;
+            match *pending {
+                Some(PendingSyncRpcState::Pending(current)) if current == id => {
+                    *pending = None;
+                }
+                // Already timed out or superseded: the bridge response was (or will be) delivered by
+                // the watchdog path; do not send a second response.
+                _ => return Ok(()),
+            }
+        }
+        let payload = translate_legacy_bridge_value_to_v8(&result);
+        let payload = v8_runtime::json_to_cbor_payload(&payload)
+            .map_err(|e| JavascriptExecutionError::RpcResponse(e.to_string()))?;
+        self.v8_session
+            .send_bridge_response(id, 0, payload)
+            .map_err(|e| JavascriptExecutionError::RpcResponse(e.to_string()))
+    }
 }
 
 impl Drop for JavascriptExecution {
