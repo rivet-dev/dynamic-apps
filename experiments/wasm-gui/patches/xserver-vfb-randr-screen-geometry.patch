@@ -1,0 +1,50 @@
+secure-exec: make Xvfb RandR report the -screen geometry, not the 1280x1024 default
+
+third_party/xserver/ is large and not tracked in VCS (it is fetched/reconstructed
+out of band), so the secure-exec X-server source patches live as patch files here.
+
+Bug: `vfbInitializeScreenInfo()` copies `defaultScreenInfo` (1280x1024) and seeds the
+RandR CRTC geometry from those defaults BEFORE `-screen WxHxD` is parsed. The parse
+(`ddxProcessArgument`) then updates only `vfbScreens[n].width/height`, so the core
+screen and the framebuffer use the configured size, but `crtcs[].width/height` keep
+the 1280x1024 default. `vfbRandRInit()` builds the RandR mode/output/CRTC from those
+stale CRTC dims, so XRRGetScreenResourcesCurrent / XRRGetMonitors report 1280x1024.
+
+Impact: RandR-aware clients (GTK's GdkMonitor geometry, lxpanel's percent-width /
+strut panels) size themselves to the phantom 1024 dimension. On a 640x480 screen the
+LXDE panel was laid out 26x1024 and painted entirely off the visible area => black
+screen. With the fix the panel is sized to the real screen and renders.
+
+Fix: after the `-screen` sscanf, drive the CRTC geometry from the parsed screen size
+so RandR is consistent with the core protocol and the framebuffer.
+
+After applying, rebuild + re-apply wasm-opt --fpcast-emu (scripts/link-xvfb.sh now
+does this automatically):
+    scripts/link-xvfb.sh
+
+--- a/hw/vfb/InitOutput.c
++++ b/hw/vfb/InitOutput.c
+@@ -353,6 +353,22 @@ ddxProcessArgument(int argc, char *argv[], int i)
+             FatalError("Invalid screen configuration %s for -screen %d\n",
+                        argv[i + 2], screenNum);
+         }
+
++        /* The RandR CRTCs were initialized from the 1280x1024 default in
++         * vfbInitializeScreenInfo() BEFORE this -screen parse. The core screen and framebuffer now
++         * use the configured WxH, but the CRTC/output geometry is still the stale default, so RandR
++         * (XRRGetScreenResourcesCurrent / XRRGetMonitors) reports 1280x1024. RandR-aware clients
++         * (GTK monitor geometry, lxpanel struts/percent-width panels) then mis-size to that phantom
++         * resolution. Drive the CRTC geometry from the configured screen so RandR is consistent. */
++        {
++            int crtcIndex;
++            for (crtcIndex = 0; crtcIndex < vfbScreens[screenNum].numCrtcs; ++crtcIndex) {
++                vfbScreens[screenNum].crtcs[crtcIndex].width =
++                    vfbScreens[screenNum].width;
++                vfbScreens[screenNum].crtcs[crtcIndex].height =
++                    vfbScreens[screenNum].height;
++            }
++        }
++
+         lastScreen = screenNum;
+         return 3;
+     }
