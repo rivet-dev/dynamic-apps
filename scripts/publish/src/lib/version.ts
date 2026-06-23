@@ -162,7 +162,7 @@ export async function bumpCargoVersions(
 	// the old `^0.3.0-rc.1` while the crate itself moved to the preview version,
 	// which fails cargo resolution ("failed to select a version for `vfs`").
 	next = next.replace(
-		/^([a-zA-Z0-9_-]+ = \{ path = "[^"]+", version = ")[^"]+(" \})/gm,
+		/^([a-zA-Z0-9_-]+ = \{ [^}\n]*path = "[^"]+", [^}\n]*version = ")[^"]+("[^}\n]*\})/gm,
 		`$1${version}$2`,
 	);
 
