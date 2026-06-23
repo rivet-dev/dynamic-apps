@@ -620,7 +620,17 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
 - **M8.0 — GTK3 app spike. ✅ DONE (2026-06-22).** `gtk-hello` renders a live GTK 3 window with widgets
   on the wasm X server (proof above). This is the "spike first" step; it is NOT M8 acceptance.
 
-- **M8.1 — Out-of-band debugging toolchain. 🟡 core deliverable DONE; rest build-on-demand.** The only
+- **M8.1 — Out-of-band debugging toolchain. 🟢 tools #1-#3 BUILT (2026-06-22).** Tool #1 (verdict) +
+  tool #2 (X11 wire tap + `scripts/xdecode.py`, `SECURE_EXEC_XTRACE`) + tool #3 (wasm-frame symbolizer:
+  `SetJitCodeEventHandler` via the pure-C mangled symbol in `librusty_v8.a` + a conservative stack scan
+  in the stackdump interrupt, naming the live wasm/JS call chain of a *livelocked* guest without a V8
+  HandleScope) are all committed in `crates/v8-runtime/src/isolate.rs` + `crates/sidecar/src/execution.rs`.
+  Together they cracked the M8.4 render diagnosis end-to-end (see M8.4). The re-scope note below
+  (predicting names already survive) was WRONG: `--fpcast-emu` + `wasm-opt -Oz` erase the C name section
+  (only `byn$fpcast` thunks keep names), which is exactly why tool #3 was needed; tool #3 sidesteps that by
+  using V8's own JIT names (`wasm-function[N]-N-liftoff`). Original notes retained below for history.
+
+- **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
   host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —
   the per-thread **deadlock-vs-livelock verdict** on `SECURE_EXEC_STACKDUMP` (`classify_stack` in
