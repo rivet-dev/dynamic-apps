@@ -1824,6 +1824,18 @@ impl ActiveUnixSocket {
     }
 
     fn poll(&mut self, wait: Duration) -> Result<Option<JavascriptTcpSocketEvent>, SidecarError> {
+        // Always check for an already-queued event first. `recv_timeout(Duration::ZERO)` can return
+        // `Timeout` while a message is pending (it compares the deadline before draining), so a guest
+        // non-blocking drain (`net.poll(fd, 0)`) could MISS a delivered request and park — the cross-VM
+        // poll stall this fixes. For wait>0 this also returns ready data without sleeping.
+        match self.events.try_recv() {
+            Ok(event) => return Ok(Some(event)),
+            Err(mpsc::TryRecvError::Disconnected) => return Ok(None),
+            Err(mpsc::TryRecvError::Empty) => {}
+        }
+        if wait.is_zero() {
+            return Ok(None);
+        }
         match self.events.recv_timeout(wait) {
             Ok(event) => Ok(Some(event)),
             Err(RecvTimeoutError::Timeout) => Ok(None),
@@ -12495,15 +12507,21 @@ fn spawn_tls_socket_reader(
 }
 
 // Tool #2: X11-wire tap. When SECURE_EXEC_XTRACE is set, dump a unix socket's bytes as
-// `[xtrace] <dir> <path> len=<n> <hex...>` (first 48 bytes — enough for the X11 opcode/sequence/length
-// header). Decode offline with experiments/wasm-gui/scripts/xdecode.py. Zero cost when unset.
+// `[xtrace] <dir> <path> len=<n> <hex...>`. Decode offline with experiments/wasm-gui/scripts/xdecode.py
+// (per-chunk headers) or scripts/xreassemble.py (full request/reply stream). Zero cost when unset.
+// SECURE_EXEC_XTRACE=<n> caps the hex per payload at n bytes (default 256, enough for the X11 header);
+// set it large (e.g. 65536) to capture full requests for xreassemble.py.
 fn xtrace_dump(path: Option<&str>, dir: &str, bytes: &[u8]) {
-    if bytes.is_empty() || std::env::var("SECURE_EXEC_XTRACE").is_err() {
+    let Ok(setting) = std::env::var("SECURE_EXEC_XTRACE") else {
+        return;
+    };
+    if bytes.is_empty() {
         return;
     }
+    let cap: usize = setting.parse().ok().filter(|&n| n > 0).unwrap_or(256);
     let head: String = bytes
         .iter()
-        .take(256)
+        .take(cap)
         .map(|b| format!("{b:02x}"))
         .collect::<Vec<_>>()
         .join("");
