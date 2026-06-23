@@ -843,12 +843,36 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   pending for a polished listing. Acceptance (window showing a real VFS directory listing) is **not yet
   met** — gated on the threaded-job fix.
 
-- **M8.6 — LXDE session integration (= M8 ACCEPTANCE). ⬜** Bring up the full shell together via a
-  minimal session launcher (`lxsession`, or a hand-written launcher if lxsession's dbus/autostart proves
-  heavy): `openbox` + `lxpanel` + `pcmanfm` (desktop) running as one coherent, live, interactive LXDE
-  desktop. Acceptance (the spec's M8 bar): the named DE's shell — panel + menu + file manager — live +
-  interactive, with an automated end-to-end test (`scripts/test-m8-lxde.sh`) and a manual example +
-  screenshot. Only when M8.6 is green is **M8 done**.
+- **M8.6 — LXDE session integration (= M8 ACCEPTANCE). 🟡 SUBSTANTIAL PROGRESS; NOT GREEN (2026-06-23).**
+  Bring up the full shell together via a hand-written session launcher (the host's concurrent-guest runner
+  already sequences clients like a session manager): `openbox` + `lxpanel` + `pcmanfm` against one Xvfb.
+  Harness `scripts/test-m8-lxde.sh` (`WM=`, `APPS=`, `APP_SETTLE_MS=`, `WM_SETTLE_QUIET_MS=`); analyzer
+  `scripts/xwd-analyze.py`. Proofs in `~/tmp/gui-progress/proof-m8.6-*`.
+  - **What works (all wasm; openbox = the real LXDE WM):** openbox **manages + decorates** real GTK app
+    windows — `proof-m8.6-openbox-pcmanfm-decorated.real.png` shows pcmanfm in a Clearlooks-decorated
+    window (title bar + folder icon + min/max/close), folder loaded. `lxpanel` **renders the bottom
+    panel + a live clock** under openbox (`proof-m8.6-openbox-lxpanel-panel.real.png`). openbox + a light
+    X client (xclock) fully renders. The hard WM-coexistence problems are solved.
+  - **Platform fixes en route (constraint #5 clean, no DE source patched):** (1) lxpanel wasm **8MB
+    stack** (default stack overflows under the WM's deeper event call chain → "memory access out of
+    bounds"); (2) **`GDK_CORE_DEVICE_EVENTS=1`** (Xvfb XI2 enumerates NULL master/slave devices; once a
+    WM sends focus/crossing events GDK derefs the NULL device → wasm trap — force GDK's core seat, the
+    honest single-XTEST-seat model); (3) host **settle-gated launch** (gate each client on the previous
+    having truly gone quiet/idle, not a fixed/short delay — a heavyweight WM inits slowly under
+    contention and must select SubstructureRedirect before the app maps); (4) removed all debug
+    instrumentation from openbox/gtk3/lxpanel + fixed an instrumentation-introduced bug in openbox
+    `obt/paths.c` `find_uid_gid` (a debug `getgrent()` consumed the first `/etc/group` entry).
+  - **Remaining blocker (= this spec's own M8.6 platform item — "concurrent-guest net.poll scheduling"):**
+    the runtime's concurrent-guest scheduling. (a) **4 concurrent heavy V8 guests** (Xvfb + openbox +
+    lxpanel + pcmanfm): the 4th (pcmanfm) is starved at init and never paints; the ceiling is 3 heavy
+    guests (Xvfb + WM + one GTK app). (b) Under the WM's hot event stream, pcmanfm's file-VIEW interior
+    doesn't repaint (the M8.5 idle-starvation, exacerbated: dir-list completes but the view-populate idle
+    is starved by the perpetually-ready GDK X11 event source, kept hot by openbox's focus/property
+    events) — window + decoration render, interior stays black.
+  - **Acceptance (unchanged, still required for M8 green):** the named DE's shell — panel + menu + file
+    manager — live + interactive together, automated `scripts/test-m8-lxde.sh` + screenshot. Closing it
+    needs the runtime concurrent-guest scheduling work (fair scheduling / per-guest parallelism), a
+    core/TCB change to validate against the M7.5 thread suite. Only when M8.6 is green is **M8 done**.
 
 ### M8 — overriding constraint #5: UNMODIFIED upstream; fix in the native/platform layer
 

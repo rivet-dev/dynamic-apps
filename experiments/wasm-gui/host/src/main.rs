@@ -866,7 +866,14 @@ async fn run_xdemo(
     // finished initializing and is idle in its event loop. We launch the NEXT client only then, so
     // heavy libX11 startups never contend on the sidecar's single sync-RPC thread. Event-driven,
     // not a fixed sleep (this mirrors a session manager waiting for the WM before starting apps).
-    let settle = std::time::Duration::from_millis(1500);
+    // Default raised from 1.5s: a heavy GTK app (lxpanel/pcmanfm) initializes SLOWLY under
+    // concurrent-guest contention and emits sporadic output with multi-second gaps, so a short
+    // settle window is fooled into launching the next app mid-init (then all of them contend and
+    // none renders). Require a long sustained quiet so the previous app has truly finished and gone
+    // idle in its event loop before the next launches. Env-tunable (APP_SETTLE_MS).
+    let settle = std::time::Duration::from_millis(
+        std::env::var("APP_SETTLE_MS").ok().and_then(|v| v.parse().ok()).unwrap_or(9000),
+    );
     let min_after_launch = std::time::Duration::from_millis(800);
     loop {
         let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
@@ -876,13 +883,30 @@ async fn run_xdemo(
         // Launch the next client once the previous one is ready. The first client is the window
         // manager: gate apps on it being fully up (its "WM ready" signal, or a generous fallback),
         // not just a quiet pause — twm has quiet stretches mid-init while awaiting X replies.
-        if server_ready
-            && launched > 0
-            && !wm_ready
-            && tokio::time::Instant::now().duration_since(last_launch)
-                >= std::time::Duration::from_secs(12)
-        {
-            wm_ready = true; // fallback: assume the WM is up if it has run a while
+        if server_ready && launched == 1 && !wm_ready {
+            // A heavyweight WM (openbox) inits slowly under concurrent-guest contention: libxml2
+            // rc.xml/theme parsing plus hundreds of X round-trips. If we launch the app at a fixed
+            // mid-init moment, the app's own heavy init contends with the WM's, neither settles, and
+            // the WM never selects SubstructureRedirect in time to manage the app's window. So gate
+            // the app on the WM having SETTLED — run a bit AND gone quiet (idle in its event loop,
+            // redirect active) — with a generous hard cap as a safety net. (openbox prints no
+            // "handleevents"-style ready marker, so detect readiness by quiescence.)
+            // The WM's init output is itself starved/slow under contention, so a short quiet window
+            // can be fooled by the gaps between its progress messages. Require a long sustained quiet
+            // (it has truly stopped initializing and is idle in its event loop). Env-tunable.
+            let quiet_ms: u64 = std::env::var("WM_SETTLE_QUIET_MS")
+                .ok().and_then(|v| v.parse().ok()).unwrap_or(9000);
+            let cap_s: u64 = std::env::var("WM_SETTLE_CAP_S")
+                .ok().and_then(|v| v.parse().ok()).unwrap_or(120);
+            let now = tokio::time::Instant::now();
+            let ran = now.duration_since(last_launch);
+            let quiet = now.duration_since(last_activity);
+            if (ran >= std::time::Duration::from_secs(4)
+                && quiet >= std::time::Duration::from_millis(quiet_ms))
+                || ran >= std::time::Duration::from_secs(cap_s)
+            {
+                wm_ready = true;
+            }
         }
         // M2.3 concurrency mode: once the server is up, launch ALL clients back-to-back without the
         // settle/WM gating, to exercise concurrent libX11 init over the sync-RPC bridge.
@@ -898,6 +922,15 @@ async fn run_xdemo(
                 // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
                 // places side pane. The sandbox has no removable drives, so use the null monitor.
                 cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
+                // Force GDK's CORE device manager (Virtual core pointer/keyboard) instead of XI2.
+                // Xvfb.wasm advertises XInputExtension but its XI2 device enumeration yields broken
+                // master/slave associations, so GDK's XI2 manager builds NULL GdkDevices. Standalone
+                // those are only non-fatal "GDK_IS_DEVICE" criticals, but once a WM (openbox) sends
+                // the window focus/crossing events, GDK dereferences the NULL device -> wasm trap
+                // (memory access out of bounds). The sandbox has a single synthetic XTEST seat, so the
+                // core pointer/keyboard model is the honest one. (Standard GDK knob; constraint #5
+                // runtime config, like GIO_USE_VOLUME_MONITOR above.)
+                cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }
@@ -927,6 +960,15 @@ async fn run_xdemo(
                 // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
                 // places side pane. The sandbox has no removable drives, so use the null monitor.
                 cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
+                // Force GDK's CORE device manager (Virtual core pointer/keyboard) instead of XI2.
+                // Xvfb.wasm advertises XInputExtension but its XI2 device enumeration yields broken
+                // master/slave associations, so GDK's XI2 manager builds NULL GdkDevices. Standalone
+                // those are only non-fatal "GDK_IS_DEVICE" criticals, but once a WM (openbox) sends
+                // the window focus/crossing events, GDK dereferences the NULL device -> wasm trap
+                // (memory access out of bounds). The sandbox has a single synthetic XTEST seat, so the
+                // core pointer/keyboard model is the honest one. (Standard GDK knob; constraint #5
+                // runtime config, like GIO_USE_VOLUME_MONITOR above.)
+                cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }

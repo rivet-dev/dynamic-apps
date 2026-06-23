@@ -15,7 +15,12 @@ XML2=$(find /nix/store -maxdepth 3 -name "libxml2.so.2" 2>/dev/null | head -1)
 [ -n "$XML2" ] && export LD_LIBRARY_PATH="$(dirname "$XML2"):${LD_LIBRARY_PATH:-}"
 WASMSUB="wasm32-wasip1-threads"
 SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"; LIBC="$THREADS_SYSROOT/lib/$WASMSUB/libc.a"
-CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined"
+# Bump the wasm main stack to 8MB (same as pcmanfm). lxpanel's default-stack budget barely fits its
+# panel construction standalone, but under a running WM (openbox) the deeper event-handling call chain
+# (the WM reparent/manage dance + gtk_widget_show_all over the panel tree, processed while mapping)
+# overflows the small default wasm stack -> "RuntimeError: memory access out of bounds". Constraint #5
+# build-time flag, not a source change.
+CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608"
 cs() { cp "$TP/libX11-threads/config.sub" "$TP/libX11-threads/config.guess" "$TP/$1/" 2>/dev/null; }
 
 # libfm + libhostcompat must already exist (build-libfm.sh)
