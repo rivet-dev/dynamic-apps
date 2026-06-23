@@ -411,6 +411,7 @@ jobs:
             node packages/build-tools/scripts/build-v8-bridge.mjs --out-dir "$out"
           done
           git add -f crates/execution/assets/generated crates/v8-runtime/assets/generated
+          mkdir -p crates/kernel/assets crates/sidecar/assets
           cp packages/core/fixtures/base-filesystem.json crates/kernel/assets/base-filesystem.json
           cp packages/core/fixtures/base-filesystem.json crates/sidecar/assets/base-filesystem.json
       - name: Dry-run crate publish
