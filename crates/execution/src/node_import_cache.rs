@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "84";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "85";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11233,6 +11233,12 @@ const HOST_NET_WASI_SOL_SOCKET = 0x7fffffff;
 const HOST_NET_SO_RCVTIMEO_64 = 20;
 const HOST_NET_SO_RCVTIMEO_32 = 66;
 const HOST_NET_TIMEVAL_BYTES = 16;
+// Benign boolean SOL_SOCKET options the kernel socket table makes irrelevant in the sandbox
+// (real bind/reuse/keepalive are owned by the kernel). Accept them as a no-op rather than EINVAL.
+const HOST_NET_SO_REUSEADDR = 2;
+const HOST_NET_SO_BROADCAST = 6;
+const HOST_NET_SO_KEEPALIVE = 9;
+const HOST_NET_SO_REUSEPORT = 15;
 
 function hostNetSocketBaseType(socket) {
   return Number(socket?.sockType ?? 0) & HOST_NET_SOCKET_TYPE_MASK;
@@ -11247,6 +11253,17 @@ function hostNetSockoptKind(level, optname, optvalLen) {
     normalizedLevel !== HOST_NET_WASI_SOL_SOCKET
   ) {
     return null;
+  }
+  // Benign boolean toggles (4-byte int optval): accept as a no-op. The kernel socket table owns
+  // real bind/reuse/keepalive semantics, so a guest setting SO_REUSEADDR before bind (e.g. pcmanfm's
+  // single-instance socket, which treats a setsockopt failure as fatal) must not see EINVAL.
+  if (
+    normalizedOptname === HOST_NET_SO_REUSEADDR ||
+    normalizedOptname === HOST_NET_SO_REUSEPORT ||
+    normalizedOptname === HOST_NET_SO_KEEPALIVE ||
+    normalizedOptname === HOST_NET_SO_BROADCAST
+  ) {
+    return 'noop';
   }
   if (normalizedOptvalLen !== HOST_NET_TIMEVAL_BYTES) {
     return null;
@@ -12113,6 +12130,9 @@ const hostNetImport = {
     const sockoptKind = hostNetSockoptKind(level, optname, optvalLen);
     if (sockoptKind == null) {
       return WASI_ERRNO_INVAL;
+    }
+    if (sockoptKind === 'noop') {
+      return WASI_ERRNO_SUCCESS;
     }
     try {
       const timeoutMs = parseHostNetTimevalMs(readGuestBytes(optvalPtr, optvalLen));

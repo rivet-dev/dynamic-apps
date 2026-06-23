@@ -761,12 +761,39 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   Secondary, non-blocking: a multi-plugin panel can hit a wasm OOB trap in the first dispatch on some
   plugin combinations (each plugin is fine alone) — a follow-up, not on the render path.
 
-- **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
-  pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
-  subdirectory and back, and (if desktop mode) draws desktop icons on the root window. Test
-  `scripts/test-m8-pcmanfm.sh`, screenshot proof. Mounting/trash/volume features need no work — the
-  empty native volume monitor (M8.3) makes unmodified pcmanfm correctly show no removable media; do not
-  edit pcmanfm or fake devices.
+- **M8.5 — `pcmanfm` (the file manager). 🟡 BUILDS + LAUNCHES + FULL WINDOW CONSTRUCTED; render
+  blocked on the wasm-threads/glib-async job model (2026-06-22).** pcmanfm 1.3.2 cross-compiles from
+  UNMODIFIED upstream (`scripts/build-pcmanfm.sh`, `--with-gtk=3`, standard 2-arg `main` so NO
+  main3arg shim; the link adds gdk-x11's private `-lxcb`/`-lX11-xcb` deps that `--allow-undefined`
+  would otherwise leak as host imports). It reaches `main`, runs `gtk_init` FULLY (cross-VM X
+  round-trips work: `XOpenDisplay`/`XRR*`/`gdk_display_open` all return), passes single-instance init,
+  and **builds its entire main window — `gtk_widget_show_all` over the menubar/toolbar/notebook/
+  statusbar tree completes with no trap (272 X requests exchanged).** Harness `scripts/test-m8-pcmanfm.sh`;
+  progress proof `~/tmp/gui-progress/proof-m8.5-pcmanfm-progress.txt`. **Three real platform-layer fixes
+  this milestone (constraint #5):**
+  1. **WASI sockets** (`crates/execution/src/node_import_cache.rs`): `net_setsockopt` now accepts the
+     benign boolean `SOL_SOCKET` options `SO_REUSEADDR`/`SO_REUSEPORT`/`SO_KEEPALIVE`/`SO_BROADCAST` as
+     a no-op instead of `EINVAL`. pcmanfm's single-instance socket sets `SO_REUSEADDR` before `bind`
+     and treats a `setsockopt` failure as fatal; the kernel socket table owns real bind/reuse, so this
+     is correct sandbox semantics and helps every guest.
+  2. **Toolchain — 8MB wasm stack** (`-Wl,-z,stack-size=8388608` in `build-pcmanfm.sh`): pcmanfm's
+     GtkUIManager menu build + the recursive `gtk_widget_show_all` over the deep window tree overflow
+     the small default wasm stack, surfacing as "memory access out of bounds" inside the show_all
+     vfunc recursion (localized by symbolizing the trap + confirming a flat manual show didn't trap).
+  3. **Demo harness** (`host/src/main.rs`): a wasi worker thread is named `<client>~thread~<id>` which
+     still `starts_with("xclient")`; the host counted such a thread exit (pcmanfm's glib/GIO pool
+     worker) as the client completing and tore down the VM before the main thread rendered. Now excludes
+     `~thread~`.
+  **REMAINING BLOCKER (M8-gating, ties to WASM-THREADS-SPEC):** pcmanfm never reaches `gtk_main`; it
+  blocks during `fm_main_win_add_win` in libfm's async job system. Confirmed from two angles — the
+  side-pane `FmPlacesModel` (`GVolumeMonitor`) load AND (with the side pane disabled via a staged
+  `pcmanfm.conf side_pane_mode=0` fixture) the `FmDirListJob` folder enumeration. Both spawn a glib/GIO
+  worker thread that EXITS while the main thread blocks waiting on it (it never re-enters the
+  `GMainContext` to observe completion). Resolving this needs real wasm-threads completion/wakeup
+  semantics in the runtime, not a pcmanfm/libfm source change. Mounting/trash/volume features need no
+  work (the empty native volume monitor shows no removable media); icon-theme + MIME fixtures are still
+  pending for a polished listing. Acceptance (window showing a real VFS directory listing) is **not yet
+  met** — gated on the threaded-job fix.
 
 - **M8.6 — LXDE session integration (= M8 ACCEPTANCE). ⬜** Bring up the full shell together via a
   minimal session launcher (`lxsession`, or a hand-written launcher if lxsession's dbus/autostart proves

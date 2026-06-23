@@ -963,7 +963,11 @@ async fn run_xdemo(
             }
             Ok(Ok((_, wire::EventPayload::ProcessExitedEvent(e)))) => {
                 eprintln!("\nsecure-exec: {} exited with code {}", e.process_id, e.exit_code);
-                if e.process_id.starts_with("xclient") {
+                // Only count the MAIN client process, never its wasi worker threads. Worker threads
+                // are named "<client>~thread~<id>" (which still starts_with "xclient"), so a glib/GIO
+                // pool thread exiting (e.g. pcmanfm's folder/icon loader) must not be mistaken for the
+                // client completing — doing so tears down the VM before the main thread renders.
+                if e.process_id.starts_with("xclient") && !e.process_id.contains("~thread~") {
                     if e.exit_code == 0 { exited_ok += 1; } else { exited_bad += 1; }
                     if exited_ok + exited_bad >= client_specs.len() {
                         break;
