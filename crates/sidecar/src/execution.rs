@@ -1807,6 +1807,7 @@ impl ActiveUnixSocket {
             Arc::clone(&saw_remote_end),
             Arc::clone(&close_notified),
             readiness,
+            remote_path.clone(),
         );
 
         Ok(Self {
@@ -1838,6 +1839,7 @@ impl ActiveUnixSocket {
     }
 
     fn write_all(&self, contents: &[u8]) -> Result<usize, SidecarError> {
+        xtrace_dump(self.remote_path.as_deref(), "C>S", contents);
         let mut stream = self
             .stream
             .lock()
@@ -12492,6 +12494,26 @@ fn spawn_tls_socket_reader(
     });
 }
 
+// Tool #2: X11-wire tap. When SECURE_EXEC_XTRACE is set, dump a unix socket's bytes as
+// `[xtrace] <dir> <path> len=<n> <hex...>` (first 48 bytes — enough for the X11 opcode/sequence/length
+// header). Decode offline with experiments/wasm-gui/scripts/xdecode.py. Zero cost when unset.
+fn xtrace_dump(path: Option<&str>, dir: &str, bytes: &[u8]) {
+    if bytes.is_empty() || std::env::var("SECURE_EXEC_XTRACE").is_err() {
+        return;
+    }
+    let head: String = bytes
+        .iter()
+        .take(256)
+        .map(|b| format!("{b:02x}"))
+        .collect::<Vec<_>>()
+        .join("");
+    eprintln!(
+        "[xtrace] {dir} {} len={} {head}",
+        path.unwrap_or("?"),
+        bytes.len()
+    );
+}
+
 fn spawn_unix_socket_reader(
     stream: UnixStream,
     sender: Sender<JavascriptTcpSocketEvent>,
@@ -12499,6 +12521,7 @@ fn spawn_unix_socket_reader(
     saw_remote_end: Arc<AtomicBool>,
     close_notified: Arc<AtomicBool>,
     readiness: Arc<crate::state::SocketReadiness>,
+    remote_path: Option<String>,
 ) {
     thread::spawn(move || {
         let mut stream = stream;
@@ -12518,6 +12541,7 @@ fn spawn_unix_socket_reader(
                     break;
                 }
                 Ok(bytes_read) => {
+                    xtrace_dump(remote_path.as_deref(), "S>C", &buffer[..bytes_read]);
                     if sender
                         .send(JavascriptTcpSocketEvent::Data(
                             buffer[..bytes_read].to_vec(),
