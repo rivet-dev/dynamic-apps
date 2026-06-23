@@ -869,10 +869,34 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     doesn't repaint (the M8.5 idle-starvation, exacerbated: dir-list completes but the view-populate idle
     is starved by the perpetually-ready GDK X11 event source, kept hot by openbox's focus/property
     events) — window + decoration render, interior stays black.
+  - **ROOT CAUSE PINNED (2026-06-23):** it is NOT slot starvation — the embedded V8 runtime gives each
+    guest its own execution thread + concurrency slot (`max_concurrency = available_parallelism()` = 20
+    here; `crates/v8-runtime/src/{embedded_runtime,session}.rs`). The bottleneck is that **every** guest's
+    sync-RPC (X round-trips, kernel/socket ops, polls) funnels through ONE sidecar **sync-RPC main thread**:
+    `Service::handle_javascript_sync_rpc_request` runs on `&mut self` (single-threaded), one RPC at a time
+    (`crates/sidecar/src/service.rs:1770,2090`; dispatched from `execution.rs:4346`). `net.poll_wait`
+    **blocks that single thread** up to `JAVASCRIPT_NET_POLL_MAX_WAIT = 3ms` (`execution.rs:19597`,
+    `clamp_javascript_net_poll_wait`). With 4 heavy guests, two idle guests polling every 3ms hold the
+    main thread ~6ms/cycle, and each X round-trip for the active guest (its write → Xvfb's poll-return +
+    read + reply → its poll-return + read — all main-thread RPCs) queues behind those polls, so round-trip
+    latency balloons and the newest guest (pcmanfm) crawls/stalls at init. Confirmed: removing the gtk3/
+    openbox debug `fprintf` spam (each a sync-RPC write) did NOT fix it — it's the main-thread serialization.
+  - **FIX DESIGN (feasible, validated by reading; not yet implemented):** make `net.poll_wait` **non-blocking
+    on the main thread**. Responses are delivered by `request.id` via `process.execution.respond_*` →
+    `V8SessionHandle::send_bridge_response(&self, …)`, and `V8SessionHandle` is `Arc`-cloneable + `Send`
+    (`crates/execution/src/v8_host.rs:104,144`), so completion can happen **out of order, off the main
+    thread**. Plan: on a poll_wait that would block, enqueue `{session_handle.clone(), request.id,
+    Arc<SocketReadiness>, last_seen, deadline}` and return WITHOUT responding; a small **waiter-thread pool**
+    does `socket_readiness.wait_changed(last_seen, deadline)` and delivers the `{generation}` response via
+    the cloned handle. This frees the single main thread from all poll blocks → X round-trips no longer
+    queue behind idle polls. Guards required (TCB hot path): no double-delivery (main thread must skip the
+    response for deferred polls), stale/torn-down process (drop pending polls on exit), lost-wakeup
+    (snapshot generation before enqueue, like `poll_targets`). Validate against the M7.5 wasi-threads
+    conformance + race suite and the existing sidecar tests before landing. (b) above is the M8.5 GDK
+    idle-starvation, separate.
   - **Acceptance (unchanged, still required for M8 green):** the named DE's shell — panel + menu + file
-    manager — live + interactive together, automated `scripts/test-m8-lxde.sh` + screenshot. Closing it
-    needs the runtime concurrent-guest scheduling work (fair scheduling / per-guest parallelism), a
-    core/TCB change to validate against the M7.5 thread suite. Only when M8.6 is green is **M8 done**.
+    manager — live + interactive together, automated `scripts/test-m8-lxde.sh` + screenshot. Only when
+    M8.6 is green is **M8 done**.
 
 ### M8 — overriding constraint #5: UNMODIFIED upstream; fix in the native/platform layer
 
