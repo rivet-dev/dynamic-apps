@@ -20,6 +20,8 @@ TIMEOUT="${TIMEOUT:-25}"
 
 [ -d "$FONTS" ]  || bash "$EXP/scripts/prepare-fonts.sh"  >/dev/null 2>&1 || true
 [ -d "$LOCALE" ] || bash "$EXP/scripts/prepare-locale.sh" "$LOCALE" >/dev/null 2>&1 || true
+# Always regenerate the lxpanel config tree (line-based parser needs one setting per line).
+bash "$EXP/scripts/prepare-lxpanel.sh" "$PANELCFG" >/dev/null 2>&1 || true
 
 HOST="$REPO/target/debug/wasm-gui-host"
 SIDECAR="$REPO/target/debug/secure-exec-sidecar"

@@ -707,8 +707,8 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   path, or pre-bake the cache. The libfm folder/listing path (what pcmanfm needs) is proven. Note: the
   host `--vm-tree` fixture isn't applied in `--exec` mode, so the test lists the base-fs VFS directly.
 
-- **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟡 BUILDS + RUNS gtk_init + CONSTRUCTS ALL PANELS/PLUGINS
-  (2026-06-22); live VISUAL render blocked by the same TCB-gated X-latency starvation as M8.2.** lxpanel
+- **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟢 COMPLETE (2026-06-22): renders a live horizontal
+  bottom panel with a working clock, all wasm in secure-exec.** lxpanel
   0.10.1 cross-compiles from UNMODIFIED upstream (`scripts/build-lxpanel.sh`) with its new deps
   **libXres -> libwnck-3.0** (taskbar/window-list) + **keybinder-3.0** (hotkeys). **Verified live** on the
   wasm X server (Xvfb + openbox + lxpanel, all wasm in the sidecar): reaches `main` (3-arg-main shim),
@@ -734,30 +734,32 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   `-maxdepth 3` (the nix `.so.2` is at depth 3). **KEY SIZE INSIGHT** (now in all build scripts): the
   linked X/glib/gtk libs carry huge DWARF — lxpanel was 44MB (38MB `.debug_*`), which **OOMed the V8
   isolate during compile**; `wasm-opt --strip-debug --strip-dwarf` drops it to ~15MB.
-  **BLOCKED (critical path, TCB-gated):** the live VISUAL panel does not draw. After entering `gtk_main`,
-  the GLib loop's FIRST dispatch of the queued X events (the panel's first draw) does not complete in
-  200s; the framebuffer stays black (cursor only). This is the SAME cross-VM X-latency / poll-scheduling
-  starvation as **M8.2 GTK-client content** (openbox's frame draws; the client interior does not).
-  **TCB cross-VM poll fix (DONE, human sign-off obtained 2026-06-22):** implemented a proper
-  wake-on-ANY-socket primitive — `net.poll_wait` + a per-process `SocketReadiness` condvar (reader
-  threads `notify()` on data; the guest `net_poll` drains non-blocking then blocks once on
-  `net.poll_wait` instead of round-robin-blocking each fd). Verified the early-wake fires when data
-  flows; `socket_state_queries` green; no conformance regression (the `extended_builtin_polyfills`
-  `os.totalmem` flake reproduces on the parent without these changes). Commit: `feat(net): cross-VM
-  wake-on-any-socket poll`.
-  **STILL BLOCKED — the real cause is NOT poll efficiency.** With the fix, lxpanel still reaches
-  `gtk_main` + constructs the full panel but the first GLib dispatch (the panel's first draw) does not
-  complete. Stackdump at the stall: **3 guest VM threads RUNNING (spinning IN WASM) across all sample
-  rounds** + 1 parked worker — the guests spin inside the GTK/cairo/Xlib **first-draw dispatch**, NOT in
-  the poll path (so `net.poll_wait`'s early-wake never engages). Empirically the draw stall is
-  independent of poll ceiling (1ms-3ms reach `gtk_main`; 50ms is too slow to finish init; none finish the
-  draw). Proof `~/tmp/gui-progress/proof-m8.4-stackdump-livelock.txt` + `proof-m8.4-lxpanel-gtkinit.txt`.
-  **NEXT:** build **tool #3** (a wasm-level stack symbolizer / JS-stack-capable stackdump) to NAME the
-  wasm function the 3 guests spin in during the first GTK draw — tool #1 captures only native V8 frames
-  (`HandleInterrupts -> CEntry -> wasm`), enough to classify RUNNING/PARKED but not to name the spin.
-  Secondary, non-blocking: a multi-plugin panel (all 5 together) additionally hits a wasm "memory access
-  out of bounds" trap in the first dispatch (layout/combination effect; each plugin is fine alone) — moot
-  until the draw livelock is resolved.
+  **RENDER — RESOLVED (2026-06-22).** The black screen was NOT a poll/X-latency problem (the earlier
+  "draw livelock" / "request-length desync" diagnoses were both wrong — the X wire is byte-clean, every
+  reply is delivered, the window is created AND mapped, and GTK's full layout+paint pipeline runs:
+  `size_allocate -> request_phase -> XMapWindow -> queue_draw_region -> paint_idle FIRES`). Two real
+  bugs, both fixed:
+  1. **Xvfb RandR reported a phantom 1280x1024** (`patches/xserver-vfb-randr-screen-geometry.patch`):
+     `hw/vfb/InitOutput.c` seeded the RandR CRTC geometry from the 1280x1024 `defaultScreenInfo` BEFORE
+     `-screen 640x480` was parsed, and the parse updated `screen->width/height` (so the core screen +
+     framebuffer were correct) but never `crtcs[].width/height`. `vfbRandRInit` built the RandR
+     mode/output from the stale CRTCs, so `XRRGetMonitors` returned 1024. GTK's `GdkMonitor` read that
+     and lxpanel sized its percent-width panel to 26x1024, painting entirely off the 640x480 area ->
+     black. Fix: drive the CRTC geometry from the parsed `-screen` size.
+  2. **The panel config was a single-line `Global { ... }` block** which lxpanel's LINE-BASED parser
+     read only partially (leaving edge/widthtype/height at defaults -> a 26x480 vertical right-edge
+     strip). `scripts/prepare-lxpanel.sh` now emits one setting per line, so `edge=bottom width=100%
+     height=26` is honored -> a 640x26 horizontal bottom panel.
+  **RESULT (clean build, components from UNMODIFIED upstream + only the sanctioned RandR patch):** the
+  panel `size_allocate`s to 640x26+0+0, renders at the bottom edge (framebuffer rows 454..479, full
+  width), and the `dclock` plugin shows a LIVE clock. Harness `scripts/test-m8-lxpanel.sh`; proof
+  `~/tmp/gui-progress/proof-m8.4-lxpanel-renders.png` (+ legible `proof-m8.4-lxpanel-clock.png`).
+  **Debug toolchain built en route (M8.1):** the X11 wire tap + drain-side xtrace (delivered-vs-drained
+  byte balance), the wasm-frame symbolizer, the server request-reader trace, and the GTK-paint-pipeline
+  trace — these localized the bug to the RandR geometry. Net poll fix (`net.poll_wait`) from the earlier
+  (mis-)diagnosis is retained as a genuine cross-VM efficiency improvement (human sign-off obtained).
+  Secondary, non-blocking: a multi-plugin panel can hit a wasm OOB trap in the first dispatch on some
+  plugin combinations (each plugin is fine alone) — a follow-up, not on the render path.
 
 - **M8.5 — `pcmanfm` (the file manager). ⬜** Cross-compile pcmanfm (GTK3) on top of M8.3. Acceptance:
   pcmanfm opens a window showing a **real directory listing of the kernel VFS**, navigates into a
