@@ -70,6 +70,18 @@ new = ("    {\n"
 if old in s and "g_main_context_is_owner" not in s:
     open(f, "w").write(s.replace(old, new, 1)); print("patched fm-utils.c (inline-run guard)")
 PY
+  # fm-job.c: post the job-cleanup idle at G_PRIORITY_DEFAULT (not the default G_PRIORITY_DEFAULT_IDLE).
+  # The GTK/GDK X11 event source stays perpetually ready in the headless wasm X setup (stray core focus
+  # events it can't fully drain), which would STARVE the lower-priority idle so async job completion
+  # (a folder's finish-loading -> the file view populating) never dispatches.
+  python3 - "$TP/libfm-threads/src/job/fm-job.c" <<'PY'
+import sys
+f = sys.argv[1]; s = open(f).read()
+old = "        idle_handler = g_idle_add(on_idle_cleanup, NULL);"
+new = "        idle_handler = g_idle_add_full(G_PRIORITY_DEFAULT, on_idle_cleanup, NULL, NULL);"
+if old in s:
+    open(f, "w").write(s.replace(old, new, 1)); print("patched fm-job.c (idle cleanup priority)")
+PY
   cfg libfm-threads --with-extra-only
   ( cd "$TP/libfm-threads" && export LDFLAGS="$LDFLAGS $LDADD_HOST" && make -j4 && make install ) >/tmp/make-libfmextra.log 2>&1 \
     && echo "  OK libfm-extra" || { echo "  FAIL libfm-extra"; exit 1; }
