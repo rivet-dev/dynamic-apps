@@ -18,8 +18,10 @@ FB="${FB:-$HOME/tmp/gui-progress/proof-m8.5-pcmanfm-lists-vfs.png}"
 XTRACE_LOG="${XTRACE_LOG:-/tmp/pcmanfm-xtrace.log}"
 TIMEOUT="${TIMEOUT:-30}"
 
+ICONS="${VMICONS:-/tmp/vmicons}"
 [ -d "$FONTS" ]  || bash "$EXP/scripts/prepare-fonts.sh"  >/dev/null 2>&1 || true
 [ -d "$LOCALE" ] || bash "$EXP/scripts/prepare-locale.sh" "$LOCALE" >/dev/null 2>&1 || true
+[ -d "$ICONS" ]  || bash "$EXP/scripts/prepare-icons.sh" "$ICONS" >/dev/null 2>&1 || true
 
 HOST="$REPO/target/debug/wasm-gui-host"
 SIDECAR="$REPO/target/debug/secure-exec-sidecar"
@@ -39,9 +41,10 @@ fi
 
 VMTREES=()
 [ -d "$XFT" ] && VMTREES+=(--vm-tree "$XFT")
+[ -d "$ICONS" ] && VMTREES+=(--vm-tree "$ICONS")
 
 echo "running pcmanfm (dir=$PCMANFM_DIR WITH_WM=${WITH_WM:-0}) -> fb=$FB  log=$OUT"
-env -u DISPLAY SECURE_EXEC_XTRACE=2000000 \
+env -u DISPLAY SECURE_EXEC_XTRACE="${SECURE_EXEC_XTRACE:-20000000}" \
   ${SECURE_EXEC_STACKDUMP_AFTER_MS:+SECURE_EXEC_STACKDUMP_AFTER_MS=$SECURE_EXEC_STACKDUMP_AFTER_MS} \
   "$HOST" --xdemo \
   --server "$EXP/Xvfb.wasm" \

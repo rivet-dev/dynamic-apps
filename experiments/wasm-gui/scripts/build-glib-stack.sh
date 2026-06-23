@@ -83,17 +83,18 @@ new = ("#ifndef __wasi__\n"
        "#endif /* wasi sockaddr_in has no sin_zero padding member */")
 if old in s and new not in s:
     open(f, "w").write(s.replace(old, new, 1)); print("patched ginetsocketaddress.c (sin_zero)")
-# GLib gwakeup.c: wasi has no eventfd/pipe for a cross-thread wakeup and the sandbox is single-threaded,
-# so the main loop is only woken by its own X-socket/timer poll. Use inert (-1) fds (poll ignores them;
-# signal/acknowledge already no-op on -1). Without this, g_wakeup_new aborts ("GWakeup: Bad file descriptor").
-gw = "glib/gwakeup.c"; gs = open(gw).read()
-gwa = "  wakeup = g_slice_new (GWakeup);\n\n  /* try eventfd first, if we think we can */"
-gwn = ("  wakeup = g_slice_new (GWakeup);\n\n"
-       "#ifdef __wasi__\n"
-       "  wakeup->fds[0] = -1;\n  wakeup->fds[1] = -1;\n  return wakeup;\n"
-       "#endif\n\n  /* try eventfd first, if we think we can */")
-if "__wasi__" not in gs and gwa in gs:
-    open(gw, "w").write(gs.replace(gwa, gwn, 1)); print("patched gwakeup.c (wasi inert wakeup)")
+# GLib gwakeup.c: stays PRISTINE upstream. The wasi-threads runtime backs pipe() with a REAL kernel
+# pipe (shared via the per-kernel_pid fd table), so GWakeup's cross-thread wakeup works for real. (The
+# old "inert -1 fds" patch was removed: it broke cross-thread g_main_context_invoke / GTK async jobs.)
+# GIO gunixvolumemonitor.c: WASI has no real unix mount / removable-volume model, and constructing the
+# native monitor pulls in g_unix_mount_monitor_get() -> g_context_specific_group worker-context wait
+# that hangs in the single-process sandbox. Report unsupported so the union monitor uses the null
+# monitor (empty volume/mount list, which is exactly what the sandbox wants).
+gv = "gio/gunixvolumemonitor.c"; vs = open(gv).read()
+vo = "static gboolean\nis_supported (void)\n{\n  return TRUE;\n}"
+vn = ("static gboolean\nis_supported (void)\n{\n#ifdef __wasi__\n  return FALSE;\n#else\n  return TRUE;\n#endif\n}")
+if vo in vs:
+    open(gv, "w").write(vs.replace(vo, vn, 1)); print("patched gunixvolumemonitor.c (wasi is_supported=FALSE)")
 # GIO gunixmounts.c: wasi has no mount table / fstab — add __wasi__ stub branches before the #error.
 g = "gio/gunixmounts.c"; t = open(g).read(); n = 0
 b1o = "/* Common code {{{2 */\n#else\n#error No _g_get_unix_mounts() implementation for system"

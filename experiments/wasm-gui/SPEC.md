@@ -761,8 +761,43 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   Secondary, non-blocking: a multi-plugin panel can hit a wasm OOB trap in the first dispatch on some
   plugin combinations (each plugin is fine alone) — a follow-up, not on the render path.
 
-- **M8.5 — `pcmanfm` (the file manager). 🟡 BUILDS + LAUNCHES + FULL WINDOW CONSTRUCTED; render
-  blocked on the wasm-threads/glib-async job model (2026-06-22).** pcmanfm 1.3.2 cross-compiles from
+- **M8.5 — `pcmanfm` (the file manager). 🟢 WINDOW RENDERS — real LXDE file manager drawing its full
+  UI (menu bar, toolbar, `/usr/share` path bar, Places side pane with Home Folder), all wasm in
+  secure-exec (2026-06-23).** Proof: `~/tmp/gui-progress/proof-m8.5-pcmanfm-WINDOW-RENDERS.png`
+  (framebuffer 307009/307200 px non-black). Reaching a rendered window required clearing a CHAIN of
+  cross-thread/GIO deadlocks (each found via temporary `fprintf` instrumentation, then reverted):
+  (1) the committed **wasm-threads GWakeup** kernel-pipe fix (the M8-gating blocker); (2) **libfm
+  `fm_run_in_default_main_context`** inline-run guard for the GLIB>=2.32 path (deadlocked on the main
+  thread pre-`gtk_main`) — persisted via `build-libfm.sh`; (3) staging the **Adwaita icon theme** into
+  the VFS (`scripts/prepare-icons.sh` + `--vm-tree`; gdk-pixbuf already builds `-Dbuiltin_loaders=png`);
+  (4) **GUnixVolumeMonitor**: `g_volume_monitor_get()` constructs the native unix monitor whose
+  `g_unix_mount_monitor_get()` queues onto the GLib worker context + `g_cond_wait`s, and the
+  worker-context wakeup (main->worker) doesn't fire -> `is_supported()=FALSE` on `__wasi__` so the
+  union monitor uses the null monitor (no mounts in the sandbox), persisted via `build-glib-stack.sh`
+  + host `GIO_USE_VOLUME_MONITOR=null`. **Remaining (not blocking the window):** folder-view file
+  entries not yet populated; GDK input device/seat (`GDK_IS_DEVICE` criticals); and the deeper
+  constraint-#5 fix for (4) = the runtime GIO worker-context wakeup (the `gmain` worker blocks in
+  `g_main_context_iteration` before polling its wakeup fd), which would let UNMODIFIED glib work.
+  --- (earlier sub-status, superseded:) THREADING BLOCKER FIXED; built widget tree (122 CreateWindow): The wasm-threads/glib-async job blocker is RESOLVED: it was glib's **GWakeup**
+  patched inert under `#ifdef __wasi__` (false "single-threaded" premise), so a worker's
+  `g_main_context_invoke` could not wake the main loop's blocked `poll()` (the FmDirListJob/
+  FmPlacesModel "async job never completes" hang). Fix = back the guest `pipe()` with a REAL kernel
+  pipe (shared via the per-`kernel_pid` fd table; its write notifies the kernel poll notifier so a
+  cross-thread `__kernel_poll` wakes), range-encoded so every worker isolate resolves the same pipe.
+  New sidecar `__kernel_pipe`/`__kernel_fd_read|write|close` sync-RPCs + runner kernel-pipe fd routing
+  + the 4-seam V8 bridge registration + a `pipe()/pipe2()` shim over `host_process.fd_pipe`; gwakeup.c
+  reverted to pristine upstream. **Verified:** `glib-invoke-test` (cross-thread `g_main_context_invoke`)
+  PASS `timed_out=0`; `poll-pipe-wake` PASS 298ms; THREADS-ALL suite PASS. pcmanfm now runs its full
+  `gtk_main` and builds its ENTIRE widget tree (**122 CreateWindow** + XRENDER draws), past the old
+  `fm_main_win_add_win` block. **Remaining for visual acceptance (separate rendering tail, NOT
+  threading):** pcmanfm issues **0 MapWindow** — its last action before going idle is the
+  `user-home`/`hicolor` icon load failing (`g_object_unref(NULL)`), because **gdk-pixbuf image loaders
+  are dynamic modules** ("modules directory is not accessible") and wasm has no dlopen, so no image
+  decodes. Next fix = rebuild gdk-pixbuf with built-in/static loaders (`--with-included-loaders=png`) +
+  stage a hicolor/Adwaita icon set via `--vm-tree`. (Also surfaced, pre-existing: GDK runtime
+  `GDK_IS_DEVICE`/`GDK_IS_SEAT` criticals; `gdk_init` itself fully succeeds.)
+  ---
+  **(historical) Initial M8.5 partial — BUILDS + LAUNCHES + FULL WINDOW CONSTRUCTED:** pcmanfm 1.3.2 cross-compiles from
   UNMODIFIED upstream (`scripts/build-pcmanfm.sh`, `--with-gtk=3`, standard 2-arg `main` so NO
   main3arg shim; the link adds gdk-x11's private `-lxcb`/`-lX11-xcb` deps that `--allow-undefined`
   would otherwise leak as host imports). It reaches `main`, runs `gtk_init` FULLY (cross-VM X

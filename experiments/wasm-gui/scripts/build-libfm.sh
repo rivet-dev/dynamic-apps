@@ -39,6 +39,37 @@ cfg() { # cfg <dir> <extra configure args...>
 if [ ! -f "$PREFIX/lib/libfm-extra.a" ]; then
   cd "$TP"; [ -d libfm ] || { mkdir -p libfm && tar xf libfm.tar -C libfm --strip-components=1; }
   [ -d libfm-threads ] || cp -r libfm libfm-threads
+  # fm-utils.c: fm_run_in_default_main_context() on the GLIB>=2.32 path unconditionally does
+  # g_main_context_invoke(NULL,...) + g_cond_wait(), which DEADLOCKS when called from the main thread
+  # before any GMainContext is iterated (e.g. during pcmanfm widget construction, before gtk_main).
+  # Restore the inline-run guard the older-GLib path already has: if the caller owns/can acquire the
+  # default context, run the function inline instead of posting+waiting.
+  python3 - "$TP/libfm-threads/src/base/fm-utils.c" <<'PY'
+import sys
+f = sys.argv[1]; s = open(f).read()
+old = ("    g_main_context_invoke(NULL, _fm_run_in_default_main_context_real, &md);\n"
+       "    g_mutex_lock(&main_loop_run_mutex);\n"
+       "    while(!md.done)\n"
+       "        g_cond_wait(&main_loop_run_cond, &main_loop_run_mutex);\n"
+       "    g_mutex_unlock(&main_loop_run_mutex);")
+new = ("    {\n"
+       "        gboolean is_owner = g_main_context_is_owner(g_main_context_default());\n"
+       "        gboolean acquired = !is_owner && g_main_context_acquire(g_main_context_default());\n"
+       "        if(is_owner || acquired)\n"
+       "        {\n"
+       "            md.result = func(data);\n"
+       "            if(acquired) g_main_context_release(g_main_context_default());\n"
+       "            return md.result;\n"
+       "        }\n"
+       "    }\n"
+       "    g_main_context_invoke(NULL, _fm_run_in_default_main_context_real, &md);\n"
+       "    g_mutex_lock(&main_loop_run_mutex);\n"
+       "    while(!md.done)\n"
+       "        g_cond_wait(&main_loop_run_cond, &main_loop_run_mutex);\n"
+       "    g_mutex_unlock(&main_loop_run_mutex);")
+if old in s and "g_main_context_is_owner" not in s:
+    open(f, "w").write(s.replace(old, new, 1)); print("patched fm-utils.c (inline-run guard)")
+PY
   cfg libfm-threads --with-extra-only
   ( cd "$TP/libfm-threads" && export LDFLAGS="$LDFLAGS $LDADD_HOST" && make -j4 && make install ) >/tmp/make-libfmextra.log 2>&1 \
     && echo "  OK libfm-extra" || { echo "  FAIL libfm-extra"; exit 1; }

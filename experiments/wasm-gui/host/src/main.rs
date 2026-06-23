@@ -894,6 +894,10 @@ async fn run_xdemo(
                 let mut cenv = HashMap::new();
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
+                // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
+                // places side pane. The sandbox has no removable drives, so use the null monitor.
+                cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }
@@ -919,6 +923,10 @@ async fn run_xdemo(
                 let mut cenv = HashMap::new();
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
+                // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
+                // places side pane. The sandbox has no removable drives, so use the null monitor.
+                cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }
