@@ -292,6 +292,7 @@ impl HostDirFilesystem {
         Ok(host_path)
     }
 
+    #[cfg(not(target_os = "macos"))]
     fn open_metadata_beneath(&self, path: &str, op: &'static str) -> VfsResult<AnchoredFd> {
         let (_, relative) = self.relative_virtual_path(path);
         let handle =
@@ -305,6 +306,31 @@ impl HostDirFilesystem {
             ));
         }
         Ok(handle)
+    }
+
+    // macOS has no `O_PATH`, and `open(O_NOFOLLOW)` on a symlink fails outright,
+    // so the Linux path above (open the link as an anchor, then inspect it)
+    // cannot run — the resolve-beneath refusal instead surfaces as `EACCES`,
+    // diverging from Linux's `EPERM`. Detect the symlink directly: `lstat` the
+    // final component through the resolved parent fd and reject it with `EPERM`;
+    // otherwise open the (non-symlink) target as the metadata anchor.
+    #[cfg(target_os = "macos")]
+    fn open_metadata_beneath(&self, path: &str, op: &'static str) -> VfsResult<AnchoredFd> {
+        let (parent_dir, _, name, normalized) = self.split_parent(path, false)?;
+        let stat = fstatat(
+            Some(parent_dir.as_raw_fd()),
+            name.as_os_str(),
+            AtFlags::AT_SYMLINK_NOFOLLOW,
+        )
+        .map_err(|error| io_error_to_vfs(op, &normalized, nix_to_io(error)))?;
+        if stat.st_mode & SFlag::S_IFMT.bits() == SFlag::S_IFLNK.bits() {
+            return Err(VfsError::new(
+                "EPERM",
+                format!("{op} '{path}': metadata operations do not follow symlinks"),
+            ));
+        }
+        let (_, relative) = self.relative_virtual_path(path);
+        self.open_beneath(&relative, O_PATH_ANCHOR, Mode::empty())
     }
 
     fn ensure_directory_tree(

@@ -1556,6 +1556,14 @@ pub(crate) mod test_support {
             range_requests_supported: bool,
         ) -> Self {
             let root = temp_dir(prefix);
+            // macOS: `temp_dir()` lives under `/var/folders/…`, but `/var` is a
+            // symlink to `/private/var`, and the `realpath` the process helper
+            // runs returns the resolved `/private/var/…` form. Canonicalize the
+            // mock root so its root-prefix stripping (`sanitize_process_stdout`)
+            // matches that output instead of leaking the absolute host path back
+            // to the plugin (which the plugin would then fail to unscope).
+            #[cfg(target_os = "macos")]
+            let root = fs::canonicalize(&root).expect("canonicalize mock sandbox-agent root");
             let listener = TcpListener::bind("127.0.0.1:0").expect("bind mock sandbox-agent");
             listener
                 .set_nonblocking(true)
