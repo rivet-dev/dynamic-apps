@@ -132,6 +132,8 @@ When a guest filesystem contains `node_modules`, the resolver matches naive Node
 
 No package-manager-specific heuristics: pnpm/yarn layouts resolve because the VFS exposes their symlinks, not because the resolver special-cases them.
 
+<Aside type="caution">A `nodeModules` (or `mounts`) host mount confines reads to the mounted directory: symlinks are followed only while they stay **inside** the mount root. A single-project `npm`/`pnpm` install resolves fine because its symlinks (including the `.pnpm` store) live inside `node_modules`. A workspace/monorepo install is different: pnpm/yarn and `file:` deps symlink packages to the workspace root or an external store, **outside** the leaf `node_modules`. Those targets are not followed, and the guest import fails with `Cannot resolve module '<pkg>': not found`. Fix it by pointing the mount at a directory that contains every symlink target (for example the workspace root, mounted at the guest path the program resolves from) instead of the leaf `node_modules`.</Aside>
+
 ## Seeding files directly
 
 When you don't have a host directory to mount, write bytes into the VM:

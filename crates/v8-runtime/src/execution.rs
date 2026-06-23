@@ -1772,9 +1772,29 @@ fn resolve_module_via_ipc(
                 if val.is_string() {
                     Some(val.to_rust_string_lossy(scope))
                 } else {
+                    // A non-string (null) return means the host resolver found no
+                    // match — i.e. the module could not be located, NOT a type error.
+                    // Name the importer so node_modules layout/discovery problems are
+                    // diagnosable (e.g. a bare package installed off the importer's
+                    // ancestor chain), since that is the common real cause here.
+                    //
+                    // Call out the host-mounted node_modules case too: a host_dir
+                    // mount (what NodeRuntime `nodeModules` projects) confines reads
+                    // to the mount root, so a package symlinked OUT of the mounted
+                    // tree (pnpm/yarn workspace or `file:` deps that link to the
+                    // workspace root or an external store) cannot be followed and
+                    // surfaces here as not-found.
                     throw_module_error(
                         scope,
-                        &format!("_resolveModule returned non-string for '{}'", specifier),
+                        &format!(
+                            "Cannot resolve module '{specifier}' (imported from \
+                             '{referrer}'): not found. For a bare package, ensure it is \
+                             installed in a node_modules directory on an ancestor of the \
+                             importer (or bundle the entrypoint). If you mounted a host \
+                             node_modules, point it at a directory that contains every \
+                             symlink target (e.g. the workspace root): symlinks that \
+                             escape the mount root are not followed."
+                        ),
                     );
                     None
                 }
