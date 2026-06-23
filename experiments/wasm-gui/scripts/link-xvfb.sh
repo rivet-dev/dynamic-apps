@@ -25,8 +25,14 @@ sed -i "s| -Wl,--end-group| $P/libXfont2.a $P/libfontenc.a $P/libfreetype.a $P/l
 ( cd "$BW" && rm -f hw/vfb/Xvfb && bash /tmp/link-xvfb.sh )
 RC=$?
 if [ -f "$BW/hw/vfb/Xvfb" ]; then
-  cp "$BW/hw/vfb/Xvfb" "$EXP/Xvfb.wasm"
-  echo "linked Xvfb.wasm ($(stat -c%s "$EXP/Xvfb.wasm") bytes)"
+  # fpcast-emu: the dix device-class init (InitPtrFeedbackClassDeviceStruct et al.) calls fn-ptrs
+  # across signatures; without emulation wasm traps "null function or function signature mismatch".
+  # --strip-debug/--strip-dwarf: the linked X/font/glib libs carry DWARF that bloats the module and
+  # OOMs the V8 isolate. Mirrors the openbox/lxpanel guest post-process.
+  wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf \
+    --enable-bulk-memory --enable-threads -O0 "$BW/hw/vfb/Xvfb" -o "$EXP/Xvfb.wasm" 2>/dev/null \
+    || { echo "wasm-opt FAILED"; exit 1; }
+  echo "linked + fpcast Xvfb.wasm ($(stat -c%s "$EXP/Xvfb.wasm") bytes)"
 else
   echo "LINK FAILED (rc=$RC)"; exit 1
 fi

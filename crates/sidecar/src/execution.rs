@@ -19918,6 +19918,15 @@ where
                 javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll wait ms")?
                     .unwrap_or_default();
             let wait = clamp_javascript_net_poll_wait(wait_ms);
+            // Tool #2 (drain side): remember this unix socket's peer path so we can xtrace the bytes the
+            // GUEST actually pulls out of the channel (direction "DRAIN"), to compare against the bytes
+            // the reader thread delivered INTO the channel (direction "S>C"). If cumulative DRAIN lags
+            // cumulative S>C at the render stall, bytes are stranded in the channel (a readiness/notify
+            // bug); if they match, the server consumed everything and the stall is server-side parse.
+            let drain_path: Option<String> = process
+                .unix_sockets
+                .get(socket_id)
+                .and_then(|s| s.remote_path.clone());
             let event = if let Some(socket) = process.tcp_sockets.get_mut(socket_id) {
                 socket.poll(kernel, process.kernel_pid, wait)?
             } else if let Some(socket) = process.unix_sockets.get_mut(socket_id) {
@@ -19929,10 +19938,13 @@ where
             };
 
             match event {
-                Some(JavascriptTcpSocketEvent::Data(chunk)) => Ok(json!({
-                    "type": "data",
-                    "data": javascript_sync_rpc_bytes_value(&chunk),
-                })),
+                Some(JavascriptTcpSocketEvent::Data(chunk)) => {
+                    xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                    Ok(json!({
+                        "type": "data",
+                        "data": javascript_sync_rpc_bytes_value(&chunk),
+                    }))
+                }
                 Some(JavascriptTcpSocketEvent::End) => Ok(json!({
                     "type": "end",
                 })),
