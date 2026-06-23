@@ -16477,6 +16477,8 @@ ${headerLines}\r
     }
     validateHttp2ConnectOptions(options);
     const socketId = options.createConnection ? resolveHttp2SocketId(options.createConnection()) : void 0;
+    const rawPort = options.port ?? authority.port;
+    const port = rawPort === "" || rawPort === void 0 || rawPort === null ? void 0 : Number(rawPort);
     const response = JSON.parse(
       _networkHttp2SessionConnectRaw.applySyncPromise(
         void 0,
@@ -16485,7 +16487,7 @@ ${headerLines}\r
             authority: authority.toString(),
             protocol: authority.protocol,
             host: options.host ?? options.hostname ?? authority.hostname,
-            port: options.port ?? authority.port,
+            port,
             localAddress: options.localAddress,
             family: options.family,
             socketId,
