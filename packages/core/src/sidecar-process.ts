@@ -289,6 +289,23 @@ export class SidecarProcess {
 		return this.protocolClient.onEvent(handler);
 	}
 
+	/**
+	 * Subscribe to the sidecar process's stderr (live). The sidecar re-emits the
+	 * in-VM agent adapter's stderr on this channel (tagged "ACP adapter stderr"),
+	 * so this is how embedders route adapter logs to their own logger. Coexists
+	 * with the internal stderr buffering used for exit diagnostics. Returns an
+	 * unsubscribe function.
+	 */
+	onStderr(handler: (chunk: Buffer) => void): () => void {
+		const onData = (chunk: Buffer | string) => {
+			handler(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+		};
+		this.protocolClient.child.stderr.on("data", onData);
+		return () => {
+			this.protocolClient.child.stderr.off("data", onData);
+		};
+	}
+
 	async authenticateAndOpenSession(
 		sessionMetadata: Record<string, string> = {},
 	): Promise<AuthenticatedSession> {
