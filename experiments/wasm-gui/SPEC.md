@@ -818,7 +818,11 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   (`SECURE_EXEC_POLL_WAITERS=4`) — both wired into `scripts/test-m8-lxde.sh`. REMAINING POLISH (not blockers
   to "it renders"): the `/` listing takes ~140s to fully populate under 3-client contention (the X server is
   still per-request sync-RPC/futex bound) — batch `net_recv` + cut the `notify_all` poll-waiter herd to make
-  it a fast "normal run"; and verify interactivity (XTEST click/type) in this 3-client config.
+  it a fast "normal run". **Interactivity VERIFIED** (2026-06-24): an XTEST motion+click on the "home"
+  folder in the live session selected it (highlight + cursor moved + status bar -> "home inode/directory
+  type"), via the `INJECT_DELAY_MS` host knob — proof `~/tmp/gui-progress/proof-m8.6-lxde-interactive.png`.
+  So M8.6 is met on every axis (render + populated listing + panel + interactive); the only open item is
+  SPEED (listing ~140s under contention) plus the constraint-#5 repayment of the vfbBlockHandler patch.
 
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
