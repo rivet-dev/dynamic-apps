@@ -3990,6 +3990,110 @@ if (isWritable(socket)) {
     assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
 }
 
+// Regression: when the host briefly stops draining the V8 -> host event channel
+// (capacity = JAVASCRIPT_EVENT_CHANNEL_CAPACITY = 512), a burst of guest events
+// must apply backpressure, not tear the session down. The original code called
+// `v8_session.destroy()` the instant `try_send` returned `Full`, turning a
+// transient backlog into `Exited(1)` with a truncated event stream.
+//
+// The guest synchronously logs far more lines than the event channel holds. The
+// host deliberately does not drain for a window, forcing the bridge onto the
+// formerly fatal full path, then drains everything. With backpressure every line
+// survives and the session exits cleanly; with the destroy-on-full bug the stream
+// is truncated and the session never reaches a clean exit.
+//
+// Note: this exercises the V8->host event channel (JAVASCRIPT_EVENT_CHANNEL_CAPACITY).
+// The upstream per-session v8_session_frames channel does NOT overflow here because
+// each guest `console.log` is a synchronous `applySync` that blocks until the bridge
+// drains it — so the guest cannot run ahead and only ~1 frame is ever in flight. That
+// channel's backpressure (v8_host.rs) only engages under async runtime frame bursts;
+// it shares the same TrackedSyncSender blocking-send mechanism covered by the bridge
+// queue_tracker unit tests.
+fn javascript_execution_v8_event_channel_backpressures_instead_of_destroying_session() {
+    const LINE_COUNT: usize = 1000;
+    let temp = tempdir().expect("create temp dir");
+
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let mut execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            // Inline code avoids host-serviced module-resolution RPCs, so the
+            // guest runs autonomously and fills the event channel during the
+            // no-drain window below without the host's involvement.
+            inline_code: Some(format!(
+                "for (let i = 0; i < {LINE_COUNT}; i++) {{ console.log('LINE:' + i); }}\n"
+            )),
+        })
+        .expect("start JavaScript execution");
+
+    // Stop draining long enough for the guest burst to overrun the 512-slot
+    // channel and exercise the full path.
+    std::thread::sleep(Duration::from_millis(500));
+
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+    let mut exit_code = None;
+    loop {
+        // A poll error (e.g. EventChannelClosed) means the session was torn down
+        // out from under us — exactly the destroy-on-full regression — so stop and
+        // let the assertions below report the truncation rather than panicking.
+        let event = match execution.poll_event_blocking(Duration::from_secs(10)) {
+            Ok(event) => event,
+            Err(_session_died) => break,
+        };
+        match event {
+            Some(JavascriptExecutionEvent::Stdout(chunk)) => stdout.extend(chunk),
+            Some(JavascriptExecutionEvent::Stderr(chunk)) => stderr.extend(chunk),
+            Some(JavascriptExecutionEvent::SignalState { .. }) => {}
+            Some(JavascriptExecutionEvent::SyncRpcRequest(request)) => {
+                // No host RPCs are expected on this path; service module RPCs if
+                // any surface and answer anything else with null so a stray RPC
+                // cannot wedge the guest.
+                if execution
+                    .try_service_standalone_module_sync_rpc(&request)
+                    .expect("service module sync RPC")
+                {
+                    continue;
+                }
+                execution
+                    .respond_sync_rpc_success(request.id, Value::Null)
+                    .expect("respond to unexpected sync RPC");
+            }
+            Some(JavascriptExecutionEvent::Exited(code)) => {
+                exit_code = Some(code);
+                break;
+            }
+            None => break,
+        }
+    }
+
+    let stdout = String::from_utf8_lossy(&stdout);
+    let stderr = String::from_utf8_lossy(&stderr);
+    let lines = stdout.matches("LINE:").count();
+    assert_eq!(
+        exit_code,
+        Some(0),
+        "session must exit cleanly under backpressure (destroy-on-full regression?); \
+         lines={lines}/{LINE_COUNT}, stderr: {stderr}"
+    );
+    assert_eq!(
+        lines, LINE_COUNT,
+        "every event must survive backpressure with no truncation; stderr: {stderr}"
+    );
+}
+
 fn javascript_execution_v8_dynamic_import_accepts_file_urls() {
     let temp = tempdir().expect("create temp dir");
     write_fixture(
@@ -5297,6 +5401,7 @@ fn javascript_v8_suite() {
     javascript_execution_v8_commonjs_require_exposes_node_metadata();
     javascript_execution_v8_https_agents_expose_options_objects();
     javascript_execution_v8_net_socket_readable_state_tracks_ssh2_writable_shape();
+    javascript_execution_v8_event_channel_backpressures_instead_of_destroying_session();
     javascript_execution_v8_dynamic_import_accepts_file_urls();
     javascript_execution_v8_wasm_instantiate_streaming_never_hangs();
     javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm();

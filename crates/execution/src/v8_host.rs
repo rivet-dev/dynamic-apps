@@ -1,12 +1,13 @@
 //! V8 runtime host — manages a shared embedded V8 runtime with session multiplexing.
 
 use crate::v8_ipc::{self, BinaryFrame};
+use secure_exec_bridge::queue_tracker::{tracked_sync_channel, TrackedLimit, TrackedReceiver};
 use secure_exec_v8_runtime::embedded_runtime::{
     shared_embedded_runtime, EmbeddedV8Runtime, EmbeddedV8SessionHandle,
 };
 use secure_exec_v8_runtime::runtime_protocol::{RuntimeCommand, RuntimeEvent};
 use std::io::{self, Cursor};
-use std::sync::{mpsc, Arc, OnceLock};
+use std::sync::{Arc, OnceLock};
 use std::thread;
 
 const V8_SESSION_FRAME_CHANNEL_CAPACITY: usize = 1024;
@@ -36,12 +37,15 @@ impl V8RuntimeHost {
     }
 
     /// Register a session and return a receiver for its frames.
-    pub fn register_session(&self, session_id: &str) -> io::Result<mpsc::Receiver<BinaryFrame>> {
+    pub fn register_session(&self, session_id: &str) -> io::Result<TrackedReceiver<BinaryFrame>> {
         let (runtime_receiver, registration) = self
             .shared
             .runtime
             .register_session_with_output_registration(session_id)?;
-        let (sender, receiver) = mpsc::sync_channel(V8_SESSION_FRAME_CHANNEL_CAPACITY);
+        let (sender, receiver) = tracked_sync_channel(
+            TrackedLimit::V8SessionFrames,
+            V8_SESSION_FRAME_CHANNEL_CAPACITY,
+        );
         let thread_name = format!("secure-exec-v8-session-{session_id}");
         let runtime = Arc::clone(&self.shared.runtime);
         let runtime_for_thread = Arc::clone(&runtime);
@@ -51,17 +55,18 @@ impl V8RuntimeHost {
             while let Ok(frame) = runtime_receiver.recv() {
                 match from_runtime_event(frame) {
                     Ok(frame) => {
-                        if let Err(error) = sender.try_send(frame) {
-                            match error {
-                                mpsc::TrySendError::Full(_) => {
-                                    let _ = runtime_for_thread
-                                        .destroy_session_if_output_current(&registration);
-                                }
-                                mpsc::TrySendError::Disconnected(_) => {
-                                    let _ = runtime_for_thread
-                                        .destroy_session_if_output_current(&registration);
-                                }
-                            }
+                        // Apply backpressure instead of destroying the session when
+                        // the downstream consumer is slow. This thread is dedicated
+                        // to one session, so a blocking send safely parks it — and,
+                        // in turn, backpressures the V8 runtime — until a slot frees.
+                        // Previously a `try_send` that hit the full channel called
+                        // destroy_session_if_output_current(), tearing the session
+                        // down on a transient backlog (the same anti-pattern fixed
+                        // for the event/stdout queues). Only a dropped receiver
+                        // (the consumer is gone for good) is terminal.
+                        if sender.send(frame).is_err() {
+                            let _ =
+                                runtime_for_thread.destroy_session_if_output_current(&registration);
                             break;
                         }
                     }

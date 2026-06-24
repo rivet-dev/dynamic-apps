@@ -5,6 +5,7 @@ use std::ffi::c_void;
 use std::sync::Once;
 
 use crate::ipc::ExecutionError;
+use secure_exec_bridge::queue_tracker::{warn_limit_exhausted, TrackedLimit};
 
 static V8_INIT: Once = Once::new();
 const MAX_UNHANDLED_PROMISE_REJECTIONS: usize = 1024;
@@ -135,6 +136,11 @@ extern "C" fn near_heap_limit_callback(
         // guest with an uncatchable exception rather than crashing the process.
         handle.terminate_execution();
     }
+    warn_limit_exhausted(
+        TrackedLimit::V8HeapBytes,
+        current_heap_limit,
+        initial_heap_limit.max(1),
+    );
     // Grant headroom so V8 does not immediately fatal-abort before the termination
     // takes effect. We never shrink below the current limit.
     current_heap_limit

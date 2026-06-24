@@ -36,6 +36,7 @@ use crate::state::{
 };
 use crate::tools::register_host_callbacks;
 use crate::NativeSidecarBridge;
+use secure_exec_bridge::queue_tracker::{register_queue, QueueGauge, TrackedLimit};
 use secure_exec_bridge::{
     CommandPermissionRequest, EnvironmentAccess, EnvironmentPermissionRequest, FilesystemAccess,
     FilesystemPermissionRequest, LifecycleEventRecord, LifecycleState, LogLevel, LogRecord,
@@ -864,6 +865,10 @@ pub struct NativeSidecar<B> {
     pub(crate) outbound_sidecar_requests: VecDeque<SidecarRequestFrame>,
     pub(crate) completed_sidecar_responses: BTreeMap<RequestId, SidecarResponseFrame>,
     pub(crate) completed_sidecar_response_order: VecDeque<RequestId>,
+    pub(crate) completed_sidecar_responses_gauge: Arc<QueueGauge>,
+    pub(crate) pending_process_events_gauge: Arc<QueueGauge>,
+    pub(crate) pending_sidecar_responses_gauge: Arc<QueueGauge>,
+    pub(crate) outbound_sidecar_requests_gauge: Arc<QueueGauge>,
     pub(crate) sidecar_requests: SharedSidecarRequestClient,
     pub(crate) extensions: BTreeMap<String, Arc<dyn Extension>>,
     pub(crate) extension_sessions: BTreeMap<(String, String), ExtensionSessionResources>,
@@ -954,6 +959,22 @@ where
             outbound_sidecar_requests: VecDeque::new(),
             completed_sidecar_responses: BTreeMap::new(),
             completed_sidecar_response_order: VecDeque::new(),
+            completed_sidecar_responses_gauge: register_queue(
+                TrackedLimit::CompletedSidecarResponses,
+                MAX_COMPLETED_SIDECAR_RESPONSES,
+            ),
+            pending_process_events_gauge: register_queue(
+                TrackedLimit::PendingProcessEvents,
+                MAX_PROCESS_EVENT_QUEUE,
+            ),
+            pending_sidecar_responses_gauge: register_queue(
+                TrackedLimit::PendingSidecarResponses,
+                MAX_PENDING_SIDECAR_RESPONSES,
+            ),
+            outbound_sidecar_requests_gauge: register_queue(
+                TrackedLimit::OutboundSidecarRequests,
+                MAX_OUTBOUND_SIDECAR_REQUESTS,
+            ),
             sidecar_requests: SharedSidecarRequestClient::default(),
             extensions: BTreeMap::new(),
             extension_sessions: BTreeMap::new(),
@@ -1195,6 +1216,8 @@ where
             return Err(process_event_queue_overflow_error());
         }
         self.pending_process_events.push_back(envelope);
+        self.pending_process_events_gauge
+            .observe_depth(self.pending_process_events.len());
         Ok(())
     }
 
@@ -1206,6 +1229,8 @@ where
             return Err(process_event_queue_overflow_error());
         }
         self.pending_process_events.push_front(envelope);
+        self.pending_process_events_gauge
+            .observe_depth(self.pending_process_events.len());
         Ok(())
     }
 
@@ -2540,6 +2565,10 @@ where
             .register_request(&request)
             .map_err(sidecar_response_tracker_error)?;
         self.outbound_sidecar_requests.push_back(request);
+        self.outbound_sidecar_requests_gauge
+            .observe_depth(self.outbound_sidecar_requests.len());
+        self.pending_sidecar_responses_gauge
+            .observe_depth(self.pending_sidecar_responses.pending_count());
         Ok(request_id)
     }
 
@@ -2555,7 +2584,10 @@ where
     }
 
     pub fn pop_sidecar_request(&mut self) -> Option<SidecarRequestFrame> {
-        self.outbound_sidecar_requests.pop_front()
+        let request = self.outbound_sidecar_requests.pop_front();
+        self.outbound_sidecar_requests_gauge
+            .observe_depth(self.outbound_sidecar_requests.len());
+        request
     }
 
     pub fn pop_wire_sidecar_request(
@@ -2574,13 +2606,32 @@ where
         self.pending_sidecar_responses
             .accept_response(&response)
             .map_err(sidecar_response_tracker_error)?;
+        self.pending_sidecar_responses_gauge
+            .observe_depth(self.pending_sidecar_responses.pending_count());
         self.completed_sidecar_response_order
             .push_back(response.request_id);
         self.completed_sidecar_responses
             .insert(response.request_id, response);
+        self.completed_sidecar_responses_gauge
+            .observe_depth(self.completed_sidecar_responses.len());
         while self.completed_sidecar_responses.len() > MAX_COMPLETED_SIDECAR_RESPONSES {
-            if let Some(evicted) = self.completed_sidecar_response_order.pop_front() {
-                self.completed_sidecar_responses.remove(&evicted);
+            match self.completed_sidecar_response_order.pop_front() {
+                // Only a response that was never retrieved is a real loss; an id
+                // already taken via take_sidecar_response leaves a stale order
+                // entry that removes to None and is not a dropped response.
+                Some(evicted) => {
+                    if self.completed_sidecar_responses.remove(&evicted).is_some() {
+                        tracing::warn!(
+                            queue = "completed_sidecar_responses",
+                            evicted_request_id = evicted,
+                            capacity = MAX_COMPLETED_SIDECAR_RESPONSES,
+                            "dropping an unretrieved completed sidecar response to stay within cap; the host can no longer fetch it (response lost)"
+                        );
+                        self.completed_sidecar_responses_gauge
+                            .observe_depth(self.completed_sidecar_responses.len());
+                    }
+                }
+                None => break,
             }
         }
         Ok(())
@@ -2600,6 +2651,8 @@ where
         if response.is_some() {
             self.completed_sidecar_response_order
                 .retain(|completed_id| completed_id != &request_id);
+            self.completed_sidecar_responses_gauge
+                .observe_depth(self.completed_sidecar_responses.len());
         }
         response
     }
@@ -3003,6 +3056,29 @@ pub(crate) fn emit_security_audit_event<B>(
     let _ = emit_structured_event(bridge, vm_id, name, fields);
 }
 
+/// Build a wire `EventFrame` carrying a `StructuredEvent` (name + string-map
+/// detail) scoped to a connection. Used to forward limit-registry warnings to the
+/// host as `{type:"structured", name:"limit_warning", detail}` events without a
+/// protocol schema change. Emitted directly to the host (not via the polled,
+/// per-session bridge queue, which is a no-op in the stdio sidecar), so a
+/// process-global signal is delivered against the active connection.
+pub(crate) fn structured_event_frame(
+    connection_id: &str,
+    name: &str,
+    detail: std::collections::HashMap<String, String>,
+) -> Result<crate::wire::EventFrame, SidecarError> {
+    let event = EventFrame::new(
+        OwnershipScope::connection(connection_id),
+        EventPayload::Structured(crate::protocol::StructuredEvent {
+            name: name.to_owned(),
+            detail,
+        }),
+    );
+    crate::wire::event_frame_from_compat(event).map_err(|error| {
+        SidecarError::InvalidState(format!("invalid structured event frame: {error}"))
+    })
+}
+
 pub(crate) fn log_stale_process_event<B>(
     bridge: &SharedBridge<B>,
     vm_id: &str,
@@ -3248,5 +3324,44 @@ mod symlinked_node_modules_hint_tests {
     fn ignores_unrelated_failure() {
         let stderr = "Error: connect ECONNREFUSED 127.0.0.1:443";
         assert!(symlinked_node_modules_hint(stderr).is_none());
+    }
+}
+
+#[cfg(test)]
+mod structured_event_frame_tests {
+    use super::*;
+
+    #[test]
+    fn structured_event_frame_round_trips_limit_warning() {
+        let mut detail = std::collections::HashMap::new();
+        // Pin a real emitted limit name rather than a fictional string.
+        let limit_name = TrackedLimit::JavascriptEventChannel.as_str();
+        detail.insert(String::from("limit"), String::from(limit_name));
+        detail.insert(String::from("fillPercent"), String::from("82"));
+
+        let wire = structured_event_frame("conn-1", "limit_warning", detail)
+            .expect("build structured event frame");
+        let compat = crate::wire::event_frame_to_compat(wire).expect("convert to compat");
+
+        match compat.payload {
+            EventPayload::Structured(event) => {
+                assert_eq!(event.name, "limit_warning");
+                assert_eq!(
+                    event.detail.get("limit").map(String::as_str),
+                    Some(limit_name)
+                );
+                assert_eq!(
+                    event.detail.get("fillPercent").map(String::as_str),
+                    Some("82")
+                );
+            }
+            other => panic!("expected structured payload, got {other:?}"),
+        }
+        match compat.ownership {
+            OwnershipScope::ConnectionOwnership(inner) => {
+                assert_eq!(inner.connection_id, "conn-1");
+            }
+            other => panic!("expected connection ownership, got {other:?}"),
+        }
     }
 }

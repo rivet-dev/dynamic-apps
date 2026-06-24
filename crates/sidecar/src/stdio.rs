@@ -7,6 +7,7 @@ use crate::{
     Extension, ExtensionInterruptRequest, NativeSidecar, NativeSidecarConfig, SidecarError,
     SidecarRequestTransport,
 };
+use secure_exec_bridge::queue_tracker::{tracked_sync_channel, TrackedLimit, TrackedSyncSender};
 use secure_exec_bridge::{
     BridgeTypes, ChmodRequest, ClockBridge, ClockRequest, CommandPermissionRequest,
     CreateDirRequest, CreateJavascriptContextRequest, CreateWasmContextRequest, DiagnosticRecord,
@@ -42,7 +43,10 @@ use tokio::time;
 const EVENT_PUMP_INTERVAL: Duration = Duration::from_micros(250);
 const MAX_STDIN_FRAME_QUEUE: usize = 128;
 const MAX_EVENT_READY_QUEUE: usize = 1;
-const MAX_STDOUT_FRAME_QUEUE: usize = 128;
+// Defense-in-depth headroom for the host-bound frame queue: a burst of output
+// frames from a busy turn should be buffered, so the writer only backpressures
+// when the host genuinely stops reading stdout rather than on every spike.
+const MAX_STDOUT_FRAME_QUEUE: usize = 4096;
 
 #[cfg(test)]
 fn request_frame(
@@ -121,9 +125,27 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
     let mut active_connections = BTreeSet::<String>::new();
     let (stdin_tx, mut stdin_rx) =
         channel::<Result<Option<ProtocolFrame>, String>>(MAX_STDIN_FRAME_QUEUE);
+    let stdin_gauge = secure_exec_bridge::queue_tracker::register_queue(
+        TrackedLimit::SidecarStdinFrames,
+        MAX_STDIN_FRAME_QUEUE,
+    );
     let (event_ready_tx, mut event_ready_rx) = channel::<()>(MAX_EVENT_READY_QUEUE);
-    let (write_tx, write_rx) = mpsc::sync_channel::<ProtocolFrame>(MAX_STDOUT_FRAME_QUEUE);
+    let (write_tx, write_rx) = tracked_sync_channel::<ProtocolFrame>(
+        TrackedLimit::SidecarStdoutFrames,
+        MAX_STDOUT_FRAME_QUEUE,
+    );
     let (write_error_tx, mut write_error_rx) = unbounded_channel::<String>();
+
+    // Forward limit-registry near-capacity warnings to the host: the global sink
+    // fires (edge-triggered, from arbitrary threads) into this channel, and the
+    // event loop below drains it and emits a `StructuredEvent` (name
+    // "limit_warning"). The unbounded sender is Send+Sync and lives for the whole
+    // process inside the global handler, so the receiver never sees a hangup.
+    let (limit_warning_tx, mut limit_warning_rx) =
+        unbounded_channel::<secure_exec_bridge::queue_tracker::LimitWarning>();
+    secure_exec_bridge::queue_tracker::set_limit_warning_handler(Box::new(move |warning| {
+        let _ = limit_warning_tx.send(warning.clone());
+    }));
     let callback_transport = Arc::new(FrameSidecarRequestTransport::new(write_tx.clone()));
     sidecar.set_sidecar_request_transport(callback_transport.clone());
     let mut event_pump = time::interval(EVENT_PUMP_INTERVAL);
@@ -159,7 +181,13 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 .map_err(|error: Box<dyn Error>| error.to_string());
                 let should_stop = matches!(frame, Ok(None) | Err(_));
                 match enqueue_stdin_frame(&stdin_tx, frame) {
-                    Ok(()) => {}
+                    Ok(()) => {
+                        // Sample inbound queue depth so the centralized tracker
+                        // can warn before host requests back up on the sidecar.
+                        stdin_gauge.observe_depth(
+                            stdin_tx.max_capacity().saturating_sub(stdin_tx.capacity()),
+                        );
+                    }
                     Err(StdinFrameQueueError::Full(message)) => {
                         let _ = read_error_tx.send(message);
                         break;
@@ -175,6 +203,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
 
     flush_sidecar_requests(&mut sidecar, &write_tx)?;
     let mut pending_frame: Option<ProtocolFrame> = None;
+    let mut limit_warning_closed = false;
 
     loop {
         if let Some(frame) = pending_frame.take() {
@@ -208,6 +237,44 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                     &mut active_sessions,
                     &mut active_connections,
                 ).await?;
+            }
+            maybe_warning = limit_warning_rx.recv(), if !limit_warning_closed => {
+                match maybe_warning {
+                    Some(warning) => {
+                        // A limit warning is process-global; deliver it ONCE. The
+                        // stdio transport is single-client, so emit it to the first
+                        // active connection (if any) rather than fanning out a copy
+                        // per connection. Dropped if no client has authenticated yet
+                        // (only the tracing log survives, which is acceptable).
+                        if let Some(connection_id) = active_connections.iter().next() {
+                            let mut detail = std::collections::HashMap::new();
+                            detail.insert(String::from("limit"), warning.name.as_str().to_string());
+                            detail.insert(
+                                String::from("category"),
+                                warning.category.as_str().to_string(),
+                            );
+                            detail.insert(String::from("observed"), warning.observed.to_string());
+                            detail.insert(String::from("capacity"), warning.capacity.to_string());
+                            detail.insert(
+                                String::from("fillPercent"),
+                                warning.fill_percent.to_string(),
+                            );
+                            let frame = crate::service::structured_event_frame(
+                                connection_id,
+                                "limit_warning",
+                                detail,
+                            )?;
+                            send_output_frame(&write_tx, ProtocolFrame::EventFrame(frame))?;
+                        }
+                    }
+                    None => {
+                        // Sender dropped (only possible if another sidecar replaced
+                        // the global handler in-process). Disarm this branch so the
+                        // select! does not hot-spin on an always-ready closed
+                        // receiver; do NOT break — that would tear down the sidecar.
+                        limit_warning_closed = true;
+                    }
+                }
             }
             maybe_ready = event_ready_rx.recv() => {
                 let Some(()) = maybe_ready else {
@@ -256,7 +323,7 @@ async fn handle_protocol_frame(
     sidecar: &mut NativeSidecar<LocalBridge>,
     stdin_rx: &mut Receiver<Result<Option<ProtocolFrame>, String>>,
     pending_frame: &mut Option<ProtocolFrame>,
-    write_tx: &mpsc::SyncSender<ProtocolFrame>,
+    write_tx: &TrackedSyncSender<ProtocolFrame>,
     active_sessions: &mut BTreeSet<SessionScope>,
     active_connections: &mut BTreeSet<String>,
 ) -> Result<(), Box<dyn Error>> {
@@ -605,7 +672,7 @@ fn enqueue_stdin_frame(
 
 fn flush_sidecar_requests(
     sidecar: &mut NativeSidecar<LocalBridge>,
-    writer: &mpsc::SyncSender<ProtocolFrame>,
+    writer: &TrackedSyncSender<ProtocolFrame>,
 ) -> Result<(), Box<dyn Error>> {
     while let Some(request) = sidecar.pop_wire_sidecar_request()? {
         send_output_frame(writer, ProtocolFrame::SidecarRequestFrame(request))?;
@@ -614,17 +681,21 @@ fn flush_sidecar_requests(
 }
 
 fn send_output_frame(
-    writer: &mpsc::SyncSender<ProtocolFrame>,
+    writer: &TrackedSyncSender<ProtocolFrame>,
     frame: ProtocolFrame,
 ) -> Result<(), io::Error> {
-    writer.try_send(frame).map_err(|error| {
-        let message = match error {
-            mpsc::TrySendError::Full(_) => {
-                format!("stdout frame queue exceeded {MAX_STDOUT_FRAME_QUEUE} pending frames")
-            }
-            mpsc::TrySendError::Disconnected(_) => String::from("stdout writer disconnected"),
-        };
-        io::Error::new(io::ErrorKind::BrokenPipe, message)
+    // Apply backpressure rather than killing the sidecar when the host reads
+    // stdout slowly. A full queue means the dedicated writer thread is blocked on
+    // the stdout pipe (the host has not drained it yet) — a transient, recoverable
+    // condition. Previously `try_send` turned that backlog into a `BrokenPipe`
+    // error that propagated up and exited the whole sidecar process (code 1),
+    // taking every session with it. A blocking `send` parks the producer until the
+    // writer drains a slot, which transitively backpressures the V8 event bridge
+    // and the guest. It never deadlocks: the writer thread runs independently, and
+    // if it dies (real broken pipe) the receiver is dropped and `send` returns
+    // `Disconnected`, which we still surface as a terminal `BrokenPipe`.
+    writer.send(frame).map_err(|_disconnected| {
+        io::Error::new(io::ErrorKind::BrokenPipe, "stdout writer disconnected")
     })
 }
 
@@ -683,28 +754,19 @@ mod tests {
             event_ready_tx.try_send(()),
             Err(tokio::sync::mpsc::error::TrySendError::Full(_))
         ));
+    }
 
-        let (stdout_tx, _stdout_rx) = mpsc::sync_channel(MAX_STDOUT_FRAME_QUEUE);
-        for request_id in 0..MAX_STDOUT_FRAME_QUEUE {
-            send_output_frame(
-                &stdout_tx,
-                ProtocolFrame::RequestFrame(request_frame(
-                    request_id as RequestId,
-                    connection_ownership("conn-queue"),
-                    RequestPayload::AuthenticateRequest(AuthenticateRequest {
-                        client_name: String::from("queue-test"),
-                        auth_token: String::from("token"),
-                        protocol_version: wire::PROTOCOL_VERSION,
-                        bridge_version: secure_exec_bridge::bridge_contract().version,
-                    }),
-                )),
-            )
-            .expect("stdout frame queue should accept capacity");
-        }
-        let error = send_output_frame(
-            &stdout_tx,
+    // Regression: a full stdout frame queue must apply backpressure (block the
+    // producer until the writer drains a slot), NOT tear the sidecar down. The
+    // old `try_send` turned a slow host reader into a `BrokenPipe` error that
+    // propagated up and exited the whole sidecar process (code 1). Here a slow
+    // drainer forces the queue past capacity; with backpressure every send
+    // succeeds, and overflow only fails when the writer (receiver) is gone.
+    #[test]
+    fn stdout_frame_queue_applies_backpressure_instead_of_crashing() {
+        let queue_frame = |request_id: RequestId| {
             ProtocolFrame::RequestFrame(request_frame(
-                MAX_STDOUT_FRAME_QUEUE as RequestId,
+                request_id,
                 connection_ownership("conn-queue"),
                 RequestPayload::AuthenticateRequest(AuthenticateRequest {
                     client_name: String::from("queue-test"),
@@ -712,13 +774,45 @@ mod tests {
                     protocol_version: wire::PROTOCOL_VERSION,
                     bridge_version: secure_exec_bridge::bridge_contract().version,
                 }),
-            )),
-        )
-        .expect_err("stdout frame queue should reject overflow");
-        assert!(
-            error.to_string().contains("stdout frame queue exceeded"),
-            "unexpected stdout queue error: {error}"
+            ))
+        };
+
+        // Small fixed capacity (independent of the production constant) with a
+        // drainer slow enough that the queue fills and the producer is forced
+        // onto the blocking path. The old try_send path errored on the
+        // (capacity + 1)th frame; backpressure accepts all of them.
+        let queue_cap = 8usize;
+        let total_frames = queue_cap * 3;
+        let (stdout_tx, stdout_rx) =
+            tracked_sync_channel::<ProtocolFrame>(TrackedLimit::SidecarStdoutFrames, queue_cap);
+        let drainer = std::thread::spawn(move || {
+            let mut drained = 0usize;
+            while stdout_rx.recv().is_ok() {
+                drained += 1;
+                std::thread::sleep(std::time::Duration::from_millis(1));
+            }
+            drained
+        });
+
+        for request_id in 0..total_frames {
+            send_output_frame(&stdout_tx, queue_frame(request_id as RequestId))
+                .expect("backpressured stdout queue must accept frames, not crash");
+        }
+        drop(stdout_tx);
+        let drained = drainer.join().expect("drainer thread panicked");
+        assert_eq!(
+            drained, total_frames,
+            "every frame must survive the backpressured queue"
         );
+
+        // When the writer (receiver) is gone, overflow is genuinely terminal and
+        // still surfaces as a BrokenPipe error rather than blocking forever.
+        let (closed_tx, closed_rx) =
+            tracked_sync_channel::<ProtocolFrame>(TrackedLimit::SidecarStdoutFrames, queue_cap);
+        drop(closed_rx);
+        let error = send_output_frame(&closed_tx, queue_frame(0))
+            .expect_err("send to a dropped writer must error");
+        assert_eq!(error.kind(), io::ErrorKind::BrokenPipe);
     }
 
     #[test]
@@ -1227,12 +1321,12 @@ impl SessionScope {
 }
 
 struct FrameSidecarRequestTransport {
-    writer: mpsc::SyncSender<ProtocolFrame>,
+    writer: TrackedSyncSender<ProtocolFrame>,
     pending: Arc<Mutex<BTreeMap<RequestId, mpsc::SyncSender<SidecarResponseFrame>>>>,
 }
 
 impl FrameSidecarRequestTransport {
-    fn new(writer: mpsc::SyncSender<ProtocolFrame>) -> Self {
+    fn new(writer: TrackedSyncSender<ProtocolFrame>) -> Self {
         Self {
             writer,
             pending: Arc::new(Mutex::new(BTreeMap::new())),
@@ -1270,16 +1364,39 @@ impl SidecarRequestTransport for FrameSidecarRequestTransport {
                 SidecarError::Bridge(String::from("sidecar callback waiter map lock poisoned"))
             })?
             .insert(request.request_id, sender);
-        if let Err(error) = send_output_frame(
-            &self.writer,
-            ProtocolFrame::SidecarRequestFrame(request.clone()),
-        ) {
+        // Bound the request-frame WRITE by the caller's deadline. The shared
+        // `send_output_frame` blocks (correct backpressure for the fire-and-forget
+        // event/response paths), but this request path has a `timeout` that the
+        // response wait below already honors — so a stalled host stdout must not
+        // make the *send* block past it. Poll try_send until a slot frees or the
+        // deadline passes.
+        let write_deadline = Instant::now() + timeout;
+        let mut frame = ProtocolFrame::SidecarRequestFrame(request.clone());
+        let write_result = loop {
+            match self.writer.try_send(frame) {
+                Ok(()) => break Ok(()),
+                Err(mpsc::TrySendError::Disconnected(_)) => {
+                    break Err(String::from("stdout writer disconnected"));
+                }
+                Err(mpsc::TrySendError::Full(returned)) => {
+                    if Instant::now() >= write_deadline {
+                        break Err(format!(
+                            "timed out writing sidecar request frame after {}s",
+                            timeout.as_secs()
+                        ));
+                    }
+                    frame = returned;
+                    thread::sleep(Duration::from_millis(1));
+                }
+            }
+        };
+        if let Err(message) = write_result {
             let _ = self
                 .pending
                 .lock()
                 .map(|mut pending| pending.remove(&request.request_id));
             return Err(SidecarError::Io(format!(
-                "failed to write sidecar request frame: {error}"
+                "failed to write sidecar request frame: {message}"
             )));
         }
         match receiver.recv_timeout(timeout) {

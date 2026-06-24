@@ -29,6 +29,16 @@ Two corollaries that are easy to get wrong:
 - Every guest syscall goes through kernel-owned VFS, process, socket, pipe, PTY, permission, and DNS paths.
 - Present normal Linux semantics to tools. Fix runtime compatibility in secure-exec instead of patching callers around runtime quirks.
 
+## Limits, Bounds & Observability
+
+Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/process/socket/pipe/pty counts, filesystem bytes/inodes, queue/buffer capacities, payload/frame sizes, timeouts, registration counts — MUST satisfy all of the following. A new `MAX_*`/`*_LIMIT`/`*_CAPACITY`/timeout/cap added without them is incomplete.
+
+- **Bounded by default.** Never `None`/`0`/unbounded (matches the Workers-style memory/CPU rule). Operators may raise a cap; they don't get an unbounded default. If a `0`/`None` genuinely means "engine default" (e.g. Pyodide old-space), say so in the inventory rationale.
+- **Config-wired + audited.** Operator-tunable bounds flow through `VmLimits` → `vm-config` (`limits_struct!`, Rust is the single source; TS mirrors via ts-rs). Every limit-shaped constant is classified in `crates/sidecar/tests/fixtures/limits-inventory.json` as `policy` (must name its `wired` config path) / `policy-deferred` / `invariant`, enforced by `crates/sidecar/tests/limits_audit.rs`. Never let a hardcoded operator bound accumulate uncatalogued.
+- **Registered for observability.** Register the bound with the central limit tracker (`secure_exec_bridge::queue_tracker`, generalizing to a limit registry) so usage/high-water are inspectable and it emits a **structured, edge-triggered warning as it approaches** (default ≥80% fill, re-arm <50%) naming the limit, observed/cap, fill%, and the `wired` config path. Note: the sidecar tracing level must be at least `WARN` for these to surface (`ERROR`-only swallows them).
+- **Clear, typed error on breach.** Fail with a typed error that names the limit and the observed-vs-cap value **with units**, plus how to raise it: `"<limit> exceeded: <observed><unit> > <cap><unit> (raise via limits.<wired>)"`. Map consistently — errno for kernel limits (but attach the limit name; no bare/opaque `EAGAIN`), `ExecutionAbortReason` for runtime kills, `SidecarError`/codec errors for config/protocol. No generic "invalid"/silent failure that hides which limit fired.
+- **No catastrophic reaction to transient fullness.** A full bounded queue/buffer applies **backpressure** (block the producer until the consumer drains) or returns the named error — never silently drop, silently evict, destroy the session, or crash the process. Raising a capacity is not a fix by itself; the warning + typed error must exist first. See PR #123 (event channel + stdout frame queue) for the reference pattern; audit every other channel/`VecDeque`/buffer against it.
+
 ## Project Boundaries
 
 - Keep this repo Agent OS-agnostic: no ACP, agents, sessions, `agentos-protocol`, `agentos-client`, or `agentos-sidecar` dependencies in secure-exec code.

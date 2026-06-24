@@ -12,6 +12,9 @@ use crate::signal::{NodeSignalDispositionAction, NodeSignalHandlerRegistration};
 use crate::v8_host::V8SessionHandle;
 use crate::v8_runtime;
 use base64::Engine as _;
+use secure_exec_bridge::queue_tracker::{
+    register_limit, warn_limit_exhausted, QueueGauge, TrackedLimit,
+};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, VecDeque};
 use std::fmt;
@@ -20,6 +23,7 @@ use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 const WASM_MODULE_PATH_ENV: &str = "AGENTOS_WASM_MODULE_PATH";
@@ -341,6 +345,7 @@ pub struct WasmExecution {
     execution_timeout: Option<Duration>,
     execution_started_at: Instant,
     timeout_reported: bool,
+    fuel_gauge: Option<Arc<QueueGauge>>,
     internal_sync_rpc: WasmInternalSyncRpc,
     pending_events: VecDeque<WasmExecutionEvent>,
     stdout_stream_buffer: Vec<u8>,
@@ -562,12 +567,20 @@ impl WasmExecution {
         let Some(limit) = self.execution_timeout else {
             return Ok(None);
         };
-        if self.execution_started_at.elapsed() < limit {
+        let elapsed = self.execution_started_at.elapsed();
+        // Sample elapsed budget each poll so the gauge fires its edge-triggered
+        // ~80% approach warning before the terminal exhaustion below.
+        if let Some(gauge) = &self.fuel_gauge {
+            gauge.observe_depth(duration_millis_saturating_usize(elapsed));
+        }
+        if elapsed < limit {
             return Ok(None);
         }
 
         let _ = self.inner.terminate();
         self.timeout_reported = true;
+        let capacity = duration_millis_saturating_usize(limit);
+        warn_limit_exhausted(TrackedLimit::WasmFuelMs, capacity, capacity);
         self.enqueue_wasm_event(WasmExecutionEvent::Stderr(
             b"WebAssembly fuel budget exhausted\n".to_vec(),
         ))?;
@@ -866,6 +879,14 @@ impl WasmExecutionEngine {
             execution_timeout,
             execution_started_at: Instant::now(),
             timeout_reported: false,
+            // Approach-warn (~80%) before the WASM execution budget is exhausted;
+            // only registered when a timeout is actually set.
+            fuel_gauge: execution_timeout.map(|limit| {
+                register_limit(
+                    TrackedLimit::WasmFuelMs,
+                    duration_millis_saturating_usize(limit),
+                )
+            }),
             pending_events: VecDeque::new(),
             stdout_stream_buffer: Vec::new(),
             stderr_stream_buffer: Vec::new(),
@@ -5145,6 +5166,11 @@ fn validate_module_limits(
 
     if let Some(initial_bytes) = module_limits.initial_memory_bytes {
         if initial_bytes > memory_limit {
+            warn_limit_exhausted(
+                TrackedLimit::WasmMemoryBytes,
+                usize_saturating_from_u64(initial_bytes),
+                usize_saturating_from_u64(memory_limit),
+            );
             return Err(WasmExecutionError::InvalidModule(format!(
                 "initial WebAssembly memory of {initial_bytes} bytes exceeds the configured limit of {memory_limit} bytes"
             )));
@@ -5153,6 +5179,11 @@ fn validate_module_limits(
 
     match module_limits.maximum_memory_bytes {
         Some(maximum_bytes) if maximum_bytes > memory_limit => {
+            warn_limit_exhausted(
+                TrackedLimit::WasmMemoryBytes,
+                usize_saturating_from_u64(maximum_bytes),
+                usize_saturating_from_u64(memory_limit),
+            );
             Err(WasmExecutionError::InvalidModule(format!(
                 "WebAssembly memory maximum of {maximum_bytes} bytes exceeds the configured limit of {memory_limit} bytes"
             )))
@@ -5160,6 +5191,14 @@ fn validate_module_limits(
         Some(_) => Ok(()),
         None => Ok(()),
     }
+}
+
+fn duration_millis_saturating_usize(duration: Duration) -> usize {
+    usize::try_from(duration.as_millis()).unwrap_or(usize::MAX)
+}
+
+fn usize_saturating_from_u64(value: u64) -> usize {
+    usize::try_from(value).unwrap_or(usize::MAX)
 }
 
 #[derive(Debug, Default)]

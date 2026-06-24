@@ -2,6 +2,8 @@
 
 //! Shared bridge contracts between the secure-exec kernel and execution planes.
 
+pub mod queue_tracker;
+
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 use std::time::{Duration, SystemTime};

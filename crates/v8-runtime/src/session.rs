@@ -6,6 +6,8 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
 use crossbeam_channel::{Receiver, Sender};
+#[cfg(not(test))]
+use secure_exec_bridge::queue_tracker::{warn_limit_exhausted, TrackedLimit};
 
 use crate::execution;
 #[cfg(not(test))]
@@ -1365,6 +1367,10 @@ fn session_thread(
 
                         // Send ExecutionResult
                         let result_frame = if cpu_budget_exceeded {
+                            if let Some(budget_ms) = cpu_time_limit_ms {
+                                let capacity = budget_ms as usize;
+                                warn_limit_exhausted(TrackedLimit::V8CpuTimeMs, capacity, capacity);
+                            }
                             RuntimeEvent::ExecutionResult {
                                 session_id,
                                 exit_code: 1,
@@ -1379,6 +1385,14 @@ fn session_thread(
                                 }),
                             }
                         } else if wall_clock_timed_out {
+                            if let Some(limit_ms) = wall_clock_limit_ms {
+                                let capacity = limit_ms as usize;
+                                warn_limit_exhausted(
+                                    TrackedLimit::V8WallClockMs,
+                                    capacity,
+                                    capacity,
+                                );
+                            }
                             RuntimeEvent::ExecutionResult {
                                 session_id,
                                 exit_code: 1,

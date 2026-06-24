@@ -19,6 +19,7 @@
 // The two guards are independent: setting one env knob arms only that guard,
 // and when both are set whichever fires first terminates execution.
 
+use secure_exec_bridge::queue_tracker::{register_limit, TrackedLimit};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
@@ -187,6 +188,12 @@ impl CpuBudgetGuard {
         let baseline_ms = cpu_clock.elapsed_ms().unwrap_or(0);
         let budget_ms = budget_ms as u64;
 
+        // Sample CPU consumption into a registry gauge every poll so the operator
+        // gets an edge-triggered ~80% approach warning BEFORE the budget is
+        // exhausted and the isolate is terminated (the terminal edge is reported
+        // separately by `warn_limit_exhausted`).
+        let cpu_gauge = register_limit(TrackedLimit::V8CpuTimeMs, budget_ms as usize);
+
         let handle = thread::Builder::new()
             .name("cpu-budget".into())
             .spawn(move || {
@@ -202,6 +209,7 @@ impl CpuBudgetGuard {
                                 .elapsed_ms()
                                 .unwrap_or(baseline_ms)
                                 .saturating_sub(baseline_ms);
+                            cpu_gauge.observe_depth(used as usize);
                             if used >= budget_ms {
                                 fired_clone.store(true, Ordering::SeqCst);
                                 isolate_handle.terminate_execution();
@@ -343,20 +351,38 @@ impl TimeoutGuard {
         let fired = Arc::new(AtomicBool::new(false));
         let fired_clone = Arc::clone(&fired);
 
+        // Emit an edge-triggered ~80% approach warning before the wall-clock
+        // budget is exhausted and the isolate is terminated. Observing the gauge
+        // once at the threshold reuses the registry's warn + host-forward path.
+        let wall_gauge = register_limit(TrackedLimit::V8WallClockMs, timeout_ms as usize);
+        let warn_at_ms =
+            timeout_ms as u64 * secure_exec_bridge::queue_tracker::WARN_FILL_PERCENT as u64 / 100;
+
         let handle = thread::Builder::new()
             .name("timeout".into())
             .spawn(move || {
+                let warn_timer = crossbeam_channel::after(Duration::from_millis(warn_at_ms));
                 let timer = crossbeam_channel::after(Duration::from_millis(timeout_ms as u64));
 
-                crossbeam_channel::select! {
-                    recv(timer) -> _ => {
-                        // Timeout elapsed — terminate V8 execution
-                        fired_clone.store(true, Ordering::SeqCst);
-                        isolate_handle.terminate_execution();
-                        on_timeout();
-                    }
-                    recv(cancel_rx) -> _ => {
-                        // Cancelled — execution completed normally
+                loop {
+                    crossbeam_channel::select! {
+                        recv(warn_timer) -> _ => {
+                            // Crossed the approach threshold — warn once. The full
+                            // timer (and cancel) are still pending; `after` fires
+                            // only once, so the next select waits on those.
+                            wall_gauge.observe_depth(warn_at_ms as usize);
+                        }
+                        recv(timer) -> _ => {
+                            // Timeout elapsed — terminate V8 execution
+                            fired_clone.store(true, Ordering::SeqCst);
+                            isolate_handle.terminate_execution();
+                            on_timeout();
+                            return;
+                        }
+                        recv(cancel_rx) -> _ => {
+                            // Cancelled — execution completed normally
+                            return;
+                        }
                     }
                 }
             })

@@ -11,6 +11,7 @@ use crate::v8_host::{V8RuntimeHost, V8SessionHandle};
 use crate::v8_ipc::BinaryFrame;
 use crate::v8_runtime;
 use getrandom::getrandom;
+use secure_exec_bridge::queue_tracker::{register_queue, TrackedLimit, TrackedReceiver};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -28,9 +29,7 @@ use std::sync::{
 use std::thread;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::{
-    channel,
-    error::{TryRecvError as TokioTryRecvError, TrySendError as TokioTrySendError},
-    Receiver as TokioReceiver,
+    channel, error::TryRecvError as TokioTryRecvError, Receiver as TokioReceiver,
 };
 use tokio::time;
 
@@ -82,7 +81,10 @@ const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENTOS_V8_WALL_CLOCK_LIMIT_MS";
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
-const JAVASCRIPT_EVENT_CHANNEL_CAPACITY: usize = 64;
+// Defense-in-depth headroom: a transient burst of guest events (e.g. a chatty
+// tool/skill turn) should be absorbed by the buffer, so the producer only ever
+// hits backpressure under a genuinely stuck consumer rather than on every spike.
+const JAVASCRIPT_EVENT_CHANNEL_CAPACITY: usize = 512;
 const JAVASCRIPT_EVENT_PAYLOAD_LIMIT_BYTES: usize = 1024 * 1024;
 const JAVASCRIPT_CAPTURED_OUTPUT_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 const KERNEL_STDIN_BUFFER_LIMIT_BYTES: usize = 16 * 1024 * 1024;
@@ -1587,7 +1589,7 @@ impl Drop for V8SessionRegistrationGuard<'_> {
 }
 
 struct PendingV8SessionRegistration<'a> {
-    frame_receiver: Receiver<BinaryFrame>,
+    frame_receiver: TrackedReceiver<BinaryFrame>,
     registration_guard: V8SessionRegistrationGuard<'a>,
 }
 
@@ -1728,15 +1730,18 @@ impl JavascriptExecutionEngine {
             "v8-{execution_id}-{}",
             NEXT_V8_SESSION_ID.fetch_add(1, Ordering::Relaxed)
         );
+        let heap_limit_mb = javascript_heap_limit_mb(&request);
+        let cpu_time_limit_ms = javascript_cpu_time_limit_ms(&request);
+        let wall_clock_limit_ms = javascript_wall_clock_limit_ms(&request);
         let PendingV8SessionRegistration {
             frame_receiver,
             mut registration_guard,
         } = register_v8_session(
             v8_host,
             session_id.clone(),
-            javascript_heap_limit_mb(&request),
-            javascript_cpu_time_limit_ms(&request),
-            javascript_wall_clock_limit_ms(&request),
+            heap_limit_mb,
+            cpu_time_limit_ms,
+            wall_clock_limit_ms,
             |frame| v8_host.send_frame(frame),
         )?;
 
@@ -1803,7 +1808,7 @@ impl JavascriptExecutionEngine {
             &process_argv,
             translator.guest_cwd(),
             &request.env,
-            javascript_heap_limit_mb(&request),
+            heap_limit_mb,
             &request.guest_runtime,
         );
 
@@ -2649,13 +2654,17 @@ fn prepend_v8_runtime_shim(
 /// by the event bridge. Kernel operations (fs, net, child_process, dns) are
 /// forwarded to the sidecar via SyncRpcRequest events.
 fn spawn_v8_event_bridge(
-    frame_receiver: mpsc::Receiver<BinaryFrame>,
+    frame_receiver: TrackedReceiver<BinaryFrame>,
     pending_sync_rpc: Arc<Mutex<Option<PendingSyncRpcState>>>,
     _sync_rpc_timeout: Duration,
     v8_session: V8SessionHandle,
     mut local_bridge: LocalBridgeState,
 ) -> TokioReceiver<JavascriptExecutionEvent> {
     let (sender, receiver) = channel(JAVASCRIPT_EVENT_CHANNEL_CAPACITY);
+    let event_gauge = register_queue(
+        TrackedLimit::JavascriptEventChannel,
+        JAVASCRIPT_EVENT_CHANNEL_CAPACITY,
+    );
 
     thread::spawn(move || {
         let mut emitted_exit = false;
@@ -2720,6 +2729,7 @@ fn spawn_v8_event_bridge(
                             if !send_javascript_event(
                                 &sender,
                                 &v8_session,
+                                &event_gauge,
                                 JavascriptExecutionEvent::Stdout(output),
                             ) {
                                 break;
@@ -2728,6 +2738,7 @@ fn spawn_v8_event_bridge(
                             if !send_javascript_event(
                                 &sender,
                                 &v8_session,
+                                &event_gauge,
                                 JavascriptExecutionEvent::Stderr(output),
                             ) {
                                 break;
@@ -2790,6 +2801,7 @@ fn spawn_v8_event_bridge(
                         if !send_javascript_event(
                             &sender,
                             &v8_session,
+                            &event_gauge,
                             JavascriptExecutionEvent::Stderr(error_msg.into_bytes()),
                         ) {
                             break;
@@ -2803,15 +2815,19 @@ fn spawn_v8_event_bridge(
             };
 
             if let Some(event) = event {
-                if !send_javascript_event(&sender, &v8_session, event) {
+                if !send_javascript_event(&sender, &v8_session, &event_gauge, event) {
                     break;
                 }
             }
         }
 
         if !emitted_exit {
-            let _ =
-                send_javascript_event(&sender, &v8_session, JavascriptExecutionEvent::Exited(1));
+            let _ = send_javascript_event(
+                &sender,
+                &v8_session,
+                &event_gauge,
+                JavascriptExecutionEvent::Exited(1),
+            );
         }
     });
 
@@ -2821,6 +2837,7 @@ fn spawn_v8_event_bridge(
 fn send_javascript_event(
     sender: &tokio::sync::mpsc::Sender<JavascriptExecutionEvent>,
     v8_session: &V8SessionHandle,
+    gauge: &secure_exec_bridge::queue_tracker::QueueGauge,
     event: JavascriptExecutionEvent,
 ) -> bool {
     if javascript_event_payload_len(&event) > JAVASCRIPT_EVENT_PAYLOAD_LIMIT_BYTES {
@@ -2828,13 +2845,24 @@ fn send_javascript_event(
         return false;
     }
 
-    match sender.try_send(event) {
-        Ok(()) => true,
-        Err(TokioTrySendError::Full(_)) => {
-            let _ = v8_session.destroy();
-            false
+    // Apply backpressure instead of self-destructing when the host consumer is
+    // slow. A burst of guest events that briefly outpaces the host draining this
+    // channel is normal; previously a single `try_send` returning `Full` tore the
+    // whole session down (`destroy()` -> Shutdown -> `Exited(1)`), turning a
+    // transient backlog into a fatal crash. This bridge runs on its own dedicated
+    // OS thread (never a Tokio runtime worker), so a blocking send is safe: it
+    // parks this thread — and, in turn, the guest producing into it — until the
+    // host drains capacity. The only terminal condition is the receiver being
+    // dropped (host gone for good), which surfaces as `Closed` and stops the loop.
+    match sender.blocking_send(event) {
+        Ok(()) => {
+            // Sample the live channel depth so the centralized queue tracker can
+            // warn before the host consumer falls far enough behind to stall the
+            // session (and surface the high-water mark for debugging).
+            gauge.observe_depth(sender.max_capacity().saturating_sub(sender.capacity()));
+            true
         }
-        Err(TokioTrySendError::Closed(_)) => false,
+        Err(_closed) => false,
     }
 }
 
@@ -6629,15 +6657,20 @@ mod tests {
         drop(receiver);
         let host = V8RuntimeHost::spawn().expect("spawn V8 runtime host");
         let session = host.session_handle(String::from("closed-event-sender-test"));
+        let gauge = register_queue(TrackedLimit::JavascriptEventChannel, 1);
         assert!(!send_javascript_event(
             &sender,
             &session,
+            &gauge,
             JavascriptExecutionEvent::Exited(1)
         ));
     }
 
+    // Regression: a full event channel must apply backpressure, not destroy the
+    // session. The old code called `v8_session.destroy()` on the first `Full`,
+    // truncating the stream and tearing the session down.
     #[test]
-    fn javascript_event_sender_destroys_session_when_channel_is_full() {
+    fn javascript_event_sender_backpressures_instead_of_destroying_when_full() {
         let host = V8RuntimeHost::spawn().expect("spawn V8 runtime host");
         let session_id = format!(
             "event-overflow-{}",
@@ -6646,28 +6679,42 @@ mod tests {
                 .expect("system time")
                 .as_nanos()
         );
-        let receiver = host
+        let _session_receiver = host
             .register_session(&session_id)
             .expect("register event overflow session");
         let session = host.session_handle(session_id.clone());
-        let (sender, _event_receiver) = channel(1);
+        let gauge = register_queue(TrackedLimit::JavascriptEventChannel, 1);
+        let (sender, mut event_receiver) = channel(1);
 
-        assert!(send_javascript_event(
-            &sender,
-            &session,
-            JavascriptExecutionEvent::Stdout(Vec::new())
-        ));
-        assert!(!send_javascript_event(
-            &sender,
-            &session,
-            JavascriptExecutionEvent::Stdout(Vec::new())
-        ));
+        // Drain slowly on another thread so the producer is forced onto the
+        // blocking-backpressure path the old destroy-on-full code never reached.
+        let drainer = std::thread::spawn(move || {
+            let mut drained = 0usize;
+            while event_receiver.blocking_recv().is_some() {
+                drained += 1;
+                std::thread::sleep(std::time::Duration::from_millis(1));
+            }
+            drained
+        });
 
-        drop(receiver);
-        let recovered = host
-            .register_session(&session_id)
-            .expect("overflow should destroy and deregister the session");
-        drop(recovered);
+        // Far more events than the 1-slot channel holds; every send must succeed.
+        const SENDS: usize = 16;
+        for _ in 0..SENDS {
+            assert!(send_javascript_event(
+                &sender,
+                &session,
+                &gauge,
+                JavascriptExecutionEvent::Stdout(Vec::new())
+            ));
+        }
+        drop(sender);
+        let drained = drainer.join().expect("drainer thread panicked");
+        assert_eq!(drained, SENDS, "every event must survive backpressure");
+
+        // The session must NOT have been destroyed: it is still registered, so a
+        // re-registration attempt fails.
+        host.register_session(&session_id)
+            .expect_err("session must survive backpressure (not be destroyed)");
         host.unregister_session(&session_id);
     }
 
@@ -6686,10 +6733,15 @@ mod tests {
             .expect("register oversized event session");
         let session = host.session_handle(session_id.clone());
         let (sender, _event_receiver) = channel(JAVASCRIPT_EVENT_CHANNEL_CAPACITY);
+        let gauge = register_queue(
+            TrackedLimit::JavascriptEventChannel,
+            JAVASCRIPT_EVENT_CHANNEL_CAPACITY,
+        );
 
         assert!(!send_javascript_event(
             &sender,
             &session,
+            &gauge,
             JavascriptExecutionEvent::Stdout(vec![0; JAVASCRIPT_EVENT_PAYLOAD_LIMIT_BYTES + 1])
         ));
 

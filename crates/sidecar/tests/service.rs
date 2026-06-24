@@ -292,6 +292,112 @@ ykAheWCsAteSEWVc0w==\n\
                 .insert(process_id.to_owned(), process);
         }
 
+        fn ext_sidecar_request_payload() -> SidecarRequestPayload {
+            SidecarRequestPayload::Ext(crate::protocol::ExtEnvelope {
+                namespace: String::from("test.completion.evict"),
+                payload: Vec::new(),
+            })
+        }
+
+        fn ext_sidecar_response_frame(
+            request_id: crate::protocol::RequestId,
+            ownership: &OwnershipScope,
+        ) -> crate::protocol::SidecarResponseFrame {
+            crate::protocol::SidecarResponseFrame::new(
+                request_id,
+                ownership.clone(),
+                SidecarResponsePayload::ExtResult(crate::protocol::ExtEnvelope {
+                    namespace: String::from("test.completion.evict"),
+                    payload: Vec::new(),
+                }),
+            )
+        }
+
+        // Drive one full sidecar request -> outbound drain -> response-accept
+        // cycle, mirroring how the stdio loop hands a request to the host and
+        // then records the host's reply. Returns the request id so the caller
+        // can later assert whether that completed response is still retrievable.
+        fn complete_one_sidecar_response(
+            sidecar: &mut NativeSidecar<RecordingBridge>,
+            ownership: &OwnershipScope,
+        ) -> crate::protocol::RequestId {
+            let request_id = sidecar
+                .queue_sidecar_request(ownership.clone(), ext_sidecar_request_payload())
+                .expect("queue sidecar request");
+            sidecar
+                .pop_sidecar_request()
+                .expect("outbound sidecar request should be queued for the host");
+            sidecar
+                .accept_sidecar_response(ext_sidecar_response_frame(request_id, ownership))
+                .expect("accept sidecar response");
+            request_id
+        }
+
+        // The completed-response map is bounded: once more responses complete
+        // than the cap, the oldest *unretrieved* response is evicted (and the
+        // host can no longer fetch it) so the map cannot grow without bound.
+        fn completed_sidecar_responses_evict_oldest_beyond_cap() {
+            let mut sidecar = create_test_sidecar();
+            let ownership = OwnershipScope::connection("conn-completion-evict");
+            let cap = crate::service::MAX_COMPLETED_SIDECAR_RESPONSES;
+
+            // The first completion is the oldest; everything after it pushes the
+            // map past the cap and must evict from the front.
+            let oldest_request_id = complete_one_sidecar_response(&mut sidecar, &ownership);
+            for _ in 1..(cap + 5) {
+                complete_one_sidecar_response(&mut sidecar, &ownership);
+            }
+
+            assert_eq!(
+                sidecar.completed_sidecar_responses.len(),
+                cap,
+                "completed sidecar responses must stay bounded at the cap"
+            );
+            assert_eq!(
+                sidecar.completed_sidecar_responses_gauge.depth(),
+                cap,
+                "the completion gauge must track the bounded map depth"
+            );
+            assert!(
+                sidecar.take_sidecar_response(oldest_request_id).is_none(),
+                "the oldest unretrieved response should be evicted once the cap is exceeded"
+            );
+
+            // A response completed after the cap was reached is still retrievable,
+            // proving eviction drops the front and keeps the most recent entries.
+            let recent_request_id = complete_one_sidecar_response(&mut sidecar, &ownership);
+            assert!(
+                sidecar.take_sidecar_response(recent_request_id).is_some(),
+                "a freshly completed response should remain retrievable after eviction"
+            );
+        }
+
+        // Retrieving completed responses must keep the gauge in sync so the
+        // limit registry never reports phantom backlog after the host drains.
+        fn taking_sidecar_responses_releases_completion_gauge() {
+            let mut sidecar = create_test_sidecar();
+            let ownership = OwnershipScope::connection("conn-completion-drain");
+
+            let mut request_ids = Vec::new();
+            for _ in 0..8 {
+                request_ids.push(complete_one_sidecar_response(&mut sidecar, &ownership));
+            }
+            assert_eq!(sidecar.completed_sidecar_responses_gauge.depth(), 8);
+
+            for request_id in request_ids {
+                assert!(
+                    sidecar.take_sidecar_response(request_id).is_some(),
+                    "each completed response should be retrievable exactly once"
+                );
+            }
+            assert_eq!(
+                sidecar.completed_sidecar_responses_gauge.depth(),
+                0,
+                "draining every completed response must return the gauge to zero"
+            );
+            assert_eq!(sidecar.completed_sidecar_responses.len(), 0);
+        }
+
         fn process_event_sender_is_bounded() {
             let sidecar = create_test_sidecar();
 
@@ -17232,6 +17338,12 @@ console.log(JSON.stringify({
             javascript_child_process_internal_bootstrap_env_is_allowlisted();
             javascript_net_poll_clamps_guest_wait_to_sidecar_ceiling();
             javascript_net_poll_timeout_does_not_block_concurrent_vm_dispose();
+        }
+
+        #[test]
+        fn service_sidecar_response_completion_is_bounded() {
+            completed_sidecar_responses_evict_oldest_beyond_cap();
+            taking_sidecar_responses_releases_completion_gauge();
         }
 
         #[test]

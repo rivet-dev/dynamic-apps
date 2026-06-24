@@ -3,9 +3,11 @@ use crate::pipe_manager::PipeManager;
 use crate::process_table::{ProcessStatus, ProcessTable};
 use crate::pty::PtyManager;
 use crate::socket_table::{SocketState, SocketTable};
+use secure_exec_bridge::queue_tracker::{register_limit, QueueGauge, TrackedLimit};
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt;
+use std::sync::Arc;
 use vfs::posix::usage::RootFilesystemResourceLimits;
 
 pub use vfs::posix::usage::{
@@ -167,13 +169,102 @@ impl fmt::Display for ResourceError {
 impl Error for ResourceError {}
 
 #[derive(Debug, Clone, Default)]
+/// Per-VM gauges for the saturating resource limits, registered with the central
+/// limit registry so their usage is inspectable and they emit an edge-triggered
+/// approach warning (~80%) before the guest hits the hard cap. Only limits that
+/// are actually set get a gauge; unbounded (`None`) limits are skipped.
+struct ResourceGauges {
+    processes: Option<Arc<QueueGauge>>,
+    open_fds: Option<Arc<QueueGauge>>,
+    pipes: Option<Arc<QueueGauge>>,
+    ptys: Option<Arc<QueueGauge>>,
+    sockets: Option<Arc<QueueGauge>>,
+    connections: Option<Arc<QueueGauge>>,
+    socket_buffered_bytes: Option<Arc<QueueGauge>>,
+    socket_datagram_queue_len: Option<Arc<QueueGauge>>,
+    filesystem_bytes: Option<Arc<QueueGauge>>,
+    inodes: Option<Arc<QueueGauge>>,
+}
+
+fn register_resource_gauge(name: TrackedLimit, limit: Option<usize>) -> Option<Arc<QueueGauge>> {
+    limit.map(|capacity| register_limit(name, capacity))
+}
+
+fn register_resource_gauge_u64(name: TrackedLimit, limit: Option<u64>) -> Option<Arc<QueueGauge>> {
+    limit.map(|capacity| register_limit(name, usize_saturating_from_u64(capacity)))
+}
+
+fn usize_saturating_from_u64(value: u64) -> usize {
+    usize::try_from(value).unwrap_or(usize::MAX)
+}
+
+impl ResourceGauges {
+    fn new(limits: &ResourceLimits) -> Self {
+        Self {
+            processes: register_resource_gauge(TrackedLimit::VmProcesses, limits.max_processes),
+            open_fds: register_resource_gauge(TrackedLimit::VmOpenFds, limits.max_open_fds),
+            pipes: register_resource_gauge(TrackedLimit::VmPipes, limits.max_pipes),
+            ptys: register_resource_gauge(TrackedLimit::VmPtys, limits.max_ptys),
+            sockets: register_resource_gauge(TrackedLimit::VmSockets, limits.max_sockets),
+            connections: register_resource_gauge(
+                TrackedLimit::VmConnections,
+                limits.max_connections,
+            ),
+            socket_buffered_bytes: register_resource_gauge(
+                TrackedLimit::VmSocketBufferedBytes,
+                limits.max_socket_buffered_bytes,
+            ),
+            socket_datagram_queue_len: register_resource_gauge(
+                TrackedLimit::VmSocketDatagramQueueLen,
+                limits.max_socket_datagram_queue_len,
+            ),
+            filesystem_bytes: register_resource_gauge_u64(
+                TrackedLimit::VmFilesystemBytes,
+                limits.max_filesystem_bytes,
+            ),
+            inodes: register_resource_gauge(TrackedLimit::VmInodes, limits.max_inode_count),
+        }
+    }
+}
+
 pub struct ResourceAccountant {
     limits: ResourceLimits,
+    gauges: ResourceGauges,
 }
 
 impl ResourceAccountant {
     pub fn new(limits: ResourceLimits) -> Self {
-        Self { limits }
+        let gauges = ResourceGauges::new(&limits);
+        Self { limits, gauges }
+    }
+
+    /// Sample the saturating-resource gauges from a fresh snapshot so the central
+    /// registry tracks usage and warns before any cap is reached.
+    fn observe_resource_gauges(&self, snapshot: &ResourceSnapshot) {
+        if let Some(gauge) = &self.gauges.processes {
+            gauge.observe_depth(snapshot.running_processes + snapshot.exited_processes);
+        }
+        if let Some(gauge) = &self.gauges.open_fds {
+            gauge.observe_depth(snapshot.open_fds);
+        }
+        if let Some(gauge) = &self.gauges.pipes {
+            gauge.observe_depth(snapshot.pipes);
+        }
+        if let Some(gauge) = &self.gauges.ptys {
+            gauge.observe_depth(snapshot.ptys);
+        }
+        if let Some(gauge) = &self.gauges.sockets {
+            gauge.observe_depth(snapshot.sockets);
+        }
+        if let Some(gauge) = &self.gauges.connections {
+            gauge.observe_depth(snapshot.socket_connections);
+        }
+        if let Some(gauge) = &self.gauges.socket_buffered_bytes {
+            gauge.observe_depth(snapshot.socket_buffered_bytes);
+        }
+        if let Some(gauge) = &self.gauges.socket_datagram_queue_len {
+            gauge.observe_depth(snapshot.socket_datagram_queue_len);
+        }
     }
 
     pub fn limits(&self) -> &ResourceLimits {
@@ -199,7 +290,7 @@ impl ResourceAccountant {
             .count();
         let socket_snapshot = sockets.snapshot();
 
-        ResourceSnapshot {
+        let snapshot = ResourceSnapshot {
             running_processes,
             exited_processes,
             fd_tables: fd_tables.len(),
@@ -214,7 +305,9 @@ impl ResourceAccountant {
             socket_connections: socket_snapshot.connections,
             socket_buffered_bytes: socket_snapshot.buffered_bytes,
             socket_datagram_queue_len: socket_snapshot.datagram_queue_len,
-        }
+        };
+        self.observe_resource_gauges(&snapshot);
+        snapshot
     }
 
     pub fn check_process_spawn(
@@ -437,6 +530,16 @@ impl ResourceAccountant {
                 ));
             }
         }
+
+        // Sample the gauges only on the success path: observing the *projected*
+        // value before the bounds check would latch a spurious near/at-capacity
+        // warning for a write that is then rejected and never actually applied.
+        if let Some(gauge) = &self.gauges.filesystem_bytes {
+            gauge.observe_depth(usize_saturating_from_u64(resulting_bytes));
+        }
+        if let Some(gauge) = &self.gauges.inodes {
+            gauge.observe_depth(resulting_inodes);
+        }
         Ok(())
     }
 }
@@ -474,4 +577,106 @@ fn merged_env_payload_bytes(
     }
 
     total
+}
+
+#[cfg(test)]
+mod gauge_tests {
+    use super::*;
+    use secure_exec_bridge::queue_tracker::{
+        set_limit_warning_handler, LimitWarning, TrackedLimit,
+    };
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn resource_gauges_track_usage_and_warn_on_approach() {
+        let captured: Arc<Mutex<Vec<LimitWarning>>> = Arc::new(Mutex::new(Vec::new()));
+        let sink = Arc::clone(&captured);
+        // Filter by name so a gauge from a concurrently-running test can't pollute.
+        set_limit_warning_handler(Box::new(move |warning| {
+            if warning.name == TrackedLimit::VmOpenFds {
+                sink.lock().expect("sink mutex").push(warning.clone());
+            }
+        }));
+
+        let limits = ResourceLimits {
+            max_open_fds: Some(10),
+            ..ResourceLimits::default()
+        };
+        let accountant = ResourceAccountant::new(limits);
+        let snapshot = ResourceSnapshot {
+            open_fds: 9, // 90% of the cap
+            ..ResourceSnapshot::default()
+        };
+        accountant.observe_resource_gauges(&snapshot);
+
+        // The gauge reflects the sampled usage...
+        let gauge = accountant
+            .gauges
+            .open_fds
+            .as_ref()
+            .expect("open_fds gauge registered when the limit is set");
+        assert_eq!(gauge.depth(), 9);
+        assert_eq!(gauge.capacity(), 10);
+        assert_eq!(gauge.high_water(), 9);
+
+        // ...and crossing ~80% emits the approach warning to the host sink.
+        assert!(
+            captured
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|warning| warning.name == TrackedLimit::VmOpenFds),
+            "open_fds at 90% of cap must emit an approach warning"
+        );
+    }
+
+    #[test]
+    fn unset_limit_registers_no_gauge() {
+        let limits = ResourceLimits {
+            max_ptys: None,
+            ..ResourceLimits::default()
+        };
+        let accountant = ResourceAccountant::new(limits);
+        assert!(
+            accountant.gauges.ptys.is_none(),
+            "an unbounded (None) limit must not register a gauge"
+        );
+    }
+
+    #[test]
+    fn filesystem_gauge_not_latched_by_rejected_write() {
+        let limits = ResourceLimits {
+            max_filesystem_bytes: Some(1000),
+            max_inode_count: Some(100),
+            ..ResourceLimits::default()
+        };
+        let accountant = ResourceAccountant::new(limits);
+        let usage = FileSystemUsage::default();
+
+        // A write that would exceed the byte cap is rejected and must NOT latch
+        // the gauge to the projected (never-applied) value.
+        let rejected = accountant.check_filesystem_usage(&usage, 2000, 0);
+        assert!(rejected.is_err());
+        let bytes_gauge = accountant
+            .gauges
+            .filesystem_bytes
+            .as_ref()
+            .expect("filesystem_bytes gauge registered");
+        assert_eq!(
+            bytes_gauge.depth(),
+            0,
+            "a rejected over-limit write must not bump the gauge"
+        );
+
+        // A successful write does update it.
+        accountant
+            .check_filesystem_usage(&usage, 500, 7)
+            .expect("under-limit write is accepted");
+        assert_eq!(bytes_gauge.depth(), 500);
+        assert_eq!(
+            accountant.gauges.inodes.as_ref().unwrap().depth(),
+            7,
+            "inode gauge tracks the accepted value"
+        );
+    }
 }
