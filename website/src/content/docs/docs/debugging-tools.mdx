@@ -1,0 +1,152 @@
+---
+title: Linux Debugging Tools
+description: The in-VM debugging and observability tools for guest code, each mapped to its Linux equivalent.
+---
+
+Guest code runs as WebAssembly inside isolated V8 contexts, so the usual host debuggers (`gdb`, `strace`, `perf`, `tcpdump`) cannot attach to it. Secure Exec ships equivalents that work across the isolation boundary. Each one below is named with the Linux tool it stands in for.
+
+- **Env-gated**: every tool is off by default and zero-cost until you set its environment variable on the sidecar process.
+- **Pure instrumentation**: enabling a tool never changes guest behavior, only what gets logged.
+- **Where output goes**: trace and dump output is written to the sidecar's stderr (and, for some, a file under `/tmp`).
+
+## Quick reference
+
+| Secure Exec tool | Env var | Linux parallel |
+|---|---|---|
+| Sync-RPC trace | `SECURE_EXEC_TRACE` | `strace` |
+| Sync-RPC profile | `SECURE_EXEC_RPCPROF` | `strace -c` |
+| Socket I/O trace | `SECURE_EXEC_NET_TRACE` | `strace -e trace=network`, `tcpdump` |
+| All-isolate stack dump | `SECURE_EXEC_STACKDUMP_AFTER_MS` | `gdb -p`, `pstack`, `thread apply all bt` |
+| Wasm frame names | `SECURE_EXEC_KEEP_NAMES` | debug symbols, `addr2line` |
+| Wasm CPU profile | `SECURE_EXEC_V8PROF` | `perf`, flamegraph |
+| Stuck-RPC watchdog | `SECURE_EXEC_RPC_WATCHDOG_MS` | kernel hung-task detector |
+| X11 wire tap | `SECURE_EXEC_XTRACE` | `xtrace`, `xscope`, Wireshark |
+
+## Sync-RPC trace (`SECURE_EXEC_TRACE`)
+
+Linux parallel: **`strace`**.
+
+- Logs every guest to sidecar syscall (the sync-RPC stream) per process, with timing.
+- The fastest way to see what a guest is doing and to spot a scheduling stall: one process spinning on `net.poll` while a sibling does nothing is a deadlock.
+
+```bash
+SECURE_EXEC_TRACE=1 <run your workload>
+```
+
+## Sync-RPC profile (`SECURE_EXEC_RPCPROF`)
+
+Linux parallel: **`strace -c`** (call counts and time, not the raw stream).
+
+- Aggregates sync-RPC calls so you can see which syscalls dominate a run.
+
+```bash
+SECURE_EXEC_RPCPROF=1 <run your workload>
+```
+
+## Socket I/O trace (`SECURE_EXEC_NET_TRACE`)
+
+Linux parallel: **`strace -e trace=network`** plus a touch of **`tcpdump`**.
+
+- Logs each `net_send` / `net_recv` / `net_poll` on the kernel socket table with the fd, byte counts, and result, prefixed `NETTRACE`.
+- Use it when a socket-based guest (a D-Bus or X11 client) connects but then stalls or sees an unexpected EOF.
+
+```bash
+SECURE_EXEC_NET_TRACE=1 <run your workload>
+```
+
+## All-isolate stack dump (`SECURE_EXEC_STACKDUMP_AFTER_MS`)
+
+Linux parallel: **`gdb -p <pid>`** then **`thread apply all bt`**, or **`pstack`**.
+
+- A watchdog interrupts every live isolate after the delay and prints each thread's stack to stderr, with a one-line verdict per thread.
+- The verdict is the key call when a guest hangs: `PARKED-ON-FUTEX` (a guest mutex/cond wait, a deadlock candidate), `BLOCKED-IN-HOST` (waiting on a sidecar call like `net.poll`), or `RUNNING` (busy-spinning wasm, a livelock candidate).
+- It samples a few times so a busy-spin (stack changes) is distinguishable from a clean block (stack identical).
+
+```bash
+SECURE_EXEC_STACKDUMP_AFTER_MS=5000 \
+SECURE_EXEC_STACKDUMP_SAMPLES=3 \
+SECURE_EXEC_STACKDUMP_INTERVAL_MS=600 \
+<run your workload>
+```
+
+## Wasm frame names (`SECURE_EXEC_KEEP_NAMES`)
+
+Linux parallel: **debug symbols** plus **`addr2line`**.
+
+- Builds the guest so V8 keeps the wasm name section, so the stack dump and profiler can name frames instead of showing bare `wasm-function[N]`.
+- Pair it with the stack dump or the profiler when you need to know which function is spinning.
+
+```bash
+SECURE_EXEC_KEEP_NAMES=1 <build + run your workload>
+```
+
+## Wasm CPU profile (`SECURE_EXEC_V8PROF`)
+
+Linux parallel: **`perf record`** plus a flamegraph.
+
+- Profiles every isolate and writes a V8 log to `/tmp`; the hot wasm call chain shows up as a sustained sample run.
+- Surfaces a busy-spin hotspot (for example a GLib source that dispatches without polling).
+
+```bash
+SECURE_EXEC_V8PROF=1 <run your workload>
+# then symbolize the top frames with the helper script
+python3 experiments/wasm-gui/scripts/v8prof-top.py /tmp/secure-exec-v8.log
+```
+
+## Stuck-RPC watchdog (`SECURE_EXEC_RPC_WATCHDOG_MS`)
+
+Linux parallel: the kernel **hung-task detector**.
+
+- Warns when the sidecar dispatch thread has been inside a single sync-RPC longer than the threshold, so a wedged call is reported instead of silently hanging.
+- Add `SECURE_EXEC_RPC_WATCHDOG_DUMP_MS` to also print a per-process activity table on an interval.
+
+```bash
+SECURE_EXEC_RPC_WATCHDOG_MS=750 SECURE_EXEC_RPC_WATCHDOG_DUMP_MS=2000 <run your workload>
+```
+
+## X11 wire tap (`SECURE_EXEC_XTRACE`)
+
+Linux parallel: **`xtrace`** / **`xscope`**, or a Wireshark X11 dissector.
+
+- Dumps the bytes on a guest X11 socket as `[xtrace] <dir> <path> len=<n> <hex>`. The value caps the hex per payload (default 256 bytes, enough for the request header; set it large to capture full requests).
+- Decode the capture offline with the helper scripts.
+
+```bash
+SECURE_EXEC_XTRACE=65536 <run your X workload>
+# per-chunk decode:
+python3 experiments/wasm-gui/scripts/xdecode.py <capture>
+# full request/reply reassembly:
+python3 experiments/wasm-gui/scripts/xreassemble.py <capture>
+```
+
+## Component-native tracing
+
+Many upstream components ship their own verbose modes, which work unchanged inside the VM because the components run as stock builds. Set these like you would on Linux:
+
+- **`DBUS_VERBOSE=1`**: full `dbus-daemon` and client handshake trace (needs a verbose-enabled dbus build).
+- **`G_DBUS_DEBUG=authentication,message,connection`**: GLib's GDBus client trace.
+- **`G_MESSAGES_DEBUG=all`**: GLib log domains.
+
+## Multi-guest test harness
+
+Linux parallel: **`Xvfb` + `xinit`** for X, **`dbus-run-session`** for D-Bus.
+
+The `wasm-gui-host` harness runs one or more guests together so you can reproduce a desktop scenario:
+
+- **`--exec`**: run a single guest with a staged VM tree (`--vm-tree`) and guest env.
+- **`--xdemo`**: run a wasm X server plus X clients sharing one kernel socket table.
+- **`--bus-test`**: run `dbus-daemon` plus D-Bus clients with `DBUS_SESSION_BUS_ADDRESS` injected.
+
+```bash
+wasm-gui-host --bus-test \
+  --server dbus-daemon.wasm \
+  --client dbus-monitor.wasm \
+  --vm-tree /tmp/vmdbus --timeout 25 \
+  -- --config-file=/etc/dbus-1/session.conf --nofork --print-address
+```
+
+## Wasm module inspectors
+
+Linux parallel: **`objdump`** / **`readelf`**.
+
+- Use `wasm-objdump`, `wasm2wat`, and `wasm-tools` (from the WABT / wasm-tools suites) to inspect a guest `.wasm` module's imports, exports, and ABI when a guest fails to instantiate.

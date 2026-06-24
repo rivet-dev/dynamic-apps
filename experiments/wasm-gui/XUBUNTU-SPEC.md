@@ -226,13 +226,16 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   - **GDBus SASL auth works:** the probe now connects and authenticates over host_net (EXTERNAL is
     rejected because GIO's `getuid()`→-1 yields `GCredentials:unknown` so it asserts uid 4294967295 ≠ the
     daemon's SO_PEERCRED 0; it then falls back to **ANONYMOUS**, which the session.conf policy allows).
-  - **REMAINING blocker:** after auth a GDBus **worker thread** spawns to send the initial `Hello`
-    method-call and blocks before the bytes reach the daemon (daemon stays authenticated but silent;
-    client returns "The connection is closed"). This is GLib's GMainContext/GSocket **async I/O on a
-    worker thread** over host_net — the cross-thread GMainContext wakeup that flushes the queued Hello
-    (the M8.5 GIO worker-context-wakeup area). Next: get the GDBus worker's GSource socket I/O +
-    context wakeup pumping over host_net, then build libxfce4util + xfconf (xfconfd + xfconf-query) on
-    top. Proof so far: `~/tmp/gui-progress/2026-06-24T21/xu1-gdbus-probe.txt`.
+  - **REMAINING blocker — ROOT CAUSE FOUND (not yet fixed):** after auth (which runs on the main
+    thread), GDBus does message I/O on a **worker thread**; its `Hello` never reaches the daemon. The
+    host_net socket table (`hostNetSockets` in `node_import_cache.rs`) is **per-isolate**, and each wasm
+    thread runs in its own V8 isolate, so the worker isolate's `net_send(fd)` misses the socket the main
+    isolate created and returns EBADF → "connection closed". M8's X clients never hit this (X I/O stays
+    on the GTK main thread); GDBus is the first guest doing socket I/O on a worker thread. **Fix
+    direction:** make the guest-fd→socketId mapping resolvable across isolates (the real sockets already
+    live process-wide in the sidecar `process.unix_sockets`; only the per-isolate JS fd→socketId cache
+    is missing). Then libxfce4util + xfconf (xfconfd + xfconf-query) → xfsettingsd. Found via the new
+    `SECURE_EXEC_NET_TRACE` tool. Proof so far: `~/tmp/gui-progress/2026-06-24T21/xu1-gdbus-probe.txt`.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)

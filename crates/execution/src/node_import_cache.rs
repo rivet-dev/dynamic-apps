@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "101";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "103";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8789,6 +8789,8 @@ const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
 const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
+function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -11584,6 +11586,15 @@ const hostNetImport = {
           if (revents) ready++;
         }
         if (ready > 0 || t === 0 || (deadline != null && Date.now() >= deadline)) {
+          if (globalThis.__nettrace && ready > 0) {
+            const v3 = new DataView(instanceMemory.buffer);
+            let parts = '';
+            for (let i = 0; i < n; i++) {
+              const b = base0 + i * 8;
+              parts += ' fd=' + v3.getInt32(b, true) + ':ev=' + v3.getUint16(b + 4, true) + ':re=' + v3.getUint16(b + 6, true);
+            }
+            netTrace('poll ready=' + ready + parts);
+          }
           new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
           return 0;
         }
@@ -12029,6 +12040,10 @@ const hostNetImport = {
   net_send(fd, bufPtr, bufLen, flags, retSentPtr) {
     const socket = getHostNetSocket(fd);
     if (!socket?.socketId || socket.closed) {
+      // A miss here on a thread other than the creator is the per-isolate-socket-table gap: each wasm
+      // thread runs in its own isolate with its own hostNetSockets, so a socket opened on another
+      // isolate is invisible. netTrace makes that visible instead of a bare EBADF.
+      netTrace('send fd=' + fd + ' BADF (no socket in this isolate; known=' + hostNetSockets.size + ')');
       return WASI_ERRNO_BADF;
     }
 
@@ -12038,14 +12053,17 @@ const hostNetImport = {
         // Non-zero send flags are currently ignored in the WASM host_net shim.
       }
       const written = Number(callSyncRpc('net.write', [socket.socketId, chunk])) >>> 0;
+      netTrace('send fd=' + fd + ' sid=' + socket.socketId + ' want=' + bufLen + ' wrote=' + written);
       return writeGuestUint32(retSentPtr, written);
-    } catch {
+    } catch (e) {
+      netTrace('send fd=' + fd + ' FAULT ' + (e && e.message));
       return WASI_ERRNO_FAULT;
     }
   },
   net_recv(fd, bufPtr, bufLen, flags, retReceivedPtr) {
     const socket = getHostNetSocket(fd);
     if (!socket) {
+      netTrace('recv fd=' + fd + ' BADF (no socket in this isolate; known=' + hostNetSockets.size + ')');
       return WASI_ERRNO_BADF;
     }
 
@@ -12079,17 +12097,21 @@ const hostNetImport = {
 
       const deadline =
         socket.recvTimeoutMs == null ? null : Date.now() + Math.max(0, socket.recvTimeoutMs);
+      netTrace('recv(blocking) fd=' + fd + ' sid=' + socket.socketId + ' want=' + bufLen + ' enter');
       while (true) {
         const queued = dequeueHostNetBytes(socket, bufLen);
         if (queued.length > 0) {
+          netTrace('recv(blocking) fd=' + fd + ' got=' + queued.length);
           return writeGuestBytes(bufPtr, bufLen, queued, retReceivedPtr);
         }
 
         if (socket.lastError) {
+          netTrace('recv(blocking) fd=' + fd + ' FAULT lastError');
           return WASI_ERRNO_FAULT;
         }
 
         if (socket.readableEnded || socket.closed || !socket.socketId) {
+          netTrace('recv(blocking) fd=' + fd + ' EOF readableEnded=' + socket.readableEnded + ' closed=' + socket.closed + ' sid=' + socket.socketId);
           return writeGuestUint32(retReceivedPtr, 0);
         }
 

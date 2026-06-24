@@ -4,6 +4,13 @@ Companion to `SPEC.md` constraint #4. Where SPEC.md says *"when stuck, build a t
 native debugging,"* this doc records **how we decide what to build**, the **catalog of tools with a
 checklist**, and the **short-term plan**.
 
+> **Public mirror — keep in sync.** The user-facing catalog of the SHIPPED tools (each mapped to its
+> Linux parallel) lives at `website/src/content/docs/docs/debugging-tools.mdx` ("Linux Debugging
+> Tools", in the docs sidebar under **Debugging**). When a tool here flips to `[x]`/`[~]` (or its env
+> var / Linux analog changes), update that MDX page in the same change. This doc is the source of
+> truth for the internal catalog + rationale; the MDX page is the trimmed, user-actionable view (set
+> the flag, read the output, the Linux tool it stands in for) and must not narrate runtime internals.
+
 ## 1. Why this exists
 
 On this project the bottleneck is almost never the bug's difficulty, it is **observability**. A guest
@@ -64,6 +71,11 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
 ### 4a. EXPOSE — surface state we already own (native API / host dump; cheap)
 - [x] **P1 sync-RPC trace** (`SECURE_EXEC_TRACE`) — guest↔sidecar call stream per process, timed. The
       `strace`-capability. (`crates/sidecar/src/execution.rs` `service_javascript_sync_rpc`.)
+- [x] **P2 socket I/O trace** (`SECURE_EXEC_NET_TRACE`) — per-isolate `net_send`/`net_recv`/`net_poll`
+      with fd + byte counts + result (`NETTRACE …`). The `strace -e network`/`tcpdump` capability for the
+      kernel socket table. (`crates/execution/src/node_import_cache.rs` `netTrace`.) Caveat: it traces
+      the CALLING isolate, so it surfaces the per-isolate-socket-table gap directly (a worker-thread
+      isolate has an empty `hostNetSockets` → `net_send` misses with EBADF before any sidecar call).
 - [ ] **P1 process/scheduler view** — `ActiveProcess` table: `kernel_pid`→label (`xclient0`/`server`),
       per-process **run-state** (requires runtime→kernel plumbing of isolate state — the bit that
       reveals a spin), last-pumped, blocked-on. Replaces `ps`/`top`.
@@ -132,3 +144,7 @@ For the current M8 bug first, maximizing downstream reuse:
 - 2026-06-21: doc created. sync-RPC trace shipped; it refuted two M8 theories and (with `/proc` thread
   states) localized the `gtk_init` hang to a busy-spin livelock between the GTK leader and a GLib
   worker thread. Next: all-isolate stack-dump + DWARF symbolizer.
+- 2026-06-24: added `SECURE_EXEC_NET_TRACE` (socket I/O trace, 4a) while debugging XU1 GDBus. Published
+  the user-facing catalog at `website/src/content/docs/docs/debugging-tools.mdx` ("Linux Debugging
+  Tools", sidebar → Debugging) mirroring the shipped tools to their Linux parallels; keep it in sync
+  with this doc (see the header note).

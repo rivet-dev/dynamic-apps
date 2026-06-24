@@ -77,6 +77,12 @@ export const siteConfig = {
 				// { slug: "docs/process-isolation", attrs: { "data-icon": "box" } },
 			],
 		},
+		{
+			label: "Debugging",
+			items: [
+				{ slug: "docs/debugging-tools", attrs: { "data-icon": "bug" } },
+			],
+		},
 		// {
 		// 	label: "Reference",
 		// 	items: [

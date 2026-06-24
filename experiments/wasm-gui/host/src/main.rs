@@ -761,6 +761,7 @@ async fn run_bus_roundtrip(
     // Forward DBUS_*/G_* diagnostics (DBUS_VERBOSE, G_DBUS_DEBUG, G_MESSAGES_DEBUG) to the guests.
     for (k, v) in std::env::vars() {
         if (k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS")
+            || k.starts_with("SECURE_EXEC_")
             || k == "G_DBUS_DEBUG"
             || k == "G_MESSAGES_DEBUG"
         {
@@ -787,6 +788,7 @@ async fn run_bus_roundtrip(
         );
         for (k, v) in std::env::vars() {
             if (k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS")
+                || k.starts_with("SECURE_EXEC_")
                 || k == "G_DBUS_DEBUG"
                 || k == "G_MESSAGES_DEBUG"
             {
