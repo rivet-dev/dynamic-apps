@@ -32,7 +32,8 @@ _COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/sh
 "${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
 "${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$EXP/toolchain/threads-libs/override_fcntl.o"
 "${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$EXP/toolchain/threads-libs/override_ioctl.o"
-"$AR" rcs "$PREFIX/lib/libhostcompat.a" "$EXP"/toolchain/threads-libs/{host_socket,host_pipe_dup,override_fcntl,override_ioctl}.o \
+"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/writev_hostnet.c" -o "$EXP/toolchain/threads-libs/override_writev.o"
+"$AR" rcs "$PREFIX/lib/libhostcompat.a" "$EXP"/toolchain/threads-libs/{host_socket,host_pipe_dup,override_fcntl,override_ioctl,override_writev}.o \
   "$EXP/toolchain/wasi-compat-threads.o" "$EXP/toolchain/openbox-compat.o"
 
 cfg() { # cfg <dir> <extra configure args...>

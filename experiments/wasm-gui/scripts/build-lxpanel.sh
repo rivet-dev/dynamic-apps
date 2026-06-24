@@ -20,7 +20,7 @@ SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"; LIBC="$THREADS_SYSRO
 # (the WM reparent/manage dance + gtk_widget_show_all over the panel tree, processed while mapping)
 # overflows the small default wasm stack -> "RuntimeError: memory access out of bounds". Constraint #5
 # build-time flag, not a source change.
-CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608"
+CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608 -Wl,--wrap=writev"
 cs() { cp "$TP/libX11-threads/config.sub" "$TP/libX11-threads/config.guess" "$TP/$1/" 2>/dev/null; }
 
 # libfm + libhostcompat must already exist (build-libfm.sh)

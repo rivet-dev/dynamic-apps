@@ -19,7 +19,7 @@ SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"; LIBC="$THREADS_SYSRO
 # Bump the wasm main stack to 8MB: pcmanfm's GtkUIManager/menu build + the recursive gtk_widget_show_all
 # over the deep main-window tree (toolbar/notebook/treeview/statusbar) overflow the small default stack,
 # which surfaces as "memory access out of bounds" inside the show_all vfunc recursion.
-CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608"
+CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608 -Wl,--wrap=writev"
 cs() { cp "$TP/libX11-threads/config.sub" "$TP/libX11-threads/config.guess" "$TP/$1/" 2>/dev/null; }
 
 # libfm-gtk3 + libhostcompat must already exist (build-libfm.sh).
