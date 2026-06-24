@@ -35,7 +35,56 @@ int setrlimit(int r, const void *l) { (void)r; (void)l; return 0; }
 /* genuinely-missing-in-wasi functions the X server references (stubs: server runs single-threaded,
    no real signals/hostname lookup). Name-linkage; arg types are placeholders. */
 void *gethostbyname(const char *n) { (void)n; return 0; }
-int msync(void *a, unsigned long l, int f) { (void)a; (void)l; (void)f; return 0; }
+
+/* file-backed MAP_SHARED writeback — platform glue so STOCK (unmodified) Xvfb can export its
+ * framebuffer via mmap(MAP_SHARED)+msync. wasi has no real shared file mappings: wasi-emulated-mman's
+ * mmap returns a malloc'd copy of the file with no write-back. The Xvfb link wraps mmap/munmap
+ * (-Wl,--wrap=mmap,--wrap=munmap), so we record every MAP_SHARED file mapping here and flush it to its
+ * fd on msync/munmap via pwrite (which the secure-exec runner delta-encodes — only changed byte-runs
+ * cross the wire). MAP_PRIVATE caches (fontconfig/freetype) pass straight through to __real_mmap
+ * untracked. This keeps the wasi-specific framebuffer-export logic in the platform layer instead of a
+ * patch to Xvfb source (constraint #5). */
+#include <sys/mman.h>
+#include <stddef.h>
+#include <unistd.h>
+extern void *__real_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off);
+extern int __real_munmap(void *addr, size_t len);
+#define WASI_SHARED_MAP_MAX 8
+static struct { void *addr; size_t len; int fd; off_t off; } g_shared_maps[WASI_SHARED_MAP_MAX];
+void *__wrap_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
+    void *p = __real_mmap(addr, len, prot, flags, fd, off);
+    if (p != MAP_FAILED && (flags & MAP_SHARED) && !(flags & MAP_ANONYMOUS) && fd >= 0) {
+        for (int i = 0; i < WASI_SHARED_MAP_MAX; i++) {
+            if (!g_shared_maps[i].addr) {
+                g_shared_maps[i].addr = p; g_shared_maps[i].len = len;
+                g_shared_maps[i].fd = fd; g_shared_maps[i].off = off;
+                break;
+            }
+        }
+    }
+    return p;
+}
+int msync(void *addr, size_t len, int flags) {
+    (void)flags;
+    for (int i = 0; i < WASI_SHARED_MAP_MAX; i++) {
+        if (g_shared_maps[i].addr == addr) {
+            size_t n = (len && len < g_shared_maps[i].len) ? len : g_shared_maps[i].len;
+            (void) pwrite(g_shared_maps[i].fd, addr, n, g_shared_maps[i].off);
+            return 0;
+        }
+    }
+    return 0;
+}
+int __wrap_munmap(void *addr, size_t len) {
+    for (int i = 0; i < WASI_SHARED_MAP_MAX; i++) {
+        if (g_shared_maps[i].addr == addr) {
+            (void) pwrite(g_shared_maps[i].fd, addr, g_shared_maps[i].len, g_shared_maps[i].off);
+            g_shared_maps[i].addr = NULL;
+            break;
+        }
+    }
+    return __real_munmap(addr, len);
+}
 int sigprocmask(int h, const void *s, void *o) { (void)h; (void)s; (void)o; return 0; }
 #ifndef SECURE_EXEC_WASM_THREADS
 int pthread_create(void *t, const void *a, void *(*f)(void *), void *arg) { (void)t; (void)a; (void)f; (void)arg; return 1; }

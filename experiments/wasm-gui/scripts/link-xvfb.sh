@@ -20,7 +20,7 @@ export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 ninja -k 0 -C "$BW" >/dev/null 2>&1 || true
 
 ninja -C "$BW" -t commands hw/vfb/Xvfb 2>/dev/null | tail -1 > /tmp/link-xvfb.sh
-sed -i "s| -o hw/vfb/Xvfb| -Wl,--undefined=__main_argc_argv $MAINOBJ -o hw/vfb/Xvfb|" /tmp/link-xvfb.sh
+sed -i "s| -o hw/vfb/Xvfb| -Wl,--undefined=__main_argc_argv -Wl,--wrap=mmap -Wl,--wrap=munmap $MAINOBJ -o hw/vfb/Xvfb|" /tmp/link-xvfb.sh
 sed -i "s| -Wl,--end-group| $P/libXfont2.a $P/libfontenc.a $P/libfreetype.a $P/libz.a $P/libXau.a $P/libXdmcp.a $SETJMP $LIBC -Wl,--end-group|" /tmp/link-xvfb.sh
 ( cd "$BW" && rm -f hw/vfb/Xvfb && bash /tmp/link-xvfb.sh )
 RC=$?
