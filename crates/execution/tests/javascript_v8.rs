@@ -4094,6 +4094,168 @@ fn javascript_execution_v8_event_channel_backpressures_instead_of_destroying_ses
     );
 }
 
+// Regression: the in-VM bridge socket read loop (`_pumpBridgeReads`) must yield
+// a macrotask between delivering successive socket chunks instead of draining an
+// entire response synchronously in one burst.
+//
+// `_netSocketReadRaw` is synchronous, so the original loop read every available
+// byte and emitted `readable`/`data` for the whole HTTP response inside a single
+// synchronous stack. That collapses the event-loop turn boundaries that undici's
+// keep-alive socket recycling depends on: it resolves the caller's `fetch`
+// synchronously and only defers reuse with `setImmediate(client[kResume])`, so
+// the caller's microtask dispatches the next request while every pooled Client is
+// still `kNeedDrain`. The pool then allocates a fresh Client + socket per request,
+// each registering EventEmitter listeners until the guest dies
+// (MaxListenersExceededWarning + unbounded memory / OOM).
+//
+// This reproduces the timing deterministically with two scripted socket chunks.
+// A `setImmediate` is scheduled the moment the first chunk is delivered (standing
+// in for `setImmediate(kResume)`); it MUST get a turn before the second chunk
+// surfaces. With the synchronous-burst bug both chunks arrive before the macrotask
+// runs and the guest throws; with the per-chunk macrotask yield the macrotask
+// interleaves between the chunks and the guest prints `ORDER_OK`.
+fn javascript_execution_v8_net_socket_read_loop_yields_macrotask_between_chunks() {
+    let temp = tempdir().expect("create temp dir");
+    write_fixture(
+        &temp.path().join("entry.mjs"),
+        r#"
+import net from "node:net";
+
+const order = [];
+let scheduledImmediate = false;
+
+const socket = net.connect({ host: "127.0.0.1", port: 80 });
+
+socket.on("data", (chunk) => {
+  order.push("data:" + chunk.toString());
+  if (!scheduledImmediate) {
+    scheduledImmediate = true;
+    // Stand-in for undici's setImmediate(client[kResume]) keep-alive recycle:
+    // a macrotask scheduled the instant the first socket chunk lands. It must
+    // get a turn before the next chunk is delivered.
+    setImmediate(() => { order.push("immediate"); });
+  }
+});
+
+await new Promise((resolve, reject) => {
+  socket.once("end", resolve);
+  socket.once("close", resolve);
+  socket.once("error", reject);
+});
+
+// Flush any macrotask still pending after the stream ends.
+await new Promise((resolve) => setImmediate(resolve));
+
+const trace = order.join(",");
+const immediateIdx = order.indexOf("immediate");
+const secondChunkIdx = order.indexOf("data:chunk-2");
+if (immediateIdx === -1) {
+  throw new Error("macrotask never ran: " + trace);
+}
+if (secondChunkIdx === -1) {
+  throw new Error("second chunk never delivered: " + trace);
+}
+if (immediateIdx > secondChunkIdx) {
+  throw new Error(
+    "bridge delivered the response in one synchronous burst; the keep-alive " +
+    "macrotask never interleaved between chunks: " + trace,
+  );
+}
+console.log("ORDER_OK:" + trace);
+"#,
+    );
+
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let mut execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            inline_code: None,
+        })
+        .expect("start JavaScript execution");
+
+    let chunk1 = base64::engine::general_purpose::STANDARD.encode("chunk-1");
+    let chunk2 = base64::engine::general_purpose::STANDARD.encode("chunk-2");
+    let mut socket_reads = 0usize;
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+
+    let exit_code = loop {
+        match execution
+            .poll_event_blocking(Duration::from_secs(5))
+            .expect("poll net socket bridge event")
+        {
+            Some(JavascriptExecutionEvent::Stdout(chunk)) => stdout.extend(chunk),
+            Some(JavascriptExecutionEvent::Stderr(chunk)) => stderr.extend(chunk),
+            Some(JavascriptExecutionEvent::SignalState { .. }) => {}
+            Some(JavascriptExecutionEvent::SyncRpcRequest(request)) => {
+                if execution
+                    .try_service_standalone_module_sync_rpc(&request)
+                    .expect("service module sync RPC")
+                {
+                    continue;
+                }
+                let request_id = request.id;
+                let response = match request.method.as_str() {
+                    "net.connect" => json!({
+                        "socketId": 1,
+                        "localAddress": "127.0.0.1",
+                        "localPort": 12345,
+                        "localFamily": "IPv4",
+                        "remoteAddress": "127.0.0.1",
+                        "remotePort": 80,
+                        "remoteFamily": "IPv4",
+                    }),
+                    "net.socket_wait_connect" => json!(
+                        "{\"localAddress\":\"127.0.0.1\",\"localPort\":12345,\
+                         \"remoteAddress\":\"127.0.0.1\",\"remotePort\":80}"
+                    ),
+                    // First read -> chunk 1, second read -> chunk 2, then EOF (null).
+                    "net.socket_read" => {
+                        socket_reads += 1;
+                        match socket_reads {
+                            1 => json!(chunk1),
+                            2 => json!(chunk2),
+                            _ => Value::Null,
+                        }
+                    }
+                    // Any incidental socket RPC (set_no_delay, poll, shutdown,
+                    // destroy, ...) gets a benign null so the flow proceeds.
+                    _ => Value::Null,
+                };
+                execution
+                    .respond_sync_rpc_success(request_id, response)
+                    .expect("respond to net socket bridge RPC");
+            }
+            Some(JavascriptExecutionEvent::Exited(exit_code)) => break exit_code,
+            None => panic!("net socket bridge execution timed out while awaiting exit"),
+        }
+    };
+
+    let stdout = String::from_utf8(stdout).expect("stdout utf8");
+    let stderr = String::from_utf8(stderr).expect("stderr utf8");
+    assert_eq!(
+        exit_code, 0,
+        "guest exited non-zero (synchronous-burst regression?)\nstdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("ORDER_OK:data:chunk-1,immediate,data:chunk-2"),
+        "expected macrotask to interleave between chunks; stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert_eq!(socket_reads, 3, "expected exactly chunk1, chunk2, EOF reads");
+}
+
 fn javascript_execution_v8_dynamic_import_accepts_file_urls() {
     let temp = tempdir().expect("create temp dir");
     write_fixture(
@@ -5402,6 +5564,7 @@ fn javascript_v8_suite() {
     javascript_execution_v8_https_agents_expose_options_objects();
     javascript_execution_v8_net_socket_readable_state_tracks_ssh2_writable_shape();
     javascript_execution_v8_event_channel_backpressures_instead_of_destroying_session();
+    javascript_execution_v8_net_socket_read_loop_yields_macrotask_between_chunks();
     javascript_execution_v8_dynamic_import_accepts_file_urls();
     javascript_execution_v8_wasm_instantiate_streaming_never_hangs();
     javascript_execution_v8_structured_clone_rebinds_to_sandbox_realm();

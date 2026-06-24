@@ -17833,6 +17833,15 @@ ${headerLines}\r
   }
   var NET_BRIDGE_TIMEOUT_SENTINEL = "__secure_exec_net_timeout__";
   var NET_BRIDGE_POLL_DELAY_MS = 10;
+  function yieldBridgeMacrotask() {
+    return new Promise((resolve) => {
+      if (typeof setImmediate === "function") {
+        setImmediate(resolve);
+      } else {
+        setTimeout(resolve, 0);
+      }
+    });
+  }
   function netSocketDispatch(socketId, event, data) {
     if (socketId === 0 && event.startsWith("http2:")) {
       debugBridgeNetwork("http2 dispatch via netSocket", event);
@@ -18534,6 +18543,21 @@ ${headerLines}\r
           debugBridgeNetwork("socket data", this._socketId, payload.length);
           this.bytesRead += payload.length;
           this._touchTimeout();
+          // Yield to a macrotask before delivering each payload so that socket
+          // bytes surface across distinct event-loop turns, exactly as they do
+          // on real Node where each readable arrives in its own I/O callback.
+          // _netSocketReadRaw is synchronous, so without this the loop drains an
+          // entire HTTP response and emits "readable"/"data" in one synchronous
+          // burst. That collapses the turn boundaries undici's keep-alive socket
+          // recycling depends on: its setImmediate(client[kResume]) never runs
+          // before the caller's microtask dispatches the next request, so the
+          // pool keeps every Client at kNeedDrain and allocates a fresh
+          // Client+socket per request — leaking EventEmitter listeners
+          // (MaxListenersExceededWarning) and unbounded memory until the VM dies.
+          await yieldBridgeMacrotask();
+          if (this.destroyed) {
+            return;
+          }
           this._queueReadablePayload(payload);
         }
       } finally {
