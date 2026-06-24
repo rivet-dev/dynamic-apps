@@ -1084,8 +1084,12 @@ async fn run_xdemo(
                 match xinput::XInput::connect(&sock) {
                     Ok(mut xi) => {
                         // Let clients finish mapping/realizing their windows before the first inject so
-                        // focus targets a real window and early keystrokes are not dropped.
-                        tokio::time::sleep(std::time::Duration::from_millis(800)).await;
+                        // focus targets a real window and early keystrokes are not dropped. Tunable via
+                        // INJECT_DELAY_MS for slow desktops (e.g. the LXDE session, where pcmanfm's libfm
+                        // directory load only finishes ~140s in under 3-client contention).
+                        let inject_delay = std::env::var("INJECT_DELAY_MS")
+                            .ok().and_then(|v| v.parse().ok()).unwrap_or(800);
+                        tokio::time::sleep(std::time::Duration::from_millis(inject_delay)).await;
                         for (_, cmd) in inject {
                             if let Err(e) = xi.run(cmd) {
                                 eprintln!("secure-exec: XTEST inject '{cmd}' failed: {e}");
