@@ -630,6 +630,44 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   (only `byn$fpcast` thunks keep names), which is exactly why tool #3 was needed; tool #3 sidesteps that by
   using V8's own JIT names (`wasm-function[N]-N-liftoff`). Original notes retained below for history.
 
+- **M8.1 — tools #4-#6: out-of-band sync-RPC observability. 🟢 BUILT (2026-06-23).** The probes above
+  are still synchronous host calls that perturb the timing under test (a heisenbug). The sidecar IS the
+  kernel and already funnels every guest host call through one dispatch chokepoint, so the right tool is
+  to instrument that chokepoint and record OUT-OF-BAND on the native (Rust) side — never back through the
+  guest-locked bridge. Committed in `crates/sidecar/src/rpc_trace.rs` + the `rpc_trace_enter/exit` hooks
+  in `crates/sidecar/src/execution.rs`:
+  - **#4 sync-RPC tracer** — per-op `[rpc-trace] pid -> method / <- method (us)` (env `SECURE_EXEC_TRACE`).
+  - **#5 lock-holder / silent-guest watchdog** (THE M8.1 "thread/lock-holder dump") — a dedicated OS
+    thread (unstarvable by guests) that dumps, out-of-band: `DISPATCH STUCK pid=.. op=.. held=..ms` when
+    the dispatch thread sits inside one op past a threshold, and a per-guest activity table (last op /
+    idle ms / op count) heartbeat. Env `SECURE_EXEC_RPC_WATCHDOG_MS`, `SECURE_EXEC_RPC_WATCHDOG_DUMP_MS`.
+    This is the tool that turns "the wire went quiet" into "is the dispatch thread stuck in an op (hard
+    stall) or did a guest stop making calls (its render loop died)" — without perturbing the race.
+  - **#6 correlatable guest breadcrumbs** — guest `fprintf(stderr,"BC: …")` checkpoints are stamped with
+    a relative-ms timestamp by the host (`experiments/wasm-gui/host`) onto the SAME timeline as the
+    watchdog dumps (both land in the run log), so a guest-side call trail lines up with the native
+    dispatch trace. `SECURE_EXEC_ASYNC_POLL=0` is the matching A/B switch (legacy inline poll vs the
+    non-blocking PollWaiterPool path) to isolate lost-wakeup-vs-latency.
+  - **First payoff (the M8.6 interior-paint stall):** the watchdog proved the openbox+pcmanfm "black
+    client area" is **NOT a sidecar/sync-RPC deadlock** — ZERO `DISPATCH STUCK`, and all three guests
+    (Xvfb/openbox/pcmanfm) go silent SIMULTANEOUSLY at ~120s with op counts frozen (an in-guest
+    cross-guest park). The `SECURE_EXEC_ASYNC_POLL=0` A/B reproduced it identically, exonerating the
+    non-blocking-poll change. (NEXT STEPS below.)
+  - **Still TODO (tool #3-bis, "DWARF symbolizer for fpcast'd wasm"):** the JIT-name symbolizer (#3)
+    names a *livelocked* guest's stack; a guest *parked* in an in-wasm `atomic.wait`/futex (the M8.6
+    case) needs a stack walk at the park point. Deferred: emit DWARF from the toolchain and walk it via
+    V8's wasm debug interface, OR add a non-blocking breadcrumb host import so guest X-libs/GTK leave a
+    call trail without `fprintf`'s cost.
+
+  **NEXT STEPS (M8.6 interior-paint, now scoped by the tooling):** the stall is in-guest and
+  openbox-specific (twm + pcmanfm renders the full listing; openbox + pcmanfm draws chrome then the
+  client area stays black and all guests park). Use #5 + #6 to find which guest parks first and on what
+  (X reply wait / glib cond / a server grab), then fix in the platform layer per constraint #5
+  (Xvfb.wasm / the runtime), never by patching GTK/openbox. Candidate leads already ruled in/out: not a
+  dispatch deadlock (#5); not the non-blocking-poll change (A/B); not an event flood to pcmanfm
+  (decoded ~1.4 PropertyNotify/s); openbox is the chattiest guest (~70% more ops than pcmanfm) so a
+  server-throughput / grab interaction is the leading hypothesis to confirm with #5's per-op view.
+
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
   host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —

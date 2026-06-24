@@ -994,7 +994,11 @@ async fn run_xdemo(
                 let txt = String::from_utf8_lossy(&o.chunk);
                 let who = if o.process_id == "xserver" { "srv" } else { &o.process_id };
                 let ch = if matches!(o.channel, wire::StreamChannel::Stderr) { "err" } else { "out" };
-                eprint!("[{who}/{ch}] {txt}");
+                // Stamp a relative-ms timestamp so guest "BC:" breadcrumbs (fprintf checkpoints) line up
+                // on the same timeline as the sidecar rpc-watchdog dumps (both go to this log).
+                static DEMO_T0: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+                let t = DEMO_T0.get_or_init(std::time::Instant::now).elapsed().as_millis();
+                eprint!("[+{t:>7}ms {who}/{ch}] {txt}");
                 if !server_ready && o.process_id == "xserver" && txt.contains("m_pre_dispatch") {
                     server_ready = true;
                     eprintln!("secure-exec: server is serving; launching {} X client(s) as each settles", client_specs.len());
