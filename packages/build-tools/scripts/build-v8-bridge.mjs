@@ -468,7 +468,7 @@ function createUndiciBuildPlugins() {
 					},
 					(args) => {
 						const resolvedPath = require.resolve(args.path, {
-							paths: [args.resolveDir, packageRoot, workspaceRoot],
+							paths: [packageRoot, workspaceRoot, args.resolveDir],
 						});
 						return { path: resolvedPath };
 					},
