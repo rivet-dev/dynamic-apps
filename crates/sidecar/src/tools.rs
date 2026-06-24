@@ -232,12 +232,14 @@ fn resolve_toolkit_command(
         )));
     };
     let callback_key = format!("{toolkit_name}:{tool_name}");
+    tracing::debug!(callback_key = %callback_key, "binding.invoke: resolving tool callback");
     let Some(tool) = vm
         .toolkits
         .get(toolkit_name)
         .and_then(|toolkit| toolkit.callbacks.get(tool_name))
         .cloned()
     else {
+        tracing::warn!(callback_key = %callback_key, "binding.invoke: unknown tool callback");
         return Ok(ToolCommandResolution::Failure(format!(
             "unknown tool callback {callback_key}"
         )));
@@ -251,6 +253,7 @@ fn resolve_toolkit_command(
         ),
         PermissionMode::Allow
     ) {
+        tracing::warn!(callback_key = %callback_key, "binding.invoke: blocked by policy");
         return Ok(ToolCommandResolution::Failure(format!(
             "blocked by binding.invoke policy for {callback_key}"
         )));
@@ -269,6 +272,11 @@ fn resolve_toolkit_command(
         return Ok(ToolCommandResolution::Failure(message));
     }
     let timeout_ms = tool.timeout_ms.unwrap_or(DEFAULT_TOOL_TIMEOUT_MS);
+    tracing::info!(
+        callback_key = %callback_key,
+        timeout_ms,
+        "binding.invoke: resolved tool callback"
+    );
 
     Ok(build_command_callback_resolution(
         &callback_key,
