@@ -704,6 +704,30 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   per-op/lock state is already proven clean by the M8.1 watchdog, so this is purely a GTK-render-path
   question now, not a sidecar one.
 
+  **DEFINITIVE ROOT CAUSE (2026-06-23 — full GTK frame-clock trace).** Instrumented the whole GDK
+  frame-clock state machine (`request_phase` → `maybe_start_idle` → `gdk_frame_clock_paint_idle` →
+  `_gdk_frame_clock_emit_paint`, plus every `freeze/thaw` with a labeled call site). Findings:
+  - The clock IS frozen, via the **`create_unmapped`** path: `gdkwindow-x11.c` freezes a toplevel's
+    frame clock when the GdkWindow is created and only thaws it on **MapNotify** (`gdkdisplay-x11.c`).
+    Normal GTK (don't paint an unmapped window). PAINT/UPDATE/LAYOUT are all gated by `freeze_count==0`,
+    so while frozen the repaint cannot run.
+  - **The window is frozen ~81s**: created/realized at +35s (it even requests a PAINT at +48s, blocked),
+    but the MapNotify thaw does not arrive until **+116s** — openbox does not get pcmanfm's window
+    mapped for ~68-80s. After the thaw the paint chain is fragile/non-deterministic (one empty
+    EMIT_PAINT in one run, zero in another) and the populated listing never lands before the capture.
+  - So the interior-black is NOT a GTK bug and NOT a lock/sidecar deadlock — it is **catastrophic X
+    round-trip latency under the multi-guest single sync-RPC main thread**: pcmanfm's UI construction +
+    openbox's client_manage do tens of thousands of X request/reply round-trips, each serialized through
+    the one sidecar dispatch thread, so a window that comes up in ~milliseconds natively takes ~2 MINUTES
+    here. The non-blocking poll_wait fix removed the idle-poll blocking but the request/reply round-trips
+    still serialize.
+  **THE FIX (next, now fully justified):** parallelize sync-RPC servicing so concurrent guests' X
+  round-trips don't serialize on one thread — run the dispatch off the single main thread against a
+  thread-safe kernel/socket table (or at minimum service the X-server guest's read/reply path
+  concurrently with client writes). This is the core/TCB change the M8.2 note anticipated ("improve the
+  sidecar's concurrent-guest net.poll scheduling"); validate against the M7.5 thread suite. Until then
+  the WM-managed GTK desktop is correct but ~2-min-to-first-paint, which is why the capture lands black.
+
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
   host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —
