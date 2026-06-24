@@ -175,10 +175,14 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   alive in its main loop. Platform fixes added (all constraint #5, dbus untouched): synthesized `/dev`
   char devices in the wasm fs (`/dev/null`, `/dev/urandom`); `getrlimit` fills `RLIM_INFINITY`;
   `socketpair` via a pipe emulation; `build-dbus.sh` force-detects getrlimit/setrlimit/socketpair (their
-  autotools link-tests false-negative under the no-`--allow-undefined` configure). **REMAINING for XU0
-  acceptance:** a multi-guest harness (`dbus-daemon` + `dbus-send`/`dbus-monitor` sharing the kernel
-  socket table, client given `DBUS_SESSION_BUS_ADDRESS`) for the method-call + signal round-trip.
-  Proof: a `dbus-send`/`dbus-monitor` round-trip log. **Gates everything else.**
+  autotools link-tests false-negative under the no-`--allow-undefined` configure). The multi-guest
+  **round-trip harness is built** (host `--bus-test` mode + `scripts/test-xu0-dbus.sh`): it launches the
+  daemon + `dbus-monitor`/`dbus-send` sharing the kernel socket table with `DBUS_SESSION_BUS_ADDRESS`
+  injected; the daemon binds and both clients launch. **REMAINING for XU0 acceptance:** the clients hang
+  on the **D-Bus auth handshake** — EXTERNAL auth needs the daemon to read the client uid via
+  `getsockopt(SO_PEERCRED)`, not yet provided by the host_net socket layer. Next: trace with a
+  `--enable-verbose-mode` dbus, then provide `getsockopt(SO_PEERCRED)` (return uid 0) or wire ANONYMOUS
+  auth. Proof: a `dbus-send`/`dbus-monitor` round-trip log. **Gates everything else.**
 - **XU1 — xfconf + xfsettingsd.** ⬜ xfconf stores/serves a value over D-Bus; xfsettingsd pushes
   XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window in Greybird, not default.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
