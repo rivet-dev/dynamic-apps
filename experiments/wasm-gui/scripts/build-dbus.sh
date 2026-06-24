@@ -34,6 +34,13 @@ export EXPAT_LIBS="-L$PREFIX/lib -lexpat"
 LINK_LDFLAGS="$LDFLAGS -Wl,--allow-undefined -Wl,--wrap=writev"
 
 echo "== configuring dbus =="
+# Force-detect functions that ARE provided by libhostcompat/wasi-compat but whose autotools link-test
+# fails here: those objects reference host-import / --wrap symbols (net_*, __real_mmap) that are only
+# resolved at the final --allow-undefined link, so a bare configure link-test sees them undefined and
+# concludes the function is missing. Without these, dbus compiles out its rlimit path and fatals at
+# startup with "cannot change fd limit". (constraint #5: platform truth asserted in the build, dbus
+# source untouched.)
+export ac_cv_func_getrlimit=yes ac_cv_func_setrlimit=yes ac_cv_func_socketpair=yes
 ./configure $CROSS_CONFIGURE_ARGS \
   --enable-static --disable-shared \
   --disable-systemd --disable-selinux --disable-apparmor --disable-libaudit \

@@ -31,7 +31,15 @@ int uname(struct utsname *u) {
         memcpy(p+65*4, "wasm32", 6); }
     return 0;
 }
-int getrlimit(int r, void *l) { (void)r; (void)l; return 0; }
+/* struct rlimit is { rlim_t rlim_cur; rlim_t rlim_max; } with rlim_t = unsigned long long. Report an
+ * unlimited (RLIM_INFINITY) limit so callers like dbus-daemon that raise RLIMIT_NOFILE see it is
+ * already unlimited and succeed (the previous stub left the struct uninitialized -> garbage limits ->
+ * dbus fataled "cannot change fd limit"). setrlimit accepts any limit as a no-op. */
+int getrlimit(int r, void *l) {
+    (void)r;
+    if (l) { unsigned long long *p = (unsigned long long *)l; p[0] = ~0ULL; p[1] = ~0ULL; }
+    return 0;
+}
 int setrlimit(int r, const void *l) { (void)r; (void)l; return 0; }
 /* genuinely-missing-in-wasi functions the X server references (stubs: server runs single-threaded,
    no real signals/hostname lookup). Name-linkage; arg types are placeholders. */
@@ -181,8 +189,13 @@ int dn_comp(const char *src, unsigned char *dst, int dstsiz, unsigned char **dnp
 __attribute__((weak)) int socket(int domain, int type, int protocol) {
     (void)domain; (void)type; (void)protocol; return -1;
 }
+/* socketpair via the host pipe bridge. dbus-daemon's reload pipe is a self-pipe (write one end to wake
+ * the poll loop, read the other to drain), so a unidirectional pipe (fds[0]=read, fds[1]=write) is a
+ * sufficient emulation; service activation (the bidirectional/fd-passing use) is disabled in this build.
+ * host_net provides no socketpair import, so this weak pipe-based fallback is what gets linked. */
+extern int pipe(int fds[2]);
 __attribute__((weak)) int socketpair(int domain, int type, int protocol, int sv[2]) {
-    (void)domain; (void)type; (void)protocol; (void)sv; return -1;
+    (void)domain; (void)type; (void)protocol; return pipe(sv);
 }
 __attribute__((weak)) unsigned if_nametoindex(const char *ifname) { (void)ifname; return 0; }
 __attribute__((weak)) char *if_indextoname(unsigned ifindex, char *ifname) {
