@@ -865,8 +865,8 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
        TSan build of a threaded guest flags pthread/cond/futex races directly. Higher setup cost; reach
        for it only if a multi-guest race resists tools 1-4.
 
-- **M8.2 — `openbox` (the LXDE window manager). 🟡 BUILDS + DECORATES (2026-06-22); move/resize + menu
-  remain.** openbox 3.6.1 cross-compiles from UNMODIFIED upstream (`scripts/build-openbox.sh`) against
+- **M8.2 — `openbox` (the LXDE window manager). ✅ DONE (2026-06-24): decorate + interactive move + root
+  menu, all wasm.** openbox 3.6.1 cross-compiles from UNMODIFIED upstream (`scripts/build-openbox.sh`) against
   new deps `libxml2` + `pangoxft`, runs as the WM on the wasm X server, and **decorates a real GTK 3
   window** — Clearlooks titlebar + min/max/close buttons + border + the window title
   ("secure-exec GTK3 (wasm)"). Proof: `~/tmp/gui-progress/proof-m8.2-openbox-decorates-gtk.png`. Every
@@ -875,10 +875,17 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   `find_uid_gid` null-derefs `pw->pw_name`; `pthread_exit`; `alarm`/`gethostbyaddr`);
   `compat-include/grp.h` (declares the `setgrent`/`getgrent`/`endgrent` API wasi-libc omits, so callers
   don't get an implicit-int wasm-ABI mismatch that traps); `libhostcompat.a` archive; config/theme staged
-  as a VFS fixture (`scripts/prepare-openbox-fixtures.sh`). **Remaining for full M8.2 acceptance:** the
-  GTK content repaint inside the openbox frame in the combined run (decoration lands; the client's
-  re-expose after reparent didn't paint in the captured frame), **interactive move/resize** via injected
-  pointer events, and the openbox **root menu** opening — plus an automated `scripts/test-m8-openbox.sh`.
+  as a VFS fixture (`scripts/prepare-openbox-fixtures.sh`). **M8.2 acceptance MET (2026-06-24)** via
+  `scripts/test-m8-openbox.sh` (openbox + a decorated xclock, XTEST-driven): **interactive move/resize** —
+  a titlebar drag relocates the decorated window from (318,206) to (148,418) (proof
+  `proof-m8.2-openbox-move.png`); and the **root menu** opens on a right-click of the root and renders
+  fully (Applications → Accessories/Editors/Graphics/Internet/Office/Multimedia/Terminals/File Managers,
+  System, Log Out — proof `proof-m8.2-openbox-menu.png`). GTK-content repaint inside the frame is already
+  proven by M8.5/M8.6 (pcmanfm renders a full listing under the openbox frame). NOTE the menu-text gap
+  surfaced + fixed here was a platform-layer fixture gap, NOT an openbox patch: the openbox guest needs
+  the Xft/fontconfig fixture (`prepare-xftfonts.sh` config + writable cache) staged, else fontconfig
+  fails (`Cannot load default config file` / `No writable cache directories`) and menu/Xft text doesn't
+  render; the test now stages it (constraint #5: fix in fixtures, never in openbox source).
   **CORE REMAINING ISSUE (diagnosed 2026-06-22) — cross-process X scheduling latency.** With openbox +
   gtk + the X server all active, gtk's GLib event loop **stalls at `GDKEVT prepare #1`** then drains
   slowly (gtk drew at ~80s, vs ~45s alone); the staged XKB keyboard device adds focus-event load that can
