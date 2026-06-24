@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Gdk Extensions: libxfce4ui Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libxfce4ui Reference Manual">
+<link rel="up" href="libxfce4ui-extensions.html" title="Part III. Xfce UI Extensions">
+<link rel="prev" href="libxfce4ui-extensions.html" title="Part III. Xfce UI Extensions">
+<link rel="next" href="libxfce4ui-Gtk-Extensions.html" title="Gtk Extensions">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libxfce4ui-Gdk-Extensions.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="libxfce4ui-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libxfce4ui-extensions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libxfce4ui-Gtk-Extensions.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libxfce4ui-Gdk-Extensions"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libxfce4ui-Gdk-Extensions.top_of_page"></a>Gdk Extensions</span></h2>
+<p>Gdk Extensions — various extensions to Gdk</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libxfce4ui-Gdk-Extensions.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gdk-Extensions.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="returnvalue">GdkScreen</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()">xfce_gdk_screen_get_active</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gdk3/gdk3-Points-Rectangles-and-Regions.html#GdkRectangle"><span class="returnvalue">GdkRectangle</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-geometry" title="xfce_gdk_screen_get_geometry ()">xfce_gdk_screen_get_geometry</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-device-grab" title="xfce_gdk_device_grab ()">xfce_gdk_device_grab</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gdk-Extensions.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libxfce4ui/libxfce4ui.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gdk-Extensions.description"></a><h2>Description</h2>
+<p>Common used functions that are not provided by the Gdk or Gdk-pixbuf library.</p>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gdk-Extensions.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="xfce-gdk-screen-get-active"></a><h3>xfce_gdk_screen_get_active ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="returnvalue">GdkScreen</span></a> *
+xfce_gdk_screen_get_active (<em class="parameter"><code><span class="type">gint</span> *monitor_return</code></em>);</pre>
+<p>Returns the currently active <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a>, that is, the screen which
+currently contains the pointer. If no active screen was found, the
+default <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> is returned.</p>
+<div class="refsect3">
+<a name="xfce-gdk-screen-get-active.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>monitor_return</p></td>
+<td class="parameter_description"><p>Address to store the monitor number to or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gdk-screen-get-active.returns"></a><h4>Returns</h4>
+<p>the currently active <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gdk-screen-get-geometry"></a><h3>xfce_gdk_screen_get_geometry ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gdk3/gdk3-Points-Rectangles-and-Regions.html#GdkRectangle"><span class="returnvalue">GdkRectangle</span></a> *
+xfce_gdk_screen_get_geometry (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns the width and height of the default <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a>.
+This is a replacement for gdk_screen_width/gdk_screen_height.</p>
+<div class="refsect3">
+<a name="xfce-gdk-screen-get-geometry.returns"></a><h4>Returns</h4>
+<p>a newly created <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Points-Rectangles-and-Regions.html#GdkRectangle"><span class="type">GdkRectangle</span></a>
+containing the width and height of the screen. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-14.html#api-index-4.14">4.14</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gdk-device-grab"></a><h3>xfce_gdk_device_grab ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_gdk_device_grab (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkSeat.html#GdkSeat-struct"><span class="type">GdkSeat</span></a> *seat</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a> *window</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkSeat.html#GdkSeatCapabilities"><span class="type">GdkSeatCapabilities</span></a> capabilities</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/gdk3-Cursors.html#GdkCursor-struct"><span class="type">GdkCursor</span></a> *cursor</code></em>);</pre>
+<p>Similar to gdk_seat_grab but tries to grab the seat five times with 100ms
+between each attempt.</p>
+<div class="refsect3">
+<a name="xfce-gdk-device-grab.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>seat</p></td>
+<td class="parameter_description"><p>A <a href="/usr/share/gtk-doc/html/gdk3/GdkSeat.html#GdkSeat-struct"><span class="type">GdkSeat</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>The <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a> which will own the grab.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>capabilities</p></td>
+<td class="parameter_description"><p>Capabilities that will be grabbed.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cursor</p></td>
+<td class="parameter_description"><p>The cursor to display while the grab is active. If this
+is <code class="literal">NULL</code> then the normal cursors are used for window and
+its descendants, and the cursor for window is used
+elsewhere. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gdk-device-grab.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-18.html#api-index-4.18">4.18</a></p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.34.0</div>
+</body>
+</html>

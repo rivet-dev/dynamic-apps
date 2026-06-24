@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>GarconMenuTreeProvider: garcon Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="garcon Reference Manual">
+<link rel="up" href="garcon-parsing.html" title="Part III. Parsing and Modifying the Menu Tree">
+<link rel="prev" href="GarconMenuParser.html" title="GarconMenuParser">
+<link rel="next" href="garcon-gtk-menu.html" title="Part IV. Create a complete GtkMenu from a GarconMenu">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#GarconMenuTreeProvider.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#GarconMenuTreeProvider.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="garcon-parsing.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="GarconMenuParser.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="garcon-gtk-menu.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="GarconMenuTreeProvider"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="GarconMenuTreeProvider.top_of_page"></a>GarconMenuTreeProvider</span></h2>
+<p>GarconMenuTreeProvider</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="GarconMenuTreeProvider.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GNode</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuTreeProvider.html#garcon-menu-tree-provider-get-tree" title="garcon_menu_tree_provider_get_tree ()">garcon_menu_tree_provider_get_tree</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuTreeProvider.html#garcon-menu-tree-provider-get-file" title="garcon_menu_tree_provider_get_file ()">garcon_menu_tree_provider_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuTreeProvider.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> GarconMenuTreeProvider
+</pre>
+</div>
+<div class="refsect1">
+<a name="GarconMenuTreeProvider.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="GarconMenuTreeProvider.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="garcon-menu-tree-provider-get-tree"></a><h3>garcon_menu_tree_provider_get_tree ()</h3>
+<pre class="programlisting"><span class="returnvalue">GNode</span> *
+garcon_menu_tree_provider_get_tree (<em class="parameter"><code><a class="link" href="GarconMenuTreeProvider.html" title="GarconMenuTreeProvider"><span class="type">GarconMenuTreeProvider</span></a> *provider</code></em>);</pre>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-tree-provider-get-tree.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuTreeProvider.html" title="GarconMenuTreeProvider"><span class="type">GarconMenuTreeProvider</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-tree-provider-get-tree.returns"></a><h4>Returns</h4>
+<p> a <span class="type">GNode</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-tree-provider-get-file"></a><h3>garcon_menu_tree_provider_get_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+garcon_menu_tree_provider_get_file (<em class="parameter"><code><a class="link" href="GarconMenuTreeProvider.html" title="GarconMenuTreeProvider"><span class="type">GarconMenuTreeProvider</span></a> *provider</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-tree-provider-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuTreeProvider.html" title="GarconMenuTreeProvider"><span class="type">GarconMenuTreeProvider</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-tree-provider-get-file.returns"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

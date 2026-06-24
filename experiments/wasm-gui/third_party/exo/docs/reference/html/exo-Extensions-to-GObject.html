@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Extensions to GObject: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-extensions.html" title="Part V. Extensions to existing frameworks">
+<link rel="prev" href="exo-Extensions-to-gdk-pixbuf.html" title="Extensions to gdk-pixbuf">
+<link rel="next" href="exo-Extensions-to-Gtk.html" title="Extensions to Gtk+">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#exo-Extensions-to-GObject.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-Extensions-to-gdk-pixbuf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="exo-Extensions-to-Gtk.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="exo-Extensions-to-GObject"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="exo-Extensions-to-GObject.top_of_page"></a>Extensions to GObject</span></h2>
+<p>Extensions to GObject — Miscelleanous extensions to the gdk-pixbuf library</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="exo-Extensions-to-GObject.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-GObject.html#exo-g-value-transform-negate" title="exo_g_value_transform_negate ()">exo_g_value_transform_negate</a> <span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-GObject.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-GObject.description"></a><h2>Description</h2>
+<p>This facility includes several functions to extend the basic
+functionality provided by the GObject library.</p>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-GObject.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-g-value-transform-negate"></a><h3>exo_g_value_transform_negate ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_g_value_transform_negate (<em class="parameter"><code>const <span class="type">GValue</span> *src_value</code></em>,
+                              <em class="parameter"><code><span class="type">GValue</span> *dst_value</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_g_value_transform_negate</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Rarely used API</p>
+</div>
+<p>Applies boolean negation to <em class="parameter"><code>src_value</code></em>
+ and stores the result
+in <em class="parameter"><code>dst_value</code></em>
+.</p>
+<p>This function is mostly useful for binding boolean properties
+with inversing.</p>
+<div class="refsect3">
+<a name="exo-g-value-transform-negate.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>src_value</p></td>
+<td class="parameter_description"><p>A value convertible to <span class="type">gboolean</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dst_value</p></td>
+<td class="parameter_description"><p>A value which can be assigned a <span class="type">gboolean</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-g-value-transform-negate.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on successful transformation.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-GObject.see-also"></a><h2>See Also</h2>
+<a class="ulink" href="http://library.gnome.org/devel/gobject/stable/" target="_top">
+GObject Reference Manual</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

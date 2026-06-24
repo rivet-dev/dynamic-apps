@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<book xmlns="http://www.devhelp.net/book" title="libxfce4ui Reference Manual" link="index.html" author="" name="libxfce4ui" version="2" language="c" online="https://developer.xfce.org/libxfce4ui/index.html">
+  <chapters>
+    <sub name="Introduction" link="libxfce4ui-introduction.html"/>
+    <sub name="Xfce Fundamentals" link="libxfce4ui-fundamentals.html">
+      <sub name="libxfce4ui config" link="libxfce4ui-libxfce4ui-config.html"/>
+      <sub name="Spawn" link="libxfce4ui-Spawn.html"/>
+    </sub>
+    <sub name="Xfce UI Extensions" link="libxfce4ui-extensions.html">
+      <sub name="Gdk Extensions" link="libxfce4ui-Gdk-Extensions.html"/>
+      <sub name="Gtk Extensions" link="libxfce4ui-Gtk-Extensions.html"/>
+    </sub>
+    <sub name="Xfce UI Widget" link="libxfce4ui-widgets.html">
+      <sub name="XfceDialogs" link="libxfce4ui-XfceDialogs.html"/>
+      <sub name="XfceFilenameInput" link="XfceFilenameInput.html"/>
+      <sub name="XfceTitledDialog" link="XfceTitledDialog.html"/>
+    </sub>
+    <sub name="Xfce Session Management Support" link="libxfce4ui-sm.html">
+      <sub name="XfceSMClient" link="XfceSMClient.html"/>
+      <sub name="XfceScreensaver" link="XfceScreensaver.html"/>
+    </sub>
+    <sub name="Index of all symbols" link="api-index-full.html"/>
+    <sub name="Index of deprecated symbols" link="api-index-deprecated.html"/>
+    <sub name="Index of new symbols in 4.18" link="api-index-4-18.html"/>
+    <sub name="Index of new symbols in 4.16" link="api-index-4-16.html"/>
+    <sub name="Index of new symbols in 4.14" link="api-index-4-14.html"/>
+    <sub name="Index of new symbols in 4.12" link="api-index-4-12.html"/>
+    <sub name="Index of new symbols in 4.10" link="api-index-4-10.html"/>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="libxfce4ui_check_version ()" link="libxfce4ui-libxfce4ui-config.html#libxfce4ui-check-version"/>
+    <keyword type="macro" name="LIBXFCE4UI_CHECK_VERSION()" link="libxfce4ui-libxfce4ui-config.html#LIBXFCE4UI-CHECK-VERSION:CAPS"/>
+    <keyword type="variable" name="libxfce4ui_major_version" link="libxfce4ui-libxfce4ui-config.html#libxfce4ui-major-version"/>
+    <keyword type="variable" name="libxfce4ui_minor_version" link="libxfce4ui-libxfce4ui-config.html#libxfce4ui-minor-version"/>
+    <keyword type="variable" name="libxfce4ui_micro_version" link="libxfce4ui-libxfce4ui-config.html#libxfce4ui-micro-version"/>
+    <keyword type="macro" name="LIBXFCE4UI_MAJOR_VERSION" link="libxfce4ui-libxfce4ui-config.html#LIBXFCE4UI-MAJOR-VERSION:CAPS"/>
+    <keyword type="macro" name="LIBXFCE4UI_MINOR_VERSION" link="libxfce4ui-libxfce4ui-config.html#LIBXFCE4UI-MINOR-VERSION:CAPS"/>
+    <keyword type="macro" name="LIBXFCE4UI_MICRO_VERSION" link="libxfce4ui-libxfce4ui-config.html#LIBXFCE4UI-MICRO-VERSION:CAPS"/>
+    <keyword type="function" name="xfce_spawn_on_screen_with_child_watch ()" link="libxfce4ui-Spawn.html#xfce-spawn-on-screen-with-child-watch"/>
+    <keyword type="function" name="xfce_spawn_on_screen ()" link="libxfce4ui-Spawn.html#xfce-spawn-on-screen" deprecated="4.16: Use #xfce_spawn instead."/>
+    <keyword type="function" name="xfce_spawn ()" link="libxfce4ui-Spawn.html#xfce-spawn" since="4.16"/>
+    <keyword type="function" name="xfce_spawn_command_line_on_screen ()" link="libxfce4ui-Spawn.html#xfce-spawn-command-line-on-screen" deprecated="4.16: Use #xfce_spawn_command_line instead."/>
+    <keyword type="function" name="xfce_spawn_command_line ()" link="libxfce4ui-Spawn.html#xfce-spawn-command-line" since="4.16"/>
+    <keyword type="function" name="xfce_gdk_screen_get_active ()" link="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active"/>
+    <keyword type="function" name="xfce_gdk_screen_get_geometry ()" link="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-geometry" since="4.14"/>
+    <keyword type="function" name="xfce_gdk_device_grab ()" link="libxfce4ui-Gdk-Extensions.html#xfce-gdk-device-grab" since="4.18"/>
+    <keyword type="function" name="xfce_gtk_menu_item_new ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-new" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_image_menu_item_new ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-image-menu-item-new" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_image_menu_item_new_from_icon_name ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-image-menu-item-new-from-icon-name" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_check_menu_item_new ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-check-menu-item-new" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_radio_menu_item_new ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-radio-menu-item-new" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_menu_item_new_from_action_entry ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-new-from-action-entry" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_toggle_menu_item_new_from_action_entry ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-toggle-menu-item-new-from-action-entry" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_tool_button_new_from_action_entry ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-tool-button-new-from-action-entry" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_toggle_tool_button_new_from_action_entry ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-toggle-tool-button-new-from-action-entry" since="4.17.6"/>
+    <keyword type="function" name="xfce_gtk_accel_map_add_entries ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-map-add-entries" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_accel_group_connect_action_entries ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-group-connect-action-entries" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_accel_group_disconnect_action_entries ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-group-disconnect-action-entries" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_get_action_entry_by_id ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-get-action-entry-by-id" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_translate_action_entries ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-translate-action-entries" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_handle_tab_accels ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-handle-tab-accels"/>
+    <keyword type="function" name="xfce_gtk_execute_tab_accel ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-execute-tab-accel"/>
+    <keyword type="function" name="xfce_gtk_menu_append_seperator ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-append-seperator" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_menu_append_separator ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-append-separator" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_button_new_mixed ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-button-new-mixed"/>
+    <keyword type="function" name="xfce_gtk_frame_box_new ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new"/>
+    <keyword type="function" name="xfce_gtk_frame_box_new_with_content ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new-with-content"/>
+    <keyword type="function" name="xfce_gtk_window_center_on_active_screen ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-window-center-on-active-screen"/>
+    <keyword type="function" name="xfce_gtk_menu_popup_until_mapped ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-popup-until-mapped" since="4.14"/>
+    <keyword type="function" name="xfce_widget_reparent ()" link="libxfce4ui-Gtk-Extensions.html#xfce-widget-reparent" since="4.14"/>
+    <keyword type="function" name="xfce_icon_name_from_desktop_id ()" link="libxfce4ui-Gtk-Extensions.html#xfce-icon-name-from-desktop-id" since="4.16"/>
+    <keyword type="function" name="xfce_gicon_from_name ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gicon-from-name" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_menu_item_set_accel_label ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-set-accel-label" since="4.16"/>
+    <keyword type="function" name="xfce_has_gtk_frame_extents ()" link="libxfce4ui-Gtk-Extensions.html#xfce-has-gtk-frame-extents" since="4.16"/>
+    <keyword type="function" name="xfce_gtk_label_set_a11y_relation ()" link="libxfce4ui-Gtk-Extensions.html#xfce-gtk-label-set-a11y-relation"/>
+    <keyword type="enum" name="enum XfceGtkMenuItem" link="libxfce4ui-Gtk-Extensions.html#XfceGtkMenuItem"/>
+    <keyword type="struct" name="XfceGtkActionEntry" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry"/>
+    <keyword type="function" name="xfce_message_dialog_new ()" link="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new"/>
+    <keyword type="function" name="xfce_message_dialog_new_valist ()" link="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new-valist"/>
+    <keyword type="function" name="xfce_message_dialog ()" link="libxfce4ui-XfceDialogs.html#xfce-message-dialog"/>
+    <keyword type="function" name="xfce_dialog_show_help ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help" since="4.10"/>
+    <keyword type="function" name="xfce_dialog_show_help_with_version ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help-with-version" since="4.12"/>
+    <keyword type="function" name="xfce_dialog_show_info ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-show-info"/>
+    <keyword type="function" name="xfce_dialog_show_warning ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-show-warning"/>
+    <keyword type="function" name="xfce_dialog_show_error ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-show-error"/>
+    <keyword type="function" name="xfce_dialog_confirm ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-confirm"/>
+    <keyword type="function" name="xfce_dialog_confirm_close_tabs ()" link="libxfce4ui-XfceDialogs.html#xfce-dialog-confirm-close-tabs" since="4.16"/>
+    <keyword type="macro" name="XFCE_BUTTON_TYPE_MIXED" link="libxfce4ui-XfceDialogs.html#XFCE-BUTTON-TYPE-MIXED:CAPS"/>
+    <keyword type="macro" name="XFCE_BUTTON_TYPE_PIXBUF" link="libxfce4ui-XfceDialogs.html#XFCE-BUTTON-TYPE-PIXBUF:CAPS"/>
+    <keyword type="function" name="xfce_filename_input_get_text ()" link="XfceFilenameInput.html#xfce-filename-input-get-text" since="4.16"/>
+    <keyword type="function" name="xfce_filename_input_check ()" link="XfceFilenameInput.html#xfce-filename-input-check" since="4.16"/>
+    <keyword type="function" name="xfce_filename_input_get_entry ()" link="XfceFilenameInput.html#xfce-filename-input-get-entry" since="4.16"/>
+    <keyword type="function" name="xfce_filename_input_sensitise_widget ()" link="XfceFilenameInput.html#xfce-filename-input-sensitise-widget" since="4.16"/>
+    <keyword type="function" name="xfce_filename_input_desensitise_widget ()" link="XfceFilenameInput.html#xfce-filename-input-desensitise-widget" since="4.16"/>
+    <keyword type="struct" name="XfceFilenameInput" link="XfceFilenameInput.html#XfceFilenameInput-struct"/>
+    <keyword type="property" name="The “max-text-length” property" link="XfceFilenameInput.html#XfceFilenameInput--max-text-length"/>
+    <keyword type="property" name="The “original-filename” property" link="XfceFilenameInput.html#XfceFilenameInput--original-filename"/>
+    <keyword type="signal" name="The “text-invalid” signal" link="XfceFilenameInput.html#XfceFilenameInput-text-invalid"/>
+    <keyword type="signal" name="The “text-valid” signal" link="XfceFilenameInput.html#XfceFilenameInput-text-valid"/>
+    <keyword type="function" name="xfce_titled_dialog_new ()" link="XfceTitledDialog.html#xfce-titled-dialog-new"/>
+    <keyword type="function" name="xfce_titled_dialog_new_with_buttons ()" link="XfceTitledDialog.html#xfce-titled-dialog-new-with-buttons" deprecated="4.16: Use #xfce_titled_dialog_new_with_mixed_buttons instead."/>
+    <keyword type="function" name="xfce_titled_dialog_new_with_mixed_buttons ()" link="XfceTitledDialog.html#xfce-titled-dialog-new-with-mixed-buttons" since="4.14"/>
+    <keyword type="function" name="xfce_titled_dialog_create_action_area ()" link="XfceTitledDialog.html#xfce-titled-dialog-create-action-area" since="4.16"/>
+    <keyword type="function" name="xfce_titled_dialog_add_button ()" link="XfceTitledDialog.html#xfce-titled-dialog-add-button" since="4.16"/>
+    <keyword type="function" name="xfce_titled_dialog_add_action_widget ()" link="XfceTitledDialog.html#xfce-titled-dialog-add-action-widget" since="4.16"/>
+    <keyword type="function" name="xfce_titled_dialog_set_default_response ()" link="XfceTitledDialog.html#xfce-titled-dialog-set-default-response" since="4.16"/>
+    <keyword type="function" name="xfce_titled_dialog_get_subtitle ()" link="XfceTitledDialog.html#xfce-titled-dialog-get-subtitle"/>
+    <keyword type="function" name="xfce_titled_dialog_set_subtitle ()" link="XfceTitledDialog.html#xfce-titled-dialog-set-subtitle"/>
+    <keyword type="struct" name="struct XfceTitledDialog" link="XfceTitledDialog.html#XfceTitledDialog-struct"/>
+    <keyword type="property" name="The “subtitle” property" link="XfceTitledDialog.html#XfceTitledDialog--subtitle"/>
+    <keyword type="function" name="xfce_sm_client_get_option_group ()" link="XfceSMClient.html#xfce-sm-client-get-option-group"/>
+    <keyword type="function" name="xfce_sm_client_get ()" link="XfceSMClient.html#xfce-sm-client-get"/>
+    <keyword type="function" name="xfce_sm_client_get_with_argv ()" link="XfceSMClient.html#xfce-sm-client-get-with-argv"/>
+    <keyword type="function" name="xfce_sm_client_get_full ()" link="XfceSMClient.html#xfce-sm-client-get-full"/>
+    <keyword type="function" name="xfce_sm_client_connect ()" link="XfceSMClient.html#xfce-sm-client-connect"/>
+    <keyword type="function" name="xfce_sm_client_disconnect ()" link="XfceSMClient.html#xfce-sm-client-disconnect"/>
+    <keyword type="function" name="xfce_sm_client_is_connected ()" link="XfceSMClient.html#xfce-sm-client-is-connected"/>
+    <keyword type="function" name="xfce_sm_client_is_resumed ()" link="XfceSMClient.html#xfce-sm-client-is-resumed"/>
+    <keyword type="function" name="xfce_sm_client_set_desktop_file ()" link="XfceSMClient.html#xfce-sm-client-set-desktop-file"/>
+    <keyword type="function" name="xfce_sm_client_request_shutdown ()" link="XfceSMClient.html#xfce-sm-client-request-shutdown"/>
+    <keyword type="function" name="xfce_sm_client_get_client_id ()" link="XfceSMClient.html#xfce-sm-client-get-client-id"/>
+    <keyword type="function" name="xfce_sm_client_get_state_file ()" link="XfceSMClient.html#xfce-sm-client-get-state-file"/>
+    <keyword type="function" name="xfce_sm_client_get_current_directory ()" link="XfceSMClient.html#xfce-sm-client-get-current-directory"/>
+    <keyword type="function" name="xfce_sm_client_set_current_directory ()" link="XfceSMClient.html#xfce-sm-client-set-current-directory"/>
+    <keyword type="function" name="xfce_sm_client_get_priority ()" link="XfceSMClient.html#xfce-sm-client-get-priority"/>
+    <keyword type="function" name="xfce_sm_client_set_priority ()" link="XfceSMClient.html#xfce-sm-client-set-priority"/>
+    <keyword type="function" name="xfce_sm_client_get_restart_command ()" link="XfceSMClient.html#xfce-sm-client-get-restart-command"/>
+    <keyword type="function" name="xfce_sm_client_set_restart_command ()" link="XfceSMClient.html#xfce-sm-client-set-restart-command"/>
+    <keyword type="function" name="xfce_sm_client_get_restart_style ()" link="XfceSMClient.html#xfce-sm-client-get-restart-style"/>
+    <keyword type="function" name="xfce_sm_client_set_restart_style ()" link="XfceSMClient.html#xfce-sm-client-set-restart-style"/>
+    <keyword type="struct" name="XfceSMClient" link="XfceSMClient.html#XfceSMClient-struct"/>
+    <keyword type="enum" name="enum XfceSMClientPriority" link="XfceSMClient.html#XfceSMClientPriority"/>
+    <keyword type="enum" name="enum XfceSMClientRestartStyle" link="XfceSMClient.html#XfceSMClientRestartStyle"/>
+    <keyword type="enum" name="enum XfceSMClientShutdownHint" link="XfceSMClient.html#XfceSMClientShutdownHint"/>
+    <keyword type="macro" name="XFCE_SM_CLIENT_ERROR" link="XfceSMClient.html#XFCE-SM-CLIENT-ERROR:CAPS"/>
+    <keyword type="enum" name="enum XfceSmCLientErrorEnum" link="XfceSMClient.html#XfceSmCLientErrorEnum"/>
+    <keyword type="property" name="The “argc” property" link="XfceSMClient.html#XfceSMClient--argc"/>
+    <keyword type="property" name="The “argv” property" link="XfceSMClient.html#XfceSMClient--argv"/>
+    <keyword type="property" name="The “client-id” property" link="XfceSMClient.html#XfceSMClient--client-id"/>
+    <keyword type="property" name="The “current-directory” property" link="XfceSMClient.html#XfceSMClient--current-directory"/>
+    <keyword type="property" name="The “desktop-file” property" link="XfceSMClient.html#XfceSMClient--desktop-file"/>
+    <keyword type="property" name="The “priority” property" link="XfceSMClient.html#XfceSMClient--priority"/>
+    <keyword type="property" name="The “restart-command” property" link="XfceSMClient.html#XfceSMClient--restart-command"/>
+    <keyword type="property" name="The “restart-style” property" link="XfceSMClient.html#XfceSMClient--restart-style"/>
+    <keyword type="property" name="The “resumed” property" link="XfceSMClient.html#XfceSMClient--resumed"/>
+    <keyword type="signal" name="The “quit” signal" link="XfceSMClient.html#XfceSMClient-quit"/>
+    <keyword type="signal" name="The “quit-cancelled” signal" link="XfceSMClient.html#XfceSMClient-quit-cancelled"/>
+    <keyword type="signal" name="The “quit-requested” signal" link="XfceSMClient.html#XfceSMClient-quit-requested"/>
+    <keyword type="signal" name="The “save-state” signal" link="XfceSMClient.html#XfceSMClient-save-state"/>
+    <keyword type="signal" name="The “save-state-extended” signal" link="XfceSMClient.html#XfceSMClient-save-state-extended"/>
+    <keyword type="function" name="xfce_screensaver_new ()" link="XfceScreensaver.html#xfce-screensaver-new" since="4.18.2"/>
+    <keyword type="function" name="xfce_screensaver_inhibit ()" link="XfceScreensaver.html#xfce-screensaver-inhibit" since="4.18.2"/>
+    <keyword type="function" name="xfce_screensaver_lock ()" link="XfceScreensaver.html#xfce-screensaver-lock" since="4.18.2"/>
+    <keyword type="struct" name="XfceScreensaver" link="XfceScreensaver.html#XfceScreensaver-struct"/>
+    <keyword type="property" name="The “heartbeat-command” property" link="XfceScreensaver.html#XfceScreensaver--heartbeat-command"/>
+    <keyword type="property" name="The “lock-command” property" link="XfceScreensaver.html#XfceScreensaver--lock-command"/>
+    <keyword type="property" name="The “lock-on-sleep” property" link="XfceScreensaver.html#XfceScreensaver--lock-on-sleep"/>
+    <keyword type="constant" name="XFCE_GTK_MENU_ITEM" link="libxfce4ui-Gtk-Extensions.html#XFCE-GTK-MENU-ITEM:CAPS"/>
+    <keyword type="constant" name="XFCE_GTK_IMAGE_MENU_ITEM" link="libxfce4ui-Gtk-Extensions.html#XFCE-GTK-IMAGE-MENU-ITEM:CAPS"/>
+    <keyword type="constant" name="XFCE_GTK_CHECK_MENU_ITEM" link="libxfce4ui-Gtk-Extensions.html#XFCE-GTK-CHECK-MENU-ITEM:CAPS"/>
+    <keyword type="constant" name="XFCE_GTK_RADIO_MENU_ITEM" link="libxfce4ui-Gtk-Extensions.html#XFCE-GTK-RADIO-MENU-ITEM:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_HIGHEST" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-HIGHEST:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_WM" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-WM:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_CORE" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-CORE:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_DESKTOP" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-DESKTOP:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_DEFAULT" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-DEFAULT:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_PRIORITY_LOWEST" link="XfceSMClient.html#XFCE-SM-CLIENT-PRIORITY-LOWEST:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_RESTART_NORMAL" link="XfceSMClient.html#XFCE-SM-CLIENT-RESTART-NORMAL:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_RESTART_IMMEDIATELY" link="XfceSMClient.html#XFCE-SM-CLIENT-RESTART-IMMEDIATELY:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_SHUTDOWN_HINT_ASK" link="XfceSMClient.html#XFCE-SM-CLIENT-SHUTDOWN-HINT-ASK:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_SHUTDOWN_HINT_LOGOUT" link="XfceSMClient.html#XFCE-SM-CLIENT-SHUTDOWN-HINT-LOGOUT:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_SHUTDOWN_HINT_HALT" link="XfceSMClient.html#XFCE-SM-CLIENT-SHUTDOWN-HINT-HALT:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_SHUTDOWN_HINT_REBOOT" link="XfceSMClient.html#XFCE-SM-CLIENT-SHUTDOWN-HINT-REBOOT:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_ERROR_FAILED" link="XfceSMClient.html#XFCE-SM-CLIENT-ERROR-FAILED:CAPS"/>
+    <keyword type="constant" name="XFCE_SM_CLIENT_ERROR_INVALID_CLIENT" link="XfceSMClient.html#XFCE-SM-CLIENT-ERROR-INVALID-CLIENT:CAPS"/>
+    <keyword type="member" name="XfceGtkActionEntry.id" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.id"/>
+    <keyword type="member" name="XfceGtkActionEntry.accel-path" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.accel-path"/>
+    <keyword type="member" name="XfceGtkActionEntry.default-accelerator" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.default-accelerator"/>
+    <keyword type="member" name="XfceGtkActionEntry.menu-item-type" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.menu-item-type"/>
+    <keyword type="member" name="XfceGtkActionEntry.menu-item-label-text" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.menu-item-label-text"/>
+    <keyword type="member" name="XfceGtkActionEntry.menu-item-tooltip-text" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.menu-item-tooltip-text"/>
+    <keyword type="member" name="XfceGtkActionEntry.menu-item-icon-name" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.menu-item-icon-name"/>
+    <keyword type="member" name="XfceGtkActionEntry.callback" link="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry.callback"/>
+  </functions>
+</book>

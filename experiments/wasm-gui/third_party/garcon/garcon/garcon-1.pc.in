@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+garcon_api_version=@GARCON_VERSION_API@
+
+Name: @PACKAGE_TARNAME@
+Description: Freedesktop.org compliant menu library
+Requires: glib-2.0 gio-2.0 gthread-2.0 gobject-2.0
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lgarcon-${garcon_api_version}
+Cflags: -I${includedir}/garcon-${garcon_api_version}

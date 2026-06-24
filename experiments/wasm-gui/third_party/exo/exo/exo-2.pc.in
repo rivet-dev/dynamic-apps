@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+exo_api_version=@LIBEXO_VERSION_API@
+
+Name: @PACKAGE_TARNAME@
+Description: Extension library for Xfce
+Requires: gtk+-3.0 libxfce4util-1.0
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lexo-${exo_api_version}
+Cflags: -I${includedir}/exo-${exo_api_version}

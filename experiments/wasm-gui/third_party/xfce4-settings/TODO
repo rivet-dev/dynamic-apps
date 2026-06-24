@@ -1,0 +1,31 @@
+Keyboard settings
+------------------------------------------------------------------------
+
+  * The default values of the sliders don't make sence. I think we should
+    also show the slider value and add a tooltip to the slide what the
+    value actually stands for, like in the mouse dialog.
+    The maximum values also seem to be a bit high.
+  * IMPORTANT (for the final release): Update the property-changed 
+    handler so that they it adds a new row for new properties
+  * IMPORTANT (for the final release): Improve the libfrap code for
+    shortcuts. It could be less complicated.
+  * IMPORTANT (for the final release): Hard-coded default shortcuts and
+    an option to reset them to defaults (see xfwm4).
+
+
+Mouse Settings (Nick)
+------------------------------------------------------------------------
+
+  * Try to make inputproto 1.4.0 and libxi 1.2.0 optionnal.
+
+Settings Manager
+------------------------------------------------------------------------
+
+  * Add embed support to all dialogs (not only those in xfce4-settings).
+  * Figure out a way to avoid the black glitches that happen when 
+    embedding dialogs into the main dialog sometimes.
+  * Come up with a solution for help buttons (maybe using an additonal
+    .desktop file key with a help URL for each settings dialog?).
+  * Maybe make addding dialog-specific buttons to the button bar of the
+    main dialog possible, dunno.
+

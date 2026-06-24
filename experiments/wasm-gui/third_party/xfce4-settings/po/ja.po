@@ -1,0 +1,2765 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Xfce Bot <transifex@xfce.org>, 2022
+# UTUMI Hirosi <utuhiro78@yahoo.co.jp>, 2023
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-03 00:47+0100\n"
+"PO-Revision-Date: 2022-12-22 11:33+0000\n"
+"Last-Translator: UTUMI Hirosi <utuhiro78@yahoo.co.jp>, 2023\n"
+"Language-Team: Japanese (https://www.transifex.com/xfce/teams/16840/ja/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. Translators: "Unknown" here is used to identify a monitor for which
+#. * we don't know the vendor. When a vendor is known, the name of the
+#. * vendor is used.
+#: ../common/display-name.c:2641
+msgctxt "Monitor vendor"
+msgid "Unknown"
+msgstr "不明"
+
+#: ../common/xfce-randr.c:299 ../dialogs/display-settings/main.c:4391
+#, c-format
+msgid "Unable to query the version of the RandR extension being used"
+msgstr "使用している RandR エクステンションのバージョンを問い合わせることができません"
+
+#. 1.2 is required
+#: ../common/xfce-randr.c:307
+#, c-format
+msgid ""
+"This system is using RandR %d.%d. For the display settings to work version "
+"1.2 is required at least"
+msgstr "このシステムでは RandR %d.%d を使用しています。ディスプレイ設定を機能させるためには バージョン 1.2 以降が必要です。"
+
+#: ../common/xfce-randr.c:597
+msgid "Laptop"
+msgstr "ラップトップ"
+
+#. TRANSLATORS: an externally connected display, where %s is either the
+#. * model, vendor or ID, e.g. 'LP2480zx Monitor'
+#: ../common/xfce-randr.c:610 ../dialogs/color-settings/color-device.c:65
+msgid "Monitor"
+msgstr "モニター"
+
+#: ../common/xfce-randr.c:613
+msgid "Television"
+msgstr "テレビ"
+
+#: ../common/xfce-randr.c:617
+msgid "Digital display"
+msgstr "デジタルディスプレイ"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:1
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:1
+msgid "Accessibility"
+msgstr "アクセシビリティ"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:2
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:13
+#: ../dialogs/color-settings/color-dialog.glade.h:2
+#: ../dialogs/display-settings/display-dialog.glade.h:17
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:8
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:2
+#: ../dialogs/display-settings/main.c:4431
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:5
+#: ../dialogs/mime-settings/xfce-mime-window.c:187
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:13
+#: ../xfce4-settings-editor/main.c:166
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:232
+msgid "_Close"
+msgstr "閉じる(_C)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:3
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:12
+#: ../dialogs/color-settings/color-dialog.glade.h:3
+#: ../dialogs/display-settings/display-dialog.glade.h:16
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:6
+#: ../dialogs/mime-settings/xfce-mime-window.c:190
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:12
+#: ../xfce4-settings-editor/main.c:165
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:221
+msgid "_Help"
+msgstr "ヘルプ(_H)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:4
+msgid ""
+"When enabled, the session manager will start the required applications for "
+"screen readers and magnifiers."
+msgstr "このオプションが有効な場合、セッションマネージャーはスクリーンリーダーや拡大表示に必要なアプリケーションを起動します。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:5
+msgid "_Enable assistive technologies"
+msgstr "福祉情報技術を有効にする(_E)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:6
+msgid "Start With Session"
+msgstr "セッションとともに開始"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:7
+msgid "Assistive technologies will be available the next time you login"
+msgstr "福祉情報技術は次回ログイン時から有効になります"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:8
+msgid "No AT-SPI provider was found on your system"
+msgstr "AT-SPI がみつかりませんでした"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:9
+msgid "Assistive _Technologies"
+msgstr "福祉情報技術(_T)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:10
+msgid ""
+"When enabled, modifier keys (such as Control, Alt, and Shift) do not need to"
+" be held down (they can be pressed and then released) when multiple keys "
+"would normally need to be pressed at the same time."
+msgstr ""
+"このオプションを有効な場合、修飾キー (Ctrl、Alt、および Shift) "
+"を押して離した後も押した状態が維持され、修飾キーと他のキーを同時に押す必要のある操作でも修飾キーを押した後に他のキーを押すことで同時に押したものとして受け付けられます。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:11
+msgid "_Use sticky keys"
+msgstr "スティッキーキーを使用する(_U)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:12
+msgid "_Lock sticky keys"
+msgstr "スティッキーキーをロックする(_L)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:13
+msgid ""
+"When selected, modifier keys (such as Control, Alt, and Shift) will remain "
+"locked in the pressed state until pressed again"
+msgstr "このオプションを設定すると、修飾キー (Ctrl、Alt、および Shift) が押された場合に再び押されるまで押された状態を維持します。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:14
+msgid "Disable sticky keys if two keys are _pressed"
+msgstr "2 つのキーが押された場合スティッキーキーを無効にする(_P)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:15
+msgid ""
+"When selected, the \"sticky keys\" feature will be disabled if two keys are "
+"pressed simultaneously"
+msgstr "このオプションを設定すると、2 つのキーが同時に押されたときに \"スティッキーキー\" は機能しません"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:16
+msgid "Sticky Keys"
+msgstr "スティッキーキー"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:17
+msgid ""
+"To help prevent accidental keystrokes, slow keys requires that a key is held"
+" for a certain minimum amount of time before the keystroke will be accepted."
+msgstr "不慮のキー入力を避けたいときに設定します。スローキーは指定された時間キーを押しつづけないと入力が確定しないようにします。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:18
+msgid "Use slow _keys"
+msgstr "スローキーを使用する(_K)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:19
+msgid "Acceptance _delay:"
+msgstr "確定までの時間(_D):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:20
+msgid ""
+"The amount of time, in milliseconds, that must elapse before a keystroke "
+"will be accepted"
+msgstr "キーを押してから確定されるまで押しつづけなければならない時間 (ms)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:21
+msgid "Slow Keys"
+msgstr "スローキー"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:22
+msgid ""
+"To help prevent accidental multiple keystrokes, bounce keys imposes a "
+"minimum delay between keystrokes."
+msgstr "不慮の複数キー入力を避けたいときに設定します。バウンスキーはキー入力後、指定された時間が経つまで次のキー入力を受け付けないようにします。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:23
+msgid "Use _bounce keys"
+msgstr "バウンスキーを使用する(_B)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:24
+msgid "K_eystroke delay:"
+msgstr "次の入力までの時間(_E):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:25
+msgid "The amount of time, in milliseconds, required between keystrokes"
+msgstr "次のキー入力が受け付けられるまでの時間 (ms)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:26
+msgid "Bounce Keys"
+msgstr "バウンスキー"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:27
+msgid "Keyboa_rd"
+msgstr "キーボード(_R)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:28
+msgid ""
+"When enabled, the mouse pointer can be controlled using the keyboard number "
+"pad."
+msgstr "このオプションが有効な場合、マウスポインターをテンキーで操作できます。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:29
+msgid "_Use mouse emulation"
+msgstr "マウスエミュレーションを使用する(_U)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:30
+msgid ""
+"When selected, the mouse pointer can be controlled using the keyboard number"
+" pad"
+msgstr "このオプションを設定すると、マウスポインターをテンキーで操作できます"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:31
+msgid "msec"
+msgstr "ミリ秒"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:32
+msgid ""
+"The time, in milliseconds, between the initial key press and first repeated "
+"motion event"
+msgstr "最初にキーが押されてから押され続けていると認識するまでの時間 (ms)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:33
+msgid "_Acceleration delay:"
+msgstr "加速開始までの時間(_A):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:34
+msgid "R_epeat interval:"
+msgstr "リピート間隔(_E):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:35
+msgid "The time, in milliseconds, between repeated motion events"
+msgstr "キーが押され続けたときのリピート動作時間間隔 (ms)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:36
+msgid "Acceleration t_ime:"
+msgstr "加速時間(_I):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:37
+msgid "The time, in milliseconds, to get to maximum speed"
+msgstr "最大速度に達するまでの時間 (ms)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:38
+msgid "Ma_ximum speed:"
+msgstr "最大速度(_X):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:39
+msgid "The maximum pointer speed after acceleration"
+msgstr "加速後のマウスポインターの最大速度"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:40
+msgid "pixels/sec"
+msgstr "ピクセル/秒"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:41
+msgid "Acceleration _profile:"
+msgstr "加速度プロファイル(_P):"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:42
+msgid "The ramp used to reach maximum pointer speed"
+msgstr "ポインターが最大速度に達するまでの加速度"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:43
+msgid "Mouse Emulation"
+msgstr "マウスエミュレーション"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:44
+msgid ""
+"Bind a keyboard shortcut to xfce4-find-cursor to get visual feedback of the "
+"mouse pointer's current location."
+msgstr "キーボードショートカットを xfce4-find-cursor にバインドし、マウスポインターの現在位置の視覚フィードバックを取得します。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:45
+msgid "Show location of pointer on keypress"
+msgstr "キーを押すと、ポインター位置を表示する"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:46
+msgid "Find Cursor"
+msgstr "カーソルを見つける"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:47
+msgid "_Mouse"
+msgstr "マウス(_M)"
+
+#: ../dialogs/accessibility-settings/main.c:46
+#: ../dialogs/appearance-settings/main.c:105
+#: ../dialogs/color-settings/main.c:48 ../dialogs/display-settings/main.c:140
+#: ../dialogs/keyboard-settings/main.c:40 ../dialogs/mime-settings/main.c:44
+#: ../dialogs/mouse-settings/main.c:87 ../xfce4-settings-editor/main.c:49
+msgid "Settings manager socket"
+msgstr "設定マネージャーソケット"
+
+#: ../dialogs/accessibility-settings/main.c:46
+#: ../dialogs/appearance-settings/main.c:105
+#: ../dialogs/color-settings/main.c:48 ../dialogs/display-settings/main.c:140
+#: ../dialogs/keyboard-settings/main.c:40 ../dialogs/mime-settings/main.c:44
+#: ../dialogs/mouse-settings/main.c:87 ../xfce4-settings-editor/main.c:49
+msgid "SOCKET ID"
+msgstr "SOCKET ID"
+
+#: ../dialogs/accessibility-settings/main.c:47
+#: ../dialogs/appearance-settings/main.c:106
+#: ../dialogs/color-settings/main.c:49 ../dialogs/display-settings/main.c:141
+#: ../dialogs/keyboard-settings/main.c:41 ../dialogs/mime-settings/main.c:45
+#: ../dialogs/mouse-settings/main.c:88 ../xfce4-settings-editor/main.c:50
+#: ../xfce4-settings-manager/main.c:43 ../xfsettingsd/main.c:102
+msgid "Version information"
+msgstr "バージョン情報を表示する"
+
+#: ../dialogs/accessibility-settings/main.c:200
+#: ../dialogs/appearance-settings/main.c:1401
+#: ../dialogs/color-settings/main.c:1379
+#: ../dialogs/display-settings/main.c:4359
+#: ../dialogs/keyboard-settings/main.c:78 ../dialogs/mime-settings/main.c:83
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:158
+#: ../dialogs/mouse-settings/main.c:1892 ../xfce4-settings-editor/main.c:120
+#: ../xfce4-settings-manager/main.c:64 ../xfsettingsd/main.c:242
+#: ../xfsettingsd/main.c:280
+#, c-format
+msgid "Type '%s --help' for usage."
+msgstr "'%s --help' と入力すると使用方法が表示されます。"
+
+#: ../dialogs/accessibility-settings/main.c:219
+#: ../dialogs/appearance-settings/main.c:1420
+#: ../dialogs/color-settings/main.c:1396
+#: ../dialogs/display-settings/main.c:4378
+#: ../dialogs/keyboard-settings/main.c:94 ../dialogs/mime-settings/main.c:102
+#: ../dialogs/mouse-settings/main.c:1911 ../xfce4-settings-editor/main.c:139
+#: ../xfce4-settings-manager/main.c:80 ../xfsettingsd/main.c:258
+msgid "The Xfce development team. All rights reserved."
+msgstr "The Xfce development team. All rights reserved."
+
+#: ../dialogs/accessibility-settings/main.c:220
+#: ../dialogs/appearance-settings/main.c:1421
+#: ../dialogs/color-settings/main.c:1397
+#: ../dialogs/display-settings/main.c:4379
+#: ../dialogs/keyboard-settings/main.c:95 ../dialogs/mime-settings/main.c:103
+#: ../dialogs/mouse-settings/main.c:1912 ../xfce4-settings-editor/main.c:140
+#: ../xfce4-settings-manager/main.c:81 ../xfsettingsd/main.c:259
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "バグの報告は <%s> までお願いします。"
+
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:2
+msgid "Improve keyboard and mouse accessibility"
+msgstr "キーボードとマウスのユーザー補助機能を向上させます"
+
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:3
+msgid ""
+"assistive;technologies;keys;sticky;bounce;emulation;screen "
+"readers;magnifiers;a11y;i18n;l10n;AT-SPI;ATK;impairment;"
+msgstr "補助;技術;キー;付箋;バウンス;エミュレーション;スクリーンリーダー;拡大鏡;a11y;i18n;l10n;AT-SPI;ATK;障害;"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:1
+#: ../dialogs/appearance-settings/main.c:1276
+#: ../dialogs/display-settings/main.c:107
+#: ../dialogs/display-settings/main.c:118
+msgid "None"
+msgstr "なし"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:2
+msgid "Slight"
+msgstr "部分的"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:3
+msgid "Medium"
+msgstr "中位"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:4
+msgid "Full"
+msgstr "全体的"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:5
+msgid "Icons"
+msgstr "アイコン"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:6
+msgid "Text"
+msgstr "文字"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:7
+msgid "Text under icons"
+msgstr "アイコンの下に文字"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:8
+msgid "Text next to icons"
+msgstr "アイコンの横に文字"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:9
+msgid "1x (no scaling)"
+msgstr "1倍(拡大縮小なし)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:10
+#: ../dialogs/display-settings/display-dialog.glade.h:4
+msgid "2x"
+msgstr "2倍"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:11
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:1
+msgid "Appearance"
+msgstr "外観"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:14
+#: ../dialogs/color-settings/color-dialog.glade.h:10
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:24
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:354
+msgid "_Add"
+msgstr "追加(_A)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:15
+msgid "Set matching Xfwm4 theme if there is one"
+msgstr "一致する Xfwm4 テーマがある場合は設定する"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:16
+msgid "St_yle"
+msgstr "スタイル(_Y)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:17
+msgid "_Icons"
+msgstr "アイコン(_I)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:18
+msgid ""
+"This font will be used as the default font used when drawing user interface "
+"text"
+msgstr "このフォントがユーザーインターフェイスを描画する際のデフォルトフォントとして使用されます"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:19
+msgid "Select a default font"
+msgstr "デフォルトフォントを選択してください"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:20
+msgid "Default Fon_t"
+msgstr "デフォルトフォント(_T)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:21
+msgid ""
+"This font will be used as the default monospace font, for example by "
+"terminal emulators."
+msgstr "このフォントがターミナルエミュレーターなどで使用されるデフォルト monospace フォントとして使用されます。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:22
+msgid "Select a default monospace font"
+msgstr "デフォルト monospace フォントを選択する"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:23
+msgid "Default _Monospace Font"
+msgstr "デフォルト Monospace フォント (_M)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:24
+msgid "_Enable anti-aliasing"
+msgstr "アンチエイリアスを有効にする(_E)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:25
+msgid ""
+"Anti-aliasing, or font smoothing, can improve the look of text on the screen"
+msgstr "アンチエイリアス (あるいはフォントスムージング) は画面に表示される文字の見た目を向上させます。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:26
+msgid "Hintin_g:"
+msgstr "ヒンティング(_G):"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:27
+msgid ""
+"Many fonts contain information that provides extra hints as to how best draw"
+" the font; pick whichever looks best according to personal preference"
+msgstr "多くのフォントはフォントをもっとも高い品質で描画するための拡張ヒントデータを含んでいます。あなたの好みに合うものを選択してください。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:28
+msgid "Sub-_pixel order:"
+msgstr "サブピクセルオーダ(_P):"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:29
+msgid ""
+"Font quality on a TFT or LCD screen can be greatly improved by choosing the "
+"correct sub-pixel order of the screen"
+msgstr "TFT や LCD ディスプレイを使用している場合、画面の正しいサブピクセルオーダを指定することによりフォントの表示品質を向上できます"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:30
+msgid "Rendering"
+msgstr "レンダリング"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:31
+msgid "Custom _DPI setting:"
+msgstr "カスタム DPI 設定(_D):"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:32
+msgid ""
+"Override the detected monitor resolution if fonts look too large or too "
+"small"
+msgstr ""
+"表示されるフォントが大きすぎるか小さすぎる場合、このオプションを設定することにより改善できます。このオプションは検出されたモニターの解像度より優先されます。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:33
+msgid "DPI"
+msgstr "DPI"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:34
+msgid "_Fonts"
+msgstr "フォント(_F)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:35
+msgid "Show images on _buttons"
+msgstr "ボタンにアイコンを表示する(_B)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:36
+msgid "Specify whether icons should be displayed next to text in buttons"
+msgstr "このオプションを設定すると、ボタンの文字の隣にストックアイコンを表示します"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:37
+msgid "Show images in _menus"
+msgstr "メニューにアイコンを表示する(_M)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:38
+msgid "Specify whether icons should be displayed next to items in menus"
+msgstr "このオプションを設定すると、メニューアイテムの隣にアイコンを表示します"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:39
+msgid "Enable e_ditable accelerators"
+msgstr "メニューのショートカットを変更可能にする(_D)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:40
+msgid ""
+"If selected, keyboard shortcuts for menu items can be changed by hovering "
+"the mouse over the menu item and pressing the new key combination for the "
+"shortcut"
+msgstr ""
+"このオプションを設定すると、メニューアイテムの上にマウスポインターがあるときに任意のキーの組み合わせを入力することで、そのメニューアイテムのキーボードショートカットを変更できるようになります。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:41
+msgid "Enable header bars in dialo_gs"
+msgstr "ダイアログのヘッダー バーを有効にする(_G)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:42
+msgid ""
+"Defines whether GTK dialogs may place widgets such as buttons in the "
+"dialog's header bar. Implies in Client Side Decoration. Only affects newly "
+"opened dialogs."
+msgstr ""
+"GTK ダイアログがダイアログのヘッダー "
+"バーにボタンなどのウィジェットを配置するかどうかを定義します。クライアント側の装飾を意味します。新しく開いたダイアログにのみ影響します。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:43
+msgid "Menus and Buttons"
+msgstr "メニューとボタン"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:44
+msgid "Enable _event sounds"
+msgstr "イベントサウンドを有効にする(_E)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:45
+msgid "Enable or disable event sounds globally (requires \"Canberra\" support)"
+msgstr "全体のイベントサウンドの有効または無効にする (\"Canberra\" サポートが必要)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:46
+msgid "Enable input feedbac_k sounds"
+msgstr "入力音を有効にする(_K)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:47
+msgid ""
+"Specify whether mouse clicks and other user input will cause event sounds to"
+" play"
+msgstr "マウスボタンのクリックおよびその他のユーザー入力が行われた際に再生するサウンドを設定してください"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:48
+msgid "Event sounds"
+msgstr "イベントサウンド"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:49
+msgid "Adjust the system-wide display scaling"
+msgstr "システム全体の表示倍率を調整する"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:50
+msgid "_Window Scaling"
+msgstr "ウィンドウ拡大縮小(_W)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:51
+msgid "Setti_ngs"
+msgstr "設定(_N)"
+
+#: ../dialogs/appearance-settings/main.c:481
+#, c-format
+msgid ""
+"Warning: this icon theme has no cache file. You can create this by running "
+"<i>gtk-update-icon-cache %s/%s/</i> in a terminal emulator."
+msgstr ""
+"警告: このアイコンテーマのキャッシュファイルがありません。これを作成するには、ターミナルエミュレーター上で <i>gtk-update-icon-"
+"cache %s/%s/</i> を実行してください。"
+
+#: ../dialogs/appearance-settings/main.c:973
+#, c-format
+msgid "File is too large, installation aborted"
+msgstr "ファイルが大きすぎるため、インストールを中止しました"
+
+#: ../dialogs/appearance-settings/main.c:978
+msgid "Failed to create temporary directory"
+msgstr "作業ディレクトリの作成に失敗しました"
+
+#: ../dialogs/appearance-settings/main.c:983
+msgid "Failed to extract archive"
+msgstr "書庫の展開に失敗しました"
+
+#: ../dialogs/appearance-settings/main.c:988
+msgid "Unknown format, only archives and directories are supported"
+msgstr "未知の形式です。書庫およびディレクトリのみサポートされています。"
+
+#: ../dialogs/appearance-settings/main.c:993
+msgid "Not a valid theme package"
+msgstr "有効なテーマ パッケージではありません"
+
+#: ../dialogs/appearance-settings/main.c:998
+#, c-format
+msgid "An unknown error, exit code is %d"
+msgstr "未知のエラーです。終了コードは %d です。"
+
+#: ../dialogs/appearance-settings/main.c:1005
+msgid "Failed to install theme"
+msgstr "テーマのインストールに失敗しました"
+
+#: ../dialogs/appearance-settings/main.c:1059
+#, c-format
+msgid "Install %s theme"
+msgstr "%s テーマをインストール"
+
+#. Create cancel button
+#: ../dialogs/appearance-settings/main.c:1063
+#: ../dialogs/color-settings/color-dialog.glade.h:18
+#: ../dialogs/color-settings/main.c:130
+#: ../dialogs/keyboard-settings/command-dialog.c:116
+#: ../dialogs/keyboard-settings/command-dialog.c:280
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:2
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:428
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:573
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:107
+msgid "_Cancel"
+msgstr "キャンセル(_C)"
+
+#: ../dialogs/appearance-settings/main.c:1065
+#: ../dialogs/keyboard-settings/command-dialog.c:281
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:429
+msgid "_Open"
+msgstr "開く(_O)"
+
+#: ../dialogs/appearance-settings/main.c:1280
+msgid "RGB"
+msgstr "RGB"
+
+#: ../dialogs/appearance-settings/main.c:1284
+msgid "BGR"
+msgstr "BGR"
+
+#: ../dialogs/appearance-settings/main.c:1288
+msgid "Vertical RGB"
+msgstr "垂直 RGB"
+
+#: ../dialogs/appearance-settings/main.c:1292
+msgid "Vertical BGR"
+msgstr "垂直 GBR"
+
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:2
+msgid "Customize the look of your desktop"
+msgstr "デスクトップの外観をカスタマイズします"
+
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:3
+msgid ""
+"themes;user interface;styles;icons;fonts;anti-aliasing;hinting;sub-"
+"pixel;subpixel;rendering;ClearType;DPI;RGB;BGR;menu accelerators;keyboard "
+"shortcuts;event;sounds;window scaling;HiDPI;Retina display;"
+msgstr ""
+"テーマ;ユーザーインターフェイス;スタイル;アイコン;フォント;アンチエイリアス;ヒンティング;サブピクセル;サブピクセル;レンダリング;ClearType;DPI;RGB;BGR;メニューアクセラレーター;キーボードショートカット;イベント;サウンド;ウィンドウスケーリング;HiDPI;Retina"
+" ディスプレイ;"
+
+#. TRANSLATORS: a flatbed scanner device, e.g. 'Epson Scanner'
+#: ../dialogs/color-settings/color-device.c:68
+msgid "Scanner"
+msgstr "スキャナー"
+
+#. TRANSLATORS: a camera device, e.g. 'Nikon D60 Camera'
+#: ../dialogs/color-settings/color-device.c:71
+msgid "Camera"
+msgstr "カメラ"
+
+#. TRANSLATORS: a printer device, e.g. 'Epson Photosmart Printer'
+#: ../dialogs/color-settings/color-device.c:74
+msgid "Printer"
+msgstr "プリンター"
+
+#. TRANSLATORS: a webcam device, e.g. 'Philips HiDef Camera'
+#: ../dialogs/color-settings/color-device.c:77
+msgid "Webcam"
+msgstr "ウェブカメラ"
+
+#. TRANSLATORS: This refers to the TFT display on a laptop
+#: ../dialogs/color-settings/color-device.c:94
+msgid "Laptop Screen"
+msgstr "ラップトップスクリーン"
+
+#. TRANSLATORS: This refers to the embedded webcam on a laptop
+#: ../dialogs/color-settings/color-device.c:102
+msgid "Built-in Webcam"
+msgstr "内蔵ウェブカメラ"
+
+#: ../dialogs/color-settings/color-device.c:195
+#, c-format
+msgid "Enable color management for %s"
+msgstr "%s のカラーマネージメントを有効にする"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:1
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:1
+msgid "Color Profiles"
+msgstr "カラープロファイル"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:4
+msgid "<b>No devices found.</b>"
+msgstr "<b>デバイスが見つかりません。</b>"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:5
+msgid "Model:"
+msgstr "型式:"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:6
+msgid "Colorspace:"
+msgstr "色空間:"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:7
+msgid "Vendor:"
+msgstr "ベンダー:"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:8
+msgid "Calibrate"
+msgstr "調整"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:9
+msgid "<b>No profiles for the selected device.</b>"
+msgstr "<b>選択されたデバイスのプロファイルが見つかりません。</b>"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:11
+msgid "Add a profile to the currently selected device"
+msgstr "現在選択されているデバイスにプロファイルを追加する"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:12
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:26
+msgid "_Remove"
+msgstr "削除(_R)"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:13
+msgid "Delete the currently selected profile"
+msgstr "現在選択されているプロファイルを削除する"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:14
+msgid "Show detailed information about the selected profile"
+msgstr "選択したプロファイルに関する詳細情報を表示する"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:15
+msgid "Enable"
+msgstr "有効"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:16
+msgid "Enable the selected profile"
+msgstr "選択したプロファイルを有効にする"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:17
+msgid "Add Profile to Device"
+msgstr "デバイスにプロファイルを追加する"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:19
+#: ../dialogs/keyboard-settings/command-dialog.c:120
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:3
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:574
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:108
+msgid "_OK"
+msgstr "OK(_O)"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:20
+msgid "Import color profile files (*.icc)"
+msgstr "カラープロファイルファイル (*.icc) をインポートする"
+
+#. TRANSLATORS: standard spaces are well known colorspaces like
+#. * sRGB, AdobeRGB and ProPhotoRGB
+#: ../dialogs/color-settings/color-profile.c:94
+msgid "Standard Space"
+msgstr "標準スペース"
+
+#. TRANSLATORS: test profiles do things like changing the screen
+#. * a different color, or swap the red and green channels
+#: ../dialogs/color-settings/color-profile.c:99
+msgid "Test Profile"
+msgstr "テストプロファイル"
+
+#. TRANSLATORS: automatic profiles are generated automatically
+#. * by the color management system based on manufacturing data,
+#. * for instance the default monitor profile is created from the
+#. * primaries specified in the monitor EDID
+#: ../dialogs/color-settings/color-profile.c:106
+msgctxt "Automatically generated profile"
+msgid "Automatic"
+msgstr "自動"
+
+#. TRANSLATORS: the profile quality - low quality profiles take
+#. * much less time to generate but may be a poor reflection of the
+#. * device capability
+#: ../dialogs/color-settings/color-profile.c:115
+msgctxt "Profile quality"
+msgid "Low Quality"
+msgstr "低精度"
+
+#. TRANSLATORS: the profile quality
+#: ../dialogs/color-settings/color-profile.c:119
+msgctxt "Profile quality"
+msgid "Medium Quality"
+msgstr "中精度"
+
+#. TRANSLATORS: the profile quality - high quality profiles take
+#. * a *long* time, and have the best calibration and
+#. * characterisation data.
+#: ../dialogs/color-settings/color-profile.c:125
+msgctxt "Profile quality"
+msgid "High Quality"
+msgstr "高精度"
+
+#. TRANSLATORS: this default RGB space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:140
+msgctxt "Colorspace fallback"
+msgid "Default RGB"
+msgstr "デフォルトの RGB"
+
+#. TRANSLATORS: this default CMYK space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:146
+msgctxt "Colorspace fallback"
+msgid "Default CMYK"
+msgstr "デフォルトの YMCK"
+
+#. TRANSLATORS: this default gray space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:152
+msgctxt "Colorspace fallback"
+msgid "Default Gray"
+msgstr "デフォルト グレイ"
+
+#. TRANSLATORS: an ICC profile is a file containing colorspace data
+#: ../dialogs/color-settings/main.c:128
+msgid "Select ICC Profile File"
+msgstr "ICC プロファイルを選択"
+
+#: ../dialogs/color-settings/main.c:131
+msgid "_Import"
+msgstr "取り込む(_I)"
+
+#. TRANSLATORS: filter name on the file->open dialog
+#: ../dialogs/color-settings/main.c:142
+msgid "Supported ICC profiles"
+msgstr "サポートされた ICC プロファイル"
+
+#. TRANSLATORS: filter name on the file->open dialog
+#: ../dialogs/color-settings/main.c:149
+msgid "All files"
+msgstr "すべてのファイル"
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile has been auto-generated for this hardware
+#: ../dialogs/color-settings/main.c:191
+msgid "Default: "
+msgstr "デフォルト:"
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile his a standard space like AdobeRGB
+#: ../dialogs/color-settings/main.c:197
+msgid "Colorspace: "
+msgstr "色空間:"
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile is a test profile
+#: ../dialogs/color-settings/main.c:203
+msgid "Test profile: "
+msgstr "テストプロファイル:"
+
+#: ../dialogs/color-settings/main.c:238
+msgid "Compatible Profiles"
+msgstr "互換性のあるプロファイル"
+
+#: ../dialogs/color-settings/main.c:825 ../dialogs/color-settings/main.c:826
+#: ../dialogs/color-settings/main.c:827
+msgid "Unknown"
+msgstr "不明"
+
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:2
+msgid "Set color profiles"
+msgstr "カラープロファイルを設定する"
+
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:3
+msgid "color;settings;management;display;monitors;printers;webcams;scanners;"
+msgstr "色;設定;管理;ディスプレイ;モニター;プリンター;ウェブカメラ;スキャナー;"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:1
+msgid "<b><big>Would you like to keep this configuration?</big></b>"
+msgstr "<b><big>この設定を維持しますか？</big></b>"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:2
+msgid ""
+"The previous configuration will be restored in <b>10 seconds</b> if you do "
+"not reply to this question."
+msgstr "この質問に<b>10秒</b>以内に回答しない場合は、以前の設定に戻されます。"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:3
+msgid "Keep this configuration"
+msgstr "この設定で使用する"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:4
+msgid "Restore the previous configuration"
+msgstr "元の設定に戻す"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:1
+msgid "1.25x"
+msgstr "1.25x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:2
+msgid "1.5x"
+msgstr "1.5x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:3
+msgid "1.75x"
+msgstr "1.75x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:5
+msgid "Custom:"
+msgstr "カスタム:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:6
+msgid "Do nothing"
+msgstr "何もしない"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:7
+msgid "Show dialog"
+msgstr "ダイアログを表示"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:8
+msgid "Mirror"
+msgstr "ミラー"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:9
+msgid "Extend"
+msgstr "拡張"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:10
+msgid "The primary display is currently configured to show:"
+msgstr "プライマリディスプレイは、次のように構成されています:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:11
+msgid "Xfce Panel"
+msgstr "Xfce パネル"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:12
+msgid "Desktop icons"
+msgstr "デスクトップアイコン"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:13
+msgid "Notifications"
+msgstr "通知"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:14
+msgid "Configure..."
+msgstr "設定"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:15
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:1
+msgid "Display"
+msgstr "ディスプレイ"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:18
+msgid "_Mirror displays"
+msgstr "ミラー表示(_M)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:19
+msgid "Primary Display:"
+msgstr "プライマリーディスプレイ:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:20
+msgid "R_esolution:"
+msgstr "解像度(_E):"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:21
+msgid "Refresh _rate:"
+msgstr "周波数(_R):"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:22
+msgid "Ro_tation:"
+msgstr "回転(_T):"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:23
+msgid "Ref_lection:"
+msgstr "反転(_L):"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:24
+msgid "A_pply"
+msgstr "適用(_P)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:25
+msgid "_Scale:"
+msgstr "スケール(_S)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:26
+msgid "X:"
+msgstr "X:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:27
+msgid "Y:"
+msgstr "Y:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:28
+msgid "_General"
+msgstr "全般(_G)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:29
+msgid "<b>Profiles</b>"
+msgstr "<b>プロファイル</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:30
+msgid "<b>Connecting Displays</b>"
+msgstr "<b>接続中のディスプレイ</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:31
+msgid "Delete the currently selected display profile."
+msgstr "現在接続されているディスプレイプロファイルを削除します。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:32
+msgid "Apply"
+msgstr "適用"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:33
+msgid "Apply the currently selected display profile."
+msgstr "現在選択されているディスプレイプロファイルを適用します。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:34
+msgid "Create a new display profile."
+msgstr "新しくディスプレイプロファイルを作成します。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:35
+msgid "Update an existing profile."
+msgstr "既存のプロファイルを更新します。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:36
+msgid "Automatically enable profiles when new display is connected"
+msgstr "新しくディスプレイが接続されたときプロファイルを自動的に有効にする"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:37
+msgid "When new displays are connected:"
+msgstr "新しいディスプレイが接続されたとき:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:38
+msgid "Show popup windows to identify displays"
+msgstr "ディスプレイを識別するためのウィンドウをポップアップ表示する"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:39
+msgid "<b>Identifying Displays</b>"
+msgstr "<b>ディスプレイの識別</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:40
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:6
+msgid "_Advanced"
+msgstr "詳細(_A)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:41
+msgid "<b>Profile Name</b>"
+msgstr "<b>プロファイル名</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:42
+msgid "Create"
+msgstr "作成"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:43
+msgid "A profile of this name already exists."
+msgstr "この名前のプロファイルはすでに存在しています。"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:1
+msgid "Displays"
+msgstr "ディスプレイ"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:2
+msgid "Only Display 1"
+msgstr "ディスプレイ 1 のみ"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:3
+msgid "Mirror Displays"
+msgstr "ミラー表示"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:4
+msgid "Extend to the right"
+msgstr "右側に拡張"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:5
+msgid "Only Display 2"
+msgstr "ディスプレイ 2 のみ"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:7
+msgid "radiobutton"
+msgstr "ラジオボタン"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:1
+msgid "Update Display Profile"
+msgstr "ディスプレイプロファイルを更新"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:3
+msgid "_Update"
+msgstr "更新(_U)"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:4
+msgid ""
+"<big><b>You have made changes to your previously active profile</b></big>"
+msgstr "<big><b>以前アクティブだったプロファイルに変更を加えました</b></big>"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:5
+msgid ""
+"If you don't update the profile your changes will be lost upon restarting "
+"your session or disconnecting or connecting a display."
+msgstr "変更されたプロファイルを更新しない場合、セッションの再起動、ディスプレイの切断または接続時に変更が失われます。"
+
+#: ../dialogs/display-settings/main.c:108
+msgid "Left"
+msgstr "左"
+
+#: ../dialogs/display-settings/main.c:109
+msgid "Inverted"
+msgstr "反転"
+
+#: ../dialogs/display-settings/main.c:110
+msgid "Right"
+msgstr "右"
+
+#: ../dialogs/display-settings/main.c:119
+msgid "Horizontal"
+msgstr "水平"
+
+#: ../dialogs/display-settings/main.c:120
+msgid "Vertical"
+msgstr "垂直"
+
+#: ../dialogs/display-settings/main.c:121
+msgid "Horizontal and Vertical"
+msgstr "垂直および水平"
+
+#: ../dialogs/display-settings/main.c:142
+msgid "Minimal interface to set up an external output"
+msgstr "外部出力を設定する最小限のインターフェイス"
+
+#: ../dialogs/display-settings/main.c:324
+#, c-format
+msgid ""
+"The previous configuration will be restored in <b>%i seconds</b> if you do "
+"not reply to this question."
+msgstr "この質問に<b>%i秒</b>以内に回答しない場合は、以前の設定に戻されます。"
+
+#. Insert the mode
+#: ../dialogs/display-settings/main.c:783
+#, c-format
+msgid "%.2f Hz"
+msgstr "%.2f Hz"
+
+#: ../dialogs/display-settings/main.c:1181
+msgid "Display:"
+msgstr "ディスプレイ:"
+
+#: ../dialogs/display-settings/main.c:1186
+msgid "Resolution:"
+msgstr "解像度:"
+
+#: ../dialogs/display-settings/main.c:1466
+msgid ""
+"The last active output must not be disabled, the system would be unusable."
+msgstr "最後に有効だった出力を無効にしてはいけません。システムが使用できなくなります。"
+
+#: ../dialogs/display-settings/main.c:1468
+msgid "Selected output not disabled"
+msgstr "選択した出力は無効になっていません"
+
+#: ../dialogs/display-settings/main.c:1645
+msgid "Profiles matching the currently connected displays"
+msgstr "現在接続しているディスプレイと一致するプロファイル"
+
+#: ../dialogs/display-settings/main.c:1851
+#, c-format
+msgid "Update changed display profile '%s'?"
+msgstr "変更されたディスプレイプロファイル '%s' を更新しますか?"
+
+#: ../dialogs/display-settings/main.c:1856
+#, c-format
+msgid "_Update '%s'"
+msgstr "更新 '%s'(_U)"
+
+#: ../dialogs/display-settings/main.c:2144
+#, c-format
+msgid "Do you want to delete the display profile '%s'?"
+msgstr "ディスプレイプロファイル '%s' を削除しますか?"
+
+#: ../dialogs/display-settings/main.c:2146
+msgid "Delete Profile"
+msgstr "プロファイルを削除"
+
+#: ../dialogs/display-settings/main.c:2149
+msgid "Once a display profile is deleted it cannot be restored."
+msgstr "一度削除されたディスプレイプロファイルは復元できません。"
+
+#: ../dialogs/display-settings/main.c:2150
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:134
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:382
+#: ../dialogs/mime-settings/xfce-mime-window.c:1129
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:144
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: ../dialogs/display-settings/main.c:2151
+msgid "Delete"
+msgstr "削除"
+
+#: ../dialogs/display-settings/main.c:2256
+#, c-format
+msgid "%d Xfce Panels"
+msgstr "%d Xfce パネル"
+
+#: ../dialogs/display-settings/main.c:3293
+msgid ""
+"Select a monitor to change its properties; drag it to rearrange its "
+"placement."
+msgstr "プロパティを変更したいモニターを選択してください。ドラッグで配置を変更できます。"
+
+#: ../dialogs/display-settings/main.c:3336
+#: ../dialogs/display-settings/main.c:3412
+#, c-format
+msgid "(%i, %i)"
+msgstr "(%i, %i)"
+
+#. Translators:  this is the feature where what you see on your laptop's
+#. * screen is the same as your external monitor.  Here, "Mirror" is being
+#. * used as an adjective, not as a verb.  For example, the Spanish
+#. * translation could be "Pantallas en Espejo", *not* "Espejar Pantallas".
+#: ../dialogs/display-settings/main.c:3627
+msgid "Mirror Screens"
+msgstr "ミラー表示"
+
+#: ../dialogs/display-settings/main.c:3677
+msgid "(Disabled)"
+msgstr "(無効)"
+
+#: ../dialogs/display-settings/main.c:4196
+#, c-format
+msgid "Only %s (1)"
+msgstr "%s のみ (1)"
+
+#: ../dialogs/display-settings/main.c:4207
+#, c-format
+msgid "Only %s (2)"
+msgstr "%s のみ (2)"
+
+#: ../dialogs/display-settings/main.c:4392
+#: ../dialogs/display-settings/main.c:4429
+msgid "Unable to start the Xfce Display Settings"
+msgstr "Xfce ディスプレイ設定を開始できません"
+
+#: ../dialogs/display-settings/main.c:4424
+msgid "ATI Settings"
+msgstr "ATI 設定"
+
+#: ../dialogs/display-settings/main.c:4439
+msgid "Unable to launch the proprietary driver settings"
+msgstr "プロプライエタリドライバー設定を起動できません"
+
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:2
+msgid "Configure screen settings and layout"
+msgstr "画面の解像度とレイアウトを設定します"
+
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:3
+msgid ""
+"display;settings;screen;resolution;refresh;rate;rotation;external;projectors;monitors;LCD;CRT;HiDPI;"
+msgstr "ディスプレイ;設定;画面;解像度;リフレッシュ;レート;回転;外部;プロジェクター;モニター;LCD;CRT;HiDPI;"
+
+#. Set dialog title and icon
+#: ../dialogs/keyboard-settings/command-dialog.c:110
+msgid "Shortcut Command"
+msgstr "ショートカットのコマンド"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:142
+msgid "Enter the command you want to trigger with a shortcut."
+msgstr "このショートカットで起動したいコマンドを入力してください。"
+
+#. We are editing an existing shortcut
+#: ../dialogs/keyboard-settings/command-dialog.c:160
+msgid "Shortcut:"
+msgstr "ショートカット:"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:185
+msgid "Comm_and:"
+msgstr "コマンド(_A):"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:210
+msgid "Use _startup notification"
+msgstr "起動通知を使用する(_S)"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:257
+msgid "The command may not be empty."
+msgstr "コマンドを入力してください。"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:277
+msgid "Select command"
+msgstr "コマンドの選択"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:285
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:389
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:435
+msgid "All Files"
+msgstr "すべてのファイル"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:290
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:394
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:440
+msgid "Executable Files"
+msgstr "実行ファイル"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:305
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:409
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:455
+msgid "Perl Scripts"
+msgstr "Perl スクリプト"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:311
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:415
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:461
+msgid "Python Scripts"
+msgstr "Python スクリプト"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:317
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:421
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:467
+msgid "Ruby Scripts"
+msgstr "Ruby スクリプト"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:323
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:427
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:473
+msgid "Shell Scripts"
+msgstr "シェルスクリプト"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:1
+msgid "Keyboard layout selection"
+msgstr "キーボードレイアウトセレクション"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:4
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:1
+msgid "Keyboard"
+msgstr "キーボード"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:7
+msgid "Restore num l_ock state on startup"
+msgstr "NumLock の状態を記憶する(_O)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:8
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:32
+msgid "General"
+msgstr "全般"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:9
+msgid "_Enable key repeat"
+msgstr "キーリピートを有効にする(_E)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:10
+msgid ""
+"When selected, pressing and holding down a key emits the same character over"
+" and over again"
+msgstr "このオプションを設定すると、キーを押しつづけると同じ文字入力を繰り返し発行します"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:11
+msgid "_Repeat delay:"
+msgstr "リピートするまでの時間(_R):"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:12
+msgid "The time, in milliseconds, before a pressed key begins repeating"
+msgstr "キーが押されてからリピートが開始されるまでの時間 (ms)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:13
+msgid "Repe_at speed:"
+msgstr "リピート速度(_A):"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:14
+msgid "The rate at which keystrokes are generated while a key is pressed"
+msgstr "キーが押されている間キーコードが生成される速度"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:15
+msgid "Typing Settings"
+msgstr "キー入力の設定"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:16
+msgid "Show _blinking"
+msgstr "点滅する(_B)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:17
+msgid "Specify whether or not the text cursor blinks"
+msgstr "文字カーソルを点滅させる場合に設定してください"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:18
+msgid "Blink _delay:"
+msgstr "点滅速度(_D):"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:19
+msgid "The delay, in milliseconds, between successive blinks of the cursor"
+msgstr "カーソルの点滅時間間隔 (ms)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:20
+msgid "Cursor"
+msgstr "カーソル"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:21
+msgid "_Test area:"
+msgstr "テストエリア(_T):"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:22
+msgid "Beha_vior"
+msgstr "振る舞い(_V)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:23
+msgid "Define shortcuts for la_unching applications:"
+msgstr "アプリケーションを起動するショートカットキーを設定します(_U):"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:25
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:367
+msgid "_Edit"
+msgstr "編集(_E)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:27
+msgid "Reset to _Defaults"
+msgstr "デフォルトに戻す(_D)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:28
+msgid "A_pplication Shortcuts"
+msgstr "アプリケーションショートカットキー(_P)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:29
+msgid "<b>Use system defaults</b>"
+msgstr "<b>システムのデフォルトを使用する</b>"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:30
+msgid "_Keyboard model"
+msgstr "キーボードモデル(_K)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:31
+msgid "Change la_yout option"
+msgstr "レイアウトオプションの変更(_Y)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:32
+msgid "Co_mpose key"
+msgstr "コンポーズキーの位置(_M)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:33
+msgid "Move currently selected item up by one row"
+msgstr "現在選択されているアイテムを一つ上へ移動します"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:34
+msgid "Move currently selected item down by one row"
+msgstr "現在選択されているアイテムを一つ下へ移動します"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:35
+msgid "Key_board layout"
+msgstr "キーボードレイアウト(_B)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:36
+msgid "_Layout"
+msgstr "レイアウト(_L)"
+
+#: ../dialogs/keyboard-settings/main.c:84
+msgid "Unable to initialize GTK+."
+msgstr "GTK+ を初期化できませんでした。"
+
+#: ../dialogs/keyboard-settings/main.c:104
+#, c-format
+msgid "Failed to connect to xfconf daemon. Reason: %s"
+msgstr "xfconf デーモンへの接続に失敗しました。理由: %s"
+
+#: ../dialogs/keyboard-settings/main.c:115
+msgid "Could not create the settings dialog."
+msgstr "設定ダイアログボックスの生成ができませんでした。"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:399
+msgid "Command"
+msgstr "コマンド"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:407
+msgid "Shortcut"
+msgstr "ショートカット"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:484
+msgid "Layout"
+msgstr "レイアウト"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:485
+msgid "Variant"
+msgstr "バリエーション"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1252
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1253
+msgid "Reset to Defaults"
+msgstr "デフォルトに戻す"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1254
+msgid ""
+"This will reset all shortcuts to their default values. Do you really want to"
+" do this?"
+msgstr "すべてのショートカットをデフォルト値にリセットします。本当によろしいですか?"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1256
+msgid "No"
+msgstr "いいえ"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1257
+msgid "Yes"
+msgstr "はい"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1333
+msgid "The system defaults will be restored next time you log in."
+msgstr "次回のログイン時にシステムデフォルトに戻ります。"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1335
+msgid "Warning"
+msgstr "警告"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:2
+msgid "Edit keyboard settings and application shortcuts"
+msgstr "キーボード設定とアプリケーションショートカットキーを編集します"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:3
+msgid "numlock;keyboard;layout;shortcuts;"
+msgstr "numlock;キーボード;レイアウト;ショートカット;"
+
+#: ../dialogs/mime-settings/main.c:120
+msgid "Could not create the mime dialog."
+msgstr "MIME ダイアログボックスの生成ができませんでした。"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:128
+msgid "Select Application"
+msgstr "アプリケーションの選択"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:136
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:383
+msgid "Open"
+msgstr "開く"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:205
+msgid "Use a c_ustom command:"
+msgstr "カスタムコマンドを使用(_U):"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:206
+msgid ""
+"Use a custom command for an application that is not available from the above"
+" application list."
+msgstr "上のリストにないアプリケーションのコマンドを指定します"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:224
+msgid "_Browse..."
+msgstr "参照(_B)..."
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:379
+msgid "Select an Application"
+msgstr "アプリケーションの選択"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:529
+msgid "None available"
+msgstr "該当なし"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:576
+msgid "Recommended Applications"
+msgstr "推奨アプリケーション"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:594
+msgid "Other Applications"
+msgstr "他のアプリケーション"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:614
+#, c-format
+msgid "Open <i>%s</i> and other files of type \"%s\" with:"
+msgstr "<i>%s</i> およびタイプが \"%s\" の他のファイルを開くアプリケーションを指定してください:"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:650
+#, c-format
+msgid "Failed to add new application \"%s\""
+msgstr "新しいアプリケーション \"%s\" を追加できませんでした"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:143
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:150
+msgid "Press left mouse button to change the selected application."
+msgstr "選択されているアプリケーションを変更するにはマウスの左ボタンをクリックしてください。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:149
+msgid "Application Chooser Button"
+msgstr "アプリケーション選択ボタン"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:336
+msgid "No application selected"
+msgstr "アプリケーションは選択されていません"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:352
+msgid "Failed to set default Web Browser"
+msgstr "デフォルトのウェブブラウザーの設定に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:353
+msgid "Failed to set default Mail Reader"
+msgstr "デフォルトのメーラーの設定に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:354
+msgid "Failed to set default File Manager"
+msgstr "デフォルトのファイルマネージャーの設定に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:355
+msgid "Failed to set default Terminal Emulator"
+msgstr "デフォルトのターミナルエミュレーターの設定に失敗しました"
+
+#. allocate the chooser
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:425
+msgid "Select application"
+msgstr "アプリケーションを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:538
+msgid "Choose a custom Web Browser"
+msgstr "ウェブブラウザーを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:539
+msgid "Choose a custom Mail Reader"
+msgstr "メーラーを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:540
+msgid "Choose a custom File Manager"
+msgstr "ファイルマネージャーを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:541
+msgid "Choose a custom Terminal Emulator"
+msgstr "ターミナルエミュレーターを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:546
+msgid ""
+"Specify the application you want to use\n"
+"as default Web Browser for Xfce:"
+msgstr ""
+"Xfce でのデフォルトのウェブブラウザーとして使用したい\n"
+"アプリケーションを指定してください:"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:547
+msgid ""
+"Specify the application you want to use\n"
+"as default Mail Reader for Xfce:"
+msgstr ""
+"デフォルトのメーラーとして使用したい\n"
+"アプリケーションを指定してください:"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:548
+msgid ""
+"Specify the application you want to use\n"
+"as default File Manager for Xfce:"
+msgstr ""
+"Xfce のデフォルトのファイルマネージャーとして使用\n"
+"したいアプリケーションを指定してください:"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:549
+msgid ""
+"Specify the application you want to use\n"
+"as default Terminal Emulator for Xfce:"
+msgstr ""
+"Xfce でのデフォルトのターミナルエミュレーターとして\n"
+"使用したいアプリケーションを指定してください:"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:613
+msgid "Browse the file system to choose a custom command."
+msgstr "指定コマンドを選ぶためにファイルシステムを参照します。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:749
+msgid "_Other..."
+msgstr "その他(_O)..."
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:750
+msgid "Use a custom application which is not included in the above list."
+msgstr "上のリストにはないアプリケーションを使用します。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:111
+msgid "Choose Preferred Application"
+msgstr "お気に入りのアプリケーションを選択してください"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:249
+msgid ""
+"Please choose your preferred Web\n"
+"Browser now and click OK to proceed."
+msgstr ""
+"お気に入りのウェブブラウザーを選択して\n"
+"「OK」をクリックしてください。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:251
+msgid ""
+"Please choose your preferred Mail Reader\n"
+"now and click OK to proceed."
+msgstr ""
+"お気に入りのメーラーを選択して\n"
+"「OK」をクリックしてください。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:253
+msgid ""
+"Please choose your preferred File Manager\n"
+"now and click OK to proceed."
+msgstr ""
+"お気に入りのファイルマネージャーを選択して\n"
+"「OK」をクリックしてください。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:255
+msgid ""
+"Please choose your preferred Terminal\n"
+"Emulator now and click OK to proceed."
+msgstr ""
+"お気に入りのターミナルエミュレーターを\n"
+"選択して「OK」をクリックしてください。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:41
+msgid "Failed to execute default Web Browser"
+msgstr "デフォルトのウェブブラウザーの実行に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:42
+msgid "Failed to execute default Mail Reader"
+msgstr "デフォルトのメーラーの実行に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:43
+msgid "Failed to execute default File Manager"
+msgstr "デフォルトのファイルマネージャーの実行に失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:44
+msgid "Failed to execute default Terminal Emulator"
+msgstr "デフォルトのターミナルエミュレーターの実行に失敗しました"
+
+#. Enable permanently dismissing this error.
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:86
+msgid "Do _not show this message again"
+msgstr "このメッセージを次回から表示しない(_N)"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:116
+msgid "Print version information and exit"
+msgstr "バージョン情報を表示して終了する"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:117
+msgid ""
+"Launch the default helper of TYPE with the optional PARAMETER, where TYPE is"
+" one of the following values."
+msgstr "TYPE のデフォルトヘルパーを PARAMETER オプションを付けて起動する。TYPE は以下を参照。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:117
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:118
+msgid "TYPE [PARAMETER]"
+msgstr "TYPE [PARAMETER]"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:118
+msgid ""
+"Query the default helper of TYPE, where TYPE is one of the following values."
+msgstr "TYPE のデフォルトヘルパーを問い合わせる。TYPE は以下を参照。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:148
+msgid ""
+"The following TYPEs are supported for the --launch and --query commands:\n"
+"\n"
+"  WebBrowser       - The preferred Web Browser.\n"
+"  MailReader       - The preferred Mail Reader.\n"
+"  FileManager      - The preferred File Manager.\n"
+"  TerminalEmulator - The preferred Terminal Emulator."
+msgstr ""
+"--launch および --query commands では以下の TYPE がサポートされます:\n"
+"\n"
+"  WebBrowser       - お気に入りのウェブブラウザー。\n"
+"  MailReader       - お気に入りのメールリーダー。\n"
+"  FileManager      - お気に入りのファイルマネージャー。\n"
+"  TerminalEmulator - お気に入りのターミナルエミュレーター。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:183
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:256
+#, c-format
+msgid "Invalid helper type \"%s\""
+msgstr "\"%s\" は不正なヘルパータイプです"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:240
+#, c-format
+msgid ""
+"%s (Xfce %s)\n"
+"\n"
+"Copyright (c) 2003-2006\n"
+"        os-cillation e.K. All rights reserved.\n"
+"\n"
+"Written by Benedikt Meurer <benny@xfce.org>.\n"
+"\n"
+"Built with Gtk+-%d.%d.%d, running Gtk+-%d.%d.%d.\n"
+"\n"
+"Please report bugs to <%s>.\n"
+msgstr ""
+"%s (Xfce %s)\n"
+"\n"
+"Copyright (c) 2003-2006\n"
+"        os-cillation e.K. All rights reserved.\n"
+"\n"
+"Benedikt Meurer <benny@xfce.org> が製作しました。\n"
+"\n"
+"Gtk+-%d.%d.%d でビルドされ、 Gtk+-%d.%d.%d で実行されています。\n"
+"\n"
+"バグは <%s> まで報告してください。\n"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:266
+#, c-format
+msgid "No helper defined for \"%s\"."
+msgstr "\"%s\" のヘルパーが定義されていません。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper.c:453
+#, c-format
+msgid "No command specified"
+msgstr "コマンドが指定されていません"
+
+#: ../dialogs/mime-settings/xfce-mime-helper.c:832
+#: ../dialogs/mime-settings/xfce-mime-helper.c:871
+#: ../dialogs/mime-settings/xfce-mime-helper.c:968
+#: ../dialogs/mime-settings/xfce-mime-helper.c:1007
+#, c-format
+msgid "Failed to open %s for writing"
+msgstr "書き込むために %s を開くことに失敗しました"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:184
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:1
+msgid "Default Applications"
+msgstr "デフォルトアプリケーション"
+
+#. Internet
+#: ../dialogs/mime-settings/xfce-mime-window.c:208
+msgid "_Internet"
+msgstr "インターネット(_I)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:221
+#: ../dialogs/mime-settings/xfce4-web-browser.desktop.in.h:1
+msgid "Web Browser"
+msgstr "ウェブブラウザー"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:229
+msgid ""
+"The default Web Browser will be used to open hyperlinks and display help "
+"contents."
+msgstr "ここで指定したデフォルトのウェブブラウザーは、リンクを開いたりヘルプの内容を表示する際に使用されます。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:247
+#: ../dialogs/mime-settings/xfce4-mail-reader.desktop.in.h:1
+msgid "Mail Reader"
+msgstr "メーラー"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:255
+msgid ""
+"The default Mail Reader will be used to compose emails when you click on "
+"email addresses."
+msgstr "ここで指定したデフォルトのメーラーは、メールアドレスをクリックしてメールを作成する際に使用されます。"
+
+#. Utilities
+#: ../dialogs/mime-settings/xfce-mime-window.c:269
+msgid "_Utilities"
+msgstr "ユーティリティ(_U)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:282
+#: ../dialogs/mime-settings/xfce4-file-manager.desktop.in.h:1
+msgid "File Manager"
+msgstr "ファイルマネージャー"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:290
+msgid ""
+"The default File Manager will be used to browse the contents of folders."
+msgstr "ここで指定したデフォルトのファイルマネージャーは、フォルダーの内容を表示する際に使用されます。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:308
+#: ../dialogs/mime-settings/xfce4-terminal-emulator.desktop.in.h:1
+msgid "Terminal Emulator"
+msgstr "ターミナルエミュレーター"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:316
+msgid ""
+"The default Terminal Emulator will be used to run commands that require a "
+"CLI environment."
+msgstr "ここで指定したでデフォルトのターミナルエミュレーターは、コマンドラインインターフェイスが必要なコマンドを実行する際に使用されます。"
+
+#. Mimes
+#: ../dialogs/mime-settings/xfce-mime-window.c:330
+msgid "_Others"
+msgstr "その他(_O)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:340
+msgid "_Filter:"
+msgstr "フィルター(_F):"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:348
+msgid "Clear filter"
+msgstr "フィルターをクリアします"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:378
+msgid "Open with..."
+msgstr "次で開く..."
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:425
+msgid "MIME Type"
+msgstr "MIME タイプ"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:453
+msgid "Status"
+msgstr "状態"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:473
+msgid "Default Application"
+msgstr "デフォルトアプリケーション"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:648
+#: ../dialogs/mime-settings/xfce-mime-window.c:812
+msgid "User Set"
+msgstr "ユーザー設定"
+
+#. sort the names but keep Default on top
+#: ../dialogs/mime-settings/xfce-mime-window.c:650
+#: ../dialogs/mime-settings/xfce-mime-window.c:812
+#: ../dialogs/mouse-settings/main.c:401 ../dialogs/mouse-settings/main.c:403
+#: ../dialogs/mouse-settings/main.c:466
+msgid "Default"
+msgstr "デフォルト"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:736
+#, c-format
+msgid "%d MIME type found"
+msgid_plural "%d MIME types found"
+msgstr[0] "%d 個の MIME タイプがみつかりました"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:857
+#, c-format
+msgid "Failed to set application \"%s\" for mime type \"%s\"."
+msgstr "MIME タイプ \"%2$s\" へのアプリケーション \"%1$s\" の設定に失敗しました。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1120
+#, c-format
+msgid "Are you sure you want to reset content type \"%s\" to its default value?"
+msgstr "タイプ \"%s\" の内容をデフォルト値にリセットしてもよろしいですか?"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1124
+msgid "Question"
+msgstr "確認"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1127
+msgid ""
+"This will remove your custom mime-association and restore the system-wide "
+"default."
+msgstr "指定されている MIME 割り当てを削除しシステム全体のデフォルト値に戻します。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1131
+#: ../dialogs/mime-settings/xfce-mime-window.c:1202
+msgid "Reset to Default"
+msgstr "デフォルトに戻す"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1197
+msgid "Choose Application..."
+msgstr "アプリケーションを選択..."
+
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:2
+msgid "Associate preferred applications with MIME types"
+msgstr "MIME タイプにお気に入りのアプリケーションを割り当てます"
+
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:3
+msgid ""
+"file;type;extension;association;open with;web browser;mail reader;file "
+"manager;terminal emulator;"
+msgstr "ファイル;タイプ;拡張子;関連付け;開く;ウェブブラウザー;メーラー;ファイルマネージャー;ターミナルエミュレーター; "
+
+#: ../dialogs/mime-settings/xfce4-file-manager.desktop.in.h:2
+msgid "Browse the file system"
+msgstr "ファイルシステムを参照します。"
+
+#: ../dialogs/mime-settings/xfce4-mail-reader.desktop.in.h:2
+msgid "Read your email"
+msgstr "電子メールを読みます"
+
+#: ../dialogs/mime-settings/xfce4-terminal-emulator.desktop.in.h:2
+msgid "Use the command line"
+msgstr "コマンドラインを使用します"
+
+#: ../dialogs/mime-settings/xfce4-web-browser.desktop.in.h:2
+msgid "Browse the web"
+msgstr "ウェブを閲覧します"
+
+#: ../dialogs/mime-settings/helpers/alacritty.desktop.in.in.h:1
+msgid "Alacritty"
+msgstr "Alacritty"
+
+#: ../dialogs/mime-settings/helpers/aterm.desktop.in.in.h:1
+msgid "aterm"
+msgstr "aterm"
+
+#: ../dialogs/mime-settings/helpers/balsa.desktop.in.in.h:1
+msgid "Balsa"
+msgstr "Balsa"
+
+#: ../dialogs/mime-settings/helpers/brave.desktop.in.in.h:1
+msgid "Brave"
+msgstr "Brave"
+
+#: ../dialogs/mime-settings/helpers/caja.desktop.in.in.h:1
+msgid "Caja File Manager"
+msgstr "Caja ファイルマネージャー"
+
+#: ../dialogs/mime-settings/helpers/chromium.desktop.in.in.h:1
+msgid "Chromium"
+msgstr "Chromium"
+
+#: ../dialogs/mime-settings/helpers/debian-sensible-browser.desktop.in.in.h:1
+msgid "Debian Sensible Browser"
+msgstr "Debian Sensible ブラウザー"
+
+#: ../dialogs/mime-settings/helpers/debian-x-terminal-emulator.desktop.in.in.h:1
+msgid "Debian X Terminal Emulator"
+msgstr "Debian X ターミナルエミュレーター"
+
+#: ../dialogs/mime-settings/helpers/dillo.desktop.in.in.h:1
+msgid "Dillo"
+msgstr "Dillo"
+
+#: ../dialogs/mime-settings/helpers/encompass.desktop.in.in.h:1
+msgid "Encompass"
+msgstr "Encompass"
+
+#: ../dialogs/mime-settings/helpers/epiphany.desktop.in.in.h:1
+msgid "Epiphany Web Browser"
+msgstr "Epiphany ウェブブラウザー"
+
+#: ../dialogs/mime-settings/helpers/eterm.desktop.in.in.h:1
+msgid "Enlightened Terminal Emulator"
+msgstr "Enlightened ターミナルエミュレーター"
+
+#: ../dialogs/mime-settings/helpers/evolution.desktop.in.in.h:1
+msgid "Evolution"
+msgstr "Evolution"
+
+#: ../dialogs/mime-settings/helpers/firefox.desktop.in.in.h:1
+msgid "Mozilla Firefox"
+msgstr "Mozilla Firefox"
+
+#: ../dialogs/mime-settings/helpers/galeon.desktop.in.in.h:1
+msgid "Galeon Web Browser"
+msgstr "Galeon ウェブブラウザー"
+
+#: ../dialogs/mime-settings/helpers/geary.desktop.in.in.h:1
+msgid "Geary"
+msgstr "Geary"
+
+#: ../dialogs/mime-settings/helpers/google-chrome.desktop.in.in.h:1
+msgid "Google Chrome"
+msgstr "Google Chrome"
+
+#: ../dialogs/mime-settings/helpers/gnome-terminal.desktop.in.in.h:1
+msgid "GNOME Terminal"
+msgstr "GNOME 端末"
+
+#: ../dialogs/mime-settings/helpers/icecat.desktop.in.in.h:1
+msgid "Icecat"
+msgstr "Icecat"
+
+#: ../dialogs/mime-settings/helpers/icedove.desktop.in.in.h:1
+msgid "Icedove"
+msgstr "Icedove"
+
+#: ../dialogs/mime-settings/helpers/iceweasel.desktop.in.in.h:1
+msgid "Iceweasel"
+msgstr "Iceweasel"
+
+#: ../dialogs/mime-settings/helpers/jumanji.desktop.in.in.h:1
+msgid "Jumanji"
+msgstr "Jumanji"
+
+#: ../dialogs/mime-settings/helpers/kitty.desktop.in.in.h:1
+msgid "kitty"
+msgstr "kitty"
+
+#: ../dialogs/mime-settings/helpers/kmail.desktop.in.in.h:1
+msgid "KMail"
+msgstr "KMail"
+
+#: ../dialogs/mime-settings/helpers/konqueror.desktop.in.in.h:1
+msgid "Konqueror Web Browser"
+msgstr "Konqueror ウェブブラウザー"
+
+#: ../dialogs/mime-settings/helpers/links.desktop.in.in.h:1
+msgid "Links Text Browser"
+msgstr "Links テキストブラウザー"
+
+#: ../dialogs/mime-settings/helpers/lynx.desktop.in.in.h:1
+msgid "Lynx Text Browser"
+msgstr "Lynx テキストブラウザー"
+
+#: ../dialogs/mime-settings/helpers/midori.desktop.in.in.h:1
+msgid "Midori"
+msgstr "Midori"
+
+#: ../dialogs/mime-settings/helpers/mozilla-browser.desktop.in.in.h:1
+msgid "Mozilla Browser"
+msgstr "Mozilla Browser"
+
+#: ../dialogs/mime-settings/helpers/mozilla-mailer.desktop.in.in.h:1
+msgid "Mozilla Mail"
+msgstr "Mozilla Mail"
+
+#: ../dialogs/mime-settings/helpers/mutt.desktop.in.in.h:1
+msgid "Mutt"
+msgstr "Mutt"
+
+#: ../dialogs/mime-settings/helpers/nautilus.desktop.in.in.h:1
+msgid "Nautilus"
+msgstr "Nautilus"
+
+#: ../dialogs/mime-settings/helpers/netscape-navigator.desktop.in.in.h:1
+msgid "Netscape Navigator"
+msgstr "Netscape Navigator"
+
+#: ../dialogs/mime-settings/helpers/nxterm.desktop.in.in.h:1
+msgid "NXterm"
+msgstr "NXterm"
+
+#: ../dialogs/mime-settings/helpers/opera-browser.desktop.in.in.h:1
+msgid "Opera Browser"
+msgstr "Opera ブラウザー"
+
+#: ../dialogs/mime-settings/helpers/pcmanfm.desktop.in.in.h:1
+msgid "PCMan File Manager"
+msgstr "PCMan File Manager"
+
+#: ../dialogs/mime-settings/helpers/pcmanfm-qt.desktop.in.in.h:1
+msgid "PCManFM-Qt File Manager"
+msgstr "PCManFM-Qt ファイルマネージャー"
+
+#: ../dialogs/mime-settings/helpers/qterminal.desktop.in.in.h:1
+msgid "QTerminal"
+msgstr "QTerminal"
+
+#: ../dialogs/mime-settings/helpers/qtfm.desktop.in.in.h:1
+msgid "qtFM"
+msgstr "qtFM"
+
+#: ../dialogs/mime-settings/helpers/qupzilla.desktop.in.in.h:1
+msgid "QupZilla"
+msgstr "QupZilla"
+
+#: ../dialogs/mime-settings/helpers/rodent.desktop.in.in.h:1
+msgid "Rodent File Manager"
+msgstr "Rodent File Manager"
+
+#: ../dialogs/mime-settings/helpers/rox-filer.desktop.in.in.h:1
+msgid "ROX-Filer"
+msgstr "ROX-Filer"
+
+#: ../dialogs/mime-settings/helpers/sakura.desktop.in.in.h:1
+msgid "Sakura"
+msgstr "Sakura"
+
+#: ../dialogs/mime-settings/helpers/surf.desktop.in.in.h:1
+msgid "Surf"
+msgstr "Surf"
+
+#: ../dialogs/mime-settings/helpers/sylpheed.desktop.in.in.h:1
+msgid "Sylpheed"
+msgstr "Sylpheed"
+
+#: ../dialogs/mime-settings/helpers/sylpheed-claws.desktop.in.in.h:1
+msgid "Claws Mail"
+msgstr "Claws Mail"
+
+#: ../dialogs/mime-settings/helpers/terminator.desktop.in.in.h:1
+msgid "Terminator"
+msgstr "Terminator"
+
+#: ../dialogs/mime-settings/helpers/thunar.desktop.in.in.h:1
+msgid "Thunar"
+msgstr "Thunar"
+
+#: ../dialogs/mime-settings/helpers/thunderbird.desktop.in.in.h:1
+msgid "Mozilla Thunderbird"
+msgstr "Mozilla Thunderbird"
+
+#: ../dialogs/mime-settings/helpers/urxvt.desktop.in.in.h:1
+msgid "RXVT Unicode"
+msgstr "RXVT Unicode"
+
+#: ../dialogs/mime-settings/helpers/vimprobable2.desktop.in.in.h:1
+msgid "Vimprobable2"
+msgstr "Vimprobable2"
+
+#: ../dialogs/mime-settings/helpers/w3m.desktop.in.in.h:1
+msgid "W3M Text Browser"
+msgstr "W3M テキストブラウザー"
+
+#: ../dialogs/mime-settings/helpers/xfce4-terminal.desktop.in.in.h:1
+msgid "Xfce Terminal"
+msgstr "Xfce Terminal"
+
+#: ../dialogs/mime-settings/helpers/xfe.desktop.in.in.h:1
+msgid "Xfe File Manager"
+msgstr "Xfe File Manager"
+
+#: ../dialogs/mime-settings/helpers/xterm.desktop.in.in.h:1
+msgid "X Terminal"
+msgstr "X ターミナル"
+
+#: ../dialogs/mouse-settings/main.c:86
+msgid "Active device in the dialog"
+msgstr "ダイアログボックス内で動作するデバイス"
+
+#: ../dialogs/mouse-settings/main.c:86
+msgid "DEVICE NAME"
+msgstr "DEVICE NAME"
+
+#. pixel value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:146
+#, c-format
+msgid "%g px"
+msgstr "%g px"
+
+#. miliseconds value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:156
+#, c-format
+msgid "%g ms"
+msgstr "%g ms"
+
+#. seconds value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:167
+#, c-format
+msgid "%.1f s"
+msgstr "%.1f s"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:1
+msgid "Disabled"
+msgstr "無効"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:2
+msgid "Edge scrolling"
+msgstr "エッジスクロール"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:3
+msgid "Two-finger scrolling"
+msgstr "二本指スクロール"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:4
+msgid "Circular scrolling"
+msgstr "円形スクロール"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:5
+msgid "Pen (absolute)"
+msgstr "ペン (絶対値)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:6
+msgid "Mouse (relative)"
+msgstr "マウス (相対値)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:7
+msgid "None (right-handed)"
+msgstr "なし (右利き)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:8
+msgid "Half (left-handed)"
+msgstr "半分 (左利き)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:9
+msgid "Clockwise"
+msgstr "時計回り"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:10
+msgid "Counterclockwise"
+msgstr "反時計回り"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:11
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:1
+msgid "Mouse and Touchpad"
+msgstr "マウスとタッチパッド"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:14
+msgid "De_vice:"
+msgstr "デバイス(_V):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:15
+msgid "Le_ft-handed"
+msgstr "左利き(_F)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:16
+msgid "Ri_ght-handed"
+msgstr "右利き(_G)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:17
+msgid "Reverse scroll d_irection"
+msgstr "スクロール方向を反転する(_I)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:18
+msgid "When selected, the scroll wheel will work in the opposite direction"
+msgstr "このオプションを設定すると、スクロールホイールは反対方向に動作します"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:19
+msgid "Buttons"
+msgstr "ボタン設定"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:20
+msgid "_Reset to Defaults"
+msgstr "デフォルトに戻す(_R)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:21
+msgid ""
+"Set the acceleration and sensitivity for the selected device to the default "
+"values"
+msgstr "選択したデバイスの加速度と感度の設定をデフォルト値に戻します"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:22
+msgid "Sensitivit_y:"
+msgstr "感度(_Y):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:23
+msgid "Acceleratio_n:"
+msgstr "加速(_N):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:24
+msgid ""
+"The factor at which the pointer's speed will increase as the mouse is moved"
+msgstr "マウスを動かしたときにポインターが移動する速度の加速量です"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:25
+msgid ""
+"The number of pixels the pointer must move in a short time before it starts "
+"accelerating"
+msgstr "短時間でのポインターの移動がこの距離 (ピクセル) を超えると加速を開始します"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:26
+msgid "Pointer Speed"
+msgstr "ポインター速度"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:27
+msgid "B_uttons and Feedback"
+msgstr "ボタンとフィードバック(_U)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:28
+msgid "Disable touchpad _while typing"
+msgstr "タイプ中はタッチパッドを無効にする(_W)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:29
+msgid ""
+"When selected, the touchpad will be disabled when the keyboard is being used"
+msgstr "このオプションを設定すると、キーボード使用中はタッチパッドを無効にします"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:30
+msgid "Duratio_n:"
+msgstr "時間(_N):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:31
+msgid "Tap touchpad to clic_k"
+msgstr "タッチパッドをタップでクリック(_K)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:33
+msgid "Scrolling _mode:"
+msgstr "スクロールモード(_M):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:34
+msgid "Enable hori_zontal scrolling"
+msgstr "水平スクロールを有効にする(_Z)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:35
+msgid "Scrolling"
+msgstr "スクロール"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:36
+msgid "T_ouchpad"
+msgstr "タッチパッド(_O)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:37
+msgid "Trac_king mode:"
+msgstr "トラッキングモード(_K):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:38
+msgid "_Rotation:"
+msgstr "回転(_R):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:39
+msgid "Tab_let"
+msgstr "タブレット(_L)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:40
+msgid "_Devices"
+msgstr "デバイス(_D)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:41
+msgid "Th_reshold:"
+msgstr "しきい値(_R):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:42
+msgid ""
+"The number of pixels the pointer must move before a drag operation will "
+"start"
+msgstr "ポインターの移動がこの距離 (ピクセル) を超えるとドラッグと認識されます"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:43
+msgid "Drag and Drop"
+msgstr "ドラッグアンドドロップ"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:44
+msgid "Ti_me:"
+msgstr "時間(_M):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:45
+msgid ""
+"Two mouse clicks in less than this length of time (in milliseconds) will be "
+"considered a double click"
+msgstr "2 回のクリックの間隔がこの時間 (ms) を下まわるとダブルクリックと認識されます"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:46
+msgid "D_istance:"
+msgstr "距離(_I):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:47
+msgid ""
+"The mouse pointer cannot move farther than this distance between two clicks "
+"for them to be considered a double click"
+msgstr "2 回のクリックの間のマウスポインターの移動がこの距離 (ピクセル) 内であればダブルクリックと認識します"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:48
+msgid "Double Click"
+msgstr "ダブルクリック"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:49
+msgid "_Behavior"
+msgstr "振る舞い(_B)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:50
+msgid "Cursor si_ze:"
+msgstr "カーソルサイズ(_Z):"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:51
+msgid "Size"
+msgstr "サイズ"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:52
+msgid "Preview"
+msgstr "プレビュー"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:53
+msgid "_Theme"
+msgstr "テーマ(_T)"
+
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:2
+msgid "Configure pointer device behavior and appearance"
+msgstr "ポインティングデバイスの振る舞いや外観を設定します"
+
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:3
+msgid ""
+"settings;buttons;scroll;direction;pointer;speed;double click;theme;wheel;"
+msgstr "設定;ボタン;スクロール;方向;ポインター;速度;ダブルクリック;テーマ;ホイール;"
+
+#: ../xfce4-settings-editor/main.c:163
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:1
+msgid "Settings Editor"
+msgstr "設定エディター"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:267
+msgid "Channel"
+msgstr "チャネル"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:317
+msgid "Property"
+msgstr "プロパティ"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:325
+msgid "Type"
+msgstr "データ型"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:332
+msgid "Locked"
+msgstr "ロック"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:339
+msgid "Value"
+msgstr "値"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:359
+msgid "New property"
+msgstr "新しいプロパティ"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:372
+msgid "Edit selected property"
+msgstr "選択したプロパティを編集します"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:380
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1070
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1576
+msgid "_Reset"
+msgstr "リセット(_R)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:385
+msgid "Reset selected property"
+msgstr "選択したプロパティをリセットします"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:492
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:585
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:704
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:89
+msgid "Empty"
+msgstr "空"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:495
+msgid "Array"
+msgstr "配列"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:500
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:90
+msgid "String"
+msgstr "String"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:508
+msgid "Integer"
+msgstr "Integer"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:511
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:91
+msgid "Boolean"
+msgstr "Boolean"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:514
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:93
+msgid "Double"
+msgstr "Double"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:851
+msgid "_Reset Channel"
+msgstr "チャネルをリセット(_R)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:852
+msgid "Resetting a channel will permanently remove those custom settings."
+msgstr "チャンネルのリセットはそのカスタム設定を完全に消去します。"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:853
+#, c-format
+msgid "Are you sure you want to reset channel \"%s\" and all its properties?"
+msgstr "チャンネル \"%s\" およびそのすべてのプロパティをリセットしてもよろしいですか?"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:928
+msgid "reset"
+msgstr "リセット"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:985
+#, c-format
+msgid "Monitor %s"
+msgstr "モニター %s"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:993
+msgid "Clear"
+msgstr "クリア"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:994
+msgid "Close"
+msgstr "閉じる"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1027
+#, c-format
+msgid "start monitoring channel \"%s\""
+msgstr "チャンネル \"%s\" のモニタリングを開始しました"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1076
+msgid "_Monitor"
+msgstr "モニター(_M)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1086
+msgid "Refresh"
+msgstr "再読込"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1577
+msgid "Resetting a property will permanently remove those custom settings."
+msgstr "プロパティのリセットはそのカスタム設定を完全に消去します。"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1578
+#, c-format
+msgid "Are you sure you want to reset property \"%s\"?"
+msgstr "プロパティ \"%s\" をリセットしてもよろしいですか?"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:92
+msgid "Int"
+msgstr "Int"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:94
+msgid "Unsigned Int"
+msgstr "Unsigned Int"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:95
+msgid "Int64"
+msgstr "Int64"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:96
+msgid "Unsigned Int64"
+msgstr "Unsigned Int64"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:141
+msgid "New Property"
+msgstr "新しいプロパティ"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:145
+msgid "Save"
+msgstr "保存"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:160
+msgid "_Property:"
+msgstr "プロパティ(_P):"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:174
+msgid "_Type:"
+msgstr "データ型(_T):"
+
+#. strings
+#. integers
+#. bool
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:203
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:213
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:224
+msgid "_Value:"
+msgstr "値(_V):"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:381
+#, c-format
+msgid "Property names must start with a '/' character"
+msgstr "プロパティ名は '/' で始まらなくてはなりません"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:392
+#, c-format
+msgid "The root element ('/') is not a valid property name"
+msgstr "ルート要素 ('/') は正しいプロパティ名ではありません"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:409
+#, c-format
+msgid ""
+"Property names can only include the ASCII characters A-Z, a-z, 0-9, '_', "
+"'-', ':', '.', ',', '[', ']', '{', '}', '<' and '>', as well as '/' as a "
+"separator"
+msgstr ""
+"プロパティ名には、ASCII 文字 A-Z、a-z, 0-9, '_', '-', ':', '.', ',', '[', ']', '{', '}',"
+" '<' および '>' の他、区切り文字として '/' が使用できます。"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:423
+#, c-format
+msgid "Property names cannot have two or more consecutive '/' characters"
+msgstr "プロパティ名に 2 つ以上の連続した '/' 文字があってはいけません"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:437
+#, c-format
+msgid "Property names cannot end with a '/' character"
+msgstr "プロパティ名は '/' 文字で終わってはなりません"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:650
+msgid "Edit Property"
+msgstr "プロパティの編集"
+
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:2
+msgid "Graphical settings editor for Xfconf"
+msgstr "Xfconf のグラフィカル設定エディターです"
+
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:3
+msgid "registry;regedit;configuration file;"
+msgstr "レジストリ;regedit;構成ファイル;"
+
+#: ../xfce4-settings-manager/main.c:44
+msgid "Settings dialog to show"
+msgstr "設定ダイアログを表示する"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:225
+msgid "All _Settings"
+msgstr "すべての設定(_S)"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:423
+msgid "Settings"
+msgstr "設定マネージャー"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:917
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:928
+#, c-format
+msgid "Unable to start \"%s\""
+msgstr "\"%s\" を起動できませんでした"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:1
+msgid "Settings Manager"
+msgstr "設定マネージャー"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:2
+msgid "Graphical Settings Manager for Xfce"
+msgstr "Xfce のグラフィカル設定マネージャー"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:3
+msgid "control;panel;center;system;settings;personalize;hardware;"
+msgstr "コントロール;パネル;センター;システム;設定;パーソナライズ;ハードウェア;"
+
+#: ../xfsettingsd/accessibility.c:412
+msgid "Sticky keys are enabled"
+msgstr "スティッキーキーが有効になりました"
+
+#: ../xfsettingsd/accessibility.c:414
+msgid "Sticky keys are disabled"
+msgstr "スティッキーキーが無効になりました"
+
+#: ../xfsettingsd/accessibility.c:416
+msgid "Sticky keys"
+msgstr "スティッキーキー"
+
+#: ../xfsettingsd/accessibility.c:421
+msgid "Slow keys are enabled"
+msgstr "スローキーが有効になりました"
+
+#: ../xfsettingsd/accessibility.c:423
+msgid "Slow keys are disabled"
+msgstr "スローキーが無効になりました"
+
+#: ../xfsettingsd/accessibility.c:425
+msgid "Slow keys"
+msgstr "スローキー"
+
+#: ../xfsettingsd/accessibility.c:430
+msgid "Bounce keys are enabled"
+msgstr "バウンスキーが有効になりました"
+
+#: ../xfsettingsd/accessibility.c:432
+msgid "Bounce keys are disabled"
+msgstr "バウンスキーが無効になりました"
+
+#: ../xfsettingsd/accessibility.c:434
+msgid "Bounce keys"
+msgstr "バウンスキー"
+
+#: ../xfsettingsd/keyboard-shortcuts.c:242
+#, c-format
+msgid "Failed to launch shortcut \"%s\""
+msgstr "ショートカット \"%s\" の起動に失敗しました"
+
+#: ../xfsettingsd/main.c:103
+msgid "Fork to the background"
+msgstr "バックグラウンドに fork する"
+
+#: ../xfsettingsd/main.c:104
+msgid "Do not wait for a window manager on startup"
+msgstr "起動時にウィンドウマネージャーを待たない"
+
+#: ../xfsettingsd/main.c:105
+msgid "Replace running xsettings daemon (if any)"
+msgstr "既存の xsettings デーモン (もしあれば) を強制的に置き換えます"
+
+#. value in xfconf isn't a string, so make a default one
+#: ../xfsettingsd/workspaces.c:333 ../xfsettingsd/workspaces.c:390
+#, c-format
+msgid "Workspace %d"
+msgstr "ワークスペース %d"
+
+#: ../xfsettingsd/xfsettingsd.desktop.in.h:1
+msgid "Xfce Settings Daemon"
+msgstr "Xfce 設定デーモン"
+
+#: ../xfsettingsd/xfsettingsd.desktop.in.h:2
+msgid "The Xfce Settings Daemon"
+msgstr "Xfce 設定デーモン"

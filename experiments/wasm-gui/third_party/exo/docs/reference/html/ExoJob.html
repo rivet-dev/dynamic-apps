@@ -1,0 +1,723 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ExoJob: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-jobs.html" title="Part IV. Framework for threaded/asynchronous jobs">
+<link rel="prev" href="exo-jobs.html" title="Part IV. Framework for threaded/asynchronous jobs">
+<link rel="next" href="ExoSimpleJob.html" title="ExoSimpleJob">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ExoJob.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ExoJob.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ExoJob.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-jobs.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-jobs.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ExoSimpleJob.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ExoJob"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ExoJob.top_of_page"></a>ExoJob</span></h2>
+<p>ExoJob — Base class for threaded/asynchronous jobs</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ExoJob.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ExoJob.html" title="ExoJob"><span class="returnvalue">ExoJob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-launch" title="exo_job_launch ()">exo_job_launch</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-cancel" title="exo_job_cancel ()">exo_job_cancel</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-is-cancelled" title="exo_job_is_cancelled ()">exo_job_is_cancelled</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GCancellable</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-get-cancellable" title="exo_job_get_cancellable ()">exo_job_get_cancellable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-set-error-if-cancelled" title="exo_job_set_error_if_cancelled ()">exo_job_set_error_if_cancelled</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-emit" title="exo_job_emit ()">exo_job_emit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-info-message" title="exo_job_info_message ()">exo_job_info_message</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-percent" title="exo_job_percent ()">exo_job_percent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoJob.html#exo-job-send-to-mainloop" title="exo_job_send_to_mainloop ()">exo_job_send_to_mainloop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoJob.html#ExoJob-error" title="The “error” signal">error</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoJob.html#ExoJob-finished" title="The “finished” signal">finished</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoJob.html#ExoJob-info-message" title="The “info-message” signal">info-message</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoJob.html#ExoJob-percent" title="The “percent” signal">percent</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ExoJob.html#ExoJob-struct" title="struct ExoJob">ExoJob</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ExoJob
+        <span class="lineart">╰──</span> <a class="link" href="ExoSimpleJob.html" title="ExoSimpleJob">ExoSimpleJob</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoJob.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoJob.description"></a><h2>Description</h2>
+<a class="link" href="ExoJob.html" title="ExoJob">ExoJob</a> is an abstract base class
+<p>intended to wrap threaded/asynchronous operations (called jobs here).
+It was written because the ways of dealing with threads provided by
+GLib are not exactly object-oriented.</p>
+<p>It can be used to wrap any kind of long-running or possibly-blocking
+operation like file operations or communication with web services.
+The benefit of using <a class="link" href="ExoJob.html" title="ExoJob">ExoJob</a> is that one
+gets an object associated with each operation. After creating the job
+the caller can connect to signals like <GTKDOCLINK HREF="ExoJob::error">"error"
+</GTKDOCLINK> or "percent". This
+design integrates very well with the usual object-oriented design of
+applications based on GObject.</p>
+</div>
+<div class="refsect1">
+<a name="ExoJob.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-job-launch"></a><h3>exo_job_launch ()</h3>
+<pre class="programlisting"><a class="link" href="ExoJob.html" title="ExoJob"><span class="returnvalue">ExoJob</span></a> *
+exo_job_launch (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>);</pre>
+<p>This functions schedules the <em class="parameter"><code>job</code></em>
+ to be run as soon as possible, in
+a separate thread. The caller can connect to signals of the <em class="parameter"><code>job</code></em>
+ prior
+or after this call in order to be notified on errors, progress updates
+and the end of the operation.</p>
+<div class="refsect3">
+<a name="exo-job-launch.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-job-launch.returns"></a><h4>Returns</h4>
+<p> the <em class="parameter"><code>job</code></em>
+itself.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-cancel"></a><h3>exo_job_cancel ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_job_cancel (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>);</pre>
+<p>Attempts to cancel the operation currently performed by <em class="parameter"><code>job</code></em>
+. Even
+after the cancellation of <em class="parameter"><code>job</code></em>
+, it may still emit signals, so you
+must take care of disconnecting all handlers appropriately if you
+cannot handle signals after cancellation.</p>
+<p>Calling this function when the <em class="parameter"><code>job</code></em>
+ has not been launched yet or
+when it has already finished will have no effect.</p>
+<div class="refsect3">
+<a name="exo-job-cancel.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-is-cancelled"></a><h3>exo_job_is_cancelled ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_job_is_cancelled (<em class="parameter"><code>const <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>job</code></em>
+ was previously cancelled
+by a call to <a class="link" href="ExoJob.html#exo-job-cancel" title="exo_job_cancel ()"><code class="function">exo_job_cancel()</code></a>.</p>
+<div class="refsect3">
+<a name="exo-job-is-cancelled.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-job-is-cancelled.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>job</code></em>
+is cancelled.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-get-cancellable"></a><h3>exo_job_get_cancellable ()</h3>
+<pre class="programlisting"><span class="returnvalue">GCancellable</span> *
+exo_job_get_cancellable (<em class="parameter"><code>const <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>);</pre>
+<p>Returns the <span class="type">GCancellable</span> that can be used to cancel the <em class="parameter"><code>job</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-job-get-cancellable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-job-get-cancellable.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GCancellable</span> associated with the <em class="parameter"><code>job</code></em>
+. It
+is owned by the <em class="parameter"><code>job</code></em>
+and must not be released.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-set-error-if-cancelled"></a><h3>exo_job_set_error_if_cancelled ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_job_set_error_if_cancelled (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>,
+                                <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Sets the <em class="parameter"><code>error</code></em>
+ if the <em class="parameter"><code>job</code></em>
+ was cancelled. This is a convenience
+function that is equivalent to</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">GCancellable</span><span class="w"> </span><span class="o">*</span><span class="n">cancellable</span><span class="p">;</span><span class="w"></span>
+<span class="n">cancellable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exo_job_get_cancllable</span><span class="w"> </span><span class="p">(</span><span class="n">job</span><span class="p">);</span><span class="w"></span>
+<span class="n">g_cancellable_set_error_if_cancelled</span><span class="w"> </span><span class="p">(</span><span class="n">cancellable</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="exo-job-set-error-if-cancelled.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>error to be set if the <em class="parameter"><code>job</code></em>
+was cancelled.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-job-set-error-if-cancelled.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the job was cancelled and <em class="parameter"><code>error</code></em>
+is now set,
+<code class="literal">FALSE</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-emit"></a><h3>exo_job_emit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_job_emit (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>,
+              <em class="parameter"><code><span class="type">guint</span> signal_id</code></em>,
+              <em class="parameter"><code><span class="type">GQuark</span> signal_detail</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Sends the signal with <em class="parameter"><code>signal_id</code></em>
+ and <em class="parameter"><code>signal_detail</code></em>
+ to the application's
+main loop and waits for listeners to handle it.</p>
+<div class="refsect3">
+<a name="exo-job-emit.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>signal_id</p></td>
+<td class="parameter_description"><p>the signal id.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>signal_detail</p></td>
+<td class="parameter_description"><p>the signal detail.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>a list of parameters to be passed to the signal,
+followed by a location for the return value. If the
+return type of the signal is G_TYPE_NONE, the return
+value location can be omitted.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-info-message"></a><h3>exo_job_info_message ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_job_info_message (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>,
+                      <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                      <em class="parameter"><code>...</code></em>);</pre>
+<p>Generates and emits an "info-message" signal and sends it to the
+application's main loop.</p>
+<div class="refsect3">
+<a name="exo-job-info-message.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>a format string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>parameters for the format string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-percent"></a><h3>exo_job_percent ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_job_percent (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>,
+                 <em class="parameter"><code><span class="type">gdouble</span> percent</code></em>);</pre>
+<p>Emits a "percent" signal and sends it to the application's main
+loop. Also makes sure that <em class="parameter"><code>percent</code></em>
+ is between 0.0 and 100.0.</p>
+<div class="refsect3">
+<a name="exo-job-percent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>percent</p></td>
+<td class="parameter_description"><p>percentage of completeness of the operation.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-job-send-to-mainloop"></a><h3>exo_job_send_to_mainloop ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_job_send_to_mainloop (<em class="parameter"><code><a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> *job</code></em>,
+                          <em class="parameter"><code><span class="type">GSourceFunc</span> func</code></em>,
+                          <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>,
+                          <em class="parameter"><code><span class="type">GDestroyNotify</span> destroy_notify</code></em>);</pre>
+<p>This functions schedules <em class="parameter"><code>func</code></em>
+ to be run in the main loop (main thread),
+waiting for the result (and blocking the job in the meantime).</p>
+<div class="refsect3">
+<a name="exo-job-send-to-mainloop.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>a <span class="type">GSourceFunc</span> callback that will be called in the main thread.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>data to pass to <em class="parameter"><code>func</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>destroy_notify</p></td>
+<td class="parameter_description"><p>a <span class="type">GDestroyNotify</span> for <em class="parameter"><code>user_data</code></em>
+, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-job-send-to-mainloop.returns"></a><h4>Returns</h4>
+<p> The return value of <em class="parameter"><code>func</code></em>
+.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ExoJob-struct"></a><h3>struct ExoJob</h3>
+<pre class="programlisting">struct ExoJob;</pre>
+<p>The <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ExoJob-error"></a><h3>The <code class="literal">“error”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>  *job,
+               <span class="type">gpointer</span> error,
+               <span class="type">gpointer</span> user_data)</pre>
+<p>Emitted whenever an error occurs while executing the <em class="parameter"><code>job</code></em>
+. This signal
+may not be emitted from within <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> subclasses. If a subclass wants
+to emit an "error" signal (and thereby terminate the operation), it has
+to fill the <span class="type">GError</span> structure and abort from its <code class="function">execute()</code> method.
+<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> will automatically emit the "error" signal when the <span class="type">GError</span> is
+filled after the <code class="function">execute()</code> method has finished.</p>
+<p>Callers interested in whether the <em class="parameter"><code>job</code></em>
+ was cancelled can connect to
+the "cancelled" signal of the <span class="type">GCancellable</span> returned from
+<a class="link" href="ExoJob.html#exo-job-get-cancellable" title="exo_job_get_cancellable ()"><code class="function">exo_job_get_cancellable()</code></a>.</p>
+<div class="refsect3">
+<a name="ExoJob-error.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>a <span class="type">GError</span> describing the cause.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoJob-finished"></a><h3>The <code class="literal">“finished”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>  *job,
+               <span class="type">gpointer</span> user_data)</pre>
+<p>This signal will be automatically emitted once the <em class="parameter"><code>job</code></em>
+ finishes
+its execution, no matter whether <em class="parameter"><code>job</code></em>
+ completed successfully or
+was cancelled by the user. It may not be emitted by subclasses of
+<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> as it is automatically emitted by <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a> after the <code class="function">execute()</code>
+method has finished.</p>
+<div class="refsect3">
+<a name="ExoJob-finished.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoJob-info-message"></a><h3>The <code class="literal">“info-message”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>  *job,
+               <span class="type">gchar</span>   *message,
+               <span class="type">gpointer</span> user_data)</pre>
+<p>This signal is emitted to display information about the status of
+the <em class="parameter"><code>job</code></em>
+. Examples of messages are "Preparing..." or "Cleaning up...".</p>
+<p>The <em class="parameter"><code>message</code></em>
+ is garanteed to contain valid UTF-8, so it can be
+displayed by <span class="type">GtkWidget</span>s out of the box.</p>
+<div class="refsect3">
+<a name="ExoJob-info-message.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>message</p></td>
+<td class="parameter_description"><p>information to be displayed about <em class="parameter"><code>job</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoJob-percent"></a><h3>The <code class="literal">“percent”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>  *job,
+               <span class="type">gdouble</span>  percent,
+               <span class="type">gpointer</span> user_data)</pre>
+<p>This signal is emitted to present the overall progress of the
+operation. The <em class="parameter"><code>percent</code></em>
+ value is garantied to be a value between
+0.0 and 100.0.</p>
+<div class="refsect3">
+<a name="ExoJob-percent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoJob.html" title="ExoJob"><span class="type">ExoJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>percent</p></td>
+<td class="parameter_description"><p>the percentage of completeness.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoJob.see-also"></a><h2>See Also</h2>
+<a class="link" href="ExoSimpleJob.html" title="ExoSimpleJob">ExoSimpleJob</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

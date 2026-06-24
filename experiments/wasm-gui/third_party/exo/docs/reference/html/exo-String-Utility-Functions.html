@@ -1,0 +1,510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>String Utility Functions: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-miscelleanous.html" title="Part VI. Miscelleanous">
+<link rel="prev" href="exo-Executing-Applications.html" title="Executing Applications">
+<link rel="next" href="exo-Miscellaneous-Utility-Functions.html" title="Miscellaneous Utility Functions">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#exo-String-Utility-Functions.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-miscelleanous.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-Executing-Applications.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="exo-Miscellaneous-Utility-Functions.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="exo-String-Utility-Functions"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="exo-String-Utility-Functions.top_of_page"></a>String Utility Functions</span></h2>
+<p>String Utility Functions — Various string-related functions</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="exo-String-Utility-Functions.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-elide-underscores" title="exo_str_elide_underscores ()">exo_str_elide_underscores</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-is-equal" title="exo_str_is_equal ()">exo_str_is_equal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-is-empty" title="exo_str_is_empty()">exo_str_is_empty</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-is-flag" title="exo_str_is_flag ()">exo_str_is_flag</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-looks-like-an-uri" title="exo_str_looks_like_an_uri ()">exo_str_looks_like_an_uri</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-str-replace" title="exo_str_replace ()">exo_str_replace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-strdup-strftime" title="exo_strdup_strftime ()">exo_strdup_strftime</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> **
+</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#exo-strndupv" title="exo_strndupv ()">exo_strndupv</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="exo-String-Utility-Functions.html#I-:CAPS" title="I_()">I_</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-String-Utility-Functions.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="exo-String-Utility-Functions.description"></a><h2>Description</h2>
+<p>This section describes a number of utility functions for
+manipulating strings.</p>
+</div>
+<div class="refsect1">
+<a name="exo-String-Utility-Functions.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-str-elide-underscores"></a><h3>exo_str_elide_underscores ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+exo_str_elide_underscores (<em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_str_elide_underscores</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Unused within xfce project</p>
+</div>
+<p>Returns a copy of <em class="parameter"><code>text</code></em>
+ with all mnemonic underscores
+stripped off.</p>
+<div class="refsect3">
+<a name="exo-str-elide-underscores.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>text</p></td>
+<td class="parameter_description"><p>A zero terminated string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-elide-underscores.returns"></a><h4>Returns</h4>
+<p> A copy of <em class="parameter"><code>text</code></em>
+without underscores. The returned string
+must be freed when no longer required.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-str-is-equal"></a><h3>exo_str_is_equal ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_str_is_equal (<em class="parameter"><code>const <span class="type">gchar</span> *a</code></em>,
+                  <em class="parameter"><code>const <span class="type">gchar</span> *b</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_str_is_equal</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: In favor of <code class="function">g_strcmp0()</code></p>
+</div>
+<p><code class="literal">NULL</code>-safe string comparison. Returns <code class="literal">TRUE</code> if both <em class="parameter"><code>a</code></em>
+ and <em class="parameter"><code>b</code></em>
+ are
+<code class="literal">NULL</code> or if <em class="parameter"><code>a</code></em>
+ and <em class="parameter"><code>b</code></em>
+ refer to valid strings which are equal.</p>
+<p>You should always prefer this function over <code class="function">strcmp()</code>.</p>
+<div class="refsect3">
+<a name="exo-str-is-equal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>A pointer to first string or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>b</p></td>
+<td class="parameter_description"><p>A pointer to second string or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-is-equal.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>a</code></em>
+equals <em class="parameter"><code>b</code></em>
+, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-str-is-empty"></a><h3>exo_str_is_empty()</h3>
+<pre class="programlisting">#define             exo_str_is_empty(string)</pre>
+<div class="warning">
+<p><code class="literal">exo_str_is_empty</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Replaced with <a href="/usr/share/gtk-doc/html/libxfce4util/libxfce4util-Xfce-String-Functions.html#xfce-str-is-empty"><code class="function">xfce_str_is_empty()</code></a></p>
+</div>
+<p>Macro to check if a string is <code class="literal">NULL</code> or empty. You should prefer
+this function over strlen (str) == 0.</p>
+<div class="refsect3">
+<a name="exo-str-is-empty.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>string</p></td>
+<td class="parameter_description"><p>a string</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-is-empty.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the string is not <code class="literal">NULL</code> and its length &gt; 1,
+<code class="literal">FALSE</code> otherwise.</p>
+<p>Since : 0.5.0</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-str-is-flag"></a><h3>exo_str_is_flag ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_str_is_flag (<em class="parameter"><code>const <span class="type">gchar</span> *str</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_str_is_flag</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: In favor of <code class="function">g_str_has_prefix()</code></p>
+</div>
+<p>Check if <em class="parameter"><code>str</code></em>
+ looks like a commandline flag. This function simply
+checks if the string begins with a single dash.</p>
+<div class="refsect3">
+<a name="exo-str-is-flag.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>an input string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-is-flag.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the <em class="parameter"><code>str</code></em>
+looks like a flag, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.11.5" title="Added in 0.11.5">0.11.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-str-looks-like-an-uri"></a><h3>exo_str_looks_like_an_uri ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_str_looks_like_an_uri (<em class="parameter"><code>const <span class="type">gchar</span> *str</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_str_looks_like_an_uri</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: In favor of <code class="function">g_uri_is_valid()</code></p>
+</div>
+<p>Check if <em class="parameter"><code>str</code></em>
+ looks like an uri. This function is no guarantee that
+the uri exists, or is supported by the system.</p>
+<div class="refsect3">
+<a name="exo-str-looks-like-an-uri.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>an input string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-looks-like-an-uri.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the <em class="parameter"><code>str</code></em>
+looks like an URI
+according to RFC 2396, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.5.0" title="Added in 0.5.0">0.5.0</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-str-replace"></a><h3>exo_str_replace ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+exo_str_replace (<em class="parameter"><code>const <span class="type">gchar</span> *str</code></em>,
+                 <em class="parameter"><code>const <span class="type">gchar</span> *pattern</code></em>,
+                 <em class="parameter"><code>const <span class="type">gchar</span> *replacement</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_str_replace</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Replaced by <a href="/usr/share/gtk-doc/html/libxfce4util/libxfce4util-Xfce-String-Functions.html#xfce-str-replace"><code class="function">xfce_str_replace()</code></a></p>
+</div>
+<p>Searches <em class="parameter"><code>str</code></em>
+ for occurances of <em class="parameter"><code>pattern</code></em>
+ and replaces each
+such occurance with <em class="parameter"><code>replacement</code></em>
+. Returns a newly allocated
+copy of <em class="parameter"><code>str</code></em>
+ on which the given replacement were performed.
+The caller is responsible to free the returned string using
+<code class="function">g_free()</code> when no longer needed.</p>
+<p>Note that <em class="parameter"><code>pattern</code></em>
+ and <em class="parameter"><code>replacement</code></em>
+ don't need to be of the
+same size. If <em class="parameter"><code>replacement</code></em>
+ is <code class="literal">NULL</code>, the pattern will be
+removed from the string.</p>
+<div class="refsect3">
+<a name="exo-str-replace.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>the input string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>pattern</p></td>
+<td class="parameter_description"><p>a search pattern in <em class="parameter"><code>str</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>replacement</p></td>
+<td class="parameter_description"><p>replacement string for <em class="parameter"><code>pattern</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-str-replace.returns"></a><h4>Returns</h4>
+<p> a newly allocated copy of <em class="parameter"><code>str</code></em>
+where all occurances of
+<em class="parameter"><code>pattern</code></em>
+are replaced with <em class="parameter"><code>replacement</code></em>
+. Or <code class="literal">NULL</code> if
+<em class="parameter"><code>str</code></em>
+and/or <em class="parameter"><code>pattern</code></em>
+is <code class="literal">NULL</code>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.1" title="Added in 0.3.1.1">0.3.1.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-strdup-strftime"></a><h3>exo_strdup_strftime ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+exo_strdup_strftime (<em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                     <em class="parameter"><code>const <span class="type">struct tm</span> *tm</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_strdup_strftime</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: In favor of <code class="function">g_date_time_format()</code></p>
+</div>
+<p>Cover for standard date-and-time-formatting routine strftime that returns
+a newly-allocated string of the correct size. The caller is responsible
+to free the returned string using <code class="function">g_free()</code> when no longer needed.</p>
+<p>Besides the buffer management, there are two differences between this
+and the library strftime:</p>
+<p>The modifiers "-" and "_" between a "%" and a numeric directive
+are defined as for the GNU version of strftime. "-" means "do not
+pad the field" and "_" means "pad with spaces instead of zeroes".</p>
+<p>Non-ANSI extensions to strftime are flagged at runtime with a
+warning, so it's easy to notice use of the extensions without
+testing with multiple versions of the library.</p>
+<p>Do NOT pass in the value returned by localtime(3) as the parameter <em class="parameter"><code>tm</code></em>
+, as
+this is a pointer to a shared static struct which can be changed by subsequent
+function calls, including any calls to <code class="function">g_warning()</code> made by <a class="link" href="exo-String-Utility-Functions.html#exo-strdup-strftime" title="exo_strdup_strftime ()"><code class="function">exo_strdup_strftime()</code></a>
+itself. Use e.g. localtime_r(3) or make a copy of the struct to pass in instead.</p>
+<div class="refsect3">
+<a name="exo-strdup-strftime.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>format string to pass to strftime(3). See the strftime(3) documentation
+for details.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tm</p></td>
+<td class="parameter_description"><p>date/time, in struct tm format.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-strdup-strftime.returns"></a><h4>Returns</h4>
+<p> a newly allocated string containing the formatted date/time.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.3" title="Added in 0.3.3">0.3.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-strndupv"></a><h3>exo_strndupv ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> **
+exo_strndupv (<em class="parameter"><code><span class="type">gchar</span> **strv</code></em>,
+              <em class="parameter"><code><span class="type">guint</span> num</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_strndupv</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Unused within xfce project</p>
+</div>
+<p>Creates a new string vector containing the first <em class="parameter"><code>n</code></em>
+ elements
+of <em class="parameter"><code>strv</code></em>
+. If called on a <code class="literal">NULL</code> value or <em class="parameter"><code>num</code></em>
+ is 0, <a class="link" href="exo-String-Utility-Functions.html#exo-strndupv" title="exo_strndupv ()"><code class="function">exo_strndupv()</code></a>
+simply returns <code class="literal">NULL</code>.</p>
+<div class="refsect3">
+<a name="exo-strndupv.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>strv</p></td>
+<td class="parameter_description"><p>String vector to duplicate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>num</p></td>
+<td class="parameter_description"><p>Number of strings in <em class="parameter"><code>strv</code></em>
+to duplicate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-strndupv.returns"></a><h4>Returns</h4>
+<p> A new NULL-terminated array of strings or <code class="literal">NULL</code>.
+Should be freed using <code class="function">g_strfreev()</code> when no longer needed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="I-:CAPS"></a><h3>I_()</h3>
+<pre class="programlisting">#define             I_(string)</pre>
+<div class="warning">
+<p><code class="literal">I_</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use libxfce4util instead</p>
+</div>
+<p>Shortcut for <code class="function">g_intern_static_string()</code> to return a
+canonical representation for <em class="parameter"><code>string</code></em>
+.</p>
+<div class="refsect3">
+<a name="I-.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>string</p></td>
+<td class="parameter_description"><p>A static string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="I-.returns"></a><h4>Returns</h4>
+<p> a canonical representation for the string.</p>
+<p>Since : 0.3.1.1</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

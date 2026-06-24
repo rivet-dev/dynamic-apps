@@ -1,0 +1,257 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ExoIconChooserDialog: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-widgets.html" title="Part II. Additional widgets">
+<link rel="prev" href="exo-widgets.html" title="Part II. Additional widgets">
+<link rel="next" href="ExoIconView.html" title="ExoIconView">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ExoIconChooserDialog.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ExoIconChooserDialog.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#ExoIconChooserDialog.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-widgets.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ExoIconView.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ExoIconChooserDialog"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ExoIconChooserDialog.top_of_page"></a>ExoIconChooserDialog</span></h2>
+<p>ExoIconChooserDialog — Dialog to select icons</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconChooserDialog.html#exo-icon-chooser-dialog-new" title="exo_icon_chooser_dialog_new ()">exo_icon_chooser_dialog_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconChooserDialog.html#exo-icon-chooser-dialog-get-icon" title="exo_icon_chooser_dialog_get_icon ()">exo_icon_chooser_dialog_get_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconChooserDialog.html#exo-icon-chooser-dialog-set-icon" title="exo_icon_chooser_dialog_set_icon ()">exo_icon_chooser_dialog_set_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ExoIconChooserDialog.html#ExoIconChooserDialog-struct" title="struct ExoIconChooserDialog">ExoIconChooserDialog</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkBin
+                    <span class="lineart">╰──</span> GtkWindow
+                        <span class="lineart">╰──</span> GtkDialog
+                            <span class="lineart">╰──</span> ExoIconChooserDialog
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+ExoIconChooserDialog implements
+ AtkImplementorIface and  GtkBuildable.</p>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.description"></a><h2>Description</h2>
+<p>The <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a> class provides an easy to use dialog to ask
+the user to select either a named icon from the selected icon theme,
+or an image file from the local file system.</p>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-icon-chooser-dialog-new"></a><h3>exo_icon_chooser_dialog_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+exo_icon_chooser_dialog_new (<em class="parameter"><code>const <span class="type">gchar</span> *title</code></em>,
+                             <em class="parameter"><code><span class="type">GtkWindow</span> *parent</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *first_button_text</code></em>,
+                             <em class="parameter"><code>...</code></em>);</pre>
+<p>Creates a new <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a>. This function is analogous to <code class="function">gtk_dialog_new_with_buttons()</code>.</p>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>title</p></td>
+<td class="parameter_description"><p>title of the dialog, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>first_button_text</p></td>
+<td class="parameter_description"><p>stock-id or text to go in the first button, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>response-id for the first button, then additional (button, id) pairs,
+ending with <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-new.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.9" title="Added in 0.3.1.9">0.3.1.9</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-chooser-dialog-get-icon"></a><h3>exo_icon_chooser_dialog_get_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+exo_icon_chooser_dialog_get_icon (<em class="parameter"><code><a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a> *icon_chooser_dialog</code></em>);</pre>
+<p>Returns the currently selected icon for the <em class="parameter"><code>icon_chooser_dialog</code></em>
+. The selected icon can be either
+a named icon (from the active icon theme) or the absolute path to an image file in the file system.
+You can distinguish between those two icon types using the <code class="function">g_path_is_absolute()</code> function. If no
+icon is currently selected, <code class="literal">NULL</code> will be returned.</p>
+<p>The caller is responsible to free the returned string using <code class="function">g_free()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-get-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_chooser_dialog</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-get-icon.returns"></a><h4>Returns</h4>
+<p> the currently selected icon for <em class="parameter"><code>icon_chooser_dialog</code></em>
+or <code class="literal">NULL</code> if no icon is selected.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.9" title="Added in 0.3.1.9">0.3.1.9</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-chooser-dialog-set-icon"></a><h3>exo_icon_chooser_dialog_set_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_chooser_dialog_set_icon (<em class="parameter"><code><a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a> *icon_chooser_dialog</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gchar</span> *icon</code></em>);</pre>
+<p>Preselects the specified <em class="parameter"><code>icon</code></em>
+ in the <em class="parameter"><code>icon_chooser_dialog</code></em>
+, and returns <code class="literal">TRUE</code> if the
+<em class="parameter"><code>icon</code></em>
+ was successfully selected.</p>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-set-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_chooser_dialog</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon</p></td>
+<td class="parameter_description"><p>the themed icon or the absolute path to an image file to select.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-chooser-dialog-set-icon.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the <em class="parameter"><code>icon</code></em>
+was successfully preselected in the <em class="parameter"><code>icon_chooser_dialog</code></em>
+,
+<code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.9" title="Added in 0.3.1.9">0.3.1.9</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ExoIconChooserDialog-struct"></a><h3>struct ExoIconChooserDialog</h3>
+<pre class="programlisting">struct ExoIconChooserDialog;</pre>
+<p>The <a class="link" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog"><span class="type">ExoIconChooserDialog</span></a> class provides an easy to use dialog to ask
+the user to select either a named icon from the selected icon theme,
+or an image file from the local file system.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoIconChooserDialog.see-also"></a><h2>See Also</h2>
+<a class="ulink" href="" target="_top">
+GtkIconTheme</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

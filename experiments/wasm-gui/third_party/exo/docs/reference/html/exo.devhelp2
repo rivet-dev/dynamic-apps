@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<book xmlns="http://www.devhelp.net/book" title="exo Reference Manual" link="index.html" author="" name="exo" version="2" language="c" online="https://developer.xfce.org/exo/index.html">
+  <chapters>
+    <sub name="Overview" link="exo-overview.html"/>
+    <sub name="Additional widgets" link="exo-widgets.html">
+      <sub name="ExoIconChooserDialog" link="ExoIconChooserDialog.html"/>
+      <sub name="ExoIconView" link="ExoIconView.html"/>
+      <sub name="ExoTreeView" link="ExoTreeView.html"/>
+    </sub>
+    <sub name="Additional cell renderers" link="exo-cell-renderers.html">
+      <sub name="ExoCellRendererIcon" link="ExoCellRendererIcon.html"/>
+    </sub>
+    <sub name="Framework for threaded/asynchronous jobs" link="exo-jobs.html">
+      <sub name="ExoJob" link="ExoJob.html"/>
+      <sub name="ExoSimpleJob" link="ExoSimpleJob.html"/>
+    </sub>
+    <sub name="Extensions to existing frameworks" link="exo-extensions.html">
+      <sub name="Extensions to gdk-pixbuf" link="exo-Extensions-to-gdk-pixbuf.html"/>
+      <sub name="Extensions to GObject" link="exo-Extensions-to-GObject.html"/>
+      <sub name="Extensions to Gtk+" link="exo-Extensions-to-Gtk.html"/>
+    </sub>
+    <sub name="Miscelleanous" link="exo-miscelleanous.html">
+      <sub name="Version Information" link="exo-Version-Information.html"/>
+      <sub name="Binding Properties Functions" link="exo-Binding-Properties-Functions.html"/>
+      <sub name="Executing Applications" link="exo-Executing-Applications.html"/>
+      <sub name="String Utility Functions" link="exo-String-Utility-Functions.html"/>
+      <sub name="Miscellaneous Utility Functions" link="exo-Miscellaneous-Utility-Functions.html"/>
+    </sub>
+    <sub name="API Index" link="ch01.html">
+      <sub name="All symbols" link="ch01.html#api-index-full"/>
+      <sub name="Added in 0.3.1" link="ch01.html#api-index-0.3.1"/>
+      <sub name="Added in 0.3.1.1" link="ch01.html#api-index-0.3.1.1"/>
+      <sub name="Added in 0.3.1.3" link="ch01.html#api-index-0.3.1.3"/>
+      <sub name="Added in 0.3.1.5" link="ch01.html#api-index-0.3.1.5"/>
+      <sub name="Added in 0.3.1.9" link="ch01.html#api-index-0.3.1.9"/>
+      <sub name="Added in 0.3.3" link="ch01.html#api-index-0.3.3"/>
+      <sub name="Added in 0.4.0" link="ch01.html#api-index-0.4.0"/>
+      <sub name="Added in 0.5.0" link="ch01.html#api-index-0.5.0"/>
+      <sub name="Added in 0.7.1" link="ch01.html#api-index-0.7.1"/>
+      <sub name="Added in 0.10.2" link="ch01.html#api-index-0.10.2"/>
+      <sub name="Added in 0.11.4" link="ch01.html#api-index-0.11.4"/>
+      <sub name="Added in 0.11.5" link="ch01.html#api-index-0.11.5"/>
+      <sub name="Deprecated symbols" link="ch01.html#api-index-deprecated"/>
+    </sub>
+    <sub name="Index" link="ix15.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="exo_icon_chooser_dialog_new ()" link="ExoIconChooserDialog.html#exo-icon-chooser-dialog-new" since="0.3.1.9"/>
+    <keyword type="function" name="exo_icon_chooser_dialog_get_icon ()" link="ExoIconChooserDialog.html#exo-icon-chooser-dialog-get-icon" since="0.3.1.9"/>
+    <keyword type="function" name="exo_icon_chooser_dialog_set_icon ()" link="ExoIconChooserDialog.html#exo-icon-chooser-dialog-set-icon" since="0.3.1.9"/>
+    <keyword type="struct" name="struct ExoIconChooserDialog" link="ExoIconChooserDialog.html#ExoIconChooserDialog-struct"/>
+    <keyword type="function" name="exo_icon_view_new ()" link="ExoIconView.html#exo-icon-view-new"/>
+    <keyword type="function" name="exo_icon_view_new_with_model ()" link="ExoIconView.html#exo-icon-view-new-with-model"/>
+    <keyword type="function" name="exo_icon_view_get_model ()" link="ExoIconView.html#exo-icon-view-get-model"/>
+    <keyword type="function" name="exo_icon_view_set_model ()" link="ExoIconView.html#exo-icon-view-set-model"/>
+    <keyword type="function" name="exo_icon_view_get_orientation ()" link="ExoIconView.html#exo-icon-view-get-orientation" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_orientation ()" link="ExoIconView.html#exo-icon-view-set-orientation" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_columns ()" link="ExoIconView.html#exo-icon-view-get-columns"/>
+    <keyword type="function" name="exo_icon_view_set_columns ()" link="ExoIconView.html#exo-icon-view-set-columns" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_item_width ()" link="ExoIconView.html#exo-icon-view-get-item-width" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_item_width ()" link="ExoIconView.html#exo-icon-view-set-item-width" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_spacing ()" link="ExoIconView.html#exo-icon-view-get-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_spacing ()" link="ExoIconView.html#exo-icon-view-set-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_row_spacing ()" link="ExoIconView.html#exo-icon-view-get-row-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_row_spacing ()" link="ExoIconView.html#exo-icon-view-set-row-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_column_spacing ()" link="ExoIconView.html#exo-icon-view-get-column-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_column_spacing ()" link="ExoIconView.html#exo-icon-view-set-column-spacing" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_margin ()" link="ExoIconView.html#exo-icon-view-get-margin" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_margin ()" link="ExoIconView.html#exo-icon-view-set-margin" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_selection_mode ()" link="ExoIconView.html#exo-icon-view-get-selection-mode"/>
+    <keyword type="function" name="exo_icon_view_set_selection_mode ()" link="ExoIconView.html#exo-icon-view-set-selection-mode"/>
+    <keyword type="function" name="exo_icon_view_get_layout_mode ()" link="ExoIconView.html#exo-icon-view-get-layout-mode" since="0.3.1.5"/>
+    <keyword type="function" name="exo_icon_view_set_layout_mode ()" link="ExoIconView.html#exo-icon-view-set-layout-mode" since="0.3.1.5"/>
+    <keyword type="function" name="exo_icon_view_get_single_click ()" link="ExoIconView.html#exo-icon-view-get-single-click" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_set_single_click ()" link="ExoIconView.html#exo-icon-view-set-single-click" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_get_single_click_timeout ()" link="ExoIconView.html#exo-icon-view-get-single-click-timeout" since="0.3.1.5"/>
+    <keyword type="function" name="exo_icon_view_set_single_click_timeout ()" link="ExoIconView.html#exo-icon-view-set-single-click-timeout" since="0.3.1.5"/>
+    <keyword type="function" name="exo_icon_view_widget_to_icon_coords ()" link="ExoIconView.html#exo-icon-view-widget-to-icon-coords"/>
+    <keyword type="function" name="exo_icon_view_icon_to_widget_coords ()" link="ExoIconView.html#exo-icon-view-icon-to-widget-coords"/>
+    <keyword type="function" name="exo_icon_view_get_path_at_pos ()" link="ExoIconView.html#exo-icon-view-get-path-at-pos"/>
+    <keyword type="function" name="exo_icon_view_get_item_at_pos ()" link="ExoIconView.html#exo-icon-view-get-item-at-pos" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_visible_range ()" link="ExoIconView.html#exo-icon-view-get-visible-range" since="0.3.1"/>
+    <keyword type="function" name="ExoIconViewForeachFunc ()" link="ExoIconView.html#ExoIconViewForeachFunc"/>
+    <keyword type="function" name="exo_icon_view_selected_foreach ()" link="ExoIconView.html#exo-icon-view-selected-foreach"/>
+    <keyword type="function" name="exo_icon_view_select_path ()" link="ExoIconView.html#exo-icon-view-select-path"/>
+    <keyword type="function" name="exo_icon_view_unselect_path ()" link="ExoIconView.html#exo-icon-view-unselect-path"/>
+    <keyword type="function" name="exo_icon_view_path_is_selected ()" link="ExoIconView.html#exo-icon-view-path-is-selected"/>
+    <keyword type="function" name="exo_icon_view_get_item_column ()" link="ExoIconView.html#exo-icon-view-get-item-column" since="0.7.1"/>
+    <keyword type="function" name="exo_icon_view_get_item_row ()" link="ExoIconView.html#exo-icon-view-get-item-row" since="0.7.1"/>
+    <keyword type="function" name="exo_icon_view_get_selected_items ()" link="ExoIconView.html#exo-icon-view-get-selected-items"/>
+    <keyword type="function" name="exo_icon_view_select_all ()" link="ExoIconView.html#exo-icon-view-select-all"/>
+    <keyword type="function" name="exo_icon_view_unselect_all ()" link="ExoIconView.html#exo-icon-view-unselect-all"/>
+    <keyword type="function" name="exo_icon_view_selection_invert ()" link="ExoIconView.html#exo-icon-view-selection-invert"/>
+    <keyword type="function" name="exo_icon_view_item_activated ()" link="ExoIconView.html#exo-icon-view-item-activated"/>
+    <keyword type="function" name="exo_icon_view_get_cursor ()" link="ExoIconView.html#exo-icon-view-get-cursor" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_cursor ()" link="ExoIconView.html#exo-icon-view-set-cursor" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_scroll_to_path ()" link="ExoIconView.html#exo-icon-view-scroll-to-path" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_enable_model_drag_source ()" link="ExoIconView.html#exo-icon-view-enable-model-drag-source" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_enable_model_drag_dest ()" link="ExoIconView.html#exo-icon-view-enable-model-drag-dest" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_unset_model_drag_source ()" link="ExoIconView.html#exo-icon-view-unset-model-drag-source" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_unset_model_drag_dest ()" link="ExoIconView.html#exo-icon-view-unset-model-drag-dest" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_reorderable ()" link="ExoIconView.html#exo-icon-view-set-reorderable" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_reorderable ()" link="ExoIconView.html#exo-icon-view-get-reorderable" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_set_drag_dest_item ()" link="ExoIconView.html#exo-icon-view-set-drag-dest-item" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_drag_dest_item ()" link="ExoIconView.html#exo-icon-view-get-drag-dest-item" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_get_dest_item_at_pos ()" link="ExoIconView.html#exo-icon-view-get-dest-item-at-pos" since="0.3.1"/>
+    <keyword type="function" name="exo_icon_view_create_drag_icon ()" link="ExoIconView.html#exo-icon-view-create-drag-icon" since="0.3.1"/>
+    <keyword type="function" name="ExoIconViewSearchEqualFunc ()" link="ExoIconView.html#ExoIconViewSearchEqualFunc"/>
+    <keyword type="function" name="ExoIconViewSearchPositionFunc ()" link="ExoIconView.html#ExoIconViewSearchPositionFunc"/>
+    <keyword type="function" name="exo_icon_view_get_enable_search ()" link="ExoIconView.html#exo-icon-view-get-enable-search" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_set_enable_search ()" link="ExoIconView.html#exo-icon-view-set-enable-search" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_get_search_column ()" link="ExoIconView.html#exo-icon-view-get-search-column" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_set_search_column ()" link="ExoIconView.html#exo-icon-view-set-search-column" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_get_search_equal_func ()" link="ExoIconView.html#exo-icon-view-get-search-equal-func" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_set_search_equal_func ()" link="ExoIconView.html#exo-icon-view-set-search-equal-func" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_get_search_position_func ()" link="ExoIconView.html#exo-icon-view-get-search-position-func" since="0.3.1.3"/>
+    <keyword type="function" name="exo_icon_view_set_search_position_func ()" link="ExoIconView.html#exo-icon-view-set-search-position-func" since="0.3.1.3"/>
+    <keyword type="struct" name="struct ExoIconView" link="ExoIconView.html#ExoIconView-struct"/>
+    <keyword type="enum" name="enum ExoIconViewDropPosition" link="ExoIconView.html#ExoIconViewDropPosition"/>
+    <keyword type="enum" name="enum ExoIconViewLayoutMode" link="ExoIconView.html#ExoIconViewLayoutMode"/>
+    <keyword type="property" name="The “column-spacing” property" link="ExoIconView.html#ExoIconView--column-spacing"/>
+    <keyword type="property" name="The “columns” property" link="ExoIconView.html#ExoIconView--columns"/>
+    <keyword type="property" name="The “enable-search” property" link="ExoIconView.html#ExoIconView--enable-search"/>
+    <keyword type="property" name="The “icon-column” property" link="ExoIconView.html#ExoIconView--icon-column"/>
+    <keyword type="property" name="The “item-width” property" link="ExoIconView.html#ExoIconView--item-width"/>
+    <keyword type="property" name="The “layout-mode” property" link="ExoIconView.html#ExoIconView--layout-mode"/>
+    <keyword type="property" name="The “margin” property" link="ExoIconView.html#ExoIconView--margin"/>
+    <keyword type="property" name="The “markup-column” property" link="ExoIconView.html#ExoIconView--markup-column"/>
+    <keyword type="property" name="The “model” property" link="ExoIconView.html#ExoIconView--model"/>
+    <keyword type="property" name="The “orientation” property" link="ExoIconView.html#ExoIconView--orientation"/>
+    <keyword type="property" name="The “pixbuf-column” property" link="ExoIconView.html#ExoIconView--pixbuf-column"/>
+    <keyword type="property" name="The “reorderable” property" link="ExoIconView.html#ExoIconView--reorderable"/>
+    <keyword type="property" name="The “row-spacing” property" link="ExoIconView.html#ExoIconView--row-spacing"/>
+    <keyword type="property" name="The “search-column” property" link="ExoIconView.html#ExoIconView--search-column"/>
+    <keyword type="property" name="The “selection-mode” property" link="ExoIconView.html#ExoIconView--selection-mode"/>
+    <keyword type="property" name="The “single-click” property" link="ExoIconView.html#ExoIconView--single-click"/>
+    <keyword type="property" name="The “single-click-timeout” property" link="ExoIconView.html#ExoIconView--single-click-timeout"/>
+    <keyword type="property" name="The “spacing” property" link="ExoIconView.html#ExoIconView--spacing"/>
+    <keyword type="property" name="The “text-column” property" link="ExoIconView.html#ExoIconView--text-column"/>
+    <keyword type="signal" name="The “activate-cursor-item” signal" link="ExoIconView.html#ExoIconView-activate-cursor-item"/>
+    <keyword type="signal" name="The “item-activated” signal" link="ExoIconView.html#ExoIconView-item-activated"/>
+    <keyword type="signal" name="The “move-cursor” signal" link="ExoIconView.html#ExoIconView-move-cursor"/>
+    <keyword type="signal" name="The “select-all” signal" link="ExoIconView.html#ExoIconView-select-all"/>
+    <keyword type="signal" name="The “select-cursor-item” signal" link="ExoIconView.html#ExoIconView-select-cursor-item"/>
+    <keyword type="signal" name="The “selection-changed” signal" link="ExoIconView.html#ExoIconView-selection-changed"/>
+    <keyword type="signal" name="The “start-interactive-search” signal" link="ExoIconView.html#ExoIconView-start-interactive-search"/>
+    <keyword type="signal" name="The “toggle-cursor-item” signal" link="ExoIconView.html#ExoIconView-toggle-cursor-item"/>
+    <keyword type="signal" name="The “unselect-all” signal" link="ExoIconView.html#ExoIconView-unselect-all"/>
+    <keyword type="function" name="exo_tree_view_new ()" link="ExoTreeView.html#exo-tree-view-new" since="0.3.1.3"/>
+    <keyword type="function" name="exo_tree_view_get_single_click ()" link="ExoTreeView.html#exo-tree-view-get-single-click" since="0.3.1.3"/>
+    <keyword type="function" name="exo_tree_view_set_single_click ()" link="ExoTreeView.html#exo-tree-view-set-single-click" since="0.3.1.3"/>
+    <keyword type="function" name="exo_tree_view_get_single_click_timeout ()" link="ExoTreeView.html#exo-tree-view-get-single-click-timeout" since="0.3.1.5"/>
+    <keyword type="function" name="exo_tree_view_set_single_click_timeout ()" link="ExoTreeView.html#exo-tree-view-set-single-click-timeout" since="0.3.1.5"/>
+    <keyword type="struct" name="struct ExoTreeView" link="ExoTreeView.html#ExoTreeView-struct"/>
+    <keyword type="property" name="The “single-click” property" link="ExoTreeView.html#ExoTreeView--single-click"/>
+    <keyword type="property" name="The “single-click-timeout” property" link="ExoTreeView.html#ExoTreeView--single-click-timeout"/>
+    <keyword type="function" name="exo_cell_renderer_icon_new ()" link="ExoCellRendererIcon.html#exo-cell-renderer-icon-new" since="0.3.1.9"/>
+    <keyword type="struct" name="struct ExoCellRendererIcon" link="ExoCellRendererIcon.html#ExoCellRendererIcon-struct"/>
+    <keyword type="property" name="The “follow-state” property" link="ExoCellRendererIcon.html#ExoCellRendererIcon--follow-state"/>
+    <keyword type="property" name="The “gicon” property" link="ExoCellRendererIcon.html#ExoCellRendererIcon--gicon"/>
+    <keyword type="property" name="The “icon” property" link="ExoCellRendererIcon.html#ExoCellRendererIcon--icon"/>
+    <keyword type="property" name="The “size” property" link="ExoCellRendererIcon.html#ExoCellRendererIcon--size"/>
+    <keyword type="function" name="exo_job_launch ()" link="ExoJob.html#exo-job-launch"/>
+    <keyword type="function" name="exo_job_cancel ()" link="ExoJob.html#exo-job-cancel"/>
+    <keyword type="function" name="exo_job_is_cancelled ()" link="ExoJob.html#exo-job-is-cancelled"/>
+    <keyword type="function" name="exo_job_get_cancellable ()" link="ExoJob.html#exo-job-get-cancellable"/>
+    <keyword type="function" name="exo_job_set_error_if_cancelled ()" link="ExoJob.html#exo-job-set-error-if-cancelled"/>
+    <keyword type="function" name="exo_job_emit ()" link="ExoJob.html#exo-job-emit"/>
+    <keyword type="function" name="exo_job_info_message ()" link="ExoJob.html#exo-job-info-message"/>
+    <keyword type="function" name="exo_job_percent ()" link="ExoJob.html#exo-job-percent"/>
+    <keyword type="function" name="exo_job_send_to_mainloop ()" link="ExoJob.html#exo-job-send-to-mainloop"/>
+    <keyword type="struct" name="struct ExoJob" link="ExoJob.html#ExoJob-struct"/>
+    <keyword type="signal" name="The “error” signal" link="ExoJob.html#ExoJob-error"/>
+    <keyword type="signal" name="The “finished” signal" link="ExoJob.html#ExoJob-finished"/>
+    <keyword type="signal" name="The “info-message” signal" link="ExoJob.html#ExoJob-info-message"/>
+    <keyword type="signal" name="The “percent” signal" link="ExoJob.html#ExoJob-percent"/>
+    <keyword type="function" name="ExoSimpleJobFunc ()" link="ExoSimpleJob.html#ExoSimpleJobFunc"/>
+    <keyword type="function" name="exo_simple_job_launch ()" link="ExoSimpleJob.html#exo-simple-job-launch"/>
+    <keyword type="struct" name="ExoSimpleJob" link="ExoSimpleJob.html#ExoSimpleJob-struct"/>
+    <keyword type="function" name="exo_gdk_pixbuf_colorize ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-colorize" since="0.3.1.3"/>
+    <keyword type="function" name="exo_gdk_pixbuf_frame ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-frame" since="0.3.1.9"/>
+    <keyword type="function" name="exo_gdk_pixbuf_lucent ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-lucent" since="0.3.1.3"/>
+    <keyword type="function" name="exo_gdk_pixbuf_spotlight ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-spotlight" since="0.3.1.3"/>
+    <keyword type="function" name="exo_gdk_pixbuf_scale_down ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-scale-down" since="0.3.1.1"/>
+    <keyword type="function" name="exo_gdk_pixbuf_scale_ratio ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-scale-ratio"/>
+    <keyword type="function" name="exo_gdk_pixbuf_new_from_file_at_max_size ()" link="exo-Extensions-to-gdk-pixbuf.html#exo-gdk-pixbuf-new-from-file-at-max-size" since="0.3.1.9"/>
+    <keyword type="function" name="exo_g_value_transform_negate ()" link="exo-Extensions-to-GObject.html#exo-g-value-transform-negate" deprecated="xfce 4.18: Rarely used API"/>
+    <keyword type="function" name="exo_gtk_object_destroy_later ()" link="exo-Extensions-to-Gtk.html#exo-gtk-object-destroy-later"/>
+    <keyword type="function" name="exo_gtk_file_chooser_add_thumbnail_preview ()" link="exo-Extensions-to-Gtk.html#exo-gtk-file-chooser-add-thumbnail-preview" since="0.3.1.9"/>
+    <keyword type="function" name="exo_gtk_url_about_dialog_hook ()" link="exo-Extensions-to-Gtk.html#exo-gtk-url-about-dialog-hook" since="0.5.0"/>
+    <keyword type="function" name="exo_gtk_dialog_get_action_area ()" link="exo-Extensions-to-Gtk.html#exo-gtk-dialog-get-action-area" since="0.11.4"/>
+    <keyword type="function" name="exo_gtk_dialog_add_secondary_button ()" link="exo-Extensions-to-Gtk.html#exo-gtk-dialog-add-secondary-button" since="0.11.4"/>
+    <keyword type="function" name="exo_check_version ()" link="exo-Version-Information.html#exo-check-version" since="0.3.1"/>
+    <keyword type="macro" name="EXO_CHECK_VERSION()" link="exo-Version-Information.html#EXO-CHECK-VERSION:CAPS"/>
+    <keyword type="variable" name="exo_major_version" link="exo-Version-Information.html#exo-major-version"/>
+    <keyword type="variable" name="exo_minor_version" link="exo-Version-Information.html#exo-minor-version"/>
+    <keyword type="variable" name="exo_micro_version" link="exo-Version-Information.html#exo-micro-version"/>
+    <keyword type="macro" name="EXO_MAJOR_VERSION" link="exo-Version-Information.html#EXO-MAJOR-VERSION:CAPS"/>
+    <keyword type="macro" name="EXO_MINOR_VERSION" link="exo-Version-Information.html#EXO-MINOR-VERSION:CAPS"/>
+    <keyword type="macro" name="EXO_MICRO_VERSION" link="exo-Version-Information.html#EXO-MICRO-VERSION:CAPS"/>
+    <keyword type="function" name="ExoBindingTransform ()" link="exo-Binding-Properties-Functions.html#ExoBindingTransform"/>
+    <keyword type="function" name="exo_binding_new ()" link="exo-Binding-Properties-Functions.html#exo-binding-new" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_binding_new_full ()" link="exo-Binding-Properties-Functions.html#exo-binding-new-full" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_binding_new_with_negation ()" link="exo-Binding-Properties-Functions.html#exo-binding-new-with-negation" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_binding_unbind ()" link="exo-Binding-Properties-Functions.html#exo-binding-unbind" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_mutual_binding_new ()" link="exo-Binding-Properties-Functions.html#exo-mutual-binding-new" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_mutual_binding_new_full ()" link="exo-Binding-Properties-Functions.html#exo-mutual-binding-new-full" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_mutual_binding_new_with_negation ()" link="exo-Binding-Properties-Functions.html#exo-mutual-binding-new-with-negation" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_mutual_binding_unbind ()" link="exo-Binding-Properties-Functions.html#exo-mutual-binding-unbind" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="struct" name="ExoBinding" link="exo-Binding-Properties-Functions.html#ExoBinding" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="struct" name="ExoMutualBinding" link="exo-Binding-Properties-Functions.html#ExoMutualBinding" deprecated="xfce 4.18: In favor of GBinding"/>
+    <keyword type="function" name="exo_execute_preferred_application ()" link="exo-Executing-Applications.html#exo-execute-preferred-application" since="0.3.1.3"/>
+    <keyword type="function" name="exo_execute_preferred_application_on_screen ()" link="exo-Executing-Applications.html#exo-execute-preferred-application-on-screen" since="0.3.1.3"/>
+    <keyword type="function" name="exo_execute_terminal_shell ()" link="exo-Executing-Applications.html#exo-execute-terminal-shell" since="0.3.1.3"/>
+    <keyword type="function" name="exo_execute_terminal_shell_on_screen ()" link="exo-Executing-Applications.html#exo-execute-terminal-shell-on-screen" since="0.3.1.3"/>
+    <keyword type="function" name="exo_str_elide_underscores ()" link="exo-String-Utility-Functions.html#exo-str-elide-underscores" deprecated="xfce 4.18: Unused within xfce project"/>
+    <keyword type="function" name="exo_str_is_equal ()" link="exo-String-Utility-Functions.html#exo-str-is-equal" deprecated="xfce 4.18: In favor of g_strcmp0()"/>
+    <keyword type="macro" name="exo_str_is_empty()" link="exo-String-Utility-Functions.html#exo-str-is-empty" deprecated="xfce 4.18: Replaced with xfce_str_is_empty()"/>
+    <keyword type="function" name="exo_str_is_flag ()" link="exo-String-Utility-Functions.html#exo-str-is-flag" deprecated="xfce 4.18: In favor of g_str_has_prefix()" since="0.11.5"/>
+    <keyword type="function" name="exo_str_looks_like_an_uri ()" link="exo-String-Utility-Functions.html#exo-str-looks-like-an-uri" deprecated="xfce 4.18: In favor of g_uri_is_valid()" since="0.5.0"/>
+    <keyword type="function" name="exo_str_replace ()" link="exo-String-Utility-Functions.html#exo-str-replace" deprecated="xfce 4.18: Replaced by xfce_str_replace()" since="0.3.1.1"/>
+    <keyword type="function" name="exo_strdup_strftime ()" link="exo-String-Utility-Functions.html#exo-strdup-strftime" deprecated="xfce 4.18: In favor of g_date_time_format()" since="0.3.3"/>
+    <keyword type="function" name="exo_strndupv ()" link="exo-String-Utility-Functions.html#exo-strndupv" deprecated="xfce 4.18: Unused within xfce project"/>
+    <keyword type="macro" name="I_()" link="exo-String-Utility-Functions.html#I-:CAPS" deprecated="xfce 4.18: Use libxfce4util instead"/>
+    <keyword type="function" name="exo_noop ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="function" name="exo_noop_one ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop-one" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="function" name="exo_noop_zero ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop-zero" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="function" name="exo_noop_null ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop-null" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="function" name="exo_noop_true ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop-true" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="function" name="exo_noop_false ()" link="exo-Miscellaneous-Utility-Functions.html#exo-noop-false" deprecated="xfce 4.18: Use NULL pointer instead" since="0.3.1"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_NO_DROP" link="ExoIconView.html#EXO-ICON-VIEW-NO-DROP:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_DROP_INTO" link="ExoIconView.html#EXO-ICON-VIEW-DROP-INTO:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_DROP_LEFT" link="ExoIconView.html#EXO-ICON-VIEW-DROP-LEFT:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_DROP_RIGHT" link="ExoIconView.html#EXO-ICON-VIEW-DROP-RIGHT:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_DROP_ABOVE" link="ExoIconView.html#EXO-ICON-VIEW-DROP-ABOVE:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_DROP_BELOW" link="ExoIconView.html#EXO-ICON-VIEW-DROP-BELOW:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_LAYOUT_ROWS" link="ExoIconView.html#EXO-ICON-VIEW-LAYOUT-ROWS:CAPS"/>
+    <keyword type="constant" name="EXO_ICON_VIEW_LAYOUT_COLS" link="ExoIconView.html#EXO-ICON-VIEW-LAYOUT-COLS:CAPS"/>
+  </functions>
+</book>

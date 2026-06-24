@@ -1,0 +1,192 @@
+/*
+ * Copyright (c) 2007 The Xfce Development Team
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301 USA
+ */
+
+/* This file lists all exported symbols. It is used to generate
+ * the gobject.def file used to control exports on Windows and the
+ * libxfce4ui-alias.h/libxfce4ui-aliasdef.c files used to avoid
+ * PLT entries for internal uses of exported functions (see
+ * make-libxfce4ui-alias.pl).
+ *
+ * Every symbol must be included in the right
+ * #ifdef IN_HEADER(sym) #endif and
+ * #ifdef IN_SOURCE(sym) #endif sections.
+ */
+
+#ifdef ALL_FILES
+#define IN_HEADER(x) 1
+#define IN_SOURCE(x) 1
+#endif
+
+/* libxfce4ui-config variables */
+#if IN_HEADER(__LIBXFCE4UI_CONFIG_H__)
+#if IN_SOURCE(__LIBXFCE4UI_CONFIG_C__)
+#ifdef INCLUDE_VARIABLES
+libxfce4ui_major_version
+libxfce4ui_minor_version
+libxfce4ui_micro_version
+#endif
+libxfce4ui_check_version
+#endif
+#endif
+
+/* libxfce4ui-enum-types functions */
+#if IN_HEADER(__LIBXFCE4UI_ENUM_TYPES_H__)
+#if IN_SOURCE(__LIBXFCE4UI_ENUM_TYPES_C__)
+xfce_sm_client_error_enum_get_type
+xfce_sm_client_restart_style_get_type
+xfce_sm_client_shutdown_hint_get_type
+#endif
+#endif
+
+/* xfce-dialogs functions */
+#if IN_HEADER(__XFCE_DIALOGS_H__)
+#if IN_SOURCE(__XFCE_DIALOGS_C__)
+xfce_dialog_show_help
+xfce_dialog_show_help_with_version
+xfce_dialog_show_info G_GNUC_PRINTF (3, 4)
+xfce_dialog_show_warning G_GNUC_PRINTF (3, 4)
+xfce_dialog_show_error G_GNUC_PRINTF (3, 4)
+xfce_dialog_confirm G_GNUC_PRINTF (5, 6)
+xfce_dialog_confirm_close_tabs
+xfce_message_dialog_new G_GNUC_NULL_TERMINATED G_GNUC_MALLOC
+xfce_message_dialog_new_valist G_GNUC_MALLOC
+xfce_message_dialog G_GNUC_NULL_TERMINATED
+#endif
+#endif
+
+/* xfce-gdk-extensions functions */
+#if IN_HEADER(__XFCE_GDK_EXTENSIONS_H__)
+#if IN_SOURCE(__XFCE_GDK_EXTENSIONS_C__)
+xfce_gdk_screen_get_active
+xfce_gdk_screen_get_geometry
+xfce_gdk_device_grab
+#endif
+#endif
+
+/* xfce-gtk-extensions functions */
+#if IN_HEADER(__XFCE_GTK_EXTENSIONS_H__)
+#if IN_SOURCE(__XFCE_GTK_EXTENSIONS_C__)
+xfce_gtk_menu_item_new
+xfce_gtk_image_menu_item_new
+xfce_gtk_image_menu_item_new_from_icon_name
+xfce_gtk_check_menu_item_new
+xfce_gtk_radio_menu_item_new
+xfce_gtk_menu_item_new_from_action_entry
+xfce_gtk_toggle_menu_item_new_from_action_entry
+xfce_gtk_tool_button_new_from_action_entry
+xfce_gtk_toggle_tool_button_new_from_action_entry
+xfce_gtk_accel_map_add_entries
+xfce_gtk_accel_group_connect_action_entries
+xfce_gtk_accel_group_disconnect_action_entries
+xfce_gtk_get_action_entry_by_id
+xfce_gtk_translate_action_entries
+xfce_gtk_handle_tab_accels
+xfce_gtk_execute_tab_accel
+xfce_gtk_menu_append_seperator
+xfce_gtk_menu_append_separator
+xfce_gtk_button_new_mixed G_GNUC_MALLOC
+xfce_gtk_frame_box_new G_GNUC_MALLOC
+xfce_gtk_frame_box_new_with_content G_GNUC_MALLOC
+xfce_gtk_window_center_on_active_screen
+xfce_gtk_menu_popup_until_mapped
+xfce_widget_reparent
+xfce_icon_name_from_desktop_id
+xfce_gicon_from_name
+xfce_gtk_menu_item_set_accel_label
+xfce_has_gtk_frame_extents
+xfce_gtk_label_set_a11y_relation
+#endif
+#endif
+
+/* xfce-spawn functions */
+#if IN_HEADER(__XFCE_SPAWN_H__)
+#if IN_SOURCE(__XFCE_SPAWN_C__)
+xfce_spawn_on_screen_with_child_watch
+xfce_spawn_on_screen
+xfce_spawn
+xfce_spawn_command_line_on_screen
+xfce_spawn_command_line
+#endif
+#endif
+
+/* xfce-filename-input functions */
+#if IN_HEADER(__XFCE_FILENAME_INPUT_H__)
+#if IN_SOURCE(__XFCE_FILENAME_INPUT_C__)
+xfce_filename_input_get_type
+xfce_filename_input_get_text
+xfce_filename_input_check
+xfce_filename_input_get_entry
+xfce_filename_input_sensitise_widget
+xfce_filename_input_desensitise_widget
+#endif
+#endif
+
+/* xfce-sm-client functions */
+#if IN_HEADER(__XFCE_SM_CLIENT_H__)
+#if IN_SOURCE(__XFCE_SM_CLIENT_C__)
+xfce_sm_client_get_type
+xfce_sm_client_get_option_group
+xfce_sm_client_get
+xfce_sm_client_get_with_argv
+xfce_sm_client_get_full
+xfce_sm_client_connect
+xfce_sm_client_disconnect
+xfce_sm_client_error_quark
+xfce_sm_client_is_connected
+xfce_sm_client_is_resumed
+xfce_sm_client_set_desktop_file
+xfce_sm_client_request_shutdown
+xfce_sm_client_get_client_id
+xfce_sm_client_get_state_file
+xfce_sm_client_set_restart_style
+xfce_sm_client_get_restart_style
+xfce_sm_client_set_priority
+xfce_sm_client_get_priority
+xfce_sm_client_set_restart_command
+xfce_sm_client_get_restart_command
+xfce_sm_client_set_current_directory
+xfce_sm_client_get_current_directory
+#endif
+#endif
+
+/* xfce-screensaver functions */
+#if IN_HEADER(__XFCE_SCREENSAVER_H__)
+#if IN_SOURCE(__XFCE_SCREENSAVER_C__)
+xfce_screensaver_get_type
+xfce_screensaver_new
+xfce_screensaver_inhibit
+xfce_screensaver_lock
+#endif
+#endif
+
+/* xfce-titled-dialog functions */
+#if IN_HEADER(__XFCE_TITLED_DIALOG_H__)
+#if IN_SOURCE(__XFCE_TITLED_DIALOG_C__)
+xfce_titled_dialog_get_type G_GNUC_CONST
+xfce_titled_dialog_new G_GNUC_MALLOC
+xfce_titled_dialog_new_with_buttons G_GNUC_MALLOC
+xfce_titled_dialog_new_with_mixed_buttons G_GNUC_MALLOC
+xfce_titled_dialog_get_subtitle
+xfce_titled_dialog_set_subtitle
+xfce_titled_dialog_create_action_area
+xfce_titled_dialog_add_button
+xfce_titled_dialog_add_action_widget
+xfce_titled_dialog_set_default_response
+#endif
+#endif

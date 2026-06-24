@@ -1,0 +1,2770 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Xfce Bot <transifex@xfce.org>, 2022
+# No Body, 2022
+# 玉堂白鹤 <yjwork@qq.com>, 2023
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-03 00:47+0100\n"
+"PO-Revision-Date: 2022-12-22 11:33+0000\n"
+"Last-Translator: 玉堂白鹤 <yjwork@qq.com>, 2023\n"
+"Language-Team: Chinese (China) (https://www.transifex.com/xfce/teams/16840/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. Translators: "Unknown" here is used to identify a monitor for which
+#. * we don't know the vendor. When a vendor is known, the name of the
+#. * vendor is used.
+#: ../common/display-name.c:2641
+msgctxt "Monitor vendor"
+msgid "Unknown"
+msgstr "未知"
+
+#: ../common/xfce-randr.c:299 ../dialogs/display-settings/main.c:4391
+#, c-format
+msgid "Unable to query the version of the RandR extension being used"
+msgstr "未能查询正在使用的 RandR 扩展的版本"
+
+#. 1.2 is required
+#: ../common/xfce-randr.c:307
+#, c-format
+msgid ""
+"This system is using RandR %d.%d. For the display settings to work version "
+"1.2 is required at least"
+msgstr "此系统正在使用 RandR %d.%d。若要使用显示设置，至少需要 1.2 版"
+
+#: ../common/xfce-randr.c:597
+msgid "Laptop"
+msgstr "笔记本电脑"
+
+#. TRANSLATORS: an externally connected display, where %s is either the
+#. * model, vendor or ID, e.g. 'LP2480zx Monitor'
+#: ../common/xfce-randr.c:610 ../dialogs/color-settings/color-device.c:65
+msgid "Monitor"
+msgstr "显示器"
+
+#: ../common/xfce-randr.c:613
+msgid "Television"
+msgstr "电视"
+
+#: ../common/xfce-randr.c:617
+msgid "Digital display"
+msgstr "数字显示"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:1
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:1
+msgid "Accessibility"
+msgstr "辅助功能"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:2
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:13
+#: ../dialogs/color-settings/color-dialog.glade.h:2
+#: ../dialogs/display-settings/display-dialog.glade.h:17
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:8
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:2
+#: ../dialogs/display-settings/main.c:4431
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:5
+#: ../dialogs/mime-settings/xfce-mime-window.c:187
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:13
+#: ../xfce4-settings-editor/main.c:166
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:232
+msgid "_Close"
+msgstr "关闭(_C)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:3
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:12
+#: ../dialogs/color-settings/color-dialog.glade.h:3
+#: ../dialogs/display-settings/display-dialog.glade.h:16
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:6
+#: ../dialogs/mime-settings/xfce-mime-window.c:190
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:12
+#: ../xfce4-settings-editor/main.c:165
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:221
+msgid "_Help"
+msgstr "帮助(_H)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:4
+msgid ""
+"When enabled, the session manager will start the required applications for "
+"screen readers and magnifiers."
+msgstr "如果启用，会话管理器会启动屏幕阅读器和放大镜所需的应用程序。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:5
+msgid "_Enable assistive technologies"
+msgstr "启用辅助技术(_E)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:6
+msgid "Start With Session"
+msgstr "随会话启动"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:7
+msgid "Assistive technologies will be available the next time you login"
+msgstr "辅助技术会在您下次登录时启用"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:8
+msgid "No AT-SPI provider was found on your system"
+msgstr "在您的系统上未发现 AT-SPI （辅助技术）提供者"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:9
+msgid "Assistive _Technologies"
+msgstr "辅助技术(_T)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:10
+msgid ""
+"When enabled, modifier keys (such as Control, Alt, and Shift) do not need to"
+" be held down (they can be pressed and then released) when multiple keys "
+"would normally need to be pressed at the same time."
+msgstr "启用后，通常在多个按键需要同时按下时，转义键(比如 Ctrl、Alt 和 Shift)不需要一直按住(可以按住它们后再松开)。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:11
+msgid "_Use sticky keys"
+msgstr "使用粘滞键(_U)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:12
+msgid "_Lock sticky keys"
+msgstr "锁定粘滞键(_L)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:13
+msgid ""
+"When selected, modifier keys (such as Control, Alt, and Shift) will remain "
+"locked in the pressed state until pressed again"
+msgstr "选中后，转义键(比如 Ctrl、Alt 和 Shift)会保持被按锁定状态直至下次再按"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:14
+msgid "Disable sticky keys if two keys are _pressed"
+msgstr "两个键同时按下时禁用粘滞键(_P)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:15
+msgid ""
+"When selected, the \"sticky keys\" feature will be disabled if two keys are "
+"pressed simultaneously"
+msgstr "选中后，如果同时按下两个键会禁用 “粘滞键” 功能"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:16
+msgid "Sticky Keys"
+msgstr "粘滞键"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:17
+msgid ""
+"To help prevent accidental keystrokes, slow keys requires that a key is held"
+" for a certain minimum amount of time before the keystroke will be accepted."
+msgstr "为防止意外按键，慢速键的要求是，在按住一个键经过一段最短时间后才接受此按键。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:18
+msgid "Use slow _keys"
+msgstr "使用慢速键(_K)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:19
+msgid "Acceptance _delay:"
+msgstr "接受延时(_D)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:20
+msgid ""
+"The amount of time, in milliseconds, that must elapse before a keystroke "
+"will be accepted"
+msgstr "以毫秒计的接受按键前必须经过的时间"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:21
+msgid "Slow Keys"
+msgstr "慢速键"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:22
+msgid ""
+"To help prevent accidental multiple keystrokes, bounce keys imposes a "
+"minimum delay between keystrokes."
+msgstr "为防止意外的重复按键，反弹键强制两次按键之间的最短延时。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:23
+msgid "Use _bounce keys"
+msgstr "使用反弹键(_B)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:24
+msgid "K_eystroke delay:"
+msgstr "按键延时(_E)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:25
+msgid "The amount of time, in milliseconds, required between keystrokes"
+msgstr "以毫秒计的两次按键间所需的时间"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:26
+msgid "Bounce Keys"
+msgstr "反弹键"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:27
+msgid "Keyboa_rd"
+msgstr "键盘(_R)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:28
+msgid ""
+"When enabled, the mouse pointer can be controlled using the keyboard number "
+"pad."
+msgstr "启用后，可以用数字小键盘控制鼠标光标。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:29
+msgid "_Use mouse emulation"
+msgstr "使用鼠标模拟(_U)"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:30
+msgid ""
+"When selected, the mouse pointer can be controlled using the keyboard number"
+" pad"
+msgstr "选中后，可以用数字小键盘控制鼠标光标"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:31
+msgid "msec"
+msgstr "毫秒"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:32
+msgid ""
+"The time, in milliseconds, between the initial key press and first repeated "
+"motion event"
+msgstr "以毫秒计的开始按键与第一次重复移动事件之间的时间"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:33
+msgid "_Acceleration delay:"
+msgstr "加速延时(_A)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:34
+msgid "R_epeat interval:"
+msgstr "重复间隔(_E)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:35
+msgid "The time, in milliseconds, between repeated motion events"
+msgstr "以毫秒计的重复移动事件间的时间"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:36
+msgid "Acceleration t_ime:"
+msgstr "加速时间(_I)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:37
+msgid "The time, in milliseconds, to get to maximum speed"
+msgstr "以毫秒计的到达最大速度的时间"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:38
+msgid "Ma_ximum speed:"
+msgstr "最大速度(_X)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:39
+msgid "The maximum pointer speed after acceleration"
+msgstr "加速后最大光标速度"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:40
+msgid "pixels/sec"
+msgstr "像素/秒"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:41
+msgid "Acceleration _profile:"
+msgstr "加速方式(_P)："
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:42
+msgid "The ramp used to reach maximum pointer speed"
+msgstr "到达最大光标速度的缓冲"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:43
+msgid "Mouse Emulation"
+msgstr "鼠标模拟"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:44
+msgid ""
+"Bind a keyboard shortcut to xfce4-find-cursor to get visual feedback of the "
+"mouse pointer's current location."
+msgstr "为 xfce4-find-cursor 设定一键盘快捷键以获得鼠标光标当前位置的视觉回馈。"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:45
+msgid "Show location of pointer on keypress"
+msgstr "在按下按键时显示鼠标指针的位置"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:46
+msgid "Find Cursor"
+msgstr "寻找光标"
+
+#: ../dialogs/accessibility-settings/accessibility-dialog.glade.h:47
+msgid "_Mouse"
+msgstr "鼠标(_M)"
+
+#: ../dialogs/accessibility-settings/main.c:46
+#: ../dialogs/appearance-settings/main.c:105
+#: ../dialogs/color-settings/main.c:48 ../dialogs/display-settings/main.c:140
+#: ../dialogs/keyboard-settings/main.c:40 ../dialogs/mime-settings/main.c:44
+#: ../dialogs/mouse-settings/main.c:87 ../xfce4-settings-editor/main.c:49
+msgid "Settings manager socket"
+msgstr "设置管理器套接字"
+
+#: ../dialogs/accessibility-settings/main.c:46
+#: ../dialogs/appearance-settings/main.c:105
+#: ../dialogs/color-settings/main.c:48 ../dialogs/display-settings/main.c:140
+#: ../dialogs/keyboard-settings/main.c:40 ../dialogs/mime-settings/main.c:44
+#: ../dialogs/mouse-settings/main.c:87 ../xfce4-settings-editor/main.c:49
+msgid "SOCKET ID"
+msgstr "套接字 ID"
+
+#: ../dialogs/accessibility-settings/main.c:47
+#: ../dialogs/appearance-settings/main.c:106
+#: ../dialogs/color-settings/main.c:49 ../dialogs/display-settings/main.c:141
+#: ../dialogs/keyboard-settings/main.c:41 ../dialogs/mime-settings/main.c:45
+#: ../dialogs/mouse-settings/main.c:88 ../xfce4-settings-editor/main.c:50
+#: ../xfce4-settings-manager/main.c:43 ../xfsettingsd/main.c:102
+msgid "Version information"
+msgstr "版本信息"
+
+#: ../dialogs/accessibility-settings/main.c:200
+#: ../dialogs/appearance-settings/main.c:1401
+#: ../dialogs/color-settings/main.c:1379
+#: ../dialogs/display-settings/main.c:4359
+#: ../dialogs/keyboard-settings/main.c:78 ../dialogs/mime-settings/main.c:83
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:158
+#: ../dialogs/mouse-settings/main.c:1892 ../xfce4-settings-editor/main.c:120
+#: ../xfce4-settings-manager/main.c:64 ../xfsettingsd/main.c:242
+#: ../xfsettingsd/main.c:280
+#, c-format
+msgid "Type '%s --help' for usage."
+msgstr "输入 ‘%s --help’ 获取用法。"
+
+#: ../dialogs/accessibility-settings/main.c:219
+#: ../dialogs/appearance-settings/main.c:1420
+#: ../dialogs/color-settings/main.c:1396
+#: ../dialogs/display-settings/main.c:4378
+#: ../dialogs/keyboard-settings/main.c:94 ../dialogs/mime-settings/main.c:102
+#: ../dialogs/mouse-settings/main.c:1911 ../xfce4-settings-editor/main.c:139
+#: ../xfce4-settings-manager/main.c:80 ../xfsettingsd/main.c:258
+msgid "The Xfce development team. All rights reserved."
+msgstr "Xfce 开发团队。保留所有权利。"
+
+#: ../dialogs/accessibility-settings/main.c:220
+#: ../dialogs/appearance-settings/main.c:1421
+#: ../dialogs/color-settings/main.c:1397
+#: ../dialogs/display-settings/main.c:4379
+#: ../dialogs/keyboard-settings/main.c:95 ../dialogs/mime-settings/main.c:103
+#: ../dialogs/mouse-settings/main.c:1912 ../xfce4-settings-editor/main.c:140
+#: ../xfce4-settings-manager/main.c:81 ../xfsettingsd/main.c:259
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "请向 <%s> 报告缺陷。"
+
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:2
+msgid "Improve keyboard and mouse accessibility"
+msgstr "改善键盘和鼠标的辅助功能"
+
+#: ../dialogs/accessibility-settings/xfce4-accessibility-settings.desktop.in.h:3
+msgid ""
+"assistive;technologies;keys;sticky;bounce;emulation;screen "
+"readers;magnifiers;a11y;i18n;l10n;AT-SPI;ATK;impairment;"
+msgstr ""
+"assistive;technologies;keys;sticky;bounce;emulation;screen "
+"readers;magnifiers;a11y;i18n;l10n;AT-"
+"SPI;ATK;impairment;辅助;技术;按键;粘滞;反弹;仿真;屏幕阅读;放大镜;缺陷;"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:1
+#: ../dialogs/appearance-settings/main.c:1276
+#: ../dialogs/display-settings/main.c:107
+#: ../dialogs/display-settings/main.c:118
+msgid "None"
+msgstr "无"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:2
+msgid "Slight"
+msgstr "略微"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:3
+msgid "Medium"
+msgstr "中度"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:4
+msgid "Full"
+msgstr "全部"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:5
+msgid "Icons"
+msgstr "图标"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:6
+msgid "Text"
+msgstr "文字"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:7
+msgid "Text under icons"
+msgstr "文字在图标下"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:8
+msgid "Text next to icons"
+msgstr "文字在图标旁"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:9
+msgid "1x (no scaling)"
+msgstr "1x (无缩放)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:10
+#: ../dialogs/display-settings/display-dialog.glade.h:4
+msgid "2x"
+msgstr "2x"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:11
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:1
+msgid "Appearance"
+msgstr "外观"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:14
+#: ../dialogs/color-settings/color-dialog.glade.h:10
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:24
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:354
+msgid "_Add"
+msgstr "添加(_A)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:15
+msgid "Set matching Xfwm4 theme if there is one"
+msgstr "有则设置匹配的 Xfwm4 主题 "
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:16
+msgid "St_yle"
+msgstr "样式(_Y)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:17
+msgid "_Icons"
+msgstr "图标(_I)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:18
+msgid ""
+"This font will be used as the default font used when drawing user interface "
+"text"
+msgstr "此字体将作为绘制用户界面文字所用的默认字体"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:19
+msgid "Select a default font"
+msgstr "选择默认字体"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:20
+msgid "Default Fon_t"
+msgstr "默认字体(_T)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:21
+msgid ""
+"This font will be used as the default monospace font, for example by "
+"terminal emulators."
+msgstr "此字体将用作默认等宽字体，比如用于终端仿真器。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:22
+msgid "Select a default monospace font"
+msgstr "选择默认等宽字体"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:23
+msgid "Default _Monospace Font"
+msgstr "默认等宽字体(_M)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:24
+msgid "_Enable anti-aliasing"
+msgstr "启用抗锯齿(_E)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:25
+msgid ""
+"Anti-aliasing, or font smoothing, can improve the look of text on the screen"
+msgstr "抗锯齿或平滑字体会改善屏幕上文字的外观"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:26
+msgid "Hintin_g:"
+msgstr "微调(_G)："
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:27
+msgid ""
+"Many fonts contain information that provides extra hints as to how best draw"
+" the font; pick whichever looks best according to personal preference"
+msgstr "许多字体包含提供如何最好绘制此字体的额外提示；可以根据自己的喜好挑选最好看的"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:28
+msgid "Sub-_pixel order:"
+msgstr "次像素次序(_P)："
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:29
+msgid ""
+"Font quality on a TFT or LCD screen can be greatly improved by choosing the "
+"correct sub-pixel order of the screen"
+msgstr "TFT 或 LCD 显示屏上的字体质量能通过选择适当的屏幕次像素次序极大地改善"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:30
+msgid "Rendering"
+msgstr "渲染"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:31
+msgid "Custom _DPI setting:"
+msgstr "自定义 DPI 设置(_D)："
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:32
+msgid ""
+"Override the detected monitor resolution if fonts look too large or too "
+"small"
+msgstr "如果字体太大或太小则忽略显示器的分辨率"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:33
+msgid "DPI"
+msgstr "DPI"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:34
+msgid "_Fonts"
+msgstr "字体(_F)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:35
+msgid "Show images on _buttons"
+msgstr "在按钮上显示图片(_B)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:36
+msgid "Specify whether icons should be displayed next to text in buttons"
+msgstr "指定是否在按钮中文字的旁边显示图标"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:37
+msgid "Show images in _menus"
+msgstr "在菜单中显示图片(_M)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:38
+msgid "Specify whether icons should be displayed next to items in menus"
+msgstr "指定是否在菜单中项目的旁边显示图标"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:39
+msgid "Enable e_ditable accelerators"
+msgstr "启用可编辑快捷键(_D)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:40
+msgid ""
+"If selected, keyboard shortcuts for menu items can be changed by hovering "
+"the mouse over the menu item and pressing the new key combination for the "
+"shortcut"
+msgstr "选中后，将鼠标停在菜单项目上然后按新的按键组合可更改此菜单项目的键盘快捷键"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:41
+msgid "Enable header bars in dialo_gs"
+msgstr "在对话框中启用标题栏(_G)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:42
+msgid ""
+"Defines whether GTK dialogs may place widgets such as buttons in the "
+"dialog's header bar. Implies in Client Side Decoration. Only affects newly "
+"opened dialogs."
+msgstr "定义 GTK 对话方块是否可在对话框的标题栏里放置如按钮等的控制元件。隐含在客户端装饰中。仅影响新开启的对话框。"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:43
+msgid "Menus and Buttons"
+msgstr "菜单和按钮"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:44
+msgid "Enable _event sounds"
+msgstr "启用事件声音(_E)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:45
+msgid "Enable or disable event sounds globally (requires \"Canberra\" support)"
+msgstr "全局启用或禁用事件声音(需要 “Canberra” 支持)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:46
+msgid "Enable input feedbac_k sounds"
+msgstr "启用输入回声(_K)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:47
+msgid ""
+"Specify whether mouse clicks and other user input will cause event sounds to"
+" play"
+msgstr "指定在鼠标点击和其它用户输入时是否播放事件声音"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:48
+msgid "Event sounds"
+msgstr "事件声音"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:49
+msgid "Adjust the system-wide display scaling"
+msgstr "调整系统全局显示缩放"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:50
+msgid "_Window Scaling"
+msgstr "窗口缩放(_W)"
+
+#: ../dialogs/appearance-settings/appearance-dialog.glade.h:51
+msgid "Setti_ngs"
+msgstr "设置(_N)"
+
+#: ../dialogs/appearance-settings/main.c:481
+#, c-format
+msgid ""
+"Warning: this icon theme has no cache file. You can create this by running "
+"<i>gtk-update-icon-cache %s/%s/</i> in a terminal emulator."
+msgstr "警告：此图标主题没有缓存文件。您可以在终端模拟器中运行 <i>gtk-update-icon-cache %s/%s/</i> 创建它。"
+
+#: ../dialogs/appearance-settings/main.c:973
+#, c-format
+msgid "File is too large, installation aborted"
+msgstr "文件太大，安装已中止"
+
+#: ../dialogs/appearance-settings/main.c:978
+msgid "Failed to create temporary directory"
+msgstr "无法创建临时目录"
+
+#: ../dialogs/appearance-settings/main.c:983
+msgid "Failed to extract archive"
+msgstr "无法提取归档文件"
+
+#: ../dialogs/appearance-settings/main.c:988
+msgid "Unknown format, only archives and directories are supported"
+msgstr "未知格式，仅支持归档文件和目录"
+
+#: ../dialogs/appearance-settings/main.c:993
+msgid "Not a valid theme package"
+msgstr "不是有效的主题包"
+
+#: ../dialogs/appearance-settings/main.c:998
+#, c-format
+msgid "An unknown error, exit code is %d"
+msgstr "未知错误，退出代码是 %d"
+
+#: ../dialogs/appearance-settings/main.c:1005
+msgid "Failed to install theme"
+msgstr "无法安装主题"
+
+#: ../dialogs/appearance-settings/main.c:1059
+#, c-format
+msgid "Install %s theme"
+msgstr "安装 %s 主题"
+
+#. Create cancel button
+#: ../dialogs/appearance-settings/main.c:1063
+#: ../dialogs/color-settings/color-dialog.glade.h:18
+#: ../dialogs/color-settings/main.c:130
+#: ../dialogs/keyboard-settings/command-dialog.c:116
+#: ../dialogs/keyboard-settings/command-dialog.c:280
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:2
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:428
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:573
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:107
+msgid "_Cancel"
+msgstr "取消(_C)"
+
+#: ../dialogs/appearance-settings/main.c:1065
+#: ../dialogs/keyboard-settings/command-dialog.c:281
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:429
+msgid "_Open"
+msgstr "打开(_O)"
+
+#: ../dialogs/appearance-settings/main.c:1280
+msgid "RGB"
+msgstr "RGB"
+
+#: ../dialogs/appearance-settings/main.c:1284
+msgid "BGR"
+msgstr "BGR"
+
+#: ../dialogs/appearance-settings/main.c:1288
+msgid "Vertical RGB"
+msgstr "竖直 RGB"
+
+#: ../dialogs/appearance-settings/main.c:1292
+msgid "Vertical BGR"
+msgstr "竖直 BGR"
+
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:2
+msgid "Customize the look of your desktop"
+msgstr "设置桌面外观"
+
+#: ../dialogs/appearance-settings/xfce-ui-settings.desktop.in.h:3
+msgid ""
+"themes;user interface;styles;icons;fonts;anti-aliasing;hinting;sub-"
+"pixel;subpixel;rendering;ClearType;DPI;RGB;BGR;menu accelerators;keyboard "
+"shortcuts;event;sounds;window scaling;HiDPI;Retina display;"
+msgstr ""
+"themes;user interface;styles;icons;fonts;anti-aliasing;hinting;sub-"
+"pixel;subpixel;rendering;ClearType;DPI;RGB;BGR;menu accelerators;keyboard "
+"shortcuts;event;sounds;window scaling;HiDPI;Retina "
+"display;主题;用户界面;样式;图标;字体;抗锯齿;微调;次像素;次像素;渲染;菜单加速器;键盘快捷键;事件;声音;窗口缩放;视网膜显示;"
+
+#. TRANSLATORS: a flatbed scanner device, e.g. 'Epson Scanner'
+#: ../dialogs/color-settings/color-device.c:68
+msgid "Scanner"
+msgstr "扫描仪"
+
+#. TRANSLATORS: a camera device, e.g. 'Nikon D60 Camera'
+#: ../dialogs/color-settings/color-device.c:71
+msgid "Camera"
+msgstr "相机"
+
+#. TRANSLATORS: a printer device, e.g. 'Epson Photosmart Printer'
+#: ../dialogs/color-settings/color-device.c:74
+msgid "Printer"
+msgstr "打印机"
+
+#. TRANSLATORS: a webcam device, e.g. 'Philips HiDef Camera'
+#: ../dialogs/color-settings/color-device.c:77
+msgid "Webcam"
+msgstr "网络摄像头"
+
+#. TRANSLATORS: This refers to the TFT display on a laptop
+#: ../dialogs/color-settings/color-device.c:94
+msgid "Laptop Screen"
+msgstr "笔记本电脑显示屏"
+
+#. TRANSLATORS: This refers to the embedded webcam on a laptop
+#: ../dialogs/color-settings/color-device.c:102
+msgid "Built-in Webcam"
+msgstr "内置网络摄像头"
+
+#: ../dialogs/color-settings/color-device.c:195
+#, c-format
+msgid "Enable color management for %s"
+msgstr "为 %s 启用色彩管理"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:1
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:1
+msgid "Color Profiles"
+msgstr "色彩配置文件"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:4
+msgid "<b>No devices found.</b>"
+msgstr "<b>找不到设备。</b>"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:5
+msgid "Model:"
+msgstr "型号："
+
+#: ../dialogs/color-settings/color-dialog.glade.h:6
+msgid "Colorspace:"
+msgstr "色彩空间："
+
+#: ../dialogs/color-settings/color-dialog.glade.h:7
+msgid "Vendor:"
+msgstr "厂商："
+
+#: ../dialogs/color-settings/color-dialog.glade.h:8
+msgid "Calibrate"
+msgstr "校准"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:9
+msgid "<b>No profiles for the selected device.</b>"
+msgstr "<b>没有所选设备的配置文件。</b>"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:11
+msgid "Add a profile to the currently selected device"
+msgstr "将配置文件添加到当前所选设备"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:12
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:26
+msgid "_Remove"
+msgstr "移除(_R)"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:13
+msgid "Delete the currently selected profile"
+msgstr "删除当前选择的配置文件"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:14
+msgid "Show detailed information about the selected profile"
+msgstr "显示所选配置文件的详细信息"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:15
+msgid "Enable"
+msgstr "启用"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:16
+msgid "Enable the selected profile"
+msgstr "启用所选配置文件"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:17
+msgid "Add Profile to Device"
+msgstr "添加配置文件到设备"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:19
+#: ../dialogs/keyboard-settings/command-dialog.c:120
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:3
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:574
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:108
+msgid "_OK"
+msgstr "确定(_O)"
+
+#: ../dialogs/color-settings/color-dialog.glade.h:20
+msgid "Import color profile files (*.icc)"
+msgstr "导入颜色配置文件 (*.icc)"
+
+#. TRANSLATORS: standard spaces are well known colorspaces like
+#. * sRGB, AdobeRGB and ProPhotoRGB
+#: ../dialogs/color-settings/color-profile.c:94
+msgid "Standard Space"
+msgstr "标准色彩空间"
+
+#. TRANSLATORS: test profiles do things like changing the screen
+#. * a different color, or swap the red and green channels
+#: ../dialogs/color-settings/color-profile.c:99
+msgid "Test Profile"
+msgstr "测试配置文件"
+
+#. TRANSLATORS: automatic profiles are generated automatically
+#. * by the color management system based on manufacturing data,
+#. * for instance the default monitor profile is created from the
+#. * primaries specified in the monitor EDID
+#: ../dialogs/color-settings/color-profile.c:106
+msgctxt "Automatically generated profile"
+msgid "Automatic"
+msgstr "自动"
+
+#. TRANSLATORS: the profile quality - low quality profiles take
+#. * much less time to generate but may be a poor reflection of the
+#. * device capability
+#: ../dialogs/color-settings/color-profile.c:115
+msgctxt "Profile quality"
+msgid "Low Quality"
+msgstr "低质量"
+
+#. TRANSLATORS: the profile quality
+#: ../dialogs/color-settings/color-profile.c:119
+msgctxt "Profile quality"
+msgid "Medium Quality"
+msgstr "中等质量"
+
+#. TRANSLATORS: the profile quality - high quality profiles take
+#. * a *long* time, and have the best calibration and
+#. * characterisation data.
+#: ../dialogs/color-settings/color-profile.c:125
+msgctxt "Profile quality"
+msgid "High Quality"
+msgstr "高质量"
+
+#. TRANSLATORS: this default RGB space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:140
+msgctxt "Colorspace fallback"
+msgid "Default RGB"
+msgstr "默认 RGB"
+
+#. TRANSLATORS: this default CMYK space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:146
+msgctxt "Colorspace fallback"
+msgid "Default CMYK"
+msgstr "默认 CMYK"
+
+#. TRANSLATORS: this default gray space is used for printers that
+#. * do not have additional printer profiles specified in the PPD
+#: ../dialogs/color-settings/color-profile.c:152
+msgctxt "Colorspace fallback"
+msgid "Default Gray"
+msgstr "默认 Gray"
+
+#. TRANSLATORS: an ICC profile is a file containing colorspace data
+#: ../dialogs/color-settings/main.c:128
+msgid "Select ICC Profile File"
+msgstr "选择 ICC 配置文件"
+
+#: ../dialogs/color-settings/main.c:131
+msgid "_Import"
+msgstr "导入(_I)"
+
+#. TRANSLATORS: filter name on the file->open dialog
+#: ../dialogs/color-settings/main.c:142
+msgid "Supported ICC profiles"
+msgstr "支持的 ICC 配置文件"
+
+#. TRANSLATORS: filter name on the file->open dialog
+#: ../dialogs/color-settings/main.c:149
+msgid "All files"
+msgstr "所有文件"
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile has been auto-generated for this hardware
+#: ../dialogs/color-settings/main.c:191
+msgid "Default: "
+msgstr "默认： "
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile his a standard space like AdobeRGB
+#: ../dialogs/color-settings/main.c:197
+msgid "Colorspace: "
+msgstr "色彩空间： "
+
+#. TRANSLATORS: this is a profile prefix to signify the
+#. * profile is a test profile
+#: ../dialogs/color-settings/main.c:203
+msgid "Test profile: "
+msgstr "测试配置文件： "
+
+#: ../dialogs/color-settings/main.c:238
+msgid "Compatible Profiles"
+msgstr "兼容的配置文件"
+
+#: ../dialogs/color-settings/main.c:825 ../dialogs/color-settings/main.c:826
+#: ../dialogs/color-settings/main.c:827
+msgid "Unknown"
+msgstr "未知的"
+
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:2
+msgid "Set color profiles"
+msgstr "设置色彩配置文件"
+
+#: ../dialogs/color-settings/xfce4-color-settings.desktop.in.h:3
+msgid "color;settings;management;display;monitors;printers;webcams;scanners;"
+msgstr ""
+"color;settings;management;display;monitors;printers;webcams;scanners;颜色;设置;管理;显示;显示器;打印机;网络摄像头;扫描仪;"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:1
+msgid "<b><big>Would you like to keep this configuration?</big></b>"
+msgstr "<b><big>您想要保留此配置吗？</big></b>"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:2
+msgid ""
+"The previous configuration will be restored in <b>10 seconds</b> if you do "
+"not reply to this question."
+msgstr "如果您不答复此问题，先前的配置将在 <b>10 秒</b>内恢复。"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:3
+msgid "Keep this configuration"
+msgstr "保留此配置"
+
+#: ../dialogs/display-settings/confirmation-dialog.glade.h:4
+msgid "Restore the previous configuration"
+msgstr "恢复先前的配置"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:1
+msgid "1.25x"
+msgstr "1.25x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:2
+msgid "1.5x"
+msgstr "1.5x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:3
+msgid "1.75x"
+msgstr "1.75x"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:5
+msgid "Custom:"
+msgstr "自定义:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:6
+msgid "Do nothing"
+msgstr "什么都不做"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:7
+msgid "Show dialog"
+msgstr "显示对话框"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:8
+msgid "Mirror"
+msgstr "镜像"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:9
+msgid "Extend"
+msgstr "扩展"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:10
+msgid "The primary display is currently configured to show:"
+msgstr "主显示器当前配置为显示："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:11
+msgid "Xfce Panel"
+msgstr "Xfce 面板"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:12
+msgid "Desktop icons"
+msgstr "桌面图标"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:13
+msgid "Notifications"
+msgstr "通知"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:14
+msgid "Configure..."
+msgstr "配置..."
+
+#: ../dialogs/display-settings/display-dialog.glade.h:15
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:1
+msgid "Display"
+msgstr "显示"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:18
+msgid "_Mirror displays"
+msgstr "镜像显示(_M)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:19
+msgid "Primary Display:"
+msgstr "主显示器："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:20
+msgid "R_esolution:"
+msgstr "分辨率(_E)："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:21
+msgid "Refresh _rate:"
+msgstr "刷新率(_R)："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:22
+msgid "Ro_tation:"
+msgstr "旋转(_T)："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:23
+msgid "Ref_lection:"
+msgstr "镜像(_L)："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:24
+msgid "A_pply"
+msgstr "应用(_P)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:25
+msgid "_Scale:"
+msgstr "缩放(_S):"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:26
+msgid "X:"
+msgstr "X:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:27
+msgid "Y:"
+msgstr "Y:"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:28
+msgid "_General"
+msgstr "常规(_G)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:29
+msgid "<b>Profiles</b>"
+msgstr "<b>配置</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:30
+msgid "<b>Connecting Displays</b>"
+msgstr "<b>连接显示器</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:31
+msgid "Delete the currently selected display profile."
+msgstr "删除当前选择的显示配置文件。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:32
+msgid "Apply"
+msgstr "应用"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:33
+msgid "Apply the currently selected display profile."
+msgstr "应用当前选择的显示配置文件。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:34
+msgid "Create a new display profile."
+msgstr "创建新的显示配置文件。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:35
+msgid "Update an existing profile."
+msgstr "更新现有配置文件。"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:36
+msgid "Automatically enable profiles when new display is connected"
+msgstr "连接新显示器时自动启用配置文件"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:37
+msgid "When new displays are connected:"
+msgstr "连接新显示器时："
+
+#: ../dialogs/display-settings/display-dialog.glade.h:38
+msgid "Show popup windows to identify displays"
+msgstr "显示弹出窗口以识别显示器"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:39
+msgid "<b>Identifying Displays</b>"
+msgstr "<b>识别显示器</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:40
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:6
+msgid "_Advanced"
+msgstr "高级(_A)"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:41
+msgid "<b>Profile Name</b>"
+msgstr "<b>配置文件名称</b>"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:42
+msgid "Create"
+msgstr "创建"
+
+#: ../dialogs/display-settings/display-dialog.glade.h:43
+msgid "A profile of this name already exists."
+msgstr "此名称的配置文件已存在。"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:1
+msgid "Displays"
+msgstr "显示"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:2
+msgid "Only Display 1"
+msgstr "只在显示 1"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:3
+msgid "Mirror Displays"
+msgstr "镜像显示"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:4
+msgid "Extend to the right"
+msgstr "扩展至右方"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:5
+msgid "Only Display 2"
+msgstr "只在显示 2"
+
+#: ../dialogs/display-settings/minimal-display-dialog.glade.h:7
+msgid "radiobutton"
+msgstr "单选框"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:1
+msgid "Update Display Profile"
+msgstr "更新显示配置文件"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:3
+msgid "_Update"
+msgstr "更新(_U)"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:4
+msgid ""
+"<big><b>You have made changes to your previously active profile</b></big>"
+msgstr "<big><b>您已经更改了上次的活动配置。</b></big>"
+
+#: ../dialogs/display-settings/profile-changed-dialog.glade.h:5
+msgid ""
+"If you don't update the profile your changes will be lost upon restarting "
+"your session or disconnecting or connecting a display."
+msgstr "如果您不更新配置文件，则在重新启动会话或断开连接或连接显示器时，您的更改将会丢失。"
+
+#: ../dialogs/display-settings/main.c:108
+msgid "Left"
+msgstr "左"
+
+#: ../dialogs/display-settings/main.c:109
+msgid "Inverted"
+msgstr "翻转"
+
+#: ../dialogs/display-settings/main.c:110
+msgid "Right"
+msgstr "右"
+
+#: ../dialogs/display-settings/main.c:119
+msgid "Horizontal"
+msgstr "水平"
+
+#: ../dialogs/display-settings/main.c:120
+msgid "Vertical"
+msgstr "竖直"
+
+#: ../dialogs/display-settings/main.c:121
+msgid "Horizontal and Vertical"
+msgstr "水平和竖直"
+
+#: ../dialogs/display-settings/main.c:142
+msgid "Minimal interface to set up an external output"
+msgstr "设置外部输出的最小界面"
+
+#: ../dialogs/display-settings/main.c:324
+#, c-format
+msgid ""
+"The previous configuration will be restored in <b>%i seconds</b> if you do "
+"not reply to this question."
+msgstr "如果您不答复此问题，先前的配置将在 <b>%i</b> 秒内恢复。"
+
+#. Insert the mode
+#: ../dialogs/display-settings/main.c:783
+#, c-format
+msgid "%.2f Hz"
+msgstr "%.2f Hz"
+
+#: ../dialogs/display-settings/main.c:1181
+msgid "Display:"
+msgstr "显示:"
+
+#: ../dialogs/display-settings/main.c:1186
+msgid "Resolution:"
+msgstr "分辨率："
+
+#: ../dialogs/display-settings/main.c:1466
+msgid ""
+"The last active output must not be disabled, the system would be unusable."
+msgstr "绝不能禁用上一个活动输出，否则系统将不可用。"
+
+#: ../dialogs/display-settings/main.c:1468
+msgid "Selected output not disabled"
+msgstr "未禁用选中的输出"
+
+#: ../dialogs/display-settings/main.c:1645
+msgid "Profiles matching the currently connected displays"
+msgstr "与当前连接的显示器匹配的配置"
+
+#: ../dialogs/display-settings/main.c:1851
+#, c-format
+msgid "Update changed display profile '%s'?"
+msgstr "更新已更改的显示配置 '%s'?"
+
+#: ../dialogs/display-settings/main.c:1856
+#, c-format
+msgid "_Update '%s'"
+msgstr "更新 '%s'(_U)"
+
+#: ../dialogs/display-settings/main.c:2144
+#, c-format
+msgid "Do you want to delete the display profile '%s'?"
+msgstr "您真的要删除显示配置文件 '%s'吗?"
+
+#: ../dialogs/display-settings/main.c:2146
+msgid "Delete Profile"
+msgstr "删除配置文件"
+
+#: ../dialogs/display-settings/main.c:2149
+msgid "Once a display profile is deleted it cannot be restored."
+msgstr "一旦删除显示配置文件后，将无法恢复。"
+
+#: ../dialogs/display-settings/main.c:2150
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:134
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:382
+#: ../dialogs/mime-settings/xfce-mime-window.c:1129
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:144
+msgid "Cancel"
+msgstr "取消"
+
+#: ../dialogs/display-settings/main.c:2151
+msgid "Delete"
+msgstr "删除"
+
+#: ../dialogs/display-settings/main.c:2256
+#, c-format
+msgid "%d Xfce Panels"
+msgstr "Xfce 面板 %d"
+
+#: ../dialogs/display-settings/main.c:3293
+msgid ""
+"Select a monitor to change its properties; drag it to rearrange its "
+"placement."
+msgstr "选取一个屏幕以改变其属性；拖曳以重新排列其位置。"
+
+#: ../dialogs/display-settings/main.c:3336
+#: ../dialogs/display-settings/main.c:3412
+#, c-format
+msgid "(%i, %i)"
+msgstr "(%i, %i)"
+
+#. Translators:  this is the feature where what you see on your laptop's
+#. * screen is the same as your external monitor.  Here, "Mirror" is being
+#. * used as an adjective, not as a verb.  For example, the Spanish
+#. * translation could be "Pantallas en Espejo", *not* "Espejar Pantallas".
+#: ../dialogs/display-settings/main.c:3627
+msgid "Mirror Screens"
+msgstr "镜像屏幕"
+
+#: ../dialogs/display-settings/main.c:3677
+msgid "(Disabled)"
+msgstr "(已停用)"
+
+#: ../dialogs/display-settings/main.c:4196
+#, c-format
+msgid "Only %s (1)"
+msgstr "只有%s（1）"
+
+#: ../dialogs/display-settings/main.c:4207
+#, c-format
+msgid "Only %s (2)"
+msgstr "只有%s（2）"
+
+#: ../dialogs/display-settings/main.c:4392
+#: ../dialogs/display-settings/main.c:4429
+msgid "Unable to start the Xfce Display Settings"
+msgstr "未能启动 Xfce 显示设置"
+
+#: ../dialogs/display-settings/main.c:4424
+msgid "ATI Settings"
+msgstr "ATI 设置"
+
+#: ../dialogs/display-settings/main.c:4439
+msgid "Unable to launch the proprietary driver settings"
+msgstr "未能启动非自由驱动设置"
+
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:2
+msgid "Configure screen settings and layout"
+msgstr "配置屏幕设置和布局"
+
+#: ../dialogs/display-settings/xfce-display-settings.desktop.in.h:3
+msgid ""
+"display;settings;screen;resolution;refresh;rate;rotation;external;projectors;monitors;LCD;CRT;HiDPI;"
+msgstr ""
+"display;settings;screen;resolution;refresh;rate;rotation;external;projectors;monitors;LCD;CRT;HiDPI;显示;设置;屏幕;分辨率;刷新;速率;旋转;外部;投影仪;显示器;"
+
+#. Set dialog title and icon
+#: ../dialogs/keyboard-settings/command-dialog.c:110
+msgid "Shortcut Command"
+msgstr "快捷键命令"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:142
+msgid "Enter the command you want to trigger with a shortcut."
+msgstr "输入您希望使用快捷键触发的命令。"
+
+#. We are editing an existing shortcut
+#: ../dialogs/keyboard-settings/command-dialog.c:160
+msgid "Shortcut:"
+msgstr "快捷键："
+
+#: ../dialogs/keyboard-settings/command-dialog.c:185
+msgid "Comm_and:"
+msgstr "命令(_A)："
+
+#: ../dialogs/keyboard-settings/command-dialog.c:210
+msgid "Use _startup notification"
+msgstr "使用启动通知(_S)"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:257
+msgid "The command may not be empty."
+msgstr "命令不能为空。"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:277
+msgid "Select command"
+msgstr "选择命令"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:285
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:389
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:435
+msgid "All Files"
+msgstr "所有文件"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:290
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:394
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:440
+msgid "Executable Files"
+msgstr "可执行文件"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:305
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:409
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:455
+msgid "Perl Scripts"
+msgstr "Perl 脚本"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:311
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:415
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:461
+msgid "Python Scripts"
+msgstr "Python 脚本"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:317
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:421
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:467
+msgid "Ruby Scripts"
+msgstr "Ruby 脚本"
+
+#: ../dialogs/keyboard-settings/command-dialog.c:323
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:427
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:473
+msgid "Shell Scripts"
+msgstr "Shell 脚本"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:1
+msgid "Keyboard layout selection"
+msgstr "键盘布局选择器"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:4
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:1
+msgid "Keyboard"
+msgstr "键盘"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:7
+msgid "Restore num l_ock state on startup"
+msgstr "启动时恢复数字键状态(_O)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:8
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:32
+msgid "General"
+msgstr "常规"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:9
+msgid "_Enable key repeat"
+msgstr "启用按键重复(_E)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:10
+msgid ""
+"When selected, pressing and holding down a key emits the same character over"
+" and over again"
+msgstr "选中后，按住一个按键不放会一直重复释放此字符"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:11
+msgid "_Repeat delay:"
+msgstr "重复延时(_R)："
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:12
+msgid "The time, in milliseconds, before a pressed key begins repeating"
+msgstr "以毫秒计的按键开始重复的时间"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:13
+msgid "Repe_at speed:"
+msgstr "重复速度(_A)："
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:14
+msgid "The rate at which keystrokes are generated while a key is pressed"
+msgstr "按住按键时产生的按键重复频率"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:15
+msgid "Typing Settings"
+msgstr "输入设置"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:16
+msgid "Show _blinking"
+msgstr "显示闪烁(_B)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:17
+msgid "Specify whether or not the text cursor blinks"
+msgstr "指定文字光标是否闪烁"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:18
+msgid "Blink _delay:"
+msgstr "闪烁延时(_D)："
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:19
+msgid "The delay, in milliseconds, between successive blinks of the cursor"
+msgstr "以毫秒计的光标连续闪烁间的延时"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:20
+msgid "Cursor"
+msgstr "光标"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:21
+msgid "_Test area:"
+msgstr "测试区域(_T)："
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:22
+msgid "Beha_vior"
+msgstr "行为(_V)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:23
+msgid "Define shortcuts for la_unching applications:"
+msgstr "定义启动应用程序的快捷键(_U)："
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:25
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:367
+msgid "_Edit"
+msgstr "编辑(_E)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:27
+msgid "Reset to _Defaults"
+msgstr "重置为默认(_D)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:28
+msgid "A_pplication Shortcuts"
+msgstr "应用程序快捷键(_P)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:29
+msgid "<b>Use system defaults</b>"
+msgstr "<b>使用系统默认</b>"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:30
+msgid "_Keyboard model"
+msgstr "键盘型号(_K)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:31
+msgid "Change la_yout option"
+msgstr "更改布局选项(_Y)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:32
+msgid "Co_mpose key"
+msgstr "组合键(_M)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:33
+msgid "Move currently selected item up by one row"
+msgstr "将当前选中的项目上移一行"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:34
+msgid "Move currently selected item down by one row"
+msgstr "将当前选中的项目下移一行"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:35
+msgid "Key_board layout"
+msgstr "键盘布局(_B)"
+
+#: ../dialogs/keyboard-settings/keyboard-dialog.glade.h:36
+msgid "_Layout"
+msgstr "布局(_L)"
+
+#: ../dialogs/keyboard-settings/main.c:84
+msgid "Unable to initialize GTK+."
+msgstr "未能初始化 GTK+。"
+
+#: ../dialogs/keyboard-settings/main.c:104
+#, c-format
+msgid "Failed to connect to xfconf daemon. Reason: %s"
+msgstr "无法与 xfconf 守护进程连接。原因：%s"
+
+#: ../dialogs/keyboard-settings/main.c:115
+msgid "Could not create the settings dialog."
+msgstr "未能创建设置对话框。"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:399
+msgid "Command"
+msgstr "命令"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:407
+msgid "Shortcut"
+msgstr "快捷键"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:484
+msgid "Layout"
+msgstr "布局"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:485
+msgid "Variant"
+msgstr "变体"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1252
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1253
+msgid "Reset to Defaults"
+msgstr "重置为默认"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1254
+msgid ""
+"This will reset all shortcuts to their default values. Do you really want to"
+" do this?"
+msgstr "这会把所有快捷键重置为它们的默认值，您真的要这样做吗？"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1256
+msgid "No"
+msgstr "不"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1257
+msgid "Yes"
+msgstr "是的"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1333
+msgid "The system defaults will be restored next time you log in."
+msgstr "在您下次登录时将恢复系统默认。"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.c:1335
+msgid "Warning"
+msgstr "警告"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:2
+msgid "Edit keyboard settings and application shortcuts"
+msgstr "编辑键盘设置和应用程序快捷键"
+
+#: ../dialogs/keyboard-settings/xfce-keyboard-settings.desktop.in.h:3
+msgid "numlock;keyboard;layout;shortcuts;"
+msgstr "numlock;keyboard;layout;shortcuts;字键;键盘;布局;快捷键;"
+
+#: ../dialogs/mime-settings/main.c:120
+msgid "Could not create the mime dialog."
+msgstr "无法创建 mime 对话框。"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:128
+msgid "Select Application"
+msgstr "选择应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:136
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:383
+msgid "Open"
+msgstr "打开"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:205
+msgid "Use a c_ustom command:"
+msgstr "使用自定义命令(_U)："
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:206
+msgid ""
+"Use a custom command for an application that is not available from the above"
+" application list."
+msgstr "为以上应用程序列表中没有列出的应用程序使用自定义命令。"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:224
+msgid "_Browse..."
+msgstr "浏览(_B)..."
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:379
+msgid "Select an Application"
+msgstr "选择默认字体"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:529
+msgid "None available"
+msgstr "无可用的"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:576
+msgid "Recommended Applications"
+msgstr "推荐的应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:594
+msgid "Other Applications"
+msgstr "其它应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:614
+#, c-format
+msgid "Open <i>%s</i> and other files of type \"%s\" with:"
+msgstr "用此打开 <i>%s</i> 和其它类型 “%s” 的文件："
+
+#: ../dialogs/mime-settings/xfce-mime-chooser.c:650
+#, c-format
+msgid "Failed to add new application \"%s\""
+msgstr "无法添加新应用程序 “%s”"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:143
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:150
+msgid "Press left mouse button to change the selected application."
+msgstr "按鼠标左键来更改选中的应用程序。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:149
+msgid "Application Chooser Button"
+msgstr "应用程序选择器按钮"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:336
+msgid "No application selected"
+msgstr "未选中任何应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:352
+msgid "Failed to set default Web Browser"
+msgstr "无法设置默认网络浏览器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:353
+msgid "Failed to set default Mail Reader"
+msgstr "无法设置默认邮件阅读器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:354
+msgid "Failed to set default File Manager"
+msgstr "无法设置默认文件管理器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:355
+msgid "Failed to set default Terminal Emulator"
+msgstr "无法设置默认终端模拟器"
+
+#. allocate the chooser
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:425
+msgid "Select application"
+msgstr "选择应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:538
+msgid "Choose a custom Web Browser"
+msgstr "选择自定义网络浏览器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:539
+msgid "Choose a custom Mail Reader"
+msgstr "选择自定义邮件阅读器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:540
+msgid "Choose a custom File Manager"
+msgstr "选择自定义文件管理器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:541
+msgid "Choose a custom Terminal Emulator"
+msgstr "选择自定义终端模拟器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:546
+msgid ""
+"Specify the application you want to use\n"
+"as default Web Browser for Xfce:"
+msgstr ""
+"指定您要用作 Xfce 默认\n"
+"网络浏览器的应用程序："
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:547
+msgid ""
+"Specify the application you want to use\n"
+"as default Mail Reader for Xfce:"
+msgstr ""
+"指定您要用作 Xfce 默认\n"
+"邮件阅读器的应用程序："
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:548
+msgid ""
+"Specify the application you want to use\n"
+"as default File Manager for Xfce:"
+msgstr ""
+"指定您要用作 Xfce 默认\n"
+"文件管理器的应用程序："
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:549
+msgid ""
+"Specify the application you want to use\n"
+"as default Terminal Emulator for Xfce:"
+msgstr ""
+"指定您要用作 Xfce 默认\n"
+"终端模拟器的应用程序："
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:613
+msgid "Browse the file system to choose a custom command."
+msgstr "浏览文件系统以选择自定义命令。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:749
+msgid "_Other..."
+msgstr "其它(_O)…"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-chooser.c:750
+msgid "Use a custom application which is not included in the above list."
+msgstr "使用不在以上列表中的自定义应用程序。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:111
+msgid "Choose Preferred Application"
+msgstr "选择首选应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:249
+msgid ""
+"Please choose your preferred Web\n"
+"Browser now and click OK to proceed."
+msgstr ""
+"现在请选择您的首选网络浏览器\n"
+"并按确定继续。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:251
+msgid ""
+"Please choose your preferred Mail Reader\n"
+"now and click OK to proceed."
+msgstr ""
+"现在请选择您的首选邮件阅读器\n"
+"并按确定继续。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:253
+msgid ""
+"Please choose your preferred File Manager\n"
+"now and click OK to proceed."
+msgstr ""
+"现在请选择您的首选文件管理器\n"
+"并按确认继续。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-launcher-dialog.c:255
+msgid ""
+"Please choose your preferred Terminal\n"
+"Emulator now and click OK to proceed."
+msgstr ""
+"现在请选择您的首选终端模拟器\n"
+"并按确定继续。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:41
+msgid "Failed to execute default Web Browser"
+msgstr "无法执行默认网络浏览器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:42
+msgid "Failed to execute default Mail Reader"
+msgstr "无法执行默认邮件阅读器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:43
+msgid "Failed to execute default File Manager"
+msgstr "无法执行默认文件管理器"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:44
+msgid "Failed to execute default Terminal Emulator"
+msgstr "无法执行默认终端模拟器"
+
+#. Enable permanently dismissing this error.
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:86
+msgid "Do _not show this message again"
+msgstr "不再显示此信息(_N)"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:116
+msgid "Print version information and exit"
+msgstr "显示版本信息后退出"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:117
+msgid ""
+"Launch the default helper of TYPE with the optional PARAMETER, where TYPE is"
+" one of the following values."
+msgstr "用可选“参数”来启动“类型”的默认辅助程序，“类型”可以是以下值之一。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:117
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:118
+msgid "TYPE [PARAMETER]"
+msgstr "类型 [参数]"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:118
+msgid ""
+"Query the default helper of TYPE, where TYPE is one of the following values."
+msgstr "查询“类型”的默认辅助程序，“类型”可以是以下值之一。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:148
+msgid ""
+"The following TYPEs are supported for the --launch and --query commands:\n"
+"\n"
+"  WebBrowser       - The preferred Web Browser.\n"
+"  MailReader       - The preferred Mail Reader.\n"
+"  FileManager      - The preferred File Manager.\n"
+"  TerminalEmulator - The preferred Terminal Emulator."
+msgstr ""
+"--launch 和 --query 命令支持以下类型：\n"
+"\n"
+"  WebBrowser       - 首选网络浏览器。\n"
+"  MailReader       - 首选邮件阅读器。\n"
+"  FileManager      - 首选文件管理器。\n"
+"  TerminalEmulator - 首选终端模拟器。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:183
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:256
+#, c-format
+msgid "Invalid helper type \"%s\""
+msgstr "无效辅助程序类型 “%s”"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:240
+#, c-format
+msgid ""
+"%s (Xfce %s)\n"
+"\n"
+"Copyright (c) 2003-2006\n"
+"        os-cillation e.K. All rights reserved.\n"
+"\n"
+"Written by Benedikt Meurer <benny@xfce.org>.\n"
+"\n"
+"Built with Gtk+-%d.%d.%d, running Gtk+-%d.%d.%d.\n"
+"\n"
+"Please report bugs to <%s>.\n"
+msgstr ""
+"%s(Xfce %s)\n"
+"\n"
+"版权 (c) 2003-2006\n"
+"        os-cillation e.K. 版权所有。\n"
+"\n"
+"由 Benedikt Meurer <benny@xfce.org> 编写。\n"
+"\n"
+"用 Gtk+-%d.%d.%d 构建，运行 Gtk+-%d.%d.%d。\n"
+"\n"
+"请向 <%s> 报告程序缺陷。\n"
+
+#: ../dialogs/mime-settings/xfce-mime-helper-main.c:266
+#, c-format
+msgid "No helper defined for \"%s\"."
+msgstr " \"%s\"的辅助程序未定义。"
+
+#: ../dialogs/mime-settings/xfce-mime-helper.c:453
+#, c-format
+msgid "No command specified"
+msgstr "未指定命令"
+
+#: ../dialogs/mime-settings/xfce-mime-helper.c:832
+#: ../dialogs/mime-settings/xfce-mime-helper.c:871
+#: ../dialogs/mime-settings/xfce-mime-helper.c:968
+#: ../dialogs/mime-settings/xfce-mime-helper.c:1007
+#, c-format
+msgid "Failed to open %s for writing"
+msgstr "无法打开 %s 来写入"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:184
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:1
+msgid "Default Applications"
+msgstr "默认应用程序"
+
+#. Internet
+#: ../dialogs/mime-settings/xfce-mime-window.c:208
+msgid "_Internet"
+msgstr "互联网(_I)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:221
+#: ../dialogs/mime-settings/xfce4-web-browser.desktop.in.h:1
+msgid "Web Browser"
+msgstr "网络浏览器"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:229
+msgid ""
+"The default Web Browser will be used to open hyperlinks and display help "
+"contents."
+msgstr "默认网络浏览器将用于打开超链接及显示帮助内容。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:247
+#: ../dialogs/mime-settings/xfce4-mail-reader.desktop.in.h:1
+msgid "Mail Reader"
+msgstr "邮件阅读器"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:255
+msgid ""
+"The default Mail Reader will be used to compose emails when you click on "
+"email addresses."
+msgstr "默认邮件阅读器将用于您点击电子邮件地址时撰写邮件。"
+
+#. Utilities
+#: ../dialogs/mime-settings/xfce-mime-window.c:269
+msgid "_Utilities"
+msgstr "实用程序(_U)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:282
+#: ../dialogs/mime-settings/xfce4-file-manager.desktop.in.h:1
+msgid "File Manager"
+msgstr "文件管理器"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:290
+msgid ""
+"The default File Manager will be used to browse the contents of folders."
+msgstr "默认文件管理器将用于浏览文件夹内容。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:308
+#: ../dialogs/mime-settings/xfce4-terminal-emulator.desktop.in.h:1
+msgid "Terminal Emulator"
+msgstr "终端模拟器"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:316
+msgid ""
+"The default Terminal Emulator will be used to run commands that require a "
+"CLI environment."
+msgstr "默认终端模拟器将用于运行需要命令行环境的命令。"
+
+#. Mimes
+#: ../dialogs/mime-settings/xfce-mime-window.c:330
+msgid "_Others"
+msgstr "其它(_O)"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:340
+msgid "_Filter:"
+msgstr "过滤器(_F)："
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:348
+msgid "Clear filter"
+msgstr "清除过滤器"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:378
+msgid "Open with..."
+msgstr "打开方式..."
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:425
+msgid "MIME Type"
+msgstr "MIME 类型"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:453
+msgid "Status"
+msgstr "状态"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:473
+msgid "Default Application"
+msgstr "默认应用程序"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:648
+#: ../dialogs/mime-settings/xfce-mime-window.c:812
+msgid "User Set"
+msgstr "用户设置"
+
+#. sort the names but keep Default on top
+#: ../dialogs/mime-settings/xfce-mime-window.c:650
+#: ../dialogs/mime-settings/xfce-mime-window.c:812
+#: ../dialogs/mouse-settings/main.c:401 ../dialogs/mouse-settings/main.c:403
+#: ../dialogs/mouse-settings/main.c:466
+msgid "Default"
+msgstr "默认"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:736
+#, c-format
+msgid "%d MIME type found"
+msgid_plural "%d MIME types found"
+msgstr[0] "找到了 %d 个 MIME 类型"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:857
+#, c-format
+msgid "Failed to set application \"%s\" for mime type \"%s\"."
+msgstr "无法为 mime 类型 “%2$s” 设置应用程序 “%1$s”。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1120
+#, c-format
+msgid "Are you sure you want to reset content type \"%s\" to its default value?"
+msgstr "您确定要重置内容类型 “%s” 为其默认值吗？"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1124
+msgid "Question"
+msgstr "问题"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1127
+msgid ""
+"This will remove your custom mime-association and restore the system-wide "
+"default."
+msgstr "这样会移除您的自定义 mime 绑定并恢复系统范围的默认。"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1131
+#: ../dialogs/mime-settings/xfce-mime-window.c:1202
+msgid "Reset to Default"
+msgstr "重置为默认"
+
+#: ../dialogs/mime-settings/xfce-mime-window.c:1197
+msgid "Choose Application..."
+msgstr "选择应用程序..."
+
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:2
+msgid "Associate preferred applications with MIME types"
+msgstr "首选应用程序与 MIME 类型绑定"
+
+#: ../dialogs/mime-settings/xfce4-mime-settings.desktop.in.h:3
+msgid ""
+"file;type;extension;association;open with;web browser;mail reader;file "
+"manager;terminal emulator;"
+msgstr ""
+"file;type;extension;association;open with;web browser;mail reader;file "
+"manager;terminal emulator;文件;类型;扩展;关联;打开方式;网络浏览;邮件阅读;文件管理;终端模拟;"
+
+#: ../dialogs/mime-settings/xfce4-file-manager.desktop.in.h:2
+msgid "Browse the file system"
+msgstr "浏览文件系统"
+
+#: ../dialogs/mime-settings/xfce4-mail-reader.desktop.in.h:2
+msgid "Read your email"
+msgstr "阅读您的电子邮件"
+
+#: ../dialogs/mime-settings/xfce4-terminal-emulator.desktop.in.h:2
+msgid "Use the command line"
+msgstr "使用命令行"
+
+#: ../dialogs/mime-settings/xfce4-web-browser.desktop.in.h:2
+msgid "Browse the web"
+msgstr "浏览网络"
+
+#: ../dialogs/mime-settings/helpers/alacritty.desktop.in.in.h:1
+msgid "Alacritty"
+msgstr "Alacritty"
+
+#: ../dialogs/mime-settings/helpers/aterm.desktop.in.in.h:1
+msgid "aterm"
+msgstr "aterm"
+
+#: ../dialogs/mime-settings/helpers/balsa.desktop.in.in.h:1
+msgid "Balsa"
+msgstr "Balsa 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/brave.desktop.in.in.h:1
+msgid "Brave"
+msgstr "Brave"
+
+#: ../dialogs/mime-settings/helpers/caja.desktop.in.in.h:1
+msgid "Caja File Manager"
+msgstr "Caja 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/chromium.desktop.in.in.h:1
+msgid "Chromium"
+msgstr "Chromium 浏览器"
+
+#: ../dialogs/mime-settings/helpers/debian-sensible-browser.desktop.in.in.h:1
+msgid "Debian Sensible Browser"
+msgstr "Debian 实用浏览器"
+
+#: ../dialogs/mime-settings/helpers/debian-x-terminal-emulator.desktop.in.in.h:1
+msgid "Debian X Terminal Emulator"
+msgstr "Debian X 终端模拟器"
+
+#: ../dialogs/mime-settings/helpers/dillo.desktop.in.in.h:1
+msgid "Dillo"
+msgstr "Dillo"
+
+#: ../dialogs/mime-settings/helpers/encompass.desktop.in.in.h:1
+msgid "Encompass"
+msgstr "Encompass 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/epiphany.desktop.in.in.h:1
+msgid "Epiphany Web Browser"
+msgstr "Epiphany 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/eterm.desktop.in.in.h:1
+msgid "Enlightened Terminal Emulator"
+msgstr "Enlightened 终端模拟器"
+
+#: ../dialogs/mime-settings/helpers/evolution.desktop.in.in.h:1
+msgid "Evolution"
+msgstr "Evolution 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/firefox.desktop.in.in.h:1
+msgid "Mozilla Firefox"
+msgstr "Firefox 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/galeon.desktop.in.in.h:1
+msgid "Galeon Web Browser"
+msgstr "Galeon 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/geary.desktop.in.in.h:1
+msgid "Geary"
+msgstr "Geary"
+
+#: ../dialogs/mime-settings/helpers/google-chrome.desktop.in.in.h:1
+msgid "Google Chrome"
+msgstr "谷歌 Chrome"
+
+#: ../dialogs/mime-settings/helpers/gnome-terminal.desktop.in.in.h:1
+msgid "GNOME Terminal"
+msgstr "GNOME 终端"
+
+#: ../dialogs/mime-settings/helpers/icecat.desktop.in.in.h:1
+msgid "Icecat"
+msgstr "Icecat"
+
+#: ../dialogs/mime-settings/helpers/icedove.desktop.in.in.h:1
+msgid "Icedove"
+msgstr "Icedove 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/iceweasel.desktop.in.in.h:1
+msgid "Iceweasel"
+msgstr "Iceweasel 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/jumanji.desktop.in.in.h:1
+msgid "Jumanji"
+msgstr "Jumanji"
+
+#: ../dialogs/mime-settings/helpers/kitty.desktop.in.in.h:1
+msgid "kitty"
+msgstr "kitty"
+
+#: ../dialogs/mime-settings/helpers/kmail.desktop.in.in.h:1
+msgid "KMail"
+msgstr "KMail 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/konqueror.desktop.in.in.h:1
+msgid "Konqueror Web Browser"
+msgstr "Konqueror 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/links.desktop.in.in.h:1
+msgid "Links Text Browser"
+msgstr "Links 文本浏览器"
+
+#: ../dialogs/mime-settings/helpers/lynx.desktop.in.in.h:1
+msgid "Lynx Text Browser"
+msgstr "Lynx 文本浏览器"
+
+#: ../dialogs/mime-settings/helpers/midori.desktop.in.in.h:1
+msgid "Midori"
+msgstr "Midori 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/mozilla-browser.desktop.in.in.h:1
+msgid "Mozilla Browser"
+msgstr "Mozilla 浏览器"
+
+#: ../dialogs/mime-settings/helpers/mozilla-mailer.desktop.in.in.h:1
+msgid "Mozilla Mail"
+msgstr "Mozilla 邮件"
+
+#: ../dialogs/mime-settings/helpers/mutt.desktop.in.in.h:1
+msgid "Mutt"
+msgstr "Mutt 邮件"
+
+#: ../dialogs/mime-settings/helpers/nautilus.desktop.in.in.h:1
+msgid "Nautilus"
+msgstr "Nautilus 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/netscape-navigator.desktop.in.in.h:1
+msgid "Netscape Navigator"
+msgstr "Navigator 网络浏览器"
+
+#: ../dialogs/mime-settings/helpers/nxterm.desktop.in.in.h:1
+msgid "NXterm"
+msgstr "NXterm 终端模拟器"
+
+#: ../dialogs/mime-settings/helpers/opera-browser.desktop.in.in.h:1
+msgid "Opera Browser"
+msgstr "Opera 浏览器"
+
+#: ../dialogs/mime-settings/helpers/pcmanfm.desktop.in.in.h:1
+msgid "PCMan File Manager"
+msgstr "PCMan 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/pcmanfm-qt.desktop.in.in.h:1
+msgid "PCManFM-Qt File Manager"
+msgstr "PCManFM-Qt 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/qterminal.desktop.in.in.h:1
+msgid "QTerminal"
+msgstr "QTerminal"
+
+#: ../dialogs/mime-settings/helpers/qtfm.desktop.in.in.h:1
+msgid "qtFM"
+msgstr "qtFM"
+
+#: ../dialogs/mime-settings/helpers/qupzilla.desktop.in.in.h:1
+msgid "QupZilla"
+msgstr "QupZilla"
+
+#: ../dialogs/mime-settings/helpers/rodent.desktop.in.in.h:1
+msgid "Rodent File Manager"
+msgstr "Rodent 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/rox-filer.desktop.in.in.h:1
+msgid "ROX-Filer"
+msgstr "ROX-Filer"
+
+#: ../dialogs/mime-settings/helpers/sakura.desktop.in.in.h:1
+msgid "Sakura"
+msgstr "Sakura"
+
+#: ../dialogs/mime-settings/helpers/surf.desktop.in.in.h:1
+msgid "Surf"
+msgstr "Surf"
+
+#: ../dialogs/mime-settings/helpers/sylpheed.desktop.in.in.h:1
+msgid "Sylpheed"
+msgstr "Sylpheed 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/sylpheed-claws.desktop.in.in.h:1
+msgid "Claws Mail"
+msgstr "Claws 邮件"
+
+#: ../dialogs/mime-settings/helpers/terminator.desktop.in.in.h:1
+msgid "Terminator"
+msgstr "Terminator"
+
+#: ../dialogs/mime-settings/helpers/thunar.desktop.in.in.h:1
+msgid "Thunar"
+msgstr "Thunar"
+
+#: ../dialogs/mime-settings/helpers/thunderbird.desktop.in.in.h:1
+msgid "Mozilla Thunderbird"
+msgstr "Thunderbird 邮件阅读器"
+
+#: ../dialogs/mime-settings/helpers/urxvt.desktop.in.in.h:1
+msgid "RXVT Unicode"
+msgstr "RXVT 文本浏览器"
+
+#: ../dialogs/mime-settings/helpers/vimprobable2.desktop.in.in.h:1
+msgid "Vimprobable2"
+msgstr "Vimprobable2"
+
+#: ../dialogs/mime-settings/helpers/w3m.desktop.in.in.h:1
+msgid "W3M Text Browser"
+msgstr "W3M 文本浏览器"
+
+#: ../dialogs/mime-settings/helpers/xfce4-terminal.desktop.in.in.h:1
+msgid "Xfce Terminal"
+msgstr "Xfce 终端"
+
+#: ../dialogs/mime-settings/helpers/xfe.desktop.in.in.h:1
+msgid "Xfe File Manager"
+msgstr "Xfe 文件管理器"
+
+#: ../dialogs/mime-settings/helpers/xterm.desktop.in.in.h:1
+msgid "X Terminal"
+msgstr "X 终端"
+
+#: ../dialogs/mouse-settings/main.c:86
+msgid "Active device in the dialog"
+msgstr "激活对话框中的设备"
+
+#: ../dialogs/mouse-settings/main.c:86
+msgid "DEVICE NAME"
+msgstr "设备名称"
+
+#. pixel value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:146
+#, c-format
+msgid "%g px"
+msgstr "%g 像素"
+
+#. miliseconds value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:156
+#, c-format
+msgid "%g ms"
+msgstr "%g 毫秒"
+
+#. seconds value for some of the scales in the dialog
+#: ../dialogs/mouse-settings/main.c:167
+#, c-format
+msgid "%.1f s"
+msgstr "%.1f s"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:1
+msgid "Disabled"
+msgstr "已禁用"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:2
+msgid "Edge scrolling"
+msgstr "边缘滚动"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:3
+msgid "Two-finger scrolling"
+msgstr "两指滚动"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:4
+msgid "Circular scrolling"
+msgstr "循环滚动"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:5
+msgid "Pen (absolute)"
+msgstr "笔(绝对)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:6
+msgid "Mouse (relative)"
+msgstr "鼠标(相对)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:7
+msgid "None (right-handed)"
+msgstr "无(右撇子)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:8
+msgid "Half (left-handed)"
+msgstr "一半(左撇子)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:9
+msgid "Clockwise"
+msgstr "顺时针"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:10
+msgid "Counterclockwise"
+msgstr "逆时针"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:11
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:1
+msgid "Mouse and Touchpad"
+msgstr "鼠标和触摸板"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:14
+msgid "De_vice:"
+msgstr "设备(_V)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:15
+msgid "Le_ft-handed"
+msgstr "左撇子(_F)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:16
+msgid "Ri_ght-handed"
+msgstr "右撇子(_G)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:17
+msgid "Reverse scroll d_irection"
+msgstr "逆转滚轮方向(_I)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:18
+msgid "When selected, the scroll wheel will work in the opposite direction"
+msgstr "选中后，鼠标滚轮将反向工作"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:19
+msgid "Buttons"
+msgstr "按钮"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:20
+msgid "_Reset to Defaults"
+msgstr "重置为默认(_R)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:21
+msgid ""
+"Set the acceleration and sensitivity for the selected device to the default "
+"values"
+msgstr "将选中设备的加速和灵敏度设置为默认值"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:22
+msgid "Sensitivit_y:"
+msgstr "灵敏度(_Y)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:23
+msgid "Acceleratio_n:"
+msgstr "加速(_N)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:24
+msgid ""
+"The factor at which the pointer's speed will increase as the mouse is moved"
+msgstr "鼠标移动时光标的加速因子"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:25
+msgid ""
+"The number of pixels the pointer must move in a short time before it starts "
+"accelerating"
+msgstr "光标开始加速前必须在一段短时间内移动的像素数"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:26
+msgid "Pointer Speed"
+msgstr "光标速度"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:27
+msgid "B_uttons and Feedback"
+msgstr "按钮和反馈(_U)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:28
+msgid "Disable touchpad _while typing"
+msgstr "输入时禁用触摸板(_W)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:29
+msgid ""
+"When selected, the touchpad will be disabled when the keyboard is being used"
+msgstr "选中后，使用键盘时将禁用触摸板"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:30
+msgid "Duratio_n:"
+msgstr "时间(_N)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:31
+msgid "Tap touchpad to clic_k"
+msgstr "轻点触摸板点击(_K)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:33
+msgid "Scrolling _mode:"
+msgstr "滚动模式(_M)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:34
+msgid "Enable hori_zontal scrolling"
+msgstr "启用水平滚动(_Z)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:35
+msgid "Scrolling"
+msgstr "滚动"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:36
+msgid "T_ouchpad"
+msgstr "触摸板(_O)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:37
+msgid "Trac_king mode:"
+msgstr "追踪模式(_K)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:38
+msgid "_Rotation:"
+msgstr "旋转(_R)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:39
+msgid "Tab_let"
+msgstr "平板(_L)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:40
+msgid "_Devices"
+msgstr "设备(_D)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:41
+msgid "Th_reshold:"
+msgstr "阈值(_R)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:42
+msgid ""
+"The number of pixels the pointer must move before a drag operation will "
+"start"
+msgstr "拖动操作开始前光标必须移动的像素数"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:43
+msgid "Drag and Drop"
+msgstr "拖放"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:44
+msgid "Ti_me:"
+msgstr "时间(_M)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:45
+msgid ""
+"Two mouse clicks in less than this length of time (in milliseconds) will be "
+"considered a double click"
+msgstr "两次鼠标点击间隔少于这么长时间(以毫秒计)会视为一次双击"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:46
+msgid "D_istance:"
+msgstr "距离(_I)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:47
+msgid ""
+"The mouse pointer cannot move farther than this distance between two clicks "
+"for them to be considered a double click"
+msgstr "鼠标指针两次点击之间的移动距离不超过此距离会视为一次双击"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:48
+msgid "Double Click"
+msgstr "双击"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:49
+msgid "_Behavior"
+msgstr "行为(_B)"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:50
+msgid "Cursor si_ze:"
+msgstr "光标大小(_Z)："
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:51
+msgid "Size"
+msgstr "大小"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:52
+msgid "Preview"
+msgstr "预览"
+
+#: ../dialogs/mouse-settings/mouse-dialog.glade.h:53
+msgid "_Theme"
+msgstr "主题(_T)"
+
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:2
+msgid "Configure pointer device behavior and appearance"
+msgstr "配置定位设备行为和外观"
+
+#: ../dialogs/mouse-settings/xfce-mouse-settings.desktop.in.h:3
+msgid ""
+"settings;buttons;scroll;direction;pointer;speed;double click;theme;wheel;"
+msgstr ""
+"settings;buttons;scroll;direction;pointer;speed;double "
+"click;theme;wheel;设置;按钮;滚动;方向;指针;速度;双击;主题;滚轮;"
+
+#: ../xfce4-settings-editor/main.c:163
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:1
+msgid "Settings Editor"
+msgstr "设置编辑器"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:267
+msgid "Channel"
+msgstr "频道"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:317
+msgid "Property"
+msgstr "属性"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:325
+msgid "Type"
+msgstr "类型"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:332
+msgid "Locked"
+msgstr "已锁定"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:339
+msgid "Value"
+msgstr "值"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:359
+msgid "New property"
+msgstr "新建属性"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:372
+msgid "Edit selected property"
+msgstr "编辑选中的属性"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:380
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1070
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1576
+msgid "_Reset"
+msgstr "重置(_R)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:385
+msgid "Reset selected property"
+msgstr "重置选中的属性"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:492
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:585
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:704
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:89
+msgid "Empty"
+msgstr "空"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:495
+msgid "Array"
+msgstr "数组"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:500
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:90
+msgid "String"
+msgstr "字符串"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:508
+msgid "Integer"
+msgstr "整型"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:511
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:91
+msgid "Boolean"
+msgstr "真假值"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:514
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:93
+msgid "Double"
+msgstr "双精度"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:851
+msgid "_Reset Channel"
+msgstr "重置频道(_R)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:852
+msgid "Resetting a channel will permanently remove those custom settings."
+msgstr "重置频道会永远移除那些自定义设置。"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:853
+#, c-format
+msgid "Are you sure you want to reset channel \"%s\" and all its properties?"
+msgstr "您确定要重置 “%s” 频道和它的所有属性吗？"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:928
+msgid "reset"
+msgstr "重置"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:985
+#, c-format
+msgid "Monitor %s"
+msgstr "显示器 %s"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:993
+msgid "Clear"
+msgstr "清除"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:994
+msgid "Close"
+msgstr "关闭"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1027
+#, c-format
+msgid "start monitoring channel \"%s\""
+msgstr "开始监视频道 “%s”"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1076
+msgid "_Monitor"
+msgstr "显示器(_M)"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1086
+msgid "Refresh"
+msgstr "刷新"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1577
+msgid "Resetting a property will permanently remove those custom settings."
+msgstr "重置属性会永远移除那些自定义设置。"
+
+#: ../xfce4-settings-editor/xfce-settings-editor-box.c:1578
+#, c-format
+msgid "Are you sure you want to reset property \"%s\"?"
+msgstr "您确定要重置属性 “%s” 吗？"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:92
+msgid "Int"
+msgstr "整型"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:94
+msgid "Unsigned Int"
+msgstr "无符号整型"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:95
+msgid "Int64"
+msgstr "64 位整型"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:96
+msgid "Unsigned Int64"
+msgstr "无符号 64 位整型"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:141
+msgid "New Property"
+msgstr "新建属性"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:145
+msgid "Save"
+msgstr "保存"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:160
+msgid "_Property:"
+msgstr "属性(_P)："
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:174
+msgid "_Type:"
+msgstr "类型(_T)："
+
+#. strings
+#. integers
+#. bool
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:203
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:213
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:224
+msgid "_Value:"
+msgstr "值(_V)："
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:381
+#, c-format
+msgid "Property names must start with a '/' character"
+msgstr "属性名必须以 ‘/’ 字符开头"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:392
+#, c-format
+msgid "The root element ('/') is not a valid property name"
+msgstr "根元素(‘/’) 不是一个有效的属性名"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:409
+#, c-format
+msgid ""
+"Property names can only include the ASCII characters A-Z, a-z, 0-9, '_', "
+"'-', ':', '.', ',', '[', ']', '{', '}', '<' and '>', as well as '/' as a "
+"separator"
+msgstr ""
+"属性名只能包含 ASCII 字符 A-Z, a-z, 0-9, '_', '-', ':', '.', ',', '[', ']', '{', '}',"
+" '<' and '>', 以及 '/' 作为分割符号"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:423
+#, c-format
+msgid "Property names cannot have two or more consecutive '/' characters"
+msgstr "属性名称中不能包含两个或更多连续的 ‘/’ 字符"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:437
+#, c-format
+msgid "Property names cannot end with a '/' character"
+msgstr "属性名称不能以 ‘/’ 结束"
+
+#: ../xfce4-settings-editor/xfce-settings-prop-dialog.c:650
+msgid "Edit Property"
+msgstr "编辑属性"
+
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:2
+msgid "Graphical settings editor for Xfconf"
+msgstr "Xfconf 的图形设置编辑器"
+
+#: ../xfce4-settings-editor/xfce4-settings-editor.desktop.in.h:3
+msgid "registry;regedit;configuration file;"
+msgstr "registry;regedit;configuration file;注册表;注册表编辑;配置文件;"
+
+#: ../xfce4-settings-manager/main.c:44
+msgid "Settings dialog to show"
+msgstr "要显示的设置对话框"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:225
+msgid "All _Settings"
+msgstr "所有设置(_S)"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:423
+msgid "Settings"
+msgstr "设置"
+
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:917
+#: ../xfce4-settings-manager/xfce-settings-manager-dialog.c:928
+#, c-format
+msgid "Unable to start \"%s\""
+msgstr "未能启动 “%s”"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:1
+msgid "Settings Manager"
+msgstr "设置管理器"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:2
+msgid "Graphical Settings Manager for Xfce"
+msgstr "Xfce 的图形设置管理器"
+
+#: ../xfce4-settings-manager/xfce-settings-manager.desktop.in.h:3
+msgid "control;panel;center;system;settings;personalize;hardware;"
+msgstr ""
+"control;panel;center;system;settings;personalize;hardware;控制;面板;中心;系统;设置;个性化;硬件;"
+
+#: ../xfsettingsd/accessibility.c:412
+msgid "Sticky keys are enabled"
+msgstr "已启用粘滞键"
+
+#: ../xfsettingsd/accessibility.c:414
+msgid "Sticky keys are disabled"
+msgstr "已禁用粘滞键"
+
+#: ../xfsettingsd/accessibility.c:416
+msgid "Sticky keys"
+msgstr "粘滞键"
+
+#: ../xfsettingsd/accessibility.c:421
+msgid "Slow keys are enabled"
+msgstr "已启用慢速键"
+
+#: ../xfsettingsd/accessibility.c:423
+msgid "Slow keys are disabled"
+msgstr "已禁用慢速按键"
+
+#: ../xfsettingsd/accessibility.c:425
+msgid "Slow keys"
+msgstr "慢速键"
+
+#: ../xfsettingsd/accessibility.c:430
+msgid "Bounce keys are enabled"
+msgstr "已启用反弹键"
+
+#: ../xfsettingsd/accessibility.c:432
+msgid "Bounce keys are disabled"
+msgstr "已禁用反弹键"
+
+#: ../xfsettingsd/accessibility.c:434
+msgid "Bounce keys"
+msgstr "反弹键"
+
+#: ../xfsettingsd/keyboard-shortcuts.c:242
+#, c-format
+msgid "Failed to launch shortcut \"%s\""
+msgstr "无法启动 “%s” 快捷键"
+
+#: ../xfsettingsd/main.c:103
+msgid "Fork to the background"
+msgstr "转入后台"
+
+#: ../xfsettingsd/main.c:104
+msgid "Do not wait for a window manager on startup"
+msgstr "启动时不要等待窗口管理器"
+
+#: ../xfsettingsd/main.c:105
+msgid "Replace running xsettings daemon (if any)"
+msgstr "取代正在运行的 xsettings 守护进程(如果有)"
+
+#. value in xfconf isn't a string, so make a default one
+#: ../xfsettingsd/workspaces.c:333 ../xfsettingsd/workspaces.c:390
+#, c-format
+msgid "Workspace %d"
+msgstr "工作区 %d"
+
+#: ../xfsettingsd/xfsettingsd.desktop.in.h:1
+msgid "Xfce Settings Daemon"
+msgstr "Xfce 设置守护进程"
+
+#: ../xfsettingsd/xfsettingsd.desktop.in.h:2
+msgid "The Xfce Settings Daemon"
+msgstr "Xfce 设置守护进程"

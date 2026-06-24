@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.2 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkMessageDialog" id="dialog1">
+    <property name="can_focus">False</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="icon_name">dialog-question</property>
+    <property name="type_hint">dialog</property>
+    <property name="urgency_hint">True</property>
+    <property name="message_type">question</property>
+    <property name="text" translatable="yes">&lt;b&gt;&lt;big&gt;Would you like to keep this configuration?&lt;/big&gt;&lt;/b&gt;</property>
+    <property name="use_markup">True</property>
+    <property name="secondary_text" translatable="yes">The previous configuration will be restored in &lt;b&gt;10 seconds&lt;/b&gt; if you do not reply to this question.</property>
+    <property name="secondary_use_markup">True</property>
+    <child internal-child="vbox">
+      <object class="GtkBox">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox">
+            <property name="can_focus">False</property>
+            <property name="homogeneous">True</property>
+            <property name="layout_style">expand</property>
+            <child>
+              <object class="GtkButton" id="button2">
+                <property name="label" translatable="yes">Keep this configuration</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="has_default">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button1">
+                <property name="label" translatable="yes">Restore the previous configuration</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="2">button2</action-widget>
+      <action-widget response="1">button1</action-widget>
+    </action-widgets>
+  </object>
+</interface>

@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>&package_name; Reference Manual</title>
+    <releaseinfo>
+      For &package_string;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://developer.xfce.org/&package_name;/index.html">https://developer.xfce.org/&package_name;/</ulink>.
+    </releaseinfo>
+    <copyright>
+      <year>2024</year>
+      <holder>The Xfce Development Team</holder>
+    </copyright>
+  </bookinfo>
+
+  <part>
+    <title>Overview</title>
+    <para>
+      The <application>garcon</application> library depends on the following libraries:
+      <variablelist>
+        <varlistentry>
+          <term>GLib</term>
+          <listitem>
+            <para>
+              A general-purpose utility library, not specific to graphical user interfaces.
+              GLib provides many useful data types, macros, type conversions,
+              string utilities, file utilities, a main loop abstraction, and so on.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+  </part>
+
+  <part id="garcon-menus">
+    <title>Menus and Menu Items</title>
+    <xi:include href="xml/garcon-menu.xml"/>
+    <xi:include href="xml/garcon-menu-directory.xml"/>
+    <xi:include href="xml/garcon-menu-element.xml"/>
+    <xi:include href="xml/garcon-menu-item.xml"/>
+    <xi:include href="xml/garcon-menu-item-cache.xml"/>
+    <xi:include href="xml/garcon-menu-item-pool.xml"/>
+    <xi:include href="xml/garcon-menu-item-action.xml"/>
+    <xi:include href="xml/garcon-menu-separator.xml"/>
+  </part>
+
+  <part id="garcon-parsing">
+    <title>Parsing and Modifying the Menu Tree</title>
+    <xi:include href="xml/garcon-menu-merger.xml"/>
+    <xi:include href="xml/garcon-menu-node.xml"/>
+    <xi:include href="xml/garcon-menu-parser.xml"/>
+    <xi:include href="xml/garcon-menu-tree-provider.xml"/>
+  </part>
+
+  <part id="garcon-gtk-menu">
+    <title>Create a complete GtkMenu from a GarconMenu</title>
+    <xi:include href="xml/garcon-gtk-menu.xml"/>
+  </part>
+
+  <part id="garcon-miscellaneous">
+    <title>Miscellaneous</title>
+    <xi:include href="xml/garcon-environment.xml"/>
+    <xi:include href="xml/garcon-config.xml"/>
+    <xi:include href="xml/garcon-marshal.xml"/>
+  </part>
+
+  <part id="object-tree">
+    <title>Object Hierarchy</title>
+    <xi:include href="xml/tree_index.sgml"/>
+    <xi:include href="xml/object_index.sgml"/>
+  </part>
+
+  <index id="api-index-full">
+    <title>Index of all symbols</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-deprecated">
+    <title>Index of deprecated symbols</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-0-3">
+    <title>Index of new symbols in 0.3</title>
+    <xi:include href="xml/api-index-0.3.0.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

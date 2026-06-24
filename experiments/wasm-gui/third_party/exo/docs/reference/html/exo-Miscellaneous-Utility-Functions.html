@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Miscellaneous Utility Functions: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-miscelleanous.html" title="Part VI. Miscelleanous">
+<link rel="prev" href="exo-String-Utility-Functions.html" title="String Utility Functions">
+<link rel="next" href="ch01.html" title="API Index">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#exo-Miscellaneous-Utility-Functions.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-miscelleanous.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-String-Utility-Functions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch01.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="exo-Miscellaneous-Utility-Functions"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="exo-Miscellaneous-Utility-Functions.top_of_page"></a>Miscellaneous Utility Functions</span></h2>
+<p>Miscellaneous Utility Functions — Various utility functions</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="exo-Miscellaneous-Utility-Functions.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop" title="exo_noop ()">exo_noop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop-one" title="exo_noop_one ()">exo_noop_one</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop-zero" title="exo_noop_zero ()">exo_noop_zero</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gpointer</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop-null" title="exo_noop_null ()">exo_noop_null</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop-true" title="exo_noop_true ()">exo_noop_true</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Miscellaneous-Utility-Functions.html#exo-noop-false" title="exo_noop_false ()">exo_noop_false</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-Miscellaneous-Utility-Functions.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="exo-Miscellaneous-Utility-Functions.description"></a><h2>Description</h2>
+<p>This module contains various utility functions that extend the basic
+utility functions provided by the <a class="ulink" href="http://library.gnome.org/devel/glib/stable/" target="_top">GLib</a> library.</p>
+</div>
+<div class="refsect1">
+<a name="exo-Miscellaneous-Utility-Functions.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-noop"></a><h3>exo_noop ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_noop (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect. It does nothing but
+returning instantly. It is mostly useful in
+situations that require a function to be called,
+but that function does not need to do anything
+useful.</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-noop-one"></a><h3>exo_noop_one ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_noop_one (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop_one</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect but simply returns
+the integer value <code class="literal">1</code>. It is mostly useful in
+situations where you just need a function that
+returns <code class="literal">1</code>, but don't want to perform any other
+actions.</p>
+<div class="refsect3">
+<a name="exo-noop-one.returns"></a><h4>Returns</h4>
+<p> the integer value <code class="literal">1</code>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-noop-zero"></a><h3>exo_noop_zero ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_noop_zero (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop_zero</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect but simply returns
+the integer value <code class="literal">0</code>. It is mostly useful in
+situations where you just need a function that
+returns <code class="literal">0</code>, but don't want to perform any other
+actions.</p>
+<div class="refsect3">
+<a name="exo-noop-zero.returns"></a><h4>Returns</h4>
+<p> the integer value <code class="literal">0</code>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-noop-null"></a><h3>exo_noop_null ()</h3>
+<pre class="programlisting"><span class="returnvalue">gpointer</span>
+exo_noop_null (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop_null</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect but simply returns
+a <code class="literal">NULL</code> pointer. It is mostly useful in
+situations where you just need a function that
+returns <code class="literal">NULL</code>, but don't want to perform any
+other actions.</p>
+<div class="refsect3">
+<a name="exo-noop-null.returns"></a><h4>Returns</h4>
+<p> a <code class="literal">NULL</code> pointer.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-noop-true"></a><h3>exo_noop_true ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_noop_true (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop_true</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect, but simply returns
+the boolean value <code class="literal">TRUE</code>. It is mostly useful in
+situations where you just need a function that
+returns <code class="literal">TRUE</code>, but don't want to perform any
+other actions.</p>
+<div class="refsect3">
+<a name="exo-noop-true.returns"></a><h4>Returns</h4>
+<p> the boolean value <code class="literal">TRUE</code>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-noop-false"></a><h3>exo_noop_false ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_noop_false (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning">
+<p><code class="literal">exo_noop_false</code> is deprecated and should not be used in newly-written code.</p>
+<p>xfce 4.18: Use NULL pointer instead</p>
+</div>
+<p>This function has no effect, but simply returns
+the boolean value <code class="literal">FALSE</code>. It is mostly useful in
+situations where you just need a function that
+returns <code class="literal">FALSE</code>, but don't want to perform any
+other actions.</p>
+<div class="refsect3">
+<a name="exo-noop-false.returns"></a><h4>Returns</h4>
+<p> the boolean value <code class="literal">FALSE</code>.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="exo-Miscellaneous-Utility-Functions.see-also"></a><h2>See Also</h2>
+<a class="ulink" href="http://library.gnome.org/devel/glib/stable/glib-Atomic-Operations.html" target="_top">
+GLib Atomic Operations</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

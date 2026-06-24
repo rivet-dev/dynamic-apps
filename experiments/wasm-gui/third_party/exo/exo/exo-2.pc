@@ -1,0 +1,13 @@
+prefix=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+exo_api_version=2
+
+Name: exo
+Description: Extension library for Xfce
+Requires: gtk+-3.0 libxfce4util-1.0
+Version: 4.18.0
+Libs: -L${libdir} -lexo-${exo_api_version}
+Cflags: -I${includedir}/exo-${exo_api_version}

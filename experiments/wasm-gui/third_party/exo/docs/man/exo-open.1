@@ -1,0 +1,117 @@
+'\" t
+.\"     Title: exo-open
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 10/22/2022
+.\"    Manual: Xfce User\*(Aqs Manual
+.\"    Source: Xfce
+.\"  Language: English
+.\"
+.TH "EXO\-OPEN" "1" "10/22/2022" "Xfce" "Xfce User\*(Aqs Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+exo-open \- Open URLs and launch preferred applications
+.SH "SYNOPSIS"
+.HP \w'\fBexo\-open\fR\ 'u
+\fBexo\-open\fR [[url]...]
+.HP \w'\fBexo\-open\fR\ 'u
+\fBexo\-open\fR \-\-launch [category] [[parameter]...]
+.SH "DESCRIPTION"
+.PP
+\fBexo\-open\fR
+is a command line frontend to the
+\fBXfce Preferred Applications\fR
+framework\&. It can either be used to open a list of
+\fIurl\fRs with the default URL handler or launch the preferred application for a certain category\&.
+.SH "INVOCATION"
+.PP
+\fBexo\-open\fR
+either takes a list of URLs and tries to open each of them using the default handler, or, when using the
+\fB\-\-launch\fR
+tries to launch the preferred application for a certain category, optionally passing any number of
+\fIparameter\fRs to the application\&.
+.SS "Options"
+.PP
+\fB\-?\fR, \fB\-\-help\fR
+.RS 4
+Print brief help and exit\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Print version information and exit\&.
+.RE
+.PP
+\fB\-\-working\-directory\fR \fIdirectory\fR
+.RS 4
+When using the
+\fB\-\-launch\fR
+option and this option is specified as well, the application will be run in the given
+\fIdirectory\fR\&. This is primarily useful when running the preferred
+\fBTerminalEmulator\fR
+from another application and you want the command in the terminal window to be run in a specific directory\&.
+.RE
+.PP
+\fB\-\-launch\fR \fIcategory\fR \fIparameters\&.\&.\&.\fR
+.RS 4
+Launch the preferred application for the given
+\fIcategory\fR
+with the optional
+\fIparameters\&.\&.\&.\fR, where
+\fIcategory\fR
+is either
+\fBWebBrowser\fR,
+\fBMailReader\fR,
+\fBTerminalEmulator\fR
+or
+\fBFileManager\fR\&.
+.RE
+.PP
+If you do not specify the
+\fB\-\-launch\fR
+option,
+\fBexo\-open\fR
+will open all specified URLs with their preferred URL handlers\&. Else, if you specify the
+\fB\-\-launch\fR
+option, you can select which preferred application you want to run, and pass additional
+\fIparameters\fR
+to the application (i\&.e\&. for
+\fBTerminalEmulator\fR
+you can pass the command line that should be run in the terminal)\&.
+.SH "COMPOSING EMAILS"
+.PP
+\fBexo\-open\fR
+allows users and developers to open the preferred email composer from the command line by simply invoking
+\fBexo\-open mailto:USER@HOST\&.TLD\fR\&. This will open the composer window with
+\fIUSER@HOST\&.TLD\fR
+as the recipient\&. This syntax is supported by all
+\fBMailReader\fRs\&. In addition the
+\fBMailReader\fRs that ship as part of libexo also support extended mailto:\-URIs (but be aware that user\-defined mailers do not necessarily support this), which allows you to also specify default values for the subject and the body of the mail, add additional recipients (both Cc: and To:) and attach files to emails\&. For example
+\fImailto:foo@foo\&.org?cc=bar@bar\&.org&subject=Foo&attach=/foo/bar\&.txt\fR
+tells the composer to start an email to foo@foo\&.org and bar@bar\&.org with Foo in the subject and the file /foo/bar\&.txt attached to the message\&.
+.SH "AUTHOR"
+.PP
+\fBexo\-open\fR
+was written by Benedikt Meurer
+<benny@xfce\&.org>\&.
+.PP
+This manual page was provided by Benedikt Meurer
+<benny@xfce\&.org>\&.

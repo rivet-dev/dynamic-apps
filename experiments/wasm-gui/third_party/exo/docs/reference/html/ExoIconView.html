@@ -1,0 +1,3833 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ExoIconView: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-widgets.html" title="Part II. Additional widgets">
+<link rel="prev" href="ExoIconChooserDialog.html" title="ExoIconChooserDialog">
+<link rel="next" href="ExoTreeView.html" title="ExoTreeView">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ExoIconView.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ExoIconView.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#ExoIconView.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ExoIconView.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ExoIconView.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ExoIconChooserDialog.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ExoTreeView.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ExoIconView"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ExoIconView.top_of_page"></a>ExoIconView</span></h2>
+<p>ExoIconView — A widget which displays a list of icons in a grid</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ExoIconView.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-new" title="exo_icon_view_new ()">exo_icon_view_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-new-with-model" title="exo_icon_view_new_with_model ()">exo_icon_view_new_with_model</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkTreeModel</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-model" title="exo_icon_view_get_model ()">exo_icon_view_get_model</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-model" title="exo_icon_view_set_model ()">exo_icon_view_set_model</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkOrientation</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-orientation" title="exo_icon_view_get_orientation ()">exo_icon_view_get_orientation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-orientation" title="exo_icon_view_set_orientation ()">exo_icon_view_set_orientation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-columns" title="exo_icon_view_get_columns ()">exo_icon_view_get_columns</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-columns" title="exo_icon_view_set_columns ()">exo_icon_view_set_columns</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-item-width" title="exo_icon_view_get_item_width ()">exo_icon_view_get_item_width</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-item-width" title="exo_icon_view_set_item_width ()">exo_icon_view_set_item_width</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-spacing" title="exo_icon_view_get_spacing ()">exo_icon_view_get_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-spacing" title="exo_icon_view_set_spacing ()">exo_icon_view_set_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-row-spacing" title="exo_icon_view_get_row_spacing ()">exo_icon_view_get_row_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-row-spacing" title="exo_icon_view_set_row_spacing ()">exo_icon_view_set_row_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-column-spacing" title="exo_icon_view_get_column_spacing ()">exo_icon_view_get_column_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-column-spacing" title="exo_icon_view_set_column_spacing ()">exo_icon_view_set_column_spacing</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-margin" title="exo_icon_view_get_margin ()">exo_icon_view_get_margin</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-margin" title="exo_icon_view_set_margin ()">exo_icon_view_set_margin</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkSelectionMode</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-selection-mode" title="exo_icon_view_get_selection_mode ()">exo_icon_view_get_selection_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-selection-mode" title="exo_icon_view_set_selection_mode ()">exo_icon_view_set_selection_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="returnvalue">ExoIconViewLayoutMode</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-layout-mode" title="exo_icon_view_get_layout_mode ()">exo_icon_view_get_layout_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-layout-mode" title="exo_icon_view_set_layout_mode ()">exo_icon_view_set_layout_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-single-click" title="exo_icon_view_get_single_click ()">exo_icon_view_get_single_click</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-single-click" title="exo_icon_view_set_single_click ()">exo_icon_view_set_single_click</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-single-click-timeout" title="exo_icon_view_get_single_click_timeout ()">exo_icon_view_get_single_click_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-single-click-timeout" title="exo_icon_view_set_single_click_timeout ()">exo_icon_view_set_single_click_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-widget-to-icon-coords" title="exo_icon_view_widget_to_icon_coords ()">exo_icon_view_widget_to_icon_coords</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-icon-to-widget-coords" title="exo_icon_view_icon_to_widget_coords ()">exo_icon_view_icon_to_widget_coords</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkTreePath</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-path-at-pos" title="exo_icon_view_get_path_at_pos ()">exo_icon_view_get_path_at_pos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-item-at-pos" title="exo_icon_view_get_item_at_pos ()">exo_icon_view_get_item_at_pos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-visible-range" title="exo_icon_view_get_visible_range ()">exo_icon_view_get_visible_range</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="ExoIconView.html#ExoIconViewForeachFunc" title="ExoIconViewForeachFunc ()">*ExoIconViewForeachFunc</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-selected-foreach" title="exo_icon_view_selected_foreach ()">exo_icon_view_selected_foreach</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-select-path" title="exo_icon_view_select_path ()">exo_icon_view_select_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-unselect-path" title="exo_icon_view_unselect_path ()">exo_icon_view_unselect_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-path-is-selected" title="exo_icon_view_path_is_selected ()">exo_icon_view_path_is_selected</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-item-column" title="exo_icon_view_get_item_column ()">exo_icon_view_get_item_column</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-item-row" title="exo_icon_view_get_item_row ()">exo_icon_view_get_item_row</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-selected-items" title="exo_icon_view_get_selected_items ()">exo_icon_view_get_selected_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-select-all" title="exo_icon_view_select_all ()">exo_icon_view_select_all</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-unselect-all" title="exo_icon_view_unselect_all ()">exo_icon_view_unselect_all</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-selection-invert" title="exo_icon_view_selection_invert ()">exo_icon_view_selection_invert</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-item-activated" title="exo_icon_view_item_activated ()">exo_icon_view_item_activated</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-cursor" title="exo_icon_view_get_cursor ()">exo_icon_view_get_cursor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-cursor" title="exo_icon_view_set_cursor ()">exo_icon_view_set_cursor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-scroll-to-path" title="exo_icon_view_scroll_to_path ()">exo_icon_view_scroll_to_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-enable-model-drag-source" title="exo_icon_view_enable_model_drag_source ()">exo_icon_view_enable_model_drag_source</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-enable-model-drag-dest" title="exo_icon_view_enable_model_drag_dest ()">exo_icon_view_enable_model_drag_dest</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-unset-model-drag-source" title="exo_icon_view_unset_model_drag_source ()">exo_icon_view_unset_model_drag_source</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-unset-model-drag-dest" title="exo_icon_view_unset_model_drag_dest ()">exo_icon_view_unset_model_drag_dest</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-reorderable" title="exo_icon_view_set_reorderable ()">exo_icon_view_set_reorderable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-reorderable" title="exo_icon_view_get_reorderable ()">exo_icon_view_get_reorderable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-drag-dest-item" title="exo_icon_view_set_drag_dest_item ()">exo_icon_view_set_drag_dest_item</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-drag-dest-item" title="exo_icon_view_get_drag_dest_item ()">exo_icon_view_get_drag_dest_item</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-dest-item-at-pos" title="exo_icon_view_get_dest_item_at_pos ()">exo_icon_view_get_dest_item_at_pos</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">cairo_surface_t</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-create-drag-icon" title="exo_icon_view_create_drag_icon ()">exo_icon_view_create_drag_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="ExoIconView.html#ExoIconViewSearchEqualFunc" title="ExoIconViewSearchEqualFunc ()">*ExoIconViewSearchEqualFunc</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="ExoIconView.html#ExoIconViewSearchPositionFunc" title="ExoIconViewSearchPositionFunc ()">*ExoIconViewSearchPositionFunc</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-enable-search" title="exo_icon_view_get_enable_search ()">exo_icon_view_get_enable_search</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-enable-search" title="exo_icon_view_set_enable_search ()">exo_icon_view_set_enable_search</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-search-column" title="exo_icon_view_get_search_column ()">exo_icon_view_get_search_column</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-search-column" title="exo_icon_view_set_search_column ()">exo_icon_view_set_search_column</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ExoIconView.html#ExoIconViewSearchEqualFunc" title="ExoIconViewSearchEqualFunc ()"><span class="returnvalue">ExoIconViewSearchEqualFunc</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-search-equal-func" title="exo_icon_view_get_search_equal_func ()">exo_icon_view_get_search_equal_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-search-equal-func" title="exo_icon_view_set_search_equal_func ()">exo_icon_view_set_search_equal_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ExoIconView.html#ExoIconViewSearchPositionFunc" title="ExoIconViewSearchPositionFunc ()"><span class="returnvalue">ExoIconViewSearchPositionFunc</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-get-search-position-func" title="exo_icon_view_get_search_position_func ()">exo_icon_view_get_search_position_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ExoIconView.html#exo-icon-view-set-search-position-func" title="exo_icon_view_set_search_position_func ()">exo_icon_view_set_search_position_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--column-spacing" title="The “column-spacing” property">column-spacing</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--columns" title="The “columns” property">columns</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--enable-search" title="The “enable-search” property">enable-search</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--icon-column" title="The “icon-column” property">icon-column</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--item-width" title="The “item-width” property">item-width</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="type">ExoIconViewLayoutMode</span></a></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--layout-mode" title="The “layout-mode” property">layout-mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--margin" title="The “margin” property">margin</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--markup-column" title="The “markup-column” property">markup-column</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">GtkTreeModel</span> *</td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--model" title="The “model” property">model</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">GtkOrientation</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--orientation" title="The “orientation” property">orientation</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--pixbuf-column" title="The “pixbuf-column” property">pixbuf-column</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--reorderable" title="The “reorderable” property">reorderable</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--row-spacing" title="The “row-spacing” property">row-spacing</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--search-column" title="The “search-column” property">search-column</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">GtkSelectionMode</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--selection-mode" title="The “selection-mode” property">selection-mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--single-click" title="The “single-click” property">single-click</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--single-click-timeout" title="The “single-click-timeout” property">single-click-timeout</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--spacing" title="The “spacing” property">spacing</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gint</span></td>
+<td class="property_name"><a class="link" href="ExoIconView.html#ExoIconView--text-column" title="The “text-column” property">text-column</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">gboolean</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-activate-cursor-item" title="The “activate-cursor-item” signal">activate-cursor-item</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-item-activated" title="The “item-activated” signal">item-activated</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">gboolean</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-move-cursor" title="The “move-cursor” signal">move-cursor</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-select-all" title="The “select-all” signal">select-all</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-select-cursor-item" title="The “select-cursor-item” signal">select-cursor-item</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-selection-changed" title="The “selection-changed” signal">selection-changed</a></td>
+<td class="signal_flags">Run First</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">gboolean</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-start-interactive-search" title="The “start-interactive-search” signal">start-interactive-search</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-toggle-cursor-item" title="The “toggle-cursor-item” signal">toggle-cursor-item</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ExoIconView.html#ExoIconView-unselect-all" title="The “unselect-all” signal">unselect-all</a></td>
+<td class="signal_flags">Action</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ExoIconView.html#ExoIconView-struct" title="struct ExoIconView">ExoIconView</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ExoIconView.html#ExoIconViewDropPosition" title="enum ExoIconViewDropPosition">ExoIconViewDropPosition</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode">ExoIconViewLayoutMode</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> ExoIconView
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+ExoIconView implements
+ AtkImplementorIface,  GtkBuildable,  GtkCellLayout and  GtkScrollable.</p>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.description"></a><h2>Description</h2>
+<p><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> provides an alternative view on a list model.
+It displays the model as a grid of icons with labels. Like
+<span class="type">GtkTreeView</span>, it allows to select one or multiple items
+(depending on the selection mode, see <a class="link" href="ExoIconView.html#exo-icon-view-set-selection-mode" title="exo_icon_view_set_selection_mode ()"><code class="function">exo_icon_view_set_selection_mode()</code></a>).
+In addition to selection with the arrow keys, <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> supports
+rubberband selection, which is controlled by dragging the pointer.</p>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-icon-view-new"></a><h3>exo_icon_view_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+exo_icon_view_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> widget</p>
+<div class="refsect3">
+<a name="exo-icon-view-new.returns"></a><h4>Returns</h4>
+<p> A newly created <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> widget</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-new-with-model"></a><h3>exo_icon_view_new_with_model ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+exo_icon_view_new_with_model (<em class="parameter"><code><span class="type">GtkTreeModel</span> *model</code></em>);</pre>
+<p>Creates a new <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> widget with the model <em class="parameter"><code>model</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-new-with-model.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>model</p></td>
+<td class="parameter_description"><p>The model.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-new-with-model.returns"></a><h4>Returns</h4>
+<p> A newly created <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> widget.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-model"></a><h3>exo_icon_view_get_model ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkTreeModel</span> *
+exo_icon_view_get_model (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the model the <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> is based on. Returns <code class="literal">NULL</code> if the
+model is unset.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-model.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-model.returns"></a><h4>Returns</h4>
+<p> A <span class="type">GtkTreeModel</span>, or <code class="literal">NULL</code> if none is currently being used.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-model"></a><h3>exo_icon_view_set_model ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_model (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                         <em class="parameter"><code><span class="type">GtkTreeModel</span> *model</code></em>);</pre>
+<p>Sets the model for a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.
+If the <em class="parameter"><code>icon_view</code></em>
+ already has a model set, it will remove
+it before setting the new model.  If <em class="parameter"><code>model</code></em>
+ is <code class="literal">NULL</code>, then
+it will unset the old model.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-model.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>model</p></td>
+<td class="parameter_description"><p>The model.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-orientation"></a><h3>exo_icon_view_get_orientation ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkOrientation</span>
+exo_icon_view_get_orientation (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::orientation property which determines
+whether the labels are drawn beside the icons instead of below.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-orientation.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-orientation.returns"></a><h4>Returns</h4>
+<p> the relative position of texts and icons</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-orientation"></a><h3>exo_icon_view_set_orientation ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_orientation (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">GtkOrientation</span> orientation</code></em>);</pre>
+<p>Sets the ::orientation property which determines whether the labels
+are drawn beside the icons instead of below.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-orientation.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>orientation</p></td>
+<td class="parameter_description"><p>the relative position of texts and icons</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-columns"></a><h3>exo_icon_view_get_columns ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_columns (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::columns property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-columns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-columns.returns"></a><h4>Returns</h4>
+<p> the number of columns, or -1</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-columns"></a><h3>exo_icon_view_set_columns ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_columns (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                           <em class="parameter"><code><span class="type">gint</span> columns</code></em>);</pre>
+<p>Sets the ::columns property which determines in how
+many columns the icons are arranged. If <em class="parameter"><code>columns</code></em>
+ is
+-1, the number of columns will be chosen automatically
+to fill the available area.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-columns.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>columns</p></td>
+<td class="parameter_description"><p>the number of columns</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-item-width"></a><h3>exo_icon_view_get_item_width ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_item_width (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::item-width property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-width.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-width.returns"></a><h4>Returns</h4>
+<p> the width of a single item, or -1</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-item-width"></a><h3>exo_icon_view_set_item_width ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_item_width (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                              <em class="parameter"><code><span class="type">gint</span> item_width</code></em>);</pre>
+<p>Sets the ::item-width property which specifies the width
+to use for each item. If it is set to -1, the icon view will
+automatically determine a suitable item size.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-item-width.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>item_width</p></td>
+<td class="parameter_description"><p>the width for each item</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-spacing"></a><h3>exo_icon_view_get_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_spacing (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::spacing property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-spacing.returns"></a><h4>Returns</h4>
+<p> the space between cells</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-spacing"></a><h3>exo_icon_view_set_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_spacing (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                           <em class="parameter"><code><span class="type">gint</span> spacing</code></em>);</pre>
+<p>Sets the ::spacing property which specifies the space
+which is inserted between the cells (i.e. the icon and
+the text) of an item.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>spacing</p></td>
+<td class="parameter_description"><p>the spacing</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-row-spacing"></a><h3>exo_icon_view_get_row_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_row_spacing (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::row-spacing property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-row-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-row-spacing.returns"></a><h4>Returns</h4>
+<p> the space between rows</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-row-spacing"></a><h3>exo_icon_view_set_row_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_row_spacing (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> row_spacing</code></em>);</pre>
+<p>Sets the ::row-spacing property which specifies the space
+which is inserted between the rows of the icon view.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-row-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>row_spacing</p></td>
+<td class="parameter_description"><p>the row spacing</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-column-spacing"></a><h3>exo_icon_view_get_column_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_column_spacing (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::column-spacing property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-column-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-column-spacing.returns"></a><h4>Returns</h4>
+<p> the space between columns</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-column-spacing"></a><h3>exo_icon_view_set_column_spacing ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_column_spacing (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                  <em class="parameter"><code><span class="type">gint</span> column_spacing</code></em>);</pre>
+<p>Sets the ::column-spacing property which specifies the space
+which is inserted between the columns of the icon view.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-column-spacing.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>column_spacing</p></td>
+<td class="parameter_description"><p>the column spacing</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-margin"></a><h3>exo_icon_view_get_margin ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_margin (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the value of the ::margin property.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-margin.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-margin.returns"></a><h4>Returns</h4>
+<p> the space at the borders</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-margin"></a><h3>exo_icon_view_set_margin ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_margin (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                          <em class="parameter"><code><span class="type">gint</span> margin</code></em>);</pre>
+<p>Sets the ::margin property which specifies the space
+which is inserted at the top, bottom, left and right
+of the icon view.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-margin.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>margin</p></td>
+<td class="parameter_description"><p>the margin</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-selection-mode"></a><h3>exo_icon_view_get_selection_mode ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkSelectionMode</span>
+exo_icon_view_get_selection_mode (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Gets the selection mode of the <em class="parameter"><code>icon_view</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-selection-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-selection-mode.returns"></a><h4>Returns</h4>
+<p> the current selection mode</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-selection-mode"></a><h3>exo_icon_view_set_selection_mode ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_selection_mode (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                  <em class="parameter"><code><span class="type">GtkSelectionMode</span> mode</code></em>);</pre>
+<p>Sets the selection mode of the <em class="parameter"><code>icon_view</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-selection-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>mode</p></td>
+<td class="parameter_description"><p>The selection mode</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-layout-mode"></a><h3>exo_icon_view_get_layout_mode ()</h3>
+<pre class="programlisting"><a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="returnvalue">ExoIconViewLayoutMode</span></a>
+exo_icon_view_get_layout_mode (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the <a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="type">ExoIconViewLayoutMode</span></a> used to layout the
+items in the <em class="parameter"><code>icon_view</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-layout-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-layout-mode.returns"></a><h4>Returns</h4>
+<p> the layout mode of <em class="parameter"><code>icon_view</code></em>
+.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-layout-mode"></a><h3>exo_icon_view_set_layout_mode ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_layout_mode (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="type">ExoIconViewLayoutMode</span></a> layout_mode</code></em>);</pre>
+<p>Sets the layout mode of <em class="parameter"><code>icon_view</code></em>
+ to <em class="parameter"><code>layout_mode</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-layout-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>layout_mode</p></td>
+<td class="parameter_description"><p>the new <a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="type">ExoIconViewLayoutMode</span></a> for <em class="parameter"><code>icon_view</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-single-click"></a><h3>exo_icon_view_get_single_click ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_single_click (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>icon_view</code></em>
+ is currently in single click mode,
+else <code class="literal">FALSE</code> will be returned.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-single-click.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-single-click.returns"></a><h4>Returns</h4>
+<p> whether <em class="parameter"><code>icon_view</code></em>
+is currently in single click mode.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-single-click"></a><h3>exo_icon_view_set_single_click ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_single_click (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> single_click</code></em>);</pre>
+<p>If <em class="parameter"><code>single_click</code></em>
+ is <code class="literal">TRUE</code>, <em class="parameter"><code>icon_view</code></em>
+ will be in single click mode
+afterwards, else <em class="parameter"><code>icon_view</code></em>
+ will be in double click mode.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-single-click.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>single_click</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> for single click, <code class="literal">FALSE</code> for double click mode.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-single-click-timeout"></a><h3>exo_icon_view_get_single_click_timeout ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+exo_icon_view_get_single_click_timeout
+                               (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the amount of time in milliseconds after which the
+item under the mouse cursor will be selected automatically
+in single click mode. A value of <code class="literal">0</code> means that the behavior
+is disabled and the user must alter the selection manually.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-single-click-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-single-click-timeout.returns"></a><h4>Returns</h4>
+<p> the single click autoselect timeout or <code class="literal">0</code> if
+the behavior is disabled.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-single-click-timeout"></a><h3>exo_icon_view_set_single_click_timeout ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_single_click_timeout
+                               (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><span class="type">guint</span> single_click_timeout</code></em>);</pre>
+<p>If <em class="parameter"><code>single_click_timeout</code></em>
+ is a value greater than zero, it specifies
+the amount of time in milliseconds after which the item under the
+mouse cursor will be selected automatically in single click mode.
+A value of <code class="literal">0</code> for <em class="parameter"><code>single_click_timeout</code></em>
+ disables the autoselection
+for <em class="parameter"><code>icon_view</code></em>
+.</p>
+<p>This setting does not have any effect unless the <em class="parameter"><code>icon_view</code></em>
+ is in
+single-click mode, see <a class="link" href="ExoIconView.html#exo-icon-view-set-single-click" title="exo_icon_view_set_single_click ()"><code class="function">exo_icon_view_set_single_click()</code></a>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-single-click-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>single_click_timeout</p></td>
+<td class="parameter_description"><p>the new timeout or <code class="literal">0</code> to disable.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-widget-to-icon-coords"></a><h3>exo_icon_view_widget_to_icon_coords ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_widget_to_icon_coords (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> wx</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> wy</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> *ix</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> *iy</code></em>);</pre>
+<p>Converts widget coordinates to coordinates for the icon window
+(the full scrollable area of the icon view).</p>
+<div class="refsect3">
+<a name="exo-icon-view-widget-to-icon-coords.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>wx</p></td>
+<td class="parameter_description"><p>widget x coordinate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>wy</p></td>
+<td class="parameter_description"><p>widget y coordinate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ix</p></td>
+<td class="parameter_description"><p>return location for icon x coordinate or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iy</p></td>
+<td class="parameter_description"><p>return location for icon y coordinate or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-icon-to-widget-coords"></a><h3>exo_icon_view_icon_to_widget_coords ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_icon_to_widget_coords (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> ix</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> iy</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> *wx</code></em>,
+                                     <em class="parameter"><code><span class="type">gint</span> *wy</code></em>);</pre>
+<p>Converts icon view coordinates (coordinates in full scrollable
+area of the icon view) to widget coordinates.</p>
+<div class="refsect3">
+<a name="exo-icon-view-icon-to-widget-coords.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ix</p></td>
+<td class="parameter_description"><p>icon x coordinate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iy</p></td>
+<td class="parameter_description"><p>icon y coordinate.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>wx</p></td>
+<td class="parameter_description"><p>return location for widget x coordinate or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>wy</p></td>
+<td class="parameter_description"><p>return location for widget y coordinate or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-path-at-pos"></a><h3>exo_icon_view_get_path_at_pos ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkTreePath</span> *
+exo_icon_view_get_path_at_pos (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> x</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> y</code></em>);</pre>
+<p>Finds the path at the point (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+), relative to widget coordinates.
+See <a class="link" href="ExoIconView.html#exo-icon-view-get-item-at-pos" title="exo_icon_view_get_item_at_pos ()"><code class="function">exo_icon_view_get_item_at_pos()</code></a>, if you are also interested in
+the cell at the specified position.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-path-at-pos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>The x position to be identified</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>The y position to be identified</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-path-at-pos.returns"></a><h4>Returns</h4>
+<p> The <span class="type">GtkTreePath</span> corresponding to the icon or <code class="literal">NULL</code>
+if no icon exists at that position.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-item-at-pos"></a><h3>exo_icon_view_get_item_at_pos ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_item_at_pos (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> x</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> y</code></em>,
+                               <em class="parameter"><code><span class="type">GtkTreePath</span> **path</code></em>,
+                               <em class="parameter"><code><span class="type">GtkCellRenderer</span> **cell</code></em>);</pre>
+<p>Finds the path at the point (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+), relative to widget coordinates.
+In contrast to <a class="link" href="ExoIconView.html#exo-icon-view-get-path-at-pos" title="exo_icon_view_get_path_at_pos ()"><code class="function">exo_icon_view_get_path_at_pos()</code></a>, this function also
+obtains the cell at the specified position. The returned path should
+be freed with <code class="function">gtk_tree_path_free()</code>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-at-pos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>The x position to be identified</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>The y position to be identified</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>Return location for the path, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cell</p></td>
+<td class="parameter_description"><p>Return location for the renderer responsible for the cell
+at (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+), or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-at-pos.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if an item exists at the specified position</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-visible-range"></a><h3>exo_icon_view_get_visible_range ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_visible_range (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                 <em class="parameter"><code><span class="type">GtkTreePath</span> **start_path</code></em>,
+                                 <em class="parameter"><code><span class="type">GtkTreePath</span> **end_path</code></em>);</pre>
+<p>Sets <em class="parameter"><code>start_path</code></em>
+ and <em class="parameter"><code>end_path</code></em>
+ to be the first and last visible path.
+Note that there may be invisible paths in between.</p>
+<p>Both paths should be freed with <code class="function">gtk_tree_path_free()</code> after use.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-visible-range.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_path</p></td>
+<td class="parameter_description"><p>Return location for start of region, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>end_path</p></td>
+<td class="parameter_description"><p>Return location for end of region, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-visible-range.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code>, if valid paths were placed in <em class="parameter"><code>start_path</code></em>
+and <em class="parameter"><code>end_path</code></em>
+</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconViewForeachFunc"></a><h3>ExoIconViewForeachFunc ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*ExoIconViewForeachFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                           <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>,
+                           <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>Callback function prototype, invoked for every selected path in the
+<em class="parameter"><code>icon_view</code></em>
+. See <a class="link" href="ExoIconView.html#exo-icon-view-selected-foreach" title="exo_icon_view_selected_foreach ()"><code class="function">exo_icon_view_selected_foreach()</code></a> for details.</p>
+<div class="refsect3">
+<a name="ExoIconViewForeachFunc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>the current path.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>the user data supplied to <a class="link" href="ExoIconView.html#exo-icon-view-selected-foreach" title="exo_icon_view_selected_foreach ()"><code class="function">exo_icon_view_selected_foreach()</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-selected-foreach"></a><h3>exo_icon_view_selected_foreach ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_selected_foreach (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewForeachFunc" title="ExoIconViewForeachFunc ()"><span class="type">ExoIconViewForeachFunc</span></a> func</code></em>,
+                                <em class="parameter"><code><span class="type">gpointer</span> data</code></em>);</pre>
+<p>Calls a function for each selected icon. Note that the model or
+selection cannot be modified from within this function.</p>
+<div class="refsect3">
+<a name="exo-icon-view-selected-foreach.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>The funcion to call for each selected icon.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>User data to pass to the function.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-select-path"></a><h3>exo_icon_view_select_path ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_select_path (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                           <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Selects the row at <em class="parameter"><code>path</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-select-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The <span class="type">GtkTreePath</span> to be selected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-unselect-path"></a><h3>exo_icon_view_unselect_path ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_unselect_path (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                             <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Unselects the row at <em class="parameter"><code>path</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-unselect-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The <span class="type">GtkTreePath</span> to be unselected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-path-is-selected"></a><h3>exo_icon_view_path_is_selected ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_path_is_selected (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if the icon pointed to by <em class="parameter"><code>path</code></em>
+ is currently
+selected. If <em class="parameter"><code>icon</code></em>
+ does not point to a valid location, <code class="literal">FALSE</code> is returned.</p>
+<div class="refsect3">
+<a name="exo-icon-view-path-is-selected.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>A <span class="type">GtkTreePath</span> to check selection on.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-path-is-selected.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>path</code></em>
+is selected.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-item-column"></a><h3>exo_icon_view_get_item_column ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_item_column (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Gets the column in which the item <em class="parameter"><code>path</code></em>
+ is currently
+displayed. Column numbers start at 0.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-column.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The <span class="type">GtkTreePath</span> of the item.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-column.returns"></a><h4>Returns</h4>
+<p> The column in which the item is displayed</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.7.1" title="Added in 0.7.1">0.7.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-item-row"></a><h3>exo_icon_view_get_item_row ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_item_row (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                            <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Gets the row in which the item <em class="parameter"><code>path</code></em>
+ is currently
+displayed. Row numbers start at 0.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-row.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The <span class="type">GtkTreePath</span> of the item.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-item-row.returns"></a><h4>Returns</h4>
+<p> The row in which the item is displayed</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.7.1" title="Added in 0.7.1">0.7.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-selected-items"></a><h3>exo_icon_view_get_selected_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+exo_icon_view_get_selected_items (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Creates a list of paths of all selected items. Additionally, if you are
+planning on modifying the model after calling this function, you may
+want to convert the returned list into a list of <span class="type">GtkTreeRowReference</span>s.
+To do this, you can use <code class="function">gtk_tree_row_reference_new()</code>.</p>
+<p>To free the return value, use:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_foreach</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">gtk_tree_path_free</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="n">g_list_free</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="exo-icon-view-get-selected-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-selected-items.returns"></a><h4>Returns</h4>
+<p> A <span class="type">GList</span> containing a <span class="type">GtkTreePath</span> for each selected row.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-select-all"></a><h3>exo_icon_view_select_all ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_select_all (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Selects all the icons. <em class="parameter"><code>icon_view</code></em>
+ must has its selection mode set
+to <span class="type">GTK_SELECTION_MULTIPLE</span>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-select-all.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-unselect-all"></a><h3>exo_icon_view_unselect_all ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_unselect_all (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Unselects all the icons.</p>
+<div class="refsect3">
+<a name="exo-icon-view-unselect-all.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-selection-invert"></a><h3>exo_icon_view_selection_invert ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_selection_invert (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Selects all the icons that are currently not selected. <em class="parameter"><code>icon_view</code></em>
+ must
+has its selection mode set to <span class="type">GTK_SELECTION_MULTIPLE</span>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-selection-invert.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-item-activated"></a><h3>exo_icon_view_item_activated ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_item_activated (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                              <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Activates the item determined by <em class="parameter"><code>path</code></em>
+.</p>
+<div class="refsect3">
+<a name="exo-icon-view-item-activated.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkTreePath</span> to be activated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-cursor"></a><h3>exo_icon_view_get_cursor ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_cursor (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                          <em class="parameter"><code><span class="type">GtkTreePath</span> **path</code></em>,
+                          <em class="parameter"><code><span class="type">GtkCellRenderer</span> **cell</code></em>);</pre>
+<p>Fills in <em class="parameter"><code>path</code></em>
+ and <em class="parameter"><code>cell</code></em>
+ with the current cursor path and cell.
+If the cursor isn't currently set, then *<em class="parameter"><code>path</code></em>
+ will be <code class="literal">NULL</code>.
+If no cell currently has focus, then *<em class="parameter"><code>cell</code></em>
+ will be <code class="literal">NULL</code>.</p>
+<p>The returned <span class="type">GtkTreePath</span> must be freed with <code class="function">gtk_tree_path_free()</code>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-cursor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>Return location for the current cursor path, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cell</p></td>
+<td class="parameter_description"><p>Return location the current focus cell, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-cursor.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the cursor is set.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-cursor"></a><h3>exo_icon_view_set_cursor ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_cursor (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                          <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>,
+                          <em class="parameter"><code><span class="type">GtkCellRenderer</span> *cell</code></em>,
+                          <em class="parameter"><code><span class="type">gboolean</span> start_editing</code></em>);</pre>
+<p>Sets the current keyboard focus to be at <em class="parameter"><code>path</code></em>
+, and selects it.  This is
+useful when you want to focus the user's attention on a particular item.
+If <em class="parameter"><code>cell</code></em>
+ is not <code class="literal">NULL</code>, then focus is given to the cell specified by
+it. Additionally, if <em class="parameter"><code>start_editing</code></em>
+ is <code class="literal">TRUE</code>, then editing should be
+started in the specified cell.</p>
+<p>This function is often followed by <code class="literal">gtk_widget_grab_focus
+(icon_view)</code> in order to give keyboard focus to the widget.
+Please note that editing can only happen when the widget is realized.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-cursor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkTreePath</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cell</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkCellRenderer</span> or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_editing</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> if the specified cell should start being edited.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-scroll-to-path"></a><h3>exo_icon_view_scroll_to_path ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_scroll_to_path (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                              <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>,
+                              <em class="parameter"><code><span class="type">gboolean</span> use_align</code></em>,
+                              <em class="parameter"><code><span class="type">gfloat</span> row_align</code></em>,
+                              <em class="parameter"><code><span class="type">gfloat</span> col_align</code></em>);</pre>
+<p>Moves the alignments of <em class="parameter"><code>icon_view</code></em>
+ to the position specified by <em class="parameter"><code>path</code></em>
+.
+<em class="parameter"><code>row_align</code></em>
+ determines where the row is placed, and <em class="parameter"><code>col_align</code></em>
+ determines where
+<em class="parameter"><code>column</code></em>
+ is placed.  Both are expected to be between 0.0 and 1.0.
+0.0 means left/top alignment, 1.0 means right/bottom alignment, 0.5 means center.</p>
+<p>If <em class="parameter"><code>use_align</code></em>
+ is <code class="literal">FALSE</code>, then the alignment arguments are ignored, and the
+tree does the minimum amount of work to scroll the item onto the screen.
+This means that the item will be scrolled to the edge closest to its current
+position.  If the item is currently visible on the screen, nothing is done.</p>
+<p>This function only works if the model is set, and <em class="parameter"><code>path</code></em>
+ is a valid row on the
+model.  If the model changes before the <em class="parameter"><code>tree_view</code></em>
+ is realized, the centered
+path will be modified to reflect this change.</p>
+<div class="refsect3">
+<a name="exo-icon-view-scroll-to-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The path of the item to move to.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>use_align</p></td>
+<td class="parameter_description"><p>whether to use alignment arguments, or <code class="literal">FALSE</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>row_align</p></td>
+<td class="parameter_description"><p>The vertical alignment of the item specified by <em class="parameter"><code>path</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>col_align</p></td>
+<td class="parameter_description"><p>The horizontal alignment of the item specified by <em class="parameter"><code>column</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-enable-model-drag-source"></a><h3>exo_icon_view_enable_model_drag_source ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_enable_model_drag_source
+                               (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><span class="type">GdkModifierType</span> start_button_mask</code></em>,
+                                <em class="parameter"><code>const <span class="type">GtkTargetEntry</span> *targets</code></em>,
+                                <em class="parameter"><code><span class="type">gint</span> n_targets</code></em>,
+                                <em class="parameter"><code><span class="type">GdkDragAction</span> actions</code></em>);</pre>
+<p>Turns <em class="parameter"><code>icon_view</code></em>
+ into a drag source for automatic DND.</p>
+<div class="refsect3">
+<a name="exo-icon-view-enable-model-drag-source.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkIconTreeView</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_button_mask</p></td>
+<td class="parameter_description"><p>Mask of allowed buttons to start drag</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>targets</p></td>
+<td class="parameter_description"><p>the table of targets that the drag will support</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_targets</p></td>
+<td class="parameter_description"><p>the number of items in <em class="parameter"><code>targets</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>actions</p></td>
+<td class="parameter_description"><p>the bitmask of possible actions for a drag from this widget</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-enable-model-drag-dest"></a><h3>exo_icon_view_enable_model_drag_dest ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_enable_model_drag_dest (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                      <em class="parameter"><code>const <span class="type">GtkTargetEntry</span> *targets</code></em>,
+                                      <em class="parameter"><code><span class="type">gint</span> n_targets</code></em>,
+                                      <em class="parameter"><code><span class="type">GdkDragAction</span> actions</code></em>);</pre>
+<p>Turns <em class="parameter"><code>icon_view</code></em>
+ into a drop destination for automatic DND.</p>
+<div class="refsect3">
+<a name="exo-icon-view-enable-model-drag-dest.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>targets</p></td>
+<td class="parameter_description"><p>the table of targets that the drag will support</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_targets</p></td>
+<td class="parameter_description"><p>the number of items in <em class="parameter"><code>targets</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>actions</p></td>
+<td class="parameter_description"><p>the bitmask of possible actions for a drag from this widget</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-unset-model-drag-source"></a><h3>exo_icon_view_unset_model_drag_source ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_unset_model_drag_source (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Undoes the effect of <a class="link" href="ExoIconView.html#exo-icon-view-enable-model-drag-source" title="exo_icon_view_enable_model_drag_source ()"><code class="function">exo_icon_view_enable_model_drag_source()</code></a>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-unset-model-drag-source.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-unset-model-drag-dest"></a><h3>exo_icon_view_unset_model_drag_dest ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_unset_model_drag_dest (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Undoes the effect of <a class="link" href="ExoIconView.html#exo-icon-view-enable-model-drag-dest" title="exo_icon_view_enable_model_drag_dest ()"><code class="function">exo_icon_view_enable_model_drag_dest()</code></a>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-unset-model-drag-dest.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-reorderable"></a><h3>exo_icon_view_set_reorderable ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_reorderable (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                               <em class="parameter"><code><span class="type">gboolean</span> reorderable</code></em>);</pre>
+<p>This function is a convenience function to allow you to reorder models that
+support the <span class="type">GtkTreeDragSourceIface</span> and the <span class="type">GtkTreeDragDestIface</span>.  Both
+<span class="type">GtkTreeStore</span> and <span class="type">GtkListStore</span> support these.  If <em class="parameter"><code>reorderable</code></em>
+ is <code class="literal">TRUE</code>, then
+the user can reorder the model by dragging and dropping rows.  The
+developer can listen to these changes by connecting to the model's
+::row-inserted and ::row-deleted signals.</p>
+<p>This function does not give you any degree of control over the order -- any
+reordering is allowed.  If more control is needed, you should probably
+handle drag and drop manually.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-reorderable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>A <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>reorderable</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code>, if the list of items can be reordered.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-reorderable"></a><h3>exo_icon_view_get_reorderable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_reorderable (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Retrieves whether the user can reorder the list via drag-and-drop.
+See <a class="link" href="ExoIconView.html#exo-icon-view-set-reorderable" title="exo_icon_view_set_reorderable ()"><code class="function">exo_icon_view_set_reorderable()</code></a>.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-reorderable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-reorderable.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the list can be reordered.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-drag-dest-item"></a><h3>exo_icon_view_set_drag_dest_item ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_drag_dest_item (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                  <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>,
+                                  <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewDropPosition" title="enum ExoIconViewDropPosition"><span class="type">ExoIconViewDropPosition</span></a> pos</code></em>);</pre>
+<p>Sets the item that is highlighted for feedback.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-drag-dest-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>The path of the item to highlight, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>pos</p></td>
+<td class="parameter_description"><p>Specifies whether to drop, relative to the item</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-drag-dest-item"></a><h3>exo_icon_view_get_drag_dest_item ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_get_drag_dest_item (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                  <em class="parameter"><code><span class="type">GtkTreePath</span> **path</code></em>,
+                                  <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewDropPosition" title="enum ExoIconViewDropPosition"><span class="type">ExoIconViewDropPosition</span></a> *pos</code></em>);</pre>
+<p>Gets information about the item that is highlighted for feedback.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-drag-dest-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>Return location for the path of the highlighted item, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>pos</p></td>
+<td class="parameter_description"><p>Return location for the drop position, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-dest-item-at-pos"></a><h3>exo_icon_view_get_dest_item_at_pos ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_dest_item_at_pos (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                    <em class="parameter"><code><span class="type">gint</span> drag_x</code></em>,
+                                    <em class="parameter"><code><span class="type">gint</span> drag_y</code></em>,
+                                    <em class="parameter"><code><span class="type">GtkTreePath</span> **path</code></em>,
+                                    <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewDropPosition" title="enum ExoIconViewDropPosition"><span class="type">ExoIconViewDropPosition</span></a> *pos</code></em>);</pre>
+<p>Determines the destination item for a given position.</p>
+<p>Both <em class="parameter"><code>drag_x</code></em>
+ and <em class="parameter"><code>drag_y</code></em>
+ are given in icon window coordinates. Use
+<a class="link" href="ExoIconView.html#exo-icon-view-widget-to-icon-coords" title="exo_icon_view_widget_to_icon_coords ()"><code class="function">exo_icon_view_widget_to_icon_coords()</code></a> if you need to translate
+widget coordinates first.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-dest-item-at-pos.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>drag_x</p></td>
+<td class="parameter_description"><p>the position to determine the destination item for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>drag_y</p></td>
+<td class="parameter_description"><p>the position to determine the destination item for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>Return location for the path of the highlighted item, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>pos</p></td>
+<td class="parameter_description"><p>Return location for the drop position, or <code class="literal">NULL</code></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-dest-item-at-pos.returns"></a><h4>Returns</h4>
+<p> whether there is an item at the given position.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-create-drag-icon"></a><h3>exo_icon_view_create_drag_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">cairo_surface_t</span> *
+exo_icon_view_create_drag_icon (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Creates a <span class="type">cairo_surface_t</span> representation of the item at <em class="parameter"><code>path</code></em>
+.
+This image is used for a drag icon.</p>
+<div class="refsect3">
+<a name="exo-icon-view-create-drag-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkTreePath</span> in <em class="parameter"><code>icon_view</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-create-drag-icon.returns"></a><h4>Returns</h4>
+<p> a newly-allocated pixmap of the drag icon.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconViewSearchEqualFunc"></a><h3>ExoIconViewSearchEqualFunc ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<span class="c_punctuation">(</span>*ExoIconViewSearchEqualFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">GtkTreeModel</span> *model</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> column</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *key</code></em>,
+                               <em class="parameter"><code><span class="type">GtkTreeIter</span> *iter</code></em>,
+                               <em class="parameter"><code><span class="type">gpointer</span> search_data</code></em>);</pre>
+<p>A function used for checking whether a row in <em class="parameter"><code>model</code></em>
+ matches a search key string
+entered by the user. Note the return value is reversed from what you would normally
+expect, though it has some similarity to <code class="function">strcmp()</code> returning 0 for equal strings.</p>
+<div class="refsect3">
+<a name="ExoIconViewSearchEqualFunc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>model</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkTreeModel</span> being searched.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>column</p></td>
+<td class="parameter_description"><p>the search column set by <a class="link" href="ExoIconView.html#exo-icon-view-set-search-column" title="exo_icon_view_set_search_column ()"><code class="function">exo_icon_view_set_search_column()</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>key</p></td>
+<td class="parameter_description"><p>the key string to compare with.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iter</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkTreeIter</span> of the current item.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_data</p></td>
+<td class="parameter_description"><p>user data from <a class="link" href="ExoIconView.html#exo-icon-view-set-search-equal-func" title="exo_icon_view_set_search_equal_func ()"><code class="function">exo_icon_view_set_search_equal_func()</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="ExoIconViewSearchEqualFunc.returns"></a><h4>Returns</h4>
+<p> <code class="literal">FALSE</code> if the row matches, <code class="literal">TRUE</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconViewSearchPositionFunc"></a><h3>ExoIconViewSearchPositionFunc ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*ExoIconViewSearchPositionFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                  <em class="parameter"><code><span class="type">GtkWidget</span> *search_dialog</code></em>,
+                                  <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>A function used to place the <em class="parameter"><code>search_dialog</code></em>
+ for the <em class="parameter"><code>icon_view</code></em>
+.</p>
+<div class="refsect3">
+<a name="ExoIconViewSearchPositionFunc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_dialog</p></td>
+<td class="parameter_description"><p>the search dialog window to place.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data from <a class="link" href="ExoIconView.html#exo-icon-view-set-search-position-func" title="exo_icon_view_set_search_position_func ()"><code class="function">exo_icon_view_set_search_position_func()</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-enable-search"></a><h3>exo_icon_view_get_enable_search ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+exo_icon_view_get_enable_search (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns whether or not the <em class="parameter"><code>icon_view</code></em>
+ allows to start
+interactive searching by typing in text.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-enable-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-enable-search.returns"></a><h4>Returns</h4>
+<p> whether or not to let the user search interactively.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-enable-search"></a><h3>exo_icon_view_set_enable_search ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_enable_search (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                 <em class="parameter"><code><span class="type">gboolean</span> enable_search</code></em>);</pre>
+<p>If <em class="parameter"><code>enable_search</code></em>
+ is set, then the user can type in text to search through
+the <em class="parameter"><code>icon_view</code></em>
+ interactively (this is sometimes called "typeahead find").</p>
+<p>Note that even if this is <code class="literal">FALSE</code>, the user can still initiate a search
+using the "start-interactive-search" key binding.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-enable-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>enable_search</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> if the user can search interactively.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-search-column"></a><h3>exo_icon_view_get_search_column ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+exo_icon_view_get_search_column (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the column searched on by the interactive search code.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-column.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-column.returns"></a><h4>Returns</h4>
+<p> the column the interactive search code searches in.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-search-column"></a><h3>exo_icon_view_set_search_column ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_search_column (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                 <em class="parameter"><code><span class="type">gint</span> search_column</code></em>);</pre>
+<p>Sets <em class="parameter"><code>search_column</code></em>
+ as the column where the interactive search code should search in.</p>
+<p>If the search column is set, user can use the "start-interactive-search" key
+binding to bring up search popup. The "enable-search" property controls
+whether simply typing text will also start an interactive search.</p>
+<p>Note that <em class="parameter"><code>search_column</code></em>
+ refers to a column of the model.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-search-column.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_column</p></td>
+<td class="parameter_description"><p>the column of the model to search in, or -1 to disable searching.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-search-equal-func"></a><h3>exo_icon_view_get_search_equal_func ()</h3>
+<pre class="programlisting"><a class="link" href="ExoIconView.html#ExoIconViewSearchEqualFunc" title="ExoIconViewSearchEqualFunc ()"><span class="returnvalue">ExoIconViewSearchEqualFunc</span></a>
+exo_icon_view_get_search_equal_func (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the compare function currently in use.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-equal-func.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-equal-func.returns"></a><h4>Returns</h4>
+<p> the currently used compare function for the search code.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-search-equal-func"></a><h3>exo_icon_view_set_search_equal_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_search_equal_func (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                     <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewSearchEqualFunc" title="ExoIconViewSearchEqualFunc ()"><span class="type">ExoIconViewSearchEqualFunc</span></a> search_equal_func</code></em>,
+                                     <em class="parameter"><code><span class="type">gpointer</span> search_equal_data</code></em>,
+                                     <em class="parameter"><code><span class="type">GDestroyNotify</span> search_equal_destroy</code></em>);</pre>
+<p>Sets the compare function for the interactive search capabilities;
+note that some like <code class="function">strcmp()</code> returning 0 for equality
+<a class="link" href="ExoIconView.html#ExoIconViewSearchEqualFunc" title="ExoIconViewSearchEqualFunc ()"><span class="type">ExoIconViewSearchEqualFunc</span></a> returns <code class="literal">FALSE</code> on matches.</p>
+<p>Specifying <code class="literal">NULL</code> for <em class="parameter"><code>search_equal_func</code></em>
+ will reset <em class="parameter"><code>icon_view</code></em>
+ to use the default
+search equal function.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-search-equal-func.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_equal_func</p></td>
+<td class="parameter_description"><p>the compare function to use during the search, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_equal_data</p></td>
+<td class="parameter_description"><p>user data to pass to <em class="parameter"><code>search_equal_func</code></em>
+, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_equal_destroy</p></td>
+<td class="parameter_description"><p>destroy notifier for <em class="parameter"><code>search_equal_data</code></em>
+, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-get-search-position-func"></a><h3>exo_icon_view_get_search_position_func ()</h3>
+<pre class="programlisting"><a class="link" href="ExoIconView.html#ExoIconViewSearchPositionFunc" title="ExoIconViewSearchPositionFunc ()"><span class="returnvalue">ExoIconViewSearchPositionFunc</span></a>
+exo_icon_view_get_search_position_func
+                               (<em class="parameter"><code>const <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>);</pre>
+<p>Returns the search dialog positioning function currently in use.</p>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-position-func.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-icon-view-get-search-position-func.returns"></a><h4>Returns</h4>
+<p> the currently used function for positioning the search dialog.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-icon-view-set-search-position-func"></a><h3>exo_icon_view_set_search_position_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_icon_view_set_search_position_func
+                               (<em class="parameter"><code><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view</code></em>,
+                                <em class="parameter"><code><a class="link" href="ExoIconView.html#ExoIconViewSearchPositionFunc" title="ExoIconViewSearchPositionFunc ()"><span class="type">ExoIconViewSearchPositionFunc</span></a> search_position_func</code></em>,
+                                <em class="parameter"><code><span class="type">gpointer</span> search_position_data</code></em>,
+                                <em class="parameter"><code><span class="type">GDestroyNotify</span> search_position_destroy</code></em>);</pre>
+<p>Sets the function to use when positioning the seach dialog.</p>
+<p>Specifying <code class="literal">NULL</code> for <em class="parameter"><code>search_position_func</code></em>
+ will reset <em class="parameter"><code>icon_view</code></em>
+ to use the default
+search position function.</p>
+<div class="refsect3">
+<a name="exo-icon-view-set-search-position-func.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_position_func</p></td>
+<td class="parameter_description"><p>the function to use to position the search dialog, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_position_data</p></td>
+<td class="parameter_description"><p>user data to pass to <em class="parameter"><code>search_position_func</code></em>
+, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_position_destroy</p></td>
+<td class="parameter_description"><p>destroy notifier for <em class="parameter"><code>search_position_data</code></em>
+, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ExoIconView-struct"></a><h3>struct ExoIconView</h3>
+<pre class="programlisting">struct ExoIconView;</pre>
+<p><a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> provides an alternative view on a list model.
+It displays the model as a grid of icons with labels. Like
+<span class="type">GtkTreeView</span>, it allows to select one or multiple items
+(depending on the selection mode, see <a class="link" href="ExoIconView.html#exo-icon-view-set-selection-mode" title="exo_icon_view_set_selection_mode ()"><code class="function">exo_icon_view_set_selection_mode()</code></a>).
+In addition to selection with the arrow keys, <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> supports
+rubberband selection, which is controlled by dragging the pointer.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconViewDropPosition"></a><h3>enum ExoIconViewDropPosition</h3>
+<p>Specifies whether to display the drop indicator,
+i.e. where to drop into the icon view.</p>
+<div class="refsect3">
+<a name="ExoIconViewDropPosition.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-NO-DROP:CAPS"></a>EXO_ICON_VIEW_NO_DROP</p></td>
+<td class="enum_member_description">
+<p>no drop indicator.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-DROP-INTO:CAPS"></a>EXO_ICON_VIEW_DROP_INTO</p></td>
+<td class="enum_member_description">
+<p>drop indicator on an item.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-DROP-LEFT:CAPS"></a>EXO_ICON_VIEW_DROP_LEFT</p></td>
+<td class="enum_member_description">
+<p>drop indicator on the left of an item.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-DROP-RIGHT:CAPS"></a>EXO_ICON_VIEW_DROP_RIGHT</p></td>
+<td class="enum_member_description">
+<p>drop indicator on the right of an item.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-DROP-ABOVE:CAPS"></a>EXO_ICON_VIEW_DROP_ABOVE</p></td>
+<td class="enum_member_description">
+<p>drop indicator above an item.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-DROP-BELOW:CAPS"></a>EXO_ICON_VIEW_DROP_BELOW</p></td>
+<td class="enum_member_description">
+<p>drop indicator below an item.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconViewLayoutMode"></a><h3>enum ExoIconViewLayoutMode</h3>
+<p>Specifies the layouting mode of an <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>. <em class="parameter"><code>EXO_ICON_VIEW_LAYOUT_ROWS</code></em>
+
+is the default, which lays out items vertically in rows from top to bottom.
+<em class="parameter"><code>EXO_ICON_VIEW_LAYOUT_COLS</code></em>
+ lays out items horizontally in columns from left
+to right.</p>
+<div class="refsect3">
+<a name="ExoIconViewLayoutMode.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-LAYOUT-ROWS:CAPS"></a>EXO_ICON_VIEW_LAYOUT_ROWS</p></td>
+<td class="enum_member_description">
+<p>layout items in rows.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="EXO-ICON-VIEW-LAYOUT-COLS:CAPS"></a>EXO_ICON_VIEW_LAYOUT_COLS</p></td>
+<td class="enum_member_description">
+<p>layout items in columns.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ExoIconView--column-spacing"></a><h3>The <code class="literal">“column-spacing”</code> property</h3>
+<pre class="programlisting">  “column-spacing”           <span class="type">gint</span></pre>
+<p>The column-spacing property specifies the space which is inserted between
+the columns of the icon view.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= 0</p>
+<p>Default value: 6</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--columns"></a><h3>The <code class="literal">“columns”</code> property</h3>
+<pre class="programlisting">  “columns”                  <span class="type">gint</span></pre>
+<p>The columns property contains the number of the columns in which the
+items should be displayed. If it is -1, the number of columns will
+be chosen automatically to fill the available area.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--enable-search"></a><h3>The <code class="literal">“enable-search”</code> property</h3>
+<pre class="programlisting">  “enable-search”            <span class="type">gboolean</span></pre>
+<p>View allows user to search through columns interactively.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--icon-column"></a><h3>The <code class="literal">“icon-column”</code> property</h3>
+<pre class="programlisting">  “icon-column”              <span class="type">gint</span></pre>
+<p>The ::icon-column property contains the number of the model column
+containing an absolute path to an image file to render. The icon column
+must be of type <span class="type">G_TYPE_STRING</span>. Setting this property to -1 turns off
+the display of icons.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.10.2" title="Added in 0.10.2">0.10.2</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--item-width"></a><h3>The <code class="literal">“item-width”</code> property</h3>
+<pre class="programlisting">  “item-width”               <span class="type">gint</span></pre>
+<p>The item-width property specifies the width to use for each item.
+If it is set to -1, the icon view will automatically determine a
+suitable item size.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--layout-mode"></a><h3>The <code class="literal">“layout-mode”</code> property</h3>
+<pre class="programlisting">  “layout-mode”              <a class="link" href="ExoIconView.html#ExoIconViewLayoutMode" title="enum ExoIconViewLayoutMode"><span class="type">ExoIconViewLayoutMode</span></a></pre>
+<p>The layout-mode property specifies the way items are layed out in
+the <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>. This can be either <a class="link" href="ExoIconView.html#EXO-ICON-VIEW-LAYOUT-ROWS:CAPS"><code class="literal">EXO_ICON_VIEW_LAYOUT_ROWS</code></a>,
+which is the default, where items are layed out horizontally in
+rows from top to bottom, or <a class="link" href="ExoIconView.html#EXO-ICON-VIEW-LAYOUT-COLS:CAPS"><code class="literal">EXO_ICON_VIEW_LAYOUT_COLS</code></a>, where items
+are layed out vertically in columns from left to right.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: EXO_ICON_VIEW_LAYOUT_ROWS</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--margin"></a><h3>The <code class="literal">“margin”</code> property</h3>
+<pre class="programlisting">  “margin”                   <span class="type">gint</span></pre>
+<p>The margin property specifies the space which is inserted
+at the edges of the icon view.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= 0</p>
+<p>Default value: 6</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--markup-column"></a><h3>The <code class="literal">“markup-column”</code> property</h3>
+<pre class="programlisting">  “markup-column”            <span class="type">gint</span></pre>
+<p>The markup-column property contains the number of the model column
+containing markup information to be displayed. The markup column must be
+of type <span class="type">G_TYPE_STRING</span>. If this property and the text-column property
+are both set to column numbers, it overrides the text column.
+If both are set to -1, no texts are displayed.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--model"></a><h3>The <code class="literal">“model”</code> property</h3>
+<pre class="programlisting">  “model”                    <span class="type">GtkTreeModel</span> *</pre>
+<p>The model property contains the <span class="type">GtkTreeModel</span>, which should be
+display by this icon view. Setting this property to <code class="literal">NULL</code> turns
+off the display of anything.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--orientation"></a><h3>The <code class="literal">“orientation”</code> property</h3>
+<pre class="programlisting">  “orientation”              <span class="type">GtkOrientation</span></pre>
+<p>The orientation property specifies how the cells (i.e. the icon and
+the text) of the item are positioned relative to each other.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: GTK_ORIENTATION_VERTICAL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--pixbuf-column"></a><h3>The <code class="literal">“pixbuf-column”</code> property</h3>
+<pre class="programlisting">  “pixbuf-column”            <span class="type">gint</span></pre>
+<p>The ::pixbuf-column property contains the number of the model column
+containing the pixbufs which are displayed. The pixbuf column must be
+of type <span class="type">GDK_TYPE_PIXBUF</span>. Setting this property to -1 turns off the
+display of pixbufs.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--reorderable"></a><h3>The <code class="literal">“reorderable”</code> property</h3>
+<pre class="programlisting">  “reorderable”              <span class="type">gboolean</span></pre>
+<p>The reorderable property specifies if the items can be reordered
+by Drag and Drop.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--row-spacing"></a><h3>The <code class="literal">“row-spacing”</code> property</h3>
+<pre class="programlisting">  “row-spacing”              <span class="type">gint</span></pre>
+<p>The row-spacing property specifies the space which is inserted between
+the rows of the icon view.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= 0</p>
+<p>Default value: 6</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--search-column"></a><h3>The <code class="literal">“search-column”</code> property</h3>
+<pre class="programlisting">  “search-column”            <span class="type">gint</span></pre>
+<p>Model column to search through when searching through code.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--selection-mode"></a><h3>The <code class="literal">“selection-mode”</code> property</h3>
+<pre class="programlisting">  “selection-mode”           <span class="type">GtkSelectionMode</span></pre>
+<p>The selection-mode property specifies the selection mode of
+icon view. If the mode is <span class="type">GTK_SELECTION_MULTIPLE</span>, rubberband selection
+is enabled, for the other modes, only keyboard selection is possible.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: GTK_SELECTION_SINGLE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--single-click"></a><h3>The <code class="literal">“single-click”</code> property</h3>
+<pre class="programlisting">  “single-click”             <span class="type">gboolean</span></pre>
+<p>Determines whether items can be activated by single or double clicks.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.3" title="Added in 0.3.1.3">0.3.1.3</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--single-click-timeout"></a><h3>The <code class="literal">“single-click-timeout”</code> property</h3>
+<pre class="programlisting">  “single-click-timeout”     <span class="type">guint</span></pre>
+<p>The amount of time in milliseconds after which a prelited item (an item
+which is hovered by the mouse cursor) will be selected automatically in
+single click mode. A value of <code class="literal">0</code> disables the automatic selection.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.5" title="Added in 0.3.1.5">0.3.1.5</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--spacing"></a><h3>The <code class="literal">“spacing”</code> property</h3>
+<pre class="programlisting">  “spacing”                  <span class="type">gint</span></pre>
+<p>The spacing property specifies the space which is inserted between
+the cells (i.e. the icon and the text) of an item.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= 0</p>
+<p>Default value: 0</p>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView--text-column"></a><h3>The <code class="literal">“text-column”</code> property</h3>
+<pre class="programlisting">  “text-column”              <span class="type">gint</span></pre>
+<p>The text-column property contains the number of the model column
+containing the texts which are displayed. The text column must be
+of type <span class="type">G_TYPE_STRING</span>. If this property and the markup-column
+property are both set to -1, no texts are displayed.</p>
+<p>Owner: ExoIconView</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= -1</p>
+<p>Default value: -1</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ExoIconView.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ExoIconView-activate-cursor-item"></a><h3>The <code class="literal">“activate-cursor-item”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>A <span class="type">GtkBindingSignal</span> which gets emitted when the user activates the
+currently focused item.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control activation
+programmatically.</p>
+<p>The default bindings for this signal are Space, Return and Enter.</p>
+<div class="refsect3">
+<a name="ExoIconView-activate-cursor-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-item-activated"></a><h3>The <code class="literal">“item-activated”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">GtkTreePath</span> *path,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>The ::item-activated signal is emitted when the method
+<a class="link" href="ExoIconView.html#exo-icon-view-item-activated" title="exo_icon_view_item_activated ()"><code class="function">exo_icon_view_item_activated()</code></a> is called, when the user double clicks
+an item with the "activate-on-single-click" property set to <code class="literal">FALSE</code>, or
+when the user single clicks an item when the "activate-on-single-click"
+property set to <code class="literal">TRUE</code>. It is also emitted when a non-editable item is
+selected and one of the keys: Space, Return or Enter is pressed.</p>
+<div class="refsect3">
+<a name="ExoIconView-item-activated.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkTreePath</span> of the activated item.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-move-cursor"></a><h3>The <code class="literal">“move-cursor”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>    *icon_view,
+               <span class="type">GtkMovementStep</span> step,
+               <span class="type">gint</span>            count,
+               <span class="type">gpointer</span>        user_data)</pre>
+<p>The ::move-cursor signal is a keybinding signal which gets emitted when
+the user initiates a cursor movement.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control the cursor
+programmatically.</p>
+<p>The default bindings for this signal include</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>Arrow keys which move by individual steps</p></li>
+<li class="listitem"><p>Home/End keys which move to the first/last item</p></li>
+<li class="listitem"><p>PageUp/PageDown which move by "pages" All of these will extend the
+selection when combined with the Shift modifier.</p></li>
+</ul></div>
+<div class="refsect3">
+<a name="ExoIconView-move-cursor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>step</p></td>
+<td class="parameter_description"><p>the granularity of the move, as a <span class="type">GtkMovementStep</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>count</p></td>
+<td class="parameter_description"><p>the number of <em class="parameter"><code>step</code></em>
+units to move</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-select-all"></a><h3>The <code class="literal">“select-all”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>A <span class="type">GtkBindingSignal</span> which gets emitted when the user selects all items.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control selection
+programmatically.</p>
+<p>The default binding for this signal is Ctrl-a.</p>
+<div class="refsect3">
+<a name="ExoIconView-select-all.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-select-cursor-item"></a><h3>The <code class="literal">“select-cursor-item”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>A <span class="type">GtkBindingSignal</span> which gets emitted when the user selects the item
+that is currently focused.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control selection
+programmatically.</p>
+<p>There is no default binding for this signal.</p>
+<div class="refsect3">
+<a name="ExoIconView-select-cursor-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-selection-changed"></a><h3>The <code class="literal">“selection-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>The ::selection-changed signal is emitted when the selection
+(i.e. the set of selected items) changes.</p>
+<div class="refsect3">
+<a name="ExoIconView-selection-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run First</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-start-interactive-search"></a><h3>The <code class="literal">“start-interactive-search”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>The ::start-interative-search signal is emitted when the user starts
+typing to jump to an item in the icon view.</p>
+<div class="refsect3">
+<a name="ExoIconView-start-interactive-search.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-toggle-cursor-item"></a><h3>The <code class="literal">“toggle-cursor-item”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>A <span class="type">GtkBindingSignal</span> which gets emitted when the user toggles whether
+the currently focused item is selected or not. The exact effect of
+this depend on the selection mode.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control selection
+programmatically.</p>
+<p>There is no default binding for this signal is Ctrl-Space.</p>
+<div class="refsect3">
+<a name="ExoIconView-toggle-cursor-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ExoIconView-unselect-all"></a><h3>The <code class="literal">“unselect-all”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a> *icon_view,
+               <span class="type">gpointer</span>     user_data)</pre>
+<p>A <span class="type">GtkBindingSignal</span> which gets emitted when the user unselects all items.</p>
+<p>Applications should not connect to it, but may emit it with
+<code class="function">g_signal_emit_by_name()</code> if they need to control selection
+programmatically.</p>
+<p>The default binding for this signal is Ctrl-Shift-a.</p>
+<div class="refsect3">
+<a name="ExoIconView-unselect-all.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ExoIconView.html" title="ExoIconView"><span class="type">ExoIconView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Action</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Spawn: libxfce4ui Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libxfce4ui Reference Manual">
+<link rel="up" href="libxfce4ui-fundamentals.html" title="Part II. Xfce Fundamentals">
+<link rel="prev" href="libxfce4ui-libxfce4ui-config.html" title="libxfce4ui config">
+<link rel="next" href="libxfce4ui-extensions.html" title="Part III. Xfce UI Extensions">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libxfce4ui-Spawn.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="libxfce4ui-fundamentals.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libxfce4ui-libxfce4ui-config.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libxfce4ui-extensions.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libxfce4ui-Spawn"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libxfce4ui-Spawn.top_of_page"></a>Spawn</span></h2>
+<p>Spawn — spawn a command with startup notification</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libxfce4ui-Spawn.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Spawn.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-on-screen-with-child-watch" title="xfce_spawn_on_screen_with_child_watch ()">xfce_spawn_on_screen_with_child_watch</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-on-screen" title="xfce_spawn_on_screen ()">xfce_spawn_on_screen</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Spawn.html#xfce-spawn" title="xfce_spawn ()">xfce_spawn</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-command-line-on-screen" title="xfce_spawn_command_line_on_screen ()">xfce_spawn_command_line_on_screen</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-command-line" title="xfce_spawn_command_line ()">xfce_spawn_command_line</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Spawn.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libxfce4ui/libxfce4ui.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Spawn.description"></a><h2>Description</h2>
+<p>Functions to spawn a command with startup notification support.</p>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Spawn.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="xfce-spawn-on-screen-with-child-watch"></a><h3>xfce_spawn_on_screen_with_child_watch ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_spawn_on_screen_with_child_watch (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> *screen</code></em>,
+                                       <em class="parameter"><code>const <span class="type">gchar</span> *working_directory</code></em>,
+                                       <em class="parameter"><code><span class="type">gchar</span> **argv</code></em>,
+                                       <em class="parameter"><code><span class="type">gchar</span> **envp</code></em>,
+                                       <em class="parameter"><code><span class="type">GSpawnFlags</span> flags</code></em>,
+                                       <em class="parameter"><code><span class="type">gboolean</span> startup_notify</code></em>,
+                                       <em class="parameter"><code><span class="type">guint32</span> startup_timestamp</code></em>,
+                                       <em class="parameter"><code>const <span class="type">gchar</span> *startup_icon_name</code></em>,
+                                       <em class="parameter"><code><span class="type">GClosure</span> *child_watch_closure</code></em>,
+                                       <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Like <a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-on-screen" title="xfce_spawn_on_screen ()"><code class="function">xfce_spawn_on_screen()</code></a>, but allows to attach a closure to watch the
+child's exit status. This because only one <code class="function">g_child_watch_add()</code> is allowed on
+Unix (per PID) and this is already internally needed for a proper
+startup notification implementation.</p>
+<div class="example">
+<a name="id-1.3.3.7.2.5"></a><p class="title"><b>Example 2. Spawning with a child watch</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">child_watch_callback</span><span class="w"> </span><span class="p">(</span><span class="n">GObject</span><span class="w"> </span><span class="o">*</span><span class="n">object</span><span class="p">,</span>
+<span class="w">                      </span><span class="n">gint</span><span class="w">     </span><span class="n">status</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">g_message</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Child exit status is %d&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span>
+<span class="nf">spawn_something</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">GClosure</span><span class="w"> </span><span class="o">*</span><span class="n">child_watch</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">child_watch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g_cclosure_new_swap</span><span class="w"> </span><span class="p">(</span><span class="n">G_CALLBACK</span><span class="w"> </span><span class="p">(</span><span class="n">child_watch_callback</span><span class="p">),</span>
+<span class="w">                                     </span><span class="n">object</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">  </span><span class="n">xfce_spawn_on_screen_with_child_watch</span><span class="w"> </span><span class="p">(...,</span>
+<span class="w">                                         </span><span class="n">child_watch</span><span class="p">,</span>
+<span class="w">                                         </span><span class="p">...);</span>
+<span class="p">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break"><div class="refsect3">
+<a name="xfce-spawn-on-screen-with-child-watch.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> or <code class="literal">NULL</code> to use the active screen,
+see <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>working_directory</p></td>
+<td class="parameter_description"><p>child's current working directory or <code class="literal">NULL</code> to
+inherit parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>argv</p></td>
+<td class="parameter_description"><p>child's argument vector.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>envp</p></td>
+<td class="parameter_description"><p>child's environment vector or <code class="literal">NULL</code> to inherit
+parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags from <span class="type">GSpawnFlags</span>. <span class="type">G_SPAWN_DO_NOT_REAP_CHILD</span>
+is not allowed, you should use the
+<em class="parameter"><code>child_watch_closure</code></em>
+for this.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_notify</p></td>
+<td class="parameter_description"><p>whether to use startup notification.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_timestamp</p></td>
+<td class="parameter_description"><p>the timestamp to pass to startup notification, use
+the event time here if possible to make focus
+stealing prevention work property. If you don't
+have direct access to the event time you could use
+<a href="/usr/share/gtk-doc/html/gtk3/gtk3-General.html#gtk-get-current-event-time"><code class="function">gtk_get_current_event_time()</code></a> or if nothing is
+available 0 is valid too.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_icon_name</p></td>
+<td class="parameter_description"><p>application icon or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>child_watch_closure</p></td>
+<td class="parameter_description"><p>closure that is triggered when the child exists
+or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-spawn-on-screen-with-child-watch.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> if <em class="parameter"><code>error</code></em>
+is set.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-spawn-on-screen"></a><h3>xfce_spawn_on_screen ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_spawn_on_screen (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> *screen</code></em>,
+                      <em class="parameter"><code>const <span class="type">gchar</span> *working_directory</code></em>,
+                      <em class="parameter"><code><span class="type">gchar</span> **argv</code></em>,
+                      <em class="parameter"><code><span class="type">gchar</span> **envp</code></em>,
+                      <em class="parameter"><code><span class="type">GSpawnFlags</span> flags</code></em>,
+                      <em class="parameter"><code><span class="type">gboolean</span> startup_notify</code></em>,
+                      <em class="parameter"><code><span class="type">guint32</span> startup_timestamp</code></em>,
+                      <em class="parameter"><code>const <span class="type">gchar</span> *startup_icon_name</code></em>,
+                      <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">xfce_spawn_on_screen</code> has been deprecated since version 4.16 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libxfce4ui-Spawn.html#xfce-spawn" title="xfce_spawn ()"><span class="type">xfce_spawn</span></a> instead.</p>
+</div>
+<p>Like <code class="function">gdk_spawn_on_screen()</code> (GDK 2), but also supports startup notification
+(if Libxfce4ui was built with startup notification support).</p>
+<div class="refsect3">
+<a name="xfce-spawn-on-screen.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> or <code class="literal">NULL</code> to use the active screen,
+see <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>working_directory</p></td>
+<td class="parameter_description"><p>child's current working directory or <code class="literal">NULL</code> to
+inherit parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>argv</p></td>
+<td class="parameter_description"><p>child's argument vector.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>envp</p></td>
+<td class="parameter_description"><p>child's environment vector or <code class="literal">NULL</code> to inherit
+parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags from <span class="type">GSpawnFlags</span>. <span class="type">G_SPAWN_DO_NOT_REAP_CHILD</span>
+is not allowed, use <a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-on-screen-with-child-watch" title="xfce_spawn_on_screen_with_child_watch ()"><code class="function">xfce_spawn_on_screen_with_child_watch()</code></a>
+if you want a child watch.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_notify</p></td>
+<td class="parameter_description"><p>whether to use startup notification.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_timestamp</p></td>
+<td class="parameter_description"><p>the timestamp to pass to startup notification, use
+the event time here if possible to make focus
+stealing prevention work property. If you don't
+have direct access to the event time you could use
+<a href="/usr/share/gtk-doc/html/gtk3/gtk3-General.html#gtk-get-current-event-time"><code class="function">gtk_get_current_event_time()</code></a> or if nothing is
+available 0 is valid too.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_icon_name</p></td>
+<td class="parameter_description"><p>application icon or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-spawn-on-screen.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> if <em class="parameter"><code>error</code></em>
+is set.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-spawn"></a><h3>xfce_spawn ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_spawn (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> *screen</code></em>,
+            <em class="parameter"><code>const <span class="type">gchar</span> *working_directory</code></em>,
+            <em class="parameter"><code><span class="type">gchar</span> **argv</code></em>,
+            <em class="parameter"><code><span class="type">gchar</span> **envp</code></em>,
+            <em class="parameter"><code><span class="type">GSpawnFlags</span> flags</code></em>,
+            <em class="parameter"><code><span class="type">gboolean</span> startup_notify</code></em>,
+            <em class="parameter"><code><span class="type">guint32</span> startup_timestamp</code></em>,
+            <em class="parameter"><code>const <span class="type">gchar</span> *startup_icon_name</code></em>,
+            <em class="parameter"><code><span class="type">gboolean</span> child_process</code></em>,
+            <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Like <code class="function">gdk_spawn_on_screen()</code> (GDK 2), but also supports startup notification
+(if Libxfce4ui was built with startup notification support).</p>
+<div class="refsect3">
+<a name="xfce-spawn.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> or <code class="literal">NULL</code> to use the active screen,
+see <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>working_directory</p></td>
+<td class="parameter_description"><p>child's current working directory or <code class="literal">NULL</code> to
+inherit parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>argv</p></td>
+<td class="parameter_description"><p>child's argument vector.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>envp</p></td>
+<td class="parameter_description"><p>child's environment vector or <code class="literal">NULL</code> to inherit
+parent's. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags from <span class="type">GSpawnFlags</span>. <span class="type">G_SPAWN_DO_NOT_REAP_CHILD</span>
+is not allowed, use <a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-on-screen-with-child-watch" title="xfce_spawn_on_screen_with_child_watch ()"><code class="function">xfce_spawn_on_screen_with_child_watch()</code></a>
+if you want a child watch.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_notify</p></td>
+<td class="parameter_description"><p>whether to use startup notification.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_timestamp</p></td>
+<td class="parameter_description"><p>the timestamp to pass to startup notification, use
+the event time here if possible to make focus
+stealing prevention work property. If you don't
+have direct access to the event time you could use
+<a href="/usr/share/gtk-doc/html/gtk3/gtk3-General.html#gtk-get-current-event-time"><code class="function">gtk_get_current_event_time()</code></a> or if nothing is
+available 0 is valid too.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_icon_name</p></td>
+<td class="parameter_description"><p>application icon or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>child_process</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> if the process should be a child process,
+<code class="literal">FALSE</code> if it should be reparented to init.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-spawn.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, <code class="literal">FALSE</code> if <em class="parameter"><code>error</code></em>
+is set.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-spawn-command-line-on-screen"></a><h3>xfce_spawn_command_line_on_screen ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_spawn_command_line_on_screen (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> *screen</code></em>,
+                                   <em class="parameter"><code>const <span class="type">gchar</span> *command_line</code></em>,
+                                   <em class="parameter"><code><span class="type">gboolean</span> in_terminal</code></em>,
+                                   <em class="parameter"><code><span class="type">gboolean</span> startup_notify</code></em>,
+                                   <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">xfce_spawn_command_line_on_screen</code> has been deprecated since version 4.16 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="libxfce4ui-Spawn.html#xfce-spawn-command-line" title="xfce_spawn_command_line ()"><span class="type">xfce_spawn_command_line</span></a> instead.</p>
+</div>
+<p>Executes the given <em class="parameter"><code>command_line</code></em>
+ and returns <code class="literal">TRUE</code> if the
+command terminated successfully. Else, the <em class="parameter"><code>error</code></em>
+ is set
+to the standard error output.</p>
+<div class="refsect3">
+<a name="xfce-spawn-command-line-on-screen.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> or <code class="literal">NULL</code> to use the active screen, see <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>command_line</p></td>
+<td class="parameter_description"><p>command line to run.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>in_terminal</p></td>
+<td class="parameter_description"><p>whether to run <em class="parameter"><code>command_line</code></em>
+in a terminal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_notify</p></td>
+<td class="parameter_description"><p>whether to use startup notification.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location for a <span class="type">GError</span> or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-spawn-command-line-on-screen.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the <em class="parameter"><code>command_line</code></em>
+was executed
+successfully, <code class="literal">FALSE</code> if <em class="parameter"><code>error</code></em>
+is set.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-spawn-command-line"></a><h3>xfce_spawn_command_line ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_spawn_command_line (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> *screen</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *command_line</code></em>,
+                         <em class="parameter"><code><span class="type">gboolean</span> in_terminal</code></em>,
+                         <em class="parameter"><code><span class="type">gboolean</span> startup_notify</code></em>,
+                         <em class="parameter"><code><span class="type">gboolean</span> child_process</code></em>,
+                         <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Executes the given <em class="parameter"><code>command_line</code></em>
+ and returns <code class="literal">TRUE</code> if the
+command terminated successfully. Else, the <em class="parameter"><code>error</code></em>
+ is set
+to the standard error output.</p>
+<div class="refsect3">
+<a name="xfce-spawn-command-line.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gdk3/GdkScreen.html#GdkScreen-struct"><span class="type">GdkScreen</span></a> or <code class="literal">NULL</code> to use the active screen, see <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>command_line</p></td>
+<td class="parameter_description"><p>command line to run.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>in_terminal</p></td>
+<td class="parameter_description"><p>whether to run <em class="parameter"><code>command_line</code></em>
+in a terminal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_notify</p></td>
+<td class="parameter_description"><p>whether to use startup notification.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>child_process</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> if the process should be a child process, <code class="literal">FALSE</code> if it should be reparented to init.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location for a <span class="type">GError</span> or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-spawn-command-line.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the <em class="parameter"><code>command_line</code></em>
+was executed
+successfully, <code class="literal">FALSE</code> if <em class="parameter"><code>error</code></em>
+is set.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.34.0</div>
+</body>
+</html>

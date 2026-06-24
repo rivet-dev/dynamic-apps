@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Version Information: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-miscelleanous.html" title="Part VI. Miscelleanous">
+<link rel="prev" href="exo-miscelleanous.html" title="Part VI. Miscelleanous">
+<link rel="next" href="exo-Binding-Properties-Functions.html" title="Binding Properties Functions">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#exo-Version-Information.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-miscelleanous.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-miscelleanous.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="exo-Binding-Properties-Functions.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="exo-Version-Information"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="exo-Version-Information.top_of_page"></a>Version Information</span></h2>
+<p>Version Information — Variables and macros to check the exo version</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="exo-Version-Information.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="exo-Version-Information.html#exo-check-version" title="exo_check_version ()">exo_check_version</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="exo-Version-Information.html#EXO-CHECK-VERSION:CAPS" title="EXO_CHECK_VERSION()">EXO_CHECK_VERSION</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-Version-Information.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="variable_type">extern const guint </td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#exo-major-version" title="exo_major_version">exo_major_version</a></td>
+</tr>
+<tr>
+<td class="variable_type">extern const guint </td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#exo-minor-version" title="exo_minor_version">exo_minor_version</a></td>
+</tr>
+<tr>
+<td class="variable_type">extern const guint </td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#exo-micro-version" title="exo_micro_version">exo_micro_version</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#EXO-MAJOR-VERSION:CAPS" title="EXO_MAJOR_VERSION">EXO_MAJOR_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#EXO-MINOR-VERSION:CAPS" title="EXO_MINOR_VERSION">EXO_MINOR_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="exo-Version-Information.html#EXO-MICRO-VERSION:CAPS" title="EXO_MICRO_VERSION">EXO_MICRO_VERSION</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-Version-Information.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="exo-Version-Information.description"></a><h2>Description</h2>
+<p>Exo provides version information, primarily useful in configure for
+builds that have a configure script. Applications may use it to
+check if a certain feature is available in the version of libexo
+they are being built against or being linked with.</p>
+</div>
+<div class="refsect1">
+<a name="exo-Version-Information.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-check-version"></a><h3>exo_check_version ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+exo_check_version (<em class="parameter"><code><span class="type">guint</span> required_major</code></em>,
+                   <em class="parameter"><code><span class="type">guint</span> required_minor</code></em>,
+                   <em class="parameter"><code><span class="type">guint</span> required_micro</code></em>);</pre>
+<p>Checks that the <code class="systemitem">exo</code> library
+in use is compatible with the given version. Generally you would pass in
+the constants <a class="link" href="exo-Version-Information.html#EXO-MAJOR-VERSION:CAPS" title="EXO_MAJOR_VERSION"><span class="type">EXO_MAJOR_VERSION</span></a>, <a class="link" href="exo-Version-Information.html#EXO-MINOR-VERSION:CAPS" title="EXO_MINOR_VERSION"><span class="type">EXO_MINOR_VERSION</span></a> and <a class="link" href="exo-Version-Information.html#EXO-MICRO-VERSION:CAPS" title="EXO_MICRO_VERSION"><span class="type">EXO_MICRO_VERSION</span></a>
+as the three arguments to this function; that produces
+a check that the library in use is compatible with the version of</p>
+<code class="systemitem">exo</code> the application was
+<p>compiled against.</p>
+<div class="example">
+<a name="id-1.7.2.7.2.7"></a><p class="title"><b>Example 1. Checking the runtime version of the exo library</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="k">const</span><span class="w"> </span><span class="n">gchar</span><span class="w"> </span><span class="o">*</span><span class="n">mismatch</span><span class="p">;</span><span class="w"></span>
+<span class="n">mismatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exo_check_version</span><span class="w"> </span><span class="p">(</span><span class="n">EXO_VERSION_MAJOR</span><span class="p">,</span><span class="w"></span>
+<span class="w">                              </span><span class="n">EXO_VERSION_MINOR</span><span class="p">,</span><span class="w"></span>
+<span class="w">                              </span><span class="n">EXO_VERSION_MICRO</span><span class="p">);</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">G_UNLIKELY</span><span class="w"> </span><span class="p">(</span><span class="n">mismatch</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span><span class="w"></span>
+<span class="w">  </span><span class="n">g_error</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Version mismatch: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">mismatch</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break"><div class="refsect3">
+<a name="exo-check-version.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>required_major</p></td>
+<td class="parameter_description"><p>the required major version.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>required_minor</p></td>
+<td class="parameter_description"><p>the required minor version.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>required_micro</p></td>
+<td class="parameter_description"><p>the required micro version.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-check-version.returns"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code> if the library is compatible with the given version,
+or a string describing the version mismatch. The returned
+string is owned by the library and must not be freed or
+modified by the caller.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1" title="Added in 0.3.1">0.3.1</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="EXO-CHECK-VERSION:CAPS"></a><h3>EXO_CHECK_VERSION()</h3>
+<pre class="programlisting">#define             EXO_CHECK_VERSION(major, minor, micro)</pre>
+<p>Checks the exo version.</p>
+<div class="refsect3">
+<a name="EXO-CHECK-VERSION.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>major</p></td>
+<td class="parameter_description"><p>major version (e.g. 1 for version 1.2.3)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>minor</p></td>
+<td class="parameter_description"><p>minor version (e.g. 2 for version 1.2.3)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>micro</p></td>
+<td class="parameter_description"><p>micro version (e.g. 3 for version 1.2.3)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="EXO-CHECK-VERSION.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the version of the exo header files is equal or
+better than the passed-in version.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="exo-Version-Information.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="exo-major-version"></a><h3>exo_major_version</h3>
+<pre class="programlisting">extern const guint exo_major_version;
+</pre>
+<p>The major version number of the exo library (e.g. in exo 1.2.3 this is 1).</p>
+<p>This variable is in the library, and therefore represents the exo
+library you have linked against. Contrast with the <a class="link" href="exo-Version-Information.html#EXO-MAJOR-VERSION:CAPS" title="EXO_MAJOR_VERSION"><span class="type">EXO_MAJOR_VERSION</span></a>
+macro, which represents the major version of the libexo headers you
+have included.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-minor-version"></a><h3>exo_minor_version</h3>
+<pre class="programlisting">extern const guint exo_minor_version;
+</pre>
+<p>The minor version number of the exo library (e.g. in exo 1.2.3 this is 2).</p>
+<p>This variable is in the library, and therefore represents the exo
+library you have linked against. Contrast with the <a class="link" href="exo-Version-Information.html#EXO-MINOR-VERSION:CAPS" title="EXO_MINOR_VERSION"><span class="type">EXO_MINOR_VERSION</span></a>
+macro, which represents the minor version of the libexo headers you
+have included.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-micro-version"></a><h3>exo_micro_version</h3>
+<pre class="programlisting">extern const guint exo_micro_version;
+</pre>
+<p>The micro version number of the exo library (e.g. in exo 1.2.3 this is 3).</p>
+<p>This variable is in the library, and therefore represents the exo
+library you have linked against. Contrast with the <a class="link" href="exo-Version-Information.html#EXO-MICRO-VERSION:CAPS" title="EXO_MICRO_VERSION"><span class="type">EXO_MICRO_VERSION</span></a>
+macro, which represents the micro version of the libexo headers you
+have included.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="EXO-MAJOR-VERSION:CAPS"></a><h3>EXO_MAJOR_VERSION</h3>
+<pre class="programlisting">#define             EXO_MAJOR_VERSION</pre>
+<p>Like <a class="link" href="exo-Version-Information.html#exo-major-version" title="exo_major_version"><span class="type">exo_major_version</span></a>, but from the headers used at application
+compile time, rather than from the library linked against at
+application run time.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="EXO-MINOR-VERSION:CAPS"></a><h3>EXO_MINOR_VERSION</h3>
+<pre class="programlisting">#define             EXO_MINOR_VERSION</pre>
+<p>Like <a class="link" href="exo-Version-Information.html#exo-minor-version" title="exo_minor_version"><span class="type">exo_minor_version</span></a>, but from the headers used at application
+compile time, rather than from the library linked against at
+application run time.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="EXO-MICRO-VERSION:CAPS"></a><h3>EXO_MICRO_VERSION</h3>
+<pre class="programlisting">#define             EXO_MICRO_VERSION</pre>
+<p>Like <a class="link" href="exo-Version-Information.html#exo-micro-version" title="exo_micro_version"><span class="type">exo_micro_version</span></a>, but from the headers used at application
+compile time, rather than from the library linked against at
+application run time.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

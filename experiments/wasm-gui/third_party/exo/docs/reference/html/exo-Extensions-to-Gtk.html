@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Extensions to Gtk+: exo Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="exo Reference Manual">
+<link rel="up" href="exo-extensions.html" title="Part V. Extensions to existing frameworks">
+<link rel="prev" href="exo-Extensions-to-GObject.html" title="Extensions to GObject">
+<link rel="next" href="exo-miscelleanous.html" title="Part VI. Miscelleanous">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#exo-Extensions-to-Gtk.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="exo-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="exo-Extensions-to-GObject.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="exo-miscelleanous.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="exo-Extensions-to-Gtk"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="exo-Extensions-to-Gtk.top_of_page"></a>Extensions to Gtk+</span></h2>
+<p>Extensions to Gtk+ — Miscelleanous extensions to the Gtk+ library</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="exo-Extensions-to-Gtk.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-object-destroy-later" title="exo_gtk_object_destroy_later ()">exo_gtk_object_destroy_later</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-file-chooser-add-thumbnail-preview" title="exo_gtk_file_chooser_add_thumbnail_preview ()">exo_gtk_file_chooser_add_thumbnail_preview</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-url-about-dialog-hook" title="exo_gtk_url_about_dialog_hook ()">exo_gtk_url_about_dialog_hook</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-dialog-get-action-area" title="exo_gtk_dialog_get_action_area ()">exo_gtk_dialog_get_action_area</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-dialog-add-secondary-button" title="exo_gtk_dialog_add_secondary_button ()">exo_gtk_dialog_add_secondary_button</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-Gtk.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;exo/exo.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-Gtk.description"></a><h2>Description</h2>
+<p>Various additional functions to the core API provided by the Gtk+ library.</p>
+<p>For example, <a class="link" href="exo-Extensions-to-Gtk.html#exo-gtk-file-chooser-add-thumbnail-preview" title="exo_gtk_file_chooser_add_thumbnail_preview ()"><code class="function">exo_gtk_file_chooser_add_thumbnail_preview()</code></a> is a
+convenience method to add a thumbnail based preview widget to a
+<span class="type">GtkFileChooser</span>, which will display a preview of the selected file if
+either a thumbnail is available or a thumbnail could be generated using
+the GdkPixbuf library.</p>
+</div>
+<div class="refsect1">
+<a name="exo-Extensions-to-Gtk.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="exo-gtk-object-destroy-later"></a><h3>exo_gtk_object_destroy_later ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_gtk_object_destroy_later (<em class="parameter"><code><span class="type">GtkWidget</span> *object</code></em>);</pre>
+<p>Schedules an idle function to destroy the specified <em class="parameter"><code>object</code></em>
+
+when the application enters the main loop the next time.</p>
+<div class="refsect3">
+<a name="exo-gtk-object-destroy-later.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>object</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkObject</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-gtk-file-chooser-add-thumbnail-preview"></a><h3>exo_gtk_file_chooser_add_thumbnail_preview ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_gtk_file_chooser_add_thumbnail_preview
+                               (<em class="parameter"><code><span class="type">GtkFileChooser</span> *chooser</code></em>);</pre>
+<p>This is a convenience function that adds a preview widget to the <em class="parameter"><code>chooser</code></em>
+,
+which displays thumbnails for the selected filenames using the thumbnail
+database. The preview widget is also able to generate thumbnails for all
+image formats supported by <span class="type">GdkPixbuf</span>.</p>
+<p>Use this function whenever you display a <span class="type">GtkFileChooser</span> to ask the user
+to select an image file from the file system.</p>
+<p>The preview widget also supports URIs other than file:-URIs to a certain
+degree, but this support is rather limited currently, so you may want to
+use <code class="function">gtk_file_chooser_set_local_only()</code> to ensure that the user can only
+select files from the local file system.</p>
+<p>When <em class="parameter"><code>chooser</code></em>
+ is configured to select multiple image files - using the
+<code class="function">gtk_file_chooser_set_select_multiple()</code> method - the behaviour of the
+preview widget is currently undefined, in that it is not defined for
+which of the selected files the preview will be displayed.</p>
+<div class="refsect3">
+<a name="exo-gtk-file-chooser-add-thumbnail-preview.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>chooser</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkFileChooser</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.3.1.9" title="Added in 0.3.1.9">0.3.1.9</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-gtk-url-about-dialog-hook"></a><h3>exo_gtk_url_about_dialog_hook ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_gtk_url_about_dialog_hook (<em class="parameter"><code><span class="type">GtkAboutDialog</span> *about_dialog</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *address</code></em>,
+                               <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>This is a convenience function, which can be registered with <span class="type">GtkAboutDialog</span>,
+to open links clicked by the user in <span class="type">GtkAboutDialog</span>s.</p>
+<p>All you need to do is to register this hook with <code class="function">gtk_about_dialog_set_url_hook()</code>
+and <code class="function">gtk_about_dialog_set_email_hook()</code>. This can be done prior to calling
+<code class="function">gtk_show_about_dialog()</code>, for example:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">show_about_dialog</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">gtk_show_about_dialog</span><span class="w"> </span><span class="p">(.....);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>This function is not needed when you use Gtk 2.18 or later, because from
+that version this is implemented by default.</p>
+<div class="refsect3">
+<a name="exo-gtk-url-about-dialog-hook.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>about_dialog</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkAboutDialog</span> in which the user activated a link.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>address</p></td>
+<td class="parameter_description"><p>the link, mail or web address, to open.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data that was passed when the function was
+registered with <code class="function">gtk_about_dialog_set_email_hook()</code>
+or <code class="function">gtk_about_dialog_set_url_hook()</code>. This is currently
+unused within the context of this function, so you
+can safely pass <code class="literal">NULL</code> when registering this hook
+with <span class="type">GtkAboutDialog</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.5.0" title="Added in 0.5.0">0.5.0</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-gtk-dialog-get-action-area"></a><h3>exo_gtk_dialog_get_action_area ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+exo_gtk_dialog_get_action_area (<em class="parameter"><code><span class="type">GtkDialog</span> *dialog</code></em>);</pre>
+<p>Returns the action area of a <span class="type">GtkDialog</span>. The internal function has been
+deprecated in GTK+, so this wraps and dispels the deprecation warning.</p>
+<div class="refsect3">
+<a name="exo-gtk-dialog-get-action-area.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>dialog</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkDialog</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="exo-gtk-dialog-get-action-area.returns"></a><h4>Returns</h4>
+<p> the action area.</p>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.11.4" title="Added in 0.11.4">0.11.4</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="exo-gtk-dialog-add-secondary-button"></a><h3>exo_gtk_dialog_add_secondary_button ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+exo_gtk_dialog_add_secondary_button (<em class="parameter"><code><span class="type">GtkDialog</span> *dialog</code></em>,
+                                     <em class="parameter"><code><span class="type">GtkWidget</span> *button</code></em>);</pre>
+<p>Convenience function to add a secondary button to a <span class="type">GtkDialog</span>.</p>
+<div class="refsect3">
+<a name="exo-gtk-dialog-add-secondary-button.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>dialog</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkDialog</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>button</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkButton</span> to add and mark as secondary.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="ch01.html#api-index-0.11.4" title="Added in 0.11.4">0.11.4</a></p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

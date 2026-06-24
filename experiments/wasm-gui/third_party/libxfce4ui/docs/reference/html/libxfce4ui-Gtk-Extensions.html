@@ -1,0 +1,1734 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Gtk Extensions: libxfce4ui Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libxfce4ui Reference Manual">
+<link rel="up" href="libxfce4ui-extensions.html" title="Part III. Xfce UI Extensions">
+<link rel="prev" href="libxfce4ui-Gdk-Extensions.html" title="Gdk Extensions">
+<link rel="next" href="libxfce4ui-widgets.html" title="Part IV. Xfce UI Widget">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libxfce4ui-Gtk-Extensions.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="libxfce4ui-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libxfce4ui-Gdk-Extensions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libxfce4ui-widgets.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libxfce4ui-Gtk-Extensions"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libxfce4ui-Gtk-Extensions.top_of_page"></a>Gtk Extensions</span></h2>
+<p>Gtk Extensions — various extensions to Gtk+</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-new" title="xfce_gtk_menu_item_new ()">xfce_gtk_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-image-menu-item-new" title="xfce_gtk_image_menu_item_new ()">xfce_gtk_image_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-image-menu-item-new-from-icon-name" title="xfce_gtk_image_menu_item_new_from_icon_name ()">xfce_gtk_image_menu_item_new_from_icon_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-check-menu-item-new" title="xfce_gtk_check_menu_item_new ()">xfce_gtk_check_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-radio-menu-item-new" title="xfce_gtk_radio_menu_item_new ()">xfce_gtk_radio_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-new-from-action-entry" title="xfce_gtk_menu_item_new_from_action_entry ()">xfce_gtk_menu_item_new_from_action_entry</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-toggle-menu-item-new-from-action-entry" title="xfce_gtk_toggle_menu_item_new_from_action_entry ()">xfce_gtk_toggle_menu_item_new_from_action_entry</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-tool-button-new-from-action-entry" title="xfce_gtk_tool_button_new_from_action_entry ()">xfce_gtk_tool_button_new_from_action_entry</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-toggle-tool-button-new-from-action-entry" title="xfce_gtk_toggle_tool_button_new_from_action_entry ()">xfce_gtk_toggle_tool_button_new_from_action_entry</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-map-add-entries" title="xfce_gtk_accel_map_add_entries ()">xfce_gtk_accel_map_add_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-group-connect-action-entries" title="xfce_gtk_accel_group_connect_action_entries ()">xfce_gtk_accel_group_connect_action_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-group-disconnect-action-entries" title="xfce_gtk_accel_group_disconnect_action_entries ()">xfce_gtk_accel_group_disconnect_action_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-get-action-entry-by-id" title="xfce_gtk_get_action_entry_by_id ()">xfce_gtk_get_action_entry_by_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-translate-action-entries" title="xfce_gtk_translate_action_entries ()">xfce_gtk_translate_action_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-handle-tab-accels" title="xfce_gtk_handle_tab_accels ()">xfce_gtk_handle_tab_accels</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-execute-tab-accel" title="xfce_gtk_execute_tab_accel ()">xfce_gtk_execute_tab_accel</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-append-seperator" title="xfce_gtk_menu_append_seperator ()">xfce_gtk_menu_append_seperator</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-append-separator" title="xfce_gtk_menu_append_separator ()">xfce_gtk_menu_append_separator</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-button-new-mixed" title="xfce_gtk_button_new_mixed ()">xfce_gtk_button_new_mixed</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new" title="xfce_gtk_frame_box_new ()">xfce_gtk_frame_box_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new-with-content" title="xfce_gtk_frame_box_new_with_content ()">xfce_gtk_frame_box_new_with_content</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-window-center-on-active-screen" title="xfce_gtk_window_center_on_active_screen ()">xfce_gtk_window_center_on_active_screen</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-popup-until-mapped" title="xfce_gtk_menu_popup_until_mapped ()">xfce_gtk_menu_popup_until_mapped</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-widget-reparent" title="xfce_widget_reparent ()">xfce_widget_reparent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-icon-name-from-desktop-id" title="xfce_icon_name_from_desktop_id ()">xfce_icon_name_from_desktop_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GIcon</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gicon-from-name" title="xfce_gicon_from_name ()">xfce_gicon_from_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-menu-item-set-accel-label" title="xfce_gtk_menu_item_set_accel_label ()">xfce_gtk_menu_item_set_accel_label</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-has-gtk-frame-extents" title="xfce_has_gtk_frame_extents ()">xfce_has_gtk_frame_extents</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-label-set-a11y-relation" title="xfce_gtk_label_set_a11y_relation ()">xfce_gtk_label_set_a11y_relation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkMenuItem" title="enum XfceGtkMenuItem">XfceGtkMenuItem</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry">XfceGtkActionEntry</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libxfce4ui/libxfce4ui.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.description"></a><h2>Description</h2>
+<p>Common used functions for GtkWidget's that are not provided by the Gtk+ library</p>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="xfce-gtk-menu-item-new"></a><h3>xfce_gtk_menu_item_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_menu_item_new (<em class="parameter"><code>const <span class="type">gchar</span> *label_text</code></em>,
+                        <em class="parameter"><code>const <span class="type">gchar</span> *tooltip_text</code></em>,
+                        <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                        <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                        <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                        <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Convenience method to create a <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a> and preconfigure it with the passed parameters.</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label_text</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip_text</p></td>
+<td class="parameter_description"><p>Tooltip to add on the passed item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p><span class="type">GCallback</span> which will be triggered on activation, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-menu-item-new.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-image-menu-item-new"></a><h3>xfce_gtk_image_menu_item_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_image_menu_item_new (<em class="parameter"><code>const <span class="type">gchar</span> *label_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *tooltip_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                              <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                              <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                              <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *image</code></em>,
+                              <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Convenience method to create a deprecated <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a> and preconfigure it with the passed parameters.
+In order to prevent G_GNUC_BEGIN_IGNORE_DEPRECATIONS in all xfce projects, this method can be used</p>
+<div class="refsect3">
+<a name="xfce-gtk-image-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label_text</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip_text</p></td>
+<td class="parameter_description"><p>Tooltip to add on the passed item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p><span class="type">GCallback</span> which will be triggered on activation, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>a widget to set as the image for the menu item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-image-menu-item-new.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-image-menu-item-new-from-icon-name"></a><h3>xfce_gtk_image_menu_item_new_from_icon_name ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_image_menu_item_new_from_icon_name
+                               (<em class="parameter"><code>const <span class="type">gchar</span> *label_text</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *tooltip_text</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                                <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                                <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *icon_name</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Convenience method to create a <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a> and preconfigure it with the passed parameters.</p>
+<div class="refsect3">
+<a name="xfce-gtk-image-menu-item-new-from-icon-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label_text</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip_text</p></td>
+<td class="parameter_description"><p>Tooltip to add on the passed item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p><span class="type">GCallback</span> which will be triggered on activation, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_name</p></td>
+<td class="parameter_description"><p>name of the icon to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a>, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-image-menu-item-new-from-icon-name.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-check-menu-item-new"></a><h3>xfce_gtk_check_menu_item_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_check_menu_item_new (<em class="parameter"><code>const <span class="type">gchar</span> *label_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *tooltip_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                              <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                              <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                              <em class="parameter"><code><span class="type">gboolean</span> active</code></em>,
+                              <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Convenience method to create a <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a> and preconfigure it with the passed parameters.</p>
+<div class="refsect3">
+<a name="xfce-gtk-check-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label_text</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip_text</p></td>
+<td class="parameter_description"><p>Tooltip to add on the passed item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p><span class="type">GCallback</span> which will be triggered on activation, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>active</p></td>
+<td class="parameter_description"><p>boolean value indicating whether the check box is active.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-check-menu-item-new.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-radio-menu-item-new"></a><h3>xfce_gtk_radio_menu_item_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_radio_menu_item_new (<em class="parameter"><code>const <span class="type">gchar</span> *label_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *tooltip_text</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                              <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                              <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                              <em class="parameter"><code><span class="type">gboolean</span> active</code></em>,
+                              <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Convenience method to create a <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a> and preconfigure it with the passed parameters.
+In order to simplify usage, a <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a> is created and drawn as radio-item</p>
+<div class="refsect3">
+<a name="xfce-gtk-radio-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label_text</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip_text</p></td>
+<td class="parameter_description"><p>Tooltip to add on the passed item, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p><span class="type">GCallback</span> which will be triggered on activation, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>active</p></td>
+<td class="parameter_description"><p>boolean value indicating whether the check box is active.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-radio-menu-item-new.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-menu-item-new-from-action-entry"></a><h3>xfce_gtk_menu_item_new_from_action_entry ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_menu_item_new_from_action_entry
+                               (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entry</code></em>,
+                                <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Method to create a menu item from the passed action entry</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-item-new-from-action-entry.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entry</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-menu-item-new-from-action-entry.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a> or NULL. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-toggle-menu-item-new-from-action-entry"></a><h3>xfce_gtk_toggle_menu_item_new_from_action_entry ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_toggle_menu_item_new_from_action_entry
+                               (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entry</code></em>,
+                                <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> active</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu_to_append_item</code></em>);</pre>
+<p>Method to create a toggle menu item from the passed action entry</p>
+<div class="refsect3">
+<a name="xfce-gtk-toggle-menu-item-new-from-action-entry.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entry</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>active</p></td>
+<td class="parameter_description"><p>boolean value indicating whether the check box is active.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the item should be appended, or NULL. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-toggle-menu-item-new-from-action-entry.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a> or NULL. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-tool-button-new-from-action-entry"></a><h3>xfce_gtk_tool_button_new_from_action_entry ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_tool_button_new_from_action_entry
+                               (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entry</code></em>,
+                                <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkToolbar.html#GtkToolbar-struct"><span class="type">GtkToolbar</span></a> *toolbar_to_append_item</code></em>);</pre>
+<p>Method to create a toolbar button from the passed action entry.</p>
+<div class="refsect3">
+<a name="xfce-gtk-tool-button-new-from-action-entry.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entry</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkToolButton.html#GtkToolButton-struct"><span class="type">GtkToolButton</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>toolbar_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkToolbar.html#GtkToolbar-struct"><span class="type">GtkToolbar</span></a> on which the item should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-tool-button-new-from-action-entry.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkToolButton.html#GtkToolButton-struct"><span class="type">GtkToolButton</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-toggle-tool-button-new-from-action-entry"></a><h3>xfce_gtk_toggle_tool_button_new_from_action_entry ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_toggle_tool_button_new_from_action_entry
+                               (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entry</code></em>,
+                                <em class="parameter"><code><span class="type">GObject</span> *callback_param</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> active</code></em>,
+                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkToolbar.html#GtkToolbar-struct"><span class="type">GtkToolbar</span></a> *toolbar_to_append_item</code></em>);</pre>
+<p>Method to create a toolbar toggle-button from the passed action entry.</p>
+<div class="refsect3">
+<a name="xfce-gtk-toggle-tool-button-new-from-action-entry.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entry</p></td>
+<td class="parameter_description"><p>Label to use for the <a href="/usr/share/gtk-doc/html/gtk3/GtkToggleToolButton.html#GtkToggleToolButton-struct"><span class="type">GtkToggleToolButton</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_param</p></td>
+<td class="parameter_description"><p>optional callback parameter, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>active</p></td>
+<td class="parameter_description"><p>boolean value indicating whether the toggle is initially active.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>toolbar_to_append_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkToolbar.html#GtkToolbar-struct"><span class="type">GtkToolbar</span></a> on which the item should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-toggle-tool-button-new-from-action-entry.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkToggleToolButton.html#GtkToggleToolButton-struct"><span class="type">GtkToggleToolButton</span></a>. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-18.html#api-index-4.17.6">4.17.6</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-accel-map-add-entries"></a><h3>xfce_gtk_accel_map_add_entries ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_accel_map_add_entries (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entries</code></em>,
+                                <em class="parameter"><code><span class="type">guint</span> n_action_entries</code></em>);</pre>
+<p>Adds the default key of each ActionEntry to the accel_map, if no key was defined for the related accel_path so far.</p>
+<div class="refsect3">
+<a name="xfce-gtk-accel-map-add-entries.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entries</p></td>
+<td class="parameter_description"><p>array of action_entries to be added</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_action_entries</p></td>
+<td class="parameter_description"><p>size of the action_entries array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-accel-group-connect-action-entries"></a><h3>xfce_gtk_accel_group_connect_action_entries ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_accel_group_connect_action_entries
+                               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> *accel_group</code></em>,
+                                <em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entries</code></em>,
+                                <em class="parameter"><code><span class="type">guint</span> n_action_entries</code></em>,
+                                <em class="parameter"><code><span class="type">gpointer</span> callback_data</code></em>);</pre>
+<p>This method will connect each accel_path from the <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> in action_entries
+to its related callback. If the accelerator is pressed, the related callback will be called.</p>
+<div class="refsect3">
+<a name="xfce-gtk-accel-group-connect-action-entries.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>accel_group</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> to connect to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>action_entries</p></td>
+<td class="parameter_description"><p>array of action_entries to be added</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_action_entries</p></td>
+<td class="parameter_description"><p>size of the action_entries array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback_data</p></td>
+<td class="parameter_description"><p>data which should be passed to the callback of each <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-accel-group-disconnect-action-entries"></a><h3>xfce_gtk_accel_group_disconnect_action_entries ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_accel_group_disconnect_action_entries
+                               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> *accel_group</code></em>,
+                                <em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entries</code></em>,
+                                <em class="parameter"><code><span class="type">guint</span> n_action_entries</code></em>);</pre>
+<p>This method will disconnect each accel_path from the <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> in action_entries.</p>
+<div class="refsect3">
+<a name="xfce-gtk-accel-group-disconnect-action-entries.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>accel_group</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> to connect to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>action_entries</p></td>
+<td class="parameter_description"><p>array of action_entries to be added</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_action_entries</p></td>
+<td class="parameter_description"><p>size of the action_entries array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-get-action-entry-by-id"></a><h3>xfce_gtk_get_action_entry_by_id ()</h3>
+<pre class="programlisting">const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+xfce_gtk_get_action_entry_by_id (<em class="parameter"><code>const <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entries</code></em>,
+                                 <em class="parameter"><code><span class="type">guint</span> n_action_entries</code></em>,
+                                 <em class="parameter"><code><span class="type">guint</span> id</code></em>);</pre>
+<p>Convenience method to find a specific action_entry from an array of action_entries</p>
+<div class="refsect3">
+<a name="xfce-gtk-get-action-entry-by-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entries</p></td>
+<td class="parameter_description"><p>array of action_entries to be searched</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_action_entries</p></td>
+<td class="parameter_description"><p>size of the action_entries array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>id</p></td>
+<td class="parameter_description"><p>id of the action entry (usually enum values are used)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-get-action-entry-by-id.returns"></a><h4>Returns</h4>
+<p>The matching <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> or NULL if not found. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-translate-action-entries"></a><h3>xfce_gtk_translate_action_entries ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_translate_action_entries (<em class="parameter"><code><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *action_entries</code></em>,
+                                   <em class="parameter"><code><span class="type">guint</span> n_action_entries</code></em>);</pre>
+<p>Convenience method to translate the label text and tooltip text of an array of action_entries</p>
+<div class="refsect3">
+<a name="xfce-gtk-translate-action-entries.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_entries</p></td>
+<td class="parameter_description"><p>array of action_entries to be translated</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_action_entries</p></td>
+<td class="parameter_description"><p>size of the action_entries array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-handle-tab-accels"></a><h3>xfce_gtk_handle_tab_accels ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_gtk_handle_tab_accels (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/gdk3-Event-Structures.html#GdkEventKey"><span class="type">GdkEventKey</span></a> *key_event</code></em>,
+                            <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> *accel_group</code></em>,
+                            <em class="parameter"><code><span class="type">gpointer</span> data</code></em>,
+                            <em class="parameter"><code><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *entries</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> entry_count</code></em>);</pre>
+<p>The Tab key is used to navigate the interface by GTK+ so we need to handle shortcuts with the Tab accelerator manually.
+Tab sometimes becomes ISO_Left_Tab (e.g. in Ctrl+Shift+Tab) so check both here.</p>
+<div class="refsect3">
+<a name="xfce-gtk-handle-tab-accels.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>key_event</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Event-Structures.html#GdkEventKey"><span class="type">GdkEventKey</span></a> that might trigger a shortcut</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_group</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Keyboard-Accelerators.html#GtkAccelGroup-struct"><span class="type">GtkAccelGroup</span></a> that will be get queried</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>a pointer of data that will be passed to the callback if a tab-shortcut is found</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>entries</p></td>
+<td class="parameter_description"><p>a <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a>[]</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>entry_count</p></td>
+<td class="parameter_description"><p>the number of entries in <em class="parameter"><code>entries</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-handle-tab-accels.returns"></a><h4>Returns</h4>
+<p> a boolean that is GDK_EVENT_STOP (TRUE) if the event was handled, otherwise it is GDK_EVENT_PROPAGATE (FALSE)</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-execute-tab-accel"></a><h3>xfce_gtk_execute_tab_accel ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_gtk_execute_tab_accel (<em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>,
+                            <em class="parameter"><code><span class="type">gpointer</span> data</code></em>,
+                            <em class="parameter"><code><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> *entries</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> entry_count</code></em>);</pre>
+<p>Activates the callback function of the <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a> that corresponds to <em class="parameter"><code>accel_path</code></em>
+. If no such action
+exists in <em class="parameter"><code>entries</code></em>
+, then nothing happens.</p>
+<div class="refsect3">
+<a name="xfce-gtk-execute-tab-accel.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>the accelerator path of the action that we want to activate</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>a pointer of data that will be passed to the callback if a tab-shortcut is found</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>entries</p></td>
+<td class="parameter_description"><p>a <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a>[]</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>entry_count</p></td>
+<td class="parameter_description"><p>the number of entries in <em class="parameter"><code>entries</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-execute-tab-accel.returns"></a><h4>Returns</h4>
+<p> a boolean that is TRUE if the action was found, otherwise it is FALSE</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-menu-append-seperator"></a><h3>xfce_gtk_menu_append_seperator ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_menu_append_seperator (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu</code></em>);</pre>
+<p>Convenience method do add separators, used to prevent code duplication</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-append-seperator.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the separator should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-menu-append-separator"></a><h3>xfce_gtk_menu_append_separator ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_menu_append_separator (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> *menu</code></em>);</pre>
+<p>Convenience method do add separators, used to prevent code duplication</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-append-separator.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuShell.html#GtkMenuShell-struct"><span class="type">GtkMenuShell</span></a> on which the separator should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-button-new-mixed"></a><h3>xfce_gtk_button_new_mixed ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_button_new_mixed (<em class="parameter"><code>const <span class="type">gchar</span> *stock_id</code></em>,
+                           <em class="parameter"><code>const <span class="type">gchar</span> *label</code></em>);</pre>
+<p>Creates a new <a href="/usr/share/gtk-doc/html/gtk3/GtkButton.html#GtkButton-struct"><span class="type">GtkButton</span></a> containing a mnemonic label and a stock icon.
+The <em class="parameter"><code>stock_id</code></em>
+ could be something like <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Stock-Items.html#GTK-STOCK-OK:CAPS"><span class="type">GTK_STOCK_OK</span></a> or <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Stock-Items.html#GTK-STOCK-APPLY:CAPS"><span class="type">GTK_STOCK_APPLY</span></a>.</p>
+<p>When the <em class="parameter"><code>stock_id</code></em>
+ is <code class="literal">NULL</code> a normal mnemonic button will be created,
+when <em class="parameter"><code>label</code></em>
+ is <code class="literal">NULL</code> a stock button will be created. This behaviour
+is added for <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new" title="xfce_message_dialog_new ()"><code class="function">xfce_message_dialog_new()</code></a>.</p>
+<div class="refsect3">
+<a name="xfce-gtk-button-new-mixed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>stock_id</p></td>
+<td class="parameter_description"><p>the name of the stock item. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>label</p></td>
+<td class="parameter_description"><p>the text of the button, with an underscore
+in front of the mnemonic character. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-button-new-mixed.returns"></a><h4>Returns</h4>
+<p>the newly created <a href="/usr/share/gtk-doc/html/gtk3/GtkButton.html#GtkButton-struct"><span class="type">GtkButton</span></a> widget. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-frame-box-new"></a><h3>xfce_gtk_frame_box_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_frame_box_new (<em class="parameter"><code>const <span class="type">gchar</span> *label</code></em>,
+                        <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> **container_return</code></em>);</pre>
+<p>Creates an Xfce-styled frame. The frame is a <a href="/usr/share/gtk-doc/html/gtk3/GtkFrame.html#GtkFrame-struct"><span class="type">GtkFrame</span></a>, without
+outline and an optional bolded text label.  The contents of the
+frame are indented on the left.
+The return value is the <a href="/usr/share/gtk-doc/html/gtk3/GtkFrame.html#GtkFrame-struct"><span class="type">GtkFrame</span></a> itself.  The <em class="parameter"><code>container_return</code></em>
+ is
+a <a href="/usr/share/gtk-doc/html/gtk3/GtkAlignment.html#GtkAlignment-struct"><span class="type">GtkAlignment</span></a> widget to which children of the frame should be added.</p>
+<p>See also: <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new-with-content" title="xfce_gtk_frame_box_new_with_content ()"><code class="function">xfce_gtk_frame_box_new_with_content()</code></a>.</p>
+<div class="refsect3">
+<a name="xfce-gtk-frame-box-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label</p></td>
+<td class="parameter_description"><p>the text to use as the label of the frame.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>container_return</p></td>
+<td class="parameter_description"><p>return location for the frame's container. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-frame-box-new.returns"></a><h4>Returns</h4>
+<p>the newly created <a href="/usr/share/gtk-doc/html/gtk3/GtkFrame.html#GtkFrame-struct"><span class="type">GtkFrame</span></a> widget. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-frame-box-new-with-content"></a><h3>xfce_gtk_frame_box_new_with_content ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_gtk_frame_box_new_with_content (<em class="parameter"><code>const <span class="type">gchar</span> *label</code></em>,
+                                     <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *content</code></em>);</pre>
+<p>Creates a widget with <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-frame-box-new" title="xfce_gtk_frame_box_new ()"><code class="function">xfce_gtk_frame_box_new()</code></a> and adds the
+<em class="parameter"><code>content</code></em>
+ <a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> to the frame.</p>
+<div class="refsect3">
+<a name="xfce-gtk-frame-box-new-with-content.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label</p></td>
+<td class="parameter_description"><p>the text to use as the label of the frame.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>content</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> to put inside the frame.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-frame-box-new-with-content.returns"></a><h4>Returns</h4>
+<p>the newly created <a href="/usr/share/gtk-doc/html/gtk3/GtkFrame.html#GtkFrame-struct"><span class="type">GtkFrame</span></a> widget. </p>
+<p><span class="annotation">[<acronym title="Alias for transfer none, used for objects with floating refs."><span class="acronym">transfer floating</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-window-center-on-active-screen"></a><h3>xfce_gtk_window_center_on_active_screen ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_window_center_on_active_screen
+                               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *window</code></em>);</pre>
+<p>Determines the screen that contains the pointer and centers the
+<em class="parameter"><code>window</code></em>
+ on it. If it failes to determine the current pointer position,
+<em class="parameter"><code>window</code></em>
+ is centered on the default screen.</p>
+<p>This function only works properly if you call it before realizing the
+window and you haven't set a fixed window position using <a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#gtk-window-move"><code class="function">gtk_window_move()</code></a>.</p>
+<p>See also: <a class="link" href="libxfce4ui-Gdk-Extensions.html#xfce-gdk-screen-get-active" title="xfce_gdk_screen_get_active ()"><code class="function">xfce_gdk_screen_get_active()</code></a>.</p>
+<div class="refsect3">
+<a name="xfce-gtk-window-center-on-active-screen.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> to center.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-menu-popup-until-mapped"></a><h3>xfce_gtk_menu_popup_until_mapped ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_gtk_menu_popup_until_mapped (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#GtkMenu-struct"><span class="type">GtkMenu</span></a> *menu</code></em>,
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *parent_menu_shell</code></em>,
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *parent_menu_item</code></em>,
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#GtkMenuPositionFunc"><span class="type">GtkMenuPositionFunc</span></a> func</code></em>,
+                                  <em class="parameter"><code><span class="type">gpointer</span> data</code></em>,
+                                  <em class="parameter"><code><span class="type">guint</span> button</code></em>,
+                                  <em class="parameter"><code><span class="type">guint32</span> activate_time</code></em>);</pre>
+<p>Attempts to pop up a <a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#GtkMenu-struct"><span class="type">GtkMenu</span></a> for a short duration. Unlike the original
+<a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#gtk-menu-popup"><code class="function">gtk_menu_popup()</code></a>, this function will verify that the menu has been mapped
+or will keep trying for up to 250ms. It will also return a value indicating
+whether the menu was eventually mapped or not. Following is an excerpt from
+the GTK+ Documentation on <a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#GtkMenu-struct"><span class="type">GtkMenu</span></a>.</p>
+<p>Displays a menu and makes it available for selection.</p>
+<p>Applications can use this function to display context-sensitive menus, and will
+typically supply <code class="literal">NULL</code> for the <em class="parameter"><code>parent_menu_shell</code></em>
+, <em class="parameter"><code>parent_menu_item</code></em>
+, <em class="parameter"><code>func</code></em>
+ and
+<em class="parameter"><code>data</code></em>
+ parameters. The default menu positioning function will position the menu
+at the current mouse cursor position.</p>
+<p>The <em class="parameter"><code>button</code></em>
+ parameter should be the mouse button pressed to initiate the menu
+popup. If the menu popup was initiated by something other than a mouse button
+press, such as a mouse button release or a keypress, button should be 0.</p>
+<p>The <em class="parameter"><code>activate_time</code></em>
+ parameter is used to conflict-resolve initiation of concurrent
+requests for mouse/keyboard grab requests. To function properly, this needs to
+be the timestamp of the user event (such as a mouse click or key press) that
+caused the initiation of the popup. Only if no such event is available,
+<a href="/usr/share/gtk-doc/html/gtk3/gtk3-General.html#gtk-get-current-event-time"><code class="function">gtk_get_current_event_time()</code></a> can be used instead.</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-popup-until-mapped.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gtk3/GtkMenu.html#GtkMenu-struct"><span class="type">GtkMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>parent_menu_shell</p></td>
+<td class="parameter_description"><p>the menu shell containing the triggering menu item, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>parent_menu_item</p></td>
+<td class="parameter_description"><p>the menu item whose activation triggered the popup, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>a user supplied function used to position the menu, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>user supplied data to be passed to func. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>button</p></td>
+<td class="parameter_description"><p>the mouse button which was pressed to initiate the event.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>activate_time</p></td>
+<td class="parameter_description"><p>the time at which the activation event occurred.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gtk-menu-popup-until-mapped.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the menu could be mapped, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-14.html#api-index-4.14">4.14</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-widget-reparent"></a><h3>xfce_widget_reparent ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_widget_reparent (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *widget</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *new_parent</code></em>);</pre>
+<p>Moves a widget from one GtkContainer to another, handling reference
+count issues to avoid destroying the widget.</p>
+<div class="refsect3">
+<a name="xfce-widget-reparent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>widget</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>new_parent</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gtk3/GtkContainer.html#GtkContainer-struct"><span class="type">GtkContainer</span></a> to move the widget into</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-widget-reparent.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the widget could be moved, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-14.html#api-index-4.14">4.14</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-icon-name-from-desktop-id"></a><h3>xfce_icon_name_from_desktop_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+xfce_icon_name_from_desktop_id (<em class="parameter"><code>const <span class="type">gchar</span> *desktop_id</code></em>);</pre>
+<div class="refsect3">
+<a name="xfce-icon-name-from-desktop-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>desktop_id</p></td>
+<td class="parameter_description"><p>Name of the desktop file.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-icon-name-from-desktop-id.returns"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code> on error, else the string value of the "Icon" property.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gicon-from-name"></a><h3>xfce_gicon_from_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">GIcon</span> *
+xfce_gicon_from_name (<em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>);</pre>
+<p>This function will first look for a desktop file of <em class="parameter"><code>name</code></em>
+ and if successful
+use the value of the "Icon" property to return a <span class="type">GIcon</span>.
+If no desktop file of <em class="parameter"><code>name</code></em>
+ is found it will fallback to returning a <span class="type">GIcon</span>
+based on <span class="type">g_themed_icon_new_with_default_fallbacks</span> and
+<a href="/usr/share/gtk-doc/html/gtk3/GtkIconTheme.html#gtk-icon-theme-lookup-by-gicon"><span class="type">gtk_icon_theme_lookup_by_gicon</span></a>.</p>
+<div class="refsect3">
+<a name="xfce-gicon-from-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>Name of the application.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-gicon-from-name.returns"></a><h4>Returns</h4>
+<p>a new <span class="type">GThemedIcon</span>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-menu-item-set-accel-label"></a><h3>xfce_gtk_menu_item_set_accel_label ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_menu_item_set_accel_label (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a> *menu_item</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *accel_path</code></em>);</pre>
+<p>Use the passed accel_path show the related <a href="/usr/share/gtk-doc/html/gtk3/GtkAccelLabel.html#GtkAccelLabel-struct"><span class="type">GtkAccelLabel</span></a> with the correct accelerator on the item.</p>
+<div class="refsect3">
+<a name="xfce-gtk-menu-item-set-accel-label.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu_item</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a> on which the accel label is to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_path</p></td>
+<td class="parameter_description"><p>Unique path, used to identify the accelerator, or NULL to show no accelerator. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-has-gtk-frame-extents"></a><h3>xfce_has_gtk_frame_extents ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_has_gtk_frame_extents (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a> *window</code></em>,
+                            <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkStyleContext.html#GtkBorder-struct"><span class="type">GtkBorder</span></a> *extents</code></em>);</pre>
+<p>This function can be called to determine if a <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a> is using client-side decorations
+which is indicated by the _GTK_FRAME_EXTENTS X11 atom. It furthermore sets a pointer
+of type <a href="/usr/share/gtk-doc/html/gtk3/GtkStyleContext.html#GtkBorder-struct"><span class="type">GtkBorder</span></a> to the actual extents.</p>
+<div class="refsect3">
+<a name="xfce-has-gtk-frame-extents.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>A <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>extents</p></td>
+<td class="parameter_description"><p>A pointer to a <a href="/usr/share/gtk-doc/html/gtk3/GtkStyleContext.html#GtkBorder-struct"><span class="type">GtkBorder</span></a> to copy to.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-has-gtk-frame-extents.returns"></a><h4>Returns</h4>
+<p> TRUE if a <a href="/usr/share/gtk-doc/html/gdk3/gdk3-Windows.html#GdkWindow-struct"><span class="type">GdkWindow</span></a> has the _GTK_FRAME_EXTENTS atom set.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-gtk-label-set-a11y-relation"></a><h3>xfce_gtk_label_set_a11y_relation ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_gtk_label_set_a11y_relation (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkLabel.html#GtkLabel-struct"><span class="type">GtkLabel</span></a> *label</code></em>,
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a> *widget</code></em>);</pre>
+<p>Sets the <code class="literal">ATK_RELATION_LABEL_FOR</code> relation on <em class="parameter"><code>label</code></em>
+ for <em class="parameter"><code>widget</code></em>
+, which means
+accessiblity tools will identify <em class="parameter"><code>label</code></em>
+ as descriptive item for the specified
+<em class="parameter"><code>widget</code></em>
+.</p>
+<div class="refsect3">
+<a name="xfce-gtk-label-set-a11y-relation.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>label</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gtk3/GtkLabel.html#GtkLabel-struct"><span class="type">GtkLabel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>widget</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="type">GtkWidget</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-Gtk-Extensions.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="XfceGtkMenuItem"></a><h3>enum XfceGtkMenuItem</h3>
+<p>List of item types which are supported by the <a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="type">XfceGtkActionEntry</span></a>.
+To be extended if required.</p>
+<div class="refsect3">
+<a name="XfceGtkMenuItem.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="XFCE-GTK-MENU-ITEM:CAPS"></a>XFCE_GTK_MENU_ITEM</p></td>
+<td class="enum_member_description">
+<p>see <a href="/usr/share/gtk-doc/html/gtk3/GtkMenuItem.html#GtkMenuItem-struct"><span class="type">GtkMenuItem</span></a></p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="XFCE-GTK-IMAGE-MENU-ITEM:CAPS"></a>XFCE_GTK_IMAGE_MENU_ITEM</p></td>
+<td class="enum_member_description">
+<p>see <a href="/usr/share/gtk-doc/html/gtk3/GtkImageMenuItem.html#GtkImageMenuItem-struct"><span class="type">GtkImageMenuItem</span></a></p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="XFCE-GTK-CHECK-MENU-ITEM:CAPS"></a>XFCE_GTK_CHECK_MENU_ITEM</p></td>
+<td class="enum_member_description">
+<p>see <a href="/usr/share/gtk-doc/html/gtk3/GtkCheckMenuItem.html#GtkCheckMenuItem-struct"><span class="type">GtkCheckMenuItem</span></a></p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="XFCE-GTK-RADIO-MENU-ITEM:CAPS"></a>XFCE_GTK_RADIO_MENU_ITEM</p></td>
+<td class="enum_member_description">
+<p>see <a href="/usr/share/gtk-doc/html/gtk3/GtkRadioMenuItem.html#GtkRadioMenuItem-struct"><span class="type">GtkRadioMenuItem</span></a></p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="XfceGtkActionEntry"></a><h3>XfceGtkActionEntry</h3>
+<pre class="programlisting">typedef struct {
+  guint            id;
+  const gchar     *accel_path;
+  const gchar     *default_accelerator;
+
+  /* menu_item data is optional, only relevant if there exists a menu_item for that accelerator */
+  XfceGtkMenuItem  menu_item_type;
+  gchar           *menu_item_label_text;
+  gchar           *menu_item_tooltip_text;
+  const gchar     *menu_item_icon_name;
+
+  GCallback        callback;
+} XfceGtkActionEntry;
+</pre>
+<p>Replacement for the deprecated <a href="/usr/share/gtk-doc/html/gtk3/GtkActionGroup.html#GtkActionEntry"><span class="type">GtkActionEntry</span></a>.
+The idea is to provide a fixed list of <a href="libxfce4ui-Gtk-Extensions.html#XfceGtkActionEntry"><span class="type">XfceGtkActionEntrys</span></a>:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>use <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-translate-action-entries" title="xfce_gtk_translate_action_entries ()"><code class="function">xfce_gtk_translate_action_entries()</code></a> once to translate the list</p></li>
+<li class="listitem"><p>use <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-accel-map-add-entries" title="xfce_gtk_accel_map_add_entries ()"><code class="function">xfce_gtk_accel_map_add_entries()</code></a> once to register the provided accelerators</p></li>
+<li class="listitem"><p>use <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-get-action-entry-by-id" title="xfce_gtk_get_action_entry_by_id ()"><code class="function">xfce_gtk_get_action_entry_by_id()</code></a> to find a single entry, e.g. by using a enumeration</p></li>
+<li class="listitem"><p>use xfce_gtk_*_new_from_action_entry() to create the specific menu- or tool-items from the entry</p></li>
+</ul></div>
+<div class="refsect3">
+<a name="XfceGtkActionEntry.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><span class="type">guint</span> <em class="structfield"><code><a name="XfceGtkActionEntry.id"></a>id</code></em>;</p></td>
+<td class="struct_member_description"><p>unique identifier for instances of this structure (you might want to use a enum)</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>const <span class="type">gchar</span> *<em class="structfield"><code><a name="XfceGtkActionEntry.accel-path"></a>accel_path</code></em>;</p></td>
+<td class="struct_member_description"><p>the unique path, used to identify the accelerator</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>const <span class="type">gchar</span> *<em class="structfield"><code><a name="XfceGtkActionEntry.default-accelerator"></a>default_accelerator</code></em>;</p></td>
+<td class="struct_member_description"><p>the default key and modifier to trigger the callback linked to the entry</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><a class="link" href="libxfce4ui-Gtk-Extensions.html#XfceGtkMenuItem" title="enum XfceGtkMenuItem"><span class="type">XfceGtkMenuItem</span></a> <em class="structfield"><code><a name="XfceGtkActionEntry.menu-item-type"></a>menu_item_type</code></em>;</p></td>
+<td class="struct_member_description"><p>the type of the item which should be used for creation</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">gchar</span> *<em class="structfield"><code><a name="XfceGtkActionEntry.menu-item-label-text"></a>menu_item_label_text</code></em>;</p></td>
+<td class="struct_member_description"><p>text which should be shown in the menu</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">gchar</span> *<em class="structfield"><code><a name="XfceGtkActionEntry.menu-item-tooltip-text"></a>menu_item_tooltip_text</code></em>;</p></td>
+<td class="struct_member_description"><p>optional tooltip of the item</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p>const <span class="type">gchar</span> *<em class="structfield"><code><a name="XfceGtkActionEntry.menu-item-icon-name"></a>menu_item_icon_name</code></em>;</p></td>
+<td class="struct_member_description"><p>optional icon name which will be used to find a image for the item</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">GCallback</span> <em class="structfield"><code><a name="XfceGtkActionEntry.callback"></a>callback</code></em>;</p></td>
+<td class="struct_member_description"><p>the callback which will be triggered on activation. The callback has to return <code class="literal">TRUE</code>
+to signal that the accelerator was activated and handled</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.34.0</div>
+</body>
+</html>

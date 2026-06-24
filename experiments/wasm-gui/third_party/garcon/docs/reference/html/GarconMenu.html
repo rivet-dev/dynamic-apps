@@ -1,0 +1,711 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>GarconMenu: garcon Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="garcon Reference Manual">
+<link rel="up" href="garcon-menus.html" title="Part II. Menus and Menu Items">
+<link rel="prev" href="garcon-menus.html" title="Part II. Menus and Menu Items">
+<link rel="next" href="GarconMenuDirectory.html" title="GarconMenuDirectory">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#GarconMenu.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#GarconMenu.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#GarconMenu.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#GarconMenu.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="garcon-menus.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="garcon-menus.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="GarconMenuDirectory.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="GarconMenu"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="GarconMenu.top_of_page"></a>GarconMenu</span></h2>
+<p>GarconMenu — Menu element.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="GarconMenu.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-new" title="garcon_menu_new ()">garcon_menu_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-new-for-path" title="garcon_menu_new_for_path ()">garcon_menu_new_for_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-new-applications" title="garcon_menu_new_applications ()">garcon_menu_new_applications</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-load" title="garcon_menu_load ()">garcon_menu_load</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-file" title="garcon_menu_get_file ()">garcon_menu_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="returnvalue">GarconMenuDirectory</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-directory" title="garcon_menu_get_directory ()">garcon_menu_get_directory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-menus" title="garcon_menu_get_menus ()">garcon_menu_get_menus</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-add-menu" title="garcon_menu_add_menu ()">garcon_menu_add_menu</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-menu-with-name" title="garcon_menu_get_menu_with_name ()">garcon_menu_get_menu_with_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-parent" title="garcon_menu_get_parent ()">garcon_menu_get_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-item-pool.html#GarconMenuItemPool"><span class="returnvalue">GarconMenuItemPool</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-item-pool" title="garcon_menu_get_item_pool ()">garcon_menu_get_item_pool</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-items" title="garcon_menu_get_items ()">garcon_menu_get_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenu.html#garcon-menu-get-elements" title="garcon_menu_get_elements ()">garcon_menu_get_elements</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a> *</td>
+<td class="property_name"><a class="link" href="GarconMenu.html#GarconMenu--directory" title="The “directory” property">directory</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">GFile</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenu.html#GarconMenu--file" title="The “file” property">file</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="GarconMenu.html#GarconMenu-directory-changed" title="The “directory-changed” signal">directory-changed</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="GarconMenu.html#GarconMenu-reload-required" title="The “reload-required” signal">reload-required</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GarconMenu
+</pre>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;garcon/garcon.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.description"></a><h2>Description</h2>
+<p>Main element the contains the parsed menu.</p>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="garcon-menu-new"></a><h3>garcon_menu_new ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+garcon_menu_new (<em class="parameter"><code><span class="type">GFile</span> *file</code></em>);</pre>
+<p>Creates a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> for the .menu file referred to by <em class="parameter"><code>file</code></em>
+.
+This operation only fails if <em class="parameter"><code>file</code></em>
+ is invalid. To load the menu
+tree from the file, you need to call <a class="link" href="GarconMenu.html#garcon-menu-load" title="garcon_menu_load ()"><code class="function">garcon_menu_load()</code></a> with the
+returned <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">GarconMenu</span><span class="w"> </span><span class="o">*</span><span class="n">menu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">garcon_menu_new</span><span class="w"> </span><span class="p">(</span><span class="n">filename</span><span class="p">);</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">garcon_menu_load</span><span class="w"> </span><span class="p">(</span><span class="n">menu</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">error</span><span class="p">))</span>
+<span class="w">  </span><span class="p">...</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="p">...</span>
+
+<span class="n">g_object_unref</span><span class="w"> </span><span class="p">(</span><span class="n">menu</span><span class="p">);</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The caller is responsible to destroy the returned <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>
+using <code class="function">g_object_unref()</code>.</p>
+<p>For more information about the usage <em class="parameter"><code>see</code></em>
+ <a class="link" href="GarconMenu.html#garcon-menu-new" title="garcon_menu_new ()"><code class="function">garcon_menu_new()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This symbol is a constructor, not a static method."><span class="acronym">constructor</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p><span class="type">GFile</span> for the .menu file you want to load.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-new.returns"></a><h4>Returns</h4>
+<p>a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-new-for-path"></a><h3>garcon_menu_new_for_path ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+garcon_menu_new_for_path (<em class="parameter"><code>const <span class="type">gchar</span> *filename</code></em>);</pre>
+<p>Creates a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> for the .menu file referred to by <em class="parameter"><code>filename</code></em>
+.
+This operation only fails if the filename is <code class="literal">NULL</code>. To load the menu
+tree from the file, you need to call <a class="link" href="GarconMenu.html#garcon-menu-load" title="garcon_menu_load ()"><code class="function">garcon_menu_load()</code></a> with the
+returned <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p>
+<p>The caller is responsible to destroy the returned <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>
+using <code class="function">g_object_unref()</code>.</p>
+<p><span class="annotation">[<acronym title="This symbol is a constructor, not a static method."><span class="acronym">constructor</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-new-for-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>Path/URI of the .menu file you want to load.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-new-for-path.returns"></a><h4>Returns</h4>
+<p>a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>
+for <em class="parameter"><code>filename</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-new-applications"></a><h3>garcon_menu_new_applications ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+garcon_menu_new_applications (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> for the applications.menu file
+which is being used to display installed applications.</p>
+<p>For more information about the usage <em class="parameter"><code>see</code></em>
+ <a class="link" href="GarconMenu.html#garcon-menu-new" title="garcon_menu_new ()"><code class="function">garcon_menu_new()</code></a>.</p>
+<div class="refsect3">
+<a name="garcon-menu-new-applications.returns"></a><h4>Returns</h4>
+<p>a new <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>
+for applications.menu. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-load"></a><h3>garcon_menu_load ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_load (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>,
+                  <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                  <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>This function loads the entire menu tree from the file referred to
+by <em class="parameter"><code>menu</code></em>
+. It resolves merges, moves and everything else defined
+in the menu specification. The resulting tree information is
+stored within <em class="parameter"><code>menu</code></em>
+ and can be accessed using the public <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>
+API afterwards.</p>
+<p><em class="parameter"><code>cancellable</code></em>
+ can be used to handle blocking I/O when reading data
+from files during the loading process.</p>
+<p><em class="parameter"><code>error</code></em>
+ should either be NULL or point to a <span class="type">GError</span> return location
+where errors should be stored in.</p>
+<div class="refsect3">
+<a name="garcon-menu-load.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cancellable</p></td>
+<td class="parameter_description"><p>a <span class="type">GCancellable</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p><span class="type">GError</span> return location</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-load.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the menu was loaded successfully or
+<code class="literal">FALSE</code> if there was an error or the process was
+cancelled.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-file"></a><h3>garcon_menu_get_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+garcon_menu_get_file (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Get the file for <em class="parameter"><code>menu</code></em>
+. It refers to the .menu file from which
+<em class="parameter"><code>menu</code></em>
+ was or will be loaded.</p>
+<p>The returned object should be unreffed with <code class="function">g_object_unref()</code>
+when no longer needed.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-file.returns"></a><h4>Returns</h4>
+<p>a <span class="type">GFile</span>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-directory"></a><h3>garcon_menu_get_directory ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="returnvalue">GarconMenuDirectory</span></a> *
+garcon_menu_get_directory (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Returns the <a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a> of <em class="parameter"><code>menu</code></em>
+ or <code class="literal">NULL</code> if <em class="parameter"><code>menu</code></em>
+ has
+no valid directory element.</p>
+<p>The menu directory may contain a lot of useful information about
+the menu like the display and icon name, desktop environments it
+should show up in etc.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-directory.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-directory.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-menus"></a><h3>garcon_menu_get_menus ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_get_menus (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Returns a sorted list of <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> submenus of <em class="parameter"><code>menu</code></em>
+. The list
+should be freed with <code class="function">g_list_free()</code>.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-menus.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-menus.returns"></a><h4>Returns</h4>
+<p>a sorted list
+of <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GarconMenu]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-add-menu"></a><h3>garcon_menu_add_menu ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_add_menu (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>,
+                      <em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *submenu</code></em>);</pre>
+<p>Adds <em class="parameter"><code>submenu</code></em>
+ as a sub menu to <em class="parameter"><code>menu</code></em>
+.</p>
+<div class="refsect3">
+<a name="garcon-menu-add-menu.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>submenu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-menu-with-name"></a><h3>garcon_menu_get_menu_with_name ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+garcon_menu_get_menu_with_name (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>);</pre>
+<p>Looks in <em class="parameter"><code>menu</code></em>
+ for a submenu with <em class="parameter"><code>name</code></em>
+ as name.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-menu-with-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>a sub menu name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-menu-with-name.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> or <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-parent"></a><h3>garcon_menu_get_parent ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="returnvalue">GarconMenu</span></a> *
+garcon_menu_get_parent (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Returns the parent <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> or <em class="parameter"><code>menu</code></em>
+.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-parent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-parent.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> or <code class="literal">NULL</code>
+if <em class="parameter"><code>menu</code></em>
+is the root menu. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-item-pool"></a><h3>garcon_menu_get_item_pool ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-item-pool.html#GarconMenuItemPool"><span class="returnvalue">GarconMenuItemPool</span></a> *
+garcon_menu_get_item_pool (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Get the item pool of the menu. This pool contains all items in this
+menu (for that of its submenus).</p>
+<div class="refsect3">
+<a name="garcon-menu-get-item-pool.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-item-pool.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="garcon-garcon-menu-item-pool.html#GarconMenuItemPool"><span class="type">GarconMenuItemPool</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-items"></a><h3>garcon_menu_get_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_get_items (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Returns all <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> included in <em class="parameter"><code>menu</code></em>
+. The items are
+sorted by their display names in ascending order.</p>
+<p>The caller is responsible to free the returned list using
+<code class="function">g_list_free()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-items.returns"></a><h4>Returns</h4>
+<p>list
+of <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> included in <em class="parameter"><code>menu</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GarconMenuItem][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-get-elements"></a><h3>garcon_menu_get_elements ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_get_elements (<em class="parameter"><code><a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *menu</code></em>);</pre>
+<p>Get all the menu element in <em class="parameter"><code>menu</code></em>
+. This contains sub menus, menu items
+and separators.</p>
+<p>Returns a list of <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> or <code class="literal">NULL</code>. Free the list with
+<code class="function">g_list_free()</code>.</p>
+<div class="refsect3">
+<a name="garcon-menu-get-elements.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-get-elements.returns"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GarconMenuItem][<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="GarconMenu--directory"></a><h3>The <code class="literal">“directory”</code> property</h3>
+<pre class="programlisting">  “directory”                <a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a> *</pre>
+<p>The directory entry associated with this menu.</p>
+<p>Owner: GarconMenu</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenu--file"></a><h3>The <code class="literal">“file”</code> property</h3>
+<pre class="programlisting">  “file”                     <span class="type">GFile</span> *</pre>
+<p>The <span class="type">GFile</span> from which the <a class="link" href="GarconMenu.html" title="GarconMenu"><code class="literal">GarconMenu</code></a> was loaded.</p>
+<p>Owner: GarconMenu</p>
+<p>Flags: Read / Write / Construct Only</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="GarconMenu.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="GarconMenu-directory-changed"></a><h3>The <code class="literal">“directory-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a>          *garconmenu,
+               <a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a> *arg1,
+               <a class="link" href="GarconMenuDirectory.html" title="GarconMenuDirectory"><span class="type">GarconMenuDirectory</span></a> *arg2,
+               <span class="type">gpointer</span>             user_data)</pre>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenu-reload-required"></a><h3>The <code class="literal">“reload-required”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="GarconMenu.html" title="GarconMenu"><span class="type">GarconMenu</span></a> *garconmenu,
+               <span class="type">gpointer</span>    user_data)</pre>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

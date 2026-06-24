@@ -253,9 +253,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     host gdbus-codegen/target-glib-2.78 version skew, + BSD `err.h`/`daemon` stubs); runtime
     `fd_datasync` WASI import (xfconfd fsyncs its channel XML). M8 + XU0 stay green. Proof
     `~/tmp/gui-progress/2026-06-24T??/xu1-xfconf-pass.txt`.
-  - **REMAINING for XU1 acceptance:** xfsettingsd (xfce4-settings) pushing XSETTINGS to a GTK client
-    (theme/font visibly applied) — build xfce4-settings + libxfce4ui, run xfsettingsd, screenshot a GTK
-    window in Greybird (not default).
+  - **xfsettingsd BUILT (2026-06-24), all wasm.** Built UNMODIFIED libxfce4ui 4.18.6 + exo 4.18.0 +
+    garcon 4.18.2 + xfce4-settings 4.18.4 → `xfsettingsd.wasm` (15.8 MB) via the proven Xfce recipe.
+    xfsettingsd instantiates + runs (past ALL platform gaps), reaching `Unable to open display` (the
+    expected failure with no X server in a bus-only smoke), proving the binary works and just needs an X
+    server to publish XSETTINGS. Platform fixes: `libsetjmp.a` appended last (`__wasm_setjmp`,
+    `-wasm-enable-sjlj` via GTK's gdk-pixbuf); GTK transitive libs (stub `atk-bridge-2.0` + epoxy + X ext
+    libs) appended via LIBS (non-static pkg-config drops them); build only the xfsettingsd target (the
+    GUI dialog binaries' huge links hit "argument list too long"). Scripts: `build-libxfce4ui.sh`,
+    `build-exo.sh`, `build-garcon.sh`, `build-xfce4-settings.sh`.
+  - **REMAINING for XU1 acceptance:** the combined visual harness — run X server + dbus-daemon + xfconfd
+    (with a staged xsettings channel: Net/ThemeName=Greybird, Gtk/FontName) + xfsettingsd + a GTK client,
+    and screenshot the GTK window themed by Greybird (not default). Needs a combined X+D-Bus harness mode
+    (currently `--xdemo` and `--bus-test` are separate) + the Greybird gtk-3.0 theme staged as a fixture.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)

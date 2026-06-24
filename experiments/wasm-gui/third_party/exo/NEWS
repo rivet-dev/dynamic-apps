@@ -1,0 +1,1027 @@
+4.18.0 (2022-12-15)
+======
+- build: Bump requirements for Xfce 4.18
+- Translation Updates:
+  Hungarian, Turkish
+
+4.17.4 (2022-12-01)
+======
+- Fix blurriness in exo-desktop-item-edit icon when UI scale > 1
+- Fix blurriness in ExoThumbnailPreview when UI scale > 1
+- Fix icon cell renderer blurriness when UI scale > 1
+
+
+4.17.3 (2022-11-01)
+======
+- Deprecate exo-string functions
+- Deprecate exo_noop_*
+- Save clipboard before dialog closes
+- Fix horizontal smooth scrolling in compact view (Issue #86)
+- Do not use exo_noop
+- Translation Updates:
+  Georgian, Portuguese, Turkish, Welsh
+
+4.17.2
+======
+- exo-die: Don't touch exe line in .desktop files
+- exo-open : Only execute local .desktop files
+- Fix $DISPLAY being set to wrong value
+- exo-die, exo-open: Remove dependence on exo_str_is_equal(),
+exo_str_looks_like_an_uri()
+- Bump glib/gio/gthread version to 2.66.0
+- Fix unreliable D-BUS-activated app launch behavior
+- exo-open: Try to open Type=Link .desktop files
+- Use xfce-string functions
+- Dont reduce selection in single click mode (Issue #71)
+- Translation Updates:
+  Azerbaijani, Azerbaijani (Azerbaijan), Greek, Korean, Persian (Iran),
+  Romanian
+
+4.17.1
+======
+- Add typecheck to prevent Gtk-CRITICAL (Issue #63)
+- Initialize `modifier` at the time of declaration
+- Remove redundant code
+- Fix AC_LANG_SOURCE macro
+- Fix `G_UNLIKELY` check
+- Fix memory leak
+- exo_strdup_strftime: Support additional encoding (Issue #66)
+- exo-die: Add trusted flag support
+- Translation Updates:
+  Catalan, Galician, Indonesian, Kazakh, Spanish
+
+4.17.0
+======
+- Keep execute permission bit after launcher modification (Issue #64)
+- Deprecate ExoBinding and ExoMutualBinding In favor of GBinding
+- Free hover_path in tree-view if not NULL
+- Drop preferences-desktop-default-applications icon
+- Properly initialize GdkRectangle to prevent crash (Issue #57)
+- Fix autotools deprecation warnings
+- Revamp the documentation to uniformize accross components
+- Fix compilation warnings
+- exo-icon-chooser-dialog: Throttle search requests
+- exo-icon-chooser-dialog: Focus filter entry by default
+- exo-icon-chooser-dialog: Set default to show to all icons
+- exo-icon-chooser-dialog: Speed up sorting the icon view model
+- Fix keyboard navigation when only one item is present (#53)
+- configure.ac: Allow cross-compiling
+- Translation Updates:
+  Amharic, Arabic, Armenian, Armenian (Armenia), Asturian, Belarusian,
+  Bengali, Bulgarian, Catalan, Chinese (Hong Kong), Croatian, Czech,
+  Danish, Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Interlingue, Italian, Kabyle, Kannada, Kazakh,
+  Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Persian (Iran),
+  Polish, Portuguese, Romanian, Russian, Serbian, Slovak, Slovenian,
+  Spanish, Telugu, Thai, Turkish, Ukrainian, Urdu, Urdu (Pakistan),
+  Uyghur
+
+4.16.0
+======
+- Focus must not be required in single click mode (Issue #190)
+- Remove GLIB_CHECK_VERSION IFDEFs which are obsolete after glib bump
+- Adjust padding only for vertical item orientation (Issue #48)
+- bump glib (and gio, gthread, etc) to 2.50.0
+- Fix GCC warning (false negative)
+- Translation Updates:
+  Basque, Estonian, Norwegian Bokmål, Portuguese (Brazil), Russian,
+  Slovenian, Turkish, Vietnamese
+
+4.15.3
+======
+- Re-grab tree selection to prevent rare crash (Issue #46)
+- Remove unneeded RTL adjustment (Issue #45)
+- exo-open: Wrap long URI in error dialog (Issue #26)
+- Avoid truncated text in small zoom levels (#42)
+- Make ExoIconView reduce selection on a single click (issue #39)
+- Partially restore 6fcefce9 (Issue #18)
+- Adds new, foreign README.md
+- Add check for valid GtkTreeSelection (issue #40)
+- Reset cursor on drag end in single-click mode
+- exo-open: Change priority of command line parameters (Fixes #20)
+- Prevent label from overlapping icon in RTL (Fixes #36)
+- Prevent "selection_changed" bursts (#37)
+- Small change to documentation for exo_strdup_strftime
+- desktop-item-edit: Fix fallback for desktop file type detection
+- desktop-item-edit: Improve detection of invalid icon names (Fixes #33)
+- AC_CONFIG_MACRO_DIR → AC_CONFIG_MACRO_DIRS (Closes !9)
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian, Armenian (Armenia), Asturian, 
+  Basque, Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), 
+  Chinese (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch, 
+  Eastern Armenian, English (Australia), English (United Kingdom), 
+  Estonian, Finnish, French, Galician, Greek, Hebrew, Hungarian, 
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Kannada, 
+  Latvian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 
+  1500), Panjabi (Punjabi), Persian (Iran), Polish, Portuguese (Brazil), 
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish, 
+  Telugu, Thai, Turkish, Ukrainian, Urdu, Urdu (Pakistan), Uyghur, 
+  Vietnamese, 
+
+4.15.2
+======
+- icon-chooser-dialog: Allow removing selected icon (Fixes #2)
+- desktop-item-edit: Fix sensitivity of save button (Fixes #28)
+- Rework exo_icon_view_scroll_event for overshoot effect (Fixes #25)
+- Allow resizing the xfce4-settings window smaller (Fixes #19)
+- Drop exo-csource from exo
+- Fix build on OpenBSD (!2)
+- Fix race condition in make install (Fixes #29)
+- Remove unused perl module requirement
+- Replace bugzilla occurences with gitlab (Fixes #30)
+- Translation Updates:
+  Albanian, Chinese (China), Chinese (Hong Kong), Danish, Eastern
+  Armenian, French, German, Hebrew, Japanese, Kazakh, Korean, Lithuanian,
+  Portuguese, Portuguese (Brazil), Russian, Swedish, Turkish
+
+4.15.1
+======
+This release transitions several exo components to xfce-settings.
+Please use with xfce-settings 4.15.1 or later for best results.
+- Removed binaries: exo-compose-mail, exo-helper-2
+- Removed from API: ExoCellRendererEllipsizedText, 
+  ExoIconBar, ExoToolbarsEditor, ExoToolbarsEditorDialog, 
+  ExoToolbarsModel, ExoToolbarsView, ExoWrapTable, ExoXsessionClient,
+  exo_atomic_inc, exo_atomic_dec
+
+Other Updates:
+- state variable is a GtkStateFlags
+- Fix previous commit
+- desktop-item-edit: Fix sensitivity of save button (Bug #16813)
+- Add basic GitLab pipeline
+- Attach popup window to toplevel parent (Bug #16768)
+- Rename Thunar.desktop to thunar.desktop (Bug #16197)
+- Extend selection on shift+drag (Bug #7526)
+- Do not cancel selection on shift+drag
+- Rename Thunar.desktop to thunar.desktop (Bug #16197)
+- Fix type declaration (Bug #16678)
+- desktop-item-edit: Use new XfceTitledDialog API
+- Fix GTimeVal deprecation
+- Replace deprecated G_INLINE_FUNC macro
+- Replace deprecated macro
+- Wrong keyboard navigation after using rubberband in exo-icon-view (Bug #16286)
+- Cursor position in icon view not visible/highlighted when using ctrl + arrows (Bug #12227)
+- Make sure default applications are properly set in mimeapps.list
+- Translation Updates:
+  Albanian, Amharic, Arabic, Asturian, Basque, Belarusian, Bengali,
+  Catalan, Chinese (Hong Kong), Chinese (Taiwan), Danish, Dutch,
+  Estonian, Greek, Hungarian, Icelandic, Interlingue, Italian, Kannada,
+  Latvian, Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Occitan
+  (post 1500), Panjabi (Punjabi), Persian (Iran), Portuguese, Romanian,
+  Russian, Slovak, Spanish, Telugu, Turkish, Uighur, Urdu, Urdu
+  (Pakistan), Vietnamese
+
+0.12.11
+======
+- General:
+  - Bump documentation dates
+  - Add *.mo to .gitignore
+- Bug Fixes:
+  - Revert padding patches that add too much padding in the Thunar
+    compact view (Xfce #16196)
+
+0.12.10
+=======
+- Bug Fixes:
+  - Fix typeahead search regression (Xfce #16191)
+- Translation Updates:
+  Spanish
+
+0.12.9
+======
+- Bug Fixes:
+  - Explicitly depend on gio-unix-2.0 (Xfce #15825)
+  - Fix alignment of multi-line filenames when text beside icons (Xfce #16107)
+  - Fix cursor missing in search popup widget (Xfce #16068)
+  - Fix desktop item creation on symbolic link directories
+  - Fix excess clickable area of multiline filenames (Xfce #16075)
+  - Fix issues with displaying icon view contents (Xfce #14737)
+  - Fix prelight deactivation (Xfce #11806)
+  - Hide search widget when doing a fullscreen resize (Xfce #15106)
+  - Make user-created launchers executable by default
+- Translation Updates:
+  Croatian, English (United Kingdom), French, Galician, Korean,
+  Slovenian, Swedish
+
+0.12.8
+======
+- preferred-apps: Add button icons to Help/Close
+- Replace GtkStock buttons
+- Translation Updates:
+  Czech, Galician, Portuguese (Brazil)
+
+0.12.7
+======
+- Translation Updates: Armenian, Armenian (Armenia), Danish,
+  Finnish, Hebrew, Indonesian, Italian, Kazakh, Norwegian Bokmål,
+  Serbian, Ukrainian
+
+0.12.6
+======
+- Bug Fixes:
+  - Add trailing ";" to mimeapps.list (Xfce #15087)
+  - Clear bad entries from mimeapps.list (Xfce #15046, #15238)
+  - Synchronize default applications to gio-mime (Xfce #14633)
+  - Disable emoji menu in type-ahead search (Xfce #15451)
+  - Enable dismissal of "Failed to open default" dialogs
+    - Related: https://github.com/brave/brave-browser/issues/4142
+    - If the error can be safely ignored, the user is able to dismiss
+      it. After changing defaults, the dismissal is forgotten.
+- Translation Updates: Albanian, Armenian (Armenia), Bulgarian,
+  Chinese (China), Chinese (Taiwan), Croatian, Danish, French,
+  Galician, German, Hungarian, Icelandic, Interlingue, Italian,
+  Polish, Portuguese, Portuguese (Brazil), Russian, Spanish, Thai,
+  Turkish
+
+0.12.5
+======
+- Bug Fixes:
+  - Fix typehead in ExoIconView (Xfce #15100)
+- Build Updates:
+  - Building libexo-1 can now be disabled (Xfce #15138, #15199)
+    - Building documentation still requires libexo-1 since some older
+      symbols exists only in the GTK+ 2 library
+  - Several components were moved around to align with the correct
+    library versions:
+    - Helpers are now installed in exo-2 paths, and exo-helper-1 has
+      been renamed to exo-helper-2 to follow the library version
+    - Pixmaps were moved to an unversioned path (pixmaps/exo) since
+      they are used by both versions of the library
+    - exo-compose-mail has dropped the library version since it
+      does not depend on either version of the library
+  - The expansion-to-defined flag was re-enabled
+- Translation Updates: Albanian, Bulgarian, Danish, Dutch,
+  English (United Kingdom), Finnish, Indonesian, Korean, Spanish
+
+0.12.4
+======
+- General:
+  - Use the standard shared thumbnails directory (Xfce #14799)
+- Bug Fixes:
+  - ExoCellRendererIcon: Fix highlight rendering with GTK 3 (Xfce #14971)
+  - ExoIconView: Fix search popup placement (Xfce #14994)
+- Translation Updates: Belarusian, Catalan, Chinese (China), German,
+  Hungarian, Icelandic, Italian, Kannada, Korean, Lithuanian, Malay,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Spanish, Thai
+
+0.12.3
+======
+- General:
+  - Preferred Applications: Improved layout spacing and alignment
+  - Resolved g_type_class_add_private deprecations (GObject 2.58)
+- Bug Fixes:
+  - Hide exo launchers from GNOME Software (Xfce #14588)
+  - Fix crash with "preedit-changed" signal (Xfce #14756)
+- Translation updates: Albanian, Amharic, Arabic, Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China),
+  Chinese (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, English (Australia), Estonian, Finnish, French, Galician,
+  German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Italian,
+  Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål,
+  Norwegian Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Polish,
+  Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian, Slovak,
+  Slovenian, Spanish, Swedish, Telugu, Thai, Turkish, Uighur, Ukrainian,
+  Urdu, Urdu (Pakistan), Vietnamese
+
+0.12.2 (Stable Release)
+======
+- Bug Fixes:
+  - Fix crash with ExoJob, Thunar (Xfce #14465)
+- Translation updates: Chinese (China), Danish
+
+0.12.1 (Stable Release)
+======
+- Bug Fixes:
+  - Use "user-bookmarks" instead of "bookmark-new" (Xfce #14243)
+  - Properly scale application icons in Preferred Apps dialog (Xfce #14362)
+  - Remove pure attribute of function that returns void (Xfce #14427)
+  - Missing varargs init or cleanup (CID #30799)
+  - Uninitialized scalar variable (CID #127777)
+- Compiler Support:
+  - Disable -Wexpansion-to-defined (GCC 7)
+  - Fix various other compiler warnings (GCC 7)
+  - Fix -Wcast-function-type (GCC 8)
+- Helpers:
+  - Add PCManFM-Qt (from LXQt) to supported file managers (Xfce #14333)
+- ExoIconChooserDialog
+  - Drop deprecated International icon context, add Stock icon context
+  - Increase icon chooser context title length to support long translations
+  - Skip symbolic icons to boost performance
+  - Added GTK 3 test to test suite
+- Translation Updates: Albanian, Amharic, Belarusian, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Czech, Danish, Dutch, English (Australia),
+  Finnish, French, Galician, Greek, Hebrew, Hungarian, Italian, Polish,
+  Portuguese, Russian, Slovak, Swedish, Turkish
+
+0.12.0 (Stable Release)
+======
+- Bug Fixes:
+  - Add google-chrome-stable binary for the google-chrome helper (Xfce #13876)
+- Build Changes:
+  - Requirements updated: GTK 2.24, GTK 3.22, GLib 2.42, libxfce4ui 4.12,
+    libxfce4util 4.12
+- Translation Updates: Albanian, Amharic, Arabic, Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China),
+  Chinese (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  English (Australia), English (United Kingdom), Estonian, Finnish, French,
+  Galician, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Italian,
+  Japanese, Kannada, Kazakh, Korean, Latvian, Lithuanian, Malay,
+  Norwegian Bokmal, Norwegian Nynorsk, Occitan (post 1500), Panjabi (Punjabi),
+  Polish, Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian,
+  Sinhala, Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Turkish, Uighur,
+  Ukrainian, Urdu, Urdu (Pakistan), Vietnamese
+
+0.11.5 (Development Release)
+======
+- New Features:
+  - ExoString: Added new exo_str_is_flag
+  - Helpers: Added Terminator (TerminalEmulator) (Xfce #13714)
+- Bug Fixes:
+  - exo-helper: Use full custom command path (Xfce #4093)
+  - exo-launch: Pass flags to preferred application (Xfce #9427)
+  - Replaced internet-mail icon with FD.o compliant emblem-mail (Xfce #13711)
+  - Dropped conflicting Vivaldi helper (Xfce #13712, Gentoo #624546)
+- Translation Updates: Bulgarian, Catalan, Chinese (China), Chinese (Taiwan),
+  Croatian, Danish, Dutch, French, German, Hebrew, Indonesian, Kazakh, Korean,
+  Lithuanian, Norwegian Bokmal, Polish, Portuguese (Brazil), Russian, Spanish,
+  Swedish, Turkish
+
+0.11.4 (Development Release)
+======
+From a development standpoint, this release can be considered the first release
+candidate for the 0.12.x series. Full GTK+ 2 and 3 support is now available
+and should meet the needs for any Xfce application development.
+- New Features:
+  - GTK Extensions: Added new exo_gtk_dialog_get_action_area and
+    exo_gtk_dialog_add_secondary_button
+  - GTK3: Added support for insensitive state in exo_cell_renderer_icon
+  - Helpers: Added Brave, Google Chrome, and Vivaldi (WebBrowser)
+  - Helpers: Added Geary (MailReader)
+  - Helpers: Dropped Opera Mail (no longer available for Linux)
+- Bug Fixes:
+  - Removed --disable-debug flag from distcheck (Xfce #11556)
+- Icons:
+  - Replaced non-standard gnome-* icons
+  - Replaced non-existent "missing-image" icon
+- Deprecations:
+  - Dropped gdk_window_process_updates for GTK+ 3.22
+  - Replaced gdk_pixbuf_new_from_inline usage
+  - Replaced gdk_screen_* usage
+  - Replaced gtk_style_context_get_background_color usage
+  - Removed warnings for gtk_dialog_get_action_area and GioScheduler
+- Translation Updates: Arabic, Catalan, Chinese (China), Danish, Dutch, French,
+  German, Hebrew, Indonesian, Korean, Lithuanian, Portuguese (Brazil), Russian,
+  Spanish, Swedish
+
+0.11.3 (Development Release)
+======
+- New Features:
+  - exo-csource: Add --output flag to write output to a file (Xfce #12901)
+  - exo-helper: Add --query flag to query the preferred application (Xfce #8579)
+- Build Changes:
+  - Requirements updated: GTK 2.24, GTK 3.20, GLib 2.42, libxfce4ui 4.12
+  - GTK 3 libraries are no longer optional
+  - Default debug for development builds is now "yes" instead of "full"
+- Bug Fixes:
+  - Discard preferred application selection if dialog is canceled (Xfce #8802)
+  - Do not ship generic category icons, these are standard (Xfce #9992)
+  - Do not abort builds due to deprecated declarations (Xfce #11556)
+  - Fix crash in Thunar on selection change after directory change (Xfce #13238)
+  - Fix crash in exo-helper-1 from GTK 3 migration (Xfce #13374)
+  - Fix ExoIconView being unable to decrease its size (Xfce #13402)
+- Documentation Updates:
+  - Add missing per-release API indices
+  - Resolve undocumented symbols
+  - Updated project documentation (HACKING, README, THANKS)
+- Translation Updates: Amharic, Asturian, Catalan, Chinese (Taiwan), Croatian,
+  Danish, Dutch, Finnish, Galician, Greek, Indonesian, Kazakh, Korean,
+  Lithuanian, Norwegian Bokmal, Norwegian Nynorsk, Occitan,
+  Portuguese (Brazil), Russian, Serbian, Slovenian, Spanish, Thai
+
+0.11.2 (Development Release)
+======
+- Several improvements from f2404:
+  - Remove unused struct member
+  - Check index range before accessing array
+  - Do not assign value twice
+  - Resolve gdk_cursor_* deprecated warnings
+  - Resolve gdk_threads_* deprecated warnings
+- Fixed vertical alignment of options in preferred applications
+- Fixed issue with Thunar detailed view losing selection (Xfce #12916)
+- Translation updates: Asturian, English (Australia), Italian, Kazakh,
+  Lithuanian, Malay, Polish, Portuguese, Romanian, Russian, Thai
+
+0.11.1 (Development Release)
+======
+- This release addresses a new bug introduced in 0.11.0 where exo
+  did not correctly export the user's environment variables.
+- Translation updates: Chinese (China), Croatian, Swedish
+
+0.11.0 (Development Release)
+======
+- This is the first release with initial GTK+3 support. This initial
+  port is thanks to Nick Schermer and Jonas Kümmerlin, who provided
+  all necessary components. As this is an initial release, expect to
+  find bugs or even wholly incomplete functionality.
+- Translation updates: Asturian, Basque, Bulgarian, Catalan, French,
+  German, Greek, Hebrew, Hungarian, Icelandic, Japanese, Korean,
+  Lithuanian, Occitan, Panjabi, Portuguese (Brazil), Russian, Slovak,
+  Slovenian, Spanish, Swedish, Turkish, Ukrainian
+
+0.10.7
+======
+- Correctly escape file names (bug #9912), fixing magnet links
+- Translation updates: Lithuanian, Swedish, Norwegian Nynorsk,
+  English (Australia), Asturian, Turkish
+
+0.10.6
+======
+- Close fd with error state goto (CID 30797), extension of previous
+  fix "File descriptor was never opened if < 0 (CID #85387)"
+
+0.10.5
+======
+- Added --disable-debug to distcheck rules, this will allow building
+  with autogen.sh --disable-debug on newer systems (bug #11556)
+- Do not use x-scheme-handler/file mimetype (bug #7257)
+- Escape URIs for exo-open (bug #9912)
+- File descriptor was never opened if < 0 (CID #85387)
+- Reverted patches that broke window focus on startup (bug #11743)
+  - Fix StartupNotify (bug #9570)
+  - Fix implicit declaration of function 'xfce_spawn_on_screen' (bug #11655)
+- Translation updates: Basque, Greek, Lithuanian, Spanish, Swedish
+
+0.10.4
+======
+- Don't quote arguments passed to terminal emulators (bug #10731)
+- Fix StartupNotify (bug #9570)
+- Fix implicit declaration of function 'xfce_spawn_on_screen' (bug #11655)
+- Translation updates: Korean, Malay, Polish, German, Italian, Croatian
+
+0.10.3
+======
+- Build updates and improvements (autotools, intltool)
+- Increased required automake and libtool versions
+- Updated mimeapps.list location for glib >= 2.41 (bug #11504)
+- Add an icon-column in the icon view for loading thumbnailed images
+- Add helpers for qtFM, QTerminal, Qupzilla, Surf, Vimprobable2 (bug #10216)
+- Add support for BCC in exo-compose-email (bug #11070)
+- Better handle filenames with spaces in exo-helpers (bug #10731)
+- Drop use of the -remote option in Firefox helpers (bug #11601)
+- Fix ATK deprecation warnings (bug #11556)
+- Fix exo_str_looks_like_an_uri() (bug #10098)
+- Fix small typo in exo-icon-bar (bug #10515)
+- Install category icons into proper location (bug #11364)
+- Scroll long file names into view in compact listview (bug #6014)
+- Translation updates: Albanian, Arabic, Asturian, Basque, Belarusian, Bengali,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese (Taiwan),
+  Croatian, Czech, Danish, Dutch (Flemish), English (Australia),
+  English (Great Britain), Estonian, Finnish, French, Galician, German, Greek,
+  Hebrew, Hungarian, Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean,
+  Latvian, Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan,
+  Panjabi, Polish, Portuguese, Portuguese (Brazilian), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Turkish,
+  Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+0.10.2
+======
+- Optimize returning the selected item in icon view.
+- Work with icon names in the toolbar editor.
+- GIO unix is still used for exo-open (bug #9679).
+- Use same thumbnail frame as Thunar.
+- Rename Terminal to xfce4-terminal.
+- Remove unmaintained translations.
+- Add chromium-browser to binary names (bug #9584).
+- Add various helpers.
+
+0.10.1
+======
+- g_main_context_ref_thread_default() is 2.32 API (bug #9577).
+- Reuild translations.
+- Translation updates: Romanian.
+
+0.10.0
+======
+- Bump glib to 2.30 and drop exo-gio-module.
+- Bump Gtk to 2.24.
+- Draw the rubberband identical to gtk (bug #9526).
+- Don't use GSimpleResult in ExoJob (bug #6222).
+- Fix shadowed variable (bug #9493).
+- Translation updates: Arabic, Czech, Croatian, Korean.
+
+0.9.1
+=====
+- Drop the item index for the icon view.
+- Use unsigned int for idles and timeouts.
+- Add accessibility support to exo icon view.
+- Use new thread functions if available.
+- Avoid deprecation warnings.
+- Protect against null value (bug #9418).
+- Translation updates: German, Japanese, Serbian, Uyghur.
+
+0.9.0
+=====
+- Add mnemonics to tab labels (bug #8972).
+- Add function to invert selection in icon view.
+- Don't invert direction in RTL languages (bug #4285).
+- Check if uris also contain a slash (bug #9244).
+- Set anchor item if the cursor is set.
+- Translation updates: Danish, Greek, Spanish (Castilian), Basque,
+  French, Hebrew, Croatian, Hungarian, Indonesian, Italian, Kazakh,
+  Korean, Dutch (Flemish), Polish, Portuguese, Portuguese (Brazilian),
+  Russian, Serbian, Swedish, Uyghur, Ukrainian, Chinese (China),
+  Chinese (Taiwan).
+
+0.8.0
+=====
+- Rename "Novell Evolution" to "Evolution" (bug #8703).
+- Add Iceweasel helper (bug #8704).
+- Translation updates: Arabic, Asturian, Belarusian, Bulgarian,
+  Bengali, Catalan (Valencian), Czech, Welsh, Danish, German, Dzongkha,
+  Greek, English (United Kingdom), Spanish (Castilian), Estonian,
+  Basque, Finnish, French, Galician, Hebrew, Croatian, Hungarian,
+  Indonesian, Icelandic, Italian, Japanese, Georgian, Kazakh, Korean,
+  Kurdish, Lithuanian, Latvian, Macedonian, Norwegian Bokmal, Dutch
+  (Flemish), Norwegian Nynorsk, Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazilian), Romanian, Russian, Sinhala, Slovak,
+  Slovenian, Albanian, Swedish, Tagalog (Philippines), Turkish, Uyghur,
+  Ukrainian, Urdu, Urdu (Pakistan), Chinese (China), Chinese (Taiwan).
+
+0.7.3
+=====
+- Enable startup-notify in the exo-open desktop files.
+- Use g_file_set_contents on local files.
+- Bump gtk to 2.20 and glib to 2.24.
+- Don't set invalid startup id.
+- Replace deprecated function g_strcasecmp (bug #8647).
+- Fix possible segfault in exo_str_looks_like_an_uri.
+- Updates licenses.
+- Fix saving of desktop files in local dir.
+- Translation updates: Arabic, Greek, French, Galician, Japanese,
+  Korean, Dutch (Flemish), Norwegian Nynorsk, Portuguese, Portuguese
+  (Brazilian).
+
+0.7.2
+=====
+- Drop gtk 2.24 api (bug #8461).
+- Bump libxfce4ui dependency for help function.
+- Send exo-open startup-id to child instead of using it (bug #7093).
+- Translation updates (ar, ca, cs, da, de, es, eu, fi, fr, he, id,
+  it, kk, ko, lt, nl, pl, pt, ru, sk, tr, uk, zh_CN, zh_TW).
+
+0.7.1
+=====
+- Add preferred app helper for Chromium (bug #8398).
+- Remove package manuals and link to online documentation.
+- Queue an icon view resize if the requesitions don't match.
+- Add new API exo_icon_view_get_item_{column,row}.
+- Add keynav-failed to ExoIconView.
+- Show Preferred Application in settings category.
+- Don't destroy already destroyed widget.
+- Translation updates: Chinese, Portuguese, Lithuanian, Norwegian,
+  German, Bulgarian.
+
+0.7.0
+=====
+- Do not insert symlink icons in the icon chooser.
+- Use libxfce4ui instead of support library.
+- Drop the python bindings.
+- Use new libtool macros and versions (bug #6920).
+- Remove spec file and rpm build.
+- Silenty save to local application is permission denied to origional
+  file in exo-desktop-item-edit.
+- Support hexadecimal xid and center exo-desktop-item-edit on parent.
+
+0.6.2
+=====
+- Fix preferred applications handling (bug #7140).
+- Translation updates: Dutch.
+
+0.6.1
+=====
+- Improve exo-open url and email match regexes (bug #7281).
+- Create relative symlinks to doc images (bug #7379).
+- Remove mime-types from the exo helper desktop files (bug #7257).
+- Drop unused variable.
+- Make exo-compose-mail-1 case-insensitive (bug #7472).
+- Use portable abicheck.sh from xfconf.
+- Add missing linker flag.
+- Add Greek manual screenshots.
+- Only compile demo application in make check (bug #7267).
+- Allow installation of the helpers in a custom location.
+- Fix gio-unix 2.27 detection (bug #7124).
+- Translation updates: nl, pt_BR, ru, sk, sv.
+
+0.6.0
+=====
+- Add main category to exo-open desktop files.
+- Translation updates: Greek, Croatian, Polish, Turkish, Romanian,
+  French, Arabic.
+
+0.5.6
+=====
+- Set application name for Thunar loop detection.
+- Fix ABI check on ppc (bug #7008).
+- Quote filenames with a space in the desktop editor (bug #6951).
+- Translation updates (zh_CN, pt_BR, de, hu, pt, de, cs, en_GB,
+  nb, sv, ar).
+
+0.5.5
+=====
+- Fix opening of URIs with spaces in claws-mail and sylpheed.
+- Fix two @libexecdir@ -> @HELPERDIR@ replacements.
+- Add Icedove helper.
+- Fix Opera helper with Opera >= 10.60.
+- Add mime types to the exo-open desktop files (bug #6800).
+- Store preferred application in mimeapps.list (bug #6800).
+- Don't build the GIO module after glib 2.27 (bug #6800).
+- Make exo-open more standalone (bug #6573).
+- Translation updates (ug, gl, zh_TW, ru, sk, ja, el, sv, es, eu,
+  hu, pt, kk, it, ja, he, uk, ca, da, id).
+
+0.5.4
+=====
+- Abort dist if xml is not valid.
+- Move files from $libexecdir to $libdir.
+- Remove deprecated encoding key from desktop files.
+- Translation updates (fi, fr, he, kk, it, uk, de, zh_TW).
+
+0.5.3
+=====
+- Drop all HAL related code. Exo-hal is not used by thunar-volman
+  anymore now it is ported to udev, udisks is a non-hal replacement
+  for exo-mount.
+- Add working directory support to exo-desktop-item-edit (bug #5692).
+- Generate documentation with --enable-gen-doc.
+- Make the treeview work again with gtk 2.20 (bug #6230).
+- Fix compilation error (bug #6421).
+- Some compiler warnings and identation fixes.
+- Translation updates (de, ru, kk, si, zh_CN, es, hr, eu, bn, pa,
+  is, gl, el, tr, ug, fr, id, it, pt, pr_BR, da).
+
+0.5.2
+=====
+- Some fixes in the python bindings (bug #6186, #6187 and #6188).
+- Increase exo module priority.
+- Add support for editing .directory files in exo-desktop-item-edit.
+- Add filter entry in the icon chooser dialog.
+- Add desktop files for the exo-open types.
+- Fix link problem with --no-add-needed (bug #5951).
+- Translation updates (es, kk, ca, it, sv, ru, uk, hu, bn, fi, gl,
+  ja, cs, fr, pt, pt_BR, da, eu, lv, sk, zh_CN, fr).
+
+0.5.1
+=====
+- Remove exo-mount-point API.
+- Only add sync mount option to devices with no volume.
+- Add missing function in the symbols file.
+- Use the GIO code for reading mount points in exo-mount.
+- Make GIO-Unix an optional dependency.
+- Use .desktop filename when creating a new desktop item with
+  exo-desktop-item-edit.
+
+0.5.0
+=====
+The API version of exo has been changed from 0.3 to 1, to make it easier
+to bump minor and major version numbers in future releases. To compile
+against this version of exo, you have to change exo-0.3 to exo-1 in your
+configure file. This backwards-incompatible change has also been used to
+remove deprecated APIs or APIs that are now provided by Gtk 2.14 or Glib
+2.18.
+
+Removed or incompatibly changed classes/enums/functions:
+  - Renamed exo_url_about_dialog_hook() to exo_gtk_url_about_dialog_hook().
+  - Exo(Mutual)Binding structures are now private.
+  - Removed exo_icon_view_{set,get}_{text,markup,pixbuf}_column().
+  - Removed ExoPangoEllipsizeMode and related functions.
+  - Removed exo_md5_*() functions and ExoMd5Digest.
+  - Removed exo_intern_string() and exo_intern_static_string().
+  - Removed ExoEllipsizedLabel has been entirely removed.
+  - Removed exo_gtk_object_ref_sink() and
+    exo_gtk_radio_action_set_current_value().
+  - Removed exo_url_show() and exo_url_show_on_screen().
+
+New classes/functions:
+  - ExoJob and ExoSimpleJob for handling threaded/asynchronous jobs.
+  - exo_str_is_empty(), exo_str_looks_like_an_uri().
+
+Other changes:
+- GIO module for handling URIs that are known by the preferred
+  applications framework.
+- API documentation has been inlined in the code.
+- Various other fixes, cleanups and translation updates.
+
+0.3.105
+=======
+- Read mount options from a rc file (bug #2891).
+- Version the API docs.
+- Fix notes when generating the man pages.
+
+0.3.104
+=======
+- Make unmount work for devices that have a parent that is a volume (bug #2968).
+
+0.3.103
+=======
+- Use the update-preview signal for updating the preview (bug #5133)
+- Add support for iocharset in exo-mount (bug #4294).
+- Make mounting NTFS drives work in exo-mount (bug #4532).
+- Open trash:// uris with the file manager (bug #5777).
+- Fix some small compiler warnings.
+- Switch the build files to use GIT.
+- Updated translation: ca (Carles Muñoz Gorriz)
+
+0.3.102
+=======
+- Allow all arguments in the terminal parameters (part of bug #5301).
+- Fix some issues in exo-open with spaces in arguments.
+- Properly handle NULL pixbufs in the toolbars code.
+- Make sure the ui-manager is up2date when creating the exo toolbar.
+- Fix possible segfault in exo_icon_view_get_item_at_pos (bug #5633).
+- Do not escape commas in urls (bug #5654).
+- Lookup the hardcoded paths for (u)mount during configure (bug #3717).
+- Fix missing include for strftime (bug #3751).
+- Prefer getvfsstat over getfsstat (bug #3718).
+- Don't abort if python is not found (bug #3751).
+
+0.3.101
+=======
+- Quote arguments passed to exo-open (bug #5132).
+- Add gettext() call around two strings which are already as translatable with
+  N_() (bug #5203).
+- Fix broken build due to incomplete integration of the Danish and Galician
+  manual translations.
+
+0.3.100
+=======
+- Updated translations: ro (Mișu Moldovan), el (Stavros Giannouris),
+  es (Abel Martín), gl (Leandro Requeiro), zh_CN (Chris K. Zhang),
+  pl (Piotr Sokół), en_GB (Jeff Bailes), fr (Mike Massonnet),
+  tr (Eren Türkay)
+
+0.3.99.1
+========
+- Updated translations: da (Lars Chrisitan Jensen, Per Kongstad),
+  es (Abel Martín), fr (Maximilian Schleiss, Mike Massonnet),
+  id (Andhika Padmawan), pt_BR (Og Maciel, tr (Gökmen Görgen).
+
+0.3.93
+======
+- Don't setup bindings for <Shift>n and <Shift>p in ExoIconView so that
+  type-ahead search works as expected (bug #4633).
+- Remove GenericName and "Xfce 4" prefix from
+  exo-preferred-applications.desktop.
+- Stop startup notification once the plug is created and the helper
+  settings dialog content has been moved into the plug.
+- Use -V instead of -v as short parameter for --version.
+- Improve handling of URIs in exo-open (bug #4627).
+- Updated translations: ca (Carles Muños Gorriz), cs (Michal Varady),
+  de (Fabian Nowak, Jannis Pohlmann), es (Abel Martín), eu (Piarres
+  Beobide), fi (Jari Rahkonen), fr (Maximilian Schleiss), hu (Szervác
+  Attila), id (Andhika Padmawan), ja (Nobuhiro Iwamatsu), nb_NO (Terje
+  Uriansrud), pt_BR (Og Maciel), sq (Besnik Bleta), sv (Daniel
+  Nylander), tr (Eren Turkay).
+
+0.3.92
+======
+- Make Preferred Applications dialog pluggable into the new settings
+  manager.
+- Draw the background for text renderers inside the icon view. This is
+  just a workaround inspired by GtkIconView and should be removed later.
+- Get rid of external MD5 functions (Bug #4595).
+- Fix compile against GLib < 2.14.
+- Fix directory names with "@" being treated as URLs (Bug #4330).
+- Updated translations: Michal Varady (cs), Piarres Beobide (eu),
+  Abel Martín (es), Jari Rahkonen (fi), Terje Uriansrud (nb_NO),
+  Gökmen Görgen (tr).
+
+0.3.91
+======
+- Add midori helper (bug #4446)
+- Updated translations: Carles Muñoz Gorriz (ca), Fabian Nowak (de),
+  Stavros Giannouris (el), Abel Martín (es), Kristjan Siimson (et),
+  Leandro Regueiro (gl), Andhika Padmawan (id), Nobuhiro Iwamatsu (ja),
+  Erdal Ronahi (ku), Rihards Priedītis (lv), Piotr Maliński (pl),
+  Og Maciel (pt_BR), Nuno Miguel (pt_PT), NIkitaBelobrov (ru),
+  Chao Sye (zh_CN)
+
+
+0.3.80
+======
+- Include preferred apps dialog in the new settings manager.
+- Add support for mounting and unmounting encrypted volumes. (Bug #3349)
+- Don't strip text between nodes with --strip-content, this will make stripping
+  work on glade files.
+
+0.3.4
+=====
+- Add option to exo-csource to strip comments from XML prior to embedding
+  them into binaries (Bug #3094).
+- Fix compilation on Solaris 2.8 (Bug #2798).
+- Fix compilation on NetBSD (Bug #2808).
+- Properly quote URLs prior to passing them to external programs (Bug #2791).
+- Bump required HAL version to 0.5.7 (Bug #2828).
+- Updated translations: Alexander Nyakhaychyk (be), Pau Rul-lan Ferragut (ca),
+                        Benedikt Meurer and Nico Schümann (de), Jeff Bailes
+                        (en_GB), Piarres Beobide (eu), Jari Rahkonen (fi), Mike
+                        Massonnet (fr), Daichi Kawahata (ja), Peter Maassen and
+                        Stephan Arts (nl), Pablo Lerina and Og Maciel (pt_BR),
+                        Mişu Moldovan (ro)
+- New translations: Mohamed Magdy (ar), Terje Uriansrud (nb_NO), Rihards
+                    Priedītis (lv), Nuno Miguel (pt_PT), ﻢﺤﻣﺩ ﻊﻠﻳ ﺎﻠﻤﻜﻳ (ur),
+                    Hydonsingore Cia (zh_TW), Besnik Bleta (sq)
+
+
+0.3.2
+=====
+- Further clean up the ExoIconView code and add several small optimization.
+- Import exo-mount utility to drop the dependency on other mount utilities,
+  like pmount and gnome-mount, that don't work reliably, and were often the
+  cause of trouble when mounting in Thunar.
+- Add optional mount notify tool, which notifies the user that a device/media
+  is begin unmounted by the system and gives a hint when the device/media can
+  be disconnected/removed.
+- Add exo-hal library, which provides several HAL related utility functions
+  that have been deprecated in libhal-storage, but are required by several
+  modules.
+- Import ExoMountPoint module, which provides platform independent access to
+  the configured and currently active mount points. This is required by other
+  modules like exo-mount and thunar-vfs (for the trash implementation).
+- Fix crash with certain kinds of discs (Bug #2723).
+- Detect complex mailto:-URIs properly (Bug #2530).
+- Fix compilation on amd64 (Bug #2758).
+- Fix a few memory leaks.
+- Updated translations: Pau Rul-lan Ferragut (ca), Michal Várady (cs), Benedikt
+                        Meurer (de), Stavros Giannouris (el), Piarres Beobide
+                        (eu), Piotr Maliński and Szymon Kałasz (pl), Andrey
+                        Fedoseev (ru), Alexander Toresson (sv).
+- New translations: Alexander Nyakhaychyk (be), Geraint Rowlands (cy), Pavle
+                    Jonoski (mk), Stephan Arts (nl), Amanpreet Singh Alam (pa).
+
+
+0.3.1.12rc2
+===========
+- Added a --working-directory command line switch to exo-open, which primarily
+  useful to start the TerminalEmulator's in a specific directory.
+- Import french translations of the user manual (#2478).
+- Fix double click somethimes requiring a third click (#2259).
+- Fix crash in the icon chooser with internal icons (#2488).
+- Fix installation on Win32 variants (#2463).
+- Fix detection of email addresses with underscores in the username (#2453).
+- Escape commata in URLs prior to passing the URLs to the web browser or the
+  mail reader, as some helper applications, namely Firefox and Thunderbird,
+  cannot handle URLs with commata (#2454).
+- Updated translations: Pau Rul-lan Ferragut (ca), Michal Várady (cs), Benedikt
+                        Meurer (de), Piarres Beobide (eu), Jari Rahkonen (fi),
+                        Maximilian Schleiss (fr), Piotr Maliński (pl), Adriano
+                        Winter Bess (pt_BR), Andrey Fedoseev (ru)
+- New translations: Sonam Pelden (dz), Dario DOE (it)
+
+
+0.3.1.10rc1
+===========
+- Added a new ExoIconChooserDialog widget to pick an icon from either the
+  current icon theme or an image file.
+- Added exo_gtk_file_chooser_add_thumbnail_preview() which adds a thumbnail
+  preview widget to a GtkFileChooser.
+- Added exo_gdk_pixbuf_new_from_at_max_size() to scale down image files while
+  loading them, but never scale up.
+- Added ExoCellRendererIcon as default icon renderer for the ExoIconView.
+- Added support for the rxvt-unicode terminal emulator (Bug #2158).
+- Updated ExoCellRendererEllipsizedText to be used as default text renderer
+  for the ExoIconView.
+- Updated ExoTreeView to add support for rubberband selection (Bug #1996).
+- Updated exo-desktop-item-edit to offer a completion of possible applications
+  from the desktop database in the Name entry field when creating or modifying
+  launchers.
+- Fix a layout problem in ExoIconView where the appearance of a scrollbar
+  causes the icons to be laid out again and again (Bug #2219, Matt McClinch).
+- Fix build with compilers other than gcc (Bug #2252).
+- Use the GSlice allocator where possible to further reduce memory overhead.
+- Update the API documentation, adding a visual index for the available widgets.
+- Updated translations: Michal Varady (cs), Benedikt Meurer and Fabian Nowak
+                        (de), Stavros Giannouris (el), Piarres Beobide (eu),
+                        Jari Rahkonen (fi), Maximilian Schleiss (fr), Piotr
+                        Maliński and Szymon Kałasz (pl), Tomás Acauan Schertel
+                        (pt_BR)
+- New translations: Leandro Regueiro (gl), Dimitri Gogelia (ka)
+
+
+0.3.1.8beta2
+============
+- Imported the "Xfce Preferred Applications" framework, which allows users to
+  select their preferred applications (i.e. web browser, mail reader, terminal
+  emulator) using a nice graphical interface, rather than having to figure out
+  where to add which environment variable to make Xfce use Firefox as default
+  web browser. The "Xfce Preferred Applications" framework can also pass
+  additional information when composing emails using the preferred mail reader,
+  for example, you can use the extended mailto:-syntax to open the composer
+  with a predefined subject and automatically attached files.
+- Updated the ExoIconView class to support an API compatible to the GtkIconView
+  in Gtk+ 2.8, and improve the performance of the icon view.
+- Added single click navigation support to ExoIconView.
+- Added hover-selection support to ExoIconView in single-click mode, which
+  automatically selects an item when the mouse is paused over it for a
+  certain amount of time.
+- Added "Right Arrow Keyboard Navigation" to ExoIconView, as suggested in
+  http://chabada.sk/better-desktop/#nautilus-improvements.
+- Added a compact layout mode to ExoIconView, similar to the list view found
+  in Windows Explorer.
+- Added a new widget ExoTreeView, which extends GtkTreeView with single click
+  navigation.
+- Added a new widget ExoWrapTable, which layouts its child widgets in an
+  automatically wrapped table. For example, this is used for the emblem
+  chooser in Thunar.
+- Added a new utility exo-csource, which can generate C source code from
+  arbitrary data.
+- Added a new utility exo-desktop-item-edit, which is used to create new
+  launchers/links on the desktop and when dropping URLs to the file manager.
+- Added various new convenience functions to make dealing with strings,
+  pixbufs and other data structures easier for C programmers.
+- The number of relocations in the library and the number of linked dependencies
+  were reduced to improve the startup time of applications using this library.
+- Updated class structures to make sure constant static strings aren't
+  unnecessarily duplicated at runtime, and provide other packages with
+  the same functionality by exporting the functions and macros in
+  question.
+- Updated the python bindings to include the new functionality.
+- Support three different levels of debugging support (yes/minimum/no).
+- New translations: Pau Rul·lan Ferragut (ca), Michal Várady (cs), Stavros
+                    Giannouris (el), Dwayne Bailey (en_GB), Patricio Carr (es),
+                    Peeter Vois (et), Piarres Beobide (eu), Jari Rahkonen
+                    (fi), Stephane Roy (fr), Dotan Kamber (he), Szervác Attila
+                    (hu), Daichi Kawahata (ja), Piotr Maliński (pl), Adriano
+                    Winter Bess (pt_BR), Joao Pedrosa (pt_BR), Mişu Moldovan
+                    (ro), Andrey Fedoseev (ru), Maxim Zenin (ru), Alexander
+                    Toresson (sv)
+
+
+0.3.0
+=====
+- The icon bar is now sized and rendered properly with all Gtk+ theme engines.
+- The following obsolete components have been removed: ExoIce, ExoFileWatch,
+  ExoUri and ExoPropertyProxy.
+- A bug in ExoCellRendererEllipsizedText was fixed, which caused Xfmedia to
+  crash under certain circumstances.
+- The dependency on D-BUS is gone.
+- Python bindings have been added.
+- Updated API documentation.
+- New translations: Dwayne Bailey (en_GB)
+
+
+0.2.0
+=====
+- The ellipsizing functions now use the Pango 1.6 builtin functionality
+  if available.
+- Added lightweight session management support with the ExoXsessionClient
+  class.
+- The API of ExoEllipsizedLabel was changed to be compatible with GtkLabel
+  in Gtk+ 2.5 and above.
+- Added an ellipsizing cell renderer ExoCellRendererEllipsizedText, compatible
+  with GtkCellRendererText in Gtk+ 2.6.
+- ExoIconBar has an "orientation" property now. The "selection-changed" signal
+  has been renamed to "changed". The ExoIconBar background is updated when
+  the Gtk style changes.
+- libexo is fully internationalized now. German translations are already
+  available.
+- The ExoToolbarsView class has been changed to provide a "Customize
+  Toolbars..." menu item together with the other items and to emit a
+  signal "customize".
+- ExoPropertyProxy has been replaced by ExoBinding, which is based on
+  the GObject Binding Properties implementation available from
+  http://ex-code.com/glib-bind/. ExoBinding is way more powerful and
+  easier to handle than ExoPropertyProxy. ExoBinding contains some
+  improvements over GBinding; for example, GBinding can run into an
+  endless loop, when you bind properties of type GBoxed, whereas
+  ExoBinding doesn't suffer from this problem.
+- The MD5 functions have been changed to be compatible with the MD5 API
+  found in libegg.
+- The API documentation is nearly complete now.
+
+0.1.3
+=====
+- Added a framework for editable toolbars (ExoToolbarsModel, ExoToolbarsView,
+  ExoToolbarsEditor and ExoToolbarsEditorDialog).
+- Added initial API reference documentation.
+- Added version information variables and macros similar to whats used
+  in Xfce and Gtk+.
+
+
+0.1.2
+=====
+- Fixed a style problem with the iconbar.
+- Fixed a bug in the md5 module, that caused the libexo compile to fail
+  on some GNU/Linux systems.
+- The configure option --enable-final now enables linker optimizations for
+  plattforms that support it (recent GNU binutils required).
+
+
+0.1.1
+=====
+- An ICE module was added, based upon the ice-layer from xfce4-session and
+  the gnome-ice module of libgnomeui.
+- libexo no longer requires SSL on non-BSD systems, since a MD5 fallback
+  implementation was added, which will be used if the system doesn't
+  provide MD5_* functions.

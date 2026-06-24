@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<book xmlns="http://www.devhelp.net/book" title="garcon Reference Manual" link="index.html" author="" name="garcon" version="2" language="c" online="https://developer.xfce.org/garcon/index.html">
+  <chapters>
+    <sub name="Overview" link="pt01.html"/>
+    <sub name="Menus and Menu Items" link="garcon-menus.html">
+      <sub name="GarconMenu" link="GarconMenu.html"/>
+      <sub name="GarconMenuDirectory" link="GarconMenuDirectory.html"/>
+      <sub name="GarconMenuElement" link="GarconMenuElement.html"/>
+      <sub name="GarconMenuItem" link="GarconMenuItem.html"/>
+      <sub name="GarconMenuItemCache" link="GarconMenuItemCache.html"/>
+      <sub name="garcon-menu-item-pool" link="garcon-garcon-menu-item-pool.html"/>
+      <sub name="GarconMenuItemAction" link="GarconMenuItemAction.html"/>
+      <sub name="GarconMenuSeparator" link="GarconMenuSeparator.html"/>
+    </sub>
+    <sub name="Parsing and Modifying the Menu Tree" link="garcon-parsing.html">
+      <sub name="GarconMenuMerger" link="GarconMenuMerger.html"/>
+      <sub name="garcon-menu-node" link="garcon-garcon-menu-node.html"/>
+      <sub name="GarconMenuParser" link="GarconMenuParser.html"/>
+      <sub name="GarconMenuTreeProvider" link="GarconMenuTreeProvider.html"/>
+    </sub>
+    <sub name="Create a complete GtkMenu from a GarconMenu" link="garcon-gtk-menu.html">
+      <sub name="GarconGtkMenu" link="GarconGtkMenu.html"/>
+    </sub>
+    <sub name="Miscellaneous" link="garcon-miscellaneous.html">
+      <sub name="Desktop Environment Configuration" link="garcon-Desktop-Environment-Configuration.html"/>
+      <sub name="Version Information" link="garcon-Version-Information.html"/>
+      <sub name="garcon-marshal" link="garcon-garcon-marshal.html"/>
+    </sub>
+    <sub name="Object Hierarchy" link="object-tree.html"/>
+    <sub name="Index of all symbols" link="api-index-full.html"/>
+    <sub name="Index of deprecated symbols" link="api-index-deprecated.html"/>
+    <sub name="Index of new symbols in 0.3" link="api-index-0-3.html"/>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="garcon_menu_new ()" link="GarconMenu.html#garcon-menu-new"/>
+    <keyword type="function" name="garcon_menu_new_for_path ()" link="GarconMenu.html#garcon-menu-new-for-path"/>
+    <keyword type="function" name="garcon_menu_new_applications ()" link="GarconMenu.html#garcon-menu-new-applications"/>
+    <keyword type="function" name="garcon_menu_load ()" link="GarconMenu.html#garcon-menu-load"/>
+    <keyword type="function" name="garcon_menu_get_file ()" link="GarconMenu.html#garcon-menu-get-file"/>
+    <keyword type="function" name="garcon_menu_get_directory ()" link="GarconMenu.html#garcon-menu-get-directory"/>
+    <keyword type="function" name="garcon_menu_get_menus ()" link="GarconMenu.html#garcon-menu-get-menus"/>
+    <keyword type="function" name="garcon_menu_add_menu ()" link="GarconMenu.html#garcon-menu-add-menu"/>
+    <keyword type="function" name="garcon_menu_get_menu_with_name ()" link="GarconMenu.html#garcon-menu-get-menu-with-name"/>
+    <keyword type="function" name="garcon_menu_get_parent ()" link="GarconMenu.html#garcon-menu-get-parent"/>
+    <keyword type="function" name="garcon_menu_get_item_pool ()" link="GarconMenu.html#garcon-menu-get-item-pool"/>
+    <keyword type="function" name="garcon_menu_get_items ()" link="GarconMenu.html#garcon-menu-get-items"/>
+    <keyword type="function" name="garcon_menu_get_elements ()" link="GarconMenu.html#garcon-menu-get-elements"/>
+    <keyword type="property" name="The “directory” property" link="GarconMenu.html#GarconMenu--directory"/>
+    <keyword type="property" name="The “file” property" link="GarconMenu.html#GarconMenu--file"/>
+    <keyword type="signal" name="The “directory-changed” signal" link="GarconMenu.html#GarconMenu-directory-changed"/>
+    <keyword type="signal" name="The “reload-required” signal" link="GarconMenu.html#GarconMenu-reload-required"/>
+    <keyword type="function" name="garcon_menu_directory_new ()" link="GarconMenuDirectory.html#garcon-menu-directory-new"/>
+    <keyword type="function" name="garcon_menu_directory_get_file ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-file"/>
+    <keyword type="function" name="garcon_menu_directory_get_name ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-name"/>
+    <keyword type="function" name="garcon_menu_directory_set_name ()" link="GarconMenuDirectory.html#garcon-menu-directory-set-name"/>
+    <keyword type="function" name="garcon_menu_directory_get_comment ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-comment"/>
+    <keyword type="function" name="garcon_menu_directory_set_comment ()" link="GarconMenuDirectory.html#garcon-menu-directory-set-comment"/>
+    <keyword type="function" name="garcon_menu_directory_get_icon_name ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-icon-name"/>
+    <keyword type="function" name="garcon_menu_directory_set_icon_name ()" link="GarconMenuDirectory.html#garcon-menu-directory-set-icon-name"/>
+    <keyword type="function" name="garcon_menu_directory_get_no_display ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-no-display"/>
+    <keyword type="function" name="garcon_menu_directory_set_no_display ()" link="GarconMenuDirectory.html#garcon-menu-directory-set-no-display"/>
+    <keyword type="function" name="garcon_menu_directory_get_hidden ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-hidden"/>
+    <keyword type="function" name="garcon_menu_directory_get_show_in_environment ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-show-in-environment"/>
+    <keyword type="function" name="garcon_menu_directory_get_visible ()" link="GarconMenuDirectory.html#garcon-menu-directory-get-visible"/>
+    <keyword type="function" name="garcon_menu_directory_equal ()" link="GarconMenuDirectory.html#garcon-menu-directory-equal"/>
+    <keyword type="property" name="The “comment” property" link="GarconMenuDirectory.html#GarconMenuDirectory--comment"/>
+    <keyword type="property" name="The “file” property" link="GarconMenuDirectory.html#GarconMenuDirectory--file"/>
+    <keyword type="property" name="The “icon-name” property" link="GarconMenuDirectory.html#GarconMenuDirectory--icon-name"/>
+    <keyword type="property" name="The “name” property" link="GarconMenuDirectory.html#GarconMenuDirectory--name"/>
+    <keyword type="property" name="The “no-display” property" link="GarconMenuDirectory.html#GarconMenuDirectory--no-display"/>
+    <keyword type="function" name="garcon_menu_element_get_name ()" link="GarconMenuElement.html#garcon-menu-element-get-name"/>
+    <keyword type="function" name="garcon_menu_element_get_comment ()" link="GarconMenuElement.html#garcon-menu-element-get-comment"/>
+    <keyword type="function" name="garcon_menu_element_get_icon_name ()" link="GarconMenuElement.html#garcon-menu-element-get-icon-name"/>
+    <keyword type="function" name="garcon_menu_element_get_visible ()" link="GarconMenuElement.html#garcon-menu-element-get-visible"/>
+    <keyword type="function" name="garcon_menu_element_get_show_in_environment ()" link="GarconMenuElement.html#garcon-menu-element-get-show-in-environment"/>
+    <keyword type="function" name="garcon_menu_element_get_no_display ()" link="GarconMenuElement.html#garcon-menu-element-get-no-display"/>
+    <keyword type="function" name="garcon_menu_element_equal ()" link="GarconMenuElement.html#garcon-menu-element-equal"/>
+    <keyword type="function" name="garcon_menu_item_new ()" link="GarconMenuItem.html#garcon-menu-item-new"/>
+    <keyword type="function" name="garcon_menu_item_new_for_path ()" link="GarconMenuItem.html#garcon-menu-item-new-for-path"/>
+    <keyword type="function" name="garcon_menu_item_new_for_uri ()" link="GarconMenuItem.html#garcon-menu-item-new-for-uri"/>
+    <keyword type="function" name="garcon_menu_item_reload ()" link="GarconMenuItem.html#garcon-menu-item-reload"/>
+    <keyword type="function" name="garcon_menu_item_reload_from_file ()" link="GarconMenuItem.html#garcon-menu-item-reload-from-file"/>
+    <keyword type="function" name="garcon_menu_item_get_file ()" link="GarconMenuItem.html#garcon-menu-item-get-file"/>
+    <keyword type="function" name="garcon_menu_item_get_uri ()" link="GarconMenuItem.html#garcon-menu-item-get-uri"/>
+    <keyword type="function" name="garcon_menu_item_get_desktop_id ()" link="GarconMenuItem.html#garcon-menu-item-get-desktop-id"/>
+    <keyword type="function" name="garcon_menu_item_set_desktop_id ()" link="GarconMenuItem.html#garcon-menu-item-set-desktop-id"/>
+    <keyword type="function" name="garcon_menu_item_get_command ()" link="GarconMenuItem.html#garcon-menu-item-get-command"/>
+    <keyword type="function" name="garcon_menu_item_set_command ()" link="GarconMenuItem.html#garcon-menu-item-set-command"/>
+    <keyword type="function" name="garcon_menu_item_get_try_exec ()" link="GarconMenuItem.html#garcon-menu-item-get-try-exec"/>
+    <keyword type="function" name="garcon_menu_item_set_try_exec ()" link="GarconMenuItem.html#garcon-menu-item-set-try-exec"/>
+    <keyword type="function" name="garcon_menu_item_get_name ()" link="GarconMenuItem.html#garcon-menu-item-get-name"/>
+    <keyword type="function" name="garcon_menu_item_set_name ()" link="GarconMenuItem.html#garcon-menu-item-set-name"/>
+    <keyword type="function" name="garcon_menu_item_get_generic_name ()" link="GarconMenuItem.html#garcon-menu-item-get-generic-name"/>
+    <keyword type="function" name="garcon_menu_item_set_generic_name ()" link="GarconMenuItem.html#garcon-menu-item-set-generic-name"/>
+    <keyword type="function" name="garcon_menu_item_get_comment ()" link="GarconMenuItem.html#garcon-menu-item-get-comment"/>
+    <keyword type="function" name="garcon_menu_item_set_comment ()" link="GarconMenuItem.html#garcon-menu-item-set-comment"/>
+    <keyword type="function" name="garcon_menu_item_get_icon_name ()" link="GarconMenuItem.html#garcon-menu-item-get-icon-name"/>
+    <keyword type="function" name="garcon_menu_item_set_icon_name ()" link="GarconMenuItem.html#garcon-menu-item-set-icon-name"/>
+    <keyword type="function" name="garcon_menu_item_get_path ()" link="GarconMenuItem.html#garcon-menu-item-get-path"/>
+    <keyword type="function" name="garcon_menu_item_set_path ()" link="GarconMenuItem.html#garcon-menu-item-set-path"/>
+    <keyword type="function" name="garcon_menu_item_get_hidden ()" link="GarconMenuItem.html#garcon-menu-item-get-hidden"/>
+    <keyword type="function" name="garcon_menu_item_set_hidden ()" link="GarconMenuItem.html#garcon-menu-item-set-hidden"/>
+    <keyword type="function" name="garcon_menu_item_get_prefers_non_default_gpu ()" link="GarconMenuItem.html#garcon-menu-item-get-prefers-non-default-gpu"/>
+    <keyword type="function" name="garcon_menu_item_set_prefers_non_default_gpu ()" link="GarconMenuItem.html#garcon-menu-item-set-prefers-non-default-gpu"/>
+    <keyword type="function" name="garcon_menu_item_requires_terminal ()" link="GarconMenuItem.html#garcon-menu-item-requires-terminal"/>
+    <keyword type="function" name="garcon_menu_item_set_requires_terminal ()" link="GarconMenuItem.html#garcon-menu-item-set-requires-terminal"/>
+    <keyword type="function" name="garcon_menu_item_get_no_display ()" link="GarconMenuItem.html#garcon-menu-item-get-no-display"/>
+    <keyword type="function" name="garcon_menu_item_set_no_display ()" link="GarconMenuItem.html#garcon-menu-item-set-no-display"/>
+    <keyword type="function" name="garcon_menu_item_supports_startup_notification ()" link="GarconMenuItem.html#garcon-menu-item-supports-startup-notification"/>
+    <keyword type="function" name="garcon_menu_item_set_supports_startup_notification ()" link="GarconMenuItem.html#garcon-menu-item-set-supports-startup-notification"/>
+    <keyword type="function" name="garcon_menu_item_get_categories ()" link="GarconMenuItem.html#garcon-menu-item-get-categories"/>
+    <keyword type="function" name="garcon_menu_item_set_categories ()" link="GarconMenuItem.html#garcon-menu-item-set-categories"/>
+    <keyword type="function" name="garcon_menu_item_has_category ()" link="GarconMenuItem.html#garcon-menu-item-has-category"/>
+    <keyword type="function" name="garcon_menu_item_has_keyword ()" link="GarconMenuItem.html#garcon-menu-item-has-keyword"/>
+    <keyword type="function" name="garcon_menu_item_get_keywords ()" link="GarconMenuItem.html#garcon-menu-item-get-keywords"/>
+    <keyword type="function" name="garcon_menu_item_set_keywords ()" link="GarconMenuItem.html#garcon-menu-item-set-keywords"/>
+    <keyword type="function" name="garcon_menu_item_get_actions ()" link="GarconMenuItem.html#garcon-menu-item-get-actions"/>
+    <keyword type="function" name="garcon_menu_item_get_action ()" link="GarconMenuItem.html#garcon-menu-item-get-action"/>
+    <keyword type="function" name="garcon_menu_item_set_action ()" link="GarconMenuItem.html#garcon-menu-item-set-action"/>
+    <keyword type="function" name="garcon_menu_item_has_action ()" link="GarconMenuItem.html#garcon-menu-item-has-action"/>
+    <keyword type="function" name="garcon_menu_item_get_show_in_environment ()" link="GarconMenuItem.html#garcon-menu-item-get-show-in-environment"/>
+    <keyword type="function" name="garcon_menu_item_only_show_in_environment ()" link="GarconMenuItem.html#garcon-menu-item-only-show-in-environment"/>
+    <keyword type="function" name="garcon_menu_item_ref ()" link="GarconMenuItem.html#garcon-menu-item-ref"/>
+    <keyword type="function" name="garcon_menu_item_unref ()" link="GarconMenuItem.html#garcon-menu-item-unref"/>
+    <keyword type="function" name="garcon_menu_item_get_allocated ()" link="GarconMenuItem.html#garcon-menu-item-get-allocated"/>
+    <keyword type="function" name="garcon_menu_item_increment_allocated ()" link="GarconMenuItem.html#garcon-menu-item-increment-allocated"/>
+    <keyword type="function" name="garcon_menu_item_decrement_allocated ()" link="GarconMenuItem.html#garcon-menu-item-decrement-allocated"/>
+    <keyword type="property" name="The “command” property" link="GarconMenuItem.html#GarconMenuItem--command"/>
+    <keyword type="property" name="The “comment” property" link="GarconMenuItem.html#GarconMenuItem--comment"/>
+    <keyword type="property" name="The “desktop-id” property" link="GarconMenuItem.html#GarconMenuItem--desktop-id"/>
+    <keyword type="property" name="The “file” property" link="GarconMenuItem.html#GarconMenuItem--file"/>
+    <keyword type="property" name="The “generic-name” property" link="GarconMenuItem.html#GarconMenuItem--generic-name"/>
+    <keyword type="property" name="The “hidden” property" link="GarconMenuItem.html#GarconMenuItem--hidden"/>
+    <keyword type="property" name="The “icon-name” property" link="GarconMenuItem.html#GarconMenuItem--icon-name"/>
+    <keyword type="property" name="The “name” property" link="GarconMenuItem.html#GarconMenuItem--name"/>
+    <keyword type="property" name="The “no-display” property" link="GarconMenuItem.html#GarconMenuItem--no-display"/>
+    <keyword type="property" name="The “path” property" link="GarconMenuItem.html#GarconMenuItem--path"/>
+    <keyword type="property" name="The “prefers-non-default-gpu” property" link="GarconMenuItem.html#GarconMenuItem--prefers-non-default-gpu"/>
+    <keyword type="property" name="The “requires-terminal” property" link="GarconMenuItem.html#GarconMenuItem--requires-terminal"/>
+    <keyword type="property" name="The “supports-startup-notification” property" link="GarconMenuItem.html#GarconMenuItem--supports-startup-notification"/>
+    <keyword type="property" name="The “try-exec” property" link="GarconMenuItem.html#GarconMenuItem--try-exec"/>
+    <keyword type="signal" name="The “changed” signal" link="GarconMenuItem.html#GarconMenuItem-changed"/>
+    <keyword type="function" name="garcon_menu_item_cache_get_default ()" link="GarconMenuItemCache.html#garcon-menu-item-cache-get-default"/>
+    <keyword type="function" name="garcon_menu_item_cache_lookup ()" link="GarconMenuItemCache.html#garcon-menu-item-cache-lookup"/>
+    <keyword type="function" name="garcon_menu_item_cache_foreach ()" link="GarconMenuItemCache.html#garcon-menu-item-cache-foreach"/>
+    <keyword type="function" name="garcon_menu_item_cache_invalidate ()" link="GarconMenuItemCache.html#garcon-menu-item-cache-invalidate"/>
+    <keyword type="function" name="garcon_menu_item_cache_invalidate_file ()" link="GarconMenuItemCache.html#garcon-menu-item-cache-invalidate-file"/>
+    <keyword type="function" name="garcon_menu_item_pool_new ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-new"/>
+    <keyword type="function" name="garcon_menu_item_pool_insert ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-insert"/>
+    <keyword type="function" name="garcon_menu_item_pool_lookup ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-lookup"/>
+    <keyword type="function" name="garcon_menu_item_pool_lookup_file ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-lookup-file"/>
+    <keyword type="function" name="garcon_menu_item_pool_foreach ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-foreach"/>
+    <keyword type="function" name="garcon_menu_item_pool_apply_exclude_rule ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-apply-exclude-rule"/>
+    <keyword type="function" name="garcon_menu_item_pool_get_empty ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-get-empty"/>
+    <keyword type="function" name="garcon_menu_item_pool_clear ()" link="garcon-garcon-menu-item-pool.html#garcon-menu-item-pool-clear"/>
+    <keyword type="function" name="garcon_menu_item_action_new ()" link="GarconMenuItemAction.html#garcon-menu-item-action-new"/>
+    <keyword type="function" name="garcon_menu_item_action_get_command ()" link="GarconMenuItemAction.html#garcon-menu-item-action-get-command"/>
+    <keyword type="function" name="garcon_menu_item_action_set_command ()" link="GarconMenuItemAction.html#garcon-menu-item-action-set-command"/>
+    <keyword type="function" name="garcon_menu_item_action_get_name ()" link="GarconMenuItemAction.html#garcon-menu-item-action-get-name"/>
+    <keyword type="function" name="garcon_menu_item_action_set_name ()" link="GarconMenuItemAction.html#garcon-menu-item-action-set-name"/>
+    <keyword type="function" name="garcon_menu_item_action_get_icon_name ()" link="GarconMenuItemAction.html#garcon-menu-item-action-get-icon-name"/>
+    <keyword type="function" name="garcon_menu_item_action_set_icon_name ()" link="GarconMenuItemAction.html#garcon-menu-item-action-set-icon-name"/>
+    <keyword type="function" name="garcon_menu_item_action_ref ()" link="GarconMenuItemAction.html#garcon-menu-item-action-ref"/>
+    <keyword type="function" name="garcon_menu_item_action_unref ()" link="GarconMenuItemAction.html#garcon-menu-item-action-unref"/>
+    <keyword type="property" name="The “command” property" link="GarconMenuItemAction.html#GarconMenuItemAction--command"/>
+    <keyword type="property" name="The “icon-name” property" link="GarconMenuItemAction.html#GarconMenuItemAction--icon-name"/>
+    <keyword type="property" name="The “name” property" link="GarconMenuItemAction.html#GarconMenuItemAction--name"/>
+    <keyword type="function" name="garcon_menu_separator_get_default ()" link="GarconMenuSeparator.html#garcon-menu-separator-get-default"/>
+    <keyword type="function" name="garcon_menu_merger_new ()" link="GarconMenuMerger.html#garcon-menu-merger-new"/>
+    <keyword type="function" name="garcon_menu_merger_run ()" link="GarconMenuMerger.html#garcon-menu-merger-run"/>
+    <keyword type="property" name="The “tree-provider” property" link="GarconMenuMerger.html#GarconMenuMerger--tree-provider"/>
+    <keyword type="function" name="garcon_menu_node_new ()" link="garcon-garcon-menu-node.html#garcon-menu-node-new"/>
+    <keyword type="function" name="garcon_menu_node_get_node_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-get-node-type"/>
+    <keyword type="function" name="garcon_menu_node_create ()" link="garcon-garcon-menu-node.html#garcon-menu-node-create"/>
+    <keyword type="function" name="garcon_menu_node_copy ()" link="garcon-garcon-menu-node.html#garcon-menu-node-copy"/>
+    <keyword type="function" name="garcon_menu_node_get_string ()" link="garcon-garcon-menu-node.html#garcon-menu-node-get-string"/>
+    <keyword type="function" name="garcon_menu_node_set_string ()" link="garcon-garcon-menu-node.html#garcon-menu-node-set-string"/>
+    <keyword type="function" name="garcon_menu_node_get_merge_file_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-get-merge-file-type"/>
+    <keyword type="function" name="garcon_menu_node_set_merge_file_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-set-merge-file-type"/>
+    <keyword type="function" name="garcon_menu_node_get_merge_file_filename ()" link="garcon-garcon-menu-node.html#garcon-menu-node-get-merge-file-filename"/>
+    <keyword type="function" name="garcon_menu_node_set_merge_file_filename ()" link="garcon-garcon-menu-node.html#garcon-menu-node-set-merge-file-filename"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_child_node ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-child-node"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_child_nodes ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-child-nodes"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_string_children ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string-children"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_boolean_child ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-boolean-child"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_string_child ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string-child"/>
+    <keyword type="function" name="garcon_menu_node_tree_rule_matches ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-rule-matches"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_node_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-node-type"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_string ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string"/>
+    <keyword type="function" name="garcon_menu_node_tree_set_string ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-set-string"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_layout_merge_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-layout-merge-type"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_merge_file_type ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-merge-file-type"/>
+    <keyword type="function" name="garcon_menu_node_tree_get_merge_file_filename ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-merge-file-filename"/>
+    <keyword type="function" name="garcon_menu_node_tree_set_merge_file_filename ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-set-merge-file-filename"/>
+    <keyword type="function" name="garcon_menu_node_tree_compare ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-compare"/>
+    <keyword type="function" name="garcon_menu_node_tree_copy ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-copy"/>
+    <keyword type="function" name="garcon_menu_node_tree_free ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-free"/>
+    <keyword type="function" name="garcon_menu_node_tree_free_data ()" link="garcon-garcon-menu-node.html#garcon-menu-node-tree-free-data"/>
+    <keyword type="enum" name="enum GarconMenuNodeType" link="garcon-garcon-menu-node.html#GarconMenuNodeType"/>
+    <keyword type="enum" name="enum GarconMenuLayoutMergeType" link="garcon-garcon-menu-node.html#GarconMenuLayoutMergeType"/>
+    <keyword type="enum" name="enum GarconMenuMergeFileType" link="garcon-garcon-menu-node.html#GarconMenuMergeFileType"/>
+    <keyword type="union" name="GarconMenuNodeData" link="garcon-garcon-menu-node.html#GarconMenuNodeData"/>
+    <keyword type="property" name="The “node-type” property" link="garcon-garcon-menu-node.html#GarconMenuNode--node-type"/>
+    <keyword type="function" name="garcon_menu_parser_new ()" link="GarconMenuParser.html#garcon-menu-parser-new"/>
+    <keyword type="function" name="garcon_menu_parser_run ()" link="GarconMenuParser.html#garcon-menu-parser-run"/>
+    <keyword type="property" name="The “file” property" link="GarconMenuParser.html#GarconMenuParser--file"/>
+    <keyword type="function" name="garcon_menu_tree_provider_get_tree ()" link="GarconMenuTreeProvider.html#garcon-menu-tree-provider-get-tree"/>
+    <keyword type="function" name="garcon_menu_tree_provider_get_file ()" link="GarconMenuTreeProvider.html#garcon-menu-tree-provider-get-file"/>
+    <keyword type="function" name="garcon_gtk_menu_new ()" link="GarconGtkMenu.html#garcon-gtk-menu-new"/>
+    <keyword type="function" name="garcon_gtk_menu_set_menu ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-menu"/>
+    <keyword type="function" name="garcon_gtk_menu_get_menu ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-menu"/>
+    <keyword type="function" name="garcon_gtk_menu_set_show_generic_names ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-show-generic-names"/>
+    <keyword type="function" name="garcon_gtk_menu_get_show_generic_names ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-show-generic-names"/>
+    <keyword type="function" name="garcon_gtk_menu_set_show_menu_icons ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-show-menu-icons"/>
+    <keyword type="function" name="garcon_gtk_menu_get_show_menu_icons ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-show-menu-icons"/>
+    <keyword type="function" name="garcon_gtk_menu_set_show_tooltips ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-show-tooltips"/>
+    <keyword type="function" name="garcon_gtk_menu_get_show_tooltips ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-show-tooltips"/>
+    <keyword type="function" name="garcon_gtk_menu_set_show_desktop_actions ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-show-desktop-actions"/>
+    <keyword type="function" name="garcon_gtk_menu_get_show_desktop_actions ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-show-desktop-actions"/>
+    <keyword type="function" name="garcon_gtk_menu_get_desktop_actions_menu ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-desktop-actions-menu"/>
+    <keyword type="function" name="garcon_gtk_menu_set_right_click_edits ()" link="GarconGtkMenu.html#garcon-gtk-menu-set-right-click-edits"/>
+    <keyword type="function" name="garcon_gtk_menu_get_right_click_edits ()" link="GarconGtkMenu.html#garcon-gtk-menu-get-right-click-edits"/>
+    <keyword type="property" name="The “menu” property" link="GarconGtkMenu.html#GarconGtkMenu--menu"/>
+    <keyword type="property" name="The “right-click-edits” property" link="GarconGtkMenu.html#GarconGtkMenu--right-click-edits"/>
+    <keyword type="property" name="The “show-desktop-actions” property" link="GarconGtkMenu.html#GarconGtkMenu--show-desktop-actions"/>
+    <keyword type="property" name="The “show-generic-names” property" link="GarconGtkMenu.html#GarconGtkMenu--show-generic-names"/>
+    <keyword type="property" name="The “show-menu-icons” property" link="GarconGtkMenu.html#GarconGtkMenu--show-menu-icons"/>
+    <keyword type="property" name="The “show-tooltips” property" link="GarconGtkMenu.html#GarconGtkMenu--show-tooltips"/>
+    <keyword type="function" name="garcon_set_environment ()" link="garcon-Desktop-Environment-Configuration.html#garcon-set-environment"/>
+    <keyword type="function" name="garcon_get_environment ()" link="garcon-Desktop-Environment-Configuration.html#garcon-get-environment"/>
+    <keyword type="function" name="garcon_set_environment_xdg ()" link="garcon-Desktop-Environment-Configuration.html#garcon-set-environment-xdg" since="0.3.0"/>
+    <keyword type="macro" name="GARCON_ENVIRONMENT_XFCE" link="garcon-Desktop-Environment-Configuration.html#GARCON-ENVIRONMENT-XFCE:CAPS" since="0.3.0"/>
+    <keyword type="macro" name="GARCON_CHECK_VERSION()" link="garcon-Version-Information.html#GARCON-CHECK-VERSION:CAPS"/>
+    <keyword type="function" name="garcon_check_version ()" link="garcon-Version-Information.html#garcon-check-version"/>
+    <keyword type="function" name="garcon_config_lookup ()" link="garcon-Version-Information.html#garcon-config-lookup"/>
+    <keyword type="function" name="garcon_config_build_paths ()" link="garcon-Version-Information.html#garcon-config-build-paths"/>
+    <keyword type="macro" name="GARCON_MAJOR_VERSION" link="garcon-Version-Information.html#GARCON-MAJOR-VERSION:CAPS"/>
+    <keyword type="macro" name="GARCON_MINOR_VERSION" link="garcon-Version-Information.html#GARCON-MINOR-VERSION:CAPS"/>
+    <keyword type="macro" name="GARCON_MICRO_VERSION" link="garcon-Version-Information.html#GARCON-MICRO-VERSION:CAPS"/>
+    <keyword type="variable" name="garcon_major_version" link="garcon-Version-Information.html#garcon-major-version"/>
+    <keyword type="variable" name="garcon_minor_version" link="garcon-Version-Information.html#garcon-minor-version"/>
+    <keyword type="variable" name="garcon_micro_version" link="garcon-Version-Information.html#garcon-micro-version"/>
+    <keyword type="function" name="garcon_marshal_VOID__OBJECT_OBJECT ()" link="garcon-garcon-marshal.html#garcon-marshal-VOID--OBJECT-OBJECT"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_INVALID" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-INVALID:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MENU" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MENU:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_NAME" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-NAME:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DIRECTORY" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DIRECTORY:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DIRECTORY_DIR" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DIRECTORY-DIR:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DEFAULT_DIRECTORY_DIRS" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DEFAULT-DIRECTORY-DIRS:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_APP_DIR" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-APP-DIR:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DEFAULT_APP_DIRS" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DEFAULT-APP-DIRS:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_ONLY_UNALLOCATED" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-ONLY-UNALLOCATED:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_NOT_ONLY_UNALLOCATED" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-NOT-ONLY-UNALLOCATED:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DELETED" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DELETED:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_NOT_DELETED" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-NOT-DELETED:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_INCLUDE" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-INCLUDE:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_EXCLUDE" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-EXCLUDE:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_ALL" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-ALL:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_FILENAME" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-FILENAME:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_CATEGORY" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-CATEGORY:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_OR" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-OR:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_AND" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-AND:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_NOT" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-NOT:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MOVE" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MOVE:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_OLD" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-OLD:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_NEW" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-NEW:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DEFAULT_LAYOUT" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DEFAULT-LAYOUT:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_LAYOUT" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-LAYOUT:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MENUNAME" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MENUNAME:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_SEPARATOR" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-SEPARATOR:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MERGE" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MERGE:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MERGE_FILE" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MERGE-FILE:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_MERGE_DIR" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-MERGE-DIR:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_NODE_TYPE_DEFAULT_MERGE_DIRS" link="garcon-garcon-menu-node.html#GARCON-MENU-NODE-TYPE-DEFAULT-MERGE-DIRS:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_LAYOUT_MERGE_MENUS" link="garcon-garcon-menu-node.html#GARCON-MENU-LAYOUT-MERGE-MENUS:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_LAYOUT_MERGE_FILES" link="garcon-garcon-menu-node.html#GARCON-MENU-LAYOUT-MERGE-FILES:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_LAYOUT_MERGE_ALL" link="garcon-garcon-menu-node.html#GARCON-MENU-LAYOUT-MERGE-ALL:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_MERGE_FILE_PATH" link="garcon-garcon-menu-node.html#GARCON-MENU-MERGE-FILE-PATH:CAPS"/>
+    <keyword type="constant" name="GARCON_MENU_MERGE_FILE_PARENT" link="garcon-garcon-menu-node.html#GARCON-MENU-MERGE-FILE-PARENT:CAPS"/>
+  </functions>
+</book>

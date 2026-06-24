@@ -1,0 +1,890 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>garcon-menu-node: garcon Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="garcon Reference Manual">
+<link rel="up" href="garcon-parsing.html" title="Part III. Parsing and Modifying the Menu Tree">
+<link rel="prev" href="GarconMenuMerger.html" title="GarconMenuMerger">
+<link rel="next" href="GarconMenuParser.html" title="GarconMenuParser">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#garcon-garcon-menu-node.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#garcon-garcon-menu-node.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#garcon-garcon-menu-node.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="garcon-parsing.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="GarconMenuMerger.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="GarconMenuParser.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="garcon-garcon-menu-node"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="garcon-garcon-menu-node.top_of_page"></a>garcon-menu-node</span></h2>
+<p>garcon-menu-node</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-new" title="garcon_menu_node_new ()">garcon_menu_node_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="returnvalue">GarconMenuNodeType</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-get-node-type" title="garcon_menu_node_get_node_type ()">garcon_menu_node_get_node_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-create" title="garcon_menu_node_create ()">garcon_menu_node_create</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-copy" title="garcon_menu_node_copy ()">garcon_menu_node_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-get-string" title="garcon_menu_node_get_string ()">garcon_menu_node_get_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-set-string" title="garcon_menu_node_set_string ()">garcon_menu_node_set_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType"><span class="returnvalue">GarconMenuMergeFileType</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-get-merge-file-type" title="garcon_menu_node_get_merge_file_type ()">garcon_menu_node_get_merge_file_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-set-merge-file-type" title="garcon_menu_node_set_merge_file_type ()">garcon_menu_node_set_merge_file_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-get-merge-file-filename" title="garcon_menu_node_get_merge_file_filename ()">garcon_menu_node_get_merge_file_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-set-merge-file-filename" title="garcon_menu_node_set_merge_file_filename ()">garcon_menu_node_set_merge_file_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GNode</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-child-node" title="garcon_menu_node_tree_get_child_node ()">garcon_menu_node_tree_get_child_node</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-child-nodes" title="garcon_menu_node_tree_get_child_nodes ()">garcon_menu_node_tree_get_child_nodes</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string-children" title="garcon_menu_node_tree_get_string_children ()">garcon_menu_node_tree_get_string_children</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-boolean-child" title="garcon_menu_node_tree_get_boolean_child ()">garcon_menu_node_tree_get_boolean_child</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string-child" title="garcon_menu_node_tree_get_string_child ()">garcon_menu_node_tree_get_string_child</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-rule-matches" title="garcon_menu_node_tree_rule_matches ()">garcon_menu_node_tree_rule_matches</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="returnvalue">GarconMenuNodeType</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-node-type" title="garcon_menu_node_tree_get_node_type ()">garcon_menu_node_tree_get_node_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-string" title="garcon_menu_node_tree_get_string ()">garcon_menu_node_tree_get_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-set-string" title="garcon_menu_node_tree_set_string ()">garcon_menu_node_tree_set_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuLayoutMergeType" title="enum GarconMenuLayoutMergeType"><span class="returnvalue">GarconMenuLayoutMergeType</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-layout-merge-type" title="garcon_menu_node_tree_get_layout_merge_type ()">garcon_menu_node_tree_get_layout_merge_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType"><span class="returnvalue">GarconMenuMergeFileType</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-merge-file-type" title="garcon_menu_node_tree_get_merge_file_type ()">garcon_menu_node_tree_get_merge_file_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-get-merge-file-filename" title="garcon_menu_node_tree_get_merge_file_filename ()">garcon_menu_node_tree_get_merge_file_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-set-merge-file-filename" title="garcon_menu_node_tree_set_merge_file_filename ()">garcon_menu_node_tree_set_merge_file_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-compare" title="garcon_menu_node_tree_compare ()">garcon_menu_node_tree_compare</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GNode</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-copy" title="garcon_menu_node_tree_copy ()">garcon_menu_node_tree_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-free" title="garcon_menu_node_tree_free ()">garcon_menu_node_tree_free</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-garcon-menu-node.html#garcon-menu-node-tree-free-data" title="garcon_menu_node_tree_free_data ()">garcon_menu_node_tree_free_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a></td>
+<td class="property_name"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode--node-type" title="The “node-type” property">node-type</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<a name="GarconMenuNode"></a><div class="refsect1">
+<a name="garcon-garcon-menu-node.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType">GarconMenuNodeType</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuLayoutMergeType" title="enum GarconMenuLayoutMergeType">GarconMenuLayoutMergeType</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType">GarconMenuMergeFileType</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeData" title="GarconMenuNodeData">GarconMenuNodeData</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+    <span class="lineart">╰──</span> GarconMenuNodeType
+    GObject
+    <span class="lineart">╰──</span> GarconMenuNode
+</pre>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="garcon-menu-node-new"></a><h3>garcon_menu_node_new ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+garcon_menu_node_new (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> node_type</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-get-node-type"></a><h3>garcon_menu_node_get_node_type ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="returnvalue">GarconMenuNodeType</span></a>
+garcon_menu_node_get_node_type (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-create"></a><h3>garcon_menu_node_create ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+garcon_menu_node_create (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> node_type</code></em>,
+                         <em class="parameter"><code><span class="type">gpointer</span> first_value</code></em>,
+                         <em class="parameter"><code>...</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-node-create.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>node_type</p></td>
+<td class="parameter_description"><p>a <a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-node-create.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-copy"></a><h3>garcon_menu_node_copy ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="returnvalue">GarconMenuNode</span></a> *
+garcon_menu_node_copy (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>,
+                       <em class="parameter"><code><span class="type">gpointer</span> data</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-node-copy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>node</p></td>
+<td class="parameter_description"><p>a <a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-node-copy.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-get-string"></a><h3>garcon_menu_node_get_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_node_get_string (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-set-string"></a><h3>garcon_menu_node_set_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_set_string (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *value</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-get-merge-file-type"></a><h3>garcon_menu_node_get_merge_file_type ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType"><span class="returnvalue">GarconMenuMergeFileType</span></a>
+garcon_menu_node_get_merge_file_type (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-set-merge-file-type"></a><h3>garcon_menu_node_set_merge_file_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_set_merge_file_type (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>,
+                                      <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType"><span class="type">GarconMenuMergeFileType</span></a> type</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-get-merge-file-filename"></a><h3>garcon_menu_node_get_merge_file_filename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_node_get_merge_file_filename
+                               (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-set-merge-file-filename"></a><h3>garcon_menu_node_set_merge_file_filename ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_set_merge_file_filename
+                               (<em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNode"><span class="type">GarconMenuNode</span></a> *node</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *filename</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-child-node"></a><h3>garcon_menu_node_tree_get_child_node ()</h3>
+<pre class="programlisting"><span class="returnvalue">GNode</span> *
+garcon_menu_node_tree_get_child_node (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                      <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> type</code></em>,
+                                      <em class="parameter"><code><span class="type">gboolean</span> reverse</code></em>);</pre>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-child-node.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tree</p></td>
+<td class="parameter_description"><p><span class="type">GNode</span> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type</p></td>
+<td class="parameter_description"><p>type for the menu nodes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-child-node.returns"></a><h4>Returns</h4>
+<p> a <span class="type">GNode</span> if <em class="parameter"><code>type</code></em>
+is valid menu nodes type.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-child-nodes"></a><h3>garcon_menu_node_tree_get_child_nodes ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_node_tree_get_child_nodes (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                       <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> type</code></em>,
+                                       <em class="parameter"><code><span class="type">gboolean</span> reverse</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-child-nodes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tree</p></td>
+<td class="parameter_description"><p>a GNode</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type</p></td>
+<td class="parameter_description"><p>type for the menu nodes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-child-nodes.returns"></a><h4>Returns</h4>
+<p>list of <span class="type">GNode</span>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GNode][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-string-children"></a><h3>garcon_menu_node_tree_get_string_children ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_node_tree_get_string_children
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> type</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> reverse</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-string-children.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tree</p></td>
+<td class="parameter_description"><p>a <span class="type">GNode</span> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type</p></td>
+<td class="parameter_description"><p>type for the menu nodes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-get-string-children.returns"></a><h4>Returns</h4>
+<p>list of <span class="type">GNode</span>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GNode][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-boolean-child"></a><h3>garcon_menu_node_tree_get_boolean_child ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_node_tree_get_boolean_child
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> type</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-string-child"></a><h3>garcon_menu_node_tree_get_string_child ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_node_tree_get_string_child
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                <em class="parameter"><code><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a> type</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-rule-matches"></a><h3>garcon_menu_node_tree_rule_matches ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_node_tree_rule_matches (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                    <em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-node-type"></a><h3>garcon_menu_node_tree_get_node_type ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="returnvalue">GarconMenuNodeType</span></a>
+garcon_menu_node_tree_get_node_type (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-string"></a><h3>garcon_menu_node_tree_get_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_node_tree_get_string (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-set-string"></a><h3>garcon_menu_node_tree_set_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_tree_set_string (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gchar</span> *value</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-layout-merge-type"></a><h3>garcon_menu_node_tree_get_layout_merge_type ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuLayoutMergeType" title="enum GarconMenuLayoutMergeType"><span class="returnvalue">GarconMenuLayoutMergeType</span></a>
+garcon_menu_node_tree_get_layout_merge_type
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-merge-file-type"></a><h3>garcon_menu_node_tree_get_merge_file_type ()</h3>
+<pre class="programlisting"><a class="link" href="garcon-garcon-menu-node.html#GarconMenuMergeFileType" title="enum GarconMenuMergeFileType"><span class="returnvalue">GarconMenuMergeFileType</span></a>
+garcon_menu_node_tree_get_merge_file_type
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-get-merge-file-filename"></a><h3>garcon_menu_node_tree_get_merge_file_filename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_node_tree_get_merge_file_filename
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-set-merge-file-filename"></a><h3>garcon_menu_node_tree_set_merge_file_filename ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_tree_set_merge_file_filename
+                               (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *filename</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-compare"></a><h3>garcon_menu_node_tree_compare ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+garcon_menu_node_tree_compare (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>,
+                               <em class="parameter"><code><span class="type">GNode</span> *other_tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-copy"></a><h3>garcon_menu_node_tree_copy ()</h3>
+<pre class="programlisting"><span class="returnvalue">GNode</span> *
+garcon_menu_node_tree_copy (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+<p>Recursively copies a <span class="type">GNode</span>.</p>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-node-tree-copy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>tree</p></td>
+<td class="parameter_description"><p>a <span class="type">GNode</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-free"></a><h3>garcon_menu_node_tree_free ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_tree_free (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-node-tree-free-data"></a><h3>garcon_menu_node_tree_free_data ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_node_tree_free_data (<em class="parameter"><code><span class="type">GNode</span> *tree</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="GarconMenuNodeType"></a><h3>enum GarconMenuNodeType</h3>
+<div class="refsect3">
+<a name="GarconMenuNodeType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-INVALID:CAPS"></a>GARCON_MENU_NODE_TYPE_INVALID</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MENU:CAPS"></a>GARCON_MENU_NODE_TYPE_MENU</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-NAME:CAPS"></a>GARCON_MENU_NODE_TYPE_NAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DIRECTORY:CAPS"></a>GARCON_MENU_NODE_TYPE_DIRECTORY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DIRECTORY-DIR:CAPS"></a>GARCON_MENU_NODE_TYPE_DIRECTORY_DIR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DEFAULT-DIRECTORY-DIRS:CAPS"></a>GARCON_MENU_NODE_TYPE_DEFAULT_DIRECTORY_DIRS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-APP-DIR:CAPS"></a>GARCON_MENU_NODE_TYPE_APP_DIR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DEFAULT-APP-DIRS:CAPS"></a>GARCON_MENU_NODE_TYPE_DEFAULT_APP_DIRS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-ONLY-UNALLOCATED:CAPS"></a>GARCON_MENU_NODE_TYPE_ONLY_UNALLOCATED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-NOT-ONLY-UNALLOCATED:CAPS"></a>GARCON_MENU_NODE_TYPE_NOT_ONLY_UNALLOCATED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DELETED:CAPS"></a>GARCON_MENU_NODE_TYPE_DELETED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-NOT-DELETED:CAPS"></a>GARCON_MENU_NODE_TYPE_NOT_DELETED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-INCLUDE:CAPS"></a>GARCON_MENU_NODE_TYPE_INCLUDE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-EXCLUDE:CAPS"></a>GARCON_MENU_NODE_TYPE_EXCLUDE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-ALL:CAPS"></a>GARCON_MENU_NODE_TYPE_ALL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-FILENAME:CAPS"></a>GARCON_MENU_NODE_TYPE_FILENAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-CATEGORY:CAPS"></a>GARCON_MENU_NODE_TYPE_CATEGORY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-OR:CAPS"></a>GARCON_MENU_NODE_TYPE_OR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-AND:CAPS"></a>GARCON_MENU_NODE_TYPE_AND</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-NOT:CAPS"></a>GARCON_MENU_NODE_TYPE_NOT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MOVE:CAPS"></a>GARCON_MENU_NODE_TYPE_MOVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-OLD:CAPS"></a>GARCON_MENU_NODE_TYPE_OLD</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-NEW:CAPS"></a>GARCON_MENU_NODE_TYPE_NEW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DEFAULT-LAYOUT:CAPS"></a>GARCON_MENU_NODE_TYPE_DEFAULT_LAYOUT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-LAYOUT:CAPS"></a>GARCON_MENU_NODE_TYPE_LAYOUT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MENUNAME:CAPS"></a>GARCON_MENU_NODE_TYPE_MENUNAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-SEPARATOR:CAPS"></a>GARCON_MENU_NODE_TYPE_SEPARATOR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MERGE:CAPS"></a>GARCON_MENU_NODE_TYPE_MERGE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MERGE-FILE:CAPS"></a>GARCON_MENU_NODE_TYPE_MERGE_FILE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-MERGE-DIR:CAPS"></a>GARCON_MENU_NODE_TYPE_MERGE_DIR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-NODE-TYPE-DEFAULT-MERGE-DIRS:CAPS"></a>GARCON_MENU_NODE_TYPE_DEFAULT_MERGE_DIRS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuLayoutMergeType"></a><h3>enum GarconMenuLayoutMergeType</h3>
+<div class="refsect3">
+<a name="GarconMenuLayoutMergeType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-LAYOUT-MERGE-MENUS:CAPS"></a>GARCON_MENU_LAYOUT_MERGE_MENUS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-LAYOUT-MERGE-FILES:CAPS"></a>GARCON_MENU_LAYOUT_MERGE_FILES</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-LAYOUT-MERGE-ALL:CAPS"></a>GARCON_MENU_LAYOUT_MERGE_ALL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuMergeFileType"></a><h3>enum GarconMenuMergeFileType</h3>
+<div class="refsect3">
+<a name="GarconMenuMergeFileType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-MERGE-FILE-PATH:CAPS"></a>GARCON_MENU_MERGE_FILE_PATH</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="GARCON-MENU-MERGE-FILE-PARENT:CAPS"></a>GARCON_MENU_MERGE_FILE_PARENT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuNodeData"></a><h3>GarconMenuNodeData</h3>
+</div>
+</div>
+<div class="refsect1">
+<a name="garcon-garcon-menu-node.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="GarconMenuNode--node-type"></a><h3>The <code class="literal">“node-type”</code> property</h3>
+<pre class="programlisting">  “node-type”                <a class="link" href="garcon-garcon-menu-node.html#GarconMenuNodeType" title="enum GarconMenuNodeType"><span class="type">GarconMenuNodeType</span></a></pre>
+<p>node-type.</p>
+<p>Owner: GarconMenuNode</p>
+<p>Flags: Read / Write</p>
+<p>Default value: GARCON_MENU_NODE_TYPE_MENU</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

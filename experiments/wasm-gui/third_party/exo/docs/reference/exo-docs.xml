@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>&package_name; Reference Manual</title>
+    <releaseinfo>
+      For &package_string;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://developer.xfce.org/&package_name;/index.html">https://developer.xfce.org/&package_name;/</ulink>.
+    </releaseinfo>
+    <copyright>
+      <year>2004-2007</year>
+      <holder>os-cillation e.K.</holder>
+    </copyright>
+
+    <copyright>
+      <year>2009-2021</year>
+      <holder>Xfce Development Team</holder>
+    </copyright>
+  </bookinfo>
+
+  <part id="exo-overview">
+    <title>Overview</title>
+    <para>
+      exo is an extension library for <ulink url="https://xfce.org/" type="http">Xfce</ulink>,
+      originally developed by <ulink url="https://www.os-cillation.com/" type="http">os-cillation</ulink>.
+      While Xfce comes with quite a few libraries that are targeted at desktop development,
+      libexo is targeted at application developement - in particular, developing applications for
+      the Xfce Desktop Environment.
+    </para>
+
+    <para>
+      The <application>exo</application> library depends on the following libraries:
+
+      <variablelist>
+        <varlistentry>
+          <term>GLib</term>
+          <listitem>
+            <para>
+              A general-purpose utility library, not specific to graphical user interfaces.
+              GLib provides many useful data types, macros, type conversions,
+              string utilities, file utilities, a main loop abstraction, and so on.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Pango</term>
+          <listitem>
+            <para>
+              Pango is a library for internationalized text handling. It centers
+              around the <link linkend="PangoLayout">PangoLayout</link> object, representing
+              a paragraph of text.  Pango provides the engine for <link
+              linkend="GtkTextView">GtkTextView</link>, <link linkend="GtkLabel">GtkLabel</link>,
+              <link linkend="GtkEntry">GtkEntry</link>, and other widgets that display text.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>ATK</term>
+          <listitem>
+            <para>
+              ATK is the Accessibility Toolkit. It provides a set of generic
+              interfaces allowing accessibility technologies to interact with a
+              graphical user interface. For example, a screen reader uses ATK to
+              discover the text in an interface and read it to blind users.  GTK+
+              widgets have built-in support for accessibility using the ATK
+              framework.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GdkPixbuf</term>
+          <listitem>
+            <para>
+              This is a small library which allows you to create <link linkend="GdkPixbuf">GdkPixbuf</link>
+              ("pixel buffer") objects from image data or image files. Use a <link linkend="GdkPixbuf">GdkPixbuf</link>
+              in combination with <link linkend="GtkImage">GtkImage</link> to display images.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GDK</term>
+          <listitem>
+            <para>
+              GDK is the abstraction layer that allows GTK+ to support multiple
+              windowing systems. GDK provides drawing and window system facilities
+              on X11, Windows, and the Linux framebuffer device.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>GTK+</term>
+          <listitem>
+            <para>
+              The GTK+ library contains <firstterm>widgets</firstterm>, that is, GUI
+              components such as <link linkend="GtkButton">GtkButton</link> or
+              <link linkend="GtkTextView">GtkTextView</link>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>libxfce4util</term>
+          <listitem>
+            <para>
+              The Xfce utility library provides various helper functions and classes for
+              C programmers, that aren't directly related to GUI tasks.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+  </part>
+
+  <part id="exo-widgets">
+    <title>Additional widgets</title>
+
+    <para>
+      This section describes the additional widgets provided by the <application>exo</application> library. The <link
+      linkend="ExoIconView">ExoIconView</link> and <link linkend="ExoTreeView">ExoTreeView</link>
+      are views that display data from a <link linkend="GtkTreeModel">GtkTreeModel</link>, and can be seen as extensions to the basic widgets
+      in Gtk+. For example, both <link linkend="ExoIconView">ExoIconView</link> and <link linkend="ExoTreeView">ExoTreeView</link> offer support
+      for single-click mode, which is not provided by their Gtk+ counterparts.
+    </para>
+
+    <para>
+      The <link linkend="ExoIconChooserDialog">ExoIconChooserDialog</link> is a special widget, that presents a dialog to let the user select
+      an icon from the current icon theme or from an image file in the file system. You should use this dialog whenever you want the user to
+      select an icon, instead of just displaying a <link linkend="GtkFileChooserDialog">GtkFileChooserDialog</link>.
+    </para>
+
+    <xi:include href="xml/exo-icon-chooser-dialog.xml"/>
+    <xi:include href="xml/exo-icon-view.xml"/>
+    <xi:include href="xml/exo-tree-view.xml"/>
+  </part>
+
+  <part id="exo-cell-renderers">
+    <title>Additional cell renderers</title>
+
+    <para>
+      Gtk+ contains various cell renderers that are intended to be used with <link linkend="GtkTreeView">GtkTreeView</link>
+      and <link linkend="GtkComboBox">GtkComboBox</link>, but are difficult to use with <link linkend="ExoIconView">ExoIconView</link>
+      (or even <link linkend="GtkIconView">GtkIconView</link>), mainly because the renderers do not follow the state of the view and
+      render appropriate indicators.
+    </para>
+
+    <para>
+      Because of these issues, the <link linkend="ExoCellRendererIcon">ExoCellRendererIcon</link> class is provided, which
+      includes a <literal>follow-state</literal> property that tells whether the renderer should follow the state of the view and
+      draw appropriate indicators.
+    </para>
+
+    <para>
+      The <link linkend="ExoCellRendererIcon">ExoCellRendererIcon</link> class should also be preferred over the the <link
+      linkend="GtkCellRendererPixbuf">GtkCellRendererPixbuf</link> class when using named icons or image files because it uses a fixed
+      size for layouting and loads the icons only on-demand (utilizing the thumbnail database whenever possible).
+    </para>
+
+    <xi:include href="xml/exo-cell-renderer-icon.xml"/>
+  </part>
+
+  <part id="exo-jobs">
+    <title>Framework for threaded/asynchronous jobs</title>
+
+    <para>
+      <link linkend="ExoJob">ExoJob</link> provides a simple way to deal with threaded/asynchronous operations (called jobs here).
+      It can be used to wrap any kind of blocking function calls like file operations or web service communication. It can be
+      subclassed to add additional signals for progress information or password requests.
+      <link linkend="ExoSimpleJob">ExoSimpleJob</link> is useful in situations where you don't need additional signals. It takes
+      a <link linkend="ExoSimpleJobFunc">ExoSimpleJobFunc</link> callback and creates a job so one doesn't have to subclass
+      <link linkend="ExoJob">ExoJob</link> just to execute a single function asynchronously.
+    </para>
+
+    <xi:include href="xml/exo-job.xml"/>
+    <xi:include href="xml/exo-simple-job.xml"/>
+  </part>
+
+  <part id="exo-extensions">
+    <title>Extensions to existing frameworks</title>
+
+    <para>
+      This section describes extensions to existing frameworks provided by the <application>exo</application>, that range from additional
+      methods for certain classes to specialized functions dealing with <link linkend="GdkPixbuf">GdkPixbuf</link>s.
+    </para>
+
+    <xi:include href="xml/exo-gdk-pixbuf-extensions.xml"/>
+    <xi:include href="xml/exo-gobject-extensions.xml"/>
+    <xi:include href="xml/exo-gtk-extensions.xml"/>
+  </part>
+
+  <part id="exo-miscelleanous">
+    <title>Miscelleanous</title>
+    <xi:include href="xml/exo-config.xml"/>
+    <xi:include href="xml/exo-binding.xml"/>
+    <xi:include href="xml/exo-execute.xml"/>
+    <xi:include href="xml/exo-string.xml"/>
+    <xi:include href="xml/exo-utils.xml"/>
+  </part>
+
+  <chapter>
+    <title>API Index</title>
+
+    <index id="api-index-full">
+      <title>All symbols</title>
+    </index>
+
+    <index id="api-index-0.3.1">
+      <title>Added in 0.3.1</title>
+    </index>
+
+    <index id="api-index-0.3.1.1">
+      <title>Added in 0.3.1.1</title>
+    </index>
+
+    <index id="api-index-0.3.1.3">
+      <title>Added in 0.3.1.3</title>
+    </index>
+
+    <index id="api-index-0.3.1.5">
+      <title>Added in 0.3.1.5</title>
+    </index>
+
+    <index id="api-index-0.3.1.9">
+      <title>Added in 0.3.1.9</title>
+    </index>
+
+    <index id="api-index-0.3.3">
+      <title>Added in 0.3.3</title>
+    </index>
+
+    <index id="api-index-0.4.0">
+      <title>Added in 0.4.0</title>
+    </index>
+
+    <index id="api-index-0.5.0">
+      <title>Added in 0.5.0</title>
+    </index>
+
+    <index id="api-index-0.7.1">
+      <title>Added in 0.7.1</title>
+    </index>
+
+    <index id="api-index-0.10.2">
+      <title>Added in 0.10.2</title>
+    </index>
+
+    <index id="api-index-0.11.4">
+      <title>Added in 0.11.4</title>
+    </index>
+
+    <index id="api-index-0.11.5">
+      <title>Added in 0.11.5</title>
+    </index>
+
+    <index id="api-index-deprecated">
+      <title>Deprecated symbols</title>
+      <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+    </index>
+  </chapter>
+
+  <index>
+    <title>Index</title>
+  </index>
+
+
+</book>
+
+<!--
+  vi:set ts=2 sw=2 et ai:
+-->

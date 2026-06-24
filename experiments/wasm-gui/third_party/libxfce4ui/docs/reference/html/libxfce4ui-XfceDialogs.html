@@ -1,0 +1,855 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>XfceDialogs: libxfce4ui Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="libxfce4ui Reference Manual">
+<link rel="up" href="libxfce4ui-widgets.html" title="Part IV. Xfce UI Widget">
+<link rel="prev" href="libxfce4ui-widgets.html" title="Part IV. Xfce UI Widget">
+<link rel="next" href="XfceFilenameInput.html" title="XfceFilenameInput">
+<meta name="generator" content="GTK-Doc V1.34.0 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libxfce4ui-XfceDialogs.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="libxfce4ui-widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libxfce4ui-widgets.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="XfceFilenameInput.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libxfce4ui-XfceDialogs"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libxfce4ui-XfceDialogs.top_of_page"></a>XfceDialogs</span></h2>
+<p>XfceDialogs — A collection of helper dialogs</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new" title="xfce_message_dialog_new ()">xfce_message_dialog_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new-valist" title="xfce_message_dialog_new_valist ()">xfce_message_dialog_new_valist</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog" title="xfce_message_dialog ()">xfce_message_dialog</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help" title="xfce_dialog_show_help ()">xfce_dialog_show_help</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help-with-version" title="xfce_dialog_show_help_with_version ()">xfce_dialog_show_help_with_version</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-info" title="xfce_dialog_show_info ()">xfce_dialog_show_info</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-warning" title="xfce_dialog_show_warning ()">xfce_dialog_show_warning</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-error" title="xfce_dialog_show_error ()">xfce_dialog_show_error</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-confirm" title="xfce_dialog_confirm ()">xfce_dialog_confirm</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-confirm-close-tabs" title="xfce_dialog_confirm_close_tabs ()">xfce_dialog_confirm_close_tabs</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libxfce4ui-XfceDialogs.html#XFCE-BUTTON-TYPE-MIXED:CAPS" title="XFCE_BUTTON_TYPE_MIXED">XFCE_BUTTON_TYPE_MIXED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libxfce4ui-XfceDialogs.html#XFCE-BUTTON-TYPE-PIXBUF:CAPS" title="XFCE_BUTTON_TYPE_PIXBUF">XFCE_BUTTON_TYPE_PIXBUF</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libxfce4ui/libxfce4ui.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.description"></a><h2>Description</h2>
+<p>Xfce-dialogs are a collection of helper dialogs to display
+the help dialog with link to the docs website, warning, info, and
+error dialogs and more.</p>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="xfce-message-dialog-new"></a><h3>xfce_message_dialog_new ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_message_dialog_new (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *title</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *stock_id</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *primary_text</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *first_button_text</code></em>,
+                         <em class="parameter"><code>...</code></em>);</pre>
+<p>xfce_message_dialog_new() allows you to easily create Gtk+ message dialogs.
+It accepts GTK+ stock buttons (deprecated), mixed buttons (using XFCE_BUTTON_TYPE_MIXED)
+or buttons with a <span class="type">GdkPixbuf</span> (using XFCE_BUTTON_TYPE_PIXBUF).</p>
+<p>The buttons are defined by <em class="parameter"><code>first_button_text</code></em>
+ and the next arguments in the
+following format <em class="parameter"><code>type</code></em>
+, <em class="parameter"><code>param1</code></em>
+[, <em class="parameter"><code>param2</code></em>
+, <em class="parameter"><code>param3</code></em>
+].</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="varname">XFCE_BUTTON_TYPE_MIXED</code></span></p></td>
+<td><p>
+        This allows you to easily create mixed buttons in a dialog.
+        <em class="parameter"><code>param1</code></em> is used for the icon name, <em class="parameter"><code>param2</code></em> for the label and
+        <em class="parameter"><code>param3</code></em> for the response_id. See also <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-button-new-mixed" title="xfce_gtk_button_new_mixed ()"><code class="function">xfce_gtk_button_new_mixed()</code></a>.
+      </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">XFCE_BUTTON_TYPE_PIXBUF</code></span></p></td>
+<td><p>
+        Creates a button with the <span class="type">GdkPixbuf</span> as button icon.
+        <em class="parameter"><code>param1</code></em> is the <span class="type">GdkPixbuf</span>, <em class="parameter"><code>param2</code></em> for the label and
+        <em class="parameter"><code>param3</code></em> for the response_id.
+      </p></td>
+</tr>
+<tr>
+<td><p><span class="term">Stock Buttons</span></p></td>
+<td><p>
+        When the variables above were not matched, the button type
+        will be a stock button. <em class="parameter"><code>type</code></em> will be the stock id, <em class="parameter"><code>param1</code></em>
+        is used for the response_id.
+      </p></td>
+</tr>
+</tbody>
+</table></div>
+<p>To clarify this behaviour see the example below. We create a dialog with
+two stock buttons, a <span class="type">GdkPixbuf</span> button and a mixed button.</p>
+<div class="example">
+<a name="id-1.5.2.8.2.8"></a><p class="title"><b>Example 3. Creating a Xfce Message Dialog</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">GdkPixbuf</span><span class="w"> </span><span class="o">*</span><span class="n">pixbuf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gdk_pixbuf_new_from_file_at_size</span><span class="w"> </span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">);</span>
+
+<span class="n">GtkWidget</span><span class="w"> </span><span class="o">*</span><span class="n">dialog</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xfce_message_dialog</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Question&quot;</span><span class="p">,</span>
+<span class="w">                                         </span><span class="n">GTK_STOCK_DIALOG_QUESTION</span><span class="p">,</span>
+<span class="w">                                         </span><span class="s">&quot;There are unsaved modifications&quot;</span><span class="p">,</span>
+<span class="w">                                         </span><span class="s">&quot;The menu has been modified, do you want to save it before quitting?&quot;</span><span class="p">,</span>
+<span class="w">                                         </span><span class="n">GTK_STOCK_SAVE</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_RESPONSE_YES</span><span class="p">,</span>
+<span class="w">                                         </span><span class="n">XFCE_BUTTON_TYPE_MIXED</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;edit-delete&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="p">(</span><span class="s">&quot;Forget modifications&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">GTK_RESPONSE_APPLY</span><span class="p">,</span>
+<span class="w">                                         </span><span class="n">XFCE_BUTTON_TYPE_PIXBUF</span><span class="p">,</span><span class="w"> </span><span class="n">pixbuf</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Quit&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_RESPONSE_NO</span><span class="p">,</span>
+<span class="w">                                         </span><span class="n">GTK_STOCK_CANCEL</span><span class="p">,</span><span class="w"> </span><span class="n">GTK_RESPONSE_CANCEL</span><span class="p">,</span>
+<span class="w">                                         </span><span class="nb">NULL</span><span class="p">);</span>
+
+<span class="n">g_object_unref</span><span class="w"> </span><span class="p">(</span><span class="n">G_OBJECT</span><span class="w"> </span><span class="p">(</span><span class="n">pixbuf</span><span class="p">));</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break"><p>The caller is responsible for destroying the dialog with <a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#gtk-widget-destroy"><code class="function">gtk_widget_destroy()</code></a>
+when it is no longer required.</p>
+<div class="refsect3">
+<a name="xfce-message-dialog-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>title</p></td>
+<td class="parameter_description"><p>title of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>stock_id</p></td>
+<td class="parameter_description"><p>gtk stock icon name to show in the dialog.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_text</p></td>
+<td class="parameter_description"><p>primary text shown in large bold font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text shown in normal font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>first_button_text</p></td>
+<td class="parameter_description"><p>text for the first button.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code> terminated list of parameters.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-message-dialog-new.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkMessageDialog.html#GtkMessageDialog-struct"><span class="type">GtkMessageDialog</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-message-dialog-new-valist"></a><h3>xfce_message_dialog_new_valist ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gtk3/GtkWidget.html#GtkWidget-struct"><span class="returnvalue">GtkWidget</span></a> *
+xfce_message_dialog_new_valist (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *title</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *icon_stock_id</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *primary_text</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *first_button_text</code></em>,
+                                <em class="parameter"><code><span class="type">va_list</span> args</code></em>);</pre>
+<p>See <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new" title="xfce_message_dialog_new ()"><code class="function">xfce_message_dialog_new()</code></a>, this version takes a va_list for
+language bindings to use.</p>
+<div class="refsect3">
+<a name="xfce-message-dialog-new-valist.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>title</p></td>
+<td class="parameter_description"><p>title of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_stock_id</p></td>
+<td class="parameter_description"><p>gtk stock icon name to show in the dialog.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_text</p></td>
+<td class="parameter_description"><p>primary text shown in large bold font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text shown in normal font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>first_button_text</p></td>
+<td class="parameter_description"><p>text for the first button.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>args</p></td>
+<td class="parameter_description"><p>argument list.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-message-dialog-new-valist.returns"></a><h4>Returns</h4>
+<p>A new <a href="/usr/share/gtk-doc/html/gtk3/GtkMessageDialog.html#GtkMessageDialog-struct"><span class="type">GtkMessageDialog</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-message-dialog"></a><h3>xfce_message_dialog ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+xfce_message_dialog (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *title</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *stock_id</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *primary_text</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *first_button_text</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Create a new dialog as in <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new" title="xfce_message_dialog_new ()"><code class="function">xfce_message_dialog_new()</code></a>, then runs the
+dialog using <a href="/usr/share/gtk-doc/html/gtk3/GtkDialog.html#gtk-dialog-run"><span class="type">gtk_dialog_run</span></a> and return the response id selected by the user.</p>
+<p>See <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-message-dialog-new" title="xfce_message_dialog_new ()"><code class="function">xfce_message_dialog_new()</code></a> for more information.</p>
+<div class="refsect3">
+<a name="xfce-message-dialog.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>title</p></td>
+<td class="parameter_description"><p>title of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>stock_id</p></td>
+<td class="parameter_description"><p>gtk stock icon name to show in the dialog.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_text</p></td>
+<td class="parameter_description"><p>primary text shown in large bold font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text shown in normal font.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>first_button_text</p></td>
+<td class="parameter_description"><p>text for the first button.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code> ended list of parameters.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-message-dialog.returns"></a><h4>Returns</h4>
+<p> the selected response id.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-show-help"></a><h3>xfce_dialog_show_help ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_dialog_show_help (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *component</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *page</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *offset</code></em>);</pre>
+<p>Asks the user to visit the online documentation. If confirmed, it will open
+the webbrowser and redirect the user to the correct location.</p>
+<p>Appart from the <em class="parameter"><code>component</code></em>
+, <em class="parameter"><code>page</code></em>
+ and <em class="parameter"><code>offset</code></em>
+ the following information
+is also send to the server: user language and the <a href="https://developer.xfce.org/libxfce4util/libxfce4util-Version-Information.html#xfce-version-string"><code class="function">xfce_version_string()</code></a>.</p>
+<p>See also: <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help-with-version" title="xfce_dialog_show_help_with_version ()"><code class="function">xfce_dialog_show_help_with_version()</code></a>.</p>
+<div class="refsect3">
+<a name="xfce-dialog-show-help.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>component</p></td>
+<td class="parameter_description"><p>name of the component opening the help page or <code class="literal">NULL</code>. If the
+value is <code class="literal">NULL</code> the target will be the main page of the
+documentation website. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>page</p></td>
+<td class="parameter_description"><p>subpage of the <em class="parameter"><code>component</code></em>
+on the website or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p>anchor offset in <em class="parameter"><code>page</code></em>
+or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-10.html#api-index-4.10">4.10</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-show-help-with-version"></a><h3>xfce_dialog_show_help_with_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_dialog_show_help_with_version (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *component</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *page</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *offset</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *version</code></em>);</pre>
+<p>Asks the user to visit the online documentation. If confirmed, it will open
+the webbrowser and redirect the user to the correct location.</p>
+<p>Apart from the <em class="parameter"><code>component</code></em>
+, <em class="parameter"><code>page</code></em>
+ and <em class="parameter"><code>offset</code></em>
+ the following information
+is also sent to the server: user language and the <a href="https://developer.xfce.org/libxfce4util/libxfce4util-Version-Information.html#xfce-version-string"><code class="function">xfce_version_string()</code></a>
+or <em class="parameter"><code>version</code></em>
+ if set.</p>
+<p>See also: <a class="link" href="libxfce4ui-XfceDialogs.html#xfce-dialog-show-help" title="xfce_dialog_show_help ()"><code class="function">xfce_dialog_show_help()</code></a>.</p>
+<div class="refsect3">
+<a name="xfce-dialog-show-help-with-version.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>component</p></td>
+<td class="parameter_description"><p>name of the component opening the help page or <code class="literal">NULL</code>. If the
+value is <code class="literal">NULL</code> the target will be the main page of the
+documentation website. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>page</p></td>
+<td class="parameter_description"><p>subpage of the <em class="parameter"><code>component</code></em>
+on the website or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p>anchor offset in <em class="parameter"><code>page</code></em>
+or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>version</p></td>
+<td class="parameter_description"><p>alternative version, or <code class="literal">NULL</code> to use <a href="https://developer.xfce.org/libxfce4util/libxfce4util-Version-Information.html#xfce-version-string"><code class="function">xfce_version_string()</code></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-12.html#api-index-4.12">4.12</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-show-info"></a><h3>xfce_dialog_show_info ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_dialog_show_info (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *primary_format</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+<p>Displays an information dialog on <em class="parameter"><code>parent</code></em>
+ using the <em class="parameter"><code>primary_format</code></em>
+ as message.</p>
+<div class="refsect3">
+<a name="xfce-dialog-show-info.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text of the dialog or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_format</p></td>
+<td class="parameter_description"><p>the <code class="function">printf()</code>-style format for the primary problem description.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>argument list for the <em class="parameter"><code>format</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-show-warning"></a><h3>xfce_dialog_show_warning ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_dialog_show_warning (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                          <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                          <em class="parameter"><code>const <span class="type">gchar</span> *primary_format</code></em>,
+                          <em class="parameter"><code>...</code></em>);</pre>
+<p>Displays a warning dialog on <em class="parameter"><code>parent</code></em>
+ using the <em class="parameter"><code>primary_format</code></em>
+ as message.</p>
+<div class="refsect3">
+<a name="xfce-dialog-show-warning.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text of the dialog or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_format</p></td>
+<td class="parameter_description"><p>the <code class="function">printf()</code>-style format for the primary problem description.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>argument list for the <em class="parameter"><code>format</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-show-error"></a><h3>xfce_dialog_show_error ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+xfce_dialog_show_error (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                        <em class="parameter"><code>const <span class="type">GError</span> *error</code></em>,
+                        <em class="parameter"><code>const <span class="type">gchar</span> *primary_format</code></em>,
+                        <em class="parameter"><code>...</code></em>);</pre>
+<p>Displays an error dialog on <em class="parameter"><code>parent</code></em>
+ using the <em class="parameter"><code>primary_format</code></em>
+ as primary message and optionally
+displaying <em class="parameter"><code>error</code></em>
+ as secondary error text.</p>
+<div class="refsect3">
+<a name="xfce-dialog-show-error.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>a <span class="type">GError</span>, which gives a more precise description of the problem or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_format</p></td>
+<td class="parameter_description"><p>the <code class="function">printf()</code>-style format for the primary problem description.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>argument list for the <em class="parameter"><code>primary_format</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-confirm"></a><h3>xfce_dialog_confirm ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+xfce_dialog_confirm (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *stock_id</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *confirm_label</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *secondary_text</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *primary_format</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Runs a questions dialog that has a 'Cancel' and a 'Confirm' button. The 'Confirm'
+button text can be set by <em class="parameter"><code>action</code></em>
+ if given.</p>
+<p>If <em class="parameter"><code>stock_id</code></em>
+ is equal to <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Stock-Items.html#GTK-STOCK-YES:CAPS"><span class="type">GTK_STOCK_YES</span></a>, the 'Cancel' button becomes a 'No' button.</p>
+<div class="refsect3">
+<a name="xfce-dialog-confirm.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>stock_id</p></td>
+<td class="parameter_description"><p>the stock name of the confirm button, for example <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Stock-Items.html#GTK-STOCK-YES:CAPS"><span class="type">GTK_STOCK_YES</span></a> or <a href="/usr/share/gtk-doc/html/gtk3/gtk3-Stock-Items.html#GTK-STOCK-CLEAR:CAPS"><span class="type">GTK_STOCK_CLEAR</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>confirm_label</p></td>
+<td class="parameter_description"><p>if non-<code class="literal">NULL</code>, this text is used on the confirm button together with the <em class="parameter"><code>stock_id</code></em>
+icon. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>secondary_text</p></td>
+<td class="parameter_description"><p>secondary text in the dialog. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>primary_format</p></td>
+<td class="parameter_description"><p>the <code class="function">printf()</code>-style format for the dialog question. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>argument list for the <em class="parameter"><code>primary_format</code></em>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-dialog-confirm.returns"></a><h4>Returns</h4>
+<p> TRUE if the user confirms, else FALSE.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="xfce-dialog-confirm-close-tabs"></a><h3>xfce_dialog_confirm_close_tabs ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+xfce_dialog_confirm_close_tabs (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gtk3/GtkWindow.html#GtkWindow-struct"><span class="type">GtkWindow</span></a> *parent</code></em>,
+                                <em class="parameter"><code><span class="type">gint</span> num_tabs</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> show_confirm_box</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> *confirm_box_checked</code></em>);</pre>
+<p>Runs a dialog to ask the user whether they want to close the whole window,
+close the current tab, or cancel.</p>
+<p>If <em class="parameter"><code>num_tabs</code></em>
+ is non-negative, the message to the user will state that there
+are <em class="parameter"><code>num_tabs</code></em>
+ open tabs. If <em class="parameter"><code>num_tabs</code></em>
+ is negative, then the message to the
+user will state simply that there are "multiple open tabs".</p>
+<p>If <em class="parameter"><code>show_confirm_box</code></em>
+ is <code class="literal">TRUE</code> a checkbox is added to the dialog to allow
+the user to set whether they wish to see this dialog in future. The initial
+state of the checkbox is determined by the value stored at <em class="parameter"><code>confirm_box_checked</code></em>
+
+and the value at <em class="parameter"><code>confirm_box_checked</code></em>
+ after returning records the state of the
+checkbox. If <em class="parameter"><code>show_confirm_box</code></em>
+ is <code class="literal">FALSE</code>, <em class="parameter"><code>confirm_box_checked</code></em>
+ is ignored and
+may be <code class="literal">NULL</code>.</p>
+<div class="refsect3">
+<a name="xfce-dialog-confirm-close-tabs.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>transient parent of the dialog, or <code class="literal">NULL</code>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>num_tabs</p></td>
+<td class="parameter_description"><p>the number of open tabs for display to user</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>show_confirm_box</p></td>
+<td class="parameter_description"><p>whether to ask the user if this confirmation shall be shown in the future</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>confirm_box_checked</p></td>
+<td class="parameter_description"><p>state of confirmation checkbox. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="xfce-dialog-confirm-close-tabs.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/gtk3/GtkDialog.html#GTK-RESPONSE-CANCEL:CAPS"><span class="type">GTK_RESPONSE_CANCEL</span></a> if cancelled, <a href="/usr/share/gtk-doc/html/gtk3/GtkDialog.html#GTK-RESPONSE-YES:CAPS"><span class="type">GTK_RESPONSE_YES</span></a> if the user
+wants to close the window, <a href="/usr/share/gtk-doc/html/gtk3/GtkDialog.html#GTK-RESPONSE-CLOSE:CAPS"><span class="type">GTK_RESPONSE_CLOSE</span></a> if the user wants to close the tab,
+and <a href="/usr/share/gtk-doc/html/gtk3/GtkDialog.html#GTK-RESPONSE-NONE:CAPS"><span class="type">GTK_RESPONSE_NONE</span></a> for an error.</p>
+</div>
+<p class="since">Since: <a class="link" href="api-index-4-16.html#api-index-4.16">4.16</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libxfce4ui-XfceDialogs.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="XFCE-BUTTON-TYPE-MIXED:CAPS"></a><h3>XFCE_BUTTON_TYPE_MIXED</h3>
+<pre class="programlisting">#define XFCE_BUTTON_TYPE_MIXED  "button-mixed"
+</pre>
+<p>This allows you to easily create mixed buttons in a dialog.
+param1 is used for the stock_id, param2 for the label and
+param3 for the response_id. See also <a class="link" href="libxfce4ui-Gtk-Extensions.html#xfce-gtk-button-new-mixed" title="xfce_gtk_button_new_mixed ()"><code class="function">xfce_gtk_button_new_mixed()</code></a>.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="XFCE-BUTTON-TYPE-PIXBUF:CAPS"></a><h3>XFCE_BUTTON_TYPE_PIXBUF</h3>
+<pre class="programlisting">#define XFCE_BUTTON_TYPE_PIXBUF "button-pixbuf"
+</pre>
+<p>Creates a button with the <span class="type">GdkPixbuf</span> as button icon.
+param1 is the <span class="type">GdkPixbuf</span>, param2 for the label and
+param3 for the response_id.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.34.0</div>
+</body>
+</html>

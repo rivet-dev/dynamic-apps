@@ -1,0 +1,154 @@
+#!/bin/sh
+#
+# Copyright (C) 2011 Nick Schermer <nick@xfce.org>
+#               2021 Jarno Suni <8@iki.fi>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+# appearance-install-theme <theme-package>
+# return value:
+# 1: common error, should never happen
+# 2: File too big
+# 3: Failed to create temp directory
+# 4: Failed to extract archive
+# 5: Unknown file format
+# 6: Not a valid theme package
+# theme-package can be a tar-file zip-file or a directory
+# the following themes types are supported:
+#  - Icon themes (detected by the content of index.theme files found)
+#  - Style themes (if not detected as icon theme)
+
+unset -v IFS
+dndfilename="$1"
+retval=0
+is_icon_theme=0
+
+installicontheme()
+{
+    is_icon_theme=1
+    file="$1"
+    suffix="$2"
+
+    basedir=${file#$tmpdir/}
+    themedir=${basedir%/$suffix}
+    themename=${3:-$(basename "$themedir")}
+    src="$tmpdir/$themedir"
+
+    dest="$HOME/.icons"
+    if test ! -d "$dest/$themename"; then
+        # move theme to the users' theme directory
+        mkdir -p "$dest" && mv "$src" "$dest"
+    fi
+    gtk-update-icon-cache -q "$dest/$themename"
+}
+
+# leave if no file is provided
+if test -z "$dndfilename" -o -z "$HOME"; then
+    # 1: common error, should never happen
+    exit 1
+fi
+
+# check file size, abort if bigger then 100MiB, only works for regular
+# files
+if test -f "$dndfilename"; then
+    dndsize=$(ls -l -q "$dndfilename" | awk '{print $5}')
+    test "$dndsize" -gt 104857600 && exit 2  # 2: File too big
+fi
+
+# Provide tmpdir to extract the tarball or folder to. Use the standard
+# Freedesktop directory for user-specific cached data as base directory.
+cachedir=${XDG_CACHE_HOME:-$HOME/.cache}
+mkdir -p "$cachedir"
+if command -v mktemp >/dev/null; then
+    tmpdir=$(mktemp -d -- "$cachedir"/tmp-theme.XXX)
+else
+    tmpdir="$cachedir"/tmp-theme.$$
+    mkdir "$tmpdir"
+fi
+if test 0 -ne "$?"; then
+    # 3: Failed to create temp directory
+    exit 3
+fi
+
+# cleanup on exit
+cleanup() {
+    trap - EXIT
+    rm -rf "$tmpdir"
+}
+trap 'cleanup; exit' EXIT TERM HUP
+trap 'cleanup; trap - INT; kill -s INT -- $$' INT
+
+# check if uri is directory or file
+if test -d "$dndfilename"; then
+    cp -r "$dndfilename" "$tmpdir" || retval=1
+    pkgname=$(basename "$dndfilename")
+elif test -f "$dndfilename"; then
+    case "$dndfilename" in
+        *.tar.gz|*.tar.Z|*.tgz|*.tar.bz2|*.tbz2|*.tbz|*.tar|*.tar.xz|*.txz)
+            # extract the archive
+            tar -C "$tmpdir" -xf "$dndfilename" || retval=4
+            pkgname=$(basename "${dndfilename%.*}" .tar)
+        ;;
+        *.zip)
+            # extract the archive
+            unzip -qq -d "$tmpdir" "$dndfilename" || retval=4
+            pkgname=$(basename "$dndfilename" .zip)
+        ;;
+        *)
+            # 5: unknow file format
+            retval=5
+        ;;
+    esac
+fi
+
+test "$retval" -eq 0 || exit $retval
+
+# detect theme type and move it to the correct location if
+# extracting or copying succeeded
+
+# install possible icon themes
+suffix="index.theme"
+section="Icon Theme"
+if test -f "$tmpdir/$suffix"; then
+    if grep -q -i "^\\[$section\\]" "$tmpdir/$suffix"; then
+        installicontheme "$tmpdir/$suffix" "$suffix" "$pkgname"
+    fi
+fi
+index_files=$(find "$tmpdir" -path "$tmpdir/*/$suffix" -type f)
+
+IFS='
+' # that is a newline character; assume paths do not containt that so it
+# can be used as field separator for the list.
+for file in $index_files; do
+    if grep -q -i "^\\[$section\\]" "$file"; then
+        installicontheme "$file" "$suffix"
+    fi
+done
+unset -v IFS
+
+test "$is_icon_theme" -eq 0 || exit 0
+
+# Not an icon theme, so treat as style theme
+
+# likely: archive contains a unique root dir and an index.theme file in it
+if test -d "$(echo "$tmpdir/"*)" && test -f "$tmpdir/"*"/index.theme"; then
+    mkdir -p "$HOME/.themes" && mv "$tmpdir/"* "$HOME/.themes"
+# unlikely: no root dir but still a root index.theme file
+elif test -f "$tmpdir/index.theme"; then
+    mkdir -p "$HOME/.themes/$pkgname" && mv "$tmpdir/"* "$HOME/.themes/$pkgname"
+# not a valid theme package
+else
+    exit 6
+fi

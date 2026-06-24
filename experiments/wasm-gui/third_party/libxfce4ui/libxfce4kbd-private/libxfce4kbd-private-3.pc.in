@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libxfce4kbd-private
+Description: Private Xfce library for shared code between xfwm4 and xfce4-settings
+Requires: gdk-3.0 gtk+-3.0 libxfce4util-1.0 libxfconf-0 libxfce4ui-2
+Version: @PACKAGE_VERSION@
+Libs: @LIBX11_LDFLAGS@ -L${libdir} -lxfce4kbd-private-3
+Cflags: @LIBX11_CFLAGS@ -I${includedir}/xfce4/libxfce4kbd-private-3

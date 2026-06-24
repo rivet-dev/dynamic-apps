@@ -1,0 +1,1269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>GarconMenuItem: garcon Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="garcon Reference Manual">
+<link rel="up" href="garcon-menus.html" title="Part II. Menus and Menu Items">
+<link rel="prev" href="GarconMenuElement.html" title="GarconMenuElement">
+<link rel="next" href="GarconMenuItemCache.html" title="GarconMenuItemCache">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#GarconMenuItem.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#GarconMenuItem.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#GarconMenuItem.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#GarconMenuItem.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="garcon-menus.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="GarconMenuElement.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="GarconMenuItemCache.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="GarconMenuItem"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="GarconMenuItem.top_of_page"></a>GarconMenuItem</span></h2>
+<p>GarconMenuItem</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="GarconMenuItem.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-new" title="garcon_menu_item_new ()">garcon_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-new-for-path" title="garcon_menu_item_new_for_path ()">garcon_menu_item_new_for_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-new-for-uri" title="garcon_menu_item_new_for_uri ()">garcon_menu_item_new_for_uri</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-reload" title="garcon_menu_item_reload ()">garcon_menu_item_reload</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-reload-from-file" title="garcon_menu_item_reload_from_file ()">garcon_menu_item_reload_from_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-file" title="garcon_menu_item_get_file ()">garcon_menu_item_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-uri" title="garcon_menu_item_get_uri ()">garcon_menu_item_get_uri</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-desktop-id" title="garcon_menu_item_get_desktop_id ()">garcon_menu_item_get_desktop_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-desktop-id" title="garcon_menu_item_set_desktop_id ()">garcon_menu_item_set_desktop_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-command" title="garcon_menu_item_get_command ()">garcon_menu_item_get_command</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-command" title="garcon_menu_item_set_command ()">garcon_menu_item_set_command</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-try-exec" title="garcon_menu_item_get_try_exec ()">garcon_menu_item_get_try_exec</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-try-exec" title="garcon_menu_item_set_try_exec ()">garcon_menu_item_set_try_exec</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-name" title="garcon_menu_item_get_name ()">garcon_menu_item_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-name" title="garcon_menu_item_set_name ()">garcon_menu_item_set_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-generic-name" title="garcon_menu_item_get_generic_name ()">garcon_menu_item_get_generic_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-generic-name" title="garcon_menu_item_set_generic_name ()">garcon_menu_item_set_generic_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-comment" title="garcon_menu_item_get_comment ()">garcon_menu_item_get_comment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-comment" title="garcon_menu_item_set_comment ()">garcon_menu_item_set_comment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-icon-name" title="garcon_menu_item_get_icon_name ()">garcon_menu_item_get_icon_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-icon-name" title="garcon_menu_item_set_icon_name ()">garcon_menu_item_set_icon_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-path" title="garcon_menu_item_get_path ()">garcon_menu_item_get_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-path" title="garcon_menu_item_set_path ()">garcon_menu_item_set_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-hidden" title="garcon_menu_item_get_hidden ()">garcon_menu_item_get_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-hidden" title="garcon_menu_item_set_hidden ()">garcon_menu_item_set_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-prefers-non-default-gpu" title="garcon_menu_item_get_prefers_non_default_gpu ()">garcon_menu_item_get_prefers_non_default_gpu</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-prefers-non-default-gpu" title="garcon_menu_item_set_prefers_non_default_gpu ()">garcon_menu_item_set_prefers_non_default_gpu</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-requires-terminal" title="garcon_menu_item_requires_terminal ()">garcon_menu_item_requires_terminal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-requires-terminal" title="garcon_menu_item_set_requires_terminal ()">garcon_menu_item_set_requires_terminal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-no-display" title="garcon_menu_item_get_no_display ()">garcon_menu_item_get_no_display</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-no-display" title="garcon_menu_item_set_no_display ()">garcon_menu_item_set_no_display</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-supports-startup-notification" title="garcon_menu_item_supports_startup_notification ()">garcon_menu_item_supports_startup_notification</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-supports-startup-notification" title="garcon_menu_item_set_supports_startup_notification ()">garcon_menu_item_set_supports_startup_notification</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-categories" title="garcon_menu_item_get_categories ()">garcon_menu_item_get_categories</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-categories" title="garcon_menu_item_set_categories ()">garcon_menu_item_set_categories</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-has-category" title="garcon_menu_item_has_category ()">garcon_menu_item_has_category</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-has-keyword" title="garcon_menu_item_has_keyword ()">garcon_menu_item_has_keyword</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-keywords" title="garcon_menu_item_get_keywords ()">garcon_menu_item_get_keywords</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-keywords" title="garcon_menu_item_set_keywords ()">garcon_menu_item_set_keywords</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-actions" title="garcon_menu_item_get_actions ()">garcon_menu_item_get_actions</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="GarconMenuItemAction.html" title="GarconMenuItemAction"><span class="returnvalue">GarconMenuItemAction</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-action" title="garcon_menu_item_get_action ()">garcon_menu_item_get_action</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-set-action" title="garcon_menu_item_set_action ()">garcon_menu_item_set_action</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-has-action" title="garcon_menu_item_has_action ()">garcon_menu_item_has_action</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-show-in-environment" title="garcon_menu_item_get_show_in_environment ()">garcon_menu_item_get_show_in_environment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-only-show-in-environment" title="garcon_menu_item_only_show_in_environment ()">garcon_menu_item_only_show_in_environment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-ref" title="garcon_menu_item_ref ()">garcon_menu_item_ref</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-unref" title="garcon_menu_item_unref ()">garcon_menu_item_unref</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-get-allocated" title="garcon_menu_item_get_allocated ()">garcon_menu_item_get_allocated</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-increment-allocated" title="garcon_menu_item_increment_allocated ()">garcon_menu_item_increment_allocated</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="GarconMenuItem.html#garcon-menu-item-decrement-allocated" title="garcon_menu_item_decrement_allocated ()">garcon_menu_item_decrement_allocated</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--command" title="The “command” property">command</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--comment" title="The “comment” property">comment</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--desktop-id" title="The “desktop-id” property">desktop-id</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">GFile</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--file" title="The “file” property">file</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--generic-name" title="The “generic-name” property">generic-name</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--hidden" title="The “hidden” property">hidden</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--icon-name" title="The “icon-name” property">icon-name</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--name" title="The “name” property">name</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--no-display" title="The “no-display” property">no-display</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--path" title="The “path” property">path</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--prefers-non-default-gpu" title="The “prefers-non-default-gpu” property">prefers-non-default-gpu</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--requires-terminal" title="The “requires-terminal” property">requires-terminal</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--supports-startup-notification" title="The “supports-startup-notification” property">supports-startup-notification</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem--try-exec" title="The “try-exec” property">try-exec</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="GarconMenuItem.html#GarconMenuItem-changed" title="The “changed” signal">changed</a></td>
+<td class="signal_flags">Run First</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GarconMenuItem
+</pre>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="garcon-menu-item-new"></a><h3>garcon_menu_item_new ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+garcon_menu_item_new (<em class="parameter"><code><span class="type">GFile</span> *file</code></em>);</pre>
+<p>Returns (transfer full): a new <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p>
+<p><span class="annotation">[<acronym title="This symbol is a constructor, not a static method."><span class="acronym">constructor</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-new-for-path"></a><h3>garcon_menu_item_new_for_path ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+garcon_menu_item_new_for_path (<em class="parameter"><code>const <span class="type">gchar</span> *filename</code></em>);</pre>
+<p><span class="annotation">[<acronym title="This symbol is a constructor, not a static method."><span class="acronym">constructor</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-item-new-for-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>name of a file. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> filename]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-new-for-path.returns"></a><h4>Returns</h4>
+<p>a new <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-new-for-uri"></a><h3>garcon_menu_item_new_for_uri ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="returnvalue">GarconMenuItem</span></a> *
+garcon_menu_item_new_for_uri (<em class="parameter"><code>const <span class="type">gchar</span> *uri</code></em>);</pre>
+<p><span class="annotation">[<acronym title="This symbol is a constructor, not a static method."><span class="acronym">constructor</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="garcon-menu-item-new-for-uri.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>uri</p></td>
+<td class="parameter_description"><p>a given URI</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-new-for-uri.returns"></a><h4>Returns</h4>
+<p>a new <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-reload"></a><h3>garcon_menu_item_reload ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_reload (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                         <em class="parameter"><code><span class="type">gboolean</span> *affects_the_outside</code></em>,
+                         <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-reload-from-file"></a><h3>garcon_menu_item_reload_from_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_reload_from_file (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                   <em class="parameter"><code><span class="type">GFile</span> *file</code></em>,
+                                   <em class="parameter"><code><span class="type">gboolean</span> *affects_the_outside</code></em>,
+                                   <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-file"></a><h3>garcon_menu_item_get_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+garcon_menu_item_get_file (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+<p>Get the <span class="type">GFile</span> for <em class="parameter"><code>item</code></em>
+. The returned object should be
+unreffed with <code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="garcon-menu-item-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>A <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-get-file.returns"></a><h4>Returns</h4>
+<p>a <span class="type">GFile</span>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-uri"></a><h3>garcon_menu_item_get_uri ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+garcon_menu_item_get_uri (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-desktop-id"></a><h3>garcon_menu_item_get_desktop_id ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_desktop_id (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-desktop-id"></a><h3>garcon_menu_item_set_desktop_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_desktop_id (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                 <em class="parameter"><code>const <span class="type">gchar</span> *desktop_id</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-command"></a><h3>garcon_menu_item_get_command ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_command (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-command"></a><h3>garcon_menu_item_set_command ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_command (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *command</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-try-exec"></a><h3>garcon_menu_item_get_try_exec ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_try_exec (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-try-exec"></a><h3>garcon_menu_item_set_try_exec ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_try_exec (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *try_exec</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-name"></a><h3>garcon_menu_item_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-name"></a><h3>garcon_menu_item_set_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                           <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-generic-name"></a><h3>garcon_menu_item_get_generic_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_generic_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-generic-name"></a><h3>garcon_menu_item_set_generic_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_generic_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                   <em class="parameter"><code>const <span class="type">gchar</span> *generic_name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-comment"></a><h3>garcon_menu_item_get_comment ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_comment (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-comment"></a><h3>garcon_menu_item_set_comment ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_comment (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *comment</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-icon-name"></a><h3>garcon_menu_item_get_icon_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_icon_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-icon-name"></a><h3>garcon_menu_item_set_icon_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_icon_name (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *icon_name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-path"></a><h3>garcon_menu_item_get_path ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_menu_item_get_path (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-path"></a><h3>garcon_menu_item_set_path ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_path (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                           <em class="parameter"><code>const <span class="type">gchar</span> *path</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-hidden"></a><h3>garcon_menu_item_get_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_get_hidden (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-hidden"></a><h3>garcon_menu_item_set_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_hidden (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                             <em class="parameter"><code><span class="type">gboolean</span> hidden</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-prefers-non-default-gpu"></a><h3>garcon_menu_item_get_prefers_non_default_gpu ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_get_prefers_non_default_gpu
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-prefers-non-default-gpu"></a><h3>garcon_menu_item_set_prefers_non_default_gpu ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_prefers_non_default_gpu
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> prefers_non_default_gpu</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-requires-terminal"></a><h3>garcon_menu_item_requires_terminal ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_requires_terminal (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-requires-terminal"></a><h3>garcon_menu_item_set_requires_terminal ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_requires_terminal
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> requires_terminal</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-no-display"></a><h3>garcon_menu_item_get_no_display ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_get_no_display (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-no-display"></a><h3>garcon_menu_item_set_no_display ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_no_display (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                 <em class="parameter"><code><span class="type">gboolean</span> no_display</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-supports-startup-notification"></a><h3>garcon_menu_item_supports_startup_notification ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_supports_startup_notification
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-supports-startup-notification"></a><h3>garcon_menu_item_set_supports_startup_notification ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_supports_startup_notification
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> supports_startup_notification</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-categories"></a><h3>garcon_menu_item_get_categories ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_item_get_categories (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+<p>Returns list of categories</p>
+<div class="refsect3">
+<a name="garcon-menu-item-get-categories.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-get-categories.returns"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-categories"></a><h3>garcon_menu_item_set_categories ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_categories (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                                 <em class="parameter"><code><span class="type">GList</span> *categories</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-item-set-categories.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>categories</p></td>
+<td class="parameter_description"><p>list of categories. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-has-category"></a><h3>garcon_menu_item_has_category ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_has_category (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *category</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-has-keyword"></a><h3>garcon_menu_item_has_keyword ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_has_keyword (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *keyword</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-keywords"></a><h3>garcon_menu_item_get_keywords ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_item_get_keywords (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-item-get-keywords.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-get-keywords.returns"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-keywords"></a><h3>garcon_menu_item_set_keywords ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_keywords (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                               <em class="parameter"><code><span class="type">GList</span> *keywords</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-item-set-keywords.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>keywords</p></td>
+<td class="parameter_description"><p>list of keywords. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-actions"></a><h3>garcon_menu_item_get_actions ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+garcon_menu_item_get_actions (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-item-get-actions.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-get-actions.returns"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GarconMenuItemAction][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-action"></a><h3>garcon_menu_item_get_action ()</h3>
+<pre class="programlisting"><a class="link" href="GarconMenuItemAction.html" title="GarconMenuItemAction"><span class="returnvalue">GarconMenuItemAction</span></a> *
+garcon_menu_item_get_action (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *action_name</code></em>);</pre>
+<div class="refsect3">
+<a name="garcon-menu-item-get-action.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="garcon-menu-item-get-action.returns"></a><h4>Returns</h4>
+<p>a <a class="link" href="GarconMenuItemAction.html" title="GarconMenuItemAction"><span class="type">GarconMenuItemAction</span></a>. </p>
+<p><span class="annotation">[<acronym title="NULL may be passed as the value in, out, in-out; or as a return value."><span class="acronym">nullable</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-set-action"></a><h3>garcon_menu_item_set_action ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_set_action (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *action_name</code></em>,
+                             <em class="parameter"><code><a class="link" href="GarconMenuItemAction.html" title="GarconMenuItemAction"><span class="type">GarconMenuItemAction</span></a> *action</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-has-action"></a><h3>garcon_menu_item_has_action ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_has_action (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *action_name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-show-in-environment"></a><h3>garcon_menu_item_get_show_in_environment ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_get_show_in_environment
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-only-show-in-environment"></a><h3>garcon_menu_item_only_show_in_environment ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+garcon_menu_item_only_show_in_environment
+                               (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-ref"></a><h3>garcon_menu_item_ref ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_ref (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-unref"></a><h3>garcon_menu_item_unref ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_unref (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-get-allocated"></a><h3>garcon_menu_item_get_allocated ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+garcon_menu_item_get_allocated (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-increment-allocated"></a><h3>garcon_menu_item_increment_allocated ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_increment_allocated (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-menu-item-decrement-allocated"></a><h3>garcon_menu_item_decrement_allocated ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_menu_item_decrement_allocated (<em class="parameter"><code><a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="GarconMenuItem--command"></a><h3>The <code class="literal">“command”</code> property</h3>
+<pre class="programlisting">  “command”                  <span class="type">char</span> *</pre>
+<p>Command to be executed when the menu item is clicked.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--comment"></a><h3>The <code class="literal">“comment”</code> property</h3>
+<pre class="programlisting">  “comment”                  <span class="type">char</span> *</pre>
+<p>Comment/description for the application. To be displayed e.g. in tooltips of
+GtkMenuItems.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--desktop-id"></a><h3>The <code class="literal">“desktop-id”</code> property</h3>
+<pre class="programlisting">  “desktop-id”               <span class="type">char</span> *</pre>
+<p>The desktop-file id of this application.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--file"></a><h3>The <code class="literal">“file”</code> property</h3>
+<pre class="programlisting">  “file”                     <span class="type">GFile</span> *</pre>
+<p>The <span class="type">GFile</span> from which the <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><code class="literal">GarconMenuItem</code></a> was loaded.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write / Construct Only</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--generic-name"></a><h3>The <code class="literal">“generic-name”</code> property</h3>
+<pre class="programlisting">  “generic-name”             <span class="type">char</span> *</pre>
+<p>GenericName of the application (will be displayed in menus etc.).</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--hidden"></a><h3>The <code class="literal">“hidden”</code> property</h3>
+<pre class="programlisting">  “hidden”                   <span class="type">gboolean</span></pre>
+<p>It means the user deleted (at his level) something that was present
+(at an upper level, e.g. in the system dirs). It's strictly equivalent
+to the .desktop file not existing at all, as far as that user is concerned.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--icon-name"></a><h3>The <code class="literal">“icon-name”</code> property</h3>
+<pre class="programlisting">  “icon-name”                <span class="type">char</span> *</pre>
+<p>Name of the icon to be displayed for this menu item.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--name"></a><h3>The <code class="literal">“name”</code> property</h3>
+<pre class="programlisting">  “name”                     <span class="type">char</span> *</pre>
+<p>Name of the application (will be displayed in menus etc.).</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--no-display"></a><h3>The <code class="literal">“no-display”</code> property</h3>
+<pre class="programlisting">  “no-display”               <span class="type">gboolean</span></pre>
+<p>Whether this menu item is hidden in menus.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--path"></a><h3>The <code class="literal">“path”</code> property</h3>
+<pre class="programlisting">  “path”                     <span class="type">char</span> *</pre>
+<p>Working directory the application should be started in.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--prefers-non-default-gpu"></a><h3>The <code class="literal">“prefers-non-default-gpu”</code> property</h3>
+<pre class="programlisting">  “prefers-non-default-gpu”  <span class="type">gboolean</span></pre>
+<p>If true, the application prefers to be run on a more powerful discrete GPU
+if available.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--requires-terminal"></a><h3>The <code class="literal">“requires-terminal”</code> property</h3>
+<pre class="programlisting">  “requires-terminal”        <span class="type">gboolean</span></pre>
+<p>Whether this application requires a terinal to be started in.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--supports-startup-notification"></a><h3>The <code class="literal">“supports-startup-notification”</code> property</h3>
+<pre class="programlisting">  “supports-startup-notification” <span class="type">gboolean</span></pre>
+<p>Startup notification support.</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GarconMenuItem--try-exec"></a><h3>The <code class="literal">“try-exec”</code> property</h3>
+<pre class="programlisting">  “try-exec”                 <span class="type">char</span> *</pre>
+<p>Path to an executable file on disk used to determine if the program
+is actually installed. If the path is not an absolute path, the file
+is looked up in the $PATH environment variable. If the file is not
+present or if it is not executable, the entry may be ignored (not be
+used in menus, for example).</p>
+<p>Owner: GarconMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="GarconMenuItem.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="GarconMenuItem-changed"></a><h3>The <code class="literal">“changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> *item,
+               <span class="type">gpointer</span>        user_data)</pre>
+<p>Emitted when <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a> has been reloaded.</p>
+<div class="refsect3">
+<a name="GarconMenuItem-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>a <a class="link" href="GarconMenuItem.html" title="GarconMenuItem"><span class="type">GarconMenuItem</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run First</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

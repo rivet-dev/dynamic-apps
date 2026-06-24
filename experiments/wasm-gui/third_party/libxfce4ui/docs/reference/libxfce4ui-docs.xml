@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>&package_name; Reference Manual</title>
+    <releaseinfo>
+      For &package_string;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://developer.xfce.org/&package_name;/index.html">https://developer.xfce.org/&package_name;/</ulink>.
+    </releaseinfo>
+    <copyright>
+      <year>2024</year>
+      <holder>The Xfce development team</holder>
+    </copyright>
+  </bookinfo>
+
+  <part id="libxfce4ui-introduction">
+    <title>Introduction</title>
+    <para>
+      Libxfce4ui is used to share commonly used Xfce widgets amoung the Xfce applications.
+    </para>
+  </part>
+
+  <part id="libxfce4ui-fundamentals">
+    <title>Xfce Fundamentals</title>
+    <xi:include href="xml/libxfce4ui-config.xml"/>
+    <xi:include href="xml/xfce-spawn.xml"/>
+  </part>
+
+  <part id="libxfce4ui-extensions">
+    <title>Xfce UI Extensions</title>
+    <xi:include href="xml/xfce-gdk-extensions.xml"/>
+    <xi:include href="xml/xfce-gtk-extensions.xml"/>
+  </part>
+
+  <part id="libxfce4ui-widgets">
+    <title>Xfce UI Widget</title>
+    <xi:include href="xml/xfce-dialogs.xml"/>
+    <xi:include href="xml/xfce-filename-input.xml"/>
+    <xi:include href="xml/xfce-titled-dialog.xml"/>
+  </part>
+
+  <part id="libxfce4ui-sm">
+    <title>Xfce Session Management Support</title>
+    <xi:include href="xml/xfce-sm-client.xml"/>
+    <xi:include href="xml/xfce-screensaver.xml"/>
+  </part>
+  <index id="api-index-full">
+    <title>Index of all symbols</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-deprecated">
+    <title>Index of deprecated symbols</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-4-18">
+    <title>Index of new symbols in 4.18</title>
+    <xi:include href="xml/api-index-4.17.6.xml"><xi:fallback /></xi:include>
+    <xi:include href="xml/api-index-4.18.xml"><xi:fallback /></xi:include>
+    <xi:include href="xml/api-index-4.18.2.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-4-16">
+    <title>Index of new symbols in 4.16</title>
+    <xi:include href="xml/api-index-4.16.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-4-14">
+    <title>Index of new symbols in 4.14</title>
+    <xi:include href="xml/api-index-4.14.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-4-12">
+    <title>Index of new symbols in 4.12</title>
+    <xi:include href="xml/api-index-4.12.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-4-10">
+    <title>Index of new symbols in 4.10</title>
+    <xi:include href="xml/api-index-4.10.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+
+</book>
+
+<!--
+  vi:set ts=2 sw=2 et ai syntax=docbkxml:
+-->

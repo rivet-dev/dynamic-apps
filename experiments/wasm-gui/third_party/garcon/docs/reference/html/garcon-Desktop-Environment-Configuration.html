@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Desktop Environment Configuration: garcon Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="garcon Reference Manual">
+<link rel="up" href="garcon-miscellaneous.html" title="Part V. Miscellaneous">
+<link rel="prev" href="garcon-miscellaneous.html" title="Part V. Miscellaneous">
+<link rel="next" href="garcon-Version-Information.html" title="Version Information">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#garcon-Desktop-Environment-Configuration.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="garcon-miscellaneous.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="garcon-miscellaneous.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="garcon-Version-Information.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="garcon-Desktop-Environment-Configuration"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="garcon-Desktop-Environment-Configuration.top_of_page"></a>Desktop Environment Configuration</span></h2>
+<p>Desktop Environment Configuration — Desktop Environment Configuration</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-Desktop-Environment-Configuration.html#garcon-set-environment" title="garcon_set_environment ()">garcon_set_environment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="garcon-Desktop-Environment-Configuration.html#garcon-get-environment" title="garcon_get_environment ()">garcon_get_environment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="garcon-Desktop-Environment-Configuration.html#garcon-set-environment-xdg" title="garcon_set_environment_xdg ()">garcon_set_environment_xdg</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="garcon-Desktop-Environment-Configuration.html#GARCON-ENVIRONMENT-XFCE:CAPS" title="GARCON_ENVIRONMENT_XFCE">GARCON_ENVIRONMENT_XFCE</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;garcon/garcon.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.description"></a><h2>Description</h2>
+<p>Set the desktop environment used by the OnlyShowIn and NotShowIn
+desktop files keys.</p>
+</div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="garcon-set-environment"></a><h3>garcon_set_environment ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_set_environment (<em class="parameter"><code>const <span class="type">gchar</span> *env</code></em>);</pre>
+<p>Sets (or unsets) the desktop environment for which menus will generated.
+Menus and menu items belonging to other desktop environments will be
+ignored. If set to <code class="literal">NULL</code>, all menu items are used.</p>
+<div class="refsect3">
+<a name="garcon-set-environment.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>env</p></td>
+<td class="parameter_description"><p>Name of the desktop environment for which menus will
+be generated (e.g. XFCE, KDE, GNOME or <code class="literal">NULL</code>).</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-get-environment"></a><h3>garcon_get_environment ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+garcon_get_environment (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the environment set with <a class="link" href="garcon-Desktop-Environment-Configuration.html#garcon-set-environment" title="garcon_set_environment ()"><code class="function">garcon_set_environment()</code></a>.</p>
+<div class="refsect3">
+<a name="garcon-get-environment.returns"></a><h4>Returns</h4>
+<p> Name of the desktop environment (e.g. XFCE, KDE, GNOME)
+which is used or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="garcon-set-environment-xdg"></a><h3>garcon_set_environment_xdg ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+garcon_set_environment_xdg (<em class="parameter"><code>const <span class="type">gchar</span> *fallback_env</code></em>);</pre>
+<p>Set the desktop environment to the envvar XDG_CURRENT_DESKTOP.
+If this variables is not set, it falls back to <em class="parameter"><code>default_env</code></em>
+.</p>
+<p>For <em class="parameter"><code>fallback_env</code></em>
+ you can use for example <a class="link" href="garcon-Desktop-Environment-Configuration.html#GARCON-ENVIRONMENT-XFCE:CAPS" title="GARCON_ENVIRONMENT_XFCE"><span class="type">GARCON_ENVIRONMENT_XFCE</span></a>.</p>
+<div class="refsect3">
+<a name="garcon-set-environment-xdg.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>fallback_env</p></td>
+<td class="parameter_description"><p>fallback value</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since: <a class="link" href="api-index-0-3.html#api-index-0.3.0">0.3.0</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="garcon-Desktop-Environment-Configuration.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="GARCON-ENVIRONMENT-XFCE:CAPS"></a><h3>GARCON_ENVIRONMENT_XFCE</h3>
+<pre class="programlisting">#define GARCON_ENVIRONMENT_XFCE "XFCE"
+</pre>
+<p>Macro for garcon_set_environment or garcon_set_environment_xdg
+to set the Xfce Desktop Environment.</p>
+<p class="since">Since: <a class="link" href="api-index-0-3.html#api-index-0.3.0">0.3.0</a></p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>
