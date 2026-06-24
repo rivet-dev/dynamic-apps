@@ -1,7 +1,7 @@
 export type {
 	HostDirectoryMount,
 	BindingDefinition,
-	HostToolExample,
+	BindingExample,
 	SidecarSpawnOptions,
 	NodeRuntimeBootTiming,
 	NodeRuntimeBootTimingPhase,

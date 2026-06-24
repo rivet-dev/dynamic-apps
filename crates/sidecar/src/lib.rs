@@ -2,6 +2,7 @@
 
 //! Native sidecar scaffold that composes the kernel and execution crates.
 
+pub(crate) mod bindings;
 pub(crate) mod bootstrap;
 pub(crate) mod bridge;
 pub(crate) mod execution;
@@ -19,7 +20,6 @@ pub mod protocol;
 pub mod service;
 pub(crate) mod state;
 pub mod stdio;
-pub(crate) mod tools;
 pub(crate) mod vm;
 pub mod wire;
 

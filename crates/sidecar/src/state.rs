@@ -72,7 +72,7 @@ pub(crate) const VM_LISTEN_PORT_MAX_METADATA_KEY: &str = "network.listen.port_ma
 pub(crate) const VM_LISTEN_ALLOW_PRIVILEGED_METADATA_KEY: &str = "network.listen.allow_privileged";
 pub(crate) const DEFAULT_JAVASCRIPT_NET_BACKLOG: u32 = 511;
 pub(crate) const LOOPBACK_EXEMPT_PORTS_ENV: &str = "AGENTOS_LOOPBACK_EXEMPT_PORTS";
-pub(crate) const TOOL_DRIVER_NAME: &str = "secure-exec-host-callbacks";
+pub(crate) const BINDING_DRIVER_NAME: &str = "secure-exec-host-callbacks";
 pub(crate) const MAPPED_HOST_FD_START: u32 = 1_000_000_000;
 
 // ---------------------------------------------------------------------------
@@ -310,7 +310,7 @@ pub(crate) struct VmState {
     pub(crate) layers: VmLayerStore,
     pub(crate) command_guest_paths: BTreeMap<String, String>,
     pub(crate) command_permissions: BTreeMap<String, WasmPermissionTier>,
-    pub(crate) toolkits: BTreeMap<String, RegisterHostCallbacksRequest>,
+    pub(crate) binding_groups: BTreeMap<String, RegisterHostCallbacksRequest>,
     pub(crate) active_processes: BTreeMap<String, ActiveProcess>,
     pub(crate) exited_process_snapshots: VecDeque<ExitedProcessSnapshot>,
     pub(crate) detached_child_processes: BTreeSet<String>,
@@ -922,17 +922,17 @@ pub(crate) enum ActiveExecution {
     Javascript(JavascriptExecution),
     Python(PythonExecution),
     Wasm(Box<WasmExecution>),
-    Tool(ToolExecution),
+    Binding(BindingExecution),
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ToolExecution {
+pub(crate) struct BindingExecution {
     pub(crate) cancelled: Arc<AtomicBool>,
     pub(crate) pending_events: Arc<Mutex<VecDeque<ActiveExecutionEvent>>>,
     pub(crate) events_overflowed: Arc<AtomicBool>,
 }
 
-impl Default for ToolExecution {
+impl Default for BindingExecution {
     fn default() -> Self {
         Self {
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -985,7 +985,7 @@ pub(crate) struct ResolvedChildProcessExecution {
     pub(crate) guest_cwd: String,
     pub(crate) host_cwd: PathBuf,
     pub(crate) wasm_permission_tier: Option<WasmPermissionTier>,
-    pub(crate) tool_command: bool,
+    pub(crate) binding_command: bool,
 }
 
 // ---------------------------------------------------------------------------

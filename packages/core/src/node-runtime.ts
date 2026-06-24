@@ -37,7 +37,7 @@ import {
 	NodeFileSystem,
 } from "./test-runtime.js";
 
-export type { BindingDefinition, HostToolExample } from "./test-runtime.js";
+export type { BindingDefinition, BindingExample } from "./test-runtime.js";
 
 export type NodeRuntimeBootTimingPhase =
 	| KernelBootTiming["phase"]
@@ -613,7 +613,7 @@ export class NodeRuntime {
 			const bindings = options.bindings;
 			if (bindings && Object.keys(bindings).length > 0) {
 				await measureBootTiming("bindings", options.onBootTiming, () =>
-					kernel.registerHostTools(bindings),
+					kernel.registerBindings(bindings),
 				);
 			}
 		} catch (error) {
@@ -973,7 +973,7 @@ export class NodeRuntime {
 	async registerBindings(
 		bindings: Record<string, BindingDefinition>,
 	): Promise<void> {
-		await this.kernel.registerHostTools(bindings);
+		await this.kernel.registerBindings(bindings);
 	}
 
 	/**

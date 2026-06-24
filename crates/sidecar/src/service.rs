@@ -1,3 +1,4 @@
+use crate::bindings::register_host_callbacks;
 use crate::bridge::{build_mount_plugin_registry, MountPluginContext};
 pub(crate) use crate::execution::{
     build_javascript_socket_path_context, canonical_signal_name, dispatch_loopback_http_request,
@@ -34,7 +35,6 @@ use crate::state::{
     JavascriptSocketPathContext, ProcessEventEnvelope, SessionState, SharedBridge,
     SharedSidecarRequestClient, SidecarRequestTransport, VmState, EXECUTION_DRIVER_NAME,
 };
-use crate::tools::register_host_callbacks;
 use crate::NativeSidecarBridge;
 use secure_exec_bridge::{
     CommandPermissionRequest, EnvironmentAccess, EnvironmentPermissionRequest, FilesystemAccess,

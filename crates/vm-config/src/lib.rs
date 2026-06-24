@@ -507,7 +507,7 @@ pub struct VmLimitsConfig {
     pub http: Option<HttpLimitsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    pub tools: Option<ToolLimitsConfig>,
+    pub bindings: Option<BindingLimitsConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub plugins: Option<PluginLimitsConfig>,
@@ -541,13 +541,14 @@ impl VmLimitsConfig {
                 }
             }
         }
-        if let Some(tools) = &self.tools {
-            if let (Some(default), Some(max)) =
-                (tools.default_tool_timeout_ms, tools.max_tool_timeout_ms)
-            {
+        if let Some(bindings) = &self.bindings {
+            if let (Some(default), Some(max)) = (
+                bindings.default_binding_timeout_ms,
+                bindings.max_binding_timeout_ms,
+            ) {
                 if default > max {
                     return Err(VmConfigError::new(
-                        "limits.tools.defaultToolTimeoutMs must be <= limits.tools.maxToolTimeoutMs",
+                        "limits.bindings.defaultBindingTimeoutMs must be <= limits.bindings.maxBindingTimeoutMs",
                     ));
                 }
             }
@@ -599,15 +600,15 @@ limits_struct!(HttpLimitsConfig {
     max_fetch_response_bytes,
 });
 
-limits_struct!(ToolLimitsConfig {
-    default_tool_timeout_ms,
-    max_tool_timeout_ms,
-    max_registered_toolkits,
-    max_registered_tools_per_vm,
-    max_tools_per_toolkit,
-    max_tool_schema_bytes,
-    max_tool_examples_per_tool,
-    max_tool_example_input_bytes,
+limits_struct!(BindingLimitsConfig {
+    default_binding_timeout_ms,
+    max_binding_timeout_ms,
+    max_registered_binding_groups,
+    max_registered_bindings_per_vm,
+    max_bindings_per_group,
+    max_binding_schema_bytes,
+    max_binding_examples_per_binding,
+    max_binding_example_input_bytes,
 });
 
 limits_struct!(PluginLimitsConfig {

@@ -447,20 +447,29 @@ fn legacy_limits_config(
     let http = secure_exec_vm_config::HttpLimitsConfig {
         max_fetch_response_bytes: legacy_u64(metadata, "limits.http.max_fetch_response_bytes"),
     };
-    let tools = secure_exec_vm_config::ToolLimitsConfig {
-        default_tool_timeout_ms: legacy_u64(metadata, "limits.tools.default_tool_timeout_ms"),
-        max_tool_timeout_ms: legacy_u64(metadata, "limits.tools.max_tool_timeout_ms"),
-        max_registered_toolkits: legacy_u64(metadata, "limits.tools.max_registered_toolkits"),
-        max_registered_tools_per_vm: legacy_u64(
+    let bindings = secure_exec_vm_config::BindingLimitsConfig {
+        default_binding_timeout_ms: legacy_u64(
             metadata,
-            "limits.tools.max_registered_tools_per_vm",
+            "limits.bindings.default_binding_timeout_ms",
         ),
-        max_tools_per_toolkit: legacy_u64(metadata, "limits.tools.max_tools_per_toolkit"),
-        max_tool_schema_bytes: legacy_u64(metadata, "limits.tools.max_tool_schema_bytes"),
-        max_tool_examples_per_tool: legacy_u64(metadata, "limits.tools.max_tool_examples_per_tool"),
-        max_tool_example_input_bytes: legacy_u64(
+        max_binding_timeout_ms: legacy_u64(metadata, "limits.bindings.max_binding_timeout_ms"),
+        max_registered_binding_groups: legacy_u64(
             metadata,
-            "limits.tools.max_tool_example_input_bytes",
+            "limits.bindings.max_registered_binding_groups",
+        ),
+        max_registered_bindings_per_vm: legacy_u64(
+            metadata,
+            "limits.bindings.max_registered_bindings_per_vm",
+        ),
+        max_bindings_per_group: legacy_u64(metadata, "limits.bindings.max_bindings_per_group"),
+        max_binding_schema_bytes: legacy_u64(metadata, "limits.bindings.max_binding_schema_bytes"),
+        max_binding_examples_per_binding: legacy_u64(
+            metadata,
+            "limits.bindings.max_binding_examples_per_binding",
+        ),
+        max_binding_example_input_bytes: legacy_u64(
+            metadata,
+            "limits.bindings.max_binding_example_input_bytes",
         ),
     };
     let plugins = secure_exec_vm_config::PluginLimitsConfig {
@@ -515,7 +524,7 @@ fn legacy_limits_config(
     let config = secure_exec_vm_config::VmLimitsConfig {
         resources: legacy_has_resource_limits(&resources).then_some(resources),
         http: http.max_fetch_response_bytes.is_some().then_some(http),
-        tools: legacy_has_tool_limits(&tools).then_some(tools),
+        bindings: legacy_has_binding_limits(&bindings).then_some(bindings),
         plugins: legacy_has_plugin_limits(&plugins).then_some(plugins),
         acp: legacy_has_acp_limits(&acp).then_some(acp),
         js_runtime: legacy_has_js_runtime_limits(&js_runtime).then_some(js_runtime),
@@ -525,7 +534,7 @@ fn legacy_limits_config(
 
     if config.resources.is_none()
         && config.http.is_none()
-        && config.tools.is_none()
+        && config.bindings.is_none()
         && config.plugins.is_none()
         && config.acp.is_none()
         && config.js_runtime.is_none()
@@ -569,15 +578,15 @@ fn legacy_has_resource_limits(config: &secure_exec_vm_config::ResourceLimitsConf
         || config.max_wasm_stack_bytes.is_some()
 }
 
-fn legacy_has_tool_limits(config: &secure_exec_vm_config::ToolLimitsConfig) -> bool {
-    config.default_tool_timeout_ms.is_some()
-        || config.max_tool_timeout_ms.is_some()
-        || config.max_registered_toolkits.is_some()
-        || config.max_registered_tools_per_vm.is_some()
-        || config.max_tools_per_toolkit.is_some()
-        || config.max_tool_schema_bytes.is_some()
-        || config.max_tool_examples_per_tool.is_some()
-        || config.max_tool_example_input_bytes.is_some()
+fn legacy_has_binding_limits(config: &secure_exec_vm_config::BindingLimitsConfig) -> bool {
+    config.default_binding_timeout_ms.is_some()
+        || config.max_binding_timeout_ms.is_some()
+        || config.max_registered_binding_groups.is_some()
+        || config.max_registered_bindings_per_vm.is_some()
+        || config.max_bindings_per_group.is_some()
+        || config.max_binding_schema_bytes.is_some()
+        || config.max_binding_examples_per_binding.is_some()
+        || config.max_binding_example_input_bytes.is_some()
 }
 
 fn legacy_has_plugin_limits(config: &secure_exec_vm_config::PluginLimitsConfig) -> bool {

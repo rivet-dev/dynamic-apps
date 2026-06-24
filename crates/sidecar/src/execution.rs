@@ -2,6 +2,10 @@
 
 use secure_exec_vm_config as vm_config;
 
+use crate::bindings::{
+    format_binding_failure_output, is_binding_command, normalized_binding_command_name,
+    resolve_binding_command, BindingCommandResolution,
+};
 use crate::filesystem::{
     handle_python_vfs_rpc_request as filesystem_handle_python_vfs_rpc_request,
     service_javascript_fs_sync_rpc, service_javascript_module_sync_rpc,
@@ -32,23 +36,19 @@ use crate::state::{
     ActiveExecution, ActiveExecutionEvent, ActiveHttp2Server, ActiveHttp2Session,
     ActiveHttp2Stream, ActiveHttpServer, ActiveMappedHostFd, ActiveProcess, ActiveSqliteDatabase,
     ActiveSqliteStatement, ActiveTcpListener, ActiveTcpSocket, ActiveTlsState, ActiveTlsStream,
-    ActiveUdpSocket, ActiveUnixListener, ActiveUnixSocket, BridgeError, ExitedProcessSnapshot,
-    Http2BridgeEvent, Http2RuntimeSnapshot, Http2SessionCommand, Http2SessionSnapshot,
-    Http2SocketSnapshot, JavascriptHttpLoopbackTarget, JavascriptSocketFamily,
-    JavascriptSocketPathContext, JavascriptTcpListenerEvent, JavascriptTcpSocketEvent,
-    JavascriptTlsBridgeOptions, JavascriptTlsClientHello, JavascriptTlsDataValue,
-    JavascriptTlsMaterial, JavascriptUdpFamily, JavascriptUdpSocketEvent,
+    ActiveUdpSocket, ActiveUnixListener, ActiveUnixSocket, BindingExecution, BridgeError,
+    ExitedProcessSnapshot, Http2BridgeEvent, Http2RuntimeSnapshot, Http2SessionCommand,
+    Http2SessionSnapshot, Http2SocketSnapshot, JavascriptHttpLoopbackTarget,
+    JavascriptSocketFamily, JavascriptSocketPathContext, JavascriptTcpListenerEvent,
+    JavascriptTcpSocketEvent, JavascriptTlsBridgeOptions, JavascriptTlsClientHello,
+    JavascriptTlsDataValue, JavascriptTlsMaterial, JavascriptUdpFamily, JavascriptUdpSocketEvent,
     JavascriptUnixListenerEvent, NetworkResourceCounts, PendingTcpSocket, PendingUnixSocket,
     ProcNetEntry, ProcessEventEnvelope, ResolvedChildProcessExecution, ResolvedTcpConnectAddr,
-    SharedBridge, SharedSidecarRequestClient, SidecarKernel, SocketQueryKind, ToolExecution,
-    VmDnsConfig, VmListenPolicy, VmState, DEFAULT_JAVASCRIPT_NET_BACKLOG, EXECUTION_DRIVER_NAME,
-    EXECUTION_SANDBOX_ROOT_ENV, JAVASCRIPT_COMMAND, LOOPBACK_EXEMPT_PORTS_ENV,
-    MAPPED_HOST_FD_START, PYTHON_COMMAND, TOOL_DRIVER_NAME,
+    SharedBridge, SharedSidecarRequestClient, SidecarKernel, SocketQueryKind, VmDnsConfig,
+    VmListenPolicy, VmState, BINDING_DRIVER_NAME, DEFAULT_JAVASCRIPT_NET_BACKLOG,
+    EXECUTION_DRIVER_NAME, EXECUTION_SANDBOX_ROOT_ENV, JAVASCRIPT_COMMAND,
+    LOOPBACK_EXEMPT_PORTS_ENV, MAPPED_HOST_FD_START, PYTHON_COMMAND,
     VM_LISTEN_ALLOW_PRIVILEGED_METADATA_KEY, WASM_COMMAND, WASM_STDIO_SYNC_RPC_ENV,
-};
-use crate::tools::{
-    format_tool_failure_output, is_tool_command, normalized_tool_command_name,
-    resolve_tool_command, ToolCommandResolution,
 };
 use crate::wire::{ProtocolFrame as WireProtocolFrame, WireFrameCodec, DEFAULT_MAX_FRAME_BYTES};
 use crate::{DispatchResult, NativeSidecar, NativeSidecarBridge, SidecarError};
@@ -537,8 +537,8 @@ impl ActiveProcess {
     }
 }
 
-fn poll_tool_process_event(
-    execution: &ToolExecution,
+fn poll_binding_process_event(
+    execution: &BindingExecution,
 ) -> Result<Option<ActiveExecutionEvent>, SidecarError> {
     let event = execution
         .pending_events
@@ -2472,7 +2472,7 @@ impl ActiveExecution {
             Self::Javascript(execution) => execution.uses_shared_v8_runtime(),
             Self::Python(execution) => execution.uses_shared_v8_runtime(),
             Self::Wasm(execution) => execution.uses_shared_v8_runtime(),
-            Self::Tool(_) => false,
+            Self::Binding(_) => false,
         }
     }
 
@@ -2481,7 +2481,7 @@ impl ActiveExecution {
             Self::Javascript(execution) => execution.child_pid(),
             Self::Python(execution) => execution.child_pid(),
             Self::Wasm(execution) => execution.child_pid(),
-            Self::Tool(_) => 0,
+            Self::Binding(_) => 0,
         }
     }
 
@@ -2496,7 +2496,7 @@ impl ActiveExecution {
             Self::Wasm(execution) => execution
                 .write_stdin(chunk)
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            Self::Tool(_) => Ok(()),
+            Self::Binding(_) => Ok(()),
         }
     }
 
@@ -2511,7 +2511,7 @@ impl ActiveExecution {
             Self::Wasm(execution) => execution
                 .close_stdin()
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            Self::Tool(_) => Ok(()),
+            Self::Binding(_) => Ok(()),
         }
     }
 
@@ -2583,7 +2583,7 @@ impl ActiveExecution {
             Self::Wasm(execution) => execution
                 .terminate()
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            Self::Tool(_) => Ok(()),
+            Self::Binding(_) => Ok(()),
         }
     }
 
@@ -2700,9 +2700,9 @@ impl ActiveExecution {
                     })
                 })
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            Self::Tool(execution) => {
+            Self::Binding(execution) => {
                 let _ = timeout;
-                poll_tool_process_event(execution)
+                poll_binding_process_event(execution)
             }
         }
     }
@@ -2774,26 +2774,26 @@ impl ActiveExecution {
                     })
                 })
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            Self::Tool(execution) => {
+            Self::Binding(execution) => {
                 let _ = timeout;
-                poll_tool_process_event(execution)
+                poll_binding_process_event(execution)
             }
         }
     }
 }
 
-struct ToolProcessEventRequest {
+struct BindingProcessEventRequest {
     sidecar_requests: SharedSidecarRequestClient,
     connection_id: String,
     session_id: String,
     vm_id: String,
-    tool_resolution: ToolCommandResolution,
+    binding_resolution: BindingCommandResolution,
     cancelled: Arc<AtomicBool>,
     pending_events: Arc<Mutex<VecDeque<ActiveExecutionEvent>>>,
     events_overflowed: Arc<AtomicBool>,
 }
 
-pub(crate) fn send_tool_process_event(
+pub(crate) fn send_binding_process_event(
     pending_events: &Arc<Mutex<VecDeque<ActiveExecutionEvent>>>,
     events_overflowed: &AtomicBool,
     event: ActiveExecutionEvent,
@@ -2809,33 +2809,33 @@ pub(crate) fn send_tool_process_event(
     true
 }
 
-fn spawn_tool_process_events(request: ToolProcessEventRequest) {
-    let ToolProcessEventRequest {
+fn spawn_binding_process_events(request: BindingProcessEventRequest) {
+    let BindingProcessEventRequest {
         sidecar_requests,
         connection_id,
         session_id,
         vm_id,
-        tool_resolution,
+        binding_resolution,
         cancelled,
         pending_events,
         events_overflowed,
     } = request;
-    std::thread::spawn(move || match tool_resolution {
-        ToolCommandResolution::Failure(message) => {
-            if !send_tool_process_event(
+    std::thread::spawn(move || match binding_resolution {
+        BindingCommandResolution::Failure(message) => {
+            if !send_binding_process_event(
                 &pending_events,
                 &events_overflowed,
-                ActiveExecutionEvent::Stderr(format_tool_failure_output(&message)),
+                ActiveExecutionEvent::Stderr(format_binding_failure_output(&message)),
             ) {
                 return;
             }
-            let _ = send_tool_process_event(
+            let _ = send_binding_process_event(
                 &pending_events,
                 &events_overflowed,
                 ActiveExecutionEvent::Exited(1),
             );
         }
-        ToolCommandResolution::Invoke { request, timeout } => {
+        BindingCommandResolution::Invoke { request, timeout } => {
             let response = sidecar_requests.invoke(
                 OwnershipScope::vm(connection_id.clone(), session_id.clone(), vm_id.clone()),
                 SidecarRequestPayload::HostCallback(request.clone()),
@@ -2855,34 +2855,34 @@ fn spawn_tool_process_events(request: ToolProcessEventRequest) {
                             "result": value,
                         }))
                         .unwrap_or_else(|error| {
-                            format_tool_failure_output(&format!(
-                                "failed to serialize tool result: {error}"
+                            format_binding_failure_output(&format!(
+                                "failed to serialize binding result: {error}"
                             ))
                         });
-                        if !send_tool_process_event(
+                        if !send_binding_process_event(
                             &pending_events,
                             &events_overflowed,
                             ActiveExecutionEvent::Stdout(stdout),
                         ) {
                             return;
                         }
-                        let _ = send_tool_process_event(
+                        let _ = send_binding_process_event(
                             &pending_events,
                             &events_overflowed,
                             ActiveExecutionEvent::Exited(0),
                         );
                     } else {
-                        let message = result
-                            .error
-                            .unwrap_or_else(|| String::from("tool invocation returned no result"));
-                        if !send_tool_process_event(
+                        let message = result.error.unwrap_or_else(|| {
+                            String::from("binding invocation returned no result")
+                        });
+                        if !send_binding_process_event(
                             &pending_events,
                             &events_overflowed,
-                            ActiveExecutionEvent::Stderr(format_tool_failure_output(&message)),
+                            ActiveExecutionEvent::Stderr(format_binding_failure_output(&message)),
                         ) {
                             return;
                         }
-                        let _ = send_tool_process_event(
+                        let _ = send_binding_process_event(
                             &pending_events,
                             &events_overflowed,
                             ActiveExecutionEvent::Exited(1),
@@ -2890,32 +2890,32 @@ fn spawn_tool_process_events(request: ToolProcessEventRequest) {
                     }
                 }
                 Ok(_) => {
-                    if !send_tool_process_event(
+                    if !send_binding_process_event(
                         &pending_events,
                         &events_overflowed,
-                        ActiveExecutionEvent::Stderr(format_tool_failure_output(
-                            "unexpected sidecar tool response",
+                        ActiveExecutionEvent::Stderr(format_binding_failure_output(
+                            "unexpected sidecar binding response",
                         )),
                     ) {
                         return;
                     }
-                    let _ = send_tool_process_event(
+                    let _ = send_binding_process_event(
                         &pending_events,
                         &events_overflowed,
                         ActiveExecutionEvent::Exited(1),
                     );
                 }
                 Err(error) => {
-                    if !send_tool_process_event(
+                    if !send_binding_process_event(
                         &pending_events,
                         &events_overflowed,
-                        ActiveExecutionEvent::Stderr(format_tool_failure_output(
+                        ActiveExecutionEvent::Stderr(format_binding_failure_output(
                             &error.to_string(),
                         )),
                     ) {
                         return;
                     }
-                    let _ = send_tool_process_event(
+                    let _ = send_binding_process_event(
                         &pending_events,
                         &events_overflowed,
                         ActiveExecutionEvent::Exited(1),
@@ -2951,8 +2951,8 @@ where
         }
 
         if let Some(command) = payload.command.as_deref() {
-            if let Some(tool_resolution) =
-                resolve_tool_command(vm, command, &payload.args, payload.cwd.as_deref())?
+            if let Some(binding_resolution) =
+                resolve_binding_command(vm, command, &payload.args, payload.cwd.as_deref())?
             {
                 let guest_cwd = payload
                     .cwd
@@ -2963,7 +2963,7 @@ where
                     .kernel
                     .create_virtual_process(
                         EXECUTION_DRIVER_NAME,
-                        TOOL_DRIVER_NAME,
+                        BINDING_DRIVER_NAME,
                         command,
                         std::iter::once(command.to_owned())
                             .chain(payload.args.iter().cloned())
@@ -2976,28 +2976,28 @@ where
                     )
                     .map_err(kernel_error)?;
                 let kernel_pid = kernel_handle.pid();
-                let tool_execution = ToolExecution::default();
-                let cancelled = tool_execution.cancelled.clone();
-                let pending_events = tool_execution.pending_events.clone();
-                let events_overflowed = tool_execution.events_overflowed.clone();
+                let binding_execution = BindingExecution::default();
+                let cancelled = binding_execution.cancelled.clone();
+                let pending_events = binding_execution.pending_events.clone();
+                let events_overflowed = binding_execution.events_overflowed.clone();
                 vm.active_processes.insert(
                     payload.process_id.clone(),
                     ActiveProcess::new(
                         kernel_pid,
                         kernel_handle,
                         GuestRuntimeKind::JavaScript,
-                        ActiveExecution::Tool(tool_execution),
+                        ActiveExecution::Binding(binding_execution),
                     )
                     .with_guest_cwd(guest_cwd.clone())
                     .with_host_cwd(resolve_vm_guest_path_to_host(vm, &guest_cwd)),
                 );
                 self.bridge.emit_lifecycle(&vm_id, LifecycleState::Busy)?;
-                spawn_tool_process_events(ToolProcessEventRequest {
+                spawn_binding_process_events(BindingProcessEventRequest {
                     sidecar_requests: self.sidecar_requests.clone(),
                     connection_id: connection_id.clone(),
                     session_id: session_id.clone(),
                     vm_id: vm_id.clone(),
-                    tool_resolution,
+                    binding_resolution,
                     cancelled,
                     pending_events,
                     events_overflowed,
@@ -3583,7 +3583,7 @@ where
         let kernel_pid = process.kernel_pid;
 
         enum KillBehavior {
-            Tool,
+            Binding,
             SharedV8StateOnly,
             SharedV8Continue,
             SharedV8Terminate,
@@ -3593,7 +3593,7 @@ where
         }
 
         let behavior = match &process.execution {
-            ActiveExecution::Tool(_) => KillBehavior::Tool,
+            ActiveExecution::Binding(_) => KillBehavior::Binding,
             ActiveExecution::Javascript(execution)
                 if execution.uses_shared_v8_runtime() && matches!(signal, 0 | libc::SIGSTOP) =>
             {
@@ -3642,9 +3642,9 @@ where
         };
 
         match behavior {
-            KillBehavior::Tool => {
-                let ActiveExecution::Tool(execution) = &process.execution else {
-                    unreachable!("kill behavior must match tool execution");
+            KillBehavior::Binding => {
+                let ActiveExecution::Binding(execution) = &process.execution else {
+                    unreachable!("kill behavior must match binding execution");
                 };
                 if signal != 0 {
                     execution.cancelled.store(true, Ordering::Relaxed);
@@ -4957,8 +4957,8 @@ where
             (request.command.clone(), request.args.clone())
         };
         let process_args = apply_shell_cwd_prefix(&command, process_args, &guest_cwd);
-        if is_tool_command(vm, &command) {
-            let command = normalized_tool_command_name(&command).unwrap_or(command);
+        if is_binding_command(vm, &command) {
+            let command = normalized_binding_command_name(&command).unwrap_or(command);
             return Ok(ResolvedChildProcessExecution {
                 command: command.clone(),
                 process_args: std::iter::once(command.clone())
@@ -4971,7 +4971,7 @@ where
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: true,
+                binding_command: true,
             });
         }
 
@@ -5022,7 +5022,7 @@ where
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
 
@@ -5055,7 +5055,7 @@ where
                     guest_cwd,
                     host_cwd,
                     wasm_permission_tier: None,
-                    tool_command: false,
+                    binding_command: false,
                 });
             }
 
@@ -5073,7 +5073,7 @@ where
                     guest_cwd,
                     host_cwd,
                     wasm_permission_tier: None,
-                    tool_command: false,
+                    binding_command: false,
                 });
             }
 
@@ -5094,7 +5094,7 @@ where
                     guest_cwd,
                     host_cwd,
                     wasm_permission_tier: None,
-                    tool_command: false,
+                    binding_command: false,
                 });
             }
 
@@ -5158,7 +5158,7 @@ where
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
 
@@ -5205,7 +5205,7 @@ where
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
         prepare_guest_runtime_env(
@@ -5228,7 +5228,7 @@ where
             guest_cwd,
             host_cwd,
             wasm_permission_tier,
-            tool_command: false,
+            binding_command: false,
         })
     }
 
@@ -5269,9 +5269,9 @@ where
             .get_mut(vm_id)
             .ok_or_else(|| missing_vm_error(vm_id))?;
         let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd) = if resolved
-            .tool_command
+            .binding_command
         {
-            let tool_resolution = resolve_tool_command(
+            let binding_resolution = resolve_binding_command(
                 vm,
                 &resolved.command,
                 &resolved.execution_args,
@@ -5279,7 +5279,7 @@ where
             )?
             .ok_or_else(|| {
                 SidecarError::InvalidState(format!(
-                    "tool command no longer resolves: {}",
+                    "binding command no longer resolves: {}",
                     resolved.command
                 ))
             })?;
@@ -5287,7 +5287,7 @@ where
                 .kernel
                 .create_virtual_process(
                     EXECUTION_DRIVER_NAME,
-                    TOOL_DRIVER_NAME,
+                    BINDING_DRIVER_NAME,
                     &resolved.command,
                     resolved.process_args.clone(),
                     VirtualProcessOptions {
@@ -5298,16 +5298,16 @@ where
                 )
                 .map_err(kernel_error)?;
             let kernel_pid = kernel_handle.pid();
-            let tool_execution = ToolExecution::default();
-            let cancelled = tool_execution.cancelled.clone();
-            let pending_events = tool_execution.pending_events.clone();
-            let events_overflowed = tool_execution.events_overflowed.clone();
-            spawn_tool_process_events(ToolProcessEventRequest {
+            let binding_execution = BindingExecution::default();
+            let cancelled = binding_execution.cancelled.clone();
+            let pending_events = binding_execution.pending_events.clone();
+            let events_overflowed = binding_execution.events_overflowed.clone();
+            spawn_binding_process_events(BindingProcessEventRequest {
                 sidecar_requests: sidecar_requests.clone(),
                 connection_id: vm.connection_id.clone(),
                 session_id: vm.session_id.clone(),
                 vm_id: vm_id.to_owned(),
-                tool_resolution,
+                binding_resolution,
                 cancelled,
                 pending_events,
                 events_overflowed,
@@ -5315,7 +5315,7 @@ where
             (
                 kernel_pid,
                 kernel_handle,
-                ActiveExecution::Tool(tool_execution),
+                ActiveExecution::Binding(binding_execution),
                 None,
             )
         } else {
@@ -5663,9 +5663,9 @@ where
         let mut child_path = current_process_path.to_vec();
         child_path.push(child_process_id.as_str());
         let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd) = if resolved
-            .tool_command
+            .binding_command
         {
-            let tool_resolution = resolve_tool_command(
+            let binding_resolution = resolve_binding_command(
                 vm,
                 &resolved.command,
                 &resolved.execution_args,
@@ -5673,7 +5673,7 @@ where
             )?
             .ok_or_else(|| {
                 SidecarError::InvalidState(format!(
-                    "tool command no longer resolves: {}",
+                    "binding command no longer resolves: {}",
                     resolved.command
                 ))
             })?;
@@ -5681,7 +5681,7 @@ where
                 .kernel
                 .create_virtual_process(
                     EXECUTION_DRIVER_NAME,
-                    TOOL_DRIVER_NAME,
+                    BINDING_DRIVER_NAME,
                     &resolved.command,
                     resolved.process_args.clone(),
                     VirtualProcessOptions {
@@ -5692,16 +5692,16 @@ where
                 )
                 .map_err(kernel_error)?;
             let kernel_pid = kernel_handle.pid();
-            let tool_execution = ToolExecution::default();
-            let cancelled = tool_execution.cancelled.clone();
-            let pending_events = tool_execution.pending_events.clone();
-            let events_overflowed = tool_execution.events_overflowed.clone();
-            spawn_tool_process_events(ToolProcessEventRequest {
+            let binding_execution = BindingExecution::default();
+            let cancelled = binding_execution.cancelled.clone();
+            let pending_events = binding_execution.pending_events.clone();
+            let events_overflowed = binding_execution.events_overflowed.clone();
+            spawn_binding_process_events(BindingProcessEventRequest {
                 sidecar_requests: sidecar_requests.clone(),
                 connection_id: vm.connection_id.clone(),
                 session_id: vm.session_id.clone(),
                 vm_id: vm_id.to_owned(),
-                tool_resolution,
+                binding_resolution,
                 cancelled,
                 pending_events,
                 events_overflowed,
@@ -5709,7 +5709,7 @@ where
             (
                 kernel_pid,
                 kernel_handle,
-                ActiveExecution::Tool(tool_execution),
+                ActiveExecution::Binding(binding_execution),
                 None,
             )
         } else {
@@ -7418,7 +7418,7 @@ fn resolve_execute_request(
         guest_cwd,
         host_cwd,
         wasm_permission_tier: payload.wasm_permission_tier,
-        tool_command: false,
+        binding_command: false,
     })
 }
 
@@ -7435,8 +7435,9 @@ fn resolve_command_execution(
     env.extend(extra_env.clone());
     let args = apply_shell_cwd_prefix(command, args.to_vec(), &guest_cwd);
 
-    if is_tool_command(vm, command) {
-        let command = normalized_tool_command_name(command).unwrap_or_else(|| command.to_owned());
+    if is_binding_command(vm, command) {
+        let command =
+            normalized_binding_command_name(command).unwrap_or_else(|| command.to_owned());
         return Ok(ResolvedChildProcessExecution {
             command: command.clone(),
             process_args: std::iter::once(command.clone())
@@ -7449,7 +7450,7 @@ fn resolve_command_execution(
             guest_cwd,
             host_cwd,
             wasm_permission_tier: None,
-            tool_command: true,
+            binding_command: true,
         });
     }
 
@@ -7482,7 +7483,7 @@ fn resolve_command_execution(
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
 
@@ -7500,7 +7501,7 @@ fn resolve_command_execution(
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
 
@@ -7521,7 +7522,7 @@ fn resolve_command_execution(
                 guest_cwd,
                 host_cwd,
                 wasm_permission_tier: None,
-                tool_command: false,
+                binding_command: false,
             });
         }
 
@@ -7582,7 +7583,7 @@ fn resolve_command_execution(
             guest_cwd,
             host_cwd,
             wasm_permission_tier: None,
-            tool_command: false,
+            binding_command: false,
         });
     }
 
@@ -7629,7 +7630,7 @@ fn resolve_command_execution(
             guest_cwd,
             host_cwd,
             wasm_permission_tier: None,
-            tool_command: false,
+            binding_command: false,
         });
     }
 
@@ -7677,7 +7678,7 @@ fn resolve_command_execution(
             guest_cwd,
             host_cwd,
             wasm_permission_tier: None,
-            tool_command: false,
+            binding_command: false,
         });
     }
     prepare_guest_runtime_env(
@@ -7700,7 +7701,7 @@ fn resolve_command_execution(
         guest_cwd,
         host_cwd,
         wasm_permission_tier,
-        tool_command: false,
+        binding_command: false,
     })
 }
 
@@ -9173,9 +9174,9 @@ mod runtime_guest_path_mapping_tests {
 #[cfg(test)]
 mod kernel_poll_sync_rpc_tests {
     use super::{
-        service_javascript_kernel_poll_sync_rpc, ActiveExecution, ActiveProcess,
-        JavascriptSyncRpcRequest, KernelPollFdResponse, SidecarKernel, ToolExecution,
-        EXECUTION_DRIVER_NAME, JAVASCRIPT_COMMAND,
+        service_javascript_kernel_poll_sync_rpc, ActiveExecution, ActiveProcess, BindingExecution,
+        JavascriptSyncRpcRequest, KernelPollFdResponse, SidecarKernel, EXECUTION_DRIVER_NAME,
+        JAVASCRIPT_COMMAND,
     };
     use secure_exec_kernel::command_registry::CommandDriver;
     use secure_exec_kernel::kernel::{KernelVmConfig, SpawnOptions};
@@ -9222,7 +9223,7 @@ mod kernel_poll_sync_rpc_tests {
             pid,
             kernel_handle,
             super::GuestRuntimeKind::JavaScript,
-            ActiveExecution::Tool(ToolExecution::default()),
+            ActiveExecution::Binding(BindingExecution::default()),
         );
 
         kernel
@@ -13591,7 +13592,7 @@ where
             ActiveExecution::Javascript(execution) => execution
                 .read_kernel_stdin_sync_rpc(request)
                 .map_err(|error| SidecarError::Execution(error.to_string())),
-            ActiveExecution::Python(_) | ActiveExecution::Wasm(_) | ActiveExecution::Tool(_) => {
+            ActiveExecution::Python(_) | ActiveExecution::Wasm(_) | ActiveExecution::Binding(_) => {
                 service_javascript_kernel_stdin_sync_rpc(kernel, process, request)
             }
         },
@@ -19932,9 +19933,7 @@ where
                 }
             }))
             .map(Value::String)
-            .map_err(|error| {
-                SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}"))
-            })
+            .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
         }
         "net.http_close" => {
             let server_id =

@@ -5,7 +5,7 @@ import type { JsRuntimeLimitsConfig } from "./JsRuntimeLimitsConfig.js";
 import type { PluginLimitsConfig } from "./PluginLimitsConfig.js";
 import type { PythonLimitsConfig } from "./PythonLimitsConfig.js";
 import type { ResourceLimitsConfig } from "./ResourceLimitsConfig.js";
-import type { ToolLimitsConfig } from "./ToolLimitsConfig.js";
+import type { BindingLimitsConfig } from "./BindingLimitsConfig.js";
 import type { WasmLimitsConfig } from "./WasmLimitsConfig.js";
 
-export type VmLimitsConfig = { resources?: ResourceLimitsConfig, http?: HttpLimitsConfig, tools?: ToolLimitsConfig, plugins?: PluginLimitsConfig, acp?: AcpLimitsConfig, jsRuntime?: JsRuntimeLimitsConfig, python?: PythonLimitsConfig, wasm?: WasmLimitsConfig, };
+export type VmLimitsConfig = { resources?: ResourceLimitsConfig, http?: HttpLimitsConfig, bindings?: BindingLimitsConfig, plugins?: PluginLimitsConfig, acp?: AcpLimitsConfig, jsRuntime?: JsRuntimeLimitsConfig, python?: PythonLimitsConfig, wasm?: WasmLimitsConfig, };

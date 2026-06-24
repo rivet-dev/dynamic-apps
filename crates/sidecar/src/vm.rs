@@ -278,7 +278,7 @@ where
                 layers: VmLayerStore::default(),
                 command_guest_paths,
                 command_permissions: BTreeMap::new(),
-                toolkits: BTreeMap::new(),
+                binding_groups: BTreeMap::new(),
                 active_processes: BTreeMap::new(),
                 exited_process_snapshots: VecDeque::new(),
                 detached_child_processes: BTreeSet::new(),

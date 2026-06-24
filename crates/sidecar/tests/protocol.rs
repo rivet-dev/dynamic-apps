@@ -157,7 +157,7 @@ fn codec_round_trips_sidecar_request_and_response_frames() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-1".to_string(),
-            callback_key: "toolkit:tool".to_string(),
+            callback_key: "binding_group:binding".to_string(),
             input: json!({ "prompt": "ping" }).to_string(),
             timeout_ms: 5_000,
         }),
@@ -190,7 +190,7 @@ fn bare_codec_round_trips_frames_with_json_utf8_fields() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-12".to_string(),
-            callback_key: "toolkit:search".to_string(),
+            callback_key: "binding_group:search".to_string(),
             input: json!({
                 "cursor": "abc123",
                 "includeSchema": true,
@@ -384,7 +384,7 @@ fn codec_auto_detects_json_and_bare_payloads() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-1".to_string(),
-            callback_key: "toolkit:search".to_string(),
+            callback_key: "binding_group:search".to_string(),
             input: json!({ "query": "ping" }).to_string(),
             timeout_ms: 2_000,
         }),
@@ -633,7 +633,7 @@ fn sidecar_response_tracker_enforces_request_response_correlation() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-1".to_string(),
-            callback_key: "toolkit:tool".to_string(),
+            callback_key: "binding_group:binding".to_string(),
             input: json!({ "value": 1 }).to_string(),
             timeout_ms: 1_000,
         }),
@@ -675,7 +675,7 @@ fn sidecar_response_tracker_keeps_pending_entries_after_mismatches() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-10".to_string(),
-            callback_key: "toolkit:tool".to_string(),
+            callback_key: "binding_group:binding".to_string(),
             input: json!({ "value": 10 }).to_string(),
             timeout_ms: 1_000,
         }),
@@ -757,7 +757,7 @@ fn sidecar_response_tracker_caps_completed_entries() {
             OwnershipScope::vm("conn-1", "session-1", "vm-1"),
             SidecarRequestPayload::HostCallback(HostCallbackRequest {
                 invocation_id: format!("invoke-{sequence}"),
-                callback_key: "toolkit:tool".to_string(),
+                callback_key: "binding_group:binding".to_string(),
                 input: json!({ "value": sequence }).to_string(),
                 timeout_ms: 1_000,
             }),
@@ -825,7 +825,7 @@ fn codec_rejects_request_id_direction_mismatches() {
         OwnershipScope::vm("conn-1", "session-1", "vm-1"),
         SidecarRequestPayload::HostCallback(HostCallbackRequest {
             invocation_id: "invoke-2".to_string(),
-            callback_key: "toolkit:tool".to_string(),
+            callback_key: "binding_group:binding".to_string(),
             input: json!({}).to_string(),
             timeout_ms: 100,
         }),
