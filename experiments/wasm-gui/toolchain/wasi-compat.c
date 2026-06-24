@@ -12,6 +12,7 @@ int ftrylockfile(FILE *f) { (void)f; return 0; }
 int getpgrp(void) { return 1; }
 int setpgid(int p, int g) { (void)p; (void)g; return 0; }
 int setsid(void) { return 1; }              /* no process sessions on wasi (JWM/WMs call it once) */
+int setgroups(unsigned long n, const void *list) { (void)n; (void)list; return 0; } /* no supplementary groups; dbus-daemon drops privs at startup (no-op in the single-identity sandbox) */
 void tzset(void) {}                          /* no timezone db on wasi; localtime stays UTC */
 unsigned umask(unsigned m) { (void)m; return 0; }
 /* pthread_sigmask: wasi has no signals, so a no-op is correct on both profiles. The threaded sysroot

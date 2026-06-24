@@ -165,9 +165,15 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
 
 > Naming: **XU#** to distinguish from `SPEC.md`'s M#. Order is dependency-first.
 
-- **XU0 — D-Bus session bus.** ⬜ `dbus-daemon` (unmodified) runs as a guest; a test client
-  round-trips a method call + signal over the session bus. Proof: log of a `dbus-send`/`dbus-monitor`
-  round-trip. **Gates everything else.**
+- **XU0 — D-Bus session bus.** 🟡 BUILD HALF DONE (2026-06-24). `dbus-daemon` + `dbus-send` +
+  `dbus-monitor` (dbus 1.14.10) cross-compile from UNMODIFIED upstream (`scripts/build-dbus.sh`) and run
+  as wasm guests; the daemon uses the host_net AF_UNIX socket layer. Platform fixes (constraint #5):
+  configure without `--allow-undefined` for accurate feature detection (else false Solaris
+  `getpeerucred`→`<ucred.h>`); `setgroups()` no-op stub in `wasi-compat.c`. The daemon instantiates and
+  starts; it needs the kernel-VFS `/dev/null`+`/dev/urandom` (device_layer.rs provides them for
+  kernel-VFS/X-mode guests; the host-backed `--exec` fs does not). **REMAINING for XU0 acceptance:** a
+  multi-guest kernel-VFS harness (`dbus-daemon` + a client sharing the kernel socket table) for the
+  method-call + signal round-trip. Proof: a `dbus-send`/`dbus-monitor` round-trip log. **Gates everything else.**
 - **XU1 — xfconf + xfsettingsd.** ⬜ xfconf stores/serves a value over D-Bus; xfsettingsd pushes
   XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window in Greybird, not default.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
