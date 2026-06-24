@@ -29,10 +29,21 @@ if [ -f "$BW/hw/vfb/Xvfb" ]; then
   # across signatures; without emulation wasm traps "null function or function signature mismatch".
   # --strip-debug/--strip-dwarf: the linked X/font/glib libs carry DWARF that bloats the module and
   # OOMs the V8 isolate. Mirrors the openbox/lxpanel guest post-process.
+  # SECURE_EXEC_KEEP_NAMES=1: build a DIAGNOSTIC Xvfb that KEEPS the wasm `name` section (pass -g to
+  # wasm-opt instead of stripping) so V8 reports real C function names in SECURE_EXEC_STACKDUMP /
+  # v8prof (e.g. WaitForSomething/vfbBlockHandler/Dispatch). fpcast preserves original names; only the
+  # byn$fpcast indirect-call thunks are nameless. Bigger (~12MB) but deployable + runs the real bug.
+  if [ "${SECURE_EXEC_KEEP_NAMES:-0}" = "1" ]; then
+    wasm-opt --fpcast-emu --pass-arg=max-func-params@128 -g \
+      --enable-bulk-memory --enable-threads -O0 "$BW/hw/vfb/Xvfb" -o "$EXP/Xvfb.wasm" 2>/dev/null \
+      || { echo "wasm-opt FAILED"; exit 1; }
+    echo "linked + fpcast + NAMED Xvfb.wasm ($(stat -c%s "$EXP/Xvfb.wasm") bytes)"
+  else
   wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf \
     --enable-bulk-memory --enable-threads -O0 "$BW/hw/vfb/Xvfb" -o "$EXP/Xvfb.wasm" 2>/dev/null \
     || { echo "wasm-opt FAILED"; exit 1; }
   echo "linked + fpcast Xvfb.wasm ($(stat -c%s "$EXP/Xvfb.wasm") bytes)"
+  fi
 else
   echo "LINK FAILED (rc=$RC)"; exit 1
 fi

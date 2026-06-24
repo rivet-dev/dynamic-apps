@@ -784,6 +784,19 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     shim — NOT the X server source (constraint #5). Repro + full chain: memory `wasm-gui-m8.6-futex-storm-rootcause`;
     proof PNG `~/tmp/gui-progress/2026-06-24T08/proof-m8.6-openbox-xclock-BLACK.png`.
 
+  - **🔬 SYMBOLIZED (2026-06-24, loop iter3) — the spin is Xvfb's dispatch loop, `WaitForSomething` not blocking.**
+    Broke the symbolization wall: the pre-`wasm-opt` Xvfb intermediate HAS a `name` section; `wasm-opt --strip-debug`
+    drops it. New `SECURE_EXEC_KEEP_NAMES=1 bash scripts/link-xvfb.sh` keeps it (`-g`, no strip) → a deployable
+    fpcast'd Xvfb where V8 reports real C names (the **M8.1 DWARF-symbolizer deliverable, DONE** — same `-g` trick
+    will name pcmanfm/lxpanel/openbox). Named stack of the 100%-CPU Xvfb thread (single-threaded — `input_thread=false`):
+    `_start→main→dix_main→Dispatch→WaitForSomething→BlockHandler→vfbBlockHandler→pwrite→fd_pwrite→writeSync(1.2MB fb)`.
+    So `WaitForSomething` (os/WaitFor.c, the X-server core poll that SHOULD block) returns immediately, and every
+    iteration `vfbBlockHandler` `pwrite`s the full 1.2MB framebuffer (fd=65) via the sync-RPC bridge — the 1.2MB
+    serialize+Atomics.wait per cycle IS the 97% futex storm. The fb-write is not the bug; **`WaitForSomething` not
+    blocking is.** Xvfb's `ospoll` uses host epoll (strace: epoll_wait). NEXT: instrument the host epoll/readiness
+    bridge to find which client fd is perpetually reported ready (suspect openbox's fd stuck EPOLLHUP/EPOLLOUT after
+    the BadAlloc errors at seq 127/166/167) — fix in the kernel/sidecar epoll bridge, not the X server.
+
   **ACCEPTANCE BAR (explicit): a black/empty framebuffer is NOT acceptance.** A decorated-but-empty
   window, a panel with no file manager, or "it would render given ~2 minutes" do NOT count. M8.6 is
   green ONLY when a single screenshot shows the FULL live LXDE desktop working together: the openbox-
