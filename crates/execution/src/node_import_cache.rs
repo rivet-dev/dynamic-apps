@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "93";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "97";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8788,6 +8788,7 @@ const guestArgv = JSON.parse(process.env.AGENT_OS_GUEST_ARGV ?? '[]');
 const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
 const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
+try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -11062,6 +11063,27 @@ function callSyncRpc(method, args = []) {
     globalThis.__agentOsSyncRpc &&
     typeof globalThis.__agentOsSyncRpc.callSync === 'function'
   ) {
+    // Optional sync-RPC profiler (off unless globalThis.__rpcprof is set): count + blocking-time by
+    // method, logged every 5s. Used to find the dominant round-trip cost when tuning toward native speed.
+    if (globalThis.__rpcprof) {
+      const _np = (globalThis.__rpcNow || (globalThis.__rpcNow = (typeof performance === 'object' && performance.now ? () => performance.now() : () => Date.now())));
+      const _t0 = _np();
+      const _r = globalThis.__agentOsSyncRpc.callSync(method, args);
+      const _dt = _np() - _t0;
+      const M = (globalThis.__rpcM = globalThis.__rpcM || {});
+      const m = (M[method] = M[method] || { n: 0, ms: 0 });
+      m.n++; m.ms += _dt;
+      const now = Date.now();
+      if (!globalThis.__rpcLast) globalThis.__rpcLast = now;
+      if (now - globalThis.__rpcLast >= 5000) {
+        globalThis.__rpcLast = now;
+        let tn = 0, tms = 0; for (const k in M) { tn += M[k].n; tms += M[k].ms; }
+        const top = Object.entries(M).sort((a, b) => b[1].ms - a[1].ms).slice(0, 6)
+          .map(([k, v]) => `${k}(n=${v.n},ms=${v.ms.toFixed(0)},us/call=${(v.ms * 1000 / v.n).toFixed(0)})`).join(' ');
+        try { process.stderr.write(`[rpcprof] totalN=${tn} totalMs=${tms.toFixed(0)} | ${top}\n`); } catch (_e) {}
+      }
+      return _r;
+    }
     return globalThis.__agentOsSyncRpc.callSync(method, args);
   }
 
@@ -11451,6 +11473,7 @@ const hostNetImport = {
     // these, so net_poll must match or POLLOUT readiness is never reported and writers block.
     const POLLIN = 0x001;
     const POLLOUT = 0x002;
+    const ACCEPT_POLL_INTERVAL_MS = 50;
     const t = Number(timeoutMs) | 0;
     const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
     // Generation of the process socket-readiness signal. Reading it here, BEFORE the first drain/scan,
@@ -11503,8 +11526,19 @@ const hostNetImport = {
                 // Report the listener readable only when a connection is actually pending.
                 if (!socket.pendingAccepts) socket.pendingAccepts = [];
                 if (socket.pendingAccepts.length === 0) {
-                  const accepted = tryHostNetAcceptOnce(socket);
-                  if (accepted) socket.pendingAccepts.push(accepted);
+                  // Throttle the net.server_accept probe on timeout=0 spin polls: a busy X server
+                  // spins these (output_pending) and re-probing its listener every spin is pure
+                  // futex waste (measured ~⅓ of total sync-RPC time). Blocking polls (t!==0) always
+                  // probe so a new client still connects within one poll cycle.
+                  const nowMs = Date.now();
+                  const probe = t !== 0 ||
+                    socket.__lastAcceptPoll === undefined ||
+                    nowMs - socket.__lastAcceptPoll >= ACCEPT_POLL_INTERVAL_MS;
+                  if (probe) {
+                    socket.__lastAcceptPoll = nowMs;
+                    const accepted = tryHostNetAcceptOnce(socket);
+                    if (accepted) socket.pendingAccepts.push(accepted);
+                  }
                 }
                 if (socket.pendingAccepts.length > 0) revents |= POLLIN;
               }
