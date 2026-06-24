@@ -821,8 +821,15 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   it a fast "normal run". **Interactivity VERIFIED** (2026-06-24): an XTEST motion+click on the "home"
   folder in the live session selected it (highlight + cursor moved + status bar -> "home inode/directory
   type"), via the `INJECT_DELAY_MS` host knob — proof `~/tmp/gui-progress/proof-m8.6-lxde-interactive.png`.
-  So M8.6 is met on every axis (render + populated listing + panel + interactive); the only open item is
-  SPEED (listing ~140s under contention) plus the constraint-#5 repayment of the vfbBlockHandler patch.
+  So M8.6 is met on every axis (render + populated listing + panel + interactive). **X-server speed OPTIMIZED**
+  (2026-06-24): lazy `readReadyGen` on timeout=0 polls + **batched net_poll drain** (one `net.poll` for all of a
+  process's sockets instead of one-per-socket) cut the Xvfb futex storm ~20× (32308→1552 calls/4s) and CPU
+  ~100%→~50%, with no regression. The remaining listing-populate latency (~46s @2 clients, more @3) is then
+  bounded by the single-threaded wasm X server's THROUGHPUT rendering GTK's 21 icon-heavy folder entries +
+  pcmanfm's libfm round-trips (pcmanfm itself is near-idle/waiting, not blocked) — inherent, not a storm. Open
+  items are now just diminishing-returns polish: further listing speed (would need re-enabling the X input
+  thread or cutting GTK render volume) and the constraint-#5 repayment of the M8.0 per-lib X / vfbBlockHandler
+  patches into the sysroot/runtime layer.
 
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
