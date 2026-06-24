@@ -22,9 +22,17 @@ XML2=$(find /nix/store -maxdepth 2 -name "libxml2.so.2" 2>/dev/null | head -1)
 newest_config_sub() { echo "$TP/libX11-threads/config.sub"; }
 LDADD_HOST="-lhostcompat -Wl,--allow-undefined"
 
-# 0. libhostcompat.a must exist (build-openbox.sh makes it; rebuild here too in case)
+# 0. libhostcompat.a must exist (build-openbox.sh makes it; rebuild here too in case). Regenerate the
+# gitignored compat/override objects from source (the shared-workspace cleaner deletes them; a missing
+# member makes `ar` abort and leave a stale archive). override_fcntl/ioctl are the platform libc shims
+# that let libxcb/libX11 use STOCK upstream fcntl/ioctl on host_net sockets (constraint #5).
 "$CC" $CFLAGS -c "$EXP/toolchain/openbox-compat.c" -o "$EXP/toolchain/openbox-compat.o" 2>/dev/null
-"$AR" rcs "$PREFIX/lib/libhostcompat.a" "$EXP"/toolchain/threads-libs/{host_socket,host_pipe_dup,override_fcntl}.o \
+_COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
+  -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread)
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
+"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$EXP/toolchain/threads-libs/override_fcntl.o"
+"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$EXP/toolchain/threads-libs/override_ioctl.o"
+"$AR" rcs "$PREFIX/lib/libhostcompat.a" "$EXP"/toolchain/threads-libs/{host_socket,host_pipe_dup,override_fcntl,override_ioctl}.o \
   "$EXP/toolchain/wasi-compat-threads.o" "$EXP/toolchain/openbox-compat.o"
 
 cfg() { # cfg <dir> <extra configure args...>
