@@ -659,14 +659,30 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     V8's wasm debug interface, OR add a non-blocking breadcrumb host import so guest X-libs/GTK leave a
     call trail without `fprintf`'s cost.
 
-  **NEXT STEPS (M8.6 interior-paint, now scoped by the tooling):** the stall is in-guest and
-  openbox-specific (twm + pcmanfm renders the full listing; openbox + pcmanfm draws chrome then the
-  client area stays black and all guests park). Use #5 + #6 to find which guest parks first and on what
-  (X reply wait / glib cond / a server grab), then fix in the platform layer per constraint #5
-  (Xvfb.wasm / the runtime), never by patching GTK/openbox. Candidate leads already ruled in/out: not a
-  dispatch deadlock (#5); not the non-blocking-poll change (A/B); not an event flood to pcmanfm
-  (decoded ~1.4 PropertyNotify/s); openbox is the chattiest guest (~70% more ops than pcmanfm) so a
-  server-throughput / grab interaction is the leading hypothesis to confirm with #5's per-op view.
+  **NEXT STEPS (M8.6 interior-paint — heavily scoped by the tooling, 2026-06-23):** the stall is
+  in-guest and openbox-specific (twm + pcmanfm renders the full listing 65%; openbox + pcmanfm draws
+  the chrome then the client area stays black and all three guests go QUIESCENTLY idle — op counts
+  freeze, NOT a hard stall). Ruled OUT with the tools, each conclusively:
+  - **not a sidecar/sync-RPC deadlock** — watchdog #5 shows ZERO `DISPATCH STUCK`; the dispatch thread
+    is free the whole time.
+  - **not the non-blocking-poll change** — `SECURE_EXEC_ASYNC_POLL=0` (legacy inline poll) reproduces
+    it identically.
+  - **not a server-grab leak** — server-side Xvfb breadcrumbs show every grab is balanced and BOTH
+    client fds end in LISTEN (the X server re-attends pcmanfm's fd after every grab; `set_poll_client`/
+    `ospoll_listen` work). openbox grabs (3/3) and GTK grabs (2/2) are all paired.
+  - **not GTK's server grab** — neutralizing `gdk_x11_display_grab`'s `XGrabServer` (diag) leaves it
+    black.
+  - **not an event flood** — ~1.4 PropertyNotify/s to pcmanfm; no FocusIn/Out storm.
+  Pre-park trails (#6): openbox parks first after a `net.write` burst (~138s), then Xvfb + pcmanfm
+  ~1.5s later — all waiting for input nobody sends. So pcmanfm's GTK simply never SCHEDULES the
+  interior repaint after the model populates, then everyone idles. The remaining lead is **GTK's
+  paint/frame-clock scheduling under openbox specifically** (twm reparents too but renders): e.g. a
+  `GdkWindowState` (iconified/withdrawn) misread from openbox's reparent UnmapNotify→MapNotify, or the
+  frame clock staying frozen. Confirm by instrumenting `gdk_window_process_updates`/the window-state
+  path (which GTK branch skips the paint), then fix in the platform layer per constraint #5 (Xvfb.wasm
+  reparent/map event delivery, or the runtime) — never by patching GTK/openbox source. The
+  scheduling/throughput half of M8.6 (the 4-guest starvation) IS fixed (non-blocking poll_wait); this
+  interior-paint is the sole remaining gap to M8.6 green.
 
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build

@@ -43,6 +43,9 @@ struct ProcInfo {
     last_method: String,
     last_at: Instant,
     count: u64,
+    /// The last few ops (method + ms-since-base), so a dump shows what a now-idle guest did right
+    /// before it parked — the pre-stall op sequence, not just the final poll.
+    recent: std::collections::VecDeque<(String, u128)>,
 }
 
 struct TraceState {
@@ -102,14 +105,23 @@ pub(crate) fn on_enter(pid: u32, method: &str) -> u64 {
         });
     }
     if let Ok(mut procs) = st.procs.lock() {
+        let base = st.base;
         let e = procs.entry(pid).or_insert_with(|| ProcInfo {
             last_method: String::new(),
             last_at: Instant::now(),
             count: 0,
+            recent: std::collections::VecDeque::with_capacity(8),
         });
         e.last_method = method.to_string();
         e.last_at = Instant::now();
         e.count += 1;
+        // Keep the last few NON-poll ops (polls dominate and obscure the real pre-stall work).
+        if !method.starts_with("net.poll") {
+            e.recent.push_back((method.to_string(), base.elapsed().as_millis()));
+            while e.recent.len() > 6 {
+                e.recent.pop_front();
+            }
+        }
     }
     seq
 }
@@ -195,7 +207,24 @@ fn dump_activity(why: &str) {
         .collect();
     rows.sort_by_key(|r| r.0);
     eprintln!("[rpc-watchdog +{ms}ms] activity ({why}): {} process(es)", rows.len());
-    for (pid, method, idle_ms, count) in rows {
+    for (pid, method, idle_ms, count) in &rows {
         eprintln!("    pid={pid:<6} last={method:<28} idle={idle_ms:>7}ms ops={count}");
+    }
+    // For a guest that has gone idle (parked), print its last non-poll ops: the pre-stall trail.
+    for (pid, _, idle_ms, _) in &rows {
+        if *idle_ms < 1500 {
+            continue;
+        }
+        if let Some(info) = procs.get(pid) {
+            if info.recent.is_empty() {
+                continue;
+            }
+            let trail: Vec<String> = info
+                .recent
+                .iter()
+                .map(|(m, at)| format!("{m}@{at}ms"))
+                .collect();
+            eprintln!("      pid={pid} pre-park trail: {}", trail.join(" -> "));
+        }
     }
 }

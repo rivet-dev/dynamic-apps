@@ -931,6 +931,12 @@ async fn run_xdemo(
                 // core pointer/keyboard model is the honest one. (Standard GDK knob; constraint #5
                 // runtime config, like GIO_USE_VOLUME_MONITOR above.)
                 cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
+                // Forward SE_DIAG_* diagnostic toggles from the host env to the guest (temporary).
+                for (k, v) in std::env::vars() {
+                    if k.starts_with("SE_DIAG_") {
+                        cenv.insert(k, v);
+                    }
+                }
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }
@@ -969,6 +975,12 @@ async fn run_xdemo(
                 // core pointer/keyboard model is the honest one. (Standard GDK knob; constraint #5
                 // runtime config, like GIO_USE_VOLUME_MONITOR above.)
                 cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
+                // Forward SE_DIAG_* diagnostic toggles from the host env to the guest (temporary).
+                for (k, v) in std::env::vars() {
+                    if k.starts_with("SE_DIAG_") {
+                        cenv.insert(k, v);
+                    }
+                }
                 if locale_dir.is_some() {
                     cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                 }
