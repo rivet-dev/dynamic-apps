@@ -758,9 +758,12 @@ async fn run_bus_roundtrip(
     let sargv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
     let mut denv = HashMap::new();
     denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
-    // Forward DBUS_* diagnostics (e.g. DBUS_VERBOSE) from the host env to the guests.
+    // Forward DBUS_*/G_* diagnostics (DBUS_VERBOSE, G_DBUS_DEBUG, G_MESSAGES_DEBUG) to the guests.
     for (k, v) in std::env::vars() {
-        if k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS" {
+        if (k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS")
+            || k == "G_DBUS_DEBUG"
+            || k == "G_MESSAGES_DEBUG"
+        {
             denv.insert(k, v);
         }
     }
@@ -783,7 +786,10 @@ async fn run_bus_roundtrip(
             bus_address.to_string(),
         );
         for (k, v) in std::env::vars() {
-            if k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS" {
+            if (k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS")
+                || k == "G_DBUS_DEBUG"
+                || k == "G_MESSAGES_DEBUG"
+            {
                 cenv.insert(k, v);
             }
         }

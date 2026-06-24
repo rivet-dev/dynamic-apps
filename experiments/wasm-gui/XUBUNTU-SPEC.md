@@ -212,8 +212,27 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     and genuinely waits on write-readiness to flush its auth `OK`/replies, which the X libs never did.
   - The X server M8 spine still passes (twm decorates a window) — no regression. **Gates everything else;
     now unblocked.** TCB note: the daemon is an untrusted guest; no host-fd/privilege expansion.
-- **XU1 — xfconf + xfsettingsd.** ⬜ xfconf stores/serves a value over D-Bus; xfsettingsd pushes
-  XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window in Greybird, not default.
+- **XU1 — xfconf + xfsettingsd.** 🟡 IN PROGRESS (2026-06-24). DoD: xfconf stores/serves a value over
+  D-Bus; xfsettingsd pushes XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window
+  in Greybird, not default. **Foundation de-risked first (constraint #4):** xfconf/xfsettingsd reach the
+  bus via **GDBus** (GIO's D-Bus client), not libdbus — so the gate is GDBus-over-host_net. Built a GDBus
+  probe (`guest-xclient/gdbus-probe.c` + `scripts/build-gdbus-probe.sh`) linked against the threaded
+  GLib/GIO stack + the dbus_creds host_net shims, run against the daemon via `--bus-test`. Progress:
+  - **GIO AF_UNIX connect fixed (general platform bug):** GLib's `g_socket_connect` writes the native
+    address into a `struct sockaddr_storage` and requires `destlen >= sizeof(struct sockaddr_un)` (110);
+    wasi's `sockaddr_storage` was only ~34 bytes (`__ss_data[32]`) → every GIO AF_UNIX connect failed
+    `G_IO_ERROR_NO_SPACE` ("Not enough space for socket address"). Enlarged it to 128 (Linux `_SS_SIZE`)
+    in the wasi sysroot header + recompiled glib's gsocket objects.
+  - **GDBus SASL auth works:** the probe now connects and authenticates over host_net (EXTERNAL is
+    rejected because GIO's `getuid()`→-1 yields `GCredentials:unknown` so it asserts uid 4294967295 ≠ the
+    daemon's SO_PEERCRED 0; it then falls back to **ANONYMOUS**, which the session.conf policy allows).
+  - **REMAINING blocker:** after auth a GDBus **worker thread** spawns to send the initial `Hello`
+    method-call and blocks before the bytes reach the daemon (daemon stays authenticated but silent;
+    client returns "The connection is closed"). This is GLib's GMainContext/GSocket **async I/O on a
+    worker thread** over host_net — the cross-thread GMainContext wakeup that flushes the queued Hello
+    (the M8.5 GIO worker-context-wakeup area). Next: get the GDBus worker's GSource socket I/O +
+    context wakeup pumping over host_net, then build libxfce4util + xfconf (xfconfd + xfconf-query) on
+    top. Proof so far: `~/tmp/gui-progress/2026-06-24T21/xu1-gdbus-probe.txt`.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)
