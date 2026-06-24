@@ -54,6 +54,17 @@ fi
 
 # --- 3. libhostcompat.a (platform host-import shims + compat stubs as a real archive) ---
 "$CC" $CFLAGS -c "$EXP/toolchain/openbox-compat.c" -o "$EXP/toolchain/openbox-compat.o"
+# wasi-compat-threads.o + override_fcntl.o are gitignored (**/*.o) build artifacts that a concurrent
+# session in the shared workspace deletes; regenerate them here from source so the `ar` below never
+# aborts mid-archive (which would silently leave a stale libhostcompat.a missing the host-import shims).
+# override_fcntl.o is compiled from the platform libc fcntl override (the host_net socket-flag handling
+# that lets libxcb use STOCK upstream fcntl — constraint #5).
+# Compile against the vanilla WSDK threaded sysroot (NOT $CFLAGS' patched sysroot, which redeclares
+# getrlimit and conflicts with wasi-compat.c's stub).
+_COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
+  -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread)
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
+"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$TL/override_fcntl.o"
 "$AR" rcs "$PREFIX/lib/libhostcompat.a" "$TL/host_socket.o" "$TL/host_pipe_dup.o" "$TL/override_fcntl.o" \
   "$EXP/toolchain/wasi-compat-threads.o" "$EXP/toolchain/openbox-compat.o"
 echo "  OK libhostcompat.a"
