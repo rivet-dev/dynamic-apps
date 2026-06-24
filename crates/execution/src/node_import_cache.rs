@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "88";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "90";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -13341,13 +13341,35 @@ wasiImport.fd_pwrite = (fd, iovs, iovsLen, offset, nwrittenPtr) => {
   if (handle?.kind === 'guest-file') {
     try {
       const bytes = collectGuestIovBytes(iovs, iovsLen);
-      const written = fsModule.writeSync(
-        handle.targetFd,
-        bytes,
-        0,
-        bytes.length,
-        Number(offset),
-      );
+      const off = Number(offset);
+      // [fb-delta] A wasm X server (Xvfb) pwrites its ENTIRE framebuffer to a host shadow file on every
+      // block handler. The per-write base64 sync-RPC blocks the X server's main thread (~24ms for a
+      // 1.2MB frame), starving request processing and stalling the whole desktop (the timeout=0 feedback
+      // loop). But between blocks almost nothing changes (e.g. only a panel clock digit), so for LARGE
+      // writes we diff against the previous write at the same offset and send ONLY the changed byte range
+      // (written at off+firstDiff). Identical frames are skipped entirely. Always correct: the file
+      // already holds every byte we don't send. This scales the sync-RPC cost with CHANGED pixels, not
+      // frame size, which is what un-starves a multi-client desktop.
+      const n = bytes.length;
+      const last = handle.__fbLast;
+      if (n >= 65536 && last && last.length === n && handle.__fbOff === off) {
+        let lo = 0;
+        while (lo < n && last[lo] === bytes[lo]) lo++;
+        if (lo === n) {
+          return writeGuestUint32(nwrittenPtr, n); // identical frame — file already current
+        }
+        let hi = n - 1;
+        while (hi > lo && last[hi] === bytes[hi]) hi--;
+        const sub = bytes.subarray(lo, hi + 1);
+        const written = fsModule.writeSync(handle.targetFd, sub, 0, sub.length, off + lo);
+        last.set(sub, lo);
+        return writeGuestUint32(nwrittenPtr, written === sub.length ? n : written);
+      }
+      const written = fsModule.writeSync(handle.targetFd, bytes, 0, n, off);
+      if (n >= 65536) {
+        handle.__fbLast = bytes.slice();
+        handle.__fbOff = off;
+      }
       return writeGuestUint32(nwrittenPtr, written);
     } catch {
       return WASI_ERRNO_FAULT;
