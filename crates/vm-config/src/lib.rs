@@ -3,6 +3,10 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+/// Canonical Rust-side VM config. Unknown fields must stay rejected here and in
+/// the TS preflight schema at
+/// `packages/core/src/node-runtime-options-schema.ts`; update both when a
+/// public `NodeRuntime.create(...)` option changes the generated VM config.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export, export_to = "../../../packages/core/src/generated/")]

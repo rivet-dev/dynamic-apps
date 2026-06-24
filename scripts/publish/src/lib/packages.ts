@@ -20,13 +20,6 @@ export interface DiscoverPackagesOptions {
 
 export const EXCLUDED = new Set<string>([
 	"publish",
-	// @secure-exec/core vendors the WASM command binaries (packages/core/commands)
-	// and its `prepack --require` refuses to ship without them. CI no longer
-	// builds WASM, so core — like the @agentos-software/* registry software — is
-	// always published MANUALLY: build the commands locally, then publish core at
-	// the matching release version so dependents resolve. See CLAUDE.md →
-	// "Publishing".
-	"@secure-exec/core",
 ]);
 
 export interface MetaPackageSpec {
@@ -57,7 +50,12 @@ export const SECURE_EXEC_WORKSPACE_PACKAGES = new Set([
 	"@secure-exec/typescript",
 ]);
 
-export const DEFAULT_SIDECAR_PLATFORMS = ["linux-x64-gnu"] as const;
+export const DEFAULT_SIDECAR_PLATFORMS = [
+	"linux-x64-gnu",
+	"linux-arm64-gnu",
+	"darwin-x64",
+	"darwin-arm64",
+] as const;
 
 export function sidecarPlatforms(): string[] {
 	const env = process.env.SIDECAR_PLATFORMS?.trim();
@@ -156,10 +154,9 @@ export function buildMetaPlatformMap(
 
 export function assertDiscoverySanity(packages: Package[]): void {
 	const byName = new Set(packages.map((p) => p.name));
-	// @secure-exec/core is intentionally absent: it vendors WASM commands and is
-	// published manually (see EXCLUDED above), so it is not part of the CI set.
 	const required = [
 		"@secure-exec/browser",
+		"@secure-exec/core",
 		"@secure-exec/google-drive",
 		"@secure-exec/registry-types",
 		"@secure-exec/s3",

@@ -72,7 +72,9 @@ impl UserManager {
             euid: config.euid.unwrap_or(uid),
             egid: config.egid.unwrap_or(gid),
             username: username.clone(),
-            homedir: config.homedir.unwrap_or_else(|| String::from("/home/agentos")),
+            homedir: config
+                .homedir
+                .unwrap_or_else(|| String::from("/home/agentos")),
             shell: config.shell.unwrap_or_else(|| String::from("/bin/sh")),
             gecos: config.gecos.unwrap_or_default(),
             group_name: config.group_name.unwrap_or(username),

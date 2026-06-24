@@ -3741,8 +3741,8 @@ process.exit(0);
     assert_eq!(result["os"]["eol"], "\n");
     assert_eq!(result["os"]["availableParallelism"], 1);
     assert_eq!(result["os"]["cpusLength"], 1);
-    assert_eq!(result["os"]["totalmem"], 1_073_741_824u64);
-    assert_eq!(result["os"]["freemem"], 536_870_912u64);
+    assert_eq!(result["os"]["totalmem"], 134_217_728u64);
+    assert_eq!(result["os"]["freemem"], 134_217_728u64);
     assert_eq!(result["os"]["hasSignals"], true);
     assert!(result["os"]["networkInterfaceKeys"]
         .as_array()

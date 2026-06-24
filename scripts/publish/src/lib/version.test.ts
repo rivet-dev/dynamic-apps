@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { DEFAULT_SIDECAR_PLATFORMS } from "./packages.js";
 import { bumpCargoVersions, bumpPackageJsons } from "./version.js";
 
 async function writeJson(root: string, rel: string, value: unknown) {
@@ -73,10 +74,10 @@ test("bumpPackageJsons injects secure-exec sidecar platform optional dependency"
 			["packages/browser", "@secure-exec/browser"],
 			["packages/registry-types", "@secure-exec/registry-types"],
 			["packages/sidecar", "@secure-exec/sidecar"],
-			[
-				"packages/sidecar/npm/linux-x64-gnu",
-				"@secure-exec/sidecar-linux-x64-gnu",
-			],
+			...DEFAULT_SIDECAR_PLATFORMS.map((platform) => [
+				`packages/sidecar/npm/${platform}`,
+				`@secure-exec/sidecar-${platform}`,
+			]),
 			["registry/file-system/s3", "@secure-exec/s3"],
 			["registry/file-system/google-drive", "@secure-exec/google-drive"],
 			["registry/tool/sandbox", "@secure-exec/sandbox"],
@@ -92,9 +93,15 @@ test("bumpPackageJsons injects secure-exec sidecar platform optional dependency"
 		const sidecarManifest = JSON.parse(
 			await readFile(join(repoRoot, "packages/sidecar/package.json"), "utf8"),
 		);
-		assert.deepEqual(sidecarManifest.optionalDependencies, {
-			"@secure-exec/sidecar-linux-x64-gnu": "0.3.0",
-		});
+		assert.deepEqual(
+			sidecarManifest.optionalDependencies,
+			Object.fromEntries(
+				DEFAULT_SIDECAR_PLATFORMS.map((platform) => [
+					`@secure-exec/sidecar-${platform}`,
+					"0.3.0",
+				]).sort(),
+			),
+		);
 	} finally {
 		await rm(repoRoot, { recursive: true, force: true });
 	}

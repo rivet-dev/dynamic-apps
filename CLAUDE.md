@@ -42,7 +42,7 @@ Two corollaries that are easy to get wrong:
 - Config travels on the **BARE wire/structured request**, not the ambient `AGENTOS_*` env channel. Classify every setting into three buckets: (1) **process-wide / host / build / test → env** (shared across all VMs, not per-VM configurable); (2) **per-VM bootstrap-before-wire → env carve-out** (must exist at `exec` time before the wire/sync-RPC bridge is up: sandbox root, inherited bridge fds, entrypoint/payload); (3) **per-VM runtime config → BARE wire** (anything per-VM the established wire/bridge could carry — limits, virtualized identity, isolation policy). New per-VM settings default to bucket 3. Migrated so far: resource limits + virtualized identity (`process.*` via the runtime shim, `os.*` via the `__agentOSVirtualOs` global). Isolation policy (guest path mappings, extra fs read/write paths, allowed Node builtins, loopback-exempt ports, WASM permission tier) is still on env — bucket 3 but not yet moved. Anti-pattern: a value carried on the wire then silently re-emitted as an env knob (and maybe never read) is the **dead-cap** failure mode — if it's on the wire, the engine must read it from the wire path, never from a duplicated env var. See `crates/sidecar/CLAUDE.md` for the rule.
 - JavaScript host-emulation config (`CreateVmConfig.jsRuntime`) mirrors esbuild's vocabulary so users carry over a known mental model. The host environment presented to guest JS is a `platform`; its values are esbuild's exactly — `node` | `browser` | `neutral` — plus the one sanctioned extension `bare` (language-only: ECMAScript spec globals + WebAssembly, nothing host-provided), for which esbuild has no equivalent. Do not invent other platform names. Wherever a JS runtime/resolution config property has an esbuild equivalent, take esbuild's name and value spelling over any other source (esbuild > tsconfig > ad-hoc); introduce a non-esbuild name only when esbuild has no equivalent concept (e.g. `moduleResolution`, `allowedBuiltins`).
 - `packages/core/` is `@secure-exec/core`, the generic TypeScript protocol, client, descriptor, and runtime asset package.
-- `packages/build-tools/` is `@secure-exec/build-tools`, the workspace-only generator package for V8 bridge and base filesystem assets.
+- `packages/build-tools/` is `@secure-exec/build-tools`, the workspace-only generator package for V8 bridge and base filesystem assets. A fresh checkout must run `pnpm install` before any `cargo` build (including when a downstream like agent-os path-deps these crates): `v8-runtime/build.rs` generates the V8 bridge assets from `packages/build-tools/node_modules` and panics if they are absent.
 - Registry software, filesystem, and tool packages live under `registry/` with the `@secure-exec/*` npm scope.
 
 ## Build And Assets
@@ -67,8 +67,20 @@ Two corollaries that are easy to get wrong:
 - Publish platform binary packages with `npm publish`, not `pnpm publish`, so executable bits are preserved.
 - Resolver packages must return an absolute binary path. Callers pass that typed path to process spawning instead of relying on global environment mutation.
 
+## Development
+
+### Preview-publishing
+
+Dispatch `.github/workflows/publish.yaml` (workflow_dispatch) with no version input to cut a **preview** (debug sidecar build, npm-only, dist-tag = sanitized branch name) — for handing a build to a downstream (agent-os) or external project. **Preview-publish is for previews ONLY; never cut a release with it.** Caveats: WASM-bearing packages (`@secure-exec/core`, `@agentos-software/*`) publish MANUALLY (see Publishing), and the crates.io job is skipped on preview — a *crate* change only reaches consumers locally (path dep / `[patch]`) or via a real release.
+
+### Testing a local build from an external project (same machine)
+
+- **npm:** `pnpm -r build`, then `pnpm pack` the package and `npm install ./secure-exec-core-*.tgz` in the external project (or a `link:`/`file:` override). `@secure-exec/core` needs its WASM commands vendored first (`make -C registry/native wasm`; its `prepack` fails loud if absent).
+- **cargo:** add a path dep or `[patch.crates-io]` override in the external Cargo project, e.g. `[patch.crates-io] secure-exec-sidecar = { path = "/abs/path/secure-exec/crates/sidecar" }`. A fresh checkout needs `pnpm install` first (V8 bridge assets — see Project Boundaries).
+
 ## Publishing
 
+- **The `@secure-exec/*` npm packages and the `secure-exec-*` Cargo crates are always published at the same version** (npm and crates stay in sync), so a downstream pins both to one `<v>`. The `@agentos-software/*` registry software packages are on a **separate** version track.
 - CI (`.github/workflows/publish.yaml`) does NOT build or publish the WASM command binaries. There is no `build-commands` job and nothing restores a `wasm-commands` artifact — the workflow only builds/publishes the sidecar binary and the pure-TS packages.
 - WASM-bearing packages are ALWAYS published MANUALLY: `@secure-exec/core` (which vendors `registry/native` commands into `packages/core/commands` via `copy-wasm-commands.mjs`, guarded by its `prepack --require`) and the `@agentos-software/*` registry software. `@secure-exec/core` is in `EXCLUDED` in `scripts/publish/src/lib/packages.ts`, so CI never publishes it.
 - Manual core flow: build the commands locally (`make -C registry/native wasm`), then `npm publish` (not `pnpm publish`) `@secure-exec/core` at the **same version** CI used for that release so dependents resolving `@secure-exec/core@<version>` succeed. `prepack` vendors the commands and fails loud if they are absent.
@@ -77,6 +89,7 @@ Two corollaries that are easy to get wrong:
 ## Website
 
 - `website/` is `@secure-exec/website`, a unified Astro app serving the public site at **secureexec.dev**: `/` is the React/Tailwind landing page and `/docs/*` is the Starlight documentation.
+- External/consumer usage (installing `@secure-exec/core` and using it in your own project) is documented in the website, not in this file. This `CLAUDE.md` is contributor/maintainer-only.
 - Docs are **user-facing, not internals.** Write for a developer *using the SDK*, not for a contributor maintaining the runtime. Every page is framed around how the SDK is used: what you call, what you pass, what you get back, and what behavior to expect. Do not document internal implementation (kernel data structures, isolate plumbing, refactor history); that belongs in code comments or `CLAUDE.md`. When a page must reference a runtime concept (filesystem model, networking, isolation), explain it through the developer-visible API and behavior, show a quick code example, then link out for the deeper reference rather than narrating internals.
 - Docs are **bullet-heavy and code-heavy, not prose-heavy.** Default to scannable bullet lists in the `- **Foo**: Bar` form (bolded term, then the one-line explanation) instead of paragraphs. Lead with a code snippet wherever a concept has an API, and link to a runnable example under `examples/docs/*` whenever one exists. Avoid long paragraphs; if you find yourself writing more than two or three sentences in a row, convert it to bullets or a code block. Prose is the exception, used only to connect ideas that genuinely cannot be a list.
 - The docs theme matches the Rivet docs (rivet.dev) 1:1: light-only "porcelain" palette, Manrope + JetBrains Mono, dark code blocks.

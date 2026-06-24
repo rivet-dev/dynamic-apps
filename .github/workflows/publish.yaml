@@ -179,11 +179,6 @@ jobs:
           path: target/sidecar-artifacts/${{ matrix.platform }}
           if-no-files-found: error
 
-  # NOTE: WASM command binaries are intentionally NOT built or published here.
-  # The wasm-bearing packages (@secure-exec/core, which vendors the command set,
-  # and the @agentos-software/* registry software) are always published MANUALLY.
-  # See CLAUDE.md → "Publishing" for the manual flow.
-
   publish-npm:
     needs: [context, build-sidecar, build-sidecar-darwin]
     name: "Publish npm"
@@ -198,6 +193,18 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           registry-url: https://registry.npmjs.org
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install registry-native Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          channel=$(awk -F'"' '/channel/ {print $2; exit}' registry/native/rust-toolchain.toml)
+          echo "Registry-native toolchain channel: ${channel}"
+          rustup toolchain install "${channel}" --profile minimal --component rust-src --target wasm32-wasip1
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            registry/native -> registry/native/target
       # Install the full workspace except the `website` package. website is a
       # leaf (nothing depends on it, and it is not published here), and pnpm 10.x
       # intermittently loses a symlink-ordering race creating website/node_modules
@@ -229,6 +236,12 @@ jobs:
             chmod +x "${dest}/${binname}"
             echo "Placed binary for ${p}"
           done
+      - name: Build and vendor core WASM commands
+        run: |
+          set -euo pipefail
+          make -C registry/native wasm
+          pnpm --dir packages/core run copy-commands
+          test -f packages/core/commands/sh
       - name: Bump package versions for build
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts bump-versions \

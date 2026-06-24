@@ -979,10 +979,7 @@ fn wasm_execution_ignores_guest_overrides_for_internal_node_env() {
                 String::from("AGENTOS_WASM_MODULE_PATH"),
                 String::from("./evil.wasm"),
             ),
-            (
-                String::from("AGENTOS_WASM_PREWARM_ONLY"),
-                String::from("1"),
-            ),
+            (String::from("AGENTOS_WASM_PREWARM_ONLY"), String::from("1")),
             (String::from("NODE_OPTIONS"), String::from("--no-warnings")),
         ]),
         WasmPermissionTier::Full,
@@ -1679,10 +1676,8 @@ fn wasm_execution_reuses_shared_warmup_path_across_contexts() {
         vm_id: String::from("vm-wasm"),
         module_path: Some(String::from("./guest.wasm")),
     });
-    let debug_env = BTreeMap::from([(
-        String::from("AGENTOS_WASM_WARMUP_DEBUG"),
-        String::from("1"),
-    )]);
+    let debug_env =
+        BTreeMap::from([(String::from("AGENTOS_WASM_WARMUP_DEBUG"), String::from("1"))]);
 
     let (first_stdout, first_stderr, first_exit) = run_wasm_execution(
         &mut engine,
@@ -1742,10 +1737,8 @@ fn wasm_execution_rewarms_when_symlink_target_changes_with_same_size_module() {
         vm_id: String::from("vm-wasm"),
         module_path: Some(String::from("./guest.wasm")),
     });
-    let debug_env = BTreeMap::from([(
-        String::from("AGENTOS_WASM_WARMUP_DEBUG"),
-        String::from("1"),
-    )]);
+    let debug_env =
+        BTreeMap::from([(String::from("AGENTOS_WASM_WARMUP_DEBUG"), String::from("1"))]);
 
     let (first_stdout, first_stderr, first_exit) = run_wasm_execution(
         &mut engine,
@@ -1798,10 +1791,7 @@ fn wasm_warmup_metrics_encode_emoji_module_paths_as_json() {
         context.context_id,
         temp.path(),
         Vec::new(),
-        BTreeMap::from([(
-            String::from("AGENTOS_WASM_WARMUP_DEBUG"),
-            String::from("1"),
-        )]),
+        BTreeMap::from([(String::from("AGENTOS_WASM_WARMUP_DEBUG"), String::from("1"))]),
         WasmPermissionTier::Full,
     );
     let warmup = parse_warmup_metrics(&stderr);

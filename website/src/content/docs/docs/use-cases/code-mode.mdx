@@ -1,11 +1,11 @@
 ---
 title: "Code Mode (MCP)"
-description: "Give AI agents a single code-execution tool instead of individual MCP tools. The LLM writes code that chains tool calls, executed safely in Secure Exec."
+description: "Give AI agents a single code-execution tool instead of individual MCP tools. The LLM writes code that chains binding calls, executed safely in Secure Exec."
 ---
 
 import { Aside, LinkCard } from '@astrojs/starlight/components';
 
-<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode" description="Full working example: the LLM chains real host-tool calls in one sandboxed run and returns a structured result." />
+<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode" description="Full working example: the LLM chains real host binding calls in one sandboxed run and returns a structured result." />
 
 Instead of calling MCP tools one at a time, Code Mode lets the LLM write JavaScript that orchestrates everything in one go, run safely in a V8 sandbox by Secure Exec.
 
@@ -22,25 +22,37 @@ Instead of calling MCP tools one at a time, Code Mode lets the LLM write JavaScr
 
 ## How it works
 
-1. Register your host tools on the host with `NodeRuntime.create({ tools })`. Each becomes a named command inside the sandbox.
+1. Register your host bindings on the host with `NodeRuntime.create({ bindings })`. Each becomes a named command inside the sandbox.
 2. Give the LLM one tool ("execute code") and feed its generated JavaScript to `rt.run()`.
-3. The generated code invokes your tools by name. Each call round-trips out of the sandbox, runs the tool's host `handler`, and the handler's return value comes back to the guest.
+3. The generated code invokes your bindings by name. Each call round-trips out of the sandbox, runs the binding's host `handler`, and the handler's return value comes back to the guest.
 4. The guest hands a single structured result back to the host with `globalThis.__return(value)`, which `rt.run()` decodes as `result.value`.
 
-Host tools are the heart of Code Mode. The handlers run on the host, never in the sandbox, so the guest gets controlled, named capabilities (the kind an AI agent calls as tools) without being granted the underlying access. Registering tools auto-grants the `tool` permission scope; pass your own `permissions.tool` policy to gate individual tools.
+Host bindings are the heart of Code Mode. The handlers run on the host, never in the sandbox, so the guest gets controlled, named capabilities (the kind an AI agent calls as tools) without being granted the underlying access. Registering bindings auto-grants the `binding` permission scope; pass your own `permissions.binding` policy to gate individual bindings.
 
-## Register the host tools
+## Register the host bindings
 
-Each tool has a `description`, a JSON Schema `inputSchema`, and a `handler`. The handler receives the parsed input and returns a JSON-serializable result.
+Each binding has a `description`, a JSON Schema `inputSchema`, and a `handler`. The handler receives the parsed input and returns a JSON-serializable result.
 
 ```ts
 import { NodeRuntime } from "secure-exec";
 
-// Register the host tools. These handlers run on the HOST, not in the sandbox.
+function readStringField(input: unknown, field: string): string {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new TypeError("binding input must be an object");
+  }
+
+  const value = (input as Record<string, unknown>)[field];
+  if (typeof value !== "string") {
+    throw new TypeError(`${field} must be a string`);
+  }
+  return value;
+}
+
+// Register the host bindings. These handlers run on the HOST, not in the sandbox.
 // In a real app each handler would hit a database, an API, or a service; here we
 // keep them small and deterministic so the example is easy to follow.
 const rt = await NodeRuntime.create({
-  tools: {
+  bindings: {
     "get-weather": {
       description: "Look up the current temperature for a city",
       inputSchema: {
@@ -48,7 +60,8 @@ const rt = await NodeRuntime.create({
         properties: { city: { type: "string" } },
         required: ["city"],
       },
-      handler: ({ city }: { city: string }) => {
+      handler: (input) => {
+        const city = readStringField(input, "city");
         const table: Record<string, { temp_f: number }> = {
           "San Francisco": { temp_f: 61 },
           Tokyo: { temp_f: 75 },
@@ -63,7 +76,8 @@ const rt = await NodeRuntime.create({
         properties: { expression: { type: "string" } },
         required: ["expression"],
       },
-      handler: ({ expression }: { expression: string }) => {
+      handler: (input) => {
+        const expression = readStringField(input, "expression");
         return { result: Number(eval(expression)) };
       },
     },
@@ -73,23 +87,23 @@ const rt = await NodeRuntime.create({
 
 ## The agent's generated code
 
-The agent then generates code like this (call it `llmGeneratedCode`). The guest calls each tool with the `callHostTool(name, input)` global, which resolves with the host handler's return value. It chains three tool calls with real control flow (`Promise.all`, arithmetic, branching) in one execution, then returns a single structured result:
+The agent then generates code like this (call it `llmGeneratedCode`). The guest calls each binding with the `callBinding(name, input)` global, which resolves with the host handler's return value. It chains three binding calls with real control flow (`Promise.all`, arithmetic, branching) in one execution, then returns a single structured result:
 
 ```ts
-// Imagine this string was written by the LLM. It chains three host-tool calls
+// Imagine this string was written by the LLM. It chains three host binding calls
 // with real control flow (Promise.all, arithmetic, branching) in one execution,
-// then hands a single structured result back to the host. callHostTool resolves
+// then hands a single structured result back to the host. callBinding resolves
 // with the host handler's return value.
 const llmGeneratedCode = `
 const [sf, tokyo] = await Promise.all([
-  callHostTool("get-weather", { city: "San Francisco" }),
-  callHostTool("get-weather", { city: "Tokyo" }),
+  callBinding("get-weather", { city: "San Francisco" }),
+  callBinding("get-weather", { city: "Tokyo" }),
 ]);
 
 const diffF = Math.abs(sf.temp_f - tokyo.temp_f);
-const diffC = await callHostTool("calculate", { expression: \`\${diffF} * 5 / 9\` });
+const diffC = await callBinding("calculate", { expression: \`\${diffF} * 5 / 9\` });
 
-console.log("chained 3 tool calls in one sandbox execution");
+console.log("chained 3 binding calls in one sandbox execution");
 
 globalThis.__return({
   san_francisco: sf,
@@ -124,7 +138,7 @@ Three tool calls, one sandbox execution, zero extra LLM round-trips. Running it 
 
 ```text
 exitCode: 0
-stdout: chained 3 tool calls in one sandbox execution
+stdout: chained 3 binding calls in one sandbox execution
 structured result: {
   "san_francisco": {
     "temp_f": 61

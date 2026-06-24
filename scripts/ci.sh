@@ -12,6 +12,9 @@ if [[ -d /workspace/.cargo && -d /workspace/.rustup/toolchains/stable-x86_64-unk
 	export RUSTDOC=/workspace/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustdoc
 fi
 
+export CARGO_HTTP_TIMEOUT="${CARGO_HTTP_TIMEOUT:-120}"
+export CARGO_NET_RETRY="${CARGO_NET_RETRY:-10}"
+
 run_step() {
 	echo ""
 	echo "==> $*"

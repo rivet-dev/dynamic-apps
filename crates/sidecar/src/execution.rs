@@ -10552,6 +10552,7 @@ pub(crate) fn vm_network_resource_counts(vm: &VmState) -> NetworkResourceCounts 
     counts
 }
 
+#[allow(clippy::too_many_arguments)]
 fn collect_javascript_socket_port_state(
     kernel: &SidecarKernel,
     process_id: &str,
@@ -16603,6 +16604,7 @@ fn kernel_http_fetch_target_exit_code(error: &SidecarError) -> Option<i32> {
         .ok()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn service_host_fetch_target_event<B>(
     bridge: &SharedBridge<B>,
     vm_id: &str,
@@ -16700,6 +16702,7 @@ where
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn dispatch_kernel_http_fetch<B>(
     bridge: &SharedBridge<B>,
     vm_id: &str,
@@ -19932,9 +19935,7 @@ where
                 }
             }))
             .map(Value::String)
-            .map_err(|error| {
-                SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}"))
-            })
+            .map_err(|error| SidecarError::Execution(format!("ERR_AGENTOS_NODE_SYNC_RPC: {error}")))
         }
         "net.http_close" => {
             let server_id =

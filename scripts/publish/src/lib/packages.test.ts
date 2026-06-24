@@ -6,6 +6,7 @@ import { join } from "node:path";
 import {
 	assertDiscoverySanity,
 	buildMetaPlatformMap,
+	DEFAULT_SIDECAR_PLATFORMS,
 	discoverPackages,
 	SECURE_EXEC_WORKSPACE_PACKAGES,
 } from "./packages.js";
@@ -45,10 +46,10 @@ function writeSecureExecWorkspace(root: string) {
 		["packages/core", "@secure-exec/core"],
 		["packages/browser", "@secure-exec/browser"],
 		["packages/sidecar", "@secure-exec/sidecar"],
-		[
-			"packages/sidecar/npm/linux-x64-gnu",
-			"@secure-exec/sidecar-linux-x64-gnu",
-		],
+		...DEFAULT_SIDECAR_PLATFORMS.map((platform) => [
+			`packages/sidecar/npm/${platform}`,
+			`@secure-exec/sidecar-${platform}`,
+		]),
 		["packages/registry-types", "@secure-exec/registry-types"],
 		["registry/file-system/s3", "@secure-exec/s3"],
 		["registry/file-system/google-drive", "@secure-exec/google-drive"],
@@ -69,6 +70,7 @@ test("discovers secure-exec-only packages", () => {
 		const names = packages.map((pkg) => pkg.name);
 
 		assert(names.includes("@secure-exec/browser"));
+		assert(names.includes("@secure-exec/core"));
 		assert(names.includes("@secure-exec/sidecar-linux-x64-gnu"));
 		assert(names.includes("@secure-exec/sidecar"));
 		assert(
@@ -89,9 +91,12 @@ test("builds platform map for the secure-exec sidecar meta package", () => {
 		const packages = discoverPackages(root);
 		const metaMap = buildMetaPlatformMap(packages);
 
-		assert.deepEqual(metaMap.get("@secure-exec/sidecar"), [
-			"@secure-exec/sidecar-linux-x64-gnu",
-		]);
+		assert.deepEqual(
+			metaMap.get("@secure-exec/sidecar"),
+			DEFAULT_SIDECAR_PLATFORMS.map(
+				(platform) => `@secure-exec/sidecar-${platform}`,
+			).sort(),
+		);
 	});
 });
 
@@ -114,6 +119,13 @@ test("sanity check requires secure-exec registry packages and sidecar resolver",
 					packages.filter((pkg) => pkg.name !== "@secure-exec/browser"),
 				),
 			/package discovery missing required packages: @secure-exec\/browser/,
+		);
+		assert.throws(
+			() =>
+				assertDiscoverySanity(
+					packages.filter((pkg) => pkg.name !== "@secure-exec/core"),
+				),
+			/package discovery missing required packages: @secure-exec\/core/,
 		);
 	});
 });

@@ -1,10 +1,10 @@
+use secure_exec_vfs_core::posix::{
+    MemoryFileSystem, VfsResult, VirtualDirEntry, VirtualFileSystem, VirtualStat, VirtualUtimeSpec,
+};
+use secure_exec_vfs_core::posix::{MountOptions, MountTable, MountedFileSystem};
 use std::any::Any;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use vfs::posix::{
-    MemoryFileSystem, VfsResult, VirtualDirEntry, VirtualFileSystem, VirtualStat, VirtualUtimeSpec,
-};
-use vfs::posix::{MountOptions, MountTable, MountedFileSystem};
 
 struct ShutdownTrackingFileSystem {
     shutdown: Arc<AtomicBool>,

@@ -1,11 +1,13 @@
 use async_trait::async_trait;
-use std::sync::{Arc, Condvar, Mutex};
-use vfs::engine::engines::{ChunkedFs, ChunkedFsOptions, ObjectFs};
-use vfs::engine::mem::{InMemoryMetadataStore, MemoryBlockStore, MemoryObjectBackend};
-use vfs::engine::{
+use secure_exec_vfs_core::engine::engines::{ChunkedFs, ChunkedFsOptions, ObjectFs};
+use secure_exec_vfs_core::engine::mem::{
+    InMemoryMetadataStore, MemoryBlockStore, MemoryObjectBackend,
+};
+use secure_exec_vfs_core::engine::{
     BlockKey, CachedMetadataStore, ChunkEdit, ChunkRange, CreateInodeAttrs, InodePatch, InodeType,
     MetadataStore, SnapshotId, Storage, VfsResult, VirtualFileSystem,
 };
+use std::sync::{Arc, Condvar, Mutex};
 
 #[tokio::test]
 async fn chunked_fs_round_trips_inline_and_chunked_files() {
@@ -344,7 +346,7 @@ struct PausingResolveStore {
 
 #[async_trait]
 impl MetadataStore for PausingResolveStore {
-    async fn resolve(&self, path: &str) -> VfsResult<vfs::engine::InodeMeta> {
+    async fn resolve(&self, path: &str) -> VfsResult<secure_exec_vfs_core::engine::InodeMeta> {
         let result = self.inner.resolve(path).await;
         if path == self.path {
             self.gate.pause_once();
@@ -352,15 +354,18 @@ impl MetadataStore for PausingResolveStore {
         result
     }
 
-    async fn resolve_parent(&self, path: &str) -> VfsResult<(vfs::engine::InodeMeta, String)> {
+    async fn resolve_parent(
+        &self,
+        path: &str,
+    ) -> VfsResult<(secure_exec_vfs_core::engine::InodeMeta, String)> {
         self.inner.resolve_parent(path).await
     }
 
-    async fn lstat(&self, path: &str) -> VfsResult<vfs::engine::InodeMeta> {
+    async fn lstat(&self, path: &str) -> VfsResult<secure_exec_vfs_core::engine::InodeMeta> {
         self.inner.lstat(path).await
     }
 
-    async fn list_dir(&self, ino: u64) -> VfsResult<Vec<vfs::engine::DentryStat>> {
+    async fn list_dir(&self, ino: u64) -> VfsResult<Vec<secure_exec_vfs_core::engine::DentryStat>> {
         self.inner.list_dir(ino).await
     }
 
@@ -369,7 +374,7 @@ impl MetadataStore for PausingResolveStore {
         parent: u64,
         name: &str,
         attrs: CreateInodeAttrs,
-    ) -> VfsResult<vfs::engine::InodeMeta> {
+    ) -> VfsResult<secure_exec_vfs_core::engine::InodeMeta> {
         self.inner.create(parent, name, attrs).await
     }
 
@@ -408,7 +413,7 @@ impl MetadataStore for PausingResolveStore {
         &self,
         ino: u64,
         range: ChunkRange,
-    ) -> VfsResult<Vec<vfs::engine::ChunkRef>> {
+    ) -> VfsResult<Vec<secure_exec_vfs_core::engine::ChunkRef>> {
         self.inner.get_chunks(ino, range).await
     }
 

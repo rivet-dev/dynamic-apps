@@ -36,6 +36,7 @@ import {
 	createWasmVmRuntime,
 	NodeFileSystem,
 } from "./test-runtime.js";
+import { parseNodeRuntimeCreateOptions } from "./node-runtime-options-schema.js";
 
 export type { BindingDefinition, HostToolExample } from "./test-runtime.js";
 
@@ -120,7 +121,14 @@ const DEFAULT_PERMISSIONS: Permissions = {
 	network: "deny",
 };
 
-/** Options for {@link NodeRuntime.create}. */
+/**
+ * Options for {@link NodeRuntime.create}.
+ *
+ * Keep this public interface in sync with
+ * `packages/core/src/node-runtime-options-schema.ts::nodeRuntimeCreateOptionsSchema`.
+ * Options that translate into sidecar VM JSON must also stay aligned with
+ * `crates/vm-config/src/lib.rs::CreateVmConfig`.
+ */
 export interface NodeRuntimeCreateOptions {
 	/** Environment variables visible to guest processes. */
 	env?: Record<string, string>;
@@ -529,6 +537,7 @@ export class NodeRuntime {
 	static async create(
 		options: NodeRuntimeCreateOptions = {},
 	): Promise<NodeRuntime> {
+		options = parseNodeRuntimeCreateOptions(options);
 		const commandsDir = resolveCommandsDir(options.commandsDir);
 
 		// Seed caller-provided files into the VM's in-memory filesystem before

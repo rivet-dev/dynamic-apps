@@ -1,28 +1,34 @@
 import { toExactArrayBuffer } from "./bytes.js";
 import {
-	toGeneratedMountDescriptor,
-	toGeneratedProjectedModuleDescriptor,
-	toGeneratedSidecarPlacement,
-	toGeneratedSoftwareDescriptor,
 	type LiveMountDescriptor,
 	type LiveProjectedModuleDescriptor,
 	type LiveSidecarPlacement,
 	type LiveSoftwareDescriptor,
+	toGeneratedMountDescriptor,
+	toGeneratedProjectedModuleDescriptor,
+	toGeneratedSidecarPlacement,
+	toGeneratedSoftwareDescriptor,
 } from "./descriptors.js";
-import { toGeneratedExtEnvelope, type LiveExtEnvelope } from "./ext.js";
+import { type LiveExtEnvelope, toGeneratedExtEnvelope } from "./ext.js";
 import {
-    toGeneratedRootFilesystemEntry,
-    type LiveRootFilesystemEntry,
-    type LiveRootFilesystemEntryEncoding,
+	type LiveRootFilesystemEntry,
+	type LiveRootFilesystemEntryEncoding,
+	toGeneratedRootFilesystemEntry,
 } from "./filesystem.js";
-import type * as protocol from "./generated-protocol.js";
 import type { CreateVmConfig } from "./generated/CreateVmConfig.js";
+import type * as protocol from "./generated-protocol.js";
 import { stringifyJsonUtf8 } from "./json.js";
 import {
-	toGeneratedPermissionsPolicy,
 	type LivePermissionsPolicy,
+	toGeneratedPermissionsPolicy,
 } from "./permissions.js";
 import {
+	type LiveDisposeReason,
+	type LiveFilesystemOperation,
+	type LiveGuestFilesystemOperation,
+	type LiveGuestRuntimeKind,
+	type LiveRootFilesystemMode,
+	type LiveWasmPermissionTier,
 	toGeneratedDisposeReason,
 	toGeneratedFilesystemOperation,
 	toGeneratedGuestFilesystemOperation,
@@ -30,12 +36,6 @@ import {
 	toGeneratedRootFilesystemEntryEncoding,
 	toGeneratedRootFilesystemMode,
 	toGeneratedWasmPermissionTier,
-	type LiveDisposeReason,
-	type LiveFilesystemOperation,
-	type LiveGuestFilesystemOperation,
-	type LiveGuestRuntimeKind,
-	type LiveRootFilesystemMode,
-	type LiveWasmPermissionTier,
 } from "./protocol-maps.js";
 
 export interface LiveRegisteredHostCallbackExample {
@@ -63,11 +63,11 @@ export type LiveRequestPayload =
 			placement: LiveSidecarPlacement;
 			metadata: Record<string, string>;
 	  }
-    | {
-            type: "create_vm";
-            runtime: LiveGuestRuntimeKind;
-            config: CreateVmConfig;
-      }
+	| {
+			type: "create_vm";
+			runtime: LiveGuestRuntimeKind;
+			config: CreateVmConfig;
+	  }
 	| {
 			type: "configure_vm";
 			mounts: LiveMountDescriptor[];
@@ -232,14 +232,14 @@ export function toGeneratedRequestPayload(
 					metadata: new Map(Object.entries(payload.metadata ?? {})),
 				},
 			};
-        case "create_vm":
-            return {
-                tag: "CreateVmRequest",
-                val: {
-                    runtime: toGeneratedGuestRuntimeKind(payload.runtime),
-                    config: stringifyJsonUtf8(payload.config, "create VM config"),
-                },
-            };
+		case "create_vm":
+			return {
+				tag: "CreateVmRequest",
+				val: {
+					runtime: toGeneratedGuestRuntimeKind(payload.runtime),
+					config: stringifyJsonUtf8(payload.config, "create VM config"),
+				},
+			};
 		case "dispose_vm":
 			return {
 				tag: "DisposeVmRequest",

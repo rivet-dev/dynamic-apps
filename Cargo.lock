@@ -2937,10 +2937,10 @@ dependencies = [
  "getrandom 0.2.17",
  "hickory-resolver",
  "secure-exec-bridge",
+ "secure-exec-vfs-core",
  "serde",
  "serde_json",
  "tokio",
- "vfs",
 ]
 
 [[package]]
@@ -2975,6 +2975,7 @@ dependencies = [
  "secure-exec-execution",
  "secure-exec-kernel",
  "secure-exec-vfs",
+ "secure-exec-vfs-core",
  "secure-exec-vm-config",
  "serde",
  "serde_bare",
@@ -2990,7 +2991,6 @@ dependencies = [
  "url",
  "v8",
  "vbare",
- "vfs",
  "wat",
 ]
 
@@ -3025,11 +3025,23 @@ dependencies = [
  "aws-credential-types",
  "aws-sdk-s3",
  "rusqlite",
+ "secure-exec-vfs-core",
  "serde",
  "serde_json",
  "tempfile",
  "tokio",
- "vfs",
+]
+
+[[package]]
+name = "secure-exec-vfs-core"
+version = "0.3.0-rc.1"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "blake3",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3751,18 +3763,6 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
-name = "vfs"
-version = "0.3.0-rc.1"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "blake3",
- "serde",
- "serde_json",
- "tokio",
-]
 
 [[package]]
 name = "vsimd"

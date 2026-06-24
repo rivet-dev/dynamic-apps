@@ -1,13 +1,13 @@
-use std::collections::BTreeMap;
-use vfs::posix::{
+use secure_exec_vfs_core::posix::{
     decode_snapshot, decode_snapshot_with_import_limits, encode_snapshot, FilesystemEntry,
     MemoryFileSystemSnapshot, MemoryFileSystemSnapshotInode, MemoryFileSystemSnapshotInodeKind,
     MemoryFileSystemSnapshotMetadata, RootFileSystem, RootFilesystemDescriptor,
     RootFilesystemImportLimits, RootFilesystemMode, RootFilesystemResourceLimits,
     RootFilesystemSnapshot, ROOT_FILESYSTEM_SNAPSHOT_FORMAT,
 };
-use vfs::posix::{MemoryFileSystem, VirtualFileSystem, S_IFDIR, S_IFLNK, S_IFREG};
-use vfs::posix::{OverlayFileSystem, OverlayMode};
+use secure_exec_vfs_core::posix::{MemoryFileSystem, VirtualFileSystem, S_IFDIR, S_IFLNK, S_IFREG};
+use secure_exec_vfs_core::posix::{OverlayFileSystem, OverlayMode};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, Default)]
 struct TestResourceLimits {
@@ -77,7 +77,10 @@ fn deep_directory_tree(child_depth: usize) -> MemoryFileSystem {
     })
 }
 
-fn assert_error_code<T: std::fmt::Debug>(result: Result<T, vfs::posix::VfsError>, expected: &str) {
+fn assert_error_code<T: std::fmt::Debug>(
+    result: Result<T, secure_exec_vfs_core::posix::VfsError>,
+    expected: &str,
+) {
     let error = result.expect_err("expected operation to fail");
     assert_eq!(error.code(), expected);
 }

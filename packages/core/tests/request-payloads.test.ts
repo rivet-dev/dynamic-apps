@@ -41,28 +41,41 @@ describe("request payload conversion", () => {
 	});
 
 	it("maps VM creation and configuration requests", () => {
-		expect(
-			toGeneratedRequestPayload({
-				type: "create_vm",
-				runtime: "java_script",
-				metadata: { app: "demo" },
-				root_filesystem: {
-					mode: "read_only",
-					disable_default_base_layer: true,
-					bootstrap_entries: [{ path: "/tmp", kind: "directory" }],
+		const createVmPayload = toGeneratedRequestPayload({
+			type: "create_vm",
+			runtime: "java_script",
+			config: {
+				env: {},
+				rootFilesystem: {
+					mode: "read-only",
+					disableDefaultBaseLayer: true,
+					lowers: [],
+					bootstrapEntries: [
+						{ path: "/tmp", kind: "directory", executable: false },
+					],
 				},
 				permissions: { fs: "allow" },
-			}),
-		).toMatchObject({
-			tag: "CreateVmRequest",
-			val: {
-				runtime: protocol.GuestRuntimeKind.JavaScript,
-				metadata: new Map([["app", "demo"]]),
-				rootFilesystem: {
-					mode: protocol.RootFilesystemMode.ReadOnly,
-					disableDefaultBaseLayer: true,
-				},
+				loopbackExemptPorts: [],
 			},
+		});
+		expect(createVmPayload).toMatchObject({
+			tag: "CreateVmRequest",
+		});
+		expect(
+			JSON.parse(
+				(
+					createVmPayload as Extract<
+						protocol.RequestPayload,
+						{ tag: "CreateVmRequest" }
+					>
+				).val.config,
+			),
+		).toMatchObject({
+			rootFilesystem: {
+				mode: "read-only",
+				disableDefaultBaseLayer: true,
+			},
+			permissions: { fs: "allow" },
 		});
 
 		expect(

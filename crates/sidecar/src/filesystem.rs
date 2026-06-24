@@ -23,9 +23,9 @@ use crate::{DispatchResult, NativeSidecar, NativeSidecarBridge, SidecarError};
 
 use base64::Engine;
 use nix::errno::Errno;
+use nix::fcntl::{open, OFlag};
 #[cfg(not(target_os = "macos"))]
 use nix::fcntl::{openat2, OpenHow, ResolveFlag};
-use nix::fcntl::{open, OFlag};
 use nix::libc;
 
 // macOS has neither `O_PATH` (metadata-only anchor) nor `O_TMPFILE`. O_PATH
@@ -1471,15 +1471,13 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                     let parent = open_mapped_runtime_parent_beneath(&mapped_host, "fs.symlink")?;
                     let host_path = parent.host_path.join(&parent.child_name);
                     remove_shadow_path_if_exists(&host_path, link_path)?;
-                    mapped_child_symlink(&parent, target).map_err(
-                        |error| {
-                            SidecarError::Io(format!(
+                    mapped_child_symlink(&parent, target).map_err(|error| {
+                        SidecarError::Io(format!(
                             "failed to create mapped guest symlink {} -> {} ({target}): {error}",
                             link_path,
                             host_path.display()
                         ))
-                        },
-                    )?;
+                    })?;
                     return Ok(Value::Null);
                 }
                 Some(MappedRuntimeHostAccess::ReadOnly(_)) => {
@@ -1699,7 +1697,10 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                         let parent_handle = if follow_symlinks {
                             None
                         } else {
-                            Some(open_mapped_runtime_parent_beneath(&mapped_host, "fs.lutimes")?)
+                            Some(open_mapped_runtime_parent_beneath(
+                                &mapped_host,
+                                "fs.lutimes",
+                            )?)
                         };
                         if kernel
                             .exists_for_process(EXECUTION_DRIVER_NAME, kernel_pid, path)
@@ -2512,9 +2513,12 @@ fn mapped_child_read_link(parent: &MappedRuntimeParentPath) -> std::io::Result<P
 }
 #[cfg(target_os = "macos")]
 fn mapped_child_read_link(parent: &MappedRuntimeParentPath) -> std::io::Result<PathBuf> {
-    nix::fcntl::readlinkat(Some(parent.directory.as_raw_fd()), parent.child_name.as_os_str())
-        .map(PathBuf::from)
-        .map_err(errno_to_io)
+    nix::fcntl::readlinkat(
+        Some(parent.directory.as_raw_fd()),
+        parent.child_name.as_os_str(),
+    )
+    .map(PathBuf::from)
+    .map_err(errno_to_io)
 }
 
 /// Set access/modification times on a mapped child without following symlinks
@@ -2965,15 +2969,15 @@ fn rename_mapped_host_path(
                 .join(&destination_parent.child_name);
             mapped_child_rename(&source_parent, &destination_parent)
                 .map(|()| Value::Null)
-            .map_err(|error| {
-                SidecarError::Io(format!(
-                    "failed to rename mapped guest path {} -> {} ({} -> {}): {error}",
-                    source,
-                    destination,
-                    source_host_path.display(),
-                    destination_host_path.display()
-                ))
-            })
+                .map_err(|error| {
+                    SidecarError::Io(format!(
+                        "failed to rename mapped guest path {} -> {} ({} -> {}): {error}",
+                        source,
+                        destination,
+                        source_host_path.display(),
+                        destination_host_path.display()
+                    ))
+                })
         }
         (Some(MappedRuntimeHostAccess::ReadOnly(_)), _) => {
             Err(read_only_mapped_runtime_host_path_error(source))

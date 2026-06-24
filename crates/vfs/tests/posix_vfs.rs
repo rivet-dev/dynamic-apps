@@ -1,9 +1,9 @@
-use std::{fmt::Debug, thread::sleep, time::Duration};
-use vfs::posix::{
+use secure_exec_vfs_core::posix::{
     normalize_path, validate_path, MemoryFileSystem, VfsResult, VirtualFileSystem, S_IFLNK, S_IFREG,
 };
+use std::{fmt::Debug, thread::sleep, time::Duration};
 
-fn assert_error_code<T: Debug>(result: vfs::posix::VfsResult<T>, expected: &str) {
+fn assert_error_code<T: Debug>(result: secure_exec_vfs_core::posix::VfsResult<T>, expected: &str) {
     let error = result.expect_err("operation should fail");
     assert_eq!(error.code(), expected);
 }

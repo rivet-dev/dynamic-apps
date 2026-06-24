@@ -300,6 +300,13 @@
 		"wired": "VmLimits.resources.max_readdir_entries"
 	},
 	{
+		"name": "DEFAULT_MAX_WASM_MEMORY_BYTES",
+		"path": "crates/kernel/src/resource_accounting.rs",
+		"class": "policy",
+		"rationale": "Default WASM memory envelope; guests stay bounded unless trusted VM config raises the cap.",
+		"wired": "VmLimits.resources.max_wasm_memory_bytes"
+	},
+	{
 		"name": "DEFAULT_MAX_SOCKET_BUFFERED_BYTES",
 		"path": "crates/kernel/src/resource_accounting.rs",
 		"class": "policy",
@@ -512,6 +519,13 @@
 		"class": "policy",
 		"rationale": "V8 IPC codec frame cap.",
 		"wired": "VmLimits.js_runtime.v8_ipc_max_frame_bytes"
+	},
+	{
+		"name": "DEFAULT_V8_HEAP_LIMIT_MB",
+		"path": "crates/sidecar/src/limits.rs",
+		"class": "policy",
+		"rationale": "Default JS heap envelope; guests stay bounded unless trusted VM config raises or clears the cap.",
+		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
 	},
 	{
 		"name": "DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES",

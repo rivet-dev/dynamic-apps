@@ -317,6 +317,9 @@ const PROCESS_ALLOW: &[&str] = &["crates/secure-exec-client/src/transport.rs"];
 const ENV_ALLOW: &[&str] = &[
     "crates/secure-exec-client/src/transport.rs",
     "crates/execution/src/host_node.rs",
+    // Node import cache reads an operator timeout knob before materializing
+    // host-side runtime assets for VM startup.
+    "crates/execution/src/node_import_cache.rs",
     "crates/v8-runtime/src/bridge.rs",
     "crates/sidecar/src/execution.rs",
     "crates/sidecar/src/plugins/s3_common.rs",

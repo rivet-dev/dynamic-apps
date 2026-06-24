@@ -2123,6 +2123,7 @@ fn build_wasm_internal_env(
         WASM_GUEST_ENV_ENV.to_string(),
         encode_json_string_map(&guest_visible_wasm_env(&request.env)),
     );
+    insert_wasm_runner_identity_env(&mut internal_env, &request.guest_runtime);
     internal_env.insert(
         WASM_HOST_CWD_ENV.to_string(),
         request.cwd.to_string_lossy().into_owned(),
@@ -2148,6 +2149,40 @@ fn build_wasm_internal_env(
     internal_env.remove("SECURE_EXEC_KEEP_STDIN_OPEN");
 
     internal_env
+}
+
+fn insert_optional_u64_env(env: &mut BTreeMap<String, String>, key: &str, value: Option<u64>) {
+    if let Some(value) = value {
+        env.insert(key.to_string(), value.to_string());
+    } else {
+        env.remove(key);
+    }
+}
+
+fn insert_wasm_runner_identity_env(
+    env: &mut BTreeMap<String, String>,
+    guest_runtime: &GuestRuntimeConfig,
+) {
+    insert_optional_u64_env(
+        env,
+        "AGENTOS_VIRTUAL_PROCESS_UID",
+        guest_runtime.virtual_uid,
+    );
+    insert_optional_u64_env(
+        env,
+        "AGENTOS_VIRTUAL_PROCESS_GID",
+        guest_runtime.virtual_gid,
+    );
+    insert_optional_u64_env(
+        env,
+        "AGENTOS_VIRTUAL_PROCESS_PID",
+        guest_runtime.virtual_pid,
+    );
+    insert_optional_u64_env(
+        env,
+        "AGENTOS_VIRTUAL_PROCESS_PPID",
+        guest_runtime.virtual_ppid,
+    );
 }
 
 fn build_wasm_runner_module_source(

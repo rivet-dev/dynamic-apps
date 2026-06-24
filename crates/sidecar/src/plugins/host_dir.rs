@@ -286,8 +286,8 @@ impl HostDirFilesystem {
     }
 
     fn host_path_for_fd(&self, fd: &AnchoredFd, virtual_path: &str) -> VfsResult<PathBuf> {
-        let host_path =
-            anchored_fd_real_path(fd).map_err(|error| io_error_to_vfs("open", virtual_path, error))?;
+        let host_path = anchored_fd_real_path(fd)
+            .map_err(|error| io_error_to_vfs("open", virtual_path, error))?;
         self.ensure_within_root(&host_path, virtual_path)?;
         Ok(host_path)
     }
@@ -550,6 +550,7 @@ impl HostDirFilesystem {
         }
     }
 
+    #[allow(clippy::unnecessary_cast)]
     fn stat_from_file_stat(stat: nix::sys::stat::FileStat) -> VirtualStat {
         let file_type = SFlag::from_bits_truncate(stat.st_mode);
         let atime_ms =
