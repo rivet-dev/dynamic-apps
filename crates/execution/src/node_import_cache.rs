@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "91";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "92";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11454,7 +11454,12 @@ const hostNetImport = {
       const r = callSyncRpc('net.poll_wait', [0, 0]);
       return r && typeof r.generation === 'number' ? r.generation : 0;
     };
-    let readyGen = readReadyGen();
+    // A non-blocking poll (timeout 0) returns at the `t === 0` short-circuit below and NEVER reaches
+    // net.poll_wait, so its generation snapshot is unused — skip that sync-RPC. This matters because a
+    // multi-client wasm X server polls almost exclusively with timeout 0 (it has buffered work), so this
+    // removes one net.poll_wait round-trip from every such poll. The blocking path still snapshots the
+    // generation before the drain/scan (the lost-wakeup guard) below.
+    let readyGen = t === 0 ? 0 : readReadyGen();
     try {
       while (true) {
         // Drain any already-arrived bytes on each connected host-net socket (non-blocking) so the
