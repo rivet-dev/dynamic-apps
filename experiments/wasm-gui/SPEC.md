@@ -921,12 +921,14 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   clang's `-fno-common` default + an LLVM `-fcommon` codegen ICE on wasm that otherwise duplicate
   `menu-tags.h`'s tentative-def globals. The host `--exec` harness was extended (this workspace) to
   stage `--vm-tree` fixtures + set `--guest-env` + read back guest output files on clean exit. The
-  libfm folder/listing path (what pcmanfm needs) is also proven. **Remaining sub-detail (not the
-  enumeration):** `menu-cache-gen`'s on-disk cache *serialization* (`save_menu_cache`'s mkstemp ->
-  write -> rename atomic save) still fails on the host-backed wasm fs; two O_EXCL handling fixes landed
-  (the runner's path_open precreate must skip O_EXCL; `wasm.rs`'s numeric open must map O_CREAT|O_EXCL
-  to create_new) but the full atomic-save has a further VFS write-path gap to chase. The enumeration
-  (the M8.3 acceptance) does not depend on the persisted cache.
+  libfm folder/listing path (what pcmanfm needs) is also proven. **The on-disk cache serialization
+  also works end-to-end** (`scripts/test-m8-menucache.sh` reads back the 843-byte cache with all 5 menu
+  records): fixing it surfaced a real, general `mkstemp`/`O_EXCL` runtime bug — an `O_CREAT|O_EXCL` open
+  *without* `O_TRUNC` (exactly what `mkstemp` uses) was mis-mapped to Node's `'r+'` (no create) and the
+  precreate was skipped for `O_EXCL`, so nothing created the temp file and every safe-create failed
+  ENOENT. Fixed in the runtime (constraint #5): `fsOpenFlagForPathOpen` now returns `'wx'`/`'wx+'` for
+  exclusive creates, the path_open precreate skips `O_EXCL`, and `wasm.rs` maps `O_CREAT|O_EXCL` to
+  `create_new`. This fixes `mkstemp` for ALL guests, not just menu-cache.
 
 - **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟢 COMPLETE (2026-06-22): renders a live horizontal
   bottom panel with a working clock, all wasm in secure-exec.** lxpanel

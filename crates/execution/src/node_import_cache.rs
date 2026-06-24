@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "98";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "99";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -9617,10 +9617,15 @@ function fsOpenFlagForPathOpen(oflags, rightsBase, fdflags) {
     return wantsRead ? 'a+' : 'a';
   }
 
+  // O_CREAT|O_EXCL (e.g. mkstemp) — possibly WITHOUT O_TRUNC. The precreate step is deliberately
+  // skipped for O_EXCL, so the open itself must create the file: 'wx'/'wx+' create it exclusively.
+  // O_TRUNC is a harmless no-op on the brand-new file. Without this, a non-truncating exclusive
+  // create fell through to 'r+' (no create) and failed ENOENT — silently breaking mkstemp.
+  if (wantsExclusive) {
+    return wantsRead ? 'wx+' : 'wx';
+  }
+
   if (wantsTruncate) {
-    if (wantsExclusive) {
-      return wantsRead ? 'wx+' : 'wx';
-    }
     return wantsRead ? 'w+' : 'w';
   }
 

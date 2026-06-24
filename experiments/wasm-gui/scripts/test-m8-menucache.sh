@@ -50,15 +50,20 @@ echo "built menu-cache-gen.wasm ($(stat -c%s "$EXP/menu-cache-gen.wasm")b)"
 # --- stage freedesktop fixtures + run the generator headless ---
 FIX="${VMMENUCACHE:-/tmp/vmmenucache}"
 bash "$EXP/scripts/prepare-menucache-fixtures.sh" "$FIX" >/dev/null
-out="$(env -u DISPLAY "$HOST" --exec --guest "$EXP/menu-cache-gen.wasm" --vm-tree "$FIX" \
-  --guest-env G_MESSAGES_DEBUG=all --timeout 35 --sidecar "$SIDECAR" \
+CACHE="$(mktemp /tmp/menu-cache-out.XXXXXX)"
+out="$(READBACK="/data/menu-cache.out:$CACHE" env -u DISPLAY "$HOST" --exec --guest "$EXP/menu-cache-gen.wasm" \
+  --vm-tree "$FIX" --guest-env G_MESSAGES_DEBUG=all --timeout 35 --sidecar "$SIDECAR" \
   -- -i /menus/sandbox-applications.menu -o /data/menu-cache.out -l C -v 2>&1)"
 echo "$out" | grep -aE "menu-cache-gen-DEBUG.*(entering|done|new AppDir)" | sed 's/.*menu-cache-gen-DEBUG: [0-9:.]* //'
 
-# PASS if the generator composed the Applications root + at least 3 of the category submenus.
+# PASS requires BOTH: (1) the generator composed the Applications root + >=3 category submenus, and
+# (2) it serialized the on-disk cache (read back) containing those category menus (a '+<Name>' record).
 cats=$(echo "$out" | grep -acE "entering (Accessories|Internet|Office|System)")
-if echo "$out" | grep -q "done Applications" && [ "$cats" -ge 3 ]; then
-  echo "M8.3 MENU-CACHE ENUMERATION: PASS ($cats categories composed)"; exit 0
+cache_menus=$(grep -acE "^\+(Applications|Accessories|Internet|Office|System)$" "$CACHE" 2>/dev/null || echo 0)
+echo "on-disk cache: $(wc -c < "$CACHE" 2>/dev/null || echo 0) bytes, $cache_menus menu records"
+if echo "$out" | grep -q "done Applications" && [ "$cats" -ge 3 ] && [ "$cache_menus" -ge 4 ]; then
+  echo "M8.3 MENU-CACHE: PASS ($cats categories composed; cache serialized with $cache_menus menus)"
+  rm -f "$CACHE"; exit 0
 else
-  echo "M8.3 MENU-CACHE ENUMERATION: FAIL"; exit 1
+  echo "M8.3 MENU-CACHE: FAIL (cats=$cats cache_menus=$cache_menus)"; rm -f "$CACHE"; exit 1
 fi
