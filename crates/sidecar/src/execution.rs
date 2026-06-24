@@ -20061,6 +20061,66 @@ where
             }
         }
         "net.poll" => {
+            // BATCH drain: arg0 may be an ARRAY of socket ids — the guest net_poll drain polls ALL of a
+            // process's connected sockets in ONE round-trip instead of one net.poll per socket (the
+            // dominant futex cost for a multi-client wasm X server). Poll each and return an array of
+            // per-socket events with the same shape as the single-socket result (Null for unknown ids).
+            if let Some(id_vals) = request.args.first().and_then(|v| v.as_array()) {
+                let ids: Vec<String> = id_vals
+                    .iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect();
+                let wait_ms =
+                    javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll wait ms")?
+                        .unwrap_or_default();
+                let wait = clamp_javascript_net_poll_wait(wait_ms);
+                let mut events: Vec<Value> = Vec::with_capacity(ids.len());
+                for sid in &ids {
+                    let drain_path: Option<String> =
+                        process.unix_sockets.get(sid).and_then(|s| s.remote_path.clone());
+                    let event = if let Some(socket) = process.tcp_sockets.get_mut(sid) {
+                        socket.poll(kernel, process.kernel_pid, wait)?
+                    } else if let Some(socket) = process.unix_sockets.get_mut(sid) {
+                        socket.poll(wait)?
+                    } else {
+                        events.push(Value::Null);
+                        continue;
+                    };
+                    let ev = match event {
+                        Some(JavascriptTcpSocketEvent::Data(chunk)) => {
+                            xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                            json!({ "type": "data", "data": javascript_sync_rpc_bytes_value(&chunk) })
+                        }
+                        Some(JavascriptTcpSocketEvent::End) => json!({ "type": "end" }),
+                        Some(JavascriptTcpSocketEvent::Error { code, message }) => {
+                            json!({ "type": "error", "code": code, "message": message })
+                        }
+                        Some(JavascriptTcpSocketEvent::Close { had_error }) => {
+                            if let Some(socket) = process.tcp_sockets.remove(sid) {
+                                if let Some(listener_id) = socket.listener_id.as_deref() {
+                                    if let Some(listener) =
+                                        process.tcp_listeners.get_mut(listener_id)
+                                    {
+                                        listener.release_connection(sid);
+                                    }
+                                }
+                            } else if let Some(socket) = process.unix_sockets.remove(sid) {
+                                if let Some(listener_id) = socket.listener_id.as_deref() {
+                                    if let Some(listener) =
+                                        process.unix_listeners.get_mut(listener_id)
+                                    {
+                                        listener.release_connection(sid);
+                                    }
+                                }
+                            }
+                            json!({ "type": "close", "hadError": had_error })
+                        }
+                        None => Value::Null,
+                    };
+                    events.push(ev);
+                }
+                return Ok(Value::Array(events));
+            }
             let socket_id = javascript_sync_rpc_arg_str(&request.args, 0, "net.poll socket id")?;
             let wait_ms =
                 javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll wait ms")?

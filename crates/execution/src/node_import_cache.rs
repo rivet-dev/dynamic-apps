@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "92";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "93";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11129,12 +11129,9 @@ function dequeueHostNetBytes(socket, maxBytes) {
   return Buffer.concat(parts);
 }
 
-function pollHostNetSocket(socket, waitMs) {
-  if (!socket?.socketId || socket.closed) {
-    return null;
-  }
-
-  const event = callSyncRpc('net.poll', [socket.socketId, Math.max(0, Number(waitMs) >>> 0)]);
+// Apply a net.poll event (from a single OR a batched net.poll) to its socket: queue data, flag
+// end/close/error. Shared by pollHostNetSocket and the batched drain in net_poll.
+function applyHostNetEvent(socket, event) {
   if (!event) {
     return null;
   }
@@ -11164,6 +11161,15 @@ function pollHostNetSocket(socket, waitMs) {
   }
 
   return event;
+}
+
+function pollHostNetSocket(socket, waitMs) {
+  if (!socket?.socketId || socket.closed) {
+    return null;
+  }
+
+  const event = callSyncRpc('net.poll', [socket.socketId, Math.max(0, Number(waitMs) >>> 0)]);
+  return applyHostNetEvent(socket, event);
 }
 
 function parseHostNetAddress(raw) {
@@ -11463,11 +11469,25 @@ const hostNetImport = {
     try {
       while (true) {
         // Drain any already-arrived bytes on each connected host-net socket (non-blocking) so the
-        // readiness scan below sees the latest data.
+        // readiness scan below sees the latest data. BATCH the drain into ONE net.poll round-trip
+        // (array of socket ids) instead of one per socket — a multi-client wasm X server polls over
+        // several client fds, and per-socket net.poll round-trips are the dominant futex cost that
+        // slows the desktop under contention. Single socket keeps the simple path.
         const vDrain = new DataView(instanceMemory.buffer);
+        const drainSockets = [];
         for (let i = 0; i < n; i++) {
           const s = getHostNetSocket(vDrain.getInt32(base0 + i * 8, true));
-          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 0);
+          if (s && s.socketId && !s.serverId && !s.closed) drainSockets.push(s);
+        }
+        if (drainSockets.length === 1) {
+          pollHostNetSocket(drainSockets[0], 0);
+        } else if (drainSockets.length > 1) {
+          const events = callSyncRpc('net.poll', [drainSockets.map((s) => s.socketId), 0]);
+          if (Array.isArray(events)) {
+            for (let k = 0; k < drainSockets.length; k++) {
+              applyHostNetEvent(drainSockets[k], events[k]);
+            }
+          }
         }
         const view = new DataView(instanceMemory.buffer);
         let ready = 0;
