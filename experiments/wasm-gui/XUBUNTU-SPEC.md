@@ -236,6 +236,11 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     live process-wide in the sidecar `process.unix_sockets`; only the per-isolate JS fd→socketId cache
     is missing). Then libxfce4util + xfconf (xfconfd + xfconf-query) → xfsettingsd. Found via the new
     `SECURE_EXEC_NET_TRACE` tool. Proof so far: `~/tmp/gui-progress/2026-06-24T21/xu1-gdbus-probe.txt`.
+    Full architecture + the implementation plan (the fix spans the runner fd→socketId registry AND a
+    sidecar dispatch-plumbing change to service a thread's socket op on its owning ancestor process +
+    readiness) are written up in [`XU1-SOCKET-SHARING-DESIGN.md`](./XU1-SOCKET-SHARING-DESIGN.md). It
+    is staged behind an M8 regression gate (it touches the shared net.*/readiness machinery the X path
+    uses), so it lands as its own change, not rushed inside this milestone note.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)
