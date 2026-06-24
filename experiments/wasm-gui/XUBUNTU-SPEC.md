@@ -226,21 +226,21 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   - **GDBus SASL auth works:** the probe now connects and authenticates over host_net (EXTERNAL is
     rejected because GIO's `getuid()`→-1 yields `GCredentials:unknown` so it asserts uid 4294967295 ≠ the
     daemon's SO_PEERCRED 0; it then falls back to **ANONYMOUS**, which the session.conf policy allows).
-  - **REMAINING blocker — ROOT CAUSE FOUND (not yet fixed):** after auth (which runs on the main
-    thread), GDBus does message I/O on a **worker thread**; its `Hello` never reaches the daemon. The
-    host_net socket table (`hostNetSockets` in `node_import_cache.rs`) is **per-isolate**, and each wasm
-    thread runs in its own V8 isolate, so the worker isolate's `net_send(fd)` misses the socket the main
-    isolate created and returns EBADF → "connection closed". M8's X clients never hit this (X I/O stays
-    on the GTK main thread); GDBus is the first guest doing socket I/O on a worker thread. **Fix
-    direction:** make the guest-fd→socketId mapping resolvable across isolates (the real sockets already
-    live process-wide in the sidecar `process.unix_sockets`; only the per-isolate JS fd→socketId cache
-    is missing). Then libxfce4util + xfconf (xfconfd + xfconf-query) → xfsettingsd. Found via the new
-    `SECURE_EXEC_NET_TRACE` tool. Proof so far: `~/tmp/gui-progress/2026-06-24T21/xu1-gdbus-probe.txt`.
-    Full architecture + the implementation plan (the fix spans the runner fd→socketId registry AND a
-    sidecar dispatch-plumbing change to service a thread's socket op on its owning ancestor process +
-    readiness) are written up in [`XU1-SOCKET-SHARING-DESIGN.md`](./XU1-SOCKET-SHARING-DESIGN.md). It
-    is staged behind an M8 regression gate (it touches the shared net.*/readiness machinery the X path
-    uses), so it lands as its own change, not rushed inside this milestone note.
+  - **Cross-thread socket sharing — IMPLEMENTED + VERIFIED.** The root cause was that the host_net
+    socket table is per-isolate and each wasm thread is its own V8 isolate, so the GDBus worker thread
+    couldn't see the socket the main thread opened (M8's X clients never hit this; X I/O stays on the
+    main thread). Fixed across four layers (full writeup +
+    [`XU1-SOCKET-SHARING-DESIGN.md`](./XU1-SOCKET-SHARING-DESIGN.md)): runner fd→socketId registry +
+    resolve-on-miss; sidecar dispatches a thread's net.* ops against its owning ancestor process and
+    waits `net.poll_wait` on the owner's readiness; and the three new RPCs registered in the WASM bridge
+    allowlist (wasm.rs / v8_runtime.rs / session.rs / bridge-contract.json). **The worker thread now
+    sends Hello and receives the daemon's replies over the main thread's socket; M8 stays green.** Proof
+    `~/tmp/gui-progress/2026-06-24T22/xu1-socket-sharing-works.txt`.
+  - **REMAINING blocker (XU1 not green yet):** `g_bus_get_sync` on the MAIN thread still does not return
+    even though the worker received the replies. The blocked main thread is not woken when the worker
+    completes the connection handshake: a GLib cross-thread **completion wakeup** (GCond / GMainContext,
+    the M8.5 worker-context area), NOT the socket layer. Next: ensure the worker's completion wakes the
+    parked main thread, then the probe reaches `PASS ListNames`; then libxfce4util + xfconf → xfsettingsd.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)

@@ -315,6 +315,19 @@ pub(crate) struct VmState {
     pub(crate) exited_process_snapshots: VecDeque<ExitedProcessSnapshot>,
     pub(crate) detached_child_processes: BTreeSet<String>,
     pub(crate) signal_states: BTreeMap<String, BTreeMap<u32, SignalHandlerRegistration>>,
+    /// Guest host_net fd -> (socket_id, nonblock) registry, shared across all of this VM's processes
+    /// (threads). A wasm thread runs in its own V8 isolate with its own per-isolate runner socket
+    /// table, so a worker thread cannot see a socket the main thread opened. This lets the worker's
+    /// runner resolve the fd to the owning process's socket id (net.resolve_guest_fd) so its socket
+    /// ops can be serviced on the owning process. Populated by net.register_guest_fd. Keyed by the
+    /// owning (root) process id (the part of the caller's id before `~thread~`) then guest fd.
+    pub(crate) guest_net_fds: BTreeMap<String, BTreeMap<u32, GuestNetFdEntry>>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct GuestNetFdEntry {
+    pub(crate) socket_id: String,
+    pub(crate) nonblock: bool,
 }
 
 #[derive(Debug, Clone)]

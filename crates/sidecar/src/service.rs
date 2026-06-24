@@ -84,6 +84,16 @@ pub(crate) fn process_event_queue_overflow_error() -> SidecarError {
     ))
 }
 
+/// The owning (root) process id for a (possibly worker-thread) process id. Worker threads are named
+/// `{owner}~thread~{n}` (see `spawn_wasm_thread`), and their host_net sockets live on the owner; this
+/// strips the thread suffix so a worker's socket op resolves to the owner. Non-thread ids pass through.
+fn net_owner_process_id(process_id: &str) -> &str {
+    match process_id.split_once("~thread~") {
+        Some((owner, _)) => owner,
+        None => process_id,
+    }
+}
+
 fn sidecar_response_pending_overflow_error() -> SidecarError {
     SidecarError::InvalidState(format!(
         "sidecar response tracker exceeded {MAX_PENDING_SIDECAR_RESPONSES} pending responses"
@@ -2077,6 +2087,70 @@ where
                 }
                 Ok(Value::Null)
             }
+            // Cross-thread host_net socket sharing: a wasm thread runs in its own V8 isolate with its
+            // own (empty) per-isolate runner socket table, so a worker thread cannot see a socket the
+            // main thread opened. These three calls let the worker's runner resolve a guest fd to the
+            // owning process's socket id; the registry lives on the owning (root) process, keyed
+            // VM-wide. (The actual socket op is then routed to the owner below.)
+            "net.register_guest_fd" => {
+                let fd = javascript_sync_rpc_arg_u64(&request.args, 0, "net.register_guest_fd fd")?
+                    as u32;
+                let socket_id =
+                    javascript_sync_rpc_arg_str(&request.args, 1, "net.register_guest_fd socket id")?
+                        .to_string();                if let Some(vm) = self.vms.get_mut(vm_id) {
+                    let owner = net_owner_process_id(process_id).to_string();
+                    if socket_id.is_empty() {
+                        // Empty socket id = unregister (the fd was closed).
+                        if let Some(m) = vm.guest_net_fds.get_mut(&owner) {
+                            m.remove(&fd);
+                        }
+                    } else {
+                        vm.guest_net_fds.entry(owner).or_default().insert(
+                            fd,
+                            crate::state::GuestNetFdEntry {
+                                socket_id,
+                                nonblock: false,
+                            },
+                        );
+                    }
+                }
+                Ok(Value::Null)
+            }
+            "net.set_guest_fd_nonblock" => {
+                let fd =
+                    javascript_sync_rpc_arg_u64(&request.args, 0, "net.set_guest_fd_nonblock fd")?
+                        as u32;
+                let nonblock = javascript_sync_rpc_arg_u64(
+                    &request.args,
+                    1,
+                    "net.set_guest_fd_nonblock value",
+                )? != 0;
+                if let Some(vm) = self.vms.get_mut(vm_id) {
+                    let owner = net_owner_process_id(process_id).to_string();
+                    if let Some(entry) =
+                        vm.guest_net_fds.get_mut(&owner).and_then(|m| m.get_mut(&fd))
+                    {
+                        entry.nonblock = nonblock;
+                    }
+                }
+                Ok(Value::Null)
+            }
+            "net.resolve_guest_fd" => {
+                let fd = javascript_sync_rpc_arg_u64(&request.args, 0, "net.resolve_guest_fd fd")?
+                    as u32;
+                let owner = net_owner_process_id(process_id);
+                let entry = self
+                    .vms
+                    .get(vm_id)
+                    .and_then(|vm| vm.guest_net_fds.get(owner))
+                    .and_then(|m| m.get(&fd));                match entry {
+                    Some(e) => Ok(serde_json::json!({
+                        "socketId": e.socket_id,
+                        "nonblock": e.nonblock,
+                    })),
+                    None => Ok(Value::Null),
+                }
+            }
             _ => {
                 let Some(vm) = self.vms.get_mut(vm_id) else {
                     log_stale_process_event(
@@ -2090,7 +2164,29 @@ where
                 let resource_limits = vm.kernel.resource_limits().clone();
                 let network_counts = vm_network_resource_counts(vm);
                 let socket_paths = build_javascript_socket_path_context(vm)?;
-                let Some(process) = vm.active_processes.get_mut(process_id) else {
+
+                // Route a worker thread's host_net socket ops to its owning (root) process, where the
+                // socket actually lives. Inline data ops (net.write/read/etc.) run AGAINST the owner
+                // process; net.poll_wait keeps the worker process (its execution owns the deferred
+                // response channel) but waits on the owner's socket_readiness, passed separately.
+                let owner_id = net_owner_process_id(process_id).to_string();
+                let is_thread_net =
+                    request.method.starts_with("net.") && owner_id != process_id;
+                let is_poll_wait = request.method == "net.poll_wait";
+                let owner_socket_readiness = if is_thread_net && is_poll_wait {
+                    vm.active_processes
+                        .get(&owner_id)
+                        .map(|p| std::sync::Arc::clone(&p.socket_readiness))
+                } else {
+                    None
+                };
+                let effective_id: &str = if is_thread_net && !is_poll_wait {
+                    &owner_id
+                } else {
+                    process_id
+                };
+
+                let Some(process) = vm.active_processes.get_mut(effective_id) else {
                     log_stale_process_event(
                         &self.bridge,
                         vm_id,
@@ -2111,6 +2207,7 @@ where
                     network_counts,
                     poll_waiter: Some(&poll_waiter),
                     poll_deferred: Some(&poll_deferred),
+                    owner_socket_readiness,
                 })
             }
         };

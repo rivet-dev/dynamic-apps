@@ -4431,6 +4431,21 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM net.connect bridge is unavailable");
           }}
           return _netSocketConnectRaw.applySync(void 0, args);
+        case "net.register_guest_fd":
+          if (typeof _netRegisterGuestFdRaw === "undefined") {{
+            throw new Error("secure-exec WASM net.register_guest_fd bridge is unavailable");
+          }}
+          return _netRegisterGuestFdRaw.applySync(void 0, args);
+        case "net.resolve_guest_fd":
+          if (typeof _netResolveGuestFdRaw === "undefined") {{
+            throw new Error("secure-exec WASM net.resolve_guest_fd bridge is unavailable");
+          }}
+          return _netResolveGuestFdRaw.applySync(void 0, args);
+        case "net.set_guest_fd_nonblock":
+          if (typeof _netSetGuestFdNonblockRaw === "undefined") {{
+            throw new Error("secure-exec WASM net.set_guest_fd_nonblock bridge is unavailable");
+          }}
+          return _netSetGuestFdNonblockRaw.applySync(void 0, args);
         case "net.reserve_tcp_port":
           if (typeof _netReserveTcpPortRaw === "undefined") {{
             throw new Error("secure-exec WASM net.reserve_tcp_port bridge is unavailable");

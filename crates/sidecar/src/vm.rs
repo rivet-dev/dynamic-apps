@@ -278,6 +278,7 @@ where
                 exited_process_snapshots: VecDeque::new(),
                 detached_child_processes: BTreeSet::new(),
                 signal_states: BTreeMap::new(),
+                guest_net_fds: BTreeMap::new(),
             },
         );
 

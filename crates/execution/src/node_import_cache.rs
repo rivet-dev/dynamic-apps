@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "103";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "104";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11150,7 +11150,42 @@ let nextHostNetSocketFd = 0x40000000;
 const HOST_NET_TIMEOUT_SENTINEL = '__secure_exec_net_timeout__';
 
 function getHostNetSocket(fd) {
-  return hostNetSockets.get(Number(fd) >>> 0) ?? null;
+  const key = Number(fd) >>> 0;
+  const existing = hostNetSockets.get(key);
+  if (existing) return existing;
+  // Cross-isolate resolution: each wasm thread runs in its own V8 isolate with its own (empty)
+  // hostNetSockets, so a worker thread cannot see a socket the main thread opened. For a host_net fd
+  // (the [0x40000000, 0x50000000) range; 0x50000000+ is the kernel-pipe range, NOT host_net) that is
+  // missing here, resolve it to the owning process's socket id via the sidecar registry (populated by
+  // registerGuestFd on the creating isolate) and cache a local entry. The sidecar routes the subsequent
+  // socket op to the owning process. Other fds and a real "socket not found" fall through to null.
+  if (key >= 0x40000000 && key < 0x50000000) {
+    try {
+      const r = callSyncRpc('net.resolve_guest_fd', [key]);
+      if (r && typeof r.socketId === 'string') {
+        const entry = {
+          domain: 1, sockType: 1, protocol: 0,
+          bindOptions: null, localInfo: null, localReservation: null, remoteInfo: null,
+          serverId: null, socketId: r.socketId, udpSocketId: null,
+          recvTimeoutMs: null, readChunks: [], readableEnded: false, closed: false,
+          lastError: null, nonblock: !!r.nonblock,
+        };
+        hostNetSockets.set(key, entry);
+        return entry;
+      }
+    } catch (_e) {}
+  }
+  return null;
+}
+
+// Register/update/clear a guest host_net fd -> socket id in the sidecar's VM-wide registry so other
+// isolates (worker threads) of this process can resolve the same fd. Best-effort; failures are ignored.
+function registerGuestFd(fd, socketId) {
+  if (!socketId) return;
+  try { callSyncRpc('net.register_guest_fd', [Number(fd) >>> 0, socketId]); } catch (_e) {}
+}
+function unregisterGuestFd(fd) {
+  try { callSyncRpc('net.register_guest_fd', [Number(fd) >>> 0, '']); } catch (_e) {}
 }
 
 function dequeueHostNetBytes(socket, maxBytes) {
@@ -11689,6 +11724,8 @@ const hostNetImport = {
     const socket = getHostNetSocket(fd);
     if (!socket) return WASI_ERRNO_BADF;
     socket.nonblock = (Number(enable) >>> 0) !== 0;
+    // Propagate to the VM-wide registry so a worker isolate resolving this fd inherits the flag.
+    try { callSyncRpc('net.set_guest_fd_nonblock', [Number(fd) >>> 0, socket.nonblock ? 1 : 0]); } catch (_e) {}
     return WASI_ERRNO_SUCCESS;
   },
   // PTY spawn/read/write for terminal emulators (M6.3). pty_spawn launches a child command over a
@@ -11814,6 +11851,7 @@ const hostNetImport = {
         socket.readableEnded = false;
         socket.closed = false;
         socket.lastError = null;
+        registerGuestFd(fd, result.socketId);
         return WASI_ERRNO_SUCCESS;
       }
       const { host, port } = parseHostNetAddress(rawAddr);
@@ -11845,6 +11883,7 @@ const hostNetImport = {
       socket.readableEnded = false;
       socket.closed = false;
       socket.lastError = null;
+      registerGuestFd(fd, result.socketId);
       return WASI_ERRNO_SUCCESS;
     } catch {
       return WASI_ERRNO_FAULT;
@@ -12267,6 +12306,7 @@ const hostNetImport = {
     }
 
     hostNetSockets.delete(numericFd);
+    unregisterGuestFd(numericFd);
     try {
       if (socket.localReservation != null) {
         callSyncRpc('net.release_tcp_port', [socket.localReservation]);

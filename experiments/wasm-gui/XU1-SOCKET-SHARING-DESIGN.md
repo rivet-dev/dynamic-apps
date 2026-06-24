@@ -1,8 +1,42 @@
 # XU1 design note — cross-thread host_net socket sharing (the GDBus blocker)
 
-Status: **DESIGN / not yet implemented** (2026-06-24). Blocker for XU1 (GDBus → xfconf/xfsettingsd).
-Root cause empirically confirmed via `SECURE_EXEC_NET_TRACE` (proof
-`~/tmp/gui-progress/2026-06-24T21/xu1-rootcause-netttrace.txt`).
+Status: **IMPLEMENTED + VERIFIED** (2026-06-24). The GDBus worker thread now does socket I/O over the
+main thread's socket (sends Hello, receives the daemon's replies); M8 stays green (`test-m5-twm` PASS).
+Proof `~/tmp/gui-progress/2026-06-24T22/xu1-socket-sharing-works.txt`. **One issue remains before XU1's
+GDBus probe is green** (see "Remaining" at the end). Root cause was empirically confirmed via
+`SECURE_EXEC_NET_TRACE` (`~/tmp/gui-progress/2026-06-24T21/xu1-rootcause-netttrace.txt`).
+
+## What landed (the implementation)
+
+Both parts plus a fourth piece that the original design missed:
+- **Part A (runner, `node_import_cache.rs`):** `registerGuestFd` on connect/accept records guest fd →
+  socket id; `getHostNetSocket` resolves a missing host_net fd (`[0x40000000,0x50000000)`, excluding
+  the kernel-pipe range) via `net.resolve_guest_fd` and caches a local entry; `net_set_nonblock`
+  propagates the flag; `net_close` unregisters.
+- **Part B (sidecar dispatch, `service.rs`):** a worker thread's inline net.* data ops run against the
+  owning ancestor process (`net_owner_process_id` strips `~thread~`); `net.poll_wait` keeps the worker
+  process (for its deferred-response channel) but waits on the owner's `socket_readiness`
+  (threaded through as `owner_socket_readiness`). VM-wide `guest_net_fds` registry on `VmState`.
+- **★ Fourth piece (the part that blocked the first attempt):** WASM guest sync-RPCs do NOT go through
+  the sidecar `service.rs` match directly — they go through the **WASM bridge allowlist** (the
+  `wasm.rs` switch + `v8_runtime.rs` `map_bridge_method` + `session.rs` global list +
+  `bridge-contract.json`). The three new methods (`net.register_guest_fd`, `net.resolve_guest_fd`,
+  `net.set_guest_fd_nonblock`) had to be registered in all four, then rebuild `secure-exec-v8-runtime`.
+  Until then the runner's `callSyncRpc` threw "method not implemented in V8 runtime" (caught silently),
+  so the registry stayed empty. This is the documented "add a raw V8 bridge method" path.
+
+## Remaining (next): GDBus main-thread completion wakeup
+
+The worker thread sends Hello and receives the daemon's replies, but `g_bus_get_sync` on the MAIN
+thread does not return (no `GDBUS-PROBE: connected`). The blocked main thread is not woken when the
+worker completes the connection handshake. That is a GLib cross-thread completion signal
+(GCond / GMainContext wakeup from the worker to the blocked main thread), the M8.5 worker-context-wakeup
+area, NOT the socket layer (which now works). Next: trace how `g_dbus_connection_new_sync` parks the
+main thread and ensure the worker's completion wakes it; then the probe should reach `PASS ListNames`.
+
+---
+
+## Original design (for reference)
 
 ## The problem
 

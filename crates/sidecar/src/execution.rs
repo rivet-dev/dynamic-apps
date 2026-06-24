@@ -921,6 +921,10 @@ pub(crate) struct JavascriptSyncRpcServiceRequest<'a, B> {
     pub(crate) poll_waiter: Option<&'a crate::state::PollWaiterPool>,
     /// Set when `net.poll_wait` is deferred to the pool; the caller then skips inline delivery.
     pub(crate) poll_deferred: Option<&'a std::cell::Cell<bool>>,
+    /// For a worker thread's `net.poll_wait`: the OWNING process's socket readiness to wait on (the
+    /// thread's own sockets live there). `process` stays the worker so the deferred response is
+    /// delivered on its execution channel. `None` for non-thread or non-poll dispatches.
+    pub(crate) owner_socket_readiness: Option<std::sync::Arc<crate::state::SocketReadiness>>,
 }
 
 pub(crate) struct JavascriptNetSyncRpcServiceRequest<'a, B> {
@@ -939,6 +943,9 @@ pub(crate) struct JavascriptNetSyncRpcServiceRequest<'a, B> {
     /// Set by the handler when it defers `net.poll_wait` to the pool; the caller then skips inline
     /// response delivery (the pool will deliver when readiness advances or the deadline elapses).
     pub(crate) poll_deferred: Option<&'a std::cell::Cell<bool>>,
+    /// See `JavascriptSyncRpcServiceRequest::owner_socket_readiness`. For a worker thread's
+    /// `net.poll_wait`, wait on the owning process's readiness while keeping `process` the worker.
+    pub(crate) owner_socket_readiness: Option<std::sync::Arc<crate::state::SocketReadiness>>,
 }
 
 struct LoopbackHttpResponseWaitRequest<'a, B> {
@@ -6579,6 +6586,7 @@ where
                             // Nested child-process re-dispatch: block net.poll_wait inline (no pool).
                             poll_waiter: None,
                             poll_deferred: None,
+                            owner_socket_readiness: None,
                         })
                     };
 
@@ -13822,6 +13830,7 @@ where
         network_counts,
         poll_waiter,
         poll_deferred,
+        owner_socket_readiness,
     } = request;
     let __rpc_pid = process.kernel_pid;
     let __rpc_method = request.method.clone();
@@ -13902,6 +13911,7 @@ where
                 network_counts,
                 poll_waiter,
                 poll_deferred,
+                owner_socket_readiness: None,
             })
         }
         "net.http2_server_listen"
@@ -13974,6 +13984,7 @@ where
                 network_counts,
                 poll_waiter,
                 poll_deferred,
+                owner_socket_readiness,
             })
         }
         "dgram.createSocket"
@@ -16960,6 +16971,7 @@ where
                     // HTTP-loopback inline pump: block net.poll_wait inline (no pool).
                     poll_waiter: None,
                     poll_deferred: None,
+                    owner_socket_readiness: None,
                 });
                 match response {
                     Ok(result) => process
@@ -19695,6 +19707,7 @@ where
         network_counts,
         poll_waiter,
         poll_deferred,
+        owner_socket_readiness,
     } = request;
     match request.method.as_str() {
         "net.http_listen" => {
@@ -20206,10 +20219,16 @@ where
                 javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll_wait timeout ms")?
                     .unwrap_or_default();
             let wait = clamp_javascript_net_poll_wait(timeout_ms);
+            // For a worker thread, wait on the OWNING process's readiness (its sockets live there);
+            // `process` stays the worker so the deferred response is delivered on its channel. Owned
+            // Arc so it holds no borrow of `process` (the deferred path also borrows process.execution).
+            let readiness = owner_socket_readiness
+                .clone()
+                .unwrap_or_else(|| std::sync::Arc::clone(&process.socket_readiness));
             // Fast path: zero-wait poll, or readiness already advanced past the guest's scan — answer
             // inline without involving the pool (no lost wakeup: snapshot is taken under the same lock
             // that `notify()` advances).
-            let current = process.socket_readiness.snapshot();
+            let current = readiness.snapshot();
             if wait.is_zero() || current != last_seen {
                 return Ok(json!({ "generation": current }));
             }
@@ -20225,7 +20244,7 @@ where
                 pool.register(crate::state::PendingPollWait {
                     responder,
                     call_id: request.id,
-                    readiness: std::sync::Arc::clone(&process.socket_readiness),
+                    readiness: std::sync::Arc::clone(&readiness),
                     last_seen,
                     deadline: std::time::Instant::now() + wait,
                 });
@@ -20234,7 +20253,7 @@ where
             }
             }
             // Fallback (off-thread completion unavailable or disabled): block inline as before.
-            let generation = process.socket_readiness.wait_changed(last_seen, wait);
+            let generation = readiness.wait_changed(last_seen, wait);
             Ok(json!({ "generation": generation }))
         }
         "net.socket_wait_connect" => {
