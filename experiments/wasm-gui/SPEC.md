@@ -684,6 +684,26 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   scheduling/throughput half of M8.6 (the 4-guest starvation) IS fixed (non-blocking poll_wait); this
   interior-paint is the sole remaining gap to M8.6 green.
 
+  **Deeper dive (2026-06-23, also ruled out — the freeze is NOT the obvious GTK paint-gate):** traced
+  the GTK frame clock end to end. `before_paint`(begin_frame) emits, but PAINT/AFTER_PAINT are gated by
+  `freeze_count==0` (gdkframeclockidle.c), so a frozen clock would explain "chrome but no client area".
+  BUT every frame-clock freeze path is ruled out: the GDK UnmapNotify→`freeze_toplevel_updates`
+  (gdkdisplay-x11.c) never fires (instrumented: 0); the `gtk_window_move_resize` configure-request
+  freeze (gtkwindow.c:10147) never fires (0 — `configure_request_count` stays 0, GTK gets clean 640x480
+  ConfigureNotifies with win_match=1); the `_NET_WM_FRAME_DRAWN` freeze is inside `end_frame` which
+  never runs. So the clock is NOT frozen by any known path. `effective_visibility` is derived from the
+  client-side clip region (not X VisibilityNotify), so the "stuck FULLY_OBSCURED" theory doesn't
+  directly apply to a WM-managed toplevel. NET: pcmanfm's window is mapped, configured (640x480),
+  win-matched, unfrozen — yet the populated-view repaint produces no visible output under openbox while
+  it does under twm and standalone (99%). The next concrete step is to instrument the ACTUAL paint
+  emission (`_gdk_frame_clock_emit_paint` / `gdk_window_process_updates` / the cairo flush-to-X) and the
+  GtkWidget "draw" for pcmanfm's toplevel: determine whether (a) the repaint is never SCHEDULED after the
+  model populates (no invalidation → fix the GTK idle/frame-clock arming, likely the M8.5 idle path), or
+  (b) it paints to the backing surface but the flush/copy to the X window is dropped under openbox (→ a
+  GDK backing-surface / X CopyArea path, fixable in Xvfb.wasm or the runtime per constraint #5). All
+  per-op/lock state is already proven clean by the M8.1 watchdog, so this is purely a GTK-render-path
+  question now, not a sidecar one.
+
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
   host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —
