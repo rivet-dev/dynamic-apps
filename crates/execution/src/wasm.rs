@@ -350,6 +350,26 @@ pub struct WasmExecution {
     stderr_stream_buffer: Vec<u8>,
 }
 
+/// Standard character devices the host-backed wasm fs synthesizes (the kernel device_layer is not on
+/// this guest's open() path). dbus-daemon and other Linux programs open these device FILES at startup.
+#[derive(Clone, Copy, Debug)]
+enum WasmCharDevice {
+    Null,    // read -> EOF, write -> discard
+    Zero,    // read -> zeros, write -> discard
+    Full,    // read -> zeros, write -> ENOSPC (rarely used; included for completeness)
+    Random,  // read -> random bytes (also /dev/urandom)
+}
+
+fn wasm_char_device_for_path(path: &str) -> Option<WasmCharDevice> {
+    match path {
+        "/dev/null" => Some(WasmCharDevice::Null),
+        "/dev/zero" => Some(WasmCharDevice::Zero),
+        "/dev/full" => Some(WasmCharDevice::Full),
+        "/dev/random" | "/dev/urandom" => Some(WasmCharDevice::Random),
+        _ => None,
+    }
+}
+
 #[derive(Debug)]
 struct WasmInternalSyncRpc {
     module_guest_paths: Vec<String>,
@@ -360,6 +380,7 @@ struct WasmInternalSyncRpc {
     guest_path_mappings: Vec<WasmGuestPathMapping>,
     next_fd: u32,
     open_files: BTreeMap<u32, fs::File>,
+    open_devices: BTreeMap<u32, WasmCharDevice>,
     pending_events: VecDeque<WasmExecutionEvent>,
 }
 
@@ -900,6 +921,7 @@ impl WasmExecutionEngine {
                 guest_path_mappings,
                 next_fd: 64,
                 open_files: BTreeMap::new(),
+                open_devices: BTreeMap::new(),
                 pending_events: VecDeque::new(),
             },
         })
@@ -993,6 +1015,17 @@ fn handle_internal_wasm_sync_rpc_request(
                 "missing fs.openSync path",
             )));
         };
+        // Synthesize the standard /dev character devices (the kernel device_layer is not on this
+        // host-backed guest fs path). Programs like dbus-daemon open /dev/null + /dev/urandom at start.
+        if let Some(device) = wasm_char_device_for_path(path) {
+            let fd = internal_sync_rpc.next_fd;
+            internal_sync_rpc.next_fd += 1;
+            internal_sync_rpc.open_devices.insert(fd, device);
+            execution
+                .respond_sync_rpc_success(request.id, json!(fd))
+                .map_err(map_javascript_error)?;
+            return Ok(true);
+        }
         let Some(host_path) = translate_wasm_guest_path(path, internal_sync_rpc) else {
             return Ok(false);
         };
@@ -1081,6 +1114,12 @@ fn handle_internal_wasm_sync_rpc_request(
                 "missing fs.closeSync fd",
             )));
         };
+        if internal_sync_rpc.open_devices.remove(&(fd as u32)).is_some() {
+            execution
+                .respond_sync_rpc_success(request.id, Value::Null)
+                .map_err(map_javascript_error)?;
+            return Ok(true);
+        }
         if internal_sync_rpc.open_files.remove(&(fd as u32)).is_none() {
             return Ok(false);
         }
@@ -1379,6 +1418,18 @@ fn handle_internal_wasm_sync_rpc_request(
                 .map_err(map_javascript_error)?;
             return Ok(true);
         }
+        if let Some(device) = internal_sync_rpc.open_devices.get(&(fd as u32)).copied() {
+            // /dev/null + /dev/zero + /dev/random discard writes (report all bytes accepted);
+            // /dev/full reports ENOSPC.
+            let result = match device {
+                WasmCharDevice::Full => json!(-1),
+                _ => json!(bytes.len()),
+            };
+            execution
+                .respond_sync_rpc_success(request.id, result)
+                .map_err(map_javascript_error)?;
+            return Ok(true);
+        }
         let position = request.args.get(2).and_then(Value::as_u64);
         let Some(file) = internal_sync_rpc.open_files.get_mut(&(fd as u32)) else {
             return Ok(false);
@@ -1403,6 +1454,31 @@ fn handle_internal_wasm_sync_rpc_request(
         };
         let length = wasm_sync_read_length(request.args.get(1).and_then(Value::as_u64))?;
         let position = request.args.get(2).and_then(Value::as_u64);
+        if let Some(device) = internal_sync_rpc.open_devices.get(&(fd as u32)).copied() {
+            let buffer: Vec<u8> = match device {
+                WasmCharDevice::Null => Vec::new(), // EOF
+                WasmCharDevice::Zero | WasmCharDevice::Full => vec![0u8; length],
+                WasmCharDevice::Random => {
+                    let mut b = vec![0u8; length];
+                    getrandom::getrandom(&mut b).map_err(|e| {
+                        WasmExecutionError::Spawn(std::io::Error::other(format!(
+                            "/dev/random getrandom failed: {e}"
+                        )))
+                    })?;
+                    b
+                }
+            };
+            execution
+                .respond_sync_rpc_success(
+                    request.id,
+                    json!({
+                        "__agentOsType": "bytes",
+                        "base64": v8_runtime::base64_encode_pub(&buffer),
+                    }),
+                )
+                .map_err(map_javascript_error)?;
+            return Ok(true);
+        }
         let Some(file) = internal_sync_rpc.open_files.get_mut(&(fd as u32)) else {
             return Ok(false);
         };
@@ -4590,6 +4666,7 @@ fn prewarm_wasm_path(
         guest_path_mappings: wasm_guest_path_mappings(request),
         next_fd: 64,
         open_files: BTreeMap::new(),
+                open_devices: BTreeMap::new(),
         pending_events: VecDeque::new(),
     };
     let mut stdout = Vec::new();

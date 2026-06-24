@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "99";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "100";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -9645,22 +9645,36 @@ function allocateSyntheticFd() {
   return fd;
 }
 
+// Standard /dev character devices. These are synthesized by the host fs (fs.openSync), not real files,
+// so the host-backed path_open must route them through fsModule.openSync regardless of O_CREAT (the
+// default WASI path_open over the sandbox preopens would return ENOENT). dbus-daemon and many Linux
+// programs open /dev/null + /dev/urandom at startup.
+function isDeviceGuestPath(p) {
+  return (
+    p === '/dev/null' ||
+    p === '/dev/zero' ||
+    p === '/dev/full' ||
+    p === '/dev/random' ||
+    p === '/dev/urandom'
+  );
+}
+
 function openGuestFileForPathOpen(fd, pathPtr, pathLen, oflags, rightsBase, fdflags, openedFdPtr) {
   const normalizedOflags = Number(oflags) >>> 0;
   const normalizedFdflags = Number(fdflags) >>> 0;
-  if ((normalizedOflags & WASI_OFLAGS_CREAT) === 0) {
-    return null;
-  }
-
   const guestPath = resolvePathOpenGuestPath(fd, pathPtr, pathLen);
   if (typeof guestPath !== 'string') {
+    return null;
+  }
+  const device = isDeviceGuestPath(guestPath);
+  if ((normalizedOflags & WASI_OFLAGS_CREAT) === 0 && !device) {
     return null;
   }
 
   const append = (normalizedFdflags & WASI_FDFLAGS_APPEND) !== 0;
   const exclusive = (normalizedOflags & WASI_OFLAGS_EXCL) !== 0;
   const truncate = (normalizedOflags & WASI_OFLAGS_TRUNC) !== 0;
-  if (!append && !exclusive && !truncate && !fsModule.existsSync(guestPath)) {
+  if (!device && !append && !exclusive && !truncate && !fsModule.existsSync(guestPath)) {
     fsModule.writeFileSync(guestPath, Buffer.alloc(0));
   }
   const targetFd = fsModule.openSync(
@@ -12953,7 +12967,7 @@ if (delegatePathOpen) {
     ) {
       return denyReadOnlyMutation();
     }
-    if ((Number(oflags) & WASI_OFLAGS_CREAT) !== 0) {
+    if ((Number(oflags) & WASI_OFLAGS_CREAT) !== 0 || isDeviceGuestPath(guestPath)) {
       try {
         const syntheticResult = openGuestFileForPathOpen(
           fd,
