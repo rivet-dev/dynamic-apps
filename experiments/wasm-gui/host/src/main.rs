@@ -900,6 +900,8 @@ async fn run_xdemo(
     inject: &[(String, String)],
     pty_shell: Option<&str>,
     concurrent_launch: bool,
+    dbus_daemon: Option<&str>,
+    dbus_services: &[String],
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let server_abs = abs_path(server)?;
@@ -985,6 +987,44 @@ async fn run_xdemo(
     s.execute_env("xserver", &server_abs, &sargv, srv_env).await?;
     eprintln!("secure-exec: started X server {server_abs} {server_args:?}");
 
+    // Optional D-Bus session bus for a full desktop session (XU1+: xfsettingsd/xfce4-panel talk to the
+    // bus via GDBus). Launch the unmodified dbus-daemon as another long-lived guest binding the session
+    // socket; clients reach it via DBUS_SESSION_BUS_ADDRESS (passed in `inject`). The session.conf +
+    // /tmp/.dbus dir come from a --vm-tree fixture.
+    if let Some(dbusd) = dbus_daemon {
+        let dbusd_abs = abs_path(dbusd)?;
+        let dbus_argv = [
+            "--config-file=/etc/dbus-1/session.conf",
+            "--nofork",
+            "--nopidfile",
+            "--print-address",
+        ];
+        let mut denv = HashMap::new();
+        denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+        s.execute_env("dbusd", &dbusd_abs, &dbus_argv, denv).await?;
+        eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
+        // Let it bind /tmp/.dbus/session before any client connects.
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+
+        // Long-lived D-Bus services (e.g. xfconfd) that other guests query. Launch them BEFORE the
+        // gated X-client loop, each fully settled, so an X client (xfsettingsd) never contends with a
+        // still-initializing service for the X server's dispatch (the M8.6 concurrent-guest starvation).
+        for (i, svc) in dbus_services.iter().enumerate() {
+            let svc_abs = abs_path(svc)?;
+            let mut senv = HashMap::new();
+            senv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+            senv.insert(
+                "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                "unix:path=/tmp/.dbus/session".to_string(),
+            );
+            senv.insert("HOME".to_string(), "/root".to_string());
+            s.execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv).await?;
+            eprintln!("secure-exec: started dbus service {svc_abs}");
+            // Let it register its name + go idle before the next service / the X clients.
+            tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+        }
+    }
+
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_s);
     let mut server_ready = false;
     let mut wm_ready = false;                    // first client (the WM) is up + idle in its loop
@@ -1055,6 +1095,23 @@ async fn run_xdemo(
                 cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // Desktop-session bus address for GDBus clients (xfconfd/xfsettingsd/panel) when a
+                // dbus-daemon is running (--dbus). Set so GDBus connects directly instead of trying to
+                // autolaunch a bus (which needs a machine-id and fails in the sandbox).
+                if dbus_daemon.is_some() {
+                    cenv.insert(
+                        "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                        "unix:path=/tmp/.dbus/session".to_string(),
+                    );
+                }
+                // Forward GTK/GDK diagnostics + the a11y-off knob from the host env, so a desktop guest
+                // can be debugged (GDK_DEBUG/G_MESSAGES_DEBUG) and so GTK does not try to load the a11y
+                // bridge GTK module via GModule (no dlopen in the sandbox).
+                for k in ["GDK_DEBUG", "G_MESSAGES_DEBUG", "NO_AT_BRIDGE", "GTK_DEBUG", "GDK_BACKEND"] {
+                    if let Ok(v) = std::env::var(k) {
+                        cenv.insert(k.to_string(), v);
+                    }
+                }
                 // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
                 // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
                 // places side pane. The sandbox has no removable drives, so use the null monitor.
@@ -1105,6 +1162,23 @@ async fn run_xdemo(
                 cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // Desktop-session bus address for GDBus clients (xfconfd/xfsettingsd/panel) when a
+                // dbus-daemon is running (--dbus). Set so GDBus connects directly instead of trying to
+                // autolaunch a bus (which needs a machine-id and fails in the sandbox).
+                if dbus_daemon.is_some() {
+                    cenv.insert(
+                        "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                        "unix:path=/tmp/.dbus/session".to_string(),
+                    );
+                }
+                // Forward GTK/GDK diagnostics + the a11y-off knob from the host env, so a desktop guest
+                // can be debugged (GDK_DEBUG/G_MESSAGES_DEBUG) and so GTK does not try to load the a11y
+                // bridge GTK module via GModule (no dlopen in the sandbox).
+                for k in ["GDK_DEBUG", "G_MESSAGES_DEBUG", "NO_AT_BRIDGE", "GTK_DEBUG", "GDK_BACKEND"] {
+                    if let Ok(v) = std::env::var(k) {
+                        cenv.insert(k.to_string(), v);
+                    }
+                }
                 // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
                 // native init (g_volume_monitor_get) then deadlocks the main thread inside pcmanfm's
                 // places side pane. The sandbox has no removable drives, so use the null monitor.
@@ -1319,6 +1393,8 @@ struct Args {
     guest_env: Vec<(String, String)>,
     pty_test: bool,
     concurrent: bool,
+    dbus: Option<String>,
+    dbus_services: Vec<String>,
     pty_shell: Option<String>,
 }
 
@@ -1345,6 +1421,8 @@ fn parse_args() -> Args {
         guest_env: Vec::new(),
         pty_test: false,
         concurrent: false,
+        dbus: None,
+        dbus_services: Vec::new(),
         pty_shell: None,
     };
     let mut i = 1;
@@ -1356,6 +1434,16 @@ fn parse_args() -> Args {
             "--xdemo" => a.xdemo = true,
             "--bus-test" => a.bus_test = true,
             "--concurrent" => a.concurrent = true,
+            "--dbus" => {
+                i += 1;
+                a.dbus = argv.get(i).cloned();
+            }
+            "--dbus-service" => {
+                i += 1;
+                if let Some(p) = argv.get(i) {
+                    a.dbus_services.push(p.clone());
+                }
+            }
             "--pty-test" => a.pty_test = true,
             "--pty-shell" => {
                 i += 1;
@@ -1525,6 +1613,8 @@ async fn main() {
             &args.inject,
             args.pty_shell.as_deref(),
             args.concurrent,
+            args.dbus.as_deref(),
+            &args.dbus_services,
         )
         .await
         {
