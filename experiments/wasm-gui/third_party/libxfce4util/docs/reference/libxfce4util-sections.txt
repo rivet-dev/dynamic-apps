@@ -1,0 +1,196 @@
+<INCLUDE>libxfce4util/libxfce4util.h</INCLUDE>
+
+<SECTION>
+<TITLE>Version Information</TITLE>
+<FILE>libxfce4util-config</FILE>
+xfce_version_string
+libxfce4util_major_version
+libxfce4util_minor_version
+libxfce4util_micro_version
+<SUBSECTION>
+LIBXFCE4UTIL_MAJOR_VERSION
+LIBXFCE4UTIL_MINOR_VERSION
+LIBXFCE4UTIL_MICRO_VERSION
+LIBXFCE4UTIL_CHECK_VERSION
+</SECTION>
+
+<SECTION>
+<TITLE>Internationalisation</TITLE>
+<FILE>xfce-i18n</FILE>
+xfce_textdomain
+xfce_get_file_localized
+xfce_get_file_localized_r
+xfce_get_dir_localized
+xfce_get_dir_localized_r
+xfce_get_path_localized
+XFCE_LOCALE_FULL_MATCH
+XFCE_LOCALE_NO_MATCH
+xfce_locale_match
+</SECTION>
+
+
+<SECTION>
+<TITLE>Xfce Generics</TITLE>
+<FILE>xfce-generics</FILE>
+XFCE_GENERIC_STACK
+xfce_stack_new
+xfce_stack_free
+xfce_stack_top
+xfce_stack_pop
+xfce_stack_push
+<SUBSECTION Private>
+xfce_stack_alloc
+</SECTION>
+
+
+<SECTION>
+<TITLE>Xfce Kiosk functions</TITLE>
+<FILE>xfce-kiosk</FILE>
+XfceKiosk
+xfce_kiosk_new
+xfce_kiosk_query
+xfce_kiosk_free
+<SUBSECTION Standard>
+xfce_kiosk_get_type
+XFCE_TYPE_KIOSK
+</SECTION>
+
+
+<SECTION>
+<TITLE>Resource lookup functions</TITLE>
+<FILE>xfce-resource</FILE>
+XfceResourceType
+XfceMatchFunc
+xfce_resource_dirs
+xfce_resource_lookup
+xfce_resource_lookup_all
+xfce_resource_match
+xfce_resource_match_custom
+xfce_resource_push_path
+xfce_resource_pop_path
+xfce_resource_save_location
+</SECTION>
+
+<SECTION>
+<TITLE>Resource Config File Support</TITLE>
+<FILE>xfce-rc</FILE>
+XfceRc
+xfce_rc_simple_open
+xfce_rc_config_open
+xfce_rc_close
+xfce_rc_flush
+xfce_rc_is_dirty
+xfce_rc_is_readonly
+xfce_rc_get_locale
+xfce_rc_get_groups
+xfce_rc_get_entries
+xfce_rc_delete_group
+xfce_rc_get_group
+xfce_rc_has_group
+xfce_rc_set_group
+xfce_rc_delete_entry
+xfce_rc_has_entry
+xfce_rc_read_entry
+xfce_rc_read_entry_untranslated
+xfce_rc_read_bool_entry
+xfce_rc_read_int_entry
+xfce_rc_read_list_entry
+xfce_rc_rollback
+xfce_rc_write_entry
+xfce_rc_write_bool_entry
+xfce_rc_write_int_entry
+xfce_rc_write_list_entry
+<SUBSECTION Standard>
+xfce_rc_get_type
+XFCE_RC
+XFCE_TYPE_RC
+XFCE_RC_CONST
+<SUBSECTION Private>
+XfceRcConfig
+XfceRcSimple
+XFCE_RC_CONFIG
+XFCE_RC_CONFIG_CONST
+XFCE_RC_SIMPLE
+XFCE_RC_SIMPLE_CONST
+</SECTION>
+
+
+<SECTION>
+<TITLE>Unicode Support Functions</TITLE>
+<FILE>xfce-utf8</FILE>
+xfce_utf8_remove_controls
+xfce_utf8_strndup
+</SECTION>
+
+
+<SECTION>
+<TITLE>File Utilities</TITLE>
+<FILE>xfce-fileutils</FILE>
+xfce_mkdirhier
+xfce_create_shared_thumbnail_path
+</SECTION>
+
+
+<SECTION>
+<TITLE>GIO Extensions</TITLE>
+<FILE>xfce-gio-extensions</FILE>
+xfce_g_file_metadata_is_supported
+xfce_g_file_create_checksum
+xfce_g_file_set_trusted
+xfce_g_file_is_trusted
+</SECTION>
+
+
+<SECTION>
+<TITLE>Xfce String Functions</TITLE>
+<FILE>xfce-string</FILE>
+xfce_g_string_append_quoted
+xfce_str_replace
+xfce_str_is_empty
+I_
+</SECTION>
+
+
+<SECTION>
+<TITLE>Software Licenses</TITLE>
+<FILE>xfce-license</FILE>
+XFCE_LICENSE_BSD
+XFCE_LICENSE_GPL
+XFCE_LICENSE_LGPL
+XfceLicenseTextType
+xfce_get_license_text
+<SUBSECTION Private>
+xfce_license_text_type_get_type
+</SECTION>
+
+
+<SECTION>
+<TITLE>Miscellaneous Utilities</TITLE>
+<FILE>xfce-miscutils</FILE>
+xfce_get_homedir
+xfce_get_homefile
+xfce_get_homefile_r
+xfce_get_userdir
+xfce_get_userfile
+xfce_get_userfile_r
+xfce_gethostname
+xfce_expand_variables
+xfce_append_quoted
+xfce_expand_desktop_entry_field_codes
+xfce_unescape_desktop_entry_value
+<SUBSECTION Private>
+DBG
+TRACE
+G_GNUC_WARN_UNUSED_RESULT
+</SECTION>
+
+
+<SECTION>
+<TITLE>POSIX Signal Handling</TITLE>
+<FILE>xfce-posix-signal-handler</FILE>
+XfcePosixSignalHandler
+xfce_posix_signal_handler_init
+xfce_posix_signal_handler_restore_handler
+xfce_posix_signal_handler_set_handler
+xfce_posix_signal_handler_shutdown
+</SECTION>

@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>&package_name; Reference Manual</title>
+    <releaseinfo>
+      For &package_string;.
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://developer.xfce.org/&package_name;/index.html">https://developer.xfce.org/&package_name;/</ulink>.
+    </releaseinfo>
+    <copyright>
+      <year>2023</year>
+      <holder>The Xfce Development Team</holder>
+    </copyright>
+  </bookinfo>
+
+  <chapter>
+    <title>Xfconf Core Functionality</title>
+    <xi:include href="xml/xfconf-types.xml"/>
+    <xi:include href="xml/xfconf-errors.xml"/>
+  </chapter>
+
+  <chapter>
+    <title>Xfconf Daemon</title>
+    <xi:include href="xml/xfconf-backend.xml"/>
+  </chapter>
+  
+  <chapter>
+    <title>Xfconf Client Library</title>
+    <xi:include href="xml/xfconf.xml"/>
+    <xi:include href="xml/xfconf-channel.xml"/>
+    <xi:include href="xml/xfconf-binding.xml"/>
+  </chapter>
+
+    <chapter>
+    <title>API Index</title>
+
+    <index id="api-index-full">
+      <title>All symbols</title>
+    </index>
+
+    <index id="api-index-4.5.91">
+      <title>Added in 4.5.91</title>
+    </index>
+
+    <index id="api-index-4.5.92">
+      <title>Added in 4.5.92</title>
+    </index>
+
+    <index id="api-index-4.12.1">
+      <title>Added in 4.12.1</title>
+    </index>
+  </chapter>
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

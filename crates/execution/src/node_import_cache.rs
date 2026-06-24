@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "105";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "106";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -13615,6 +13615,10 @@ wasiImport.fd_sync = (fd) => {
 
   return delegateFdSync ? delegateFdSync(fd) : WASI_ERRNO_SUCCESS;
 };
+
+// fd_datasync: flush file data (a weaker fsync). Same handling as fd_sync here -- the kernel VFS owns
+// durability -- so guests that fdatasync() their writes (e.g. xfconfd persisting its channel XML) work.
+wasiImport.fd_datasync = (fd) => wasiImport.fd_sync(fd);
 
 wasiImport.fd_seek = (fd, offset, whence, newOffsetPtr) => {
   const handle = lookupFdHandle(fd);

@@ -1,0 +1,111 @@
+/*
+ *  xfconf
+ *
+ *  Copyright (c) 2007 Brian Tarricone <bjt23@cornell.edu>
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; version 2
+ *  of the License ONLY.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#ifdef ALL_FILES
+#define IN_HEADER(x) 1
+#define IN_SOURCE(x) 1
+#endif
+
+/* xfconf.c */
+#if IN_HEADER(__XFCONF_H__)
+#if IN_SOURCE(__XFCONF_C__)
+xfconf_init
+xfconf_shutdown
+xfconf_named_struct_register
+xfconf_array_free
+#endif
+#endif
+
+/* xfconf-errors.h */
+#if IN_HEADER(__XFCONF_ERRORS_H__)
+#if IN_SOURCE(__XFCONF_ERRORS_C__)
+xfconf_error_get_type G_GNUC_CONST
+xfconf_get_error_quark
+#endif
+#endif
+
+/* xfconf-types.h */
+#if IN_HEADER(__XFCONF_TYPES_H__)
+#if IN_SOURCE(__XFCONF_TYPES_C__)
+xfconf_uint16_get_type G_GNUC_CONST
+xfconf_g_value_get_uint16
+xfconf_g_value_set_uint16
+xfconf_int16_get_type G_GNUC_CONST
+xfconf_g_value_get_int16
+xfconf_g_value_set_int16
+#endif
+#endif
+
+/* xfconf-channel.h */
+#if IN_HEADER(__XFCONF_CHANNEL_H__)
+#if IN_SOURCE(__XFCONF_CHANNEL_C__)
+xfconf_channel_get_type G_GNUC_CONST
+xfconf_channel_get
+xfconf_channel_new
+xfconf_channel_new_with_property_base
+xfconf_channel_has_property
+xfconf_channel_is_property_locked
+xfconf_channel_reset_property
+xfconf_channel_get_properties
+xfconf_channel_get_string
+xfconf_channel_set_string
+xfconf_channel_get_int
+xfconf_channel_set_int
+xfconf_channel_get_uint
+xfconf_channel_set_uint
+xfconf_channel_get_uint64
+xfconf_channel_set_uint64
+xfconf_channel_get_double
+xfconf_channel_set_double
+xfconf_channel_get_bool
+xfconf_channel_set_bool
+xfconf_channel_get_string_list
+xfconf_channel_set_string_list
+xfconf_channel_get_property
+xfconf_channel_set_property
+xfconf_channel_get_array
+xfconf_channel_get_array_valist
+xfconf_channel_get_arrayv
+xfconf_channel_set_array
+xfconf_channel_set_array_valist
+xfconf_channel_set_arrayv
+xfconf_channel_get_named_struct
+xfconf_channel_set_named_struct
+xfconf_channel_get_struct
+xfconf_channel_get_struct_valist
+xfconf_channel_get_structv
+xfconf_channel_set_struct
+xfconf_channel_set_struct_valist
+xfconf_channel_set_structv
+xfconf_list_channels
+#endif
+#endif
+
+/* xfconf-binding.h */
+#if IN_HEADER(__XFCONF_BINDING_H__)
+#if IN_SOURCE(__XFCONF_BINDING_C__)
+xfconf_g_property_bind
+xfconf_g_property_unbind
+xfconf_g_property_unbind_by_property
+xfconf_g_property_unbind_all
+xfconf_g_property_bind_gdkcolor
+xfconf_g_property_bind_gdkrgba
+#endif
+#endif

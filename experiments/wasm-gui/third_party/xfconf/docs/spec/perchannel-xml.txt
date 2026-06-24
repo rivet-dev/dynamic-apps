@@ -1,0 +1,129 @@
+XfconfBackendPerchannelXml file format, version 1.0
+
+-> High-level overview:
+
+   The Per-channel XML configuration store backend is a simple
+   file-based backend that stores the properties and values for
+   each channel in its own file.  The file is hierarchical and may
+   look something like this:
+   
+   <?xml version="1.0" encoding="UTF-8"?>
+   <channel name="HappyApp" version="1.0">
+       <property name="main" type="empty">
+           <property name="allow-editing" type="bool" value="true"/>
+           <property name="last-document" type="string" value="foo.txt"/>
+       </property>
+       <property name="history" type="array">
+           <value type="string" value="foo.txt"/>
+           <value type="string" value="bar.txt"/>
+           <value type="string" value="baz.txt"/>
+       </property>
+       <property name="random-stuff" type="array">
+           <value type="int" value="345"/>
+           <value type="double" value="42.4"/>
+           <value type="string" value="cheese"/>
+       </property>
+   </channel>
+
+
+-> File locations:
+
+   Per-channel XML files can be located in any of the $XDG_CONFIG_DIRS,
+   under the subdirectory "xfce4/xfconf/xfce-perchannel-xml/".  The
+   user's own settings are saved in $XDG_CONFIG_HOME, under the same
+   subdirectory.
+
+
+-> Elements:
+
+   * <channel>
+     Only one <channel> element per file; must be the top-level element.
+     Attributes:
+       + name(string): The name of the channel (required).
+       + version(string): The current file version.  Right now that's
+         "1.0".  In general, files with the same 'major version' are
+         compatible with each other (required).
+       + locked(userlist): A list of users/groups who cannot modify
+         any properties in this channel  (only allowed in config files
+         in non-user-writable locations; mutually exclusive with the
+         "unlocked" attribute; optional, defaults to empty).
+       + unlocked(userlist): A list of users/groups who can modify
+         properties in this channel (only allowed in config files
+         in non-user-writable locations; mutually exclusive with the
+         "locked" attribute; optional, defaults to "*").
+   * <property>
+     Allowed as a child of the <channel> element or another <property>
+     element.
+     Attributes:
+       + name(string): The name of the property (required).
+       + type(string): The type of property.  Must be one of: "string",
+         "uchar", "char", "uint16", "int16", "uint", "int", "uint64",
+         "int64", "float", "double", "bool", "array", or "empty" (required).
+         Note that due to a limitation in dbus-glib, uint16 and int16 aren't
+         actually used, but they are supported in the backend in case
+         support for 16-bit values becomes supported in the future.
+       + value(string): The value of the property (required except for
+         type="array" and type="empty").
+       + locked(userlist): A list of users/groups who cannot modify
+         this property (only allowed in config files in non-user-writable
+         locations; mutually exclusive with the "unlocked" attribute;
+         optional, defaults to empty).
+       + unlocked(userlist): A list of users/groups who can modify
+         this property (only allowed in config files in non-user-writable
+         locations; mutually exclusive with the "locked" attribute;
+         optional, defaults to "*").
+   * <value>
+     Only allowed inside <property> elements where type="array", and
+     indicates an array element value.
+     Attributes:
+       + type(string): The type of value.  All values for type= on
+         <property> are supported except for "array" and "empty" (required).
+       + value(string): The element's value, encoded as a string (required).
+
+
+-> Nesting:
+
+   <property> elements can be nested inside other <property> elements
+   to create a hierarchical tree of properties.  If you were to write
+   the properties out without a tree (using the above example), including
+   the channel name, you'd have:
+   
+   /HappyApp/main/allow-editing
+   /HappyApp/main/last-document
+   /HappyApp/history
+   
+   (These strings, minus the channel name part at the beginning, are what
+   you'd look up if using libxfconf to retrieve property values.)
+
+
+-> Locking/Kiosk mode:
+
+   System administrators can lock certain values or entire channels to
+   prevent users from changing them.  In this case, the administrator
+   may provide default values that will be used regardless of what may
+   appear in a user-writable configuration file.  If the sysadmin does
+   not wish to provide values, but only wants to lock a channel/property,
+   the application's default fallback value will be used instead.
+   
+   Locking a channel or property is as simple as creating a configuration
+   file and setting either (and only either) the "locked" or "unlocked"
+   attribute on <channel> or <property> elements that should be
+   restritcted.  This configuration file should be placed in a system
+   location that is read by the daemon (see "File locations" above).
+   
+   Both the "locked" and "unlocked" attributes take a semicolon-separated
+   list of system user and group names.  User names should be entered
+   as-is, and group names should be entered with an "@" symbol prepended
+   to the group name.
+   
+   The "locked" attribute specifies users and groups who may not modify
+   the property.  The "unlocked" attribute specifies users and groups
+   who may modify the property, with other users locked out.  Only
+   one of the two attributes may be specified for a particular channel
+   or property.  If both are present, the "unlocked" attribute is used,
+   and the "locked" attribute is ignored.
+   
+   Note that <channel> locking locks all properties under that channel,
+   but <property> locking locks only the property with the "locked" or
+   "unlocked" attribute; none of the sub-properties are locked unless
+   they also contain a "locked" or "unlocked" attribute.

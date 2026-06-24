@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+  <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
+]>
+
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>&package_name; Reference Manual</title>
+    <releaseinfo>
+      For &package_string;. 
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="https://developer.xfce.org/&package_name;/index.html">https://developer.xfce.org/&package_name;/</ulink>.
+    </releaseinfo>
+    <copyright>
+      <year>2021</year>
+      <holder>The Xfce Development Team</holder>
+    </copyright>
+  </bookinfo>
+    <chapter id="reference">
+        <title>libxfce4util Overview</title>
+        <para>
+            libxfce4util is a general-purpose utility library
+            with core application support for the Xfce Desktop
+            Environment.
+        </para>
+    </chapter>
+
+    <chapter id="libxfce4util-fundamentals">
+        <title>Xfce Fundamentals</title>
+        <xi:include href="xml/libxfce4util-config.xml"/>
+        <xi:include href="xml/xfce-i18n.xml"/>
+        <xi:include href="xml/xfce-license.xml"/>
+    </chapter>
+
+    <chapter id="libxfce4util-core">
+        <title>Xfce Core Application support</title>
+        <xi:include href="xml/xfce-kiosk.xml"/>
+        <xi:include href="xml/xfce-posix-signal-handler.xml"/>
+    </chapter>
+
+    <chapter id="libxfce4util-utilities">
+        <title>Xfce Utilities</title>
+        <xi:include href="xml/xfce-resource.xml"/>
+        <xi:include href="xml/xfce-rc.xml"/>
+        <xi:include href="xml/xfce-fileutils.xml"/>
+        <xi:include href="xml/xfce-miscutils.xml"/>
+        <xi:include href="xml/xfce-utf8.xml"/>
+        <xi:include href="xml/xfce-gio-extensions.xml"/>
+        <xi:include href="xml/xfce-string.xml"/>
+    </chapter>
+
+    <chapter id="libxfce4util-datatypes">
+        <title>Xfce Data types</title>
+        <xi:include href="xml/xfce-generics.xml"/>
+    </chapter>
+
+    <index id="api-index-full">
+      <title>Index of all symbols</title>
+      <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-deprecated">
+      <title>Index of deprecated symbols</title>
+      <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-4-18">
+      <title>Index of new symbols in 4.18</title>
+      <xi:include href="xml/api-index-4.17.xml"><xi:fallback /></xi:include>
+      <xi:include href="xml/api-index-4.17.1.xml"><xi:fallback /></xi:include>
+      <xi:include href="xml/api-index-4.18.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-4-4">
+      <title>Index of new symbols in 4.4</title>
+      <xi:include href="xml/api-index-4.3.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-4-2">
+      <title>Index of new symbols in 4.2</title>
+      <xi:include href="xml/api-index-4.2.xml"><xi:fallback /></xi:include>
+    </index>
+
+    <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

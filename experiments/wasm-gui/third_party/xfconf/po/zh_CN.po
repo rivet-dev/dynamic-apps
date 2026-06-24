@@ -1,0 +1,343 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Chipong Luo <chipong.luo@yahoo.com>, 2011-2012
+# Chris K. Zhang <plutino@gmail.com>, 2009
+# dylanchu <chudongyu@126.com>, 2019
+# Hunt Xu <mhuntxu@gmail.com>, 2009
+# Mingcong Bai <jeffbai@aosc.xyz>, 2017
+# 玉堂白鹤 <yjwork@qq.com>, 2015,2017,2021
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfconf\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-06 12:53+0200\n"
+"PO-Revision-Date: 2013-07-02 20:48+0000\n"
+"Last-Translator: 玉堂白鹤 <yjwork@qq.com>, 2015,2017,2021\n"
+"Language-Team: Chinese (China) (http://app.transifex.com/xfce/xfconf/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../xfconf/xfconf-cache.c:987
+#, c-format
+msgid "Failed to make ResetProperty DBus call"
+msgstr "无法进行 ResetProperty DBus 调用"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:276
+#, c-format
+msgid "Unable to create configuration directory \"%s\""
+msgstr "未能创建配置目录 “%s”"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:321
+#: ../xfconfd/xfconf-daemon.c:167
+#, c-format
+msgid "Permission denied while modifying property \"%s\" on channel \"%s\""
+msgstr "没有在频道 “%2$s” 修改属性 “%1$s” 的权限"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:386
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:468
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:633
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:653 ../xfconf-query/main.c:335
+#, c-format
+msgid "Property \"%s\" does not exist on channel \"%s\""
+msgstr "属性 “%s” 不存在于频道 “%s” 中"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:600
+#, c-format
+msgid "Unable to remove channel \"%s\": %s"
+msgstr "未能移除频道 “%s”：%s"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1297
+#, c-format
+msgid "Invalid type for <property>: \"%s\""
+msgstr "<property> 的类型无效：“%s”"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1313
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1389
+#, c-format
+msgid "Unable to parse value of type \"%s\" from \"%s\""
+msgstr "未能从 “%2$s” 解析类型 “%1$s” 的值"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1369
+#, c-format
+msgid "The type attribute of <value> cannot be an array"
+msgstr "<value> 的类型属性不能是数组"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1378
+#, c-format
+msgid "Invalid type for <value>: \"%s\""
+msgstr "<value> 的类型无效：“%s”"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1654
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1904
+#, c-format
+msgid "Channel \"%s\" does not exist"
+msgstr "频道 “%s” 不存在"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1966
+#, c-format
+msgid "Unable to write channel \"%s\": %s"
+msgstr "未能写入频道 “%s”：%s"
+
+#: ../xfconfd/xfconf-backend-factory.c:77
+#, c-format
+msgid "Unable to find Xfconf backend of type \"%s\""
+msgstr "未能找到 “%s” 类型的 Xfconf 后端"
+
+#: ../xfconfd/xfconf-backend.c:127
+#, c-format
+msgid "Property names must start with a '/' character"
+msgstr "属性名必须以 ‘/’ 字符开头"
+
+#: ../xfconfd/xfconf-backend.c:136
+#, c-format
+msgid "The root element ('/') is not a valid property name"
+msgstr "根元素(‘/’)不是有效的属性名"
+
+#: ../xfconfd/xfconf-backend.c:151
+#, c-format
+msgid ""
+"Property names can only include the ASCII characters A-Z, a-z, 0-9, '_', "
+"'-', ':', '.', ',', '[', ']', '{', '}', '<' and '>', as well as '/' as a "
+"separator"
+msgstr "属性名只能包含 ASCII 字符 A-Z, a-z, 0-9, '_', '-', ':', '.', ',', '[', ']', '{', '}', '<' and '>', 以及 '/' 作为分割符号"
+
+#: ../xfconfd/xfconf-backend.c:160
+#, c-format
+msgid "Property names cannot have two or more consecutive '/' characters"
+msgstr "属性名不能有两个或更多连续的 ‘/’ 字符"
+
+#: ../xfconfd/xfconf-backend.c:171
+#, c-format
+msgid "Property names cannot end with a '/' character"
+msgstr "属性名不能以 ‘/’ 字符结束"
+
+#: ../xfconfd/xfconf-backend.c:188
+#, c-format
+msgid "Channel name cannot be an empty string"
+msgstr "频道名不能为空字符串"
+
+#: ../xfconfd/xfconf-backend.c:203
+#, c-format
+msgid ""
+"Channel names can only include the ASCII characters A-Z, a-z, 0-9, '{', '}',"
+" '|', ']', '[', ':', ',', '.', '_', and '-'"
+msgstr "频道名只能包含 ASCII 字符 A-Z, a-z, 0-9, '{', '}', '|', ']', '[', ':', ',', '.', '_', 和 '-'"
+
+#: ../xfconfd/xfconf-backend.c:425
+#, c-format
+msgid ""
+"The property name can only be empty or \"/\" if a recursive reset was "
+"specified"
+msgstr "只有在指定递归重置后属性名才能为空或 “/”"
+
+#: ../xfconfd/main.c:152
+msgid "Prints the xfconfd version."
+msgstr "显示 xfconfd 的版本。"
+
+#: ../xfconfd/main.c:154
+msgid ""
+"Configuration backends to use.  The first backend specified is opened "
+"read/write; the others, read-only."
+msgstr "要使用的配置后端。第一个指定的后端可用于读取/写入；其余的只读。"
+
+#: ../xfconfd/main.c:157
+msgid "Fork into background after starting; only useful for testing purposes"
+msgstr "启动后转入后台；仅用于测试目的"
+
+#: ../xfconfd/main.c:176
+msgid "Xfce Configuration Daemon"
+msgstr "Xfce 配置守护进程"
+
+#: ../xfconfd/main.c:181
+msgid "Xfce configuration daemon"
+msgstr "Xfce 配置守护进程"
+
+#: ../xfconfd/main.c:183
+msgid "Report bugs to http://bugs.xfce.org/\n"
+msgstr "向 https://bugzilla.xfce.org/ 报告缺陷\n"
+
+#: ../xfconfd/main.c:186
+#, c-format
+msgid "Error parsing options: %s\n"
+msgstr "解析选项时出错：%s\n"
+
+#: ../xfconfd/xfconf-daemon.c:222
+#, c-format
+msgid "GType transformation failed \"%s\""
+msgstr "GType 转换失败 \"%s\""
+
+#: ../xfconfd/xfconf-daemon.c:482
+#, c-format
+msgid "No backends could be started"
+msgstr "无后端能够启动"
+
+#: ../xfconf-query/main.c:84 ../xfconf-query/main.c:89
+msgid "set"
+msgstr "设置"
+
+#: ../xfconf-query/main.c:94
+msgid "reset"
+msgstr "重置"
+
+#: ../xfconf-query/main.c:170
+msgid "Version information"
+msgstr "版本信息"
+
+#: ../xfconf-query/main.c:174
+msgid "The channel to query/modify"
+msgstr "要 查询/修改 的频道"
+
+#: ../xfconf-query/main.c:178
+msgid "The property to query/modify"
+msgstr "要 查询/修改 的属性"
+
+#: ../xfconf-query/main.c:182
+msgid "The new value to set for the property"
+msgstr "为属性设置的新值"
+
+#: ../xfconf-query/main.c:186
+msgid "List properties (or channels if -c is not specified)"
+msgstr "列出属性(或频道，如果未指定 -c)"
+
+#: ../xfconf-query/main.c:190
+msgid "Print property and value in combination with -l or -m"
+msgstr "结合 -l 或 -m 打印属性和值 "
+
+#: ../xfconf-query/main.c:194
+msgid "Create a new property if it does not already exist"
+msgstr "如果属性还未存在则创建一个新属性"
+
+#: ../xfconf-query/main.c:198
+msgid "Specify the property value type"
+msgstr "指定属性的值类型"
+
+#: ../xfconf-query/main.c:202
+msgid "Reset property"
+msgstr "重置属性"
+
+#: ../xfconf-query/main.c:206
+msgid "Recursive (use with -r)"
+msgstr "递归(使用 -r)"
+
+#: ../xfconf-query/main.c:210
+msgid "Force array even if only one element"
+msgstr "即使只有一个元素也强制为数组"
+
+#: ../xfconf-query/main.c:214
+msgid "Invert an existing boolean property"
+msgstr "反转已存在的真假值属性"
+
+#: ../xfconf-query/main.c:218
+msgid "Monitor a channel for property changes"
+msgstr "监视频道中的属性更改"
+
+#: ../xfconf-query/main.c:234
+msgid "- Xfconf commandline utility"
+msgstr "-Xfconf 命令行实用程序"
+
+#: ../xfconf-query/main.c:239
+#, c-format
+msgid "Option parsing failed: %s"
+msgstr "无法解析选项：%s"
+
+#: ../xfconf-query/main.c:249
+msgid "The Xfce development team. All rights reserved."
+msgstr "Xfce 开发团队。保留所有权利。"
+
+#: ../xfconf-query/main.c:250
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "请向 <%s> 报告缺陷。"
+
+#: ../xfconf-query/main.c:259
+msgid "No property specified"
+msgstr "未指定属性"
+
+#: ../xfconf-query/main.c:265
+msgid "--create and --reset options can not be used together"
+msgstr "--create 和 --reset 选项不能一起使用"
+
+#: ../xfconf-query/main.c:271
+msgid "--create and --reset options can not be used together with --list"
+msgstr "--create 和 --reset 选项不能和 --list 一起使用"
+
+#: ../xfconf-query/main.c:277
+#, c-format
+msgid "Failed to init libxfconf: %s"
+msgstr "无法初始化 libxfconf：%s"
+
+#: ../xfconf-query/main.c:288
+msgid "Channels:"
+msgstr "频道："
+
+#: ../xfconf-query/main.c:313
+#, c-format
+msgid "Start monitoring channel \"%s\":"
+msgstr "开始监视频道 “%s”："
+
+#: ../xfconf-query/main.c:351 ../xfconf-query/main.c:462
+#: ../xfconf-query/main.c:535
+msgid "Failed to set property"
+msgstr "无法设置属性"
+
+#: ../xfconf-query/main.c:355
+msgid "--toggle only works with boolean values"
+msgstr "--toggle 仅对真假值有效"
+
+#: ../xfconf-query/main.c:364 ../xfconf-query/main.c:383
+msgid "(unknown)"
+msgstr "(未知)"
+
+#: ../xfconf-query/main.c:373
+#, c-format
+msgid "Value is an array with %d items:"
+msgstr "值是一个有 %d 个项目的数组："
+
+#: ../xfconf-query/main.c:397
+#, c-format
+msgid ""
+"Property \"%s\" does not exist on channel \"%s\". If a new property should "
+"be created, use the --create option"
+msgstr "在频道 “%2$s” 属性 “%1$s” 不存在。如果应创建新属性，使用 --create 选项"
+
+#: ../xfconf-query/main.c:406
+msgid "When creating a new property, the value type must be specified"
+msgstr "创建新属性时必须指定值类型"
+
+#: ../xfconf-query/main.c:417
+msgid "Failed to get the existing type for the value"
+msgstr "无法获取已存在值的类型"
+
+#: ../xfconf-query/main.c:436
+msgid "Unable to determine the type of the value"
+msgstr "未能确定值的类型"
+
+#: ../xfconf-query/main.c:443
+msgid "A value type must be specified to change an array into a single value"
+msgstr "要将数组更改为单一值，必须指定值的类型"
+
+#: ../xfconf-query/main.c:454 ../xfconf-query/main.c:519
+#, c-format
+msgid "Unable to convert \"%s\" to type \"%s\""
+msgstr "未能将 “%s” 转换成类型 “%s”"
+
+#: ../xfconf-query/main.c:488
+#, c-format
+msgid "There are %d new values, but only %d types could be determined"
+msgstr "有 %d 个新值，但只能确定 %d 个类型"
+
+#: ../xfconf-query/main.c:510
+#, c-format
+msgid "Unable to determine type of value at index %d"
+msgstr "未能确定在索引 %d 的值的类型"
+
+#: ../xfconf-query/main.c:563
+#, c-format
+msgid "Channel \"%s\" contains no properties"
+msgstr "频道 “%s” 未包含属性"

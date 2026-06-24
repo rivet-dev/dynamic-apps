@@ -1,0 +1,183 @@
+/* $Id$ */
+/*-
+ * Copyright (c) 2005-2006 Benedikt Meurer <benny@xfce.org>.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301 USA
+ */
+
+/* This file lists all exported symbols. It is used to generate
+ * the gobject.def file used to control exports on Windows and the
+ * libxfce4util-alias.h/libxfce4util-aliasdef.c files used to
+ * avoid PLT entries for internal uses of exported functions (see
+ * make-libxfce4util-alias.pl).
+ * 
+ * Every symbol must be included in the right
+ * #ifdef IN_HEADER(sym) #endif and
+ * #ifdef IN_SOURCE(sym) #endif sections. 
+ */
+
+#ifdef ALL_FILES
+#define IN_HEADER(x) 1
+#define IN_SOURCE(x) 1
+#endif
+
+/* libxfce4util-config variables */
+#if IN_HEADER(__LIBXFCE4UTIL_CONFIG_H__)
+#if IN_SOURCE(__LIBXFCE4UTIL_CONFIG_C__)
+#ifdef INCLUDE_VARIABLES
+libxfce4util_major_version
+libxfce4util_minor_version
+libxfce4util_micro_version
+#endif
+#endif
+#endif
+
+/* xfce-fileutils functions */
+#if IN_HEADER(__XFCE_FILEUTILS_H__)
+#if IN_SOURCE(__XFCE_FILEUTILS_C__)
+xfce_mkdirhier
+xfce_create_shared_thumbnail_path
+#endif
+#endif
+
+/* xfce-gio-extensions functions */
+#if IN_HEADER(__XFCE_GIO_EXTENSIONS_H__)
+#if IN_SOURCE(__XFCE_GIO_EXTENSIONS_C__)
+xfce_g_file_metadata_is_supported
+xfce_g_file_create_checksum
+xfce_g_file_set_trusted
+xfce_g_file_is_trusted
+#endif
+#endif
+
+/* xfce-string functions */
+#if IN_HEADER(__XFCE_STRING_H__)
+#if IN_SOURCE(__XFCE_STRING_C__)
+xfce_g_string_append_quoted
+xfce_str_replace
+#endif
+#endif
+
+/* xfce-i18n functions */
+#if IN_HEADER(__XFCE_I18N_H__)
+#if IN_SOURCE(__XFCE_I18N_C__)
+xfce_textdomain
+xfce_get_file_localized G_GNUC_MALLOC
+xfce_get_file_localized_r
+xfce_get_dir_localized G_GNUC_MALLOC
+xfce_get_dir_localized_r
+xfce_get_path_localized
+xfce_locale_match
+#endif
+#endif
+
+/* xfce-kiosk functions */
+#if IN_HEADER(__XFCE_KIOSK_H__)
+#if IN_SOURCE(__XFCE_KIOSK_C__)
+xfce_kiosk_new G_GNUC_MALLOC
+xfce_kiosk_query
+xfce_kiosk_get_type
+xfce_kiosk_free
+#endif
+#endif
+
+/* xfce-license variables/functions */
+#if IN_HEADER(__XFCE_LICENSE_H__)
+#if IN_SOURCE(__XFCE_LICENSE_C__)
+xfce_get_license_text G_GNUC_PURE
+#endif
+#endif
+
+/* xfce-miscutils functions */
+#if IN_HEADER(__XFCE_MISCUTILS_H__)
+#if IN_SOURCE(__XFCE_MISCUTILS_C__)
+xfce_version_string G_GNUC_PURE
+xfce_get_homedir G_GNUC_PURE
+xfce_get_homefile_r
+xfce_get_userdir G_GNUC_PURE
+xfce_get_userfile_r
+xfce_gethostname G_GNUC_MALLOC
+xfce_expand_variables G_GNUC_MALLOC
+xfce_append_quoted
+xfce_expand_desktop_entry_field_codes G_GNUC_MALLOC
+xfce_unescape_desktop_entry_value G_GNUC_MALLOC
+#endif
+#endif
+
+/* xfce-posix-signal-handler functions */
+#if IN_HEADER(__XFCE_POSIX_SIGNAL_HANDLER_H__)
+#if IN_SOURCE(__XFCE_POSIX_SIGNAL_HANDLER_C__)
+xfce_posix_signal_handler_init
+xfce_posix_signal_handler_shutdown
+xfce_posix_signal_handler_set_handler
+xfce_posix_signal_handler_restore_handler
+#endif
+#endif
+
+/* xfce-resource functions */
+#if IN_HEADER(__XFCE_RESOURCE_H__)
+#if IN_SOURCE(__XFCE_RESOURCE_C__)
+xfce_resource_dirs G_GNUC_MALLOC
+xfce_resource_lookup G_GNUC_MALLOC
+xfce_resource_lookup_all G_GNUC_MALLOC
+xfce_resource_match G_GNUC_MALLOC
+xfce_resource_match_custom G_GNUC_MALLOC
+xfce_resource_push_path
+xfce_resource_pop_path
+xfce_resource_save_location G_GNUC_MALLOC
+#endif
+#endif
+
+/* xfce-rc functions */
+#if IN_HEADER(__XFCE_RC_H__)
+#if IN_SOURCE(__XFCE_RC_C__)
+xfce_rc_get_type
+xfce_rc_simple_open G_GNUC_MALLOC
+xfce_rc_config_open G_GNUC_MALLOC
+xfce_rc_close
+xfce_rc_flush
+xfce_rc_rollback
+xfce_rc_is_dirty
+xfce_rc_is_readonly
+xfce_rc_get_locale
+xfce_rc_get_groups
+xfce_rc_get_entries
+xfce_rc_delete_group
+xfce_rc_get_group
+xfce_rc_has_group
+xfce_rc_set_group
+xfce_rc_delete_entry
+xfce_rc_has_entry
+xfce_rc_read_entry
+xfce_rc_read_entry_untranslated
+xfce_rc_read_bool_entry
+xfce_rc_read_int_entry
+xfce_rc_read_list_entry G_GNUC_MALLOC
+xfce_rc_write_entry
+xfce_rc_write_bool_entry
+xfce_rc_write_int_entry
+xfce_rc_write_list_entry
+#endif
+#endif
+
+/* xfce-utf8 functions */
+#if IN_HEADER(__XFCE_UTF8_H__)
+#if IN_SOURCE(__XFCE_UTF8_C__)
+xfce_utf8_remove_controls
+xfce_utf8_strndup G_GNUC_MALLOC
+#endif
+#endif
+

@@ -2395,6 +2395,7 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsWasiModule =
         fd_read: (...args) => this._fdRead(...args),
         fd_seek: (...args) => this._fdSeek(...args),
         fd_sync: (...args) => this._fdSync(...args),
+        fd_datasync: (...args) => this._fdSync(...args),
         fd_tell: (...args) => this._fdTell(...args),
         fd_write: (...args) => this._fdWrite(...args),
         path_create_directory: (...args) => this._pathCreateDirectory(...args),

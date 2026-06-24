@@ -1,0 +1,408 @@
+4.18.2 (2024-02-05)
+======
+- Update copyright year
+- Search for bind_textdomain_codeset in libintl too
+- xfce-rc: Add support for the LANGUAGE environment variable
+- Add missing config.h includes
+- Improve checksum calculation (#17)
+- xfce-rc: Document the fact that delimiter escaping is not supported
+- xfce-rc: Properly write translated entries when available
+- Update bug report address
+
+4.18.1 (2023-01-10)
+======
+- Handle remaining escape sequences
+- Fix desktop entry value escaping
+
+
+4.18.0 (2022-12-15)
+======
+- build: Bump requirements for Xfce 4.18
+
+4.17.4 (2022-11-30)
+======
+- bump copyright to 2022
+- docs: Fix return value of xfce_str_replace()
+
+4.17.3 (2022-10-31)
+======
+- Update COPYING (!27)
+- Bump GObject Introspection minim version to 1.66 (xfconf#8)
+- docs: Add missing index of deprecated symbols
+- docs: Fix broken links
+- docs: Fix "unused declarations" warning
+- docs: Update `.gitignore`
+- Remove limit on the size of configuration file line (!29)
+- Fix documentation of 'xfce_str_is_empty'
+- Clean the build system and use the new XDT_VERSION_INIT (!9)
+- Silence `-Wanalyzer-null-dereference` warnings
+- doc: Fix typo in `xfce_*_append_quoted()`
+- xfce-miscutils: Fix `deadcode.DeadStores` warning from `scan-build`
+- i18n: Make sure to set locale according to environment (!26)
+- Translation Updates:
+  Azerbaijani, Chinese (China), Georgian, Greek
+
+4.17.2
+======
+- Memo for future devs: Deprecate xfce_str_replace()
+- Fix document generation error
+- Remove duplicate xfce_str_is_empty ()
+- Move xfce_append_quoted () to xfce-string
+- Remove invalid custom ngettext() macro
+- Fix some GObject introspection warnings
+- Add missing G_BEGIN_DECLS and G_END_DECLS
+- Translation Updates:
+  Catalan, Galician, Italian
+
+4.17.1
+======
+- Create new function xfce_create_shared_thumbnail_path
+(Required for shared thumbnail support in thunar and tumbler)
+- usage of g_file_peek_path requires glib 2.56
+
+4.17.0
+======
+- Add xfce_unescape_desktop_entry_value
+- xfce-gio-extensions - management of gvfs trusted attribute
+- libxfce4util needs to be first character Capital
+- Partially revert "Fix (some) GObject introspection warnings"
+- Fix (some) GObject introspection warnings
+- Revamp the documentation to uniformize accross components
+- Translation Updates:
+  Belarusian, Estonian, Norwegian Bokmål, Spanish
+
+4.16.0
+======
+- Prepare for 4.16 final release
+- Properly handle URI schemes other than "file"
+
+
+4.15.6
+======
+- Update configure.ac.in syntax
+- Namespace of the gir needs capital first letter
+- Bump GLib (and gio, gthread, etc) minimum to 2.50.0
+- Remove typedef already defined by G_DECLARE_FINAL_TYPE macro
+  (Fixes #4)
+
+
+4.15.5
+======
+- Bump Xfce version to 4.16pre2
+- Add README.md to EXTRA_DIST
+
+
+4.15.4
+======
+- Create README.md
+- Translation Updates:
+  Albanian, Armenian, Hebrew, Slovak, Uyghur
+
+4.15.3
+======
+- Version bump in preparation of 4.16pre1
+
+
+4.15.2
+======
+- Complete the field codes expansion
+
+
+4.15.1
+======
+- Add field codes expansion and related utilities (code moved from garcon)
+- docs: Show the "Miscellaneous Utilities" section
+- Add basic GitLab pipeline
+- Translation Updates:
+  Albanian, Armenian (Armenia), Asturian, Belarusian, Hindi, Italian,
+  Spanish, Uzbek
+
+4.15.0
+======
+- Bump the Xfce version to 4.15
+- Translation Updates:
+  Albanian, Galician, Spanish
+
+4.14.0
+======
+
+- Bump the xfce version to 4.14
+
+4.13.5
+======
+
+- Translation Updates:
+  Armenian, Norwegian Bokmål
+
+4.13.4
+======
+- Bump the Xfce version to 4.14pre2
+- Translation Updates: Danish, Galician
+
+4.13.3
+======
+[Please note that this is a development release.]
+- Add support for rc files as symlinks (bug #14698)
+- Fix GObject Introspection language bindings (bug #14766)
+- Fix compiler error -Wcast-function-type (GCC 8)
+- Bump minimum glib version
+- Fix compilation warnings ""defined" may not be portable"
+- Translation Updates: Arabic, Belarusian, Czech, Danish, French, Galician, Hebrew, Icelandic, Italian,
+  Kazakh, Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Romanian, Slovak, Serbian, Uighur, Ukrainian
+
+4.13.2
+======
+[Please note that this is a development release.]
+- Add VAPIGEN for vala binding generation.
+- Fix make distcheck build
+- Better documentation processing (migrate away from sgml templates)
+- Allow language-specific keys before language-neutral ones (some applications names were not
+  localized in applications menu) (bug #13979)
+- Translation updates: Arabic, Asturian, Bulgarian, Bengali, Catalan, Czech, Welsh, Danish, German,
+  Greek, English (Australia), English (United Kingdom), Spanish, Estonian, Basque, Finnish,
+  French, Galician, Hebrew, Croatian, Hungarian, Indonesian, Icelandic, Italian, Japanese, Kazakh,
+  Korean, Lithuanian, Latvian, Malay, Norwegian Bokmål, Dutch, Norwegian Nynorsk,
+  Occitan (post 1500), Panjabi (Punjabi), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Sinhala, Slovak, Albanian, Serbian, Swedish, Thai, Turkish, Uighur, Ukrainian, Urdu, Urdu
+  (Pakistan), Uzbek, Chinese (China), Chinese (Hong Kong), Chinese (Taiwan)
+
+4.13.1
+======
+[Please note that this is a development release.]
+- Fix a minor typo: ment → meant
+- Fix some autotools warnings, default debug to yes
+- Fix duplicate DISTCHECK_CONFIGURE_FLAGS
+- Improve gobject-introspection annotations
+
+4.13.0
+======
+[Please note that this is a development release.]
+- Fix abicheck to handle ppc64 architecture
+- Add support for GOBJECT-INTROSPECTION Bug #12159
+- Translation updates: ast bg ca da gl he hr lt sv
+
+4.12.1
+======
+- Set xfce_version_string to 4.12 (oops!).
+
+4.12.0
+======
+- Update libtool version to reflect dropped symbols (bug #10737)
+- Translation updates: ast, bg, de, es, fr, hr, nb, pl, ro, ru
+
+4.11.0
+======
+- Autotools updates.
+- Don't use freed rc file to avoid crash (bug #9026).
+- Remove unused or unrequired API functions: xfce_strjoin,
+  xfce_gethostname, xfce_putenv, xfce_setenv, xfce_unsetenv.
+- Translation updates: Arabic, Bulgarian, Welsh, Dzongkha, English
+  (Australia), Georgian, Korean, Macedonian, Malay, Dutch (Flemish),
+  Occitan (post 1500), Slovenian, Serbian, Thai, Tagalog (Philippines),
+  Uyghur, Chinese (Hong Kong).
+
+4.10.0
+======
+- Translation updates: Romanian, Chinese (China).
+
+4.9.1
+=====
+- Bump glib to 2.24.
+- Translation updates: German, Japanese, Korean, Portuguese.
+
+4.9.0
+=====
+- Make licenses static. You can only use
+  xfce_get_license_text(...).
+- Remove unused .h files.
+- Remove xfce_strip_context(), use g_strip_context().
+- Remove XfceDesktopEntry.
+- Don't generate enum types.
+- Only link against glib.
+- Set version string to 4.10.
+- Remove spec file and rpm build.
+- Missing fallback for AC_RUN_IF_ELSE() when cross-compiling (bug #8166).
+- Fix XfceRc group parsing with brackets in name (bug #8150).
+- Reduce XfceRc structure size from from 216 to 176 bytes.
+- Use some macros and drop unneeded strlen's in XfceRc.
+- Use GSList in xfce-resource.
+- Bump verinfo to 6:0:0.
+- Translation updates (ar, et, eu, is, ko, lt, nl, nn, pt, ru,
+  sk, zh_CN, zh_TW).
+
+4.8.2
+=====
+- Change the version string to 4.8.
+- Fixed incorrect assertion in xfce_strjoin (bug #7122).
+- Fix "empty declaration" compiler warnings.
+- Update FSF address and add missing licenses.
+- Fix undef in libxfce4util.h header.
+- Remove the internal slice allocator macros.
+- Use chain to free slice instead of a loop.
+- Translation updates (ko, ru, sk, zh_CN, nl).
+
+4.8.1
+=====
+- Set xfce_version_string to 4.8.0.
+
+4.8.0
+=====
+- Translation updates: Arabic, Greek, Polish, Romanian, Turkish.
+
+4.7.5
+=====
+- Fix ABI check on ppc (bug #7004).
+- Translation updates (en_BG).
+
+4.7.4
+=====
+- Fix wrong capitalization of Xfce.
+- Fix stdarg.h include (bug #6897).
+- Translation updates (pt).
+
+4.7.3
+=====
+- Explicitly link to gobject for the gtkdocs.
+- Expand tilde in more situations in xfce_expand_variables().
+- Remove encoding key from comment.
+- Translation updates (he, kk, de, zh_TW, el, gl, pt).
+
+4.7.2
+=====
+- Optimize xfce_rc_read_bool_entry().
+- Optimize strcmp in xfce-rc-simple.
+- Fix broken translations in applications using libxfce4util (bug #5842).
+- Deprecate XfceDesktopEntry.
+- Translation updates (ru, cs, lv, fi, eu, de, bn, de, uk, si, kk,
+  pa, gl, zh_TW, sk, ug, fr, id, it).
+
+4.7.1
+=====
+- Remove po/LINGUAS file so it does not override the languages defined
+  in the configure file.
+
+4.7.0
+=====
+- Build ChangeLog during make dist.
+- Silent the build.
+- Fix some compiler warnings.
+- Use new xdt macros, xfce-dev-tools 4.7.2 is required.
+- Various build changes for GIT.
+- Misc other small changes.
+- Translation updates (ca, zh_CN, es, da, gl, pa, ru, sq, lv, sk,
+  kk, hu, ast, ur_PK, ur, tl_PH).
+
+4.6.1
+======
+- Updated translations: Abel Martín (es), Masato Hashimoto (ja),
+  Leandro Regueiro (gl), Alan Pepelko (sl), Piotr Sokół (po), Mișu Moldovan (ro)
+
+4.6.0
+======
+- Add missing C++ wrappers in header files (patch by Jens Luedicke).
+- Updated translations: Carles Muñoz Gorriz (ca), Enrico Tröger (de),
+  Jeff Bailes (en_GB), Abel Martín (es), Jari Rahkonen (fi),
+  Maximilian Schleiss (fr), Leandro Regueiro (gl), Andhika Padmawan (id),
+  Masato Hashimoto (ja), Terje Uriansrud (nb_NO), Szymon Kałasz (pl),
+  Og Maciel (pt_BR), Nuno Miguel (pt_PT), Daniel Nylander (sv),
+  Gokmen Gorgen and Samed Beyribey (tr), Dimitri Nikitin (uk),
+  Chris K. Zhang (zh_CN)
+
+4.5.99.1
+========
+- Updated translations: Per Kongstad (da), Michal Várady (cs),
+  Masato Hashimoto  (ja), Daniel Nylander (sv)
+
+4.5.93
+======
+- Updated translations: Og Maciel (pt_BR), Abel Martin (es),
+  Maxamilian Schleiss (fr), Daniel Nylander (sv), Masato Hashimoto (jp)
+
+4.5.92
+======
+- Updated translations: Jari Rahkonen (fi), Abel Martin (es)
+- Increment library version to avoid having a 4.6 library version older then
+  the one in 4.4.
+- Place G_GNUC_INTERNAL before function declaration for Sun Studio
+  compatibility (bug #4580)
+
+
+4.5.91
+======
+- Fix typo in i18n code (check for '/' in lang doesnt make sense)
+- Updated translations: Og Maciel (pt_BR), Abel Martín (es)
+
+4.5.90
+======
+- Do not use GMemChunk for XfceRc due to memory leaks (Bug #2427).
+- Fix buglet when deleting XfceRc groups.
+- Fix invalid use of g_slice_free1() in XfceRc (Bug #2854).
+- Add support for function names in debug messages on Solaris (Bug #3090).
+- New util functions for setting up POSIX signal handling using pipe(),
+  GIOChannel and the glib main loop.
+- Strip trailing slashes to avoid directories appearing multiple times in
+  resource lookup functions.
+- Updated translations: Maximilian Schleiss (fr), Besnik Bleta (sq),
+  Mohamed Magdy (ar), Jeff Bailes (en_GB), Nuno Miguel (pt_PT), Daichi
+  Kawahata (ja), Terje Uriansrud (nb_NO), Tegegne Tefera (am), Rihards
+  Priedītis (lv), Muhammad Ali Makki (ur), Rashan Anushka (si), Leandro
+  Regueiro (gl), Khaled Hosny (ar), Peter Vois (et),
+
+4.4.0
+=====
+- Updated translations: Szymon Kałasz (pl)
+- New translations: Geraint Rowlands (cy), Jovan Naumovski (mk)
+
+
+4.3.99.2
+========
+- Updated translations: Pau Rul-lan Ferragut (ca), Maximilian Schleiss (fr)
+- New translations: Michal Várady (cs), Tenzin Dendup (dz),
+  ByungHyun Choi (ko), Stephan Arts (nl)
+
+
+4.3.99.1
+========
+- Enable compilation with compilers other than gcc (Bug #1851).
+- Updated translations: Fabian Nowak (de)
+- New translations: Leandro Regueiro (gl), Dimitri Gogelia (ka)
+
+
+4.1.6
+=====
+- Added LIBXFCE4UTIL_*_VERSION macros.
+
+
+4.1.5
+=====
+- Added XDG Base Directory Implementation (version 0.6) and updated
+  documentation.
+- Small fixes to make gcc happy and first steps with Intel C compiler
+  on FreeBSD.
+
+
+4.1.4
+=====
+- Several bugfixes
+- Added --with-broken-putenv=[auto/no/yes] to configure to make
+  libxfce4util cross-compilable again.
+
+
+4.1.3
+=====
+- Code cleanups (Yes, consistency is important)
+- Switched to gtk-doc, cause of doxygen being unable to handle
+  GObject's
+- Mark some functions as DEPRECATED.
+
+
+4.1.1
+=====
+- added xfce_setenv(), xfce_putenv()
+- Started doxygen documentation of the code
+
+
+4.1.0
+=====
+- Added xfce_textdomain(package, localedir, encoding) to avoid
+  problems with gettext binding in the future.

@@ -1,0 +1,56 @@
+# Bash completion for xfconf-query.
+#
+# Copyright (C) 2019 Emanuele Petriglia <inbox@emanuelepetriglia.com>
+#
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
+# Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+_xfconf-query() {
+  local current options words long_options
+  COMPREPLY=()
+  current="${COMP_WORDS[$COMP_CWORD]}"
+  previous="${COMP_WORDS[$COMP_CWORD - 1]}"
+  short_options="-h -V -c -p -s -l -v -n -t -r -R -a -T -m"
+
+  long_options="--help --version --channel --property --set --list --verbose"
+  long_options+=" --create --type --reset --recursive --force-array --toggle"
+  long_options+=" --monitor"
+
+  options="$short_options $long_options"
+
+  if [[ "$current" == --* ]]; then
+    words="$long_options"
+  elif [[ "$current" == -* ]]; then
+    words="$options"
+  else
+    case "$previous" in
+      # Delete first line and the initial two spaces (see 'xfconf-query -l').
+      -c|--channel) words="$(xfconf-query -l | sed -e '1d' -e 's/^  //')" ;;
+      -p|--property)
+        # Get given channel, if exists.
+        channel="$(echo "$COMP_LINE" | grep -oPe '(-c|--channel) \K([a-z]+)')"
+
+        if [[ "$channel" ]]; then
+          words="$(xfconf-query -c "$channel" -l)"
+        fi
+        ;;
+    esac
+  fi
+
+  mapfile -t COMPREPLY < <(compgen -W "$words" -- "$current")
+  return 0
+}
+
+complete -F _xfconf-query xfconf-query

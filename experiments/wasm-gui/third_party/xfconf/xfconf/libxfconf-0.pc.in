@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+libxfconf_api_version=@LIBXFCONF_VERSION_API@
+
+Name: @PACKAGE_TARNAME@
+Description: Configuration library for Xfce
+Requires: gio-2.0
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lxfconf-${libxfconf_api_version}
+Cflags: -I${includedir}/xfce4/xfconf-${libxfconf_api_version}

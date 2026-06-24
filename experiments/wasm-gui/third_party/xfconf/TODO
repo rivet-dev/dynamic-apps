@@ -1,0 +1,30 @@
+-> for version 1.0
+
+* unit tests - some done, need:
+  - locking test
+  - RemoveChannel() test
+  - GetAllProperties() test
+  - tests for all the array and struct stuff
+* MCS settings migration code
+  - special backend to read config entries
+* expire channels from memory if they aren't accessed for a while
+* PropertyChanged signal works, but...
+  - optimise by checking previous value; don't fire signal if the value
+    hasn't really changed.  will this slow down the daemon too much?
+  - file system monitoring.  if a backend file changes, the daemon needs to
+    re-read the file, but must save the old property tree so it can figure out
+    what has changed so it can send appropriate PropertyChanged signals
+    + what happens if a channel isn't loaded into memory and its backing file
+      changes?  load it and send PropertyChanged for all properties?  that
+      could be very bad.
+* libxfce4mcs-client dummy implementation that forwards to libxfconf (?)
+* maybe validate channel/prop names in libxfconf too to generate an error
+  without a roundtrip to the server (?)
+
+-> for future:
+
+* transaction support
+* network support - allow remote displays and such
+* do some caching in the client library?  seems wasteful of memory, but it
+  could allow the daemon to ditch its copy of a channel's properties more
+  often.

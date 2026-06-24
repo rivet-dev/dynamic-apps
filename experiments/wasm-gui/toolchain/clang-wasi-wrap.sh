@@ -9,6 +9,8 @@ for a in "$@"; do
     -Wl,--start-group|-Wl,--end-group|--start-group|--end-group) continue ;;
     -Wl,-rpath,*|-Wl,-rpath|-rpath) continue ;;
     -Wl,--enable-new-dtags|-Wl,-soname,*) continue ;;
+    -Wl,--as-needed|-Wl,--no-as-needed|--as-needed|--no-as-needed) continue ;;
+    -Wl,--export-dynamic|--export-dynamic|-Wl,--version-script,*) continue ;;
     -ldl) continue ;;
     -pthread|-lpthread)
       # Under the wasi-threads (Phase 0) profile KEEP -pthread: wasi-libc <pthread.h> static_asserts

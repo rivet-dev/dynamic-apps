@@ -1,0 +1,13 @@
+The Xfconf daemon supports a so-called "kiosk mode" or "lockdown mode"
+such that certain configuration properties or certain channels can be
+locked from user modification.  In this case, the locked values are
+provided by a system administrator in the form of a settings file (in
+the same format as the user's settings files) in a system read-only
+location.
+
+Not all backends may support kiosk/lockdown mode.  Please see the
+documentation corresponding to your configuration backend for
+information on how to lock down user configuration values.
+
+(If you're unsure which backend, you're probably using the
+"Per-channel XML" backend.)

@@ -1,0 +1,419 @@
+4.18.3 (2023-10-31)
+======
+- cache: Fix overwritten error
+- cache: Fix uncached value
+
+4.18.2 (2023-10-17)
+======
+- Cache property-not-found responses in XfconfCache
+- Don't reset scheduled save timer on every write
+- xfconf-query: Sort channel list (-l or -m alone)
+- docs: Fix transfer type of xfconf_list_channels()
+- docs: Add clarification about bindings
+
+4.18.1 (2023-04-17)
+======
+- Update copyright year
+- xfconfd: Lower warning level
+- docs: Fix xfconf_channel_get() transfer annotation
+- Update bug report address
+- docs: Fix unused declarations warning
+- docs: Properly enable GI docs
+- xfconfd: Fix check for "/" when building property name
+- xfconfd: Make xml backend case sensitive for channel names
+- Translation Updates:
+  Albanian, Armenian (Armenia), Basque, Belarusian, Bulgarian, Catalan,
+  Chinese (China), Chinese (Hong Kong), Chinese (Taiwan), Croatian,
+  Czech, Danish, Dutch, Eastern Armenian, English (Australia), English
+  (Canada), English (United Kingdom), Finnish, French, Galician,
+  German, Greek, Hebrew, Hindi, Hungarian, Icelandic, Indonesian,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian
+  Bokmål, Occitan (post 1500), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian
+
+4.18.0 (2022-12-15)
+======
+- build: Bump requirements for Xfce 4.18
+- xfconf: Prevent Use-After-Free in GClosureNotify
+
+4.17.2 (2022-11-30)
+======
+- Bump Libxfce4util to 4.17.3
+- xfconf-query: Remove ENABLE_NLS ifdefs
+
+4.17.1 (2022-11-09)
+======
+- Update copyright year
+- Create per-channel config directory if it does not exist (#20, !15)
+- xfconfd: Locale independent writing of floating point values (#33, !26)
+- xfconfd: Silence GLib deprecation warning
+- Use `I_` from Libxfce4util
+- Update `.gitignore`
+- Fix "release" stage in CI
+
+4.17.0 (2022-11-01)
+======
+- Bump GObject Introspection minimum version to 1.66
+- Allow to choose an alternative service name prefix
+- ci: Upload artifacts on failure without specifying a directory
+- ci: Store tests results
+- Add a lifecycle manager to xfconfd
+- Replace GTimeVal with gint64 epoch time
+- Remove memset() overhead
+- Argument to g_strv_length() must not be NULL
+- Silent `-Wcast-align` from Clang
+- automake: Enable subdir-objects
+- xfconf-query: Improve help string for 'verbose'
+- Merge branch 'skunnyk/xfconf-revamp_doc'
+- Revamp the documentation to modernize and uniformize accross 
+components
+- Merge branch 'olh/xfconf-C99'
+- configure.ac: use AC_PROG_CC_C99
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bengali,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (Canada), English (United Kingdom), Finnish,
+  French, Galician, German, Greek, Hebrew, Hindi, Hungarian, Icelandic,
+  Indonesian, Italian, Japanese, Kabyle, Kazakh, Korean, Latvian,
+  Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan
+  (post 1500), Polish, Portuguese, Portuguese (Brazil), Romanian,
+  Russian, Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Urdu, Urdu (Pakistan), Uyghur
+
+4.16.0
+======
+- Don't use shebang for bash completion file
+- Remove GLIB_CHECK_VERSION IFDEFs which are obsolete after glib bump
+- bump glib (and gio, gthread, etc) minimum to 2.50.0
+- remove last traces of xfconf-perl
+- Fix make distcheck and enable it on gitlab CI
+- Add README.md to EXTRA_DIST
+- Post release autoconf git revision
+
+
+4.15.1
+======
+- Fix stray double-quote in bash-completion PKG_CONFIG invocation
+- Disable parallelism on all tests
+- Adds new README.md and updates AM_INIT_AUTOMAKE
+- xfconf-cache: Fix access to freed data (#16)
+- Translation Updates: oc, he, hu, hy_AM, lt, sk, sq, ug, tr.
+
+4.15.0
+======
+- Implement custom test driver
+- Use 'gsettings' as a common channel name for the GSetting backend
+- Bug #14789 Fix GSettings backend assertion error, when probed but not used
+- Enable GSettings backend build by default
+- Add Bash completion for xfconf-query
+- Bug #15960: Add some missing xfconf_shutdown() in xfconf-query
+- Bug #15951: Fix 'xfconf_get_error_quark' introspecting warning
+- Remove perl bindings
+- Fix vala binding in dist tarball
+- Translation Updates: be, da, el, es, he, hr, hu, hye, gl, nl,
+  sl, sq, zh_CN, zh_HK, zh_TW
+
+4.14.1
+======
+
+Release rebuild for libxfconf-0.deps
+
+4.14.0
+======
+
+- Translation Updates:
+  Czech, Galician, Norwegian Bokmål, Portuguese
+
+4.13.8
+======
+
+- Add support for GObject introspection and vala
+- Tests: Explicitly handle error reply from Ping method call
+- Disable perl bindings by default
+- Translation Updates: Danish, Armenian (Armenia)
+
+4.13.7
+======
+- Bump glib version
+- Bug #15122: xfconf: disable gsettings backend by default
+- Fix compiler error -Wcast-function-type (GCC 8)
+- Fix this use of "defined" may not be portable
+- Update .gitignore
+- Fix warnings reported by GCC 8 (Bug #15112)
+- Added gdbus binding to gitignore, add post release git tag
+- Translation updates: Basque, Belarusian, Bulgarian, Catalan, Czech, Danish,
+  English (Australia), Icelandic, Italian, Lithuanian, Portuguese (Brazilian),
+  Romanian, Slovak, Swedish
+
+4.13.6
+======
+- Added .NOTPARALLEL to property change test (bug #13840)
+- Implement an optional GSettings backend
+
+4.13.5
+======
+- Fix make distcheck, (bug #14082)
+- Handle empty arrays by initializing the GValue to G_TYPE_PTR_ARRAY (bug #13780)
+
+4.13.4
+======
+- Fix segfault in xfconf_cache_set_property_reply_handler when
+  multiple calls are made (bug #13825)
+- Allow to store empty arrays (bug #13791)
+- Fix a path in xfconf_cache_set where the mutex isn't locked (bug #13790)
+
+4.13.3
+======
+- Flush gdbus connection on xfconf_shutdown
+- Correctly use xfconf_shutdown in xfconf-query
+- Check for invalid GPtrArrays in the conversion
+  from GValue to GVariant.
+- Fix some build issues in AM subdir-objects
+- Fix some autogen.sh warnings
+- Better documentation processing.
+
+4.13.2
+======
+- Fix cache corruption due to a wrong g_value_unset call.
+- Update API gtk documentation
+
+4.13.1
+======
+- Revert the bump of libxfconf version from 0 to 1,
+  to avoid massive changes in all xfce's components.
+
+4.13.0
+======
+- Port xfconf to gdbus
+- Bump libxfconf version from 0 to 1.
+
+4.12.1
+======
+- Add support for binding to GdkRGBAs (required for migration to gtk3)
+- Translation updates: ast, ca, el, eu, gl, he, hu, lt, nn, oc, ru, sk, sv
+
+4.12.0
+======
+- Allow :.,[]{} characters in property and channel names (bug #11021)
+- Fix make check when including perl bindings in the build (bug #9556)
+- Remove unneeded files.
+- Drop deprecated g_type_init() function.
+- Simplify checks.
+- Autotools updates.
+- Use new glib 2.32 mutex api.
+- Translation updates: ar, ast, bg, bn, ca, cs, da, de, el, en_AU,
+  en_GB, es, eu, fi, fr, gl, hr, hu, id, is, it, ja, kk, ko, lv, ms,
+  nb, nl, oc, pl, pt, pt_BR, ro, ru, sk, sr, sv, th, tr, ug, uk, ur,
+  ur_PK, zh_CN, zh_TW.
+
+4.10.0
+======
+- Don't emit property-changed on cancelled calls.
+- Accept NULL as a string value (bug #8726).
+- Check abicheck.sh to be more portable (bug #8702).
+- Fix more deprecated g_value_set_char (bug #8690).
+- Explicitly link against gthread (bug #8713).
+- Drop deprecated g_mapped_file_free.
+- Translation updates: English (United Kingdom), Korean, Dutch
+  (Flemish), Portuguese, Romanian, Turkish, Chinese (China).
+
+4.9.1
+=====
+- Use LT_PREREQ and LT_INIT.
+- UTF-8 check xfconf strings.
+- Do not dup strings in xfconf_channel_set_string.
+- Bump package dependency versions.
+- Fix comment in perl package info (bug #8661).
+- Don't use deprecated g_value_set_char (bug #8690).
+- Translation updates: German, Greek, Japanese, Korean, Dutch
+  (Flemish), Polish, Portuguese, Turkish.
+
+4.9.0
+=====
+- Use sh as interpreter in tests.
+- Add hook to skip the xfconf tests.
+- Make the abicheck work on Solaris and PPC64 (bug #7416).
+- Fix licenses and use new FSF address.
+- Fix compiler warnings on Solaris.
+- Avoid GCC 4.6 compiler warning.
+- Add toggle option to xfconf-query.
+- Remove unusable import and export options from xfconf-query.
+- Translate all error strings in xfconf-query.
+- Cleanup Makefile.am files a bit.
+- Improve --version output in xfconf-query.
+- Cleanup #includes.
+- Drop usage of the G_CONST_RETURN macro.
+- Translation updates: ar, ast, bn, ca, cs, da, de, el, en_GB, es,
+  eu, fi, fr, gl, he, hr, hu, id, is, it, ja, kk, ko, lt, lv, ms,
+  nb, nl, nn, pa, pl, pt, pt_BR, ro, ru, si, sk, sv, te, tr, ug, uk,
+  ur, ur_PK, zh_CN, zh_TW.
+
+4.8.1
+=====
+- Fix double free crash (bug #8169).
+- Fix compiler warnings on solaris.
+- Avoid gcc 4.6 compiler warning.
+- Allow installation of the helpers in a custom location.
+- Updated translations: hr, is, ko, ms, nl, ru, sk, te, tr, zh_CN.
+
+4.8.0
+=====
+- Updated translations: Arabic, Greek, Polish, Romanian.
+
+4.7.5
+=====
+- Updated translations: he, nb, en+GB, pt, ar.
+
+4.7.4
+=====
+- Don't enable options with --disable-<option> (bug #6820).
+- Updated translations: ug, sk, pt.
+
+
+4.7.3
+=====
+- Use G_GSIZE_FORMAT in the DBG message.
+- Add doc module to fixxref options (bug #6304).
+- Link the gtkdoc scanner to GObject and Glib (bug #6407).
+- Check for perl outside bindings option for alias script (bug #6481).
+- Move xfconfd from $libexecdir to $libdir.
+- Updated translations: kk, bn, uk, si, it, sk, fr, id, zh_TW, de.
+
+
+4.7.2
+=====
+- Disable cache singletons and improve some code now we know the
+  tree is always empty during prefetch. This is only a disadvantage
+  when creating multiple new channels with the same name, but
+  in that case channels singletons should be used.
+- Lots of memory leaks plugged. Valgrind log is clean now.
+- Fix memory corruption during file loading and use mmap.
+- Properly handle dirty channels in the daemon and avoid excessive
+  saving of channels.
+- Disable unimplemented code in the properties cache.
+- Steal values during cache prefetch to avoid a lot of copying.
+- Updated translations: hu.
+
+4.7.1
+=====
+- Remove dangling nodes from the tree after a recursive remove.
+- Use a seconds timeout to reduce system wakeups.
+- Only print debug messages when compiled with debugging.
+- Merge xml files in reversed order (bug #6079).
+- Use g_strcmp0 for comparing strings.
+- Bump glib depenency to 2.18.
+- Silent the build.
+- Updated translations: pt_BR, nl, gl, fi, ru.
+
+4.7.0
+=====
+- Add prefetching and caching support to XfconfChannel. Should speed
+  things up a bit on app startup, and avoid blocking waiting on DBus
+  in other cases.
+- New simpler (internal) handling of property bindings.
+- Use new xdt macros, this requires xfce-dev-tools 4.7.2.
+- New tests for object bindings.
+- Updated translations: es, kk, ca, sv, hu, ro, gl, ja, cs, lv, ast,
+  zh_CN, ur, ur_PK, da, eu, pt.
+
+
+4.6.2
+=====
+- Fix compilation using Sun cc (bug 5477).
+
+
+4.6.1
+=====
+- Be a bit safer when writing out channel xml files: flush data to disk
+  using fdatasync()/fsync() before renaming over the old file.
+- Updated translations: pl, es, it, gl, pl, pt, uk
+
+
+4.6.0
+=====
+- Remove unimplemented --import and --export functions from xfconf-query
+- Fix encoding bug with xfconf-query input (Bug #4622)
+- Updated translations: ba, ca, cs, da, de, en_GB, es, fr, gl, hu, id, it, ja,
+  nb, pl, pt_PT, sv, tr, zh_CN
+
+
+4.5.99.1
+========
+- Don't translate "true" and "false" in the xfconf-query output.
+- Updated translations (cs, da, fi, fr, nl, pt_BR, sv, zh_CN)
+
+
+4.5.93
+======
+- Install xfconfd to $(libexecdir) instead of $(bindir).
+- Fix perl bindings link order on Cygwin (bug 4735).
+- Allow passing arbitrary options to the perl bindings' Makefile.PL
+  generation script (bug 4735).
+- Updated translations: Michal Várady (cs), SZERVÁC Attila (hu),
+  Daniel Nylander (sv), Terje Uriansrud (nb), Carles Muñoz Gorriz (ca),
+  Abel Martín (es), Maximilian Schleiss (fr), Og Maciel (pt_BR),
+  Eren Turkay (tr)
+
+
+4.5.92
+======
+- Add xfconf_channel_new_with_property_base() to restrict a channel
+  to a subset of the property tree.
+- Add a dbus message filter to xfconfd that catches dbus daemon
+  disconnect signals and flushes channels before xfconfd gets
+  killed (bug 4487).
+- Change libxfconf GObject bindings API slightly to use gulong IDs
+  for each binding to be used when removing bindings.  Extend the
+  unbind functions a bit.
+- Bump libxfconf interface version due to incompatible change.
+- Add libxfconf perl bindings.
+- Remove xfconf_channel_remove_property() and
+  xfconf_channel_remove_properties().
+- Only treat the XML file under $XDG_CONFIG_HOME as a "user" file,
+  and treat all others as system files.  This fixes the problem where
+  Xfce-installed defaults get read *after* the user's config when
+  Xfce is installed to a user-writable prefix (bug 4592).
+- Fix build on Cygwin and other platforms that actually care about
+  library link order (bug 4559).
+
+
+4.5.91
+======
+- Remove xfsettingsd (moved to xfce4-settings package).  This removes
+  xfconf's gtk+ dependency entirely.
+- Add xfconf_channel_get() which returns an XfconfChannel singleton
+  object that lives until calling xfconf_shutdown().
+- Add xfconf_channel_reset_property(), which is a replacement for the
+  'remove' functions.  This more accurately describes what 'remove'
+  actually does in the presence of locked properties and/or properties
+  that have system-wide defaults.
+- Deprecate xfconf_channel_remove_property() and
+  xfconf_channel_remove_properties().
+- Change D-Bus interface to reflect above two changes.
+- Add IsPropertyLocked() to the D-Bus interface, as well as a
+  corresponding xfconf_channel_is_property_locked() libxfconf function,
+  which allows clients to query whether or not a property can be
+  modified.
+- Don't send out a PropertyChange signal if a property is set to the
+  value it already held.
+- Fix daemon crash when resetting properties recursively.
+- Fix daemon sending incorrect property names in the PropertyRemoved
+  signal when removing multiple properties at once.
+- For GObject property bindings, if the bound xfconf property is
+  removed from the config store, try to reset the GObject property
+  to the default value specified in its GParamSpec.
+- Add -R option to xfconf-query which causes the -r option (reset) to
+  operate recursively to include all properties under the specified
+  property.
+- Add -a option to xfconf-query which forces setting a property as an
+  array even if the array only has one element.
+- Fix xfconf_channel_get_property() so it properly converts the value
+  fetched from the config store into the type that the caller
+  requested (if any).
+
+
+4.5.90
+======
+- Initial release.  There are bugs, and the API and ABI are not frozen.

@@ -1,0 +1,23 @@
+Xfconf is a hierarchical (tree-like) configuration system where the
+immediate child nodes of the root are called "channels".  All settings
+beneath the channel nodes are called "properties."
+
+Valid channel and property names are composed of the ASCII US-English
+uppercase characters A-Z, lowercase characters a-z, numerals 0-9, the
+dash (-), and underscore (_).  No other characters are allowed for
+channel names.  The less than (<) and greater than (>) characters
+(aka "angle brackets") are also allowed in property names, but not
+in channel names.
+
+Property names are referenced by their "full path" underneath their
+channel, for example: "/main/history-window/last-accessed".  Of course,
+when querying a particular property, the channel must be specified
+separately as well.
+
+Both channel and property names are case-insensitive.  For example,
+the following four all refer to the same property:
+
+  Channel: ExampleApp, property: /main/history-window/last-accessed
+  Channel: EXAMPLEAPP, property: /main/history-window/last-accessed
+  Channel: ExampleApp, property: /Main/History-Window/Last-Accessed
+  Channel: exampleapp, property: /MAIN/history-window/last-accessed

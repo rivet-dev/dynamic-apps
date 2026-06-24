@@ -1,0 +1,38 @@
+<!--
+  Copyright (c) 2007-2009 Brian Tarricone <bjt23@cornell.edu>
+  
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; version 2 of the License ONLY.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT channel property*>
+<!ELEMENT property (property|value)*>  <!-- <value> elems only allowed
+                                            if type="array" -->
+<!ELEMENT value EMPTY>
+
+<!ATTLIST channel name CDATA #REQUIRED>
+<!ATTLIST channel version CDATA #REQUIRED>  <!-- currently "1.0" -->
+<!ATTLIST channel locked CDATA #IMPLIED>    <!-- only one of these -->
+<!ATTLIST channel unlocked CDATA #IMPLIED>  <!-- two are allowed -->
+
+<!ATTLIST property name CDATA #REQUIRED>
+<!ATTLIST property type (string|uchar|char|uint16|int16|uint|int|uint64|int64|float|double|bool|array|empty) #REQUIRED>
+<!ATTLIST property value CDATA #IMPLIED>  <!-- not used if type="array"
+                                               or type="empty" -->
+<!ATTLIST property locked CDATA #IMPLIED>    <!-- only one of these -->
+<!ATTLIST property unlocked CDATA #IMPLIED>  <!-- two are allowed -->
+
+<!ATTLIST value type (string|uchar|char|uint16|int16|uint|int|uint64|int64|float|double|bool) #REQUIRED>
+<!ATTLIST value value CDATA #REQUIRED>

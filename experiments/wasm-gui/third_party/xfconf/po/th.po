@@ -1,0 +1,340 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Theppitak Karoonboonyanan <thep@linux.thai.net>, 2013
+# Theppitak Karoonboonyanan <theppitak@gmail.com>, 2014
+# Theppitak Karoonboonyanan <theppitak@gmail.com>, 2017
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfconf\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-06 12:53+0200\n"
+"PO-Revision-Date: 2013-07-02 20:48+0000\n"
+"Last-Translator: Theppitak Karoonboonyanan <theppitak@gmail.com>, 2017\n"
+"Language-Team: Thai (http://app.transifex.com/xfce/xfconf/language/th/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: th\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../xfconf/xfconf-cache.c:987
+#, c-format
+msgid "Failed to make ResetProperty DBus call"
+msgstr "เรียกทำงาน ResetProperty กับ DBus ไม่สำเร็จ"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:276
+#, c-format
+msgid "Unable to create configuration directory \"%s\""
+msgstr "ไม่สามารถสร้างไดเรกทอรีค่าตั้ง \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:321
+#: ../xfconfd/xfconf-daemon.c:167
+#, c-format
+msgid "Permission denied while modifying property \"%s\" on channel \"%s\""
+msgstr "ไม่ได้รับอนุญาตให้แก้ไขคุณสมบัติ \"%s\" ที่ช่องข้อมูล \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:386
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:468
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:633
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:653 ../xfconf-query/main.c:335
+#, c-format
+msgid "Property \"%s\" does not exist on channel \"%s\""
+msgstr "ไม่มีคุณสมบัติ \"%s\" ที่ช่องข้อมูล \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:600
+#, c-format
+msgid "Unable to remove channel \"%s\": %s"
+msgstr "ไม่สามารถลบช่องข้อมูล \"%s\": %s"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1297
+#, c-format
+msgid "Invalid type for <property>: \"%s\""
+msgstr "ชนิดไม่ถูกต้องสำหรับ <property>: \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1313
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1389
+#, c-format
+msgid "Unable to parse value of type \"%s\" from \"%s\""
+msgstr "ไม่สามารถแจงค่าชนิด \"%s\" จาก \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1369
+#, c-format
+msgid "The type attribute of <value> cannot be an array"
+msgstr "แอตทริบิวต์ type ของ <value> ไม่สามารถเป็นแอร์เรย์ได้"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1378
+#, c-format
+msgid "Invalid type for <value>: \"%s\""
+msgstr "ชนิดไม่ถูกต้องสำหรับ <value>: \"%s\""
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1654
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1904
+#, c-format
+msgid "Channel \"%s\" does not exist"
+msgstr "ช่องข้อมูล \"%s\" ไม่มีอยู่"
+
+#: ../xfconfd/xfconf-backend-perchannel-xml.c:1966
+#, c-format
+msgid "Unable to write channel \"%s\": %s"
+msgstr "ไม่สามารถเขียนช่องข้อมูล \"%s\": %s"
+
+#: ../xfconfd/xfconf-backend-factory.c:77
+#, c-format
+msgid "Unable to find Xfconf backend of type \"%s\""
+msgstr "ไม่สามารถหาแบคเอนด์ของ Xfconf ชนิด \"%s\""
+
+#: ../xfconfd/xfconf-backend.c:127
+#, c-format
+msgid "Property names must start with a '/' character"
+msgstr "ชื่อคุณสมบัติต้องขึ้นต้นด้วยอักขระ '/'"
+
+#: ../xfconfd/xfconf-backend.c:136
+#, c-format
+msgid "The root element ('/') is not a valid property name"
+msgstr "อิลิเมนต์ราก ('/') ไม่ใช่ชื่อคุณสมบัติที่จะใช้ได้"
+
+#: ../xfconfd/xfconf-backend.c:151
+#, c-format
+msgid ""
+"Property names can only include the ASCII characters A-Z, a-z, 0-9, '_', "
+"'-', ':', '.', ',', '[', ']', '{', '}', '<' and '>', as well as '/' as a "
+"separator"
+msgstr "ชื่อคุณสมบัติสามารถใช้ได้เพียงอักขระ ASCII A-Z, a-z, 0-9, '_', '-', ':', '.', ',', '[', ']', '{', '}', '<' และ '>' รวมถึง '/' ในฐานะเครื่องหมายคั่นเท่านั้น"
+
+#: ../xfconfd/xfconf-backend.c:160
+#, c-format
+msgid "Property names cannot have two or more consecutive '/' characters"
+msgstr "ชื่อคุณสมบัติไม่สามารถมีอักขระ '/' ติดกัน"
+
+#: ../xfconfd/xfconf-backend.c:171
+#, c-format
+msgid "Property names cannot end with a '/' character"
+msgstr "ชื่อคุณสมบัติไม่สามารถลงท้ายด้วยอักขระ '/'"
+
+#: ../xfconfd/xfconf-backend.c:188
+#, c-format
+msgid "Channel name cannot be an empty string"
+msgstr "ชื่อช่องข้อมูลไม่สามารถเป็นข้อความว่างเปล่าได้"
+
+#: ../xfconfd/xfconf-backend.c:203
+#, c-format
+msgid ""
+"Channel names can only include the ASCII characters A-Z, a-z, 0-9, '{', '}',"
+" '|', ']', '[', ':', ',', '.', '_', and '-'"
+msgstr "ชื่อช่องข้อมูลสามารถใช้ได้เพียงอักขระ ASCII A-Z, a-z, 0-9, '{', '}', '|', ']', '[', ':', ',', '.', '_', และ '-' เท่านั้น"
+
+#: ../xfconfd/xfconf-backend.c:425
+#, c-format
+msgid ""
+"The property name can only be empty or \"/\" if a recursive reset was "
+"specified"
+msgstr "ชื่อคุณสมบัติสามารถเป็นข้อความว่างเปล่าหรือ \"/\" ได้เท่านั้นถ้ามีการระบุการล้างข้อมูลแบบทั้งยวง"
+
+#: ../xfconfd/main.c:152
+msgid "Prints the xfconfd version."
+msgstr "แสดงรุ่นของ xfconfd"
+
+#: ../xfconfd/main.c:154
+msgid ""
+"Configuration backends to use.  The first backend specified is opened "
+"read/write; the others, read-only."
+msgstr "แบคเอนด์ค่าตั้งที่จะใช้ แบคเอนด์แรกที่ระบุจะถูกเปิดแบบอ่าน/เขียน แบคเอนด์ที่เหลือจะถูกเปิดแบบอ่านอย่างเดียว"
+
+#: ../xfconfd/main.c:157
+msgid "Fork into background after starting; only useful for testing purposes"
+msgstr "fork ไปทำงานเบื้องหลังหลังจากเริ่มทำงาน; เป็นประโยชน์สำหรับการทดสอบเท่านั้น"
+
+#: ../xfconfd/main.c:176
+msgid "Xfce Configuration Daemon"
+msgstr "ดีมอนค่าตั้งของ Xfce"
+
+#: ../xfconfd/main.c:181
+msgid "Xfce configuration daemon"
+msgstr "ดีมอนค่าตั้งของ Xfce"
+
+#: ../xfconfd/main.c:183
+msgid "Report bugs to http://bugs.xfce.org/\n"
+msgstr "หากพบปัญหา กรุณารายงานที่ http://bugs.xfce.org/\n"
+
+#: ../xfconfd/main.c:186
+#, c-format
+msgid "Error parsing options: %s\n"
+msgstr "เกิดข้อผิดพลาดขณะแจงตัวเลือก: %s\n"
+
+#: ../xfconfd/xfconf-daemon.c:222
+#, c-format
+msgid "GType transformation failed \"%s\""
+msgstr "แปลง GType \"%s\" ไม่สำเร็จ"
+
+#: ../xfconfd/xfconf-daemon.c:482
+#, c-format
+msgid "No backends could be started"
+msgstr "ไม่สามารถเปิดทำงานแบคเอนด์ใดๆ ได้"
+
+#: ../xfconf-query/main.c:84 ../xfconf-query/main.c:89
+msgid "set"
+msgstr "กำหนด"
+
+#: ../xfconf-query/main.c:94
+msgid "reset"
+msgstr "ล้างค่า"
+
+#: ../xfconf-query/main.c:170
+msgid "Version information"
+msgstr "ข้อมูลรุ่น"
+
+#: ../xfconf-query/main.c:174
+msgid "The channel to query/modify"
+msgstr "ช่องข้อมูลที่จะสอบถาม/แก้ไข"
+
+#: ../xfconf-query/main.c:178
+msgid "The property to query/modify"
+msgstr "คุณสมบัติที่จะสอบถาม/แก้ไข"
+
+#: ../xfconf-query/main.c:182
+msgid "The new value to set for the property"
+msgstr "ค่าใหม่ที่จะกำหนดให้กับคุณสมบัติ"
+
+#: ../xfconf-query/main.c:186
+msgid "List properties (or channels if -c is not specified)"
+msgstr "แสดงรายชื่อคุณสมบัติ (หรือช่องข้อมูลถ้าไม่ได้ระบุ -c)"
+
+#: ../xfconf-query/main.c:190
+msgid "Print property and value in combination with -l or -m"
+msgstr ""
+
+#: ../xfconf-query/main.c:194
+msgid "Create a new property if it does not already exist"
+msgstr "สร้างคุณสมบัติใหม่ถ้ายังไม่มี"
+
+#: ../xfconf-query/main.c:198
+msgid "Specify the property value type"
+msgstr "ระบุชนิดของค่าของคุณสมบัติ"
+
+#: ../xfconf-query/main.c:202
+msgid "Reset property"
+msgstr "ล้างค่าคุณสมบัติ"
+
+#: ../xfconf-query/main.c:206
+msgid "Recursive (use with -r)"
+msgstr "ทำทั้งยวง (ใช้ร่วมกับ -r)"
+
+#: ../xfconf-query/main.c:210
+msgid "Force array even if only one element"
+msgstr "บังคับให้เป็นแอร์เรย์แม้จะมีแค่รายการเดียว"
+
+#: ../xfconf-query/main.c:214
+msgid "Invert an existing boolean property"
+msgstr "กลับค่าบูลีนเดิมของคุณสมบัติ"
+
+#: ../xfconf-query/main.c:218
+msgid "Monitor a channel for property changes"
+msgstr "เฝ้าสังเกตช่องข้อมูลเพื่อดูการเปลี่ยนแปลงของคุณสมบัติ"
+
+#: ../xfconf-query/main.c:234
+msgid "- Xfconf commandline utility"
+msgstr "- เครื่องมือบรรทัดคำสั่ง Xfconf"
+
+#: ../xfconf-query/main.c:239
+#, c-format
+msgid "Option parsing failed: %s"
+msgstr "แจงตัวเลือกไม่สำเร็จ: %s"
+
+#: ../xfconf-query/main.c:249
+msgid "The Xfce development team. All rights reserved."
+msgstr "The Xfce development team. All rights reserved."
+
+#: ../xfconf-query/main.c:250
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "หากพบปัญหา กรุณารายงานที่ <%s>"
+
+#: ../xfconf-query/main.c:259
+msgid "No property specified"
+msgstr "ไม่ได้ระบุคุณสมบัติใด"
+
+#: ../xfconf-query/main.c:265
+msgid "--create and --reset options can not be used together"
+msgstr "ตัวเลือก --create และ --reset ไม่สามารถใช้ร่วมกันได้"
+
+#: ../xfconf-query/main.c:271
+msgid "--create and --reset options can not be used together with --list"
+msgstr "ตัวเลือก --create และ --reset ไม่สามารถใช้ร่วมกับ --list ได้"
+
+#: ../xfconf-query/main.c:277
+#, c-format
+msgid "Failed to init libxfconf: %s"
+msgstr "ตั้งต้นการทำงานของ libxfconf ไม่สำเร็จ: %s"
+
+#: ../xfconf-query/main.c:288
+msgid "Channels:"
+msgstr "ช่องข้อมูล:"
+
+#: ../xfconf-query/main.c:313
+#, c-format
+msgid "Start monitoring channel \"%s\":"
+msgstr "เริ่มเฝ้าสังเกตช่องข้อมูล \"%s\""
+
+#: ../xfconf-query/main.c:351 ../xfconf-query/main.c:462
+#: ../xfconf-query/main.c:535
+msgid "Failed to set property"
+msgstr "กำหนดค่าคุณสมบัติไม่สำเร็จ"
+
+#: ../xfconf-query/main.c:355
+msgid "--toggle only works with boolean values"
+msgstr "--toggle ใช้กับค่าบูลีนได้เท่านั้น"
+
+#: ../xfconf-query/main.c:364 ../xfconf-query/main.c:383
+msgid "(unknown)"
+msgstr "(ไม่ทราบ)"
+
+#: ../xfconf-query/main.c:373
+#, c-format
+msgid "Value is an array with %d items:"
+msgstr "ค่าเป็นแอร์เรย์ที่มี %d รายการ:"
+
+#: ../xfconf-query/main.c:397
+#, c-format
+msgid ""
+"Property \"%s\" does not exist on channel \"%s\". If a new property should "
+"be created, use the --create option"
+msgstr "ไม่มีคุณสมบัติ \"%s\" ที่ช่องข้อมูล \"%s\" ถ้าต้องการสร้างคุณสมบัติใหม่ กรุณาใช้ตัวเลือก --create"
+
+#: ../xfconf-query/main.c:406
+msgid "When creating a new property, the value type must be specified"
+msgstr "ในการสร้างคุณสมบัติใหม่ ต้องระบุชนิดของค่าของคุณสมบัติด้วย"
+
+#: ../xfconf-query/main.c:417
+msgid "Failed to get the existing type for the value"
+msgstr "อ่านชนิดของค่าที่มีอยู่ไม่สำเร็จ"
+
+#: ../xfconf-query/main.c:436
+msgid "Unable to determine the type of the value"
+msgstr "ไม่สามารถพิจารณาชนิดของค่าได้"
+
+#: ../xfconf-query/main.c:443
+msgid "A value type must be specified to change an array into a single value"
+msgstr "ต้องระบุชนิดของค่าด้วยหากต้องการเปลี่ยนจากแอร์เรย์เป็นค่าเดี่ยว"
+
+#: ../xfconf-query/main.c:454 ../xfconf-query/main.c:519
+#, c-format
+msgid "Unable to convert \"%s\" to type \"%s\""
+msgstr "ไม่สามารถแปลง \"%s\" ให้เป็นชนิด \"%s\" ได้"
+
+#: ../xfconf-query/main.c:488
+#, c-format
+msgid "There are %d new values, but only %d types could be determined"
+msgstr "มีค่าใหม่ %d ค่า แต่สามารถพิจารณาชนิดได้เพียง %d ชนิดเท่านั้น"
+
+#: ../xfconf-query/main.c:510
+#, c-format
+msgid "Unable to determine type of value at index %d"
+msgstr "ไม่สามารถพิจารณาชนิดของค่าที่ตำแหน่งที่ %d ได้"
+
+#: ../xfconf-query/main.c:563
+#, c-format
+msgid "Channel \"%s\" contains no properties"
+msgstr "ช่องข้อมูล \"%s\" ไม่มีคุณสมบัติใดๆ"

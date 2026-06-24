@@ -243,8 +243,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     RPC (`kernel.poll_fds`, non-consuming) wired into net_poll. **The gdbus-probe now passes:
     `g_bus_get_sync(SESSION)` connects and `ListNames` returns 2 names, all wasm**; M8 (`test-m5-twm`)
     and XU0 (dbus 3/4) stay green. Proof `~/tmp/gui-progress/2026-06-24T23/xu1-gdbus-pass.txt`.
-  - **NEXT (the remaining XU1 build):** with GDBus proven over host_net, build `libxfce4util` + `xfconf`
-    (xfconfd + xfconf-query) on it, then xfsettingsd → XSETTINGS push to a GTK client = XU1 acceptance.
+  - **xfconf half DONE ✅ (2026-06-24): "xfconf stores/serves a value over D-Bus", all wasm.** Built
+    UNMODIFIED libxfce4util 4.18.2 + xfconf 4.18.3 (xfconfd + xfconf-query) via autotools
+    (`scripts/build-libxfce4util.sh`, `scripts/build-xfconf.sh`). `scripts/test-xu1-xfconf.sh` →
+    **PASS**: dbus-daemon + xfconfd (registers `org.xfce.Xfconf`) + `xfconf-query --set hello-xu1` then
+    `xfconf-query` GET returns `hello-xu1`, a real xfconfd round-trip over GDBus. Platform fixes
+    (constraint #5): gettext stubs + `--as-needed` stripping in the clang wrapper (build tooling); a
+    `toolchain/glib-compat.c` shim (`g_variant_builder_init_static`→`g_variant_builder_init` for the
+    host gdbus-codegen/target-glib-2.78 version skew, + BSD `err.h`/`daemon` stubs); runtime
+    `fd_datasync` WASI import (xfconfd fsyncs its channel XML). M8 + XU0 stay green. Proof
+    `~/tmp/gui-progress/2026-06-24T??/xu1-xfconf-pass.txt`.
+  - **REMAINING for XU1 acceptance:** xfsettingsd (xfce4-settings) pushing XSETTINGS to a GTK client
+    (theme/font visibly applied) — build xfce4-settings + libxfce4ui, run xfsettingsd, screenshot a GTK
+    window in Greybird (not default).
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)

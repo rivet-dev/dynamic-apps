@@ -1,0 +1,15 @@
+#!/bin/sh
+# secure-exec build stub: gettext is unavailable on this host (brew build broken: GLIBC_2.38) and the
+# Xfce builds run with --disable-nls, so gettext is only probed for its version. Report a recent
+# version; for an actual invocation, produce the requested output file empty (-o FILE) and exit 0.
+case "$1" in
+  --version|-V) echo "$(basename "$0") (GNU gettext-tools) 0.21"; exit 0;;
+esac
+out=""
+prev=""
+for a in "$@"; do
+  case "$prev" in -o|--output-file|--output) out="$a";; esac
+  prev="$a"
+done
+[ -n "$out" ] && : > "$out"
+exit 0

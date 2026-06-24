@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<node name="@XFCONF_SERVICE_PATH_PREFIX@/Xfconf">
+    <interface name="@XFCONF_SERVICE_NAME_PREFIX@.Xfconf">   
+        <!--
+             void @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.SetProperty(String channel,
+                                              String property,
+                                              Variant value)
+             
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+             @value: A value to set for @property.  Valid variant
+                     types supported so far: [FIXME]
+             
+             Sets a property value.
+        -->
+        <method name="SetProperty">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property" type="s"/>
+            <arg direction="in" name="value" type="v"/>
+        </method>
+        
+        <!--
+             Variant @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.GetProperty(String channel,
+                                                 String property)
+             
+             @channel: A channel/application/namespace name.
+             @propert: A property name.
+             
+             Gets a property value, returned as a variant type.
+        -->
+        <method name="GetProperty">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property" type="s"/>
+            <arg direction="out" name="value" type="v"/>
+        </method>
+        
+        <!--
+             Array{String,Variant} @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.GetAllProperties(String channel,
+                                                                    String property_base)
+             
+             @channel: A channel/application/namespace name.
+             @property_base: The root of poperties to return.
+             
+             Gets all the properties and values that exist in
+             @channel that are rooted at @property_base.  Passing
+             "/" or the empty string as @property_base will return
+             all properties in the channel.
+             
+             Returns: An array of properties and values; the
+                      properties are strings, and the values are 
+                      variants.
+        -->
+        <method name="GetAllProperties">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property_base" type="s"/>
+            <arg direction="out" name="properties" type="a{sv}"/>
+        </method>
+        
+        <!--
+             Boolean @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.PropertyExists(String channel,
+                                                    String property)
+             
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+             
+             Checks to see if @property exists in @channel.
+             
+             Returns: %TRUE if @property exists, %FALSE if not.
+        -->
+        <method name="PropertyExists">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property" type="s"/>
+            <arg direction="out" name="exists" type="b"/>
+        </method>
+        
+        <!--
+             void @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.ResetProperty(String channel,
+                                                String property,
+                                                Boolean recursive)
+             
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+             @recursive: Whether the operation resets sub-properties.
+             
+             Resets @property on @channel.  If @recursive is true,
+             all sub-properties of the specified property will be
+             reset as well.  If the special "/" property is specified
+             for @property, and @recursive is true, the entire channel
+             will be reset.
+
+             Since properties can be set by root-owned system-wide
+             settings, actual property *removal* may not be possible.
+             The idea of "reset" is that it puts the configuration store
+             back to the application's original state as if it were
+             freshly installed for the current user.  If there are no
+             system-wide settings, this amounts to a "remove."  If there
+             are system-wide settings and/or some properties are locked
+             by system policy, then it's just a reset.
+        -->
+        <method name="ResetProperty">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property" type="s"/>
+            <arg direction="in" name="recursive" type="b"/>
+        </method>
+
+        <!--
+             Array{String} @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.ListChannels()
+
+             Returns a list of all known channels as an array of
+             strings.
+        -->
+        <method name="ListChannels">
+            <arg direction="out" name="channels" type="as"/>
+        </method>
+        
+        <!--
+             Boolean @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.IsPropertyLocked(String channel,
+                                                      String property)
+
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+
+             Queries whether the property can be modified by the
+             current user.  The property may be locked by system
+             policy.  Example use would be for a "kiosk mode"
+             where users cannot change how the desktop
+             environment is set up.
+        -->
+        <method name="IsPropertyLocked">
+            <arg direction="in" name="channel" type="s"/>
+            <arg direction="in" name="property" type="s"/>
+            <arg direction="out" name="locked" type="b"/>
+        </method>
+
+        <!--
+             void @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.PropertyChanged(String channel,
+                                                  String property.
+                                                  Variant value)
+             
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+             @value: The new value.
+             
+             Emitted when a property changes.
+        -->
+        <signal name="PropertyChanged">
+            <arg name="channel" type="s"/>
+            <arg name="property" type="s"/>
+            <arg name="value" type="v"/>
+        </signal>
+
+        <!--
+             void @XFCONF_SERVICE_NAME_PREFIX@.Xfconf.PropertyRemoved(String channel,
+                                                  String property)
+
+             @channel: A channel/application/namespace name.
+             @property: A property name.
+
+             Emitted when a property is removed.
+        -->
+        <signal name="PropertyRemoved">
+            <arg name="channel" type="s"/>
+            <arg name="property" type="s"/>
+        </signal>
+    </interface>
+</node>
