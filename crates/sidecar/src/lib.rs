@@ -13,6 +13,7 @@ pub(crate) mod json_rpc;
 pub mod limits;
 pub(crate) mod plugins;
 pub mod protocol;
+pub(crate) mod rpc_trace;
 pub mod service;
 pub(crate) mod state;
 pub mod stdio;

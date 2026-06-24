@@ -13768,13 +13768,25 @@ fn rpc_trace_arg0(args: &[Value]) -> String {
         Some(v) => v.to_string().chars().take(48).collect(),
     }
 }
-fn rpc_trace_enter(pid: u32, method: &str, args: &[Value]) -> Option<std::time::Instant> {
+/// Per-RPC dispatch instrumentation. Returns `(verbose-trace-t0, watchdog-seq)`; the watchdog half is
+/// recorded out-of-band (see [`crate::rpc_trace`]) so a stuck op / silent guest can be observed without
+/// the verbose log perturbing the timing.
+fn rpc_trace_enter(
+    pid: u32,
+    method: &str,
+    args: &[Value],
+) -> (Option<std::time::Instant>, Option<u64>) {
+    let seq = if crate::rpc_trace::watchdog_active() {
+        Some(crate::rpc_trace::on_enter(pid, method))
+    } else {
+        None
+    };
     if !rpc_trace_enabled() {
-        return None;
+        return (None, seq);
     }
     let ms = rpc_trace_base().elapsed().as_millis();
     eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} -> {method} {}", rpc_trace_arg0(args));
-    Some(std::time::Instant::now())
+    (Some(std::time::Instant::now()), seq)
 }
 fn rpc_trace_exit(
     pid: u32,
@@ -13813,7 +13825,7 @@ where
     } = request;
     let __rpc_pid = process.kernel_pid;
     let __rpc_method = request.method.clone();
-    let __rpc_t0 = rpc_trace_enter(__rpc_pid, &__rpc_method, &request.args);
+    let (__rpc_t0, __rpc_seq) = rpc_trace_enter(__rpc_pid, &__rpc_method, &request.args);
     let __rpc_result = match request.method.as_str() {
         // Module resolution / loading / format detection read the kernel VFS so
         // the resolver sees exactly what the guest and `kernel.readFile()` see.
@@ -14051,6 +14063,9 @@ where
         }
         _ => service_javascript_fs_sync_rpc(kernel, process, process.kernel_pid, request),
     };
+    if let Some(seq) = __rpc_seq {
+        crate::rpc_trace::on_exit(seq);
+    }
     rpc_trace_exit(__rpc_pid, &__rpc_method, __rpc_t0, &__rpc_result);
     __rpc_result
 }
@@ -19640,6 +19655,17 @@ fn resolve_http2_file_response_guest_path(process: &ActiveProcess, path: &str) -
     }
 }
 
+/// Whether `net.poll_wait` may complete off the sync-RPC main thread (the PollWaiterPool path).
+/// On by default; `SECURE_EXEC_ASYNC_POLL=0` forces the legacy inline-blocking path.
+fn async_poll_wait_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_ASYNC_POLL")
+            .map(|v| v != "0")
+            .unwrap_or(true)
+    })
+}
+
 pub(crate) fn clamp_javascript_net_poll_wait(wait_ms: u64) -> Duration {
     // WASM net.poll runs on the sidecar's sync-RPC main thread. Guest-controlled waits
     // must stay bounded so one VM cannot stall dispose/shutdown or unrelated VM work.
@@ -20128,7 +20154,9 @@ where
                 return Ok(json!({ "generation": current }));
             }
             // Defer the blocking wait off the main thread, if deferral is enabled for this dispatch
-            // and this runtime can complete a response off-thread.
+            // and this runtime can complete a response off-thread. `SECURE_EXEC_ASYNC_POLL=0` forces
+            // the legacy inline-blocking path (A/B switch for diagnosing lost-wakeup vs latency).
+            if async_poll_wait_enabled() {
             if let (Some(pool), Some(deferred), Some(responder)) = (
                 poll_waiter,
                 poll_deferred,
@@ -20144,7 +20172,8 @@ where
                 deferred.set(true);
                 return Ok(Value::Null);
             }
-            // Fallback for runtimes without off-thread completion: block inline as before.
+            }
+            // Fallback (off-thread completion unavailable or disabled): block inline as before.
             let generation = process.socket_readiness.wait_changed(last_seen, wait);
             Ok(json!({ "generation": generation }))
         }
