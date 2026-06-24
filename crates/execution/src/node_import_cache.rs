@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "97";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "98";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -9577,6 +9577,12 @@ function resolvedGuestPathIsReadOnly(fd, pathPtr, pathLen) {
 function precreatePathOpenTarget(fd, pathPtr, pathLen, oflags) {
   const normalizedOflags = Number(oflags) >>> 0;
   if ((normalizedOflags & WASI_OFLAGS_CREAT) === 0) {
+    return null;
+  }
+  // O_EXCL means the path_open itself performs the atomic exclusive create (mapped to Node's 'wx'/'ax'
+  // flag). Pre-creating the file here would make that open fail with EEXIST — which silently breaks
+  // mkstemp() and every O_CREAT|O_EXCL caller (e.g. menu-cache-gen's safe cache write). Let the open do it.
+  if ((normalizedOflags & WASI_OFLAGS_EXCL) !== 0) {
     return null;
   }
 

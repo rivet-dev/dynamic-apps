@@ -655,14 +655,27 @@ async fn capture_inner(s: &Session, guest: &str, out: &str) -> Result<()> {
 
 // ---- exec mode (run a long-lived guest, e.g. Xvfb, streaming its output for a timeout) ---------
 
-async fn run_exec(sidecar: Option<String>, guest: &str, args: &[String], timeout_s: u64) -> Result<()> {
+async fn run_exec(
+    sidecar: Option<String>,
+    guest: &str,
+    args: &[String],
+    timeout_s: u64,
+    vm_trees: &[String],
+    guest_env: &[(String, String)],
+) -> Result<()> {
     let s = Session::connect(sidecar).await?;
     let guest_abs = abs_path(guest)?;
     s.mkdir("/data").await.ok();
     s.mkdir("/tmp/.X11-unix").await.ok();
+    // Stage host fixture trees at the VM root (e.g. freedesktop .menu + .desktop dirs for menu-cache-gen).
+    for tree in vm_trees {
+        let n = s.install_tree(std::path::Path::new(tree), "").await?;
+        eprintln!("secure-exec: installed {n} files from {tree} into the VM root");
+    }
     let mut events = s.t.subscribe_wire_events();
     let argv: Vec<&str> = args.iter().map(|x| x.as_str()).collect();
-    s.execute("proc-exec", &guest_abs, &argv).await?;
+    let env: HashMap<String, String> = guest_env.iter().cloned().collect();
+    s.execute_env("proc-exec", &guest_abs, &argv, env).await?;
     eprintln!("secure-exec: started {guest_abs} {args:?}");
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_s);
     loop {
@@ -678,6 +691,18 @@ async fn run_exec(sidecar: Option<String>, guest: &str, args: &[String], timeout
             }
             Ok(Ok((_, wire::EventPayload::ProcessExitedEvent(e)))) if e.process_id == "proc-exec" => {
                 eprintln!("\nsecure-exec: guest exited with code {}", e.exit_code);
+                // Read back a guest output file (e.g. menu-cache-gen's generated cache) on clean exit.
+                if let Ok(rb) = std::env::var("READBACK") {
+                    if let Some((gpath, hpath)) = rb.split_once(':') {
+                        match s.read_file_chunked(gpath).await {
+                            Ok(bytes) => {
+                                let _ = std::fs::write(hpath, &bytes);
+                                eprintln!("secure-exec: read back {} ({} bytes) -> {hpath}", gpath, bytes.len());
+                            }
+                            Err(e) => eprintln!("secure-exec: readback {gpath} failed: {e}"),
+                        }
+                    }
+                }
                 s.shutdown();
                 return Ok(());
             }
@@ -1188,6 +1213,7 @@ struct Args {
     locale_dir: Option<String>,
     vm_trees: Vec<String>,
     inject: Vec<(String, String)>,
+    guest_env: Vec<(String, String)>,
     pty_test: bool,
     concurrent: bool,
     pty_shell: Option<String>,
@@ -1212,6 +1238,7 @@ fn parse_args() -> Args {
         locale_dir: None,
         vm_trees: Vec::new(),
         inject: Vec::new(),
+        guest_env: Vec::new(),
         pty_test: false,
         concurrent: false,
         pty_shell: None,
@@ -1265,6 +1292,15 @@ fn parse_args() -> Args {
                 if let Some(spec) = argv.get(i) {
                     if let Some((pid, cmd)) = spec.split_once('=') {
                         a.inject.push((pid.to_string(), cmd.to_string()));
+                    }
+                }
+            }
+            // --guest-env KEY=VAL: set an env var in the --exec guest's environment (repeatable).
+            "--guest-env" => {
+                i += 1;
+                if let Some(spec) = argv.get(i) {
+                    if let Some((k, v)) = spec.split_once('=') {
+                        a.guest_env.push((k.to_string(), v.to_string()));
                     }
                 }
             }
@@ -1384,7 +1420,16 @@ async fn main() {
     }
 
     if args.exec {
-        if let Err(e) = run_exec(args.sidecar.clone(), &args.guest, &args.exec_args, args.timeout).await {
+        if let Err(e) = run_exec(
+            args.sidecar.clone(),
+            &args.guest,
+            &args.exec_args,
+            args.timeout,
+            &args.vm_trees,
+            &args.guest_env,
+        )
+        .await
+        {
             eprintln!("exec failed: {e}");
             std::process::exit(1);
         }

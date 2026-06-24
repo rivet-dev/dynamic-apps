@@ -901,19 +901,32 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   avoid openbox was about its `libxml2`/glib/pango/cairo deps; now acceptable since M8 built
   glib/pango/cairo and `libxml2`/`pangoxft` are the only new closures (pure-C / our pango build).
 
-- **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). 🟡 BUILDS + LISTS THE VFS (2026-06-22);
-  menu-cache runtime enumeration remains.** `libfm-extra` -> `menu-cache` (library) -> `libfm-gtk3` all
+- **M8.3 — `menu-cache` + `libfm` (the LXDE data layer). ✅ DONE (2026-06-24): freedesktop menu
+  enumeration runs in-sandbox.** `libfm-extra` -> `menu-cache` (library) -> `libfm-gtk3` all
   cross-compile from UNMODIFIED upstream (`scripts/build-libfm.sh`), and `libfm` enumerates a kernel-VFS
   directory headless (19 entries, clean exit — `scripts/test-m8-libfm.sh`, proof
   `~/tmp/gui-progress/proof-m8.3-libfm-lists-vfs.txt`). Per constraint #5 every gap is platform-layer:
   `execv`/`execve` stubs + `ns_get16`/`ns_get32` (gio resolver) in `openbox-compat.c`; weak `strsignal`
   in `wasi-compat.c` (the SDK owns the real one); fake host-side intltool tools + a stub perl
   `XML::Parser` (intltool is translation-only, `--disable-nls`); `--disable-old-actions` skips libfm's
-  Vala component (no valac). **Remaining:** the **menu-cache freedesktop enumeration** uses `menu-cached`
-  + `menu-cache-gen` via **fork/exec**, which the sandbox lacks — so the app-menu data path (needed by
-  M8.4 lxpanel's menu) needs a native answer: run the generator in-process, or provide a process-spawn
-  path, or pre-bake the cache. The libfm folder/listing path (what pcmanfm needs) is proven. Note: the
-  host `--vm-tree` fixture isn't applied in `--exec` mode, so the test lists the base-fs VFS directly.
+  Vala component (no valac). **Remaining:** the **menu-cache freedesktop enumeration** was the open item: upstream LXDE builds the app menu by
+  fork/exec'ing `menu-cached` -> `menu-cache-gen`, which the sandbox lacks. **SOLVED by running the
+  generator directly as a guest** (the chosen "run the generator in-process" answer): `menu-cache-gen`
+  (one-shot, no daemon, no fork/exec) is cross-compiled to wasm and run headless against a staged
+  freedesktop fixture tree, where it composes the FULL categorized application menu in-sandbox
+  (Applications -> Accessories/Internet/Office/System, each populated from the `.desktop` files).
+  Automated: `scripts/test-m8-menucache.sh` (PASS = 4 categories composed); proof
+  `~/tmp/gui-progress/2026-06-24T17/proof-m8.3-menucache-enumeration.txt`. Build-layer glue only
+  (constraint #5): a guarded **unity TU** (`#include`s the unmodified upstream `.c` files) works around
+  clang's `-fno-common` default + an LLVM `-fcommon` codegen ICE on wasm that otherwise duplicate
+  `menu-tags.h`'s tentative-def globals. The host `--exec` harness was extended (this workspace) to
+  stage `--vm-tree` fixtures + set `--guest-env` + read back guest output files on clean exit. The
+  libfm folder/listing path (what pcmanfm needs) is also proven. **Remaining sub-detail (not the
+  enumeration):** `menu-cache-gen`'s on-disk cache *serialization* (`save_menu_cache`'s mkstemp ->
+  write -> rename atomic save) still fails on the host-backed wasm fs; two O_EXCL handling fixes landed
+  (the runner's path_open precreate must skip O_EXCL; `wasm.rs`'s numeric open must map O_CREAT|O_EXCL
+  to create_new) but the full atomic-save has a further VFS write-path gap to chase. The enumeration
+  (the M8.3 acceptance) does not depend on the persisted cache.
 
 - **M8.4 — `lxpanel` (the panel/taskbar/menu). 🟢 COMPLETE (2026-06-22): renders a live horizontal
   bottom panel with a working clock, all wasm in secure-exec.** lxpanel

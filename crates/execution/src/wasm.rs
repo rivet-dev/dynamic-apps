@@ -1918,6 +1918,7 @@ fn open_wasm_guest_file(path: &Path, flags: &Value) -> std::io::Result<fs::File>
             let write_only = (numeric & 0o1) != 0;
             let read_write = (numeric & 0o2) != 0;
             let create = (numeric & 0o100) != 0;
+            let excl = (numeric & 0o200) != 0;
             let truncate = (numeric & 0o1000) != 0;
             let append = (numeric & 0o2000) != 0;
 
@@ -1928,7 +1929,12 @@ fn open_wasm_guest_file(path: &Path, flags: &Value) -> std::io::Result<fs::File>
             } else {
                 options.read(true);
             }
-            if create {
+            // O_CREAT|O_EXCL must fail if the target already exists (atomic exclusive create) — this is
+            // how mkstemp() and other safe-create callers (e.g. menu-cache-gen) work. Map it to
+            // create_new; otherwise plain create. Without this, O_EXCL was silently dropped.
+            if create && excl {
+                options.create_new(true);
+            } else if create {
                 options.create(true);
             }
             if truncate {
