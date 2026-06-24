@@ -851,7 +851,11 @@ async fn run_xdemo(
 
     // Start the X server. It binds /tmp/.X11-unix/X0 and blocks in its dispatch loop.
     let sargv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
-    s.execute("xserver", &server_abs, &sargv).await?;
+    // The X server is the longest-lived guest of all (it outlives every client). The 30s CPU-time
+    // default kills it mid-session, collapsing the whole desktop. Trusted long-lived guest -> opt out.
+    let mut srv_env = HashMap::new();
+    srv_env.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+    s.execute_env("xserver", &server_abs, &sargv, srv_env).await?;
     eprintln!("secure-exec: started X server {server_abs} {server_args:?}");
 
     let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_s);
@@ -916,6 +920,12 @@ async fn run_xdemo(
                 let id = format!("xclient{launched}");
                 let argv: Vec<&str> = cargs.iter().map(|x| x.as_str()).collect();
                 let mut cenv = HashMap::new();
+                // Desktop guests (X server, WM, GTK apps) are TRUSTED and LONG-LIVED — unlike a short
+                // adapter script they legitimately accumulate CPU over a multi-minute session. The 30s
+                // CPU-time default (AGENT_OS_V8_CPU_TIME_LIMIT_MS) kills the X server mid-session (~70s
+                // wall), tearing down every client's display -> black screen. 0 = the explicit trusted
+                // opt-out (wall-clock backstops still apply). Trust-model: the host configures its own VMs.
+                cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
                 // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
@@ -960,6 +970,12 @@ async fn run_xdemo(
                 let id = format!("xclient{launched}");
                 let argv: Vec<&str> = cargs.iter().map(|x| x.as_str()).collect();
                 let mut cenv = HashMap::new();
+                // Desktop guests (X server, WM, GTK apps) are TRUSTED and LONG-LIVED — unlike a short
+                // adapter script they legitimately accumulate CPU over a multi-minute session. The 30s
+                // CPU-time default (AGENT_OS_V8_CPU_TIME_LIMIT_MS) kills the X server mid-session (~70s
+                // wall), tearing down every client's display -> black screen. 0 = the explicit trusted
+                // opt-out (wall-clock backstops still apply). Trust-model: the host configures its own VMs.
+                cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
                 // GIO cannot dlopen its native volume-monitor module on wasm; the union monitor's
@@ -1619,7 +1635,9 @@ mod window {
         let mut events = s.t.subscribe_wire_events();
         let server_abs = abs_path(&server)?;
         let srv_argv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
-        s.execute("xserver", &server_abs, &srv_argv).await?;
+        let mut srv_env = HashMap::new();
+        srv_env.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+        s.execute_env("xserver", &server_abs, &srv_argv, srv_env).await?;
 
         let s = Arc::new(s);
 
@@ -1664,6 +1682,9 @@ mod window {
                             let cargs: Vec<String> = parts.map(|x| x.to_string()).collect();
                             let argv: Vec<&str> = cargs.iter().map(|x| x.as_str()).collect();
                             let mut cenv = HashMap::new();
+                            // Trusted long-lived desktop guest -> opt out of the 30s CPU-time default
+                            // (see the X server launch); else a multi-minute session is killed mid-run.
+                            cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                             cenv.insert("DISPLAY".to_string(), ":0".to_string());
                             cenv.insert("HOME".to_string(), "/root".to_string());
                             cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());

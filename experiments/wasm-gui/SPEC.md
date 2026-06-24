@@ -751,6 +751,22 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     the glib `GMainContext` worker handoff actually settle — prime suspect is the kernel-pipe/poll readiness
     for glib's gwakeup reporting spurious `POLLIN`, so the main loop wakes every iteration and re-signals the
     worker (open task #11 "GIO worker-context wakeup"). Symbolizing `[13130]` is moot — the spin is native libc.
+  - **FIX #1 FOUND + VERIFIED (2026-06-23): the X server was being KILLED by the 30s CPU-time budget.**
+    The log smoking gun: `[+70796ms srv/err] Error: Script execution exceeded the CPU-time budget
+    (AGENT_OS_V8_CPU_TIME_LIMIT_MS)`. `javascript_cpu_time_limit_ms` (crates/execution/src/javascript.rs:2009)
+    defaults to **30_000 ms of TRUE CPU time** when unset — sized for a short adapter script, FATAL for a
+    multi-minute desktop. The X server (longest-lived guest; ~43% avg CPU under wasm/V8 overhead while serving
+    3 clients + the framebuffer) accumulates 30s CPU by ~70s wall and is terminated, collapsing every client's
+    display → full-black. The wasm-gui host set no limit, so every guest inherited the default. Fix (trust
+    model: the host configures its own trusted, long-lived VMs): host now sets `AGENT_OS_V8_CPU_TIME_LIMIT_MS=0`
+    (the explicit trusted opt-out) for ALL desktop guests. NB the X server launches via `s.execute("xserver", …)`
+    with an EMPTY env (host/src/main.rs:854,1634) — a path distinct from the 3 client `cenv` blocks — so it
+    needed its own `execute_env`. **Verified:** CPU-budget error count → 0, the full-black failure mode is gone,
+    panel+WM render consistently. This was a real, distinct bug from the futex churn above.
+  - **REMAINING GAP (M8.6 still not green):** with the X server alive, panel+WM render but **pcmanfm's window
+    content does not paint** (framebuffer: panel-strip 100%, center-window-band ~0). pcmanfm launches and its
+    libfm worker threads **exit cleanly (code 0)** — so this is NOT the futex deadlock; it is the M8.5 pcmanfm
+    window-render gap (frame-clock / map / paint of the file-manager window). That is the next focused step.
 
   **ACCEPTANCE BAR (explicit): a black/empty framebuffer is NOT acceptance.** A decorated-but-empty
   window, a panel with no file manager, or "it would render given ~2 minutes" do NOT count. M8.6 is
