@@ -46,6 +46,20 @@ cd "$TP/pcmanfm-threads"
 
 # fpcast wide-signature fix + strip DWARF (the linked GTK/X libs carry tens of MB of DWARF that OOMs
 # the V8 isolate during compile).
-wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
-  src/pcmanfm -o "$EXP/pcmanfm.wasm" 2>/dev/null
-echo "OK: pcmanfm.wasm ($(( $(stat -c%s "$EXP/pcmanfm.wasm")/1024/1024 ))MB stripped)"
+# SECURE_EXEC_KEEP_NAMES=1 keeps the wasm name section (V8 --prof / stack-dump can name guest funcs).
+# fpcast-emu erases the C name section UNLESS --debuginfo is on the fpcast pass, so split into two
+# passes (fpcast w/ --debuginfo, then -Oz w/ --debuginfo) exactly like build-gtk-app.sh. Bigger binary;
+# diagnostics only, same behaviour as the release strip. DWARF is still dropped (only the name section
+# is kept) so the isolate doesn't OOM on the tens-of-MB DWARF.
+if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
+  wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --enable-bulk-memory --enable-threads --debuginfo -O0 \
+    src/pcmanfm -o "$EXP/pcmanfm.wasm.1" 2>/dev/null
+  wasm-opt --strip-dwarf --debuginfo --enable-bulk-memory --enable-threads -Oz \
+    "$EXP/pcmanfm.wasm.1" -o "$EXP/pcmanfm.wasm" 2>/dev/null
+  rm -f "$EXP/pcmanfm.wasm.1"
+  echo "OK: pcmanfm.wasm ($(( $(stat -c%s "$EXP/pcmanfm.wasm")/1024/1024 ))MB, name section KEPT)"
+else
+  wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
+    src/pcmanfm -o "$EXP/pcmanfm.wasm" 2>/dev/null
+  echo "OK: pcmanfm.wasm ($(( $(stat -c%s "$EXP/pcmanfm.wasm")/1024/1024 ))MB stripped)"
+fi

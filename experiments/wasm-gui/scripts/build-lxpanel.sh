@@ -63,6 +63,17 @@ cd "$TP/lxpanel-threads"
   && echo "  OK lxpanel/lxpanel ($(stat -c%s src/lxpanel) bytes)" || { echo "  FAIL lxpanel"; tail -10 /tmp/make-lxpanel.log; exit 1; }
 
 # fpcast + STRIP DEBUG (the linked libs carry ~38MB of DWARF: 44MB -> 5MB; the bloat OOMs the V8 isolate).
-wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
-  src/lxpanel -o "$EXP/lxpanel.wasm" 2>/dev/null
-echo "OK: lxpanel.wasm ($(( $(stat -c%s "$EXP/lxpanel.wasm")/1024/1024 ))MB stripped)"
+# SECURE_EXEC_KEEP_NAMES=1 keeps the wasm name section for V8 --prof / stack-dump symbolization (see
+# build-pcmanfm.sh): two-pass fpcast --debuginfo so fpcast-emu doesn't erase the C names, DWARF dropped.
+if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
+  wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --enable-bulk-memory --enable-threads --debuginfo -O0 \
+    src/lxpanel -o "$EXP/lxpanel.wasm.1" 2>/dev/null
+  wasm-opt --strip-dwarf --debuginfo --enable-bulk-memory --enable-threads -Oz \
+    "$EXP/lxpanel.wasm.1" -o "$EXP/lxpanel.wasm" 2>/dev/null
+  rm -f "$EXP/lxpanel.wasm.1"
+  echo "OK: lxpanel.wasm ($(( $(stat -c%s "$EXP/lxpanel.wasm")/1024/1024 ))MB, name section KEPT)"
+else
+  wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
+    src/lxpanel -o "$EXP/lxpanel.wasm" 2>/dev/null
+  echo "OK: lxpanel.wasm ($(( $(stat -c%s "$EXP/lxpanel.wasm")/1024/1024 ))MB stripped)"
+fi

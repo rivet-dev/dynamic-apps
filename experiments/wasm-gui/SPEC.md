@@ -732,6 +732,25 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     wasm" follow-up) and make it park/yield — a platform/toolchain (threaded-libc / runtime futex) fix
     per constraint #5, NOT a sync-RPC parallelization. (Parallelizing the dispatch was a mis-diagnosis;
     the dispatch is idle.)
+  - **CORRECTION #2 (2026-06-23, PROVEN by V8 `--prof` + `strace` — the "guest CPU busy-SPIN at
+    `wasm-function[13130]`" claim just above was ALSO WRONG).** The earlier stackdump caught a thread in
+    the futex-wait region and misclassified it `RUNNING`. Method that settled it: ran the repro with
+    `SECURE_EXEC_V8PROF=1` (V8 tick profiler → `/tmp/secure-exec-v8.log`), time-filtered ticks to the
+    stall window via `scripts/v8prof-top.py`, then `strace`'d the hot sidecar. Hard findings:
+      * In the stall window **ZERO ticks are in `wasm-function[N]`**; **94% are in `libc.so.6`** (the
+        sidecar's own glibc), at `SYS_futex` (`mov $0xca; syscall`) + the generic `syscall()` wrapper.
+      * `strace -f -c` on the hot sidecar: **`futex` = 87% of CPU (170k calls/25s, 17k errors)**.
+      * `strace -f -e trace=futex`: a **two-thread `FUTEX_WAKE`(=1) ↔ `FUTEX_WAIT_BITSET` ping-pong on one
+        address** (main thread wakes, one worker waits and is instantly re-woken); other workers parked OK.
+      * The host runs **one sidecar process PER guest** (4 total); only pcmanfm's spins. Select the hot one
+        by max `/proc/<pid>/stat` CPU delta, not `ps %cpu` or `pgrep|head`. Reusable: `scripts/catch-spin-futex.sh`.
+    So the livelock is a **native futex WAKE/WAIT ping-pong = a glib main-loop ⇄ libfm glib-worker condvar
+    livelock** (the M8.5 "glib-async libfm job model" blocker), NOT a wasm CPU spin and NOT sync-RPC
+    throughput. It makes no sync-RPCs (resolves in-process via futex), which is why dispatch looks idle and
+    op-counts freeze. THE FIX (per constraint #5, in runtime/kernel native code, never patching glib): make
+    the glib `GMainContext` worker handoff actually settle — prime suspect is the kernel-pipe/poll readiness
+    for glib's gwakeup reporting spurious `POLLIN`, so the main loop wakes every iteration and re-signals the
+    worker (open task #11 "GIO worker-context wakeup"). Symbolizing `[13130]` is moot — the spin is native libc.
 
   **ACCEPTANCE BAR (explicit): a black/empty framebuffer is NOT acceptance.** A decorated-but-empty
   window, a panel with no file manager, or "it would render given ~2 minutes" do NOT count. M8.6 is
