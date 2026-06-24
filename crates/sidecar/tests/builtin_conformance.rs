@@ -1943,6 +1943,67 @@ fn os_resource_limits_are_vm_scoped() {
     run_isolated_builtin_conformance_test("os-resource-limits");
 }
 
+fn os_homedir_follows_effective_home_env_impl() {
+    assert_node_available();
+
+    let cwd = temp_dir("builtin-conformance-os-homedir-home-env");
+    let entrypoint = cwd.join("entry.mjs");
+    write_fixture(
+        &entrypoint,
+        r#"
+import os from "node:os";
+
+const initial = {
+  envHome: process.env.HOME,
+  homedir: os.homedir(),
+  userInfoHome: os.userInfo().homedir,
+};
+
+process.env.HOME = "/tmp/runtime-home";
+
+console.log(JSON.stringify({
+  initial,
+  afterMutation: {
+    envHome: process.env.HOME,
+    homedir: os.homedir(),
+    userInfoHome: os.userInfo().homedir,
+  },
+}));
+"#,
+    );
+
+    let host = run_host_probe_with_env(&cwd, &entrypoint, &[("HOME", "/home/foo")]);
+    let guest = run_guest_probe_with_config(
+        "os-homedir-home-env",
+        &cwd,
+        &entrypoint,
+        HashMap::from([(String::from("env.HOME"), String::from("/home/foo"))]),
+        wire_permissions_allow_all(),
+        ALLOWED_NODE_BUILTINS,
+    );
+
+    assert_eq!(guest["initial"]["envHome"], "/home/foo");
+    assert_eq!(guest["initial"]["homedir"], host["initial"]["homedir"]);
+    assert_eq!(guest["initial"]["homedir"], guest["initial"]["envHome"]);
+    assert_eq!(guest["initial"]["userInfoHome"], "/home/agentos");
+
+    assert_eq!(guest["afterMutation"]["envHome"], "/tmp/runtime-home");
+    assert_eq!(
+        guest["afterMutation"]["homedir"],
+        host["afterMutation"]["homedir"]
+    );
+    assert_eq!(
+        guest["afterMutation"]["homedir"],
+        guest["afterMutation"]["envHome"]
+    );
+    assert_eq!(guest["afterMutation"]["userInfoHome"], "/home/agentos");
+}
+
+#[test]
+fn os_homedir_follows_effective_home_env() {
+    run_isolated_builtin_conformance_test("os-homedir-home-env");
+}
+
 fn dns_conformance_matches_host_node() {
     assert_node_available();
 
@@ -4036,6 +4097,7 @@ fn __builtin_conformance_extra_test_runner() {
         "perf-hooks-observer" => perf_hooks_observer_and_histogram_match_host_node_impl(),
         "process-runtime-stats" => process_runtime_stats_are_live_impl(),
         "os-resource-limits" => os_resource_limits_are_vm_scoped_impl(),
+        "os-homedir-home-env" => os_homedir_follows_effective_home_env_impl(),
         "timer-handle-ref-refresh" => timer_handle_ref_refresh_matches_host_node_impl(),
         "timer-unref-exit" => unrefd_timeout_does_not_keep_guest_process_alive_impl(),
         other => panic!("unknown builtin conformance extra test: {other}"),

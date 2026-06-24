@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "70";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "71";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agentos-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -7392,6 +7392,9 @@ function createGuestOsModule(osModule) {
     (globalThis.__agentOSVirtualOs||{}).shell,
     DEFAULT_VIRTUAL_OS_SHELL,
   );
+  function runtimeHomeDir() {
+    return resolveVirtualPath(globalThis.process?.env?.HOME, virtualHomeDir);
+  }
   const virtualCpuInfo = Object.freeze(
     Array.from({ length: VIRTUAL_OS_CPU_COUNT }, () =>
       Object.freeze({
@@ -7435,7 +7438,7 @@ function createGuestOsModule(osModule) {
     cpus: () => virtualCpuInfo.map((cpu) => cloneVirtualCpuInfo(cpu)),
     freemem: () => VIRTUAL_OS_FREEMEM,
     getPriority: () => 0,
-    homedir: () => virtualHomeDir,
+    homedir: () => runtimeHomeDir(),
     hostname: () => VIRTUAL_OS_HOSTNAME,
     loadavg: () => [0, 0, 0],
     machine: () => VIRTUAL_OS_MACHINE,

@@ -8262,6 +8262,10 @@ var __bridge = (() => {
   function getRuntimeHomeDir() {
     return globalThis.process?.env?.HOME || config.homedir;
   }
+  function getRuntimeUserHomeDir() {
+    const virtualHome = getRuntimeVirtualOs().homedir;
+    return typeof virtualHome === "string" && virtualHome.length > 0 ? virtualHome : config.homedir;
+  }
   function getRuntimeTmpDir() {
     return globalThis.process?.env?.TMPDIR || config.tmpdir;
   }
@@ -8533,7 +8537,7 @@ var __bridge = (() => {
         uid: getRuntimeUid(),
         gid: getRuntimeGid(),
         shell: getRuntimeShell(),
-        homedir: getRuntimeHomeDir()
+        homedir: getRuntimeUserHomeDir()
       };
     },
     // CPU information
