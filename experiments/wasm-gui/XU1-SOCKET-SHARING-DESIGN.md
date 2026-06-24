@@ -25,14 +25,23 @@ Both parts plus a fourth piece that the original design missed:
   Until then the runner's `callSyncRpc` threw "method not implemented in V8 runtime" (caught silently),
   so the registry stayed empty. This is the documented "add a raw V8 bridge method" path.
 
-## Remaining (next): GDBus main-thread completion wakeup
+## DONE: GDBus main-thread completion wakeup (net_poll must poll kernel-pipe fds)
 
-The worker thread sends Hello and receives the daemon's replies, but `g_bus_get_sync` on the MAIN
-thread does not return (no `GDBUS-PROBE: connected`). The blocked main thread is not woken when the
-worker completes the connection handshake. That is a GLib cross-thread completion signal
-(GCond / GMainContext wakeup from the worker to the blocked main thread), the M8.5 worker-context-wakeup
-area, NOT the socket layer (which now works). Next: trace how `g_dbus_connection_new_sync` parks the
-main thread and ensure the worker's completion wakes it; then the probe should reach `PASS ListNames`.
+**RESOLVED — the GDBus probe is GREEN** (`PASS ListNames returned 2 names`, M8 + XU0 still green). Root
+cause, found via the RPC trace + stackdump + `SECURE_EXEC_POLLDBG` instrumentation: `net_poll` (the
+host_net poll that GLib's `poll()` routes to via the wasi-libc sockets patch) only handled host_net
+sockets — for ANY other fd, including a **kernel-pipe fd**, `revents` stayed 0. A GMainContext's
+**GWakeup is a kernel pipe**, and `g_bus_get_sync` blocks the main thread in `g_main_loop_run` on a
+context whose only source is that wakeup pipe; the worker, on the Hello reply, writes the pipe to wake
+it — but net_poll never reported the pipe readable, so the main thread spun (readiness generation frozen
+because pipe writes don't touch socket readiness). M8's GTK never hit this: it polls the X *socket*.
+Fix (constraint #5, runtime): a new `__kernel_fd_poll` sync-RPC (sidecar `kernel.poll_fds`,
+non-consuming) registered in the WASM bridge; `net_poll` batches the poll-set's kernel-pipe fds through
+it and reports POLLIN/POLLHUP, and caps the blocking `net.poll_wait` to ~10ms when the set has pipes
+(net.poll_wait wakes only on socket readiness). Proof `~/tmp/gui-progress/2026-06-24T??/xu1-gdbus-pass.txt`.
+
+GDBus-over-host_net is now fully working — the XU1 foundation. Next: build `libxfce4util` + `xfconf`
+(xfconfd + xfconf-query) on it, then xfsettingsd → XSETTINGS push = XU1 acceptance.
 
 ---
 

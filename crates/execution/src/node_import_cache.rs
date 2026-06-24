@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "104";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "105";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11577,6 +11577,36 @@ const hostNetImport = {
             }
           }
         }
+        // Kernel-pipe fds (e.g. a GMainContext GWakeup pipe) are not host_net sockets, so the socket
+        // scan below leaves them revents=0. Poll their readability via the kernel (non-consuming) in
+        // ONE batched __kernel_fd_poll round-trip so GLib's cross-thread wakeup (worker writes the
+        // GWakeup pipe -> a blocked g_main_loop_run on a wakeup-only context must observe POLLIN) works.
+        const pipeRevents = new Map();
+        let pollSetHasPipes = false;
+        {
+          const vPipe = new DataView(instanceMemory.buffer);
+          const pipeKernelFds = [];
+          const pipeGuestFds = [];
+          for (let i = 0; i < n; i++) {
+            const pfd = vPipe.getInt32(base0 + i * 8, true);
+            const pev = vPipe.getUint16(base0 + i * 8 + 4, true);
+            if ((pev & POLLIN) && isKernelPipeFd(pfd)) {
+              pipeKernelFds.push(kernelPipeKernelFd(pfd));
+              pipeGuestFds.push(pfd >>> 0);
+            }
+          }
+          pollSetHasPipes = pipeKernelFds.length > 0;
+          if (pipeKernelFds.length > 0) {
+            try {
+              const rev = callSyncRpc('__kernel_fd_poll', [pipeKernelFds]);
+              if (Array.isArray(rev)) {
+                for (let k = 0; k < pipeGuestFds.length; k++) {
+                  pipeRevents.set(pipeGuestFds[k], Number(rev[k]) >>> 0);
+                }
+              }
+            } catch (_e) {}
+          }
+        }
         const view = new DataView(instanceMemory.buffer);
         let ready = 0;
         for (let i = 0; i < n; i++) {
@@ -11585,7 +11615,10 @@ const hostNetImport = {
           const events = view.getUint16(base + 4, true);
           let revents = 0;
           const socket = getHostNetSocket(fd);
-          if (socket && !socket.closed) {
+          if (!socket && isKernelPipeFd(fd)) {
+            // Kernel revents bits (POLLIN=0x1, POLLHUP=0x10) match the wasi <poll.h> values.
+            revents |= (pipeRevents.get(fd >>> 0) ?? 0) & (POLLIN | 0x010);
+          } else if (socket && !socket.closed) {
             if (socket.serverId) {
               if (events & POLLIN) {
                 // Report the listener readable only when a connection is actually pending.
@@ -11639,7 +11672,11 @@ const hostNetImport = {
         // serializes a multi-client X server's poll and stalls cross-VM rendering. The sidecar clamps
         // the wait to a ceiling, so a pending listener accept (whose readiness isn't reader-notified) is
         // still rescanned within that ceiling.
-        const remain = deadline == null ? 1000 : Math.max(0, deadline - Date.now());
+        let remain = deadline == null ? 1000 : Math.max(0, deadline - Date.now());
+        // net.poll_wait only wakes on host_net socket readiness, not kernel-pipe data. When the poll
+        // set includes pipe fds (e.g. a GMainContext GWakeup pipe), cap the wait so we rescan the
+        // pipes promptly — otherwise a cross-thread GWakeup write would not be observed until timeout.
+        if (pollSetHasPipes) remain = Math.min(remain, 10);
         const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
         readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
       }

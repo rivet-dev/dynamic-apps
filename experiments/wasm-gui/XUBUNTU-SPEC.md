@@ -236,11 +236,15 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     allowlist (wasm.rs / v8_runtime.rs / session.rs / bridge-contract.json). **The worker thread now
     sends Hello and receives the daemon's replies over the main thread's socket; M8 stays green.** Proof
     `~/tmp/gui-progress/2026-06-24T22/xu1-socket-sharing-works.txt`.
-  - **REMAINING blocker (XU1 not green yet):** `g_bus_get_sync` on the MAIN thread still does not return
-    even though the worker received the replies. The blocked main thread is not woken when the worker
-    completes the connection handshake: a GLib cross-thread **completion wakeup** (GCond / GMainContext,
-    the M8.5 worker-context area), NOT the socket layer. Next: ensure the worker's completion wakes the
-    parked main thread, then the probe reaches `PASS ListNames`; then libxfce4util + xfconf → xfsettingsd.
+  - **GDBus-over-host_net FULLY WORKS — foundation complete.** The last blocker was that `net_poll`
+    (what GLib's `poll()` routes to) did not poll **kernel-pipe fds**, so a GMainContext **GWakeup pipe**
+    was never readable and GDBus's cross-thread completion wakeup (worker → blocked `g_bus_get_sync`)
+    never fired → livelock (M8's GTK never hit it; it polls the X socket). Fixed with a `__kernel_fd_poll`
+    RPC (`kernel.poll_fds`, non-consuming) wired into net_poll. **The gdbus-probe now passes:
+    `g_bus_get_sync(SESSION)` connects and `ListNames` returns 2 names, all wasm**; M8 (`test-m5-twm`)
+    and XU0 (dbus 3/4) stay green. Proof `~/tmp/gui-progress/2026-06-24T23/xu1-gdbus-pass.txt`.
+  - **NEXT (the remaining XU1 build):** with GDBus proven over host_net, build `libxfce4util` + `xfconf`
+    (xfconfd + xfconf-query) on it, then xfsettingsd → XSETTINGS push to a GTK client = XU1 acceptance.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)

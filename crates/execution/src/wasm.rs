@@ -4360,6 +4360,11 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM kernel fd-read bridge is unavailable");
           }}
           return _kernelFdReadRaw.applySync(void 0, args);
+        case "__kernel_fd_poll":
+          if (typeof _kernelFdPollRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel fd-poll bridge is unavailable");
+          }}
+          return _kernelFdPollRaw.applySync(void 0, args);
         case "__kernel_fd_write":
           if (typeof _kernelFdWriteRaw === "undefined") {{
             throw new Error("secure-exec WASM kernel fd-write bridge is unavailable");

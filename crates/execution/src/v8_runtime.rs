@@ -291,6 +291,7 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
         "_kernelPollRaw" => ("__kernel_poll", false),
         "_kernelPipeRaw" => ("__kernel_pipe", false),
         "_kernelFdReadRaw" => ("__kernel_fd_read", false),
+        "_kernelFdPollRaw" => ("__kernel_fd_poll", false),
         "_kernelFdWriteRaw" => ("__kernel_fd_write", false),
         "_kernelFdCloseRaw" => ("__kernel_fd_close", false),
 

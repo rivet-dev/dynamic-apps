@@ -13866,6 +13866,7 @@ where
         "__kernel_poll" => service_javascript_kernel_poll_sync_rpc(kernel, process, request),
         "__kernel_pipe" => service_javascript_kernel_pipe_sync_rpc(kernel, process, request),
         "__kernel_fd_read" => service_javascript_kernel_fd_read_sync_rpc(kernel, process, request),
+        "__kernel_fd_poll" => service_javascript_kernel_fd_poll_sync_rpc(kernel, process, request),
         "__kernel_fd_write" => service_javascript_kernel_fd_write_sync_rpc(kernel, process, request),
         "__kernel_fd_close" => service_javascript_kernel_fd_close_sync_rpc(kernel, process, request),
         "__pty_set_raw_mode" => {
@@ -16556,6 +16557,50 @@ fn service_javascript_kernel_fd_read_sync_rpc(
         Err(SidecarError::Kernel(error)) if error.starts_with("EAGAIN:") => Ok(Value::Null),
         Err(error) => Err(error),
     }
+}
+
+/// Non-blocking readability poll for guest kernel fds (kernel-pipe read ends). args[0] is an array of
+/// kernel fds; returns an array of revents bitmasks (POLLIN=0x1, POLLHUP=0x10) aligned with the input.
+/// The runner uses this so net_poll can report a kernel-pipe fd readable (e.g. a GMainContext GWakeup
+/// pipe), which a GLib cross-thread wakeup relies on. Non-consuming (does not drain the pipe).
+fn service_javascript_kernel_fd_poll_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd_list: Vec<u32> = request
+        .args
+        .first()
+        .and_then(|value| value.as_array())
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| item.as_u64().map(|fd| fd as u32))
+                .collect()
+        })
+        .unwrap_or_default();
+    if fd_list.is_empty() {
+        return Ok(json!([]));
+    }
+    let poll_fds: Vec<PollFd> = fd_list.iter().map(|&fd| PollFd::new(fd, POLLIN)).collect();
+    let result = kernel
+        .poll_fds(EXECUTION_DRIVER_NAME, process.kernel_pid, poll_fds, 0)
+        .map_err(kernel_error)?;
+    let revents: Vec<u16> = result
+        .fds
+        .iter()
+        .map(|p| {
+            let mut bits = 0_u16;
+            if p.revents.intersects(POLLIN) {
+                bits |= 0x0001;
+            }
+            if p.revents.intersects(POLLHUP) {
+                bits |= 0x0010;
+            }
+            bits
+        })
+        .collect();
+    Ok(json!(revents))
 }
 
 /// Write to a guest kernel fd (the kernel-pipe write end).
