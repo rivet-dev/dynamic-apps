@@ -52,7 +52,10 @@ SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"
 # the objects, so the refs resolve): the stub atk-bridge, epoxy, and the X extension libs. Duplicates
 # of anything already in GTK_LIBS are harmless.
 GTKTRANS="-latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lXcomposite -lX11 -lXau -lXdmcp"
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt"
+# GTK apps need: --wrap=writev (libxcb writes the X setup via writev, which must route to the host_net
+# override -- without it the write silently fails on the X socket and gdk reports "Unable to open
+# display"); and an 8MB stack (GTK's init call stack overflows the wasm default). Same as M8's GTK builds.
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
 # Build the libs (common/) first, then ONLY xfsettingsd -- skip the GUI dialog binaries we do not need
 # (and whose huge transitive link lines hit "argument list too long").
 make -j4 -C common LDFLAGS="$LINK" > /tmp/make-xfce4-settings.log 2>&1

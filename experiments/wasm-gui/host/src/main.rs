@@ -1107,7 +1107,15 @@ async fn run_xdemo(
                 // Forward GTK/GDK diagnostics + the a11y-off knob from the host env, so a desktop guest
                 // can be debugged (GDK_DEBUG/G_MESSAGES_DEBUG) and so GTK does not try to load the a11y
                 // bridge GTK module via GModule (no dlopen in the sandbox).
-                for k in ["GDK_DEBUG", "G_MESSAGES_DEBUG", "NO_AT_BRIDGE", "GTK_DEBUG", "GDK_BACKEND"] {
+                for k in [
+                    "GDK_DEBUG",
+                    "G_MESSAGES_DEBUG",
+                    "NO_AT_BRIDGE",
+                    "GTK_DEBUG",
+                    "GDK_BACKEND",
+                    "SECURE_EXEC_NET_TRACE",
+                    "LIBXCB_ALLOW_SLOPPY_LOCK",
+                ] {
                     if let Ok(v) = std::env::var(k) {
                         cenv.insert(k.to_string(), v);
                     }
@@ -1174,7 +1182,15 @@ async fn run_xdemo(
                 // Forward GTK/GDK diagnostics + the a11y-off knob from the host env, so a desktop guest
                 // can be debugged (GDK_DEBUG/G_MESSAGES_DEBUG) and so GTK does not try to load the a11y
                 // bridge GTK module via GModule (no dlopen in the sandbox).
-                for k in ["GDK_DEBUG", "G_MESSAGES_DEBUG", "NO_AT_BRIDGE", "GTK_DEBUG", "GDK_BACKEND"] {
+                for k in [
+                    "GDK_DEBUG",
+                    "G_MESSAGES_DEBUG",
+                    "NO_AT_BRIDGE",
+                    "GTK_DEBUG",
+                    "GDK_BACKEND",
+                    "SECURE_EXEC_NET_TRACE",
+                    "LIBXCB_ALLOW_SLOPPY_LOCK",
+                ] {
                     if let Ok(v) = std::env::var(k) {
                         cenv.insert(k.to_string(), v);
                     }

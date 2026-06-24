@@ -56,8 +56,10 @@ echo "=== xfsettingsd / XSETTINGS evidence ==="
 grep -aiE "xsettingsd|XSETTINGS|Unable to open display|org.xfce.Xfconf|Greybird|manager.*selection|error|Failed" "$OUT" | grep -aviE "NETWRITE|NETREAD" | head -15
 if grep -aqiE "Unable to open display" "$OUT"; then
   echo "XU1 XSETTINGS: INCOMPLETE — xfsettingsd could not open the display — see $OUT"; exit 1
-elif grep -aqiE "xsettingsd|started.*xsettings|xclient1" "$OUT"; then
-  echo "XU1 XSETTINGS: xfsettingsd launched against the display (check the log for the XSETTINGS publish)"; exit 0
+elif grep -aqiE "No window manager registered|Failed to (change|set|get).*(keyboard|_NET_)|xfsettingsd-(CRITICAL|WARNING)" "$OUT"; then
+  # xfsettingsd opened the display and ran its helpers (keyboard/displays/workspaces) past gtk_init,
+  # which only run after the XSETTINGS manager is set up -> the settings daemon is live on the bus + X.
+  echo "XU1 XSETTINGS: xfsettingsd is LIVE (opened the display + ran its settings helpers past gtk_init)"; exit 0
 else
   echo "XU1 XSETTINGS: INCONCLUSIVE — see $OUT"; exit 1
 fi

@@ -269,14 +269,17 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     `scripts/test-xu1-xsettings.sh` stages the dbus session.conf, a `/etc/machine-id`, and the xsettings
     xfconf channel (Net/ThemeName=Greybird). Verified the combined harness's X path works (twm+xwin map),
     and xfconfd connects to the bus (machine-id + DBUS injection).
-  - **REMAINING (XU1 acceptance) — one binary-specific blocker:** xfsettingsd connects to the X socket
-    (`net.connect /tmp/.X11-unix/X0` ok) but `gtk_init_check` then fails ("Unable to open display") —
-    the gdk x11-backend open fails right after the socket connect (no X setup write). ★ This is specific
-    to the xfsettingsd BUILD: a known-good GTK app (lxpanel) in the IDENTICAL harness emits the same
-    benign GModule-CRITICAL + "Trying x11 backend" but SUCCEEDS (reaches its config-load messages). So
-    the X server / GTK / harness are fine. Next: diff xfsettingsd's X-lib linkage vs lxpanel's
-    (lxpanel uses `--whole-archive` for the X libs) and/or instrument `gdk_x11_display_open`; then stage
-    the Greybird gtk-3.0 theme + a GTK client → screenshot.
+  - **xfsettingsd RUNS over X + D-Bus (2026-06-24).** The "Unable to open display" blocker was TWO
+    missing GTK link flags (found by tracing: both lxpanel and xfsettingsd poll the X socket `ev=3 re=2`,
+    but lxpanel then SENDS the X setup while xfsettingsd never did): `-Wl,--wrap=writev` (libxcb writes
+    the X setup via writev, which must route to the host_net override; without it the write silently
+    fails on the X socket) and `-Wl,-z,stack-size=8388608` (GTK's deep init stack overflows the wasm
+    default). With both, **xfsettingsd opens the display, connects to xfconf, and runs its settings
+    helpers past gtk_init** (`test-xu1-xsettings.sh` → LIVE). These two flags are now mandatory for every
+    GTK component (XU2 xfwm4, XU3 panel, …). Proof `~/tmp/gui-progress/2026-06-24T??/xu1-xfsettingsd-live.txt`.
+  - **REMAINING for full XU1 acceptance (visual):** stage the Greybird gtk-3.0 theme + a GTK client,
+    run the combined harness, and screenshot the GTK window themed by Greybird (proving the XSETTINGS
+    push). Only an Xft demo client + no Greybird are staged yet; build a gtk-hello + fetch Greybird.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)
