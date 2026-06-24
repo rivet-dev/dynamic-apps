@@ -729,6 +729,89 @@ async fn run_exec(
     Ok(())
 }
 
+/// XU0: D-Bus session-bus round-trip. Launch the unmodified dbus-daemon as a long-lived guest (it binds
+/// the session bus AF_UNIX socket in the kernel socket table), then launch the client guests (e.g.
+/// dbus-monitor then dbus-send) with DBUS_SESSION_BUS_ADDRESS so they connect to it — exactly how the X
+/// clients reach the wasm X server. Streams all output so a test can assert a method-call reply +
+/// signal round-trip over the bus.
+async fn run_bus_roundtrip(
+    sidecar: Option<String>,
+    server: &str,
+    clients: &[String],
+    server_args: &[String],
+    timeout_s: u64,
+    vm_trees: &[String],
+    bus_address: &str,
+) -> Result<()> {
+    let s = Session::connect(sidecar).await?;
+    s.mkdir("/data").await.ok();
+    s.mkdir("/tmp").await.ok();
+    s.mkdir("/tmp/.dbus").await.ok();
+    for tree in vm_trees {
+        let n = s.install_tree(std::path::Path::new(tree), "").await?;
+        eprintln!("secure-exec: installed {n} files from {tree} into the VM root");
+    }
+    let mut events = s.t.subscribe_wire_events();
+
+    // Start the bus daemon (longest-lived; opt out of the CPU-time limit like the X server).
+    let server_abs = abs_path(server)?;
+    let sargv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
+    let mut denv = HashMap::new();
+    denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+    s.execute_env("dbusd", &server_abs, &sargv, denv).await?;
+    eprintln!("secure-exec: started dbus-daemon {server_abs} {server_args:?}");
+    // Give it time to bind + listen before any client connects.
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+
+    // Launch each client with the bus address, staggered (e.g. monitor first so it sees the signals).
+    for (i, spec) in clients.iter().enumerate() {
+        let parts: Vec<&str> = spec.split_whitespace().collect();
+        if parts.is_empty() {
+            continue;
+        }
+        let path = abs_path(parts[0])?;
+        let argv: Vec<&str> = parts[1..].to_vec();
+        let mut cenv = HashMap::new();
+        cenv.insert(
+            "DBUS_SESSION_BUS_ADDRESS".to_string(),
+            bus_address.to_string(),
+        );
+        let id = format!("dbus-client{i}");
+        s.execute_env(&id, &path, &argv, cenv).await?;
+        eprintln!("secure-exec: launched {id} ({})", parts[0]);
+        tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+    }
+
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(timeout_s);
+    loop {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            break;
+        }
+        match tokio::time::timeout(remaining, events.recv()).await {
+            Ok(Ok((_, wire::EventPayload::ProcessOutputEvent(o)))) => {
+                let txt = String::from_utf8_lossy(&o.chunk);
+                let ch = if matches!(o.channel, wire::StreamChannel::Stderr) {
+                    "err"
+                } else {
+                    "out"
+                };
+                eprint!("[{}/{ch}] {txt}", o.process_id);
+            }
+            Ok(Ok((_, wire::EventPayload::ProcessExitedEvent(e)))) => {
+                eprintln!("secure-exec: {} exited with code {}", e.process_id, e.exit_code);
+            }
+            Ok(Ok(_)) => continue,
+            Ok(Err(tokio::sync::broadcast::error::RecvError::Lagged(_))) => continue,
+            Ok(Err(_)) => break,
+            Err(_) => break,
+        }
+    }
+    eprintln!("\nsecure-exec: bus-test timeout ({timeout_s}s) reached");
+    s.shutdown();
+    Ok(())
+}
+
 /// M6.3 PTY end-to-end test: install the "shell" wasm into the VM fs, then run the "terminal" wasm,
 /// which spawns the shell over a kernel PTY (host_net.pty_spawn) and echoes data through it. Streams
 /// the terminal's output so a test can assert it read the shell's reply back from the PTY master.
@@ -1206,6 +1289,7 @@ struct Args {
     exec_args: Vec<String>,
     timeout: u64,
     xdemo: bool,
+    bus_test: bool,
     server: Option<String>,
     clients: Vec<String>,
     fb_out: Option<String>,
@@ -1231,6 +1315,7 @@ fn parse_args() -> Args {
         exec_args: Vec::new(),
         timeout: 8,
         xdemo: false,
+        bus_test: false,
         server: None,
         clients: Vec::new(),
         fb_out: None,
@@ -1250,6 +1335,7 @@ fn parse_args() -> Args {
             "--desktop" => a.mode_desktop = true,
             "--exec" => a.exec = true,
             "--xdemo" => a.xdemo = true,
+            "--bus-test" => a.bus_test = true,
             "--concurrent" => a.concurrent = true,
             "--pty-test" => a.pty_test = true,
             "--pty-shell" => {
@@ -1372,6 +1458,30 @@ async fn main() {
             );
             std::process::exit(0);
         }
+    }
+
+    if args.bus_test {
+        let server = args.server.clone().unwrap_or_else(|| {
+            eprintln!("--bus-test requires --server <dbus-daemon.wasm>");
+            std::process::exit(2);
+        });
+        let bus_addr = std::env::var("DBUS_BUS_ADDRESS")
+            .unwrap_or_else(|_| "unix:path=/tmp/.dbus/session".to_string());
+        if let Err(e) = run_bus_roundtrip(
+            args.sidecar.clone(),
+            &server,
+            &args.clients,
+            &args.exec_args,
+            args.timeout,
+            &args.vm_trees,
+            &bus_addr,
+        )
+        .await
+        {
+            eprintln!("bus-test failed: {e}");
+            std::process::exit(1);
+        }
+        return;
     }
 
     if args.xdemo {
