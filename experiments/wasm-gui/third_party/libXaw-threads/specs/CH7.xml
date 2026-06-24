@@ -1,0 +1,170 @@
+<chapter id='Creating_New_Widgets_Subclassing'>
+<title>Creating New Widgets (Subclassing)</title>
+<para>
+Although the task of creating a new widget may at first appear a little
+daunting, there is a basic simple pattern that all widgets follow.  The
+Athena Widget library contains a special widget called the
+<emphasis remap='I'>Template</emphasis> widget that is intended to assist
+the novice widget programmer in writing a custom widget.
+</para>
+<para>
+Reasons for wishing to write a custom widget include:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Providing a graphical interface not currently supported by any existing
+widget set.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Convenient access to resource management procedures to obtain fonts,
+colors, etc., even if user customization is not desired.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Convenient access to user input dispatch and translation management procedures.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Access to callback mechanism for building higher-level application libraries.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Customizing the interface or behavior of an existing widget to suit a
+special application need.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Desire to allow user customization of resources such as fonts, colors,
+etc., or to allow convenient re-binding of keys and buttons to internal
+functions.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Converting a non-Toolkit application to use the Toolkit.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+In each of these cases, the operation needed to create a new widget is
+to "subclass" an existing one.  If the desired semantics of the new
+widget are similar to an existing one, then the implementation of the
+existing widget should be examined to see how much work would be
+required to create a subclass that will then be
+able to share the existing class methods.  Much time will be saved in
+writing the new widget if an existing widget class Expose, Resize and/or
+GeometryManager method can be used by the subclass.
+</para>
+<para>
+Note that some trivial uses of a <quote>bare-bones</quote> widget may be achieved by
+simply creating an instance of the Core
+widget.  The class variable to use when creating a Core widget is
+<function>widgetClass</function>.
+The geometry of the Core widget is determined entirely by the parent
+widget.
+</para>
+<para>
+It is very often the case than an application will have a special need
+for a certain set of functions and that many copies of these functions
+will be needed.  For example, when converting an older application to use
+the Toolkit, it may be desirable to have a "Window Widget" class that
+might have the following semantics:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Allocate 2 drawing colors in addition to a background color.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Allocate a text font.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Execute an application-supplied function to handle exposure events.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Execute an application-supplied function to handle user input events.
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+It is obvious that a completely general-purpose WindowWidgetClass could
+be constructed that would export all class methods as callbacks lists,
+but such a widget would be very large and would have to choose some
+arbitrary number of resources such as colors to allocate.  An application
+that used many instances of the general-purpose widget would therefore
+un-necessarily waste many resources.
+</para>
+<para>
+In this section, an outline will be given of the procedure to follow to
+construct a special-purpose widget to address the items listed above.
+The reader should refer to the appropriate sections of the
+<olink targetdoc='intrinsics' targetptr='intrinsics'
+><citetitle>X Toolkit Intrinsics - C Language Interface</citetitle></olink>
+for complete details of the material outlined here.
+<olink targetdoc='intrinsics' targetptr='Widgets'
+>Section 1.4 of the <citetitle>Intrinsics</citetitle></olink>
+should be read in
+conjunction with this section.
+</para>
+<para>
+All Athena widgets have three separate files associated with them:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+A "public" header file containing declarations needed by applications programmers
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A "private" header file containing additional declarations needed by the
+widget and any subclasses
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+A source code file containing the implementation of the widget
+    </para>
+  </listitem>
+</itemizedlist>
+
+<para>
+This separation of functions into three files is suggested for all
+widgets, but nothing in the Toolkit actually requires this format.  In
+particular, a private widget created for a single application may easily
+combine the "public" and "private" header files into a single file, or
+merge the contents into another application header file.  Similarly, the
+widget implementation can be merged into other application code.
+</para>
+
+<para>
+In the following example, the public header file
+<filename class="headerfile">&lt;X11/Xaw/Template.h&gt;</filename>,
+the private header file
+<filename class="headerfile">&lt;X11/Xaw/TemplateP.h&gt;</filename>
+and the source code file
+<filename class="headerfile">&lt;X11/Xaw/Template.c&gt;</filename>
+will be modified to produce the "WindowWidget" described above.
+In each case, the files have been designed so that a global string
+replacement of "Template" and "template"
+with the name of your new widget, using
+the appropriate case, can be done.
+</para>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Template_public_header_file.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Template_private_header_file.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="Template_widget_source_file.xml"/>
+</chapter>

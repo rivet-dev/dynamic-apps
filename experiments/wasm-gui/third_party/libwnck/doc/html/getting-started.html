@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: Part II. Getting Started with libwnck</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="index.html" title="Libwnck Reference Manual">
+<link rel="prev" href="overview.html" title="Part I. Libwnck Overview">
+<link rel="next" href="core.html" title="Part III. Libwnck Core Window Management Support">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
+<td><a accesskey="p" href="overview.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="core.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="part">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="getting-started"></a>Part II. Getting Started with libwnck</h1></div></div></div>
+<div class="refsect1">
+<a name="getting-started.use-cases"></a><h2>Use Cases</h2>
+<p>
+     Most users of libwnck should be tools that deal heavily with window management in one way or another: tasklists and pagers are obvious examples, but tools to automatically organize windows, to track resources of windows, or to inspect what is happening on a display can also be built with this library.
+    </p>
+<p>
+     Applications that just need to do some management on their own windows (like positioning one of their windows on a specific workspace) should likely not use libwnck, as the use of this library is relatively expensive in terms of resources. The internals of libwnck make sure that the library always tracks everything that is occurring on the display, mirroring various information from the X server and actively using resources to update the cached information as it changes. In concrete terms, every time something changes on the display, every application using libwnck will wake up. An application that is not dealing specifically with window management should not do this. While <a class="link" href="libwnck-Miscellaneous-Functions.html#wnck-shutdown" title="wnck_shutdown ()"><code class="function">wnck_shutdown()</code></a> can be used to mitigate the expensiveness of libwnck, it is generally not considered a proper solution.
+    </p>
+<div class="note"><p>
+     When considering the use of libwnck, it makes sense to keep in mind the cost of the library. For example, it is possible to share this cost between various tools all dealing in one way or another with window management, by grouping them in the same process, even if from a UI perspective they all look like different applications.
+    </p></div>
+</div>
+<div class="refsect1">
+<a name="getting-started.pitfalls"></a><h2>Common Pitfalls</h2>
+<p>
+     While the API provided by libwnck should be mostly straight-forward in general, a few pitfalls are often hit by users of the library.
+    </p>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="getting-started.pitfalls.force-update"></a>Explicit fetching of information</h3></div></div></div>
+<p>
+      At its creation, a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object will not have fetched information from the X server. If queried immediately after its creation (via <a class="link" href="WnckScreen.html#wnck-screen-get-windows" title="wnck_screen_get_windows ()"><code class="function">wnck_screen_get_windows()</code></a> or <a class="link" href="WnckScreen.html#wnck-screen-get-workspaces" title="wnck_screen_get_workspaces ()"><code class="function">wnck_screen_get_workspaces()</code></a>, for example), the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object will look like there are no workspaces nor windows on the screen. This information is fetched in the main event loop with an idle source, to avoid an expensive synchronous operation on startup. If no main event loop is used, or if the information is needed as soon as possible after the creation of the object, <a class="link" href="WnckScreen.html#wnck-screen-force-update" title="wnck_screen_force_update ()"><code class="function">wnck_screen_force_update()</code></a> can be used to explicitly fetch the information.
+     </p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="getting-started.pitfalls.lazy-initialization"></a>Lazy initialization of WnckScreen objects and signals</h3></div></div></div>
+<p>
+      As mentioned above, a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object will have no information at its creation: it is lazily initialized during a main event loop. This lazy initialization will lead to the emission of many signals by the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object: for instance, the <a class="link" href="WnckScreen.html#WnckScreen-window-opened" title="The “window-opened” signal"><code class="function">"window-opened"</code></a> signal will be emitted for all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> objects representing existing windows during the lazy initialization. This is actually a feature that enables you to easily initialize the state of your application, with the same code you will use to update its state when new windows get opened; there is an <a class="link" href="getting-started.html#getting-started.examples.lazy-initialization">example</a> showing this.
+     </p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="getting-started.pitfalls.memory-management"></a>Memory management</h3></div></div></div>
+<p>
+      All objects provided by the <a class="link" href="core.html" title="Part III. Libwnck Core Window Management Support">Core Window Management Support</a> are owned by libwnck and should not be referenced or unreferenced by the user. Those objects are tied to X resources, and it makes no sense to keep the objects alive when the X resources are gone; doing so could lead to errors. Therefore it is important that, when keeping in memory a pointer to such an object, the life of this object is tracked to make sure the pointer is always valid.
+     </p>
+<p>
+      This memory management model is important to keep in mind for users of <a class="link" href="libwnck-Miscellaneous-Functions.html#wnck-shutdown" title="wnck_shutdown ()"><code class="function">wnck_shutdown()</code></a>, and especially for users of libwnck through introspection. With introspection, all variables pointing to objects owned by libwnck must be cleared before <a class="link" href="libwnck-Miscellaneous-Functions.html#wnck-shutdown" title="wnck_shutdown ()"><code class="function">wnck_shutdown()</code></a> as the introspection support can add some references to the objects.
+     </p>
+<p>
+      For instance, the following would work in Python:
+      </p>
+<div class="informalexample"><pre class="programlisting">
+from gi.repository import Wnck
+
+screen = Wnck.Screen.get_default()
+[...]
+screen = None
+Wnck.Shutdown()
+       </pre></div>
+<p>
+     </p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="getting-started.pitfalls.client-type"></a>Source indication</h3></div></div></div>
+<p>
+      Window management actions that are performed with libwnck are generally implemented as requests to the window manager. In order to not disturb the workflow of the user, the window manager may choose to put restrictions on various requests sent from applications. However, if those requests represent direct actions from the user, then the window manager will obey them. To indicate that the requests are the result of actions from the user, the application should set the <a class="ulink" href="http://standards.freedesktop.org/wm-spec/wm-spec-latest.html#sourceindication" target="_top">source indication</a> in the requests, as defined in the EWMH. The <a class="link" href="libwnck-Miscellaneous-Functions.html#wnck-set-client-type" title="wnck_set_client_type ()"><code class="function">wnck_set_client_type()</code></a> can be used to define the source indication.
+     </p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="getting-started.pitfalls.gdk-init"></a>GDK initialization</h3></div></div></div>
+<p>
+      Internally, libwnck uses GDK. This means that before any call to libwnck API, GDK needs to be initialized. This can be achieved with <code class="function">gdk_init()</code>, or indirectly via <code class="function">gtk_init()</code>.
+     </p>
+</div>
+</div>
+<div class="refsect1">
+<a name="getting-started.examples"></a><h2>Examples</h2>
+<p><a name="getting-started.examples.force-update"></a>
+     This first example is a small utility listing all windows on the current screen. As this is all done synchronously, without using a main event loop, we use <a class="link" href="WnckScreen.html#wnck-screen-force-update" title="wnck_screen_force_update ()"><code class="function">wnck_screen_force_update()</code></a> to explicitly fetch the information needed for the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object.
+
+     </p>
+<div class="informalexample"><pre class="programlisting">
+       #include &lt;libwnck/libwnck.h&gt;
+
+int
+main (int    argc,
+      char **argv)
+{
+  WnckScreen *screen;
+  WnckWindow *active_window;
+  GList *window_l;
+
+  gdk_init (&amp;argc, &amp;argv);
+
+  screen = wnck_screen_get_default ();
+
+  wnck_screen_force_update (screen);
+
+  active_window = wnck_screen_get_active_window (screen);
+
+  for (window_l = wnck_screen_get_windows (screen); window_l != NULL; window_l = window_l-&gt;next)
+    {
+      WnckWindow *window = WNCK_WINDOW (window_l-&gt;data);
+      g_print ("%s%s\n", wnck_window_get_name (window),
+                         window == active_window ? " (active)" : "");
+    }
+
+  return 0;
+}
+
+      </pre></div>
+<p>
+    </p>
+<p><a name="getting-started.examples.lazy-initialization"></a>
+     The second example is similar, except that we use a main event loop. We connect to the <a class="link" href="WnckScreen.html#WnckScreen-window-opened" title="The “window-opened” signal"><code class="function">"window-opened"</code></a> signal to print information about new <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> objects. Here, we use the fact that the <a class="link" href="WnckScreen.html#WnckScreen-window-opened" title="The “window-opened” signal"><code class="function">"window-opened"</code></a> signal is emitted for all existing windows during the lazy initialization of the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> object, in order to achieve an output similar to the previous example. However, during the lazy initialization, the active window is not necessarily known yet and we cannot tell whether the opened window is the currently active one. We connect to the <a class="link" href="WnckScreen.html#WnckScreen-active-window-changed" title="The “active-window-changed” signal"><code class="function">"active-window-changed"</code></a> signal to determine the active window when this information becomes available.
+
+     </p>
+<div class="informalexample"><pre class="programlisting">
+       #include &lt;libwnck/libwnck.h&gt;
+
+static void
+on_window_opened (WnckScreen *screen,
+                  WnckWindow *window,
+                  gpointer    data)
+{
+  /* Note: when this event is emitted while screen is initialized, there is no
+   * active window yet. */
+
+  g_print ("%s\n", wnck_window_get_name (window));
+}
+
+static void
+on_active_window_changed (WnckScreen *screen,
+                          WnckWindow *previously_active_window,
+                          gpointer    data)
+{
+  WnckWindow *active_window;
+
+  active_window = wnck_screen_get_active_window (screen);
+
+  if (active_window)
+    g_print ("active: %s\n", wnck_window_get_name (active_window));
+  else
+    g_print ("no active window\n");
+}
+
+int
+main (int    argc,
+      char **argv)
+{
+  GMainLoop *loop;
+  WnckScreen *screen;
+
+  gdk_init (&amp;argc, &amp;argv);
+
+  loop = g_main_loop_new (NULL, FALSE);
+  screen = wnck_screen_get_default ();
+
+  g_signal_connect (screen, "window-opened",
+                    G_CALLBACK (on_window_opened), NULL);
+  g_signal_connect (screen, "active-window-changed",
+                    G_CALLBACK (on_active_window_changed), NULL);
+
+  g_main_loop_run (loop);
+
+  g_main_loop_unref (loop);
+
+  return 0;
+}
+
+      </pre></div>
+<p>
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

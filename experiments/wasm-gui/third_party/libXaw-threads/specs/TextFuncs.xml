@@ -1,0 +1,864 @@
+<sect1 id="Text_Functions">
+<title>Text Functions</title>
+<!-- .XS -->
+<!-- 	Text Functions -->
+<!-- .XE -->
+<para>
+<!-- .LP -->
+The following functions are provided as convenience routines for use with
+the Text widget.  Although many of these actions can be performed by
+modifying resources, these interfaces are frequently more efficient.
+</para>
+<para>
+<!-- .LP -->
+These data structures are defined in the Text widget's public header file,
+&lt;X11/Xaw/Text.h&gt;.
+</para>
+<para>
+<!-- .LP -->
+<indexterm significance="preferred"><primary>XawTextPosition</primary></indexterm>
+typedef long XawTextPosition;
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+Character positions in the Text widget begin at 0 and end at n, where
+n is the number of characters in the Text source widget.
+</para>
+<para>
+<!-- .LP -->
+<indexterm significance="preferred"><primary>XawTextBlock</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA .5i 1.5i 2.25i -->
+<!-- .ta .5i 1.5i 2.25i -->
+typedef struct {
+	int <emphasis remap='I'>firstPos</emphasis>;
+	int <emphasis remap='I'>length</emphasis>;
+	char *<emphasis remap='I'>ptr</emphasis>;
+	unsigned long <emphasis remap='I'>format</emphasis>;
+} XawTextBlock, *XawTextBlockPtr;
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>XawTextBlockPtr</primary></indexterm>
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>firstPos</emphasis>
+    </term>
+    <listitem>
+      <para>
+The first position, or index, to use within the <emphasis remap='I'>ptr</emphasis> field.
+The value is commonly zero.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>length</emphasis>
+    </term>
+    <listitem>
+      <para>
+The number of characters to be used from the <emphasis remap='I'>ptr</emphasis> field.
+The number of characters used is commonly the number of characters
+in <emphasis remap='I'>ptr</emphasis>, and must not be greater than the length of the string
+in <emphasis remap='I'>ptr</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>ptr</emphasis>
+    </term>
+    <listitem>
+      <para>
+Contains the string to be referenced by the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>format</emphasis>
+    </term>
+    <listitem>
+      <para>
+This flag indicates whether the data pointed to by <function>ptr</function> is char
+or wchar_t.  When the associated widget has <function>international</function> set
+to <function>false</function> this field must be XawFmt8Bit.  When the associated
+widget has <function>international</function> set to <function>true</function> this field must be
+either XawFmt8Bit or XawFmtWide.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<note>
+<para>
+<!-- .LP -->
+Note: Previous versions of Xaw used
+<function>FMT8BIT</function>,
+which has been retained for backwards compatibility. <function>FMT8BIT</function> is
+deprecated and will eventually be removed from the implementation.
+</para>
+</note>
+<sect2 id="Selecting_Text">
+<title>Selecting Text</title>
+<para>
+<!-- .LP -->
+To select a piece of text, use
+<function>XawTextSetSelection : </function>
+<indexterm significance="preferred"><primary>XawTextSetSelection</primary></indexterm>
+<funcsynopsis id='XawTextSetSelection'>
+<funcprototype>
+  <funcdef>void<function> XawTextSetSelection</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionleft,<parameter> right</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>left</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the character position at which the selection begins.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>right</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the character position at which the selection ends.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+If redisplay is enabled, this function highlights the text and
+makes it the <function>PRIMARY</function> selection.  This function does not have any
+effect on <function>CUT_BUFFER0</function>.
+</para>
+<para>
+<!-- .LP -->
+</para>
+</sect2>
+<sect2 id="Unhighlighting_Text">
+<title>Unhighlighting Text</title>
+<para>
+<!-- .LP -->
+To unhighlight previously highlighted text in a widget, use
+<xref linkend='XawTextUnsetSelection' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextUnsetSelection</primary></indexterm>
+<funcsynopsis id='XawTextUnsetSelection'>
+<funcprototype>
+  <funcdef>void<function> XawTextUnsetSelection</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Getting_Current_Text_Selection">
+<title>Getting Current Text Selection</title>
+<para>
+<!-- .LP -->
+To retrieve the text that has been selected by this
+text widget use <xref linkend='XawTextGetSelectionPos' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextGetSelectionPos</primary></indexterm>
+<funcsynopsis id='XawTextGetSelectionPos'>
+<funcprototype>
+  <funcdef>void<function> XawTextGetSelectionPos</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition*begin_return,<parameter> *end_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>begin_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the beginning of the text selection.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>end_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns the end of the text selection.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+If the returned values are equal, no text is currently selected.
+</para>
+</sect2>
+<sect2 id="Replacing_Text">
+<title>Replacing Text</title>
+<para>
+<!-- .LP -->
+To modify the text in an editable Text widget use <xref linkend='XawTextReplace' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextReplace</primary></indexterm>
+<funcsynopsis id='XawTextReplace'>
+<funcprototype>
+  <funcdef>int<function> XawTextReplace</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionstart,<parameter> end</parameter></paramdef>
+  <paramdef>XawTextBlock<parameter> *text</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>start</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the starting character position of the text replacement.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>end</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the ending character position of the text replacement.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>text</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the text to be inserted into the file.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function will not
+be able to replace text in read-only text widgets.  It will also only
+be able to append text to an append-only text widget.
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function> and
+<function>XawTextBlock</function>.
+</para>
+<para>
+<!-- .LP -->
+This function may return the following values:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>XawEditDone</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>XawEditDone</primary></indexterm>
+The text replacement was successful.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>XawPositionError</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>XawPositionError</primary></indexterm>
+The edit mode is <function>XawtextAppend</function> and <function>start</function> is not the position of
+the last character of the source.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>XawEditError</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>XawEditError</primary></indexterm>
+Either the Source was read-only or the range to be deleted is larger
+than the length of the Source.
+
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The <xref linkend='XawTextReplace' xrefstyle='select: title'/> arguments <function>start</function> and
+<emphasis remap='I'>end</emphasis> represent the text source character positions for the
+existing text that is to be replaced by the text in the text block.
+The characters from <emphasis remap='I'>start</emphasis> up to
+but not including <emphasis remap='I'>end</emphasis> are deleted, and the characters
+specified on the text block are inserted in their place.  If
+<emphasis remap='I'>start</emphasis> and <emphasis remap='I'>end</emphasis> are equal, no text is deleted and the new
+text is inserted after <emphasis remap='I'>start</emphasis>.
+</para>
+</sect2>
+<sect2 id="Searching_for_Text">
+<title>Searching for Text</title>
+<para>
+<!-- .LP -->
+To search for a string in the Text widget, use
+<xref linkend='XawTextSearch' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextSearch</primary></indexterm>
+<funcsynopsis id='XawTextSearch'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> XawTextSearch</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextScanDirection<parameter> dir</parameter></paramdef>
+  <paramdef>XawTextBlock*<parameter> text</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>dir</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the direction to search in.  Legal values are
+<function>XawsdLeft</function> and <function>XawsdRight</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>text</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a text block structure that contains the text to search for.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link> for a description of
+<function>XawTextPosition</function> and <function>XawTextBlock</function>.
+The <xref linkend='XawTextSearch' xrefstyle='select: title'/> function will begin at the insertion point
+and search in the
+direction specified for a string that matches the one passed in
+<emphasis remap='I'>text</emphasis>.  If the string is found the location of the first
+character in the string is returned.  If the string could not be
+found then the value <function>XawTextSearchError</function> is returned.
+</para>
+</sect2>
+<sect2 id="Redisplaying_Text">
+<title>Redisplaying Text</title>
+<para>
+<!-- .LP -->
+To redisplay a range of characters, use <xref linkend='XawTextInvalidate' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextInvalidate</primary></indexterm>
+<funcsynopsis id='XawTextInvalidate'>
+<funcprototype>
+  <funcdef>void<function> XawTextInvalidate</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionfrom,<parameter> to</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>from</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the start of the text to redisplay.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>to</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the end of the text to redisplay.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+The <xref linkend='XawTextInvalidate' xrefstyle='select: title'/>
+function causes the specified range of characters to be redisplayed
+immediately if redisplay is enabled or the next time that redisplay is
+enabled.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To enable redisplay, use <xref linkend='XawTextEnableRedisplay' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextEnableRedisplay</primary></indexterm>
+<funcsynopsis id='XawTextEnableRedisplay'>
+<funcprototype>
+  <funcdef>void<function> XawTextEnableRedisplay</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The <xref linkend='XawTextEnableRedisplay' xrefstyle='select: title'/> function flushes any changes due to
+batched updates when <xref linkend='XawTextDisableRedisplay' xrefstyle='select: title'/>
+was called and allows future changes to be reflected immediately.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To disable redisplay while making several changes, use
+<xref linkend='XawTextDisableRedisplay' xrefstyle='select: title'/>.
+<indexterm significance="preferred"><primary>XawTextDisableRedisplay</primary></indexterm>
+<funcsynopsis id='XawTextDisableRedisplay'>
+<funcprototype>
+  <funcdef>void<function> XawTextDisableRedisplay</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The <xref linkend='XawTextDisableRedisplay' xrefstyle='select: title'/> function causes all changes to be
+batched until either <xref linkend='XawTextDisplay' xrefstyle='select: title'/> or <xref linkend='XawTextEnableRedisplay' xrefstyle='select: title'/>
+is called.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To display batched updates, use <xref linkend='XawTextDisplay' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextDisplay</primary></indexterm>
+<funcsynopsis id='XawTextDisplay'>
+<funcprototype>
+  <funcdef>void<function> XawTextDisplay</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The <xref linkend='XawTextDisplay' xrefstyle='select: title'/> function forces any accumulated updates to be
+displayed.
+</para>
+</sect2>
+<sect2 id="Resources_Convenience_Routines">
+<title>Resources Convenience Routines</title>
+<para>
+<!-- .LP -->
+To obtain the character position of the left-most character on the
+first line displayed in the widget (the value of the
+<function>displayPosition</function> resource), use <xref linkend='XawTextTopPosition' xrefstyle='select: title'/>.
+<indexterm significance="preferred"><primary>XawTextTopPosition</primary></indexterm>
+<funcsynopsis id='XawTextTopPosition'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> XawTextTopPosition</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To assign a new selection array to a text widget use
+<xref linkend='XawTextSetSelectionArray' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextSetSelectionArray</primary></indexterm>
+<funcsynopsis id='XawTextSetSelectionArray'>
+<funcprototype>
+  <funcdef>void<function> XawTextSetSelectionArray</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextSelectType*<parameter> sarray</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>sarray</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a selection array as defined in
+<xref linkend="Text_Selections_for_Application_Programmers"/>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+Calling this function is equivalent to setting the value of the
+<function>selectionTypes</function> resource.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To move the insertion point to the specified source position, use
+<xref linkend='XawTextSetInsertionPoint' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextSetInsertionPoint</primary></indexterm>
+<funcsynopsis id='XawTextSetInsertionPoint'>
+<funcprototype>
+  <funcdef>void<function> XawTextSetInsertionPoint</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> position</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>position</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the new position for the insertion point.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+The text will be scrolled vertically if necessary to make the line
+containing the insertion point visible.  Calling this function is
+equivalent to setting the <function>insertPosition</function> resource.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To obtain the current position of the insertion point, use
+<xref linkend='XawTextGetInsertionPoint' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextGetInsertionPoint</primary></indexterm>
+<funcsynopsis id='XawTextGetInsertionPoint'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> XawTextGetInsertionPoint</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+The result is equivalent to retrieving the value of the
+<function>insertPosition</function> resource.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To replace the text source in the specified widget, use
+<xref linkend='XawTextSetSource' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextSetSource</primary></indexterm>
+<funcsynopsis id='XawTextSetSource'>
+<funcprototype>
+  <funcdef>void<function> XawTextSetSource</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Widget<parameter> source</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> position</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>source</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the text source object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>position</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies character position that will become the upper left hand corner
+of the displayed text.  This is usually set to zero.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<link linkend="Text_Functions">See section 5.4</link>
+for a description of <function>XawTextPosition</function>.
+A display update will be performed if redisplay is enabled.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To obtain the current text source for the specified widget, use
+<xref linkend='XawTextGetSource' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextGetSource</primary></indexterm>
+<funcsynopsis id='XawTextGetSource'>
+<funcprototype>
+  <funcdef>Widget<function> XawTextGetSource</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function returns the text source that this Text widget is currently
+using.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+To enable and disable the insertion point, use
+<xref linkend='XawTextDisplayCaret' xrefstyle='select: title'/>:
+<indexterm significance="preferred"><primary>XawTextDisplayCaret</primary></indexterm>
+<funcsynopsis id='XawTextDisplayCaret'>
+<funcprototype>
+  <funcdef>void<function> XawTextDisplayCaret</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Boolean<parameter> visible</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Text widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>visible</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies whether or not the caret should be displayed.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+If <function>visible</function> is <function>False</function> the insertion point will be disabled.
+The marker is re-enabled either by setting <function>visible</function> to <function>True</function>, by
+calling <xref linkend='XtSetValues' xrefstyle='select: title'/>, or by executing the <function>display-caret</function>
+action routine.
+</para>
+</sect2>
+</sect1>

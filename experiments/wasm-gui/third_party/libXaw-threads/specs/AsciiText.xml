@@ -1,0 +1,450 @@
+<sect1 id="Ascii_Text_Widget">
+<title>Ascii Text Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	AsciiText Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>AsciiText widget</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/AsciiText.h&gt;
+<indexterm><primary>AsciiText.h</primary></indexterm>
+ClassHeader file	&lt;X11/Xaw/AsciiTextP.h&gt;
+<indexterm><primary>AsciiTextP.h</primary></indexterm>
+Class		asciiTextWidgetClass
+<indexterm><primary>asciiTextWidgetClass</primary></indexterm>
+Class Name	Text
+<indexterm><primary>AsciiText widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Text
+Sink Name	textSink
+Source Name	textSource
+</literallayout>
+<!-- .sp 1 -->
+</para>
+<para>
+<!-- .LP -->
+For the ease of internationalization, the AsciiText widget class name has not
+been changed, although it is actually able to support non-ASCII locales.
+The AsciiText widget is really a collection of smaller parts.  It
+includes the Text widget itself, a <quote>Source</quote> (which supports memory management),
+and a <quote>Sink</quote> (which handles the display).  There are currently two supported
+sources, the AsciiSrc and MultiSrc, and two supported sinks, the AsciiSink and
+<indexterm><primary>AsciiSrc object</primary></indexterm>
+<indexterm><primary>AsciiSink object</primary></indexterm>
+<indexterm><primary>MultiSrc object</primary></indexterm>
+<indexterm><primary>MultiSink object</primary></indexterm>
+MultiSink.  Some of
+the resources listed below are not actually resources of the
+AsciiText, but belong to the associated source or sink.  This is
+is noted in the explanation of each resource where it applies.  When
+specifying these resources in a resource file it is necessary to use
+<emphasis remap='I'>*AsciiText*resource_name</emphasis> instead of
+<emphasis remap='I'>*AsciiText.resource_name</emphasis>, since they actually belong to the
+children of the AsciiText widget, and not the AsciiText widget itself.
+However, these resources may be set directly on the AsciiText widget at
+widget creation time, or via <xref linkend='XtSetValues' xrefstyle='select: title'/>.
+</para>
+<sect2 id='AsciiText::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating an AsciiText widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>AsciiText widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>autoFill</entry>
+      <entry>AutoFill</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>bottomMargin</entry>
+      <entry>Margin</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_xterm</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>dataCompression</entry>
+      <entry>DataCompression</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>displayCaret</entry>
+      <entry>Output</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>displayNonprinting</entry>
+      <entry>Output</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>displayPosition</entry>
+      <entry>TextPosition</entry>
+      <entry>XawTextPosition</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>echo</entry>
+      <entry>Output</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>editType</entry>
+      <entry>EditType</entry>
+      <entry>XawTextEditType</entry>
+      <entry></entry>
+      <entry>XawtextRead</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>XFontStruct*</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Font height + margins</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>insertPosition</entry>
+      <entry>TextPosition</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>leftMargin</entry>
+      <entry>Margin</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>length</entry>
+      <entry>Length</entry>
+      <entry>int</entry>
+      <entry>A</entry>
+      <entry>length of <function>string</function></entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>pieceSize</entry>
+      <entry>PieceSize</entry>
+      <entry>XawTextPosition</entry>
+      <entry></entry>
+      <entry>BUFSIZ</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>resize</entry>
+      <entry>Resize</entry>
+      <entry>XawTextResizeMode</entry>
+      <entry></entry>
+      <entry>XawtextResizeNever</entry>
+    </row>
+    <row>
+      <entry>rightMargin</entry>
+      <entry>Margin</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>scrollHorizontal</entry>
+      <entry>Scroll</entry>
+      <entry>XawTextScrollMode</entry>
+      <entry></entry>
+      <entry>XawtextScrollNever</entry>
+    </row>
+    <row>
+      <entry>scrollVertical</entry>
+      <entry>Scroll</entry>
+      <entry>XawTextScrollMode</entry>
+      <entry></entry>
+      <entry>XawtextScrollNever</entry>
+    </row>
+    <row>
+      <entry>selectTypes</entry>
+      <entry>SelectTypes</entry>
+      <entry>XawTextSelectType*</entry>
+      <entry></entry>
+      <entry>See above</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>string</entry>
+      <entry>String</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>textSink</entry>
+      <entry>TextSink</entry>
+      <entry>Widget</entry>
+      <entry></entry>
+      <entry>An AsciiSink</entry>
+    </row>
+    <row>
+      <entry>textSource</entry>
+      <entry>TextSource</entry>
+      <entry>Widget</entry>
+      <entry></entry>
+      <entry>An AsciiSrc</entry>
+    </row>
+    <row>
+      <entry>topMargin</entry>
+      <entry>Margin</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See above</entry>
+    </row>
+    <row>
+      <entry>type</entry>
+      <entry>Type</entry>
+      <entry>XawAsciiType</entry>
+      <entry></entry>
+      <entry>XawAsciiString</entry>
+    </row>
+    <row>
+      <entry>useStringInPlace</entry>
+      <entry>UseStringInPlace</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>100</entry>
+    </row>
+    <row>
+      <entry>wrap</entry>
+      <entry>Wrap</entry>
+      <entry>WrapMode</entry>
+      <entry></entry>
+      <entry>XawtextWrapNever</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+
+</para>
+</sect2>
+</sect1>

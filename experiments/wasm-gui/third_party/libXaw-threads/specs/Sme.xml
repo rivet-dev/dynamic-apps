@@ -1,0 +1,207 @@
+<sect1 id="Sme_Object">
+<title>Sme Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Sme Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Sme object</primary></indexterm>
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/Sme.h&gt;
+<indexterm><primary>Sme.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/SmeP.h&gt;
+<indexterm><primary>SmeP.h</primary></indexterm>
+Class		smeObjectClass
+<indexterm><primary>smeObjectClass</primary></indexterm>
+Class Name	Sme
+<indexterm><primary>Sme object</primary><secondary>class name</secondary></indexterm>
+Superclass	RectObj
+</literallayout>
+<!-- .sp -->
+</para>
+<para>
+<!-- .LP -->
+The Sme object is the base class for all menu entries.  While this
+object is mainly intended to be subclassed, it may be used in a menu to
+add blank space between menu entries.
+</para>
+<sect2 id='Sme::Resources'>
+<title>Resources</title>
+<indexterm><primary>SmeLine object</primary><secondary>resources</secondary></indexterm>
+<para>
+<!-- .LP -->
+The resources associated with the SmeLine object are defined in this
+section, and affect only the single menu entry specified by this object.
+There are no new resources added for this class, as it picks up all its
+resources from the RectObj class.
+</para>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .As -->
+<!-- .Dc -->
+<!-- .Hw -->
+
+<para>
+Keep in mind that the SimpleMenu widget will force all menu items to
+be the width of the widest entry.
+<!-- .Ix Bold -->
+<!-- .Se -->
+</para>
+</sect2>
+<sect2 id="Subclassing_the_Sme_Object">
+<title>Subclassing the Sme Object</title>
+<indexterm significance="preferred"><primary>Sme object</primary><secondary>subclassing</secondary></indexterm>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+To Create a new Sme object <emphasis remap='I'>class</emphasis> you will need to define three class methods.
+These methods allow the SimpleMenu to highlight and unhighlight the
+menu entry as the pointer cursor moves over it, as well as notify the
+entry when the user has selected it.  All of
+these methods may be inherited from the Sme object, although the default
+semantics are not very interesting.
+</para>
+<para>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>Highlight</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>Sme object</primary><secondary>Highlight method</secondary></indexterm>
+Called to put the menu entry into the highlighted state.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Unhighlight</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>Sme object</primary><secondary>Unhighlight method</secondary></indexterm>
+Called to return the widget to its normal (unhighlighted) state.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>Notify</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+<indexterm><primary>Sme object</primary><secondary>Notify method</secondary></indexterm>
+Called when the user selects this menu entry.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+Other then these methods, creating a new object
+is straight forward.  Here is some information that may help you
+avoid some common mistakes.
+</para>
+<orderedlist>
+  <listitem><para>Objects can be zero pixels high.</para></listitem>
+  <listitem>
+    <para>
+Objects draw on their parent's window, therefore the Drawing dimensions
+are different from those of widgets.  For instance, y locations vary
+from <function>y</function> to <function>y + height</function>, not <function>0</function> to <function>height</function>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+<!-- .IP 3) 3n -->
+XtSetValues calls may come from the application while the Sme is highlighted,
+and if the SetValues method returns True, will result in an expose event.
+The SimpleMenu may later call the menu entry's <function>unhighlight</function>
+procedure.  However, due to the asynchronous nature of
+X, the expose event generated by <xref linkend='XtSetValues' xrefstyle='select: title'/> will come <emphasis remap='I'>after</emphasis>
+this unhighlight.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Remember that your subclass of the Sme does not own the
+window.  Share the space with other menu entries, and refrain
+from drawing outside the subclass's own section of the menu.
+    </para>
+  </listitem>
+</orderedlist>
+</sect2>
+</sect1>

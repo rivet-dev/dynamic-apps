@@ -1,0 +1,1919 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: WnckScreen</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="core.html" title="Part III. Libwnck Core Window Management Support">
+<link rel="prev" href="WnckWorkspace.html" title="WnckWorkspace">
+<link rel="next" href="widgets.html" title="Part IV. Libwnck Widgets">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#WnckScreen.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#WnckScreen.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals"> <span class="dim">|</span> 
+                  <a href="#WnckScreen.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="core.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="WnckWorkspace.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="widgets.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="WnckScreen"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="WnckScreen.top_of_page"></a>WnckScreen</span></h2>
+<p>WnckScreen — an object representing a screen.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="WnckScreen.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="WnckScreen.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-default" title="wnck_screen_get_default ()">wnck_screen_get_default</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get" title="wnck_screen_get ()">wnck_screen_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-for-root" title="wnck_screen_get_for_root ()">wnck_screen_get_for_root</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-number" title="wnck_screen_get_number ()">wnck_screen_get_number</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-width" title="wnck_screen_get_width ()">wnck_screen_get_width</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-height" title="wnck_screen_get_height ()">wnck_screen_get_height</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-force-update" title="wnck_screen_force_update ()">wnck_screen_force_update</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-window-manager-name" title="wnck_screen_get_window_manager_name ()">wnck_screen_get_window_manager_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-net-wm-supports" title="wnck_screen_net_wm_supports ()">wnck_screen_net_wm_supports</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="returnvalue">WnckWindow</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-active-window" title="wnck_screen_get_active_window ()">wnck_screen_get_active_window</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="returnvalue">WnckWindow</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-previously-active-window" title="wnck_screen_get_previously_active_window ()">wnck_screen_get_previously_active_window</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-windows" title="wnck_screen_get_windows ()">wnck_screen_get_windows</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-windows-stacked" title="wnck_screen_get_windows_stacked ()">wnck_screen_get_windows_stacked</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="returnvalue">WnckWorkspace</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-active-workspace" title="wnck_screen_get_active_workspace ()">wnck_screen_get_active_workspace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-workspaces" title="wnck_screen_get_workspaces ()">wnck_screen_get_workspaces</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="returnvalue">WnckWorkspace</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-workspace" title="wnck_screen_get_workspace ()">wnck_screen_get_workspace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-workspace-count" title="wnck_screen_get_workspace_count ()">wnck_screen_get_workspace_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-change-workspace-count" title="wnck_screen_change_workspace_count ()">wnck_screen_change_workspace_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-try-set-workspace-layout" title="wnck_screen_try_set_workspace_layout ()">wnck_screen_try_set_workspace_layout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-release-workspace-layout" title="wnck_screen_release_workspace_layout ()">wnck_screen_release_workspace_layout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-calc-workspace-layout" title="wnck_screen_calc_workspace_layout ()">wnck_screen_calc_workspace_layout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-free-workspace-layout" title="wnck_screen_free_workspace_layout ()">wnck_screen_free_workspace_layout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-move-viewport" title="wnck_screen_move_viewport ()">wnck_screen_move_viewport</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-background-pixmap" title="wnck_screen_get_background_pixmap ()">wnck_screen_get_background_pixmap</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-get-showing-desktop" title="wnck_screen_get_showing_desktop ()">wnck_screen_get_showing_desktop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckScreen.html#wnck-screen-toggle-showing-desktop" title="wnck_screen_toggle_showing_desktop ()">wnck_screen_toggle_showing_desktop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table border="0">
+<colgroup>
+<col width="150px" class="signals_return">
+<col width="300px" class="signals_name">
+<col width="200px" class="signals_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-active-window-changed" title="The “active-window-changed” signal">active-window-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-active-workspace-changed" title="The “active-workspace-changed” signal">active-workspace-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-application-closed" title="The “application-closed” signal">application-closed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-application-opened" title="The “application-opened” signal">application-opened</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-background-changed" title="The “background-changed” signal">background-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-class-group-closed" title="The “class-group-closed” signal">class-group-closed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-class-group-opened" title="The “class-group-opened” signal">class-group-opened</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-showing-desktop-changed" title="The “showing-desktop-changed” signal">showing-desktop-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-viewports-changed" title="The “viewports-changed” signal">viewports-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-window-closed" title="The “window-closed” signal">window-closed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-window-manager-changed" title="The “window-manager-changed” signal">window-manager-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-window-opened" title="The “window-opened” signal">window-opened</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-window-stacking-changed" title="The “window-stacking-changed” signal">window-stacking-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-workspace-created" title="The “workspace-created” signal">workspace-created</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckScreen.html#WnckScreen-workspace-destroyed" title="The “workspace-destroyed” signal">workspace-destroyed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="WnckScreen.html#WnckScreen-struct" title="struct WnckScreen">WnckScreen</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="WnckScreen.html#WnckWorkspaceLayout" title="struct WnckWorkspaceLayout">WnckWorkspaceLayout</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+    <span class="lineart">╰──</span> WnckScreen
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.description"></a><h2>Description</h2>
+<p>The <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> represents a physical screen. A screen may consist of
+multiple monitors which are merged to form a large screen area. The
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> is at the bottom of the libwnck stack of objects: <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>
+objects exist a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> and <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> objects are displayed on a
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>.</p>
+<p>The <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> corresponds to the notion of</p>
+<code class="classname">GdkScreen</code> in GDK.
+<p>The <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> objects are always owned by libwnck and must not be
+referenced or unreferenced.</p>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="wnck-screen-get-default"></a><h3>wnck_screen_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+wnck_screen_get_default (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Gets the default <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> on the default display.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.2.5"></a><h4>Returns</h4>
+<p> the default <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>. The returned
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> is owned by libwnck and must not be referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get"></a><h3>wnck_screen_get ()</h3>
+<pre class="programlisting"><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+wnck_screen_get (<em class="parameter"><code><span class="type">int</span> index</code></em>);</pre>
+<p>Gets the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> for a given screen on the default display.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>index</p></td>
+<td class="parameter_description"><p>screen number, starting from 0.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.3.6"></a><h4>Returns</h4>
+<p> the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> for screen <em class="parameter"><code>index</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+if no such screen exists. The returned <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> is owned by libwnck and
+must not be referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-for-root"></a><h3>wnck_screen_get_for_root ()</h3>
+<pre class="programlisting"><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="returnvalue">WnckScreen</span></a> *
+wnck_screen_get_for_root (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> root_window_id</code></em>);</pre>
+<p>Gets the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> for the root window at <em class="parameter"><code>root_window_id</code></em>
+, or
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> exists for this root window.</p>
+<p>This function does not work if <a class="link" href="WnckScreen.html#wnck-screen-get" title="wnck_screen_get ()"><code class="function">wnck_screen_get()</code></a> was not called for the
+sought <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> before, and returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.4.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>root_window_id</p></td>
+<td class="parameter_description"><p>an X window ID.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.4.7"></a><h4>Returns</h4>
+<p> the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> for the root window at
+<em class="parameter"><code>root_window_id</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. The returned <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> is owned by libwnck and
+must not be referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-number"></a><h3>wnck_screen_get_number ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+wnck_screen_get_number (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the index of <em class="parameter"><code>screen</code></em>
+ on the display to which it belongs. The first
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> has an index of 0.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.5.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.5.6"></a><h4>Returns</h4>
+<p> the index of <em class="parameter"><code>space</code></em>
+on <em class="parameter"><code>screen</code></em>
+, or -1 on errors.</p>
+<p></p>
+</div>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-width"></a><h3>wnck_screen_get_width ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+wnck_screen_get_width (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the width of <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.6.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.6.6"></a><h4>Returns</h4>
+<p> the width of <em class="parameter"><code>screen</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-height"></a><h3>wnck_screen_get_height ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+wnck_screen_get_height (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the height of <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.7.6"></a><h4>Returns</h4>
+<p> the height of <em class="parameter"><code>screen</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-force-update"></a><h3>wnck_screen_force_update ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_force_update (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Synchronously and immediately updates the list of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+.
+This bypasses the standard update mechanism, where the list of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a>
+is updated in the idle loop.</p>
+<p>This is usually a bad idea for both performance and correctness reasons (to
+get things right, you need to write model-view code that tracks changes, not
+get a static list of open windows). However, this function can be useful for
+small applications that just do something and then exit.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.8.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-window-manager-name"></a><h3>wnck_screen_get_window_manager_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+wnck_screen_get_window_manager_name (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the name of the window manager.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.9.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.9.6"></a><h4>Returns</h4>
+<p> the name of the window manager, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the window manager
+does not comply with the <a class="ulink" href="http://standards.freedesktop.org/wm-spec/wm-spec-latest.html" target="_top">EWMH</a>
+specification.</p>
+<p></p>
+</div>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-net-wm-supports"></a><h3>wnck_screen_net_wm_supports ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+wnck_screen_net_wm_supports (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                             <em class="parameter"><code>const <span class="type">char</span> *atom</code></em>);</pre>
+<p>Gets whether the window manager for <em class="parameter"><code>screen</code></em>
+ supports a certain hint from
+the <a class="ulink" href="http://standards.freedesktop.org/wm-spec/wm-spec-latest.html" target="_top">Extended
+Window Manager Hints specification</a> (EWMH).</p>
+<p>When using this function, keep in mind that the window manager can change
+over time; so you should not use this function in a way that impacts
+persistent application state. A common bug is that your application can
+start up before the window manager does when the user logs in, and before
+the window manager starts <a class="link" href="WnckScreen.html#wnck-screen-net-wm-supports" title="wnck_screen_net_wm_supports ()"><code class="function">wnck_screen_net_wm_supports()</code></a> will return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+for every property.</p>
+<p>See also <a href="http://developer.gnome.org/gdk2/gdk3-X-Window-System-Interaction.html#gdk-x11-screen-supports-net-wm-hint"><code class="function">gdk_x11_screen_supports_net_wm_hint()</code></a> in GDK.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.10.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>atom</p></td>
+<td class="parameter_description"><p>a property atom.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.10.8"></a><h4>Returns</h4>
+<p> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the window manager for <em class="parameter"><code>screen</code></em>
+supports the <em class="parameter"><code>atom</code></em>
+hint, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-active-window"></a><h3>wnck_screen_get_active_window ()</h3>
+<pre class="programlisting"><a class="link" href="WnckWindow.html" title="WnckWindow"><span class="returnvalue">WnckWindow</span></a> *
+wnck_screen_get_active_window (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the active <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+. May return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> sometimes, since
+not all window managers guarantee that a window is always active.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.11.6"></a><h4>Returns</h4>
+<p> the active <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+The returned <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is owned by libwnck and must not be referenced or
+unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-previously-active-window"></a><h3>wnck_screen_get_previously_active_window ()</h3>
+<pre class="programlisting"><a class="link" href="WnckWindow.html" title="WnckWindow"><span class="returnvalue">WnckWindow</span></a> *
+wnck_screen_get_previously_active_window
+                               (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the previously active <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+. May return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+sometimes, since not all window managers guarantee that a window is always
+active.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.12.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.12.6"></a><h4>Returns</h4>
+<p> the previously active <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+,
+or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. The returned <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is owned by libwnck and must not be
+referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-windows"></a><h3>wnck_screen_get_windows ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+wnck_screen_get_windows (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the list of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+. The list is not in a defined
+order, but should be "stable" (windows should not be reordered in it).
+However, the stability of the list is established by the window manager, so
+don't blame libwnck if it breaks down.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.13.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.13.6"></a><h4>Returns</h4>
+<p> the list of
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no window on <em class="parameter"><code>screen</code></em>
+. The list
+should not be modified nor freed, as it is owned by <em class="parameter"><code>screen</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> WnckWindow][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-windows-stacked"></a><h3>wnck_screen_get_windows_stacked ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+wnck_screen_get_windows_stacked (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the list of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+ in bottom-to-top order.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.14.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.14.6"></a><h4>Returns</h4>
+<p> the list of
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in stacking order on <em class="parameter"><code>screen</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no window on
+<em class="parameter"><code>screen</code></em>
+. The list should not be modified nor freed, as it is owned by
+<em class="parameter"><code>screen</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> WnckWindow][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-active-workspace"></a><h3>wnck_screen_get_active_workspace ()</h3>
+<pre class="programlisting"><a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="returnvalue">WnckWorkspace</span></a> *
+wnck_screen_get_active_workspace (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the active <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+. May return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> sometimes,
+if libwnck is in a weird state due to the asynchronous nature of the
+interaction with the window manager.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.15.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.15.6"></a><h4>Returns</h4>
+<p> the active <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+, or
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. The returned <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> is owned by libwnck and must not be
+referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-workspaces"></a><h3>wnck_screen_get_workspaces ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+wnck_screen_get_workspaces (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the list of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+. The list is ordered: the
+first element in the list is the first <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>, etc..</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.16.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.16.6"></a><h4>Returns</h4>
+<p> the list of
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+. The list should not be modified nor freed, as it
+is owned by <em class="parameter"><code>screen</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> WnckWorkspace][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-workspace"></a><h3>wnck_screen_get_workspace ()</h3>
+<pre class="programlisting"><a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="returnvalue">WnckWorkspace</span></a> *
+wnck_screen_get_workspace (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                           <em class="parameter"><code><span class="type">int</span> workspace</code></em>);</pre>
+<p>Gets the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> numbered <em class="parameter"><code>workspace</code></em>
+ on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.17.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>workspace</p></td>
+<td class="parameter_description"><p>a workspace index, starting from 0.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.17.6"></a><h4>Returns</h4>
+<p> the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> numbered <em class="parameter"><code>workspace</code></em>
+on
+<em class="parameter"><code>screen</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such workspace exists. The returned <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>
+is owned by libwnck and must not be referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-workspace-count"></a><h3>wnck_screen_get_workspace_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+wnck_screen_get_workspace_count (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.18.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.18.6"></a><h4>Returns</h4>
+<p> the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-change-workspace-count"></a><h3>wnck_screen_change_workspace_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_change_workspace_count (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                                    <em class="parameter"><code><span class="type">int</span> count</code></em>);</pre>
+<p>Asks the window manager to change the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.19.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>count</p></td>
+<td class="parameter_description"><p>the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> to request.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-try-set-workspace-layout"></a><h3>wnck_screen_try_set_workspace_layout ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+wnck_screen_try_set_workspace_layout (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                                      <em class="parameter"><code><span class="type">int</span> current_token</code></em>,
+                                      <em class="parameter"><code><span class="type">int</span> rows</code></em>,
+                                      <em class="parameter"><code><span class="type">int</span> columns</code></em>);</pre>
+<p>Tries to modify the layout of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+. To do this, tries
+to acquire ownership of the layout. If the current process is the owner of
+the layout, <em class="parameter"><code>current_token</code></em>
+ is used to determine if the caller is the owner
+(there might be more than one part of the same process trying to set the
+layout). Since no more than one application should set this property of
+<em class="parameter"><code>screen</code></em>
+ at a time, setting the layout is not guaranteed to work.</p>
+<p>If <em class="parameter"><code>rows</code></em>
+ is 0, the actual number of rows will be determined based on
+<em class="parameter"><code>columns</code></em>
+ and the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>. If <em class="parameter"><code>columns</code></em>
+ is 0, the actual
+number of columns will be determined based on <em class="parameter"><code>rows</code></em>
+ and the number of
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>. <em class="parameter"><code>rows</code></em>
+ and <em class="parameter"><code>columns</code></em>
+ must not be 0 at the same time.</p>
+<p>You have to release the ownership of the layout with
+<a class="link" href="WnckScreen.html#wnck-screen-release-workspace-layout" title="wnck_screen_release_workspace_layout ()"><code class="function">wnck_screen_release_workspace_layout()</code></a> when you do not need it anymore.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.20.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>current_token</p></td>
+<td class="parameter_description"><p>a token. Use 0 if you do not called
+<a class="link" href="WnckScreen.html#wnck-screen-try-set-workspace-layout" title="wnck_screen_try_set_workspace_layout ()"><code class="function">wnck_screen_try_set_workspace_layout()</code></a> before, or if you did not keep the
+old token.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>rows</p></td>
+<td class="parameter_description"><p>the number of rows to use for the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> layout.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>columns</p></td>
+<td class="parameter_description"><p>the number of columns to use for the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> layout.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.20.8"></a><h4>Returns</h4>
+<p> a token to use for future calls to
+<a class="link" href="WnckScreen.html#wnck-screen-try-set-workspace-layout" title="wnck_screen_try_set_workspace_layout ()"><code class="function">wnck_screen_try_set_workspace_layout()</code></a> and to
+<a class="link" href="WnckScreen.html#wnck-screen-release-workspace-layout" title="wnck_screen_release_workspace_layout ()"><code class="function">wnck_screen_release_workspace_layout()</code></a>, or 0 if the layout could not be set.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-release-workspace-layout"></a><h3>wnck_screen_release_workspace_layout ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_release_workspace_layout (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                                      <em class="parameter"><code><span class="type">int</span> current_token</code></em>);</pre>
+<p>Releases the ownership of the layout of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+.
+<em class="parameter"><code>current_token</code></em>
+ is used to verify that the caller is the owner of the layout.
+If the verification fails, nothing happens.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.21.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>current_token</p></td>
+<td class="parameter_description"><p>the token obtained through
+<a class="link" href="WnckScreen.html#wnck-screen-try-set-workspace-layout" title="wnck_screen_try_set_workspace_layout ()"><code class="function">wnck_screen_try_set_workspace_layout()</code></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-calc-workspace-layout"></a><h3>wnck_screen_calc_workspace_layout ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_calc_workspace_layout (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                                   <em class="parameter"><code><span class="type">int</span> num_workspaces</code></em>,
+                                   <em class="parameter"><code><span class="type">int</span> space_index</code></em>,
+                                   <em class="parameter"><code><a class="link" href="WnckScreen.html#WnckWorkspaceLayout" title="struct WnckWorkspaceLayout"><span class="type">WnckWorkspaceLayout</span></a> *layout</code></em>);</pre>
+<div class="warning"><p><code class="literal">wnck_screen_calc_workspace_layout</code> has been deprecated since version 2.20 and should not be used in newly-written code.</p></div>
+<p>Calculates the layout of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>, with additional information like
+the row and column of the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> with index <em class="parameter"><code>space_index</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.22.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>num_workspaces</p></td>
+<td class="parameter_description"><p>the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on <em class="parameter"><code>screen</code></em>
+, or -1 to let
+<a class="link" href="WnckScreen.html#wnck-screen-calc-workspace-layout" title="wnck_screen_calc_workspace_layout ()"><code class="function">wnck_screen_calc_workspace_layout()</code></a> find this number.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>space_index</p></td>
+<td class="parameter_description"><p>the index of a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>layout</p></td>
+<td class="parameter_description"><p>return location for the layout of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> with additional
+information.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.12</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-free-workspace-layout"></a><h3>wnck_screen_free_workspace_layout ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_free_workspace_layout (<em class="parameter"><code><a class="link" href="WnckScreen.html#WnckWorkspaceLayout" title="struct WnckWorkspaceLayout"><span class="type">WnckWorkspaceLayout</span></a> *layout</code></em>);</pre>
+<div class="warning"><p><code class="literal">wnck_screen_free_workspace_layout</code> has been deprecated since version 2.20 and should not be used in newly-written code.</p></div>
+<p>Frees the content of <em class="parameter"><code>layout</code></em>
+. This does not free <em class="parameter"><code>layout</code></em>
+ itself, so you
+might want to free <em class="parameter"><code>layout</code></em>
+ yourself after calling this.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.23.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>layout</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html#WnckWorkspaceLayout" title="struct WnckWorkspaceLayout"><span class="type">WnckWorkspaceLayout</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<p class="since">Since 2.12</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-move-viewport"></a><h3>wnck_screen_move_viewport ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_move_viewport (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                           <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                           <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Asks the window manager to move the viewport of the current <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>
+on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.24.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>X offset in pixels of viewport.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>Y offset in pixels of viewport.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-background-pixmap"></a><h3>wnck_screen_get_background_pixmap ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>
+wnck_screen_get_background_pixmap (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets the X window ID of the background pixmap of <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.25.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.25.6"></a><h4>Returns</h4>
+<p> the X window ID of the background pixmap of <em class="parameter"><code>screen</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-get-showing-desktop"></a><h3>wnck_screen_get_showing_desktop ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+wnck_screen_get_showing_desktop (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>);</pre>
+<p>Gets whether <em class="parameter"><code>screen</code></em>
+ is in the "showing the desktop" mode. This mode is
+changed when a <a class="link" href="WnckScreen.html#WnckScreen-showing-desktop-changed" title="The “showing-desktop-changed” signal"><span class="type">“showing-desktop-changed”</span></a> signal gets emitted.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.26.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.6.10.26.6"></a><h4>Returns</h4>
+<p> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>window</code></em>
+is fullscreen, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</p>
+<p></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-screen-toggle-showing-desktop"></a><h3>wnck_screen_toggle_showing_desktop ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_screen_toggle_showing_desktop (<em class="parameter"><code><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen</code></em>,
+                                    <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> show</code></em>);</pre>
+<p>Asks the window manager to set the "showing the desktop" mode on <em class="parameter"><code>screen</code></em>
+
+according to <em class="parameter"><code>show</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.10.27.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>show</p></td>
+<td class="parameter_description"><p>whether to activate the "showing the desktop" mode on <em class="parameter"><code>screen</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="WnckScreen-struct"></a><h3>struct WnckScreen</h3>
+<pre class="programlisting">struct WnckScreen;</pre>
+<p>The <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckWorkspaceLayout"></a><h3>struct WnckWorkspaceLayout</h3>
+<pre class="programlisting">struct WnckWorkspaceLayout {
+  int rows;
+  int cols;
+  int *grid;
+  int grid_area;
+  int current_row;
+  int current_col;
+};
+</pre>
+<div class="warning"><p><code class="literal">WnckWorkspaceLayout</code> has been deprecated since version 2.20 and should not be used in newly-written code.</p></div>
+<p>The <a class="link" href="WnckScreen.html#WnckWorkspaceLayout" title="struct WnckWorkspaceLayout"><span class="type">WnckWorkspaceLayout</span></a> struct contains information about the layout of
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> on a <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>, and the exact position of a specific
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.6.11.3.7"></a><h4>Members</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="WnckWorkspaceLayout.rows"></a>rows</code></em>;</p></td>
+<td class="struct_member_description"><p>number of rows in the layout grid.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="WnckWorkspaceLayout.cols"></a>cols</code></em>;</p></td>
+<td class="struct_member_description"><p>number of columns in the layout grid.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> *<em class="structfield"><code><a name="WnckWorkspaceLayout.grid"></a>grid</code></em>;</p></td>
+<td class="struct_member_description"><p>array of size <em class="parameter"><code>grid_area</code></em>
+containing the index (starting from 0) of
+the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> for each position in the layout grid, or -1 if the
+position does not correspond to any <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="WnckWorkspaceLayout.grid-area"></a>grid_area</code></em>;</p></td>
+<td class="struct_member_description"><p>size of the grid containing all <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>. This can be
+bigger than the number of <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> because the grid might not be
+filled.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="WnckWorkspaceLayout.current-row"></a>current_row</code></em>;</p></td>
+<td class="struct_member_description"><p>row of the specific <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>, starting from 0.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="WnckWorkspaceLayout.current-col"></a>current_col</code></em>;</p></td>
+<td class="struct_member_description"><p>column of the specific <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>, starting from 0.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.12</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="WnckScreen-active-window-changed"></a><h3>The <code class="literal">“active-window-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> *previously_active_window,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when the active window on <em class="parameter"><code>screen</code></em>
+ has changed.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.2.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>previously_active_window</p></td>
+<td class="parameter_description"><p>the previously active <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> before this
+change.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-active-workspace-changed"></a><h3>The <code class="literal">“active-workspace-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>    *screen,
+               <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> *previously_active_space,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
+<p>Emitted when the active workspace on <em class="parameter"><code>screen</code></em>
+ has changed.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>previously_active_space</p></td>
+<td class="parameter_description"><p>the previously active <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> before this
+change.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-application-closed"></a><h3>The <code class="literal">“application-closed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>      *screen,
+               <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> *app,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>         user_data)</pre>
+<p>Emitted when a <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> is closed on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.4.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>app</p></td>
+<td class="parameter_description"><p>the closed <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-application-opened"></a><h3>The <code class="literal">“application-opened”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>      *screen,
+               <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> *app,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>         user_data)</pre>
+<p>Emitted when a new <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> is opened on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.5.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>app</p></td>
+<td class="parameter_description"><p>the opened <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-background-changed"></a><h3>The <code class="literal">“background-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when the background on the root window of <em class="parameter"><code>screen</code></em>
+ has changed.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.6.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-class-group-closed"></a><h3>The <code class="literal">“class-group-closed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>     *screen,
+               <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)</pre>
+<p>Emitted when a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> is closed on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>the closed <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-class-group-opened"></a><h3>The <code class="literal">“class-group-opened”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>     *screen,
+               <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)</pre>
+<p>Emitted when a new <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> is opened on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.8.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>the opened <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-showing-desktop-changed"></a><h3>The <code class="literal">“showing-desktop-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when "showing the desktop" mode of <em class="parameter"><code>screen</code></em>
+ is toggled.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.9.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-viewports-changed"></a><h3>The <code class="literal">“viewports-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when a viewport position has changed in a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> of
+<em class="parameter"><code>screen</code></em>
+ or when a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> of <em class="parameter"><code>screen</code></em>
+ gets or loses its viewport.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.10.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-window-closed"></a><h3>The <code class="literal">“window-closed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> *window,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when a <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is closed on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the closed <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-window-manager-changed"></a><h3>The <code class="literal">“window-manager-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when the window manager on <em class="parameter"><code>screen</code></em>
+ has changed.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.12.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-window-opened"></a><h3>The <code class="literal">“window-opened”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> *window,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when a new <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is opened on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.13.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the opened <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-window-stacking-changed"></a><h3>The <code class="literal">“window-stacking-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> *screen,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)</pre>
+<p>Emitted when the stacking order of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> on <em class="parameter"><code>screen</code></em>
+ has changed.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.14.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-workspace-created"></a><h3>The <code class="literal">“workspace-created”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>    *screen,
+               <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> *space,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
+<p>Emitted when a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> is created on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.15.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>space</p></td>
+<td class="parameter_description"><p>the workspace that has been created.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckScreen-workspace-destroyed"></a><h3>The <code class="literal">“workspace-destroyed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>    *screen,
+               <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> *space,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
+<p>Emitted when a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> is destroyed on <em class="parameter"><code>screen</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.6.12.16.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>screen</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>space</p></td>
+<td class="parameter_description"><p>the workspace that has been destroyed.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckScreen.see-also"></a><h2>See Also</h2>
+<p><a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a>, <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a></p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

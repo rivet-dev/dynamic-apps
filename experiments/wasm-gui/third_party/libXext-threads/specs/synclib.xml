@@ -1,0 +1,821 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="synclib">
+
+<bookinfo>
+   <title>X Synchronization Extension Library</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 3.0</releaseinfo>
+   <authorgroup>
+      <author>
+        <firstname>Tim</firstname><surname>Glauert</surname>
+        <affiliation>
+          <orgname>Olivetti Research</orgname>
+          <orgdiv>MultiWorks</orgdiv>
+        </affiliation>
+      </author>
+      <author>
+          <firstname>Dave</firstname>
+          <surname>Carver</surname>
+          <affiliation>
+            <orgname>Digital Equipment Corporation</orgname>
+            <orgdiv>MIT/Project Athena</orgdiv>
+          </affiliation>
+      </author>
+      <author>
+        <firstname>Jim</firstname>
+        <surname>Gettys</surname>
+        <affiliation>
+          <orgname>Digital Equipment Corporation</orgname>
+          <orgdiv>Cambridge Research Laboratory</orgdiv>
+        </affiliation>
+      </author>
+      <author>
+        <firstname>David</firstname>
+        <othername>P.</othername>
+        <surname>Wiggins</surname>
+        <affiliation><orgname>X Consortium, Inc.</orgname></affiliation>
+      </author>
+   </authorgroup>
+   <copyright><year>1991</year>
+     <holder>Olivetti Research Limited, Cambridge England</holder>
+     <holder>Digital Equipment Corporation, Maynard, Massachusetts</holder>
+   </copyright>
+
+<legalnotice>
+<para>
+Permission to use, copy, modify, and distribute this documentation for any
+purpose and without fee is hereby granted, provided that the above
+copyright notice appear in all copies. Olivetti, Digital, MIT, and the
+X Consortium make no representations about the suitability for any purpose
+of the information in this document. This documentation is provided as
+is without express or implied warranty.
+</para>
+</legalnotice>
+
+<legalnotice>
+<para role="multiLicensing">Copyright &copy; 1991 X Consortium, Inc.</para>
+<para>
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+</para>
+
+<para>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+</para>
+
+<para>THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+</para>
+
+<para>
+Except as contained in this notice, the name of the X Consortium shall
+not be used in advertising or otherwise to promote the sale, use or other
+dealings in this Software without prior written authorization from the
+X Consortium.
+</para>
+<para>X Window System is a trademark of The OpenGroup.</para>
+
+</legalnotice>
+</bookinfo>
+
+<chapter id="synchronization_protocol">
+<title>Synchronization Protocol</title>
+
+<para>
+The core X protocol makes no guarantees about the relative order of
+execution of requests for different clients.  This means that any
+synchronization between clients must be done at the client level in an
+operating system-dependent and network-dependent manner. Even if there
+was an accepted standard for such synchronization, the use of a network
+introduces unpredictable delays between the synchronization of the clients and
+the delivery of the resulting requests to the X server.
+</para>
+<para>
+The core X protocol also makes no guarantees about the time at which
+requests are executed, which means that all clients with real-time constraints
+must implement their timing on the host computer. Any such timings are
+subject to error introduced by delays within the operating system and
+network and are ineﬃcient because of the need for round-trip requests that
+keep the client and server synchronized.
+</para>
+<para>
+The synchronization extension provides primitives that allow synchronization
+between clients to take place entirely within the X server. This removes any
+error introduced by the network and makes it possible to synchronize clients
+on different hosts running different operating systems. This is important for
+multimedia applications, where audio, video, and graphics data streams are
+being synchronized. The extension also provides internal timers within the X
+server to which client requests can be synchronized. This allows simple
+animation applications to be implemented without any round-trip requests
+and makes best use of buffering within the client, network, and server.
+</para>
+
+<sect1 id="description">
+<title>Description</title>
+<para>
+The mechanism used by this extension for synchronization within the X server
+is to block the processing of requests from a client until a specific
+synchronization condition occurs. When the condition occurs, the client is
+released and processing of requests continues. Multiple clients may block on
+the same condition to give inter-client synchronization. Alternatively, a single
+client may block on a condition such as an animation frame marker.
+</para>
+<para>
+The extension adds <function>Counter</function> and
+<function>Alarm</function> to the set of resources managed by
+the server. A counter has a 64-bit integer value that may be increased or
+decreased by client requests or by the server internally. A client can
+block by sending an <function>Await</function> request that waits until
+one of a set of synchronization conditions, called TRIGGERs, becomes TRUE.
+</para>
+<para>
+The <function>CreateCounter</function> request allows a client to create
+a <function>Counter</function> that can be changed by explicit
+<function>SetCounter</function> and <function>ChangeCounter</function>
+requests. These can be used to implement synchronization between
+different clients.
+</para>
+<para>
+There are some counters, called <function>System Counters</function>,
+that are changed by the server internally rather than by client
+requests. The effect of any change to a system counter is not visible
+until the server has finished processing the current request. In other
+words, system counters are apparently updated in the gaps between the
+execution of requests rather than during the actual execution of a
+request. The extension provides a system counter that advances with the
+server time as defined by the core protocol, and it may also provide
+counters that advance with the real-world time or that change each
+time the CRT screen is refreshed. Other extensions may provide their own
+extension-specific system counters.
+</para>
+<para>
+The extension provides an <function>Alarm</function> mechanism that allows clients to receive an
+event on a regular basis when a particular counter is changed.
+</para>
+</sect1>
+</chapter>
+
+<chapter id="c_language_binding">
+<title>C Language Binding</title>
+
+<para>
+The C routines provide direct access to the protocol and add no additional
+semantics.
+</para>
+<para>
+The include file for this extension is &lt;X11/extensions/sync.h&gt;.
+Most of the names in the language binding are derived from the protocol
+names by prepending XSync to the protocol name and changing the
+capitalization.
+</para>
+
+<sect1 id="c_functions">
+<title>C Functions</title>
+
+<para>
+Most of the following functions generate SYNC protocol requests.
+</para>
+
+<funcsynopsis id='xsyncqueryextension'>
+<funcprototype>
+  <funcdef>Status <function>XSyncQueryExtension</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>int <parameter> *event_base_return</parameter></paramdef>
+    <paramdef>int <parameter> *error_base_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+If dpy supports the SYNC extension,
+<function>XSyncQueryExtension</function> returns True,
+sets *event_base_return to the event number for the first SYNC event, and
+sets *error_base_return to the error number for the first SYNC error. If dpy
+does not support the SYNC extension, it returns False.
+</para>
+
+<funcsynopsis id='xsyncinitialize'>
+<funcprototype>
+  <funcdef>Status <function>XSyncInitialize</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>int <parameter> *major_version_return</parameter></paramdef>
+    <paramdef>int <parameter> *minor_version_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncInitialize</function> sets *major_version_return and
+*minor version return to the major/minor SYNC protocol version supported
+by the server. If the XSync library is compatible with the version
+returned by the server, this function returns <function>True</function>.
+If dpy does not support the SYNC extension, or if there was an error
+during communication with the server, or if the server and library protocol
+versions are incompatible, this function returns <function>False</function>.
+The only XSync function that may be called before this function is
+XSyncQueryExtension. If a client violates this rule, the effects of all XSync
+calls that it makes are undefined.
+</para>
+
+<funcsynopsis id='xsynclistsystemcounters'>
+<funcprototype>
+  <funcdef>XSyncSystemCounter *<function>XSyncListSystemCounters</function></funcdef>
+    <paramdef>Display <parameter> *dpy</parameter></paramdef>
+    <paramdef>int <parameter> *n_counters_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncListSystemCounters</function> returns a pointer to an array
+of system counters supported by the display and sets *n_counters_return
+to the number of counters in the array.  The array should be freed with
+<function>XSyncFreeSystemCounterList</function>. If dpy does not support
+the SYNC extension, or if there was an error during communication with
+the server, or if the server does not support any system counters,
+this function returns NULL.
+</para>
+
+<para>
+XSyncSystemCounter has the following fields:
+</para>
+
+<literallayout remap='Ds'>
+char *              name;        /* null-terminated name of system counter */
+XSyncCounter        counter;     /* counter id of this system counter */
+XSyncValue          resolution;  /* resolution of this system counter */
+</literallayout>
+
+<funcsynopsis id='xsyncfreesystemcounterlist'>
+<funcprototype>
+  <funcdef>void <function>XSyncFreeSystemCounterList</function></funcdef>
+    <paramdef>XSyncSystemCounter <parameter> *list</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncFreeSystemCounterList</function> frees the memory
+associated with the system counter list returned by
+<function>XSyncListSystemCounters</function>.
+</para>
+
+<funcsynopsis id='xsynccreatecounter'>
+<funcprototype>
+  <funcdef>XSyncCounter <function>XSyncCreateCounter</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> initial_value</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncCreateCounter</function> creates a counter on the dpy
+with the given initial value and returns the counter ID. It returns
+<function>None</function> if dpy does not support the SYNC extension.
+</para>
+
+<funcsynopsis id='xsyncsetcounter'>
+<funcprototype>
+  <funcdef>Status <function>XSyncSetCounter</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncCounter<parameter> counter</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> value</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para>
+<function>XSyncSetCounter</function> sets counter to value. It returns
+<function>False </function> if dpy does not
+support the SYNC extension; otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncchangecounter'>
+<funcprototype>
+  <funcdef>Status <function>XSyncChangeCounter</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncCounter<parameter> counter</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> value</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncChangeCounter</function> adds value to counter. It returns
+<function>False</function> if dpy does not support the SYNC extension;
+otherwise, it returns
+<function>True</function>.
+</para>
+<funcsynopsis id='xsyncdestroycounter'>
+<funcprototype>
+  <funcdef>Status <function>XSyncDestroyCounter</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncCounter<parameter> counter</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncDestroyCounter</function> destroys counter. It returns
+<function>False</function> if dpy does not support the SYNC extension;
+otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncquerycounter'>
+<funcprototype>
+  <funcdef>Status <function>XSyncQueryCounter</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncCounter<parameter> counter</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> *value_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncQueryCounter</function> sets *value_return to the current
+value of counter. It returns <function>False</function> if there was an
+error during communication with the server or if dpy does not support the
+SYNC extension; otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncawait'>
+<funcprototype>
+  <funcdef>Status <function>XSyncAwait</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncWaitCondition<parameter> *wait_list</parameter></paramdef>
+    <paramdef>int<parameter> n_conditions</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncAwait</function> awaits on the conditions in wait_list.
+The n_conditions is the number of wait conditions in wait_list. It
+returns <function>False</function> if dpy does not support the SYNC
+extension; otherwise, it returns <function>True</function>. The await is
+processed asynchronously by the server; this function always returns
+immediately after issuing the request.
+</para>
+<para>
+XSyncWaitCondition has the following fields:
+</para>
+
+<literallayout remap='Ds'>
+XSyncCounter     trigger.counter;    /*counter to trigger on */
+XSyncValueType   trigger.value_type; /*absolute/relative */
+XSyncValue       trigger.wait_value; /*value to compare counter to */
+XSyncTestType    trigger.test_type;  /*pos/neg comparison/transition */
+XSyncValue       event_threshold;    /*send event if past threshold */
+</literallayout>
+
+<para>
+<function>XSyncValueType</function> can be either
+<function>XSyncAbsolute</function> or <function>XSyncRelative</function>.
+</para>
+
+<para>
+<function>XSyncTestType</function> can be one of
+<function>XSyncPositiveTransition</function>,
+<function>XSyncNegativeTransition</function>,
+<function>XSyncPositiveComparison</function>, or
+<function>XSyncNegativeComparison</function>.
+</para>
+
+<funcsynopsis id='xsynccreatealarm'>
+<funcprototype>
+  <funcdef>XSyncAlarm <function>XSyncCreateAlarm</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>unsigned long<parameter> values_mask</parameter></paramdef>
+    <paramdef>XSyncAlarmAttributes<parameter> *values`</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncCreateAlarm</function> creates an alarm and returns the
+alarm ID. It returns None if the display does not support the SYNC
+extension. The values_mask and values specify the alarm attributes.
+</para>
+
+<para>
+<function>XSyncAlarmAttributes</function> has the following fields. The
+attribute_mask column specifies the symbol that the caller should OR
+into values_mask to indicate that the value for the corresponding
+attribute was actually supplied. Default values are used for all
+attributes that do not have their attribute_mask OR’ed into values_mask.
+See the protocol description for <function>CreateAlarm</function> for the
+defaults.
+</para>
+
+<literallayout remap='Ds'>
+type                 field name           attribute_mask
+XSyncCounter       trigger.counter;     XSyncCACounter
+XSyncValueType     trigger.value_type;  XSyncCAValueType
+XSyncValue         trigger.wait_value;  XSyncCAValue
+XSyncTestType      trigger.test_type;   XSyncCATestType
+XSyncValue         delta;               XSyncCADelta
+Bool               events;              XSyncCAEvents
+XSyncAlarmState    state;               client cannot set this
+</literallayout>
+
+<funcsynopsis id='xsyncdestroyalarm'>
+<funcprototype>
+  <funcdef>Status <function>XSyncDestroyAlarm</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncAlarm<parameter> alarm</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncDestroyAlarm</function> destroys alarm. It returns
+<function>False</function> if dpy does not support
+the SYNC extension; otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncqueryalarm'>
+<funcprototype>
+  <funcdef>Status <function>XSyncQueryAlarm</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncAlarm<parameter> alarm</parameter></paramdef>
+    <paramdef>XSyncAlarmAttributes<parameter> *values_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<para>
+<function>XSyncQueryAlarm</function> sets *values_return to the alarm’s
+attributes. It returns <function>False</function> if there was an error
+during communication with the server or if dpy does not support the
+SYNC extension; otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncchangealarm'>
+<funcprototype>
+  <funcdef>Status <function>XSyncChangeAlarm</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XSyncAlarm<parameter> alarm</parameter></paramdef>
+    <paramdef>unsigned long<parameter> values_mask</parameter></paramdef>
+    <paramdef>XSyncAlarmAttributes<parameter> *values</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncChangeAlarm</function> changes alarm’s attributes. The
+attributes to change are specified as in
+<function>XSyncCreateAlarm</function>. It returns
+<function>False</function> if dpy does not support
+the SYNC extension; otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncsetpriority'>
+<funcprototype>
+  <funcdef>Status <function>XSyncSetPriority</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XID<parameter> client_resource_id</parameter></paramdef>
+    <paramdef>int<parameter> priority</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncSetPriority</function> sets the priority of the client
+owning client_resource_id to priority. If client_resource_id is None, it
+sets the caller’s priority. It returns
+<function>False</function> if dpy does not support the SYNC extension;
+otherwise, it returns <function>True</function>.
+</para>
+
+<funcsynopsis id='xsyncgetpriority'>
+<funcprototype>
+  <funcdef>Status <function>XSyncGetPriority</function></funcdef>
+    <paramdef>Display<parameter> *dpy</parameter></paramdef>
+    <paramdef>XID<parameter> client_resource_id</parameter></paramdef>
+    <paramdef>int<parameter> *return_priority</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+<function>XSyncGetPriority</function> sets *return_priority to the
+priority of the client owning client_resource_id. If client_resource_id
+is None, it sets *return_priority to the caller’s priority. It returns
+<function>False</function> if there was an error during communication
+with the server or if dpy does not support the SYNC extension; otherwise, it
+returns <function>True</function>.
+</para>
+
+</sect1>
+
+<sect1 id="c_macros_functions">
+<title>C Macros/Functions</title>
+
+<para>
+The following procedures manipulate 64-bit values. They are defined both as
+macros and as functions. By default, the macro form is used. To use the
+function form, #undef the macro name to uncover the function.
+</para>
+
+<funcsynopsis id='xsyncinttovalue'>
+<funcprototype>
+  <funcdef>void <function>XSyncIntToValue</function></funcdef>
+    <paramdef>XSyncValue<parameter> *pv</parameter></paramdef>
+    <paramdef>int<parameter> i</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Converts i to an <function>XSyncValue</function> and stores it in *pv.
+Performs sign extension (*pv will have the same sign as i.)
+</para>
+
+<funcsynopsis id='xsyncintstovalue'>
+<funcprototype>
+  <funcdef>void <function>XSyncIntsToValue</function></funcdef>
+    <paramdef>XSyncValue<parameter> *pv</parameter></paramdef>
+    <paramdef>unsigned int<parameter> low</parameter></paramdef>
+    <paramdef>int<parameter> high</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Stores low in the low 32 bits of *pv and high in the high 32 bits of *pv.
+</para>
+
+
+<funcsynopsis id='xsyncvaluegreaterthan'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueGreaterThan</function></funcdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if a is greater than b, else returns
+<function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvaluelessthan'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueLessThan</function></funcdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if a is less than b, else returns
+<function>False</function>.
+</para>
+
+
+<funcsynopsis id='xsyncvaluegreaterorequal'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueGreaterOrEqual</function></funcdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if a is greater than or equal to b,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvaluelessorequal'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueLessOrEqual</function></funcdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if a is less than or equal to b,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvalueequal'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueEqual</function></funcdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if a is equal to b,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvalueisnegative'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueIsNegative</function></funcdef>
+    <paramdef>XSyncValue<parameter> v</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if v is negative,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvalueiszero'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueIsZero</function></funcdef>
+    <paramdef>XSyncValue<parameter> v</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if v is zero,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvalueispositive'>
+<funcprototype>
+  <funcdef>Bool <function>XSyncValueIsPositive</function></funcdef>
+    <paramdef>XSyncValue<parameter> v</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns <function>True</function> if v is positive,
+else returns <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvaluelow32'>
+<funcprototype>
+  <funcdef>unsigned int <function>XSyncValueLow32</function></funcdef>
+    <paramdef>XSyncValue<parameter> v</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns the low 32 bits of v.
+</para>
+
+<funcsynopsis id='xsyncvaluehigh32'>
+<funcprototype>
+  <funcdef>unsigned int <function>XSyncValueHigh32</function></funcdef>
+    <paramdef>XSyncValue<parameter> v</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Returns the high 32 bits of v.
+</para>
+
+<funcsynopsis id='xsyncvalueadd'>
+<funcprototype>
+  <funcdef>void <function>XSyncValueAdd</function></funcdef>
+    <paramdef>XSyncValue<parameter> *presult</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+    <paramdef>Bool<parameter> *poverflow</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Adds a to b and stores the result in *presult. If the result could not
+fit in 64 bits, *poverﬂow is set to <function>True</function>, else it is
+set to <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncvaluesubtract'>
+<funcprototype>
+  <funcdef>void <function>XSyncValueSubtract</function></funcdef>
+    <paramdef>XSyncValue<parameter> *presult</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> a</parameter></paramdef>
+    <paramdef>XSyncValue<parameter> b</parameter></paramdef>
+    <paramdef>Bool<parameter> *poverflow</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Subtracts b from a and stores the result in *presult. If the result could not
+fit in 64 bits, *poverﬂow is set to <function>True</function>, else it is
+set to <function>False</function>.
+</para>
+
+<funcsynopsis id='xsyncmaxvalue'>
+<funcprototype>
+  <funcdef>void <function>XSyncMaxValue</function></funcdef>
+    <paramdef>XSyncValue<parameter> *pv</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Sets *pv to the maximum value expressible in 64 bits.
+</para>
+
+<funcsynopsis id='xsyncminvalue'>
+<funcprototype>
+  <funcdef>void <function>XSyncMinValue</function></funcdef>
+    <paramdef>XSyncValue<parameter> *pv</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<para>
+Sets *pv to the minimum value expressible in 64 bits.
+</para>
+
+</sect1>
+
+<sect1 id="events">
+<title>Events</title>
+
+<para>
+Let <emphasis remap='I'>event_base</emphasis> be the value event base return as defined in the function
+<function>XSyncQueryExtension</function>.
+</para>
+
+<para>
+An <function>XSyncCounterNotifyEvent</function>’s type field has the value
+event_base + <function>XSyncCounterNotify</function>. The fields of this
+structure are:
+</para>
+
+<literallayout remap='Ds'>
+int              type;          /* event base + XSyncCounterNotify */
+unsigned long    serial;        /* number of last request processed by server */
+Bool             send event;    /* true if this came from a SendEvent request */
+Display *        display;       /* Display the event was read from */
+XSyncCounter     counter;       /* counter involved in await */
+XSyncValue       wait_value;    /* value being waited for */
+XSyncValue       counter_value; /* counter value when this event was sent */
+Time             time;          /* milliseconds */
+int              count;         /* how many more events to come */
+Bool             destroyed;     /* True if counter was destroyed */
+</literallayout>
+
+<para>
+An <function>XSyncAlarmNotifyEvent</function>’s type field has the value
+event_base + <function>XSyncAlarmNotify</function>. The fields of
+this structure are:
+</para>
+
+<literallayout remap='Ds'>
+int             type;         /* event_base + XSyncAlarmNotify */
+unsigned long   serial;       /* number of last request processed by server */
+Bool            send_event;   /* true if this came from a SendEvent request */
+Display *       display;      /*Display the event was read from */
+XSyncAlarm      alarm;        /* alarm that triggered */
+XSyncValue      counter_value /* value that triggered the alarm */
+XSyncValue      alarm_value   /* test value of trigger in alarm */
+Time            time;         /* milliseconds */
+XSyncAlarmState state;        /* new state of alarm */
+</literallayout>
+
+</sect1>
+
+<sect1 id="errors">
+<title>Errors</title>
+<para>
+Let <emphasis remap='I'>error_base</emphasis> be the value
+<emphasis remap='I'>error_base_return</emphasis> as defined in the function
+<function>XSyncQueryExtension</function>.
+</para>
+
+<para>
+An <function>XSyncAlarmError</function>’s error_code field has
+<function>XSyncBadAlarm</function>. The fields of this structure are:
+</para>
+
+<literallayout remap='Ds'>
+int                type
+Display *          display;      /* Display the event was read from */
+XSyncCounter       counter;      /* resource id */
+unsigned long      serial;       /* serial number of failed request */
+unsigned char      error_code;   /* error_base + XSyncBadAlarm */
+unsigned char      request_code; /* Major op-code of failed request */
+unsigned char      minor_code;   /* Minor op-code of failed request */
+</literallayout>
+
+<para>
+An <function>XSyncCounterError</function>’s error code field has the value
+error_base + <function>XSyncBadCounter</function>. The fields of this
+structure are:
+</para>
+<literallayout remap='Ds'>
+int                type
+Display *          display;      /* Display the event was read from */
+XSyncCounter       counter;      /* resource id */
+unsigned long      serial;       /* serial number of failed request */
+unsigned char      error_code;   /* error_base + XSyncBadCounter */
+unsigned char      request_code; /* Major op-code of failed request */
+unsigned char      minor_code;   /* Minor op-code of failed request */
+</literallayout>
+
+</sect1>
+</chapter>
+</book>

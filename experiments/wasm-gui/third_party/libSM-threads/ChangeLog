@@ -1,0 +1,1587 @@
+commit dc882ac7b748048f12b033d0d8e5267a6e36036a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Dec 19 18:17:34 2022 -0800
+
+    libSM 1.2.4
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 12812dca0f852178d8cc3813e4056b396a8f3ab5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 12:44:33 2022 -0700
+
+    Handle arrays too large to fit in iceConn buffers
+    
+    Fixes numerous gcc warnings of the form:
+    
+    sm_client.c: In function ‘SmcOpenConnection’:
+    SMlibint.h:109:25: warning: potential null pointer dereference [-Wnull-dereference]
+         *((CARD32 *) _pBuf) = _val; \
+    SMlibint.h:160:5: note: in expansion of macro ‘STORE_CARD32’
+         STORE_CARD32 (_pBuf, (CARD32) _len); \
+         ^~~~~~~~~~~~
+    sm_client.c:207:5: note: in expansion of macro ‘STORE_ARRAY8’
+         STORE_ARRAY8 (pData, len, previousId);
+         ^~~~~~~~~~~~
+    
+    v2: Raise required libICE version to 1.1.0 to get the updated
+    IceGetHeaderExtra macro definition needed for this to work correctly.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bb02359ff464d51cbb29d3c93e7e55f3649e5b91
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Dec 4 12:07:40 2022 -0800
+
+    gitlab CI: build current libICE, to meet dependency on >= 1.1.0
+    
+    Allow us to pass CI without waiting for Debian to pick up yesterday's
+    release of libICE 1.1.0.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6e541c8fa782ca816f8bf78a54eea27dab27e4a2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 28 17:30:21 2022 -0700
+
+    gitlab CI: stop requiring Signed-off-by in commits
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 449fdba5482549361a4cd6376d877ebd5162988a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 11:07:56 2022 -0700
+
+    SmcCloseConnection: remove unnecessary cast from free()
+    
+    commit b17f93a1d041e63261ff followed the style of the time it was
+    written, before commit e77dd2e4bc8227 had removed them.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b17f93a1d041e63261ff63419796136a26489549
+Author: Kim Woelders <kim@woelders.dk>
+Date:   Sat Oct 30 10:00:13 2010 +0200
+
+    Fix some potential memory leaks in SmcCloseConnection().
+    
+    Signed-off-by: Kim Woelders <kim@woelders.dk>
+    Reviewed-by: Corbin Simpson <MostAwesomeDude@gmail.com>
+
+commit a32df086f823099a5e0c00b20f0bb965fed5aa60
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 5 10:49:14 2022 -0800
+
+    Add uuid as private dependency to sm.pc for static linking
+    
+    If a uuid.pc file was found, add it to Requires.private.
+    Otherwise, add $LIBUUID_LIBS to Libs.private.
+    
+    Fixes: #1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d2076f6a990acc295f2e98bdc2c95649978e7b5f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 5 08:16:08 2022 -0800
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0b6048d790499477b6a2907bf3fe755a54cbe68d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 5 08:09:47 2022 -0800
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 56cdb14923310bfa4d393f2acfffeadb04d806c0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Mar 5 08:09:19 2022 -0800
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e6ccf19f8d1f71ef79f192b4ca9debf7280232a3
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Dec 7 19:32:18 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 90df350229d3a687de8d65dc450bceb78eceb014
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Nov 19 17:15:03 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 82ed8b7d73f306835b951410f5c309a5774ab9d4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 10 13:19:14 2018 -0800
+
+    Remove obsolete B16 & B32 tags in struct definitions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a52c79544fcd6b5e2242b9122dfaa34be07aebb2
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Sun Sep 30 11:03:41 2018 +0200
+
+    libSM 1.2.3
+    
+    Signed-off-by: Matthieu Herrb <matthieu@herrb.eu>
+
+commit d86106f2369ecf81155decaa360f9162c0c3cd53
+Author: Tobias Stoeckmann <tobias@stoeckmann.org>
+Date:   Wed Aug 15 21:21:09 2018 +0200
+
+    Fixed out ouf boundary accesses.
+    
+    Out of boundary accesses can occur while processing messages. This
+    affects clients and the session server.
+    
+    Generally, the code tries to prevent out of boundary accesses. It
+    initially "skips" over the memory areas by parsing supplied lengths.
+    Then, it checks if it skipped over the memory boundary. If not, then
+    data is actually read and memory allocated, etc.
+    
+    The problem is that while initially skipping over the memory,
+    subsequent lengths are already parsed, i.e. accessed. This results in
+    out of boundary reads on hostile messages.
+    
+    Lengths could also overflow on 32 bit systems, leading to out of
+    boundary writes if not enough bytes have been allocated.
+    
+    Authentication is handled by libICE, which is not affected, because the
+    macros for skipping already take care about memory boundaries.
+    
+    Therefore, this flaw can only be used by authenticated clients or by
+    hostile servers (which could simply accept every MIT cookie). Most
+    session managers only use Unix sockets, so in many cases it takes a
+    local authenticated user.
+    
+    In order to fix this, I decided to move the macros from SMlibint.h to
+    its only callers in sm_process.c, turning them into functions for much
+    easier error handling and readability.
+    
+    Instead of skipping over the memory, validation happens during actual
+    read and memory allocation operations, as it's rather unlikely to
+    encounter hostile code anyway, i.e. my code has more error cleanup
+    handling in it.
+    
+    Signed-off-by: Tobias Stoeckmann <tobias@stoeckmann.org>
+    Reviewed-by: Matthieu Herrb <matthieu@herrb.eu>
+
+commit 75ffafb4e04661fb890a9e8088b743cb077050a6
+Author: Fab <netbox253@free.fr>
+Date:   Sat Oct 7 14:23:52 2017 +0000
+
+    Fix callbacks signatures in libSM documentation
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=103135
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b347e9f8ef3ae027c049741ab5c0c8dac45c9eb2
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 13:52:49 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit d34f694e810d11f95cd61e4209cd6e38f70bce58
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit e27964e499f31f48782a6db7421660a230471b2c
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit b64aa0ef375f2df3ce166733fe92429ba43b6145
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Tue Oct 20 14:48:52 2015 -0400
+
+    Get rid of strcpy() in the HAVE_UUID_CREATE case
+    
+    Even though this use was safe, some linkers produce a warning
+    when strcpy() is used, and this is the only use in libSM.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0bf5d26d1d55029846514758f2ffd80e816bd9fb
+Author: Matthieu Herrb <matthieu@herrb.eu>
+Date:   Tue Oct 20 14:47:50 2015 -0400
+
+    Fix uuid_to_string(3) type
+    
+    It should be char *.
+    
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+
+commit 29ea6247434a85934986e7d4fc60862231c5d77d
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 19:38:12 2014 +0100
+
+    Include unistd.h for getpid()
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: David Macek <david.macek.0@gmail.com>
+
+commit f2dd6934c38414bc448ee49b47604f135f5487ea
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 16 19:35:15 2013 -0800
+
+    Stop compiling empty sm_auth.c stub
+    
+    File exists as a placeholder in case someone someday decides to add
+    additional auth methods on top of what libICE provides, but it's been
+    two decades and no one has, so stop spending time compiling & linking
+    for now.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+
+commit 0fd7aa17da41779129a3acfdad28e07c0072a160
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Sep 7 23:05:16 2013 -0700
+
+    libSM 1.2.2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 95cb4dcd618774b3f7b5b915c5ce5aa72f853b53
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Aug 9 17:24:16 2013 -0700
+
+    Fix some clang warnings about integer size/sign conversions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5a06ff257f72a629539f23b35026fbcdb8bb372e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Aug 9 00:09:30 2013 -0700
+
+    unifdef WORD64 (leftover bits of Cray support)
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 759bbd43f0fdc9a96ba1676d7830164bc9954be2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Aug 9 00:06:01 2013 -0700
+
+    Constify previous_id argument to SmcOpenConnection
+    
+    Clears gcc warning of:
+    sm_client.c: In function 'SmcOpenConnection':
+    sm_client.c:199:13: warning: assignment discards 'const' qualifier from
+     pointer target type [enabled by default]
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 77ddd273239a629eeed7bd1d5b4509b1bd6d4e37
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 49eb906eee49f68dcf5b358546924b7085c9d75d
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 3cb1f18a6a2657f9c8e74fb2195558abca0652bd
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jan 4 19:36:53 2013 -0800
+
+    unifdef -U__UNIXOS2__
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4cbd659505f2acafe2645c59532e52d4cfa00e1d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Dec 26 23:42:30 2012 -0800
+
+    Remove unused TLI ("STREAMSCONN") code from libSM
+    
+    Has never been converted to build in modular builds, so has been unusable
+    since X11R7.0 release in 2005.  All known platforms with TLI/XTI support
+    that X11R7 & later releases run on also have (and mostly prefer) BSD
+    socket support for their networking API.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b3d1f4896cab54717acd691b62b7fa3122a5fd8c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Mar 2 20:53:41 2012 -0800
+
+    libSM 1.2.1
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6475d9eff0bfbb6446eff205fd52c5ba82c5819c
+Author: Matt Dew <marcoz@osource.org>
+Date:   Wed Jan 11 20:33:41 2012 -0700
+
+    informaltable cleanup
+    
+    On certain tables, add top and bottom borders to table
+    header and a bottom border to the table. This matches
+    what those tables in the old pdfs looked like.
+    
+    the <?dbfo keep-together='always'> prevents tables from
+    splitting across pages. Useful for tiny tables.
+    
+    Converting the colwidth to a floating point,
+    IE, 1* -> 1.0* cleans up these build errors:
+    WARNING: table-layout="fixed" and column-width unspecified
+    => falling back to proportional-column-width(1)
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit 3ca545c7835b71b63f8c5a8f758b08418a65a5bb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Mon Dec 5 20:04:51 2011 -0800
+
+    unifdef -ULynx
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 4af9e4a71f7c07da86ef1940cba69e92b11ba337
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 11:33:30 2011 -0800
+
+    SmsInitialize: Mark vendor & release args as const char *
+    
+    Needed to fix gcc -Wwrite-strings arguments in callers such as xsm.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit e77dd2e4bc8227ebdab70b4233cb33ed690fa264
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 10:33:15 2011 -0800
+
+    Remove a bunch of unnecessary casts with malloc & free calls
+    
+    With modern compilers and headers, they cause more problems than they
+    solve and just hide real issues.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 46f3ef4460aa2c1c2cba22897694a1cea572d506
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 10:23:24 2011 -0800
+
+    Replace malloc(strlen) + strcpy sets with strdup calls
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit fb3ef5844d392f70cc6bd9b0d8770ca17bde1428
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 10:13:02 2011 -0800
+
+    Reindent IPv4 code to match IPv6 code
+    
+    Takes care of the other block of code confusingly sharing indent levels
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 638496507882f0afe506fe294f68ad5290ef95db
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 10:07:32 2011 -0800
+
+    Move variable declarations to get rid of unnecessary scope brackets
+    
+    Gets rid of one of the multiple levels of bracketing that confusingly
+    shared the same indent level.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 9f350d75a4553d8e2bc365f8de4110bb79ec7b32
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 10:01:50 2011 -0800
+
+    Move and rename temp[4] definition to reduce confusion with temp[256]
+    
+    Both variables were locals in different scope levels of the same
+    function, leading to both confusing code and gcc -Wshadow warnings:
+    
+    sm_genid.c: In function 'SmsGenerateClientID':
+    sm_genid.c:160:10: warning: declaration of 'temp' shadows a previous local
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 079de6fd4bd0423e20e472d7342f919eebce0517
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 09:52:17 2011 -0800
+
+    Use imdent to make multiple levels of nested #if easier to follow
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: James Cloos <cloos@jhcloos.com>
+
+commit 79c785adf86ef06f09910b68019bc8a1e6fcb122
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue Oct 4 22:42:05 2011 -0600
+
+    Cleanup IDs and links in doc
+    
+    1 - fix the capitalization of the ID attributes to match either the
+         <title> or <funcdef> string it goes with.
+    2 - fix any <linkend>'s that were affected by 1.
+    3 - any <function> in the docs that has an actual funcdef,
+    will become an olink.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit 4708d636de50281ab2c52c32b81b7ecb67657820
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 16 22:03:00 2011 -0700
+
+    Strip trailing whitespace
+    
+    Performed with: find * -type f | xargs perl -i -p -e 's{[ \t]+$}{}'
+    git diff -w & git diff -b show no diffs from this change
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 44eecd93986368e71c404d8faa264a514bf88ab1
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 14 14:59:27 2011 -0400
+
+    docs: fix author affiliation
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 7ed7ef36b7e1fdd29554db122e4eb07323e27dee
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Sep 12 16:54:45 2011 -0400
+
+    docs: use the &fullrelvers; entity to set X11 release information
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 7601182a252b44d0b04435f1eb4d574dfcf5fabb
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 19:49:53 2011 -0400
+
+    docs: remove <productnumber> which is not used by default
+    
+    This element is not rendered by default on the title. A template
+    customization is required to display it.
+    X Window System does not have a product number.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit cbca5fad657122d1a9f370d0640acb66ef80aaef
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Sep 8 20:00:00 2011 -0400
+
+    docbook.am: embed css styles inside the HTML HEAD element
+    
+    Rather than referring to the external xorg.css stylesheet, embed the content
+    of the file in the html output produced. This is accomplished by using
+    version 1.10 of xorg-xhtml.xsl.
+    
+    This makes the whole html docs tree much more relocatable.
+    In addition, it eliminates xorg.css as a runtime file which makes
+    xorg-sgml-doctools a build time only package.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b88a9949fa6e1b12348541c6293535cc7ff931f4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 7 10:31:04 2011 -0400
+
+    docbook.am: global maintenance update - entities, images and olinking
+    
+    Adding support in libX11 for html chunking caused a reorg of docbook.am
+    as well as the xorg-sgml-doctools masterdb for olinking.
+    The parameter img.src.path is added for pdf images.
+    A searchpath to the root builddir is added for local entities, if present.
+    
+    The docbook.am makefile hides all the details and is identical for
+    all 22 modules having DocBook documentation. It is included by a thin
+    Makefile.am which requires no docbook knowledge.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 64e002e55555205fdcdb9e6d78d6eadd4136cb7a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 12 17:54:50 2011 -0400
+
+    Install xml versions of specs even if HAVE_XMLTO is false
+    
+    DocBook/XML input source is also a usefull output format that can be viewed
+    with an XML viewer or editor and by some O/S help system.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit bef231eefedae448255b705aa2f687f49e371b71
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 5 16:27:36 2011 -0400
+
+    Install target dbs alongside generated documents
+    
+    This matches a change in xorg-sgml-docs whereby the masterdb will look for
+    the target dbs into the same location as the generated documents.
+    
+    The target dbs are now installed alongside the generated documents.
+    Previously they are installed in $prefix/sgml/X11/dbs alongside masterdb which
+    has the potential of installing outside the package prefix and cause
+    distcheck to fail when user does not have write permission in this package.
+    
+    Requires XORG_CHECK_SGML_DOCTOOLS(1.8) which was released 2011-06-11
+
+commit f7473da7b1ff6a5295a145f808c327e655e574a9
+Author: Matt Dew <marcoz@osource.org>
+Date:   Wed May 25 23:46:36 2011 -0600
+
+    add id attributes to funcsynopsis to allow other docs to olink to them.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8683bdd74d3e40c7db92efd25acf345f6331b252
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Feb 27 15:06:18 2011 -0500
+
+    Documentation: add Docbook external references support
+    
+    When writing technical documentation, it is often necessary to cross
+    reference to other information. When that other information is not in the
+    current document, additional support is needed, namely <olink>.
+    
+    A new feature with version 1.7 of xorg-sgml-doctools adds references to
+    other documents within or outside this package.
+    
+    This patch adds technical support for this feature but does not change
+    the content of the documentation as seen by the end user.
+    
+    Each book or article must generate a database containing the href
+    of sections that can be referred to from another document. This database
+    is installed in DATAROOTDIR/sgml/X11/dbs. There is a requirement that
+    the value of DATAROOTDIR for xorg-sgml-doctools and for the package
+    documentation is the same. This forms a virtual document tree.
+    
+    This database is consulted by other documents while they are being generated
+    in order to fulfill the missing information for linking.
+    Refer to the xorg-sgml-doctools for further technical information.
+    
+    Co-authored-by: Matt Dew <marcoz@osource.org>
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 252f6d2add7c926cdcf0cea43da04f182720b0b4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Feb 25 09:04:45 2011 -0500
+
+    Docbook: change the book id to match the xml file basename
+    
+    This is required for the up-coming external references support.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 2cd30c36c080217c20addf311510881c8eecf374
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 19:25:52 2011 -0500
+
+    config: splitting SM and XTRANS compiler options is not required
+    
+    Simplify configuration by using a single PKG_CHECK_MODULES statement.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 3c923881f415651d75434efd209003d602253437
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 11:43:40 2011 -0500
+
+    config: comment, minor upgrade, quote and layout configure.ac
+    
+    Group statements per section as per Autoconf standard layout
+    Quote statements where appropriate.
+    Autoconf recommends not using dnl instead of # for comments
+    
+    Use AC_CONFIG_FILES to replace the deprecated AC_OUTPUT with parameters.
+    
+    This helps automated maintenance and release activities.
+    Details can be found in http://wiki.x.org/wiki/NewModuleGuidelines
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b29f5c9f3a728c5b7673cf54ad60d988b5dd93e7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jan 27 22:05:40 2011 -0800
+
+    Bug 33390 - sm.pc: don't export a dependency on ice
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=33390
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+
+commit fe43b6de5bb4423ce99d2df1ab37ea8ece39a9fa
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 16:07:07 2011 -0500
+
+    config: replace deprecated AC_HELP_STRING with AS_HELP_STRING
+    
+    This silences an Automake warning.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 57b6f700378a001e1aff9b83f6cb396c7c4a7368
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 14:59:04 2011 -0500
+
+    config: remove unrequired AC_HEADER_STDC
+    
+    Autoconf says:
+    "This macro is obsolescent, as current systems have conforming
+    header files. New programs need not use this macro".
+
+commit 8f9878c06e359d21715a3e4358895b589466bc46
+Author: Paulo Zanoni <pzanoni@mandriva.com>
+Date:   Thu Dec 16 14:03:06 2010 -0200
+
+    Use docbookx.dtd version 4.3 for all docs
+    
+    Signed-off-by: Paulo Zanoni <pzanoni@mandriva.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6d093e2397ecdbbba044fe7ef2fd922c8c8261de
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 21 11:19:45 2010 -0800
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Regroup AC statements under the Autoconf initialization section.
+    Regroup AM statements under the Automake initialization section.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b8ef6cea0ccae4d88a9cb91cd836188ae781cda8
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 21 11:17:25 2010 -0800
+
+    config: Remove unnecessary calls from configure.ac
+    
+    AC_PROG_CC are provided by XORG_DEFAULT_OPTIONS now
+    PKG_CONFIG_MODULES handles AC_SUBST of the CFLAGS & LIBS variables
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 15dc32dd7b57315f9e319f3e346ba28a1e69c646
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 21 11:16:14 2010 -0800
+
+    Sun's copyrights belong to Oracle now
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8480764c94d15673c884b90c7a10bc86635dec63
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 9 13:04:40 2010 -0500
+
+    config: HTML file generation: use the installed copy of xorg.css
+    
+    Currenlty the xorg.css file is copied in each location
+    where a DocBook/XML file resides. This produces about
+    70 copies in the $(docdir) install tree.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d2327760a52fdbcd3759211578e3663e00e4a31e
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Oct 27 22:26:41 2010 -0700
+
+    libSM 1.2.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 784a330e337af16c1e385d0fbeee1e5369413656
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Oct 24 20:31:54 2010 -0700
+
+    SMlib.xml: Use <simplelist> instead of <synopsis> for lists of mask values
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 12af18dd9a731a816e7b074bbecaa5549bfdba31
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Oct 24 19:57:32 2010 -0700
+
+    SMlib.xml: Tag function names, parameters, constant values, etc.
+    
+    Includes correcting <function> tags on things that aren't functions
+    as some stylesheets may add () after <function> tagged items so we
+    shouldn't use them for constants, variables, filenames, etc.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ed9331e10babdd70da51134f0eaee8625a469ffe
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Oct 24 18:54:05 2010 -0700
+
+    SMlib.xml: Line wrapping & other whitespace cleanup
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 763b01e8e69d6132b3b4b57263f19de9de985f99
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Oct 23 00:47:27 2010 -0700
+
+    xsmp.xml: add internal cross-reference links
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 506af19b86af2a7960a3bb5cf72287349012c869
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Oct 23 00:43:28 2010 -0700
+
+    xsmp.xml: Use <synopsis> and related markup for protocol message definition
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 75443d72b4944391b809f429cc4cef2ffb76f7bf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Oct 23 00:10:01 2010 -0700
+
+    xsmp.xml: Use <errorname> instead of <function> for error names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 2ed7704e7d4b0086edc8667a80780c6c51ba84cb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 23:52:15 2010 -0700
+
+    xsmp.xml: Restore note titles (example/rationale/advice)
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 489566ca0e69ed6068fb4bdbaccd413ec2ee8319
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 23:39:54 2010 -0700
+
+    xsmp.xml: Clean up tables
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c5b211d9a01438958546669f95a5215784348534
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 08:44:46 2010 -0700
+
+    xsmp.xml: Misc markup tag cleanups
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a18973e643b0916a2f4bf6fb8fc29508429635bb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 08:34:49 2010 -0700
+
+    Coalesce copyright notices in xml docs
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e3f357dbd39036766765e1de110a876adc2f8226
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 08:32:04 2010 -0700
+
+    xsmp.xml: Convert -> & <- to &rarr; & &larr;
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 29e2ac62cb6a152499d1b3f9fe871b1252f3c22f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Oct 22 08:21:27 2010 -0700
+
+    xsmp.xml: Line wrapping & other whitespace cleanup
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c83363e83a937ba2ddd99e732bfde5f8d39bd648
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 23:48:42 2010 -0700
+
+    SMlib.xml: fix a couple parameter list entries
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 862e2b220bc928d6ab2f3bb6159bc4be03914979
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 23:43:49 2010 -0700
+
+    SMlib.xml: misc markup cleanups
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0b15c3773db651863dc8374d45095bc5aa53d41d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 23:16:14 2010 -0700
+
+    SMlib.xml: fix typo: SmProc -> SmProp
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit cd4739acb0c6d1bca2d3a7adc5c52324928a5561
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 22:55:04 2010 -0700
+
+    SMlib.xml: add internal cross-reference links
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 33a86926ae3a7ddcea817eda8c4b1aac7c518d10
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 16:31:08 2010 -0700
+
+    SMlib.xml: Convert remaining `` quotes to &ldquo; style
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5abbdcde8a9ed3e489e2f9e5b9161dc9ebc5801f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 16:29:21 2010 -0700
+
+    SMlib.xml: Convert remaining literallayout tags to synopsis tags
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 62bc296fefd0465c1f3eef283f3bf0a43d132ef9
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 16:17:09 2010 -0700
+
+    SMlib.xml: Convert function prototypes to <funcprototype> tags
+    
+    Provides automatic ansifaction & better formatted output
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ee77c1932c0cd2050371117c3724d66072cbdbee
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 21 15:43:33 2010 -0700
+
+    SMlib.xml: Remove some nroff macros left in tables by mistake
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 24e9d8a2a35452c67ba2e2e34857ce3691d9a22d
+Author: Jesse Adkins <jesserayadkins@gmail.com>
+Date:   Tue Sep 28 13:30:02 2010 -0700
+
+    Purge cvs tags.
+    
+    Signed-off-by: Jesse Adkins <jesserayadkins@gmail.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e0be9c9dfb60f21edb37ff77d766395aa57a96e4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 27 20:31:28 2010 -0400
+
+    doc: remove trailing spaces in DocBook XML docs
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8c42c25b90b10b2c5f20c93ebd9cf1df622b009f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jun 25 21:43:08 2010 -0400
+
+    doc: replace groff input format with docbook xml format
+    
+    Initial version of SMlib and xsmp docbook xml.
+    Requires util-macros 1.10
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit fd37bd0ac012e15bffad7e83d36b87ee3941d6f5
+Author: Alexander Kabaev <kan@FreeBSD.org>
+Date:   Wed May 26 13:28:03 2010 -0400
+
+    Fix off by one error in SmsGenerateClientID when uuid_create is used
+    
+    Fix apparent typo in SmsGenerateClientID which always leaves the
+    first byte of allocated id string uninitialized. If that byte
+    happens to be 0, SmsGenerateClientId appears to return an empty
+    string to the caller, instead of proper GUID in text form.
+    
+    Reviewed-by: James CLoos <cloos@jhcloos.com>
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit af7364c20d91615251b1ec2b19e0cb38e9094ba0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Apr 22 07:42:30 2010 -0700
+
+    Update README now that docs are in this module, not xorg-docs
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 7464514f60ff7754e5c1e91d6913000fb5d366c9
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 14:53:48 2010 -0400
+
+    config: remove the pkgconfig pc.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 39f4ed794168c824015754e451b4b191fddad643
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Feb 16 19:57:27 2010 -0500
+
+    doc: use HAVE_GROFF_MS to skip doc when 's.tmac' macros missing
+    
+    This conditional is defined in XORG_WITH_GROFF macro.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 64f201ae65de7024bce0a85d6380ac158a3b5852
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Feb 16 14:41:22 2010 -0500
+
+    specs: change install cmd due to automake 1.11
+    
+    docData_INSTALL is defined in 1.9 and 1.10 but not 1.11
+    
+    Reported-by: Tobias Droste <tdroste@gmx.de>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 98f205119011c016ec902c69d882a26dd7185a43
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Feb 9 17:39:46 2010 -0500
+
+    doc: use $(mkdir_p) rather than $(MKDIR_P) due to automake 1.9.6
+    
+    $(MKDIR_P) is not defined in automake 1.9.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit c22a324b4c1e1ac38b1c04656ecdcf9127343e8d
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Feb 1 14:58:21 2010 -0500
+
+    doc: install generated images in $docdir
+    
+    The html installed doc is incomplete without the generated images.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 844a1de311492a7666c60f39c6cbe23a5c3f22da
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sat Jan 30 14:11:36 2010 -0500
+
+    doc: use new macros to control doc generation
+    
+    Namely XORG_WITH_GROFF for the groff generation tool
+    XORG_ENABLE_DOCS for the generation of all docs
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 626788435d4a49eeea9fa2382f7ec554a0b92197
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Jan 26 16:32:00 2010 -0500
+
+    doc: clean-up generated html images
+    
+    Generate images in /images as is the convention
+    Provide a base file name for images rather than process ID
+    Remove images directory when running make clean
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b5af7f362e30b1bbde4eef4216385ae2b2ea1bee
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jan 14 21:00:53 2010 -0800
+
+    Update Sun license notices to current X.Org standard form
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 0b2e5ca9da6b35f5cf98ac879601cf8083c72dde
+Author: Rémi Cardona  <remi@gentoo.org>
+Date:   Thu Dec 17 08:26:28 2009 +0100
+
+    require autoconf 2.60 because of $(docdir) use
+    
+    Signed-off-by: Rémi Cardona <remi@gentoo.org>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@sun.com>
+    Reviewed-by: Dan Nicholson <dbn.lists@gmail.com>
+
+commit 7f92faa03910bf74fbebefb5d543c09958fb3b28
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Nov 27 20:56:03 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit 802f5e2a67ef3d214a0560c36985f8fed3ab92f1
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Nov 11 18:56:57 2009 -0500
+
+    Update .gitignore for the /doc directory #24239
+
+commit 7309ebe123d05955d81318bca5c58ee90b9887dd
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:10 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit 2fb04f8726ddf8ad0749a6b733ab87c5e1bc06dc
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:41 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit e88afa3327621f8eb00d920c45536e08b7bc1898
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:18 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit d4e3653ff1eed208ea6f35158ad03da7729622b9
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Nov 16 14:57:19 2009 -0800
+
+    Revert "Fix memory leak for SM_DeleteProperties"
+    
+    This reverts commit 58aa8879e10b12e478ab14b90afd1001b4abd316.
+    
+    Fixes gnome-session crashes due to double frees, as reported in
+    http://bugs.freedesktop.org/show_bug.cgi?id=24964
+
+commit 41d5bb13119b36a7ce6a344372df1b788994e2c7
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:23 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit 58aa8879e10b12e478ab14b90afd1001b4abd316
+Author: Michael Jansen <kde@michael-jansen.biz>
+Date:   Wed Oct 14 11:01:46 2009 -0700
+
+    Fix memory leak for SM_DeleteProperties
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 6d43663bf01e055cfe713dccac39b651a0ccfacf
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Sat Oct 10 00:37:41 2009 -0700
+
+    Move session management protocol docs from xorg-docs here too
+    
+    Since we don't have a smproto package, but ship the protocol headers
+    in this module, might as well keep the protocol docs with the headers
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit b1363f9fa47e1564aa5e4fe822bd6a04b5a44954
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Sat Oct 10 00:02:04 2009 -0700
+
+    Move docs from xorg-docs, use groff to format for installation
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit c8e29f4a18041c7a649f701a7cfdd37080d7c6f6
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Fri Oct 9 23:28:11 2009 -0700
+
+    Migrate to xorg macros 1.3 & XORG_DEFAULT_OPTIONS
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 7fc343e70202279fd3daa3adf789ca35b0ec8891
+Author: Rémi Cardona  <remi@gentoo.org>
+Date:   Fri Aug 14 11:20:34 2009 +0200
+
+    require libICE >= 1.0.5
+    
+    During the ansification (commit 896aeb5dd128), 2 extern decls for
+    _IcePaMagicCookie1Proc and _IcePoMagicCookie1Proc were dropped from
+    sm_client.c and sm_manager.c. Both decls were added between libICE 1.0.4
+    and 1.0.5.
+    
+    Signed-off-by: Rémi Cardona <remi@gentoo.org>
+
+commit 82bbf42a2ba0401a8346505b1292ddb7b58f4507
+Author: Rémi Cardona  <remi@gentoo.org>
+Date:   Fri Aug 7 14:19:50 2009 +0200
+
+    libSM 1.1.1, update libtool version
+
+commit 45720a2e266748ac15bc0544b56e035383695588
+Author: Diego Elio 'Flameeyes' Pettenò  <flameeyes@gmail.com>
+Date:   Sat May 16 01:01:39 2009 +0200
+
+    Use FreeBSD uuid functions when available.
+    
+    If the system provide the uuid_create function assume building on FreeBSD
+    or another OS with a compatible uuid interface. If that's the case, ignore
+    libuuid and just use the system functions without extra deps.
+
+commit 0389dbec3b738fa7e1dbef2b5317124b95bdfb20
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Mon Feb 16 01:27:24 2009 +0100
+
+    Typo fix
+    
+    This makes us really error out if we want libuuid but can't find it.
+
+commit b75eae83221465bd0da4d21d0bab5af379dc31c1
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Feb 2 20:34:30 2009 -0800
+
+    Add README with pointers to mailing list, bugzilla & git repos
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit 896aeb5dd128fc8e489106fa7aaa5cee1e589106
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Wed Jan 28 18:48:47 2009 -0200
+
+    Janitor: ansification, make distcheck, compiler warnings.
+
+commit 1dcf5502137efe36d01b30169d4387438ad47be0
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Sat Nov 29 04:55:58 2008 -0200
+
+    avoid gcc warnings for libSM
+    
+      Patch from http://bugs.freedesktop.org/show_bug.cgi?id=17968 adapted
+    to current sources.
+      This corrects a potential (hypothetical) segmentation fault.
+
+commit 8bed01275a7c7caf8f777e4074a5ee1ba1c2b3e7
+Author: Caolan McNamara <caolanm@redhat.com>
+Date:   Fri Oct 17 17:21:49 2008 -0400
+
+    Bug #17644: Fix valgrind warning in _SmcProcessMessage
+
+commit 8ce4f47adb343aed069862a05b5e315173b17823
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Fri Jul 18 16:35:57 2008 +0200
+
+    If we don't have libuuid, build without it instead of failing
+    
+    Only error out if configure was given --with-libuuid but we
+    don't find it.
+
+commit e3166eecfe7a04f0f622bd93e8a6a1faa672a029
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Wed Jul 2 14:24:24 2008 -0400
+
+    Avoid memcpy(foo, NULL, n), that's just nonsense.
+
+commit 27ebe517cabaf038fa65edff0140317f9438adec
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Wed Jul 2 14:00:54 2008 -0400
+
+    libSM 1.1.0
+
+commit 2e8a41efb10ae462e5e43e13e479ca4da0fb0103
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Wed Jun 25 09:55:14 2008 -0700
+
+    Fix --without-libuuid to not call PKG_CHECK_MODULES for libuuid
+
+commit 6702e2a15992f4cb85dfa7ac8214125eb0a2bb2d
+Author: Dan Williams <dcbw@redhat.com>
+Date:   Tue Jun 24 13:11:42 2008 -0400
+
+    Bug #14949: Don't use gethostbyname() for client IDs.
+    
+    gethostbyname() will hit the network, which leads to DNS timeouts, which
+    leads to fail.  Just use UUIDs.
+
+commit 2a827d26cfb10dc6b1203b77c0cc91dc838d97a3
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 16:38:16 2007 -0500
+
+    Replace static ChangeLog with dist-hook to generate from git log
+
+commit 9b7029aba10356badeef134af2de7e26e6ae2ab9
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Mon Sep 3 05:53:30 2007 -0400
+
+    Add *~ to .gitignore to skip patch/emacs droppings
+
+commit 837384e09dae2beda6ac3b8e1d10698dc0d23db4
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 14:21:39 2007 +0200
+
+    Bumped version to 1.0.3.
+
+commit 6c50f3639d74edd757dc72dbe6a29cb8aa3b87a3
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 11:47:47 2007 +0200
+
+    Another tiny char* vs const char* fix.
+
+commit 9bfa1101ac5dbb8d2de1d0431d7e7b281428168f
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 11:46:16 2007 +0200
+
+    Revert "Don't reinvent the wheel and just use strdup()."
+    
+    This reverts commit 57ea148fdbf047a012b361acdc7954e70679dad3.
+
+commit 24ac7974ef77d7832a8b3ddd300083c41a03cb79
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 01:44:12 2007 +0200
+
+    Added object files to .gitignore.
+
+commit 48d23e452780f327439a859fa941b1598eb249c8
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 01:43:49 2007 +0200
+
+    Removed some global writable variables.
+
+commit 57ea148fdbf047a012b361acdc7954e70679dad3
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 00:49:58 2007 +0200
+
+    Don't reinvent the wheel and just use strdup().
+
+commit 8ba3325ed15154a933c064831abf8f412a5154a7
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 00:44:50 2007 +0200
+
+    Fixed some const vs non-const mix ups.
+
+commit 2ded69bb857ae453d90534203e5857ac3a31a1c3
+Author: Tilman Sauerbeck <tilman@code-monkey.de>
+Date:   Sun May 13 00:16:36 2007 +0200
+
+    Sanitized hex string conversion in SmsGenerateClientID().
+    
+    This reduces the size of the DSO by almost 4K and gets rid of 255
+    relocations on load.
+
+commit 34b3d538061cd648d90eb2bc7284000d980c8d3e
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 15:55:08 2006 -0400
+
+    Bump to 1.0.2
+
+commit 2116811afe339a9b806f04debf2b6241fd00456f
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jul 13 14:58:45 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit ff57e5d728c2f409b8852ee58d622c2c3323e2a8
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Jun 26 17:30:22 2006 +0000
+
+    From Patch #6046 <https://bugs.freedesktop.org/attachment.cgi?id=6046>
+        freeaddrinfo() in error handling return (Peter Breitenlohner)
+
+commit d03116c682567dac793d52e65a1f0698ae6848f6
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu Apr 27 00:01:01 2006 +0000
+
+    Bump to 1.0.1
+
+commit c46e8ae80540713ec24fd6d1eea68744937ef158
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Fri Mar 17 03:05:32 2006 +0000
+
+    Specs say SmsInitialize & SmcOpenConnection return NULL terminated strings
+        in errorStringRet, but were just calling strncpy and not making sure
+        strings were NULL terminated if errorLength wasn't long enough.
+        (Noticed while evaluating Coverity ids 196 & 201.)
+
+commit 6842e89f85b1fa30344e2bf3d28e51dbfd978370
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:27 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 2f62b1a35756301469de62b8830733ebeec2e908
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:42 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit 69c50fbc49f7589aa6afcf1be00be22a78ec3daa
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:39 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit dea915c93437443b6bd4933263df44e734e40320
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Nov 9 21:19:12 2005 +0000
+
+    Update package version number for X11R7 RC2 release.
+
+commit 922e2dc3116a88cc1e49d5e2486fe1ca21f888c7
+Author: Kean Johnson <kean@armory.com>
+Date:   Tue Nov 8 06:33:25 2005 +0000
+
+    See ChangeLog entry 2005-11-07 for details.
+
+commit df1260d8710f497e766ac52162585345f2d7669f
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Oct 19 02:48:08 2005 +0000
+
+    Update package version number for RC1 release.
+
+commit 601c38a8b0bbe92db6374e00e485435316dce1cb
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Aug 15 18:31:16 2005 +0000
+
+    Add XTRANS_CONNECTION_FLAGS to set TCP & IPv6 flags needed by libSM
+
+commit 0a00119745bef1bd67b53124a6a41b76454c5503
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:50 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit c6f143cc14840ca029e651d84f6c9a68c003cf07
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Jul 16 06:24:02 2005 +0000
+
+    Set soversion to 6.0.0 using -version-number.
+
+commit 9c370ec68d2606468296efc1f0a093c036e8d7ff
+Author: Keith Packard <keithp@keithp.com>
+Date:   Wed Jul 13 07:28:02 2005 +0000
+
+    Eliminate xtrans CFLAGS from .pc file as xtrans is not part of the public
+        API.
+
+commit 7b45eec97e390d8c8124b0a95b83ff7614903979
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Jul 9 05:59:54 2005 +0000
+
+    Add .cvsignore files
+
+commit 0a4f43e5170110519bd34d01f1f20a72ea615485
+Author: Alexander Gottwald <alexander.gottwald@s1999.tu-chemnitz.de>
+Date:   Thu Jun 9 15:52:02 2005 +0000
+
+    Replace <X11/Xtrans.h> with <X11/Xtrans/Xtrans.h>
+    Copy Xtrans.h to exports/include/X11/Xtrans only
+
+commit 8abfaa0bb923231da3dd2c0e245f8feec41a621f
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:22:32 2005 +0000
+
+    revert last change, didn't do right thing at all, sorry for the noise
+
+commit a2e7e1bb26e8a87b822acbeeff114beec4705fb0
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:10:07 2005 +0000
+
+    Require automake 1.7 in AM_INIT_AUTOMAKE
+
+commit 0b4b811191a1e74356b7ff78a09107e29a7ef695
+Author: Søren Sandmann Pedersen  <sandmann@daimi.au.dk>
+Date:   Tue May 17 21:25:16 2005 +0000
+
+    - Conditionally include config.h in xc/lib/SM
+    - Add libSM to symlink.sh
+    - Add SM build system
+
+commit 5004ef0b757c1cd7e4ceaa1759914f938d5ea295
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Sun Apr 3 18:24:25 2005 +0000
+
+    Bug #1447: Fix a use-after-free case in libSM. (Mark McLoughlin)
+
+commit c9f8774f04b398ac963b23ce1d5a12e703977064
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Fri Jan 28 19:15:39 2005 +0000
+
+    Move _IceGetPeerName into the ICE public API as IceGetPeerName; bump ICE
+        soversion to 6.4 accordingly. Change SM's use to the public version.
+        The old version will be retained for compatibility.
+
+commit 52435fb9fdaecfdc9b11d54e74388520dacc4b0b
+Author: Egbert Eich <eich@suse.de>
+Date:   Mon Oct 18 14:21:44 2004 +0000
+
+    Made handling of DevelDrivers for x86-64 more conformant to other
+        platforms.
+    Compress all font encodings (Stefan Dirsch).
+    Fixed warnings.
+    Turn on forwarding XNSpotLocation event to XIM server in OffTheSpot and
+        Root mode (bugzilla #1580, James Su).
+    Added another compose key combination for the Euro symbol (Stefan Dirsch).
+    Added support for UTF-8 in ja_JP, ko_KR and zh_TW locales (Mike Fabian).
+    Changed default encoding for ru from KOI8-R to ISO8859-5 (Mike Fabian).
+        This is the encoding that is also used by glibc. We may break other
+        libcs - lets see who complains.
+    Added explanation for DESTDIR to install to a different directory than /.
+    Added some early bailouts to atiprobe if PCI structure pointer is NULL to
+        prevent sig11.
+    XV support doesn't depend on 2D acceleration any more. This patch removes
+        this limitation from the NSC driver. This is a patch that I have
+        committed to XFree86 a while ago but never ported over to X.Org.
+        Matthieu Herrb contributed some build fixes.
+    Fixing SetDPMSTimers() so that DPMS*Time == 0 disables the appropriate
+        timer. This takes advantage of the fact that TimerSet() with a timeout
+        argument 0 behaves like TimerCanel().
+    Use /dev/xconsole (named pipe) or devpts for system logger (Werner Fink).
+    Create missing links for backward compatibility to XFree86 (Stefan Dirsch).
+    Changed comment to mention xorg.
+    Changed cursor for the 'kill' action from XC_draped_box to XC_Pirate. If
+        you don't like it we can change it back (original author unkown).
+    Added 'pic' to the man page rendering command pipeline (Werner Fink).
+    Added missing return value (Stefan Dirsch, Roland Mainz)
+
+commit 76d276193a610e4decf2f39b88e9ccf886d4c492
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Aug 18 18:41:40 2004 +0000
+
+    Fix AIX build problems (Bugs #1020, 1102, 1103, Dan McNichol).
+    Remove old config files (Bug #1123, Jim Gettys).
+    Remove old log message (Bug #1123, Jim Gettys).
+
+commit 61bafb140eda240e69e3df28f47567af71ad1296
+Author: Egbert Eich <eich@suse.de>
+Date:   Mon May 24 19:06:58 2004 +0000
+
+    Fix build glitches when building modules independently using Imake.
+
+commit f161cb4a8a567d3ec93677689b6c5440b3027ab6
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 18:43:23 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit 19fe7606b46b0bbce96837c0ade7018e601fd73e
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:31:52 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit 0a04145c6f313d9a9d670716e2529d2dd0341598
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:11:10 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit 26ea9c0731055cc478337431353afb8a0a3122ae
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:35:18 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit aa72cf15a99e09fc3e41184e01cbcceced4ef592
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:22:34 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit ea5d51824610a0b5205871a158b055d58879fc0c
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Jan 29 08:08:04 2004 +0000
+
+    Importing vendor version xf86-012804-2330 on Thu Jan 29 00:06:33 PST 2004
+
+commit a968ef24dfc9ddd1322f91acb4a6a1898fc15490
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:28:07 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit 8e18f1cdc21fe0e125620a912e946ec1031fa2c5
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:46 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit abe0fd5d586b52a851a423a79b95070da418eb10
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:36 2003 +0000
+
+    R6.6 is the Xorg base-line

@@ -1,0 +1,86 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtParse-Accelerator-Table XtInstall-Accelerators
+.hw XtInstall-All-Accelerators wid-get
+.na
+.TH XtParseAcceleratorTable __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtParseAcceleratorTable, XtInstallAccelerators, XtInstallAllAccelerators \- managing accelerator tables
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XtAccelerators XtParseAcceleratorTable(const char * \fIsource\fP);
+.HP
+void XtInstallAccelerators(Widget \fIdestination\fP, Widget \fIsource\fP);
+.HP
+void XtInstallAllAccelerators(Widget \fIdestination\fP, Widget \fIsource\fP);
+.SH ARGUMENTS
+.IP \fIsource\fP 1i
+Specifies the accelerator table to compile.
+.IP \fIdestination\fP 1i
+Specifies the widget on which the accelerators are to be installed.
+.IP \fIsource\fP 1i
+Specifies the widget or the root widget of the widget tree from which the accelerators are to come.
+.SH DESCRIPTION
+The
+.B XtParseAcceleratorTable
+function compiles the accelerator table into the opaque internal representation.
+.LP
+The
+.B XtInstallAccelerators
+function installs the accelerators from source onto destination
+by augmenting the destination translations with the source accelerators.
+If the source display_accelerator method is non-NULL,
+.B XtInstallAccelerators
+calls it with the source widget and a string representation
+of the accelerator table,
+which indicates that its accelerators have been installed
+and that it should display them appropriately.
+The string representation of the accelerator table is its
+canonical translation table representation.
+.LP
+The
+.B XtInstallAllAccelerators
+function recursively descends the widget tree rooted at source
+and installs the accelerators of each widget encountered onto destination.
+A common use os to call
+.B XtInstallAllAccelerators
+and pass the application main window as the source.
+.SH "SEE ALSO"
+XtParseTranslationTable(1)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

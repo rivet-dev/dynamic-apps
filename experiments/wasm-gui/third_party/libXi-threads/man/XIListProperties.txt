@@ -1,0 +1,54 @@
+XILISTPROPERTIES(libmansuffix)
+=============================
+
+NAME
+----
+
+   XIListProperties - List a device's properties.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   Atom* XListProperties( Display *display,
+                          int deviceid,
+                          int *nprops_return);
+
+   display
+          Specifies the connection to the X server.
+
+   deviceid
+          The device to list the properties for.
+
+   nprops_return
+          Specifies the number of Atoms returned.
+
+
+DESCRIPTION
+-----------
+
+The XIListProperties function returns a list of the
+properties associated with the input device specified with 
+deviceid. Each device may have an arbitrary number of properties
+attached, some of which were created by the driver and/or
+server, others created by clients at runtime.
+
+The client is expected to free the list of properties using
+XFree.
+
+XIListProperties can generate a BadDevice error.
+
+DIAGNOSTICS
+-----------
+
+BadDevice
+        An invalid device was specified. The device does not
+        exist.
+
+SEE ALSO
+--------
+
+XIChangeProperty(libmansuffix),
+XIGetProperty(libmansuffix),
+XIDeleteProperty(libmansuffix)

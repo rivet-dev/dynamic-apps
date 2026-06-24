@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+xcflags=@X_CFLAGS@
+xlibs=@X_LIBS@
+
+Name: ObRender
+Description: Openbox Render Library
+Version: @RR_VERSION@
+Requires: obt-3.5 glib-2.0 xft pangoxft @PKG_CONFIG_IMLIB@ @PKG_CONFIG_LIBRSVG@
+Libs: -L${libdir} -lobrender ${xlibs}
+Cflags: -I${includedir}/openbox/@RR_VERSION@ ${xcflags}

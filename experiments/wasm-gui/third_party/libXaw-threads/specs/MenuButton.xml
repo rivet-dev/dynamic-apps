@@ -1,0 +1,567 @@
+<sect1 id="MenuButton_Widget">
+<title>MenuButton Widget</title>
+<!-- .XS -->
+<!-- 	MenuButton Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>MenuButton widget</primary></indexterm>
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/MenuButton.h&gt;
+<indexterm><primary>MenuButton.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/MenuButtonP.h&gt;
+<indexterm><primary>MenuButtonP.h</primary></indexterm>
+Class		menuButtonWidgetClass
+<indexterm><primary>menuButtonWidgetClass</primary></indexterm>
+Class Name	MenuButton
+<indexterm><primary>MenuButton widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Command
+</literallayout>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+The MenuButton widget is an area, often rectangular,
+that displays a graphic.  The graphic may be a text
+string containing multiple lines of characters in an 8
+bit or 16 bit character set (to be displayed with a
+<emphasis remap='I'>font</emphasis>), or in a multi-byte encoding (for use with
+a <emphasis remap='I'>fontset</emphasis>).  The graphic may also be a bitmap or
+pixmap.
+</para>
+<para>
+<!-- .LP -->
+When the pointer cursor is on a MenuButton widget, the
+MenuButton becomes highlighted by drawing a rectangle
+around its perimeter.  This highlighting indicates
+that the MenuButton is ready for selection.  When a
+pointer button is pressed, the MenuButton widget will
+pop up the menu named in the <function>menuName</function> resource.
+</para>
+<sect2 id="MenuButton::Resources">
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a MenuButton widget instance,
+the following resources are retrieved from the argument list
+or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>MenuButton widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>bitmap</entry>
+      <entry>Bitmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cornerRoundPercent</entry>
+      <entry>CornerRoundPercent</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>25</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>encoding</entry>
+      <entry>Encoding</entry>
+      <entry>UnsignedChar</entry>
+      <entry></entry>
+      <entry>XawTextEncoding8bit</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>XFontStruct</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic height + 2 * <function>internalHeight</function></entry>
+    </row>
+    <row>
+      <entry>highlightThickness</entry>
+      <entry>Thickness</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>2 (0 if Shaped)</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>internalHeight</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>internalWidth</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>justify</entry>
+      <entry>Justify</entry>
+      <entry>Justify</entry>
+      <entry></entry>
+      <entry>XtJustifyCenter (center)</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>name of widget</entry>
+    </row>
+    <row>
+      <entry>leftBitmap</entry>
+      <entry>LeftBitmap</entry>
+      <entry>Bitmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>menuName</entry>
+      <entry>MenuName</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>"menu"</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>resize</entry>
+      <entry>Resize</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>shapeStype</entry>
+      <entry>ShapeStyle</entry>
+      <entry>ShapeStyle</entry>
+      <entry></entry>
+      <entry>Rectangle</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic width + 2 * <function>internalWidth</function></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bm -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Cb -->
+<!-- .Cm -->
+<!-- .Cr -->
+<!-- .Cu -->
+<!-- .Cn -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Lf -->
+<!-- .Ls -->
+<!-- .Lg -->
+<!-- .Hw -->
+<!-- .Ht -->
+<!-- .Ib -->
+<!-- .Ih -->
+<!-- .In -->
+<!-- .Ju -->
+<!-- .La -->
+<!-- .Mm -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>menuName</function>
+    </term>
+    <listitem>
+      <para>
+The name of a popup shell to popup as a menu.  The MenuButton
+will search for this name using <function>XtNameToWidget</function> starting
+with itself as the reference widget.  If the search is
+unsuccessful the widget will continue up the widget tree using
+each of its ancestors as the reference widget passed to
+<function>XtNameToWidget</function>.  If no widget of called <function>menuName</function> is
+found by this algorithm, the widget will print a warning message
+and give up.  When the menu is found it will be popped up
+exclusive and spring_loaded.  The MenuButton widget does not
+copy the value of this resource into newly allocated memory. The
+application programmer must pass the resource value in
+nonvolatile memory.
+<!-- .Pf -->
+<!-- .Pb -->
+<!-- .Re -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Ss -->
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="MenuButton_Actions">
+<title>MenuButton Actions</title>
+<indexterm><primary>MenuButton widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The MenuButton widget supports the following actions:
+</para>
+<itemizedlist>
+  <listitem>
+    <para>
+Switching the button between the foreground and background
+colors with <function>set</function> and <function>unset</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Processing application callbacks with <function>notify</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Switching the internal border between highlighted
+and unhighlighted states with <function>highlight</function> and <function>unhighlight</function>
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+Popping up a menu with <function>PopupMenu</function>
+    </para>
+  </listitem>
+</itemizedlist>
+<para>
+<!-- .LP -->
+The following are the default translation bindings used by the
+MenuButton widget:
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+	&lt;EnterWindow&gt;:	highlight(&#x2006;)
+	&lt;LeaveWindow&gt;:	reset(&#x2006;)
+	&lt;BtnDown&gt;:	reset(&#x2006;) PopupMenu(\)
+</literallayout>
+</para>
+</sect2>
+<sect2 id='MenuButton_Actions_b'>
+<title>MenuButton Actions</title>
+<para>
+<!-- .LP -->
+The full list of actions supported by MenuButton is:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>highlight</function>(<function>condition</function>)
+    </term>
+    <listitem>
+      <para>
+Displays the internal highlight border in the color (<function>foreground</function>
+or <function>background</function> ) that contrasts with the interior color of the
+Command widget.  The conditions <function>WhenUnset</function> and <function>Always</function> are
+understood by this action procedure.  If no argument is passed,
+<function>WhenUnset</function> is assumed.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>unhighlight</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Displays the internal highlight border in the color (<function>XtNforeground</function>
+or <function>background</function> ) that matches the interior color of the
+MenuButton widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>set</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Enters the <function>set</function> state, in which <function>notify</function> is possible.  This
+action causes the button to display its interior in the
+<function>foreground</function> color.  The label or bitmap is displayed in the
+<function>background</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>unset</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Cancels the <emphasis remap='I'>set</emphasis> state and displays the interior of the button in the
+<function>background</function> color.  The label or bitmap is displayed in the
+<function>foreground</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>reset</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Cancels any <function>set</function> or <function>highlight</function> and displays the interior of the
+button in the <function>background</function> color, with the label displayed in the
+<function>foreground</function> color.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>notify</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+When the button is in the <function>set</function> state this action calls all functions in
+the callback list named by the <function>callback</function> resource.  The value of
+the call_data argument in these callback functions is undefined.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>PopupMenu</function>(&#x2006;)
+    </term>
+    <listitem>
+      <para>
+Pops up the menu specified by the <function>menuName</function> resource.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+The MenuButton widget does not place a server grab on itself.
+Instead, PopupMenu is registered as a grab action.
+As a result, clients which popup menus without using XtMenuPopup
+or MenuPopup or PopupMenu in translations will fail to have a grab active.
+They should make a call to XtRegisterGrabAction on the appropriate action
+in the application initialization routine, or use a different translation.
+<!-- .bp -->
+
+</para>
+</sect2>
+</sect1>

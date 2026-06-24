@@ -1,0 +1,173 @@
+.\" Copyright (c) 1989, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.TH XSHAPE __libmansuffix__ 1994-04-17 __xorgversion__
+.SH NAME
+XShapeQueryExtension, XShapeQueryVersion, XShapeCombineRegion,
+XShapeCombineRectangles, XShapeCombineMask, XShapeCombineShape,
+XShapeOffsetShape, XShapeQueryExtents, XShapeSelectInput, XShapeInputSelected,
+XShapeGetRectangles \- X nonrectangular shape functions
+.SH SYNTAX
+.nf
+.LP
+\&#include <X11/extensions/shape.h>
+.LP
+Bool XShapeQueryExtension (
+	Display *dpy,
+	int *event_basep,
+	int *error_basep);
+.LP
+Status XShapeQueryVersion (
+	Display *dpy,
+	int *major_versionp,
+	int *minor_versionp);
+.LP
+void XShapeCombineRegion (
+	Display *dpy,
+	Window dest,
+	int destKind,
+	int xOff,
+	int yOff,
+	struct _XRegion *r,
+	int op);
+.LP
+void XShapeCombineRectangles (
+	Display *dpy,
+	XID dest,
+	int destKind,
+	int xOff,
+	int yOff,
+	XRectangle *rects,
+	int n_rects,
+	int op,
+	int ordering);
+.LP
+void XShapeCombineMask (
+	Display *dpy,
+	XID dest,
+	int destKind,
+	int xOff,
+	int yOff,
+	Pixmap src,
+	int op);
+.LP
+void XShapeCombineShape (
+	Display *dpy,
+	XID dest,
+	int destKind,
+	int xOff,
+	int yOff,
+	Pixmap src,
+	int srcKind,
+	int op);
+.LP
+void XShapeOffsetShape (
+	Display *dpy,
+	XID dest,
+	int destKind,
+	int xOff,
+	int yOff);
+.LP
+Status XShapeQueryExtents (
+	Display *dpy,
+	Window window,
+	int *bShaped,
+	int *xbs,
+	int *ybs,
+	unsigned int *wbs,
+	unsigned int *hbs,
+	int *cShaped,
+	int *xcs,
+	int *ycs,
+	unsigned int *wcs,
+	unsigned int *hcs);
+.LP
+void XShapeSelectInput (
+	Display *dpy,
+	Window window,
+	unsigned longmask);
+.LP
+unsigned long XShapeInputSelected (
+	Display *dpy,
+	Window window);
+.LP
+XRectangle *XShapeGetRectangles (
+	Display *dpy,
+	Window window,
+	int kind,
+	int *count,
+	int *ordering);
+.fi
+.SH STRUCTURES
+.nf
+.ft CW
+typedef struct {
+    int type;	/\&* of event */
+    unsigned long serial;	/\&* # of last request processed by server */
+    Bool send_event;	/\&* true if this came from a SendEvent request */
+    Display *display;	/\&* Display the event was read from */
+    Window window;	/\&* window of event */
+    int kind;	/\&* ShapeBounding or ShapeClip */
+    int x, y;	/\&* extents of new region */
+    unsigned width, height;
+    Time time;	/\&* server timestamp when region changed */
+    Bool shaped;	/\&* true if the region exists */
+} XShapeEvent;
+.ft
+.fi
+.SH DESCRIPTION
+The \fIX11 Nonrectangular Window Shape Extension\fP adds nonrectangular
+windows to the X Window System.
+.SH PREDEFINED VALUES
+Operations:
+.RS
+.nf
+.B ShapeSet
+.B ShapeUnion
+.B ShapeIntersect
+.B ShapeSubtract
+.B ShapeInvert
+.fi
+.RE
+.sp
+Shape Kinds:
+.RS
+.nf
+.B ShapeBounding
+.B ShapeClip
+.fi
+.RE
+.sp
+Event defines:
+.RS
+.nf
+.B ShapeNotifyMask
+.B ShapeNotify
+.fi
+.RE
+.SH BUGS
+This manual page needs a lot more work.
+.SH SEE ALSO
+\fIX11 Nonrectangular Window Shape Extension\fP

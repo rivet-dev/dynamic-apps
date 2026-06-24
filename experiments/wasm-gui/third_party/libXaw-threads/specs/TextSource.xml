@@ -1,0 +1,620 @@
+<sect1 id="TextSrc_Object">
+<title>TextSrc Object</title>
+<literallayout class="monospaced">
+Application Header file &lt;X11/Xaw/TextSrc.h&gt;
+Class Header file       &lt;X11/Xaw/TextSrcP.h&gt;
+Class                   textSrcObjectClass
+Class Name              TextSrc
+Superclass              Object
+</literallayout>
+
+<para>
+<!-- .LP -->
+The TextSrc object is the root object for all text sources.  Any new text
+source objects should be subclasses of the TextSrc Object.  The
+TextSrc Class contains all methods the Text widget expects a text
+source to export.
+</para>
+
+<para>
+<!-- .LP -->
+Since all text sources will have some resources in common the
+TextSrc defines a few new resources.
+</para>
+
+<sect2 id='TextSource::Resources'>
+<title>Resources</title>
+<para>
+When creating an TextSrc object instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>editType</entry>
+      <entry>EditType</entry>
+      <entry>EditMode</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="Subclassing_the_TextSrc">
+<title>Subclassing the TextSrc</title>
+<para>
+The only purpose of the TextSrc Object is to be subclassed.  It contains
+the minimum set of class methods that all text sources must have.  All
+class methods of the TextSrc must be defined, as the Text widget uses
+them all.  While all may be inherited, the direct descendant of TextSrc
+<function>must</function> specify some of them as TextSrc does not contain enough
+information to be a valid text source by itself.  Do not try to use the
+TextSrc as a valid source for the Text widget; it is not intended to be
+used as a source by itself and bad things will probably happen.
+</para>
+
+<informaltable>
+  <tgroup cols='4' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <thead>
+    <row>
+      <entry>Function</entry>
+      <entry>Inherit with</entry>
+      <entry>Public Interface</entry>
+      <entry>must specify</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>Read</entry>
+      <entry>XtInheritRead</entry>
+      <entry>XawTextSourceRead</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>Replace</entry>
+      <entry>XtInheritReplace</entry>
+      <entry>XawTextSourceReplace</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>Scan</entry>
+      <entry>XtInheritScan</entry>
+      <entry>XawTextSourceScan</entry>
+      <entry>yes</entry>
+    </row>
+    <row>
+      <entry>Search</entry>
+      <entry>XtInheritSearch</entry>
+      <entry>XawTextSourceSearch</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>SetSelection</entry>
+      <entry>XtInheritSetSelection</entry>
+      <entry>XawTextSourceSetSelection</entry>
+      <entry>no</entry>
+    </row>
+    <row>
+      <entry>ConvertSelection</entry>
+      <entry>XtInheritConvertSelection</entry>
+      <entry>XawTextSourceConvertSelection</entry>
+      <entry>no</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+<sect3 id='Reading_Text'>
+<title>Reading Text.</title>
+<para>
+<!-- .LP -->
+To read the text in a text source use the <xref linkend='Read' xrefstyle='select: title'/> function:
+<indexterm significance="preferred"><primary>TextSrc object</primary><secondary>Read</secondary></indexterm>
+</para>
+<funcsynopsis id='Read'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> Read</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> pos</parameter></paramdef>
+  <paramdef>XawTextBlock<parameter> *text_return</parameter></paramdef>
+  <paramdef>int<parameter> length</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>pos</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the position of the first character to be read from the text buffer.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>text</emphasis></term>
+    <listitem>
+      <para>
+Returns the text read from the source.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>length</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the maximum number of characters the TextSrc should
+return to the application in <emphasis remap='I'>text_return</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This function returns the text position immediately after the
+characters read from the
+text buffer.  The function is not required to read <emphasis remap='I'>length</emphasis>
+characters if that many characters are in the file, it may break at
+any point that is convenient to the internal structure of the
+source.  It may take several calls to <xref linkend='Read' xrefstyle='select: title'/> before the desired
+portion of the text buffer is fully retrieved.
+</para>
+</sect3>
+
+<sect3 id='TextSource::Replacing_Text'>
+<title>Replacing Text.</title>
+<para>
+To replace or edit the text in a text buffer use the <xref linkend='Replace' xrefstyle='select: title'/> function:
+</para>
+
+<funcsynopsis id='Replace'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> Replace</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionstart,<parameter> end</parameter></paramdef>
+  <paramdef>XawTextBlock<parameter> *text</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>w</emphasis></term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>start</emphasis></term>
+    <listitem>
+      <para>
+Specifies the position of the first character to be removed from the text
+buffer.  This is also the location to begin inserting the new text.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>end</emphasis></term>
+    <listitem>
+      <para>
+Specifies the position immediately after the last character to be
+removed from the text buffer.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>text</emphasis></term>
+    <listitem>
+      <para>
+Specifies the text to be added to the text source.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This function can return any of the following values:
+</para>
+
+<variablelist>
+  <varlistentry>
+    <term><function>XawEditDone</function></term>
+    <listitem>
+      <para>
+The text replacement was successful.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><function>XawPositionError</function></term>
+    <listitem>
+      <para>
+<indexterm><primary>XawPositionError</primary></indexterm>
+The edit mode is <function>XawtextAppend</function> and <function>start</function> is not the last
+character of the source.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><function>XawEditError</function></term>
+    <listitem>
+      <para>
+<indexterm><primary>XawEditError</primary></indexterm>
+Either the Source was read-only or the range to be deleted is larger
+than the length of the Source.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<!-- .LP -->
+The <xref linkend='Replace' xrefstyle='select: title'/> arguments <function>start</function> and <function>end</function> represent the
+text source character positions for the existing text that is to be
+replaced by the text in the text block.  The characters from
+<emphasis remap='I'>start</emphasis> up to but not including <emphasis remap='I'>end</emphasis> are deleted, and the
+buffer specified by the text block is inserted in their
+place.  If <emphasis remap='I'>start</emphasis> and <emphasis remap='I'>end</emphasis> are equal, no text is deleted and
+the new text is inserted after <emphasis remap='I'>start</emphasis>.
+</para>
+</sect3>
+
+<sect3 id="Scanning_the_TextSrc">
+<title>Scanning the TextSrc</title>
+<para>
+To search the text source for one of the predefined boundary types use
+the <xref linkend='Scan' xrefstyle='select: title'/> function:
+</para>
+
+<funcsynopsis id='Scan'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> Scan</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> position</parameter></paramdef>
+  <paramdef>XawTextScanType<parameter> type</parameter></paramdef>
+  <paramdef>XawTextScanDirection<parameter> dir</parameter></paramdef>
+  <paramdef>int<parameter> count</parameter></paramdef>
+  <paramdef>Boolean<parameter> include</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>w</emphasis></term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>position</emphasis></term>
+    <listitem>
+      <para>
+Specifies the position to begin scanning the source.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>type</emphasis></term>
+    <listitem>
+      <para>
+Specifies the type of boundary to scan for, may be one of:
+<function>XawstPosition</function>, <function>XawstWhiteSpace</function>, <function>XawstEOL</function>,
+<function>XawstParagraph</function>, <function>XawstAll</function>.  The exact meaning of these
+boundaries is left up to the individual text source.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>dir</emphasis></term>
+    <listitem>
+      <para>
+Specifies the direction to scan, may be either <function>XawsdLeft</function> to search
+<indexterm><primary>XawsdLeft</primary></indexterm>
+backward, or <function>XawsdRight</function> to search forward.
+<indexterm><primary>XawsdRight</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>count</emphasis></term>
+    <listitem>
+      <para>
+Specifies the number of boundaries to scan for.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>include</emphasis></term>
+    <listitem>
+      <para>
+Specifies whether the boundary itself should be included in the scan.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<!-- .LP -->
+The <xref linkend='Scan' xrefstyle='select: title'/> function returns the position in the text source of the desired
+boundary.  It is expected to return a valid address for
+all calls made to it, thus if a particular request is made that would take
+the text widget beyond the end of the source it must return the
+position of that end.
+</para>
+</sect3>
+
+<sect3 id="Searching_through_a_TextSrc">
+<title>Searching through a TextSrc</title>
+<para>
+To search for a particular string use the <xref linkend='Search' xrefstyle='select: title'/> function.
+</para>
+
+<funcsynopsis id='Search'>
+<funcprototype>
+  <funcdef>XawTextPosition<function> Search</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPosition<parameter> position</parameter></paramdef>
+  <paramdef>XawTextScanDirection<parameter> dir</parameter></paramdef>
+  <paramdef>XawTextBlock<parameter> *text</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>w</emphasis></term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>position</emphasis></term>
+    <listitem>
+      <para>
+Specifies the position to begin the search.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>dir</emphasis></term>
+    <listitem>
+      <para>
+Specifies the direction to search, may be either <function>XawsdLeft</function> to search
+<indexterm><primary>XawsdLeft</primary></indexterm>
+backward, or <function>XawsdRight</function> to search forward.
+<indexterm><primary>XawsdRight</primary></indexterm>
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>text</emphasis></term>
+    <listitem>
+      <para>
+Specifies a text block containing the text to search for.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+This function will search through the text buffer attempting to find a
+match for the string in the text block.  If a match is found in the
+direction specified, then the character location of the first character
+in the string is returned.  If no text was found then
+<function>XawTextSearchError</function> is returned.
+</para>
+
+</sect3>
+
+<sect3 id="Text_Selections">
+<title>Text Selections</title>
+
+<para>
+<!-- .LP -->
+While many selection types are handled by the Text widget, text sources
+may have selection types unknown to the Text widget.  When a selection
+conversion is requested by the X server the Text widget will first call
+the <function>ConvertSelection</function> function, to attempt the selection
+conversion.
+</para>
+
+<funcsynopsis id='ConvertSelections'>
+<funcprototype>
+  <funcdef>Boolean<function> ConvertSelections</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>Atom*selection,*target,<parameter> *type</parameter></paramdef>
+  <paramdef>caddr_t<parameter> *value_return</parameter></paramdef>
+  <paramdef>unsignedlong<parameter> *length_return</parameter></paramdef>
+  <paramdef>int<parameter> *format_return</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>selection</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the type of selection that was requested (e.g. <function>PRIMARY</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>target</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the type of the selection that has been requested, which
+indicates the desired information about the selection (e.g. Filename,
+Text, Window).
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>type</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a pointer to the atom into which the property type of the converted
+value of the selection is to be stored.  For instance, either file
+name or text might have property type <function>XA_STRING</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>value_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns a pointer into which a pointer to the converted value of the
+selection
+is to be stored.  The selection owner is responsible for allocating
+this storage.  The memory is considered owned by the toolkit, and is
+freed by XtFree when the Intrinsics selection mechanism is done with it.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>length_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns a pointer into which the number of elements in value is to be stored.
+The size of each element is determined by <emphasis remap='I'>format</emphasis>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>format_return</emphasis>
+    </term>
+    <listitem>
+      <para>
+Returns a pointer into which the size in bits of the data elements of the
+selection value is to be stored.
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+If this function returns <function>True</function> then the Text widget will assume
+that the source has taken care of converting the selection, Otherwise the
+Text widget will attempt to convert the selection itself.
+</para>
+
+<para>
+If the source needs to know when the text selection is modified it
+should define a <xref linkend='SetSelection' xrefstyle='select: title'/> procedure:
+</para>
+
+<funcsynopsis id='SetSelection'>
+<funcprototype>
+  <funcdef>void<function> SetSelection</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>XawTextPositionstart,<parameter> end</parameter></paramdef>
+  <paramdef>Atom<parameter> selection</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term><emphasis remap='I'>w</emphasis></term>
+    <listitem>
+      <para>
+Specifies the TextSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>start</emphasis></term>
+    <listitem>
+      <para>
+Specifies the character position of the beginning of the new text selection.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>end</emphasis></term>
+    <listitem>
+      <para>
+Specifies the character position of the end of the new text selection.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><emphasis remap='I'>selection</emphasis></term>
+    <listitem>
+      <para>
+Specifies the type of selection that was requested (e.g. <function>PRIMARY</function>).
+      </para>
+    </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect3>
+</sect2>
+</sect1>

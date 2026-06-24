@@ -1,0 +1,103 @@
+'\" t
+.\"     Title: LXPANEL
+.\"    Author: Ying-Chun Liu
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: March  2, 2008
+.\"    Manual: http://LXDE.org
+.\"    Source: http://LXDE.org
+.\"  Language: English
+.\"
+.TH "LXPANEL" "1" "March, 2016" "http://LXDE\&.org" "http://LXDE.org"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+lxpanelctl \- controller for lxpanel\&.
+.SH "SYNOPSIS"
+.HP \w'\fBlxpanelctl\fR\ 'u
+\fBlxpanelctl\fR {command}
+.SH "DESCRIPTION"
+.PP
+This manual page documents briefly the
+\fBlxpanelctl\fR
+command\&.
+.PP
+\fBlxpanelctl\fR
+is a program that controls lxpanel\&.
+.SH "COMMANDS"
+.PP
+\fBmenu\fR
+.RS 4
+Show the system menu\&.
+.RE
+.PP
+\fBrun\fR
+.RS 4
+Show the run dialog\&.
+.RE
+.PP
+\fBconfig\fR
+.RS 4
+Show the panel configuration dialog\&. If more than one panel is configured, it is undefined which panel configuration dialog will be shown\&.
+.RE
+.PP
+\fBrestart\fR
+.RS 4
+Restart lxpanel\&.
+.RE
+.PP
+\fBexit\fR
+.RS 4
+Exit lxpanel\&.
+.RE
+.PP
+\fBcommand \fR[\fB\-\-panel=\fR[\fIN\fR:]\fIedge\fR] \fIplugin\fR \fIcommand\fR
+.RS 4
+Send a \fIcommand\fR to a \fIplugin\fR\&. Optionally monitor number \fIN\fR
+(in range 1 to 8) and \fIedge\fR (left, right, top or bottom) can be set,
+otherwise \fIcommand\fR will be send to first \fIplugin\fR found in any panel\&.
+.RE
+.SH "SEE ALSO"
+.PP
+lxpanel (1)\&.
+.SH "AUTHOR"
+.PP
+This manual page was written by paulliu
+grandpaul@gmail\&.com
+for the
+Debian
+system (but may be used by others)\&. Permission is granted to copy, distribute and/or modify this document under the terms of the
+GNU
+General Public License, Version 2 any later version published by the Free Software Foundation\&.
+.PP
+On Debian systems, the complete text of the GNU General Public License can be found in /usr/share/common\-licenses/GPL-2\&.
+.PP
+Updated by Andriy Grytsenko (LStranger)\&.
+.SH "AUTHOR"
+.PP
+\fBYing\-Chun Liu\fR
+.RS 4
+Author.
+.RE
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2008 paulliu
+.br
+Copyright \(co 2016 LStranger
+.br

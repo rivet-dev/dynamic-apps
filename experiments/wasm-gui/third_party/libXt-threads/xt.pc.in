@@ -1,0 +1,16 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+appdefaultdir=@appdefaultdir@
+datarootdir=@datarootdir@
+errordbdir=@ERRORDBDIR@
+xfilesearchpath=@XFILESEARCHPATHDEFAULT@
+
+Name: Xt
+Description: X Toolkit Library
+Version: @VERSION@
+Requires: xproto x11
+Requires.private: ice sm
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXt

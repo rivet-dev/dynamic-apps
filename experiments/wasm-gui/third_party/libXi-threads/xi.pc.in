@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Xi
+Description: X Input Extension Library
+Version: @VERSION@
+Requires: inputproto
+Requires.private: x11 xext xfixes
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXi

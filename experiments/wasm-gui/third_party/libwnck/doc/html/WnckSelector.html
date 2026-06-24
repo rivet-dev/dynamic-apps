@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: WnckSelector</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="widgets.html" title="Part IV. Libwnck Widgets">
+<link rel="prev" href="WnckPager.html" title="WnckPager">
+<link rel="next" href="WnckTasklist.html" title="WnckTasklist">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#WnckSelector.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#WnckSelector.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces"> <span class="dim">|</span> 
+                  <a href="#WnckSelector.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="WnckPager.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="WnckTasklist.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="WnckSelector"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="WnckSelector.top_of_page"></a>WnckSelector</span></h2>
+<p>WnckSelector — a window selector widget, showing the list of windows as
+a menu.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="WnckSelector.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="WnckSelector.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody><tr>
+<td class="function_type">
+<a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckSelector.html#wnck-selector-new" title="wnck_selector_new ()">wnck_selector_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="WnckSelector.html#WnckSelector-struct" title="struct WnckSelector">WnckSelector</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+    <span class="lineart">╰──</span> <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GInitiallyUnowned">GInitiallyUnowned</a>
+        <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkWidget.html">GtkWidget</a>
+            <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkContainer.html">GtkContainer</a>
+                <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkMenuShell.html">GtkMenuShell</a>
+                    <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkMenuBar.html">GtkMenuBar</a>
+                        <span class="lineart">╰──</span> WnckSelector
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+WnckSelector implements
+ AtkImplementorIface and  <a href="http://developer.gnome.org/gtk2/GtkBuildable.html">GtkBuildable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.description"></a><h2>Description</h2>
+<p>The <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a> represents client windows on a screen as a menu, where
+menu items are labelled with the window titles and icons. Activating a menu
+item activates the represented window.</p>
+<p>The <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a> will automatically detect the screen it is on, and will
+represent windows of this screen only.</p>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="wnck-selector-new"></a><h3>wnck_selector_new ()</h3>
+<pre class="programlisting"><a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+wnck_selector_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a>. The <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a> will list <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> it is on.</p>
+<div class="refsect3">
+<a name="id-1.5.4.10.2.5"></a><h4>Returns</h4>
+<p> a newly created <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a>.</p>
+<p></p>
+</div>
+<p class="since">Since 2.10</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="WnckSelector-struct"></a><h3>struct WnckSelector</h3>
+<pre class="programlisting">struct WnckSelector;</pre>
+<p>The <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckSelector.see-also"></a><h2>See Also</h2>
+<p><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a></p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

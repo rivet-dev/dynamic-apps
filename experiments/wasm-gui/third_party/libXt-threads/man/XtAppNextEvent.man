@@ -1,0 +1,191 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtApp-Next-Event XtApp-Pending XtApp-Peek-Event XtApp-Process-Event
+.hw Xt-Dispatch-Event XtApp-Main-Loop wid-get
+.na
+.TH XtAppNextEvent __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtAppNextEvent, XtAppPending, XtAppPeekEvent, XtAppProcessEvent, XtDispatchEvent, XtAppMainLoop \- query and process events and input
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtAppNextEvent(XtAppContext \fIapp_context\fP, XEvent
+*\fIevent_return\fP);
+.HP
+Boolean XtAppPeekEvent(XtAppContext \fIapp_context\fP, XEvent
+*\fIevent_return\fP);
+.HP
+XtInputMask XtAppPending(XtAppContext \fIapp_context\fP);
+.HP
+void XtAppProcessEvent(XtAppContext \fIapp_context\fP, XtInputMask
+\fImask\fP);
+.HP
+Boolean XtDispatchEvent(XEvent *\fIevent\fP);
+.HP
+void XtAppMainLoop(XtAppContext \fIapp_context\fP);
+.SH ARGUMENTS
+.IP \fIapp_context\fP 1i
+Specifies the application context that identifies the application.
+.IP \fIevent\fP 1i
+Specifies a pointer to the event structure that is to be dispatched
+to the appropriate event handler.
+.IP \fIevent_return\fP 1i
+Returns the event information to the specified event structure.
+.IP \fImask\fP 1i
+Specifies what types of events to process.
+The mask is the bitwise inclusive OR of any combination of
+.BR XtIMXEvent ,
+.BR XtIMTimer ,
+.BR XtIMAlternateInput ,
+and
+.BR XtIMSignal .
+As a convenience, the \*(tk defines the symbolic name
+.B XtIMAll
+to be the bitwise inclusive OR of all event types.
+.SH DESCRIPTION
+If the X event queue is empty,
+.B XtAppNextEvent
+flushes the X output buffers of each Display in the application context
+and waits for an event while looking at the other input sources, timeout
+timeout values, and signal handlers and calling any callback procedures
+triggered by them.
+This wait time can be used for background processing
+(see Section 7.8).
+.LP
+If there is an event in the queue,
+.B XtAppPeekEvent
+fills in the event and returns a nonzero value.
+If no X input is on the queue,
+.B XtAppPeekEvent
+flushes the output buffer and blocks until input is available
+(possibly calling some timeout callbacks in the process).
+If the input is an event,
+.B XtAppPeekEvent
+fills in the event and returns a nonzero value.
+Otherwise, the input is for an alternate input source, and
+.B XtAppPeekEvent
+returns zero.
+.LP
+The
+.B XtAppPending
+function returns a nonzero value if there are events pending from the
+X server, timer pending, or other input sources pending.
+The value returned is a bit mask that is the OR of
+.BR XtIMXEvent ,
+.BR XtIMTimer ,
+.BR XtIMAlternateInput ,
+and
+.B XtIMSignal
+(see
+.BR XtAppProcessEvent ).
+If there are no events pending,
+.B XtAppPending
+flushes the output buffer and returns zero.
+.LP
+The
+.B XtAppProcessEvent
+function processes one timer, alternate input, signal source, or X
+event.
+If there is nothing of the appropriate type to process,
+.B XtAppProcessEvent
+blocks until there is.
+If there is more than one type of thing available to process,
+it is undefined which will get processed.
+Usually, this procedure is not called by client applications (see
+.BR XtAppMainLoop ).
+.B XtAppProcessEvent
+processes timer events by calling any appropriate timer callbacks,
+alternate input by calling any appropriate alternate input callbacks,
+signal source by calling any appropriate signal callbacks, and X events
+by calling
+.BR XtDispatchEvent .
+.LP
+When an X event is received, it is passed to
+.BR XtDispatchEvent ,
+which calls the appropriate event handlers
+and passes them the widget, the event, and client-specific data
+registered with each procedure.
+If there are no handlers for that event registered,
+the event is ignored and the dispatcher simply returns.
+The order in which the handlers are called is undefined.
+.LP
+The
+.B XtDispatchEvent
+function sends those events to the event handler functions that
+have been previously registered with the dispatch routine.
+.B XtDispatchEvent
+returns
+.B True
+if it dispatched the event to some handler and
+.B False
+if it found no handler to dispatch the event to.
+The most common use of
+.B XtDispatchEvent
+is to dispatch events acquired with the
+.B XtAppNextEvent
+procedure.
+However, it also can be used to dispatch user-constructed events.
+.B XtDispatchEvent
+also is responsible for implementing the grab semantics for
+.BR XtAddGrab .
+.LP
+The
+.B XtAppMainLoop
+function processes events using
+.BR XtAppProcessEvent ,
+varying the \fImask\fP parameter and using
+.B XtAppPending
+to ensure that it has a chance to handle events of all types,
+i.e., X events, timer events, input events and signal sources.
+This constitutes the main loop of \*(tk applications,
+and, as such, it does not return unless
+.B XtAppSetExitFlag
+is called.
+Applications are expected to exit in response to some user action.
+There is nothing special about
+.BR XtAppMainLoop ;
+it is simply an loop that processes events until
+.BR XtAppGetExitFlag ()
+returns true.
+.LP
+Applications can provide their own version of this loop,
+which tests some global termination flag or tests that the number
+of top-level widgets is larger than zero before circling back
+for the next event.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

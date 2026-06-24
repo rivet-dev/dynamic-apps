@@ -1,0 +1,693 @@
+<sect1 id="Dialog_Widget">
+<title>Dialog Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Dialog Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Dialog widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Dialog.h&gt;
+<indexterm><primary>Dialog.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/DialogP.h&gt;
+<indexterm><primary>DialogP.h</primary></indexterm>
+Class		dialogWidgetClass
+<indexterm><primary>dialogWidgetClass</primary></indexterm>
+Class Name	Dialog
+<indexterm><primary>Dialog widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Form
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Dialog widget implements a commonly used interaction semantic to
+prompt for auxiliary input from a user.  For example, you can use a
+Dialog widget when an application requires a small piece of information,
+such as a filename, from the user.  A Dialog widget, which is simply a
+special case of the Form widget, provides a convenient way to create a
+preconfigured form.
+</para>
+<para>
+<!-- .LP -->
+The typical Dialog widget contains three areas.  The first line
+contains a description of the function of the Dialog widget, for
+example, the string <emphasis remap='I'>Filename:</emphasis>.  The second line contains an area
+into which the user types input.  The third line can contain buttons
+that let the user confirm or cancel the Dialog input.  Any of these
+areas may be omitted by the application.
+</para>
+<sect2 id='Dialog::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Dialog widget instance, the following resources are
+retrieved from the argument list or the resource database:
+<indexterm><primary>Dialog widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>defaultDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain all children</entry>
+    </row>
+    <row>
+      <entry>icon</entry>
+      <entry>Icon</entry>
+      <entry>Bitmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>"label"</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>value</entry>
+      <entry>Value</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>no value widget</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>Enough space to contain all children</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<!-- .Dd -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Hw -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>icon</function>
+    </term>
+    <listitem>
+      <para>
+A pixmap image to be displayed immediately to the left of the
+Dialog widget's label.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>label</function>
+    </term>
+    <listitem>
+      <para>
+A string to be displayed at the top of the Dialog widget.
+<!-- .Mm -->
+<!-- .Nc -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>value</function>
+    </term>
+    <listitem>
+      <para>
+An initial value for the string field that the user will enter text
+into.  By default, no text entry field is available to the user.
+Specifying an initial value for <function>value</function> activates the text entry
+field.  If string input is desired, but no initial value is to be
+specified then set this resource to "" (empty string).
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Constraint_Resources">
+<title>Constraint Resources</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Dialog widget</primary><secondary>constraint resources</secondary></indexterm>
+Each child of the Dialog widget may request special layout resources
+be applied to it.  These <emphasis remap='I'>constraint</emphasis> resources allow the Dialog
+widget's children to specify individual layout requirements.
+</para>
+<para>
+<!-- .LP -->
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>bottom</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>fromHoriz</entry>
+      <entry>Widget</entry>
+      <entry>Widget</entry>
+      <entry></entry>
+      <entry>NULL (left edge of Dialog)</entry>
+    </row>
+    <row>
+      <entry>fromVert</entry>
+      <entry>Widget</entry>
+      <entry>Widget </entry>
+      <entry></entry>
+      <entry>NULL (top edge of Dialog)</entry>
+    </row>
+    <row>
+      <entry>horizDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry><function>defaultDistance</function> resource</entry>
+    </row>
+    <row>
+      <entry>left</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>resizable</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>FALSE</entry>
+    </row>
+    <row>
+      <entry>right</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>top</entry>
+      <entry>Edge</entry>
+      <entry>XawEdgeType</entry>
+      <entry></entry>
+      <entry>XawRubber</entry>
+    </row>
+    <row>
+      <entry>vertDistance</entry>
+      <entry>Thickness</entry>
+      <entry>int</entry>
+      <entry></entry>
+      <entry><function>defaultDistance</function> resource</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+<literallayout class="monospaced">
+bottom
+left
+right
+top            What to do with this edge of the child when
+               the parent is resized.  This resource may be
+               any edgeType.  See Layout Semantics for
+               details.
+
+fromHoriz
+fromVert       Which widget this child should be placed
+               underneath (or to the right of).  If a value
+               of NULL is specified then this widget will be
+               positioned relative to the edge of the par-
+               ent.
+
+horizDistance
+vertDistance   The amount of space, in pixels, between this
+               child and its left or upper neighbor.
+
+resizable      If this resource is False then the parent
+               widget will ignore all geometry request made
+               by this child.  The parent may still resize
+               this child itself, however.
+</literallayout>
+<!-- .Bt -->
+<!-- .Fh -->
+<!-- .Hd -->
+<!-- .Rl -->
+</para>
+</sect2>
+<sect2 id='Dialog::Layout_Semantics'>
+<title>Layout Semantics</title>
+<indexterm><primary>Dialog widget</primary><secondary>layout semantics</secondary></indexterm>
+<para>
+The Dialog widget uses two different sets of layout seman-
+tics.  One is used when initially laying out the children.
+The other is used when the Dialog is resized.
+</para>
+<para>
+The first layout method uses the <function>fromVert</function> mand <function>fromHoriz</function>
+resources to place the children of the Dialog.  A single
+pass is made through the Dialog widget's children in the
+order that they were created.  Each child is then placed in
+the Dialog widget below or to the right of the widget specified by the
+<function>fromVert</function> and <function>fromHoriz</function> resources.
+The distance the new child is placed from its left or upper neighbor is
+determined by the <function>horizDistance</function> and
+<function>vertDistance</function> resources.
+This implies some things about how the order of creation
+affects the possible placement of the children.  The Form
+widget registers a string to widget converter which does not
+postpone conversion and does not cache conversion results.
+</para>
+<para>
+
+The second layout method is used when the Dialog is resized.
+It does not matter what causes this resize, and it is possi-
+ble for a resize to happen before the widget becomes visible
+(due to constraints imposed by the parent of the Dialog).
+This layout method uses the <function>bottom</function> ,
+<function>top</function> , <function>left</function> , and
+<function>right</function>
+resources.  These resources are used to determine what will
+happen to each edge of the child when the Dialog is resized.
+If a value of <function>XawChain</function>
+<emphasis remap='I'>&lt;something&gt;</emphasis>
+ is specified, the the edge
+of the child will remain a fixed distance from the <emphasis remap='I'>chain</emphasis>
+edge of the Dialog.  For example if <function>XawChainLeft</function>
+mis specified for the <function>right</function> mresource of a child
+then the right edge
+of that child will remain a fixed distance from the left
+edge of the Dialog widget.  If a value of <function>XawRubber</function> mis spec-
+ified, that edge will grow by the same percentage that the
+Dialog grew.  For instance if the Dialog grows by 50% the
+left edge of the child (if specified as <function>XawRubber</function> mwill be
+50% farther from the left edge of the Dialog).  One must be
+very careful when specifying these resources, for when they
+are specified incorrectly children may overlap or completely
+occlude other children when the Dialog widget is resized.
+</para>
+
+<para>
+<!-- .LP -->
+<informaltable>
+  <tgroup cols='3' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <thead>
+    <row>
+      <entry>Edge Type</entry>
+      <entry>Resource Name</entry>
+      <entry>Description</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>XawChainBottom</entry>
+      <entry>ChainBottom</entry>
+      <entry>Edge remains a fixed distance from bottom of Dialog</entry>
+    </row>
+    <row>
+      <entry>XawChainLeft</entry>
+      <entry>ChainLeft</entry>
+      <entry>Edge remains a fixed distance from left of Dialog</entry>
+    </row>
+    <row>
+      <entry>XawChainRight</entry>
+      <entry>ChainRight</entry>
+      <entry>Edge remains a fixed distance from right of Dialog</entry>
+    </row>
+    <row>
+      <entry>XawChainTop</entry>
+      <entry>ChainTop</entry>
+      <entry>Edge remains a fixed distance from top of Dialog</entry>
+    </row>
+    <row>
+      <entry>XawRubber</entry>
+      <entry>Rubber</entry>
+      <entry>Edges will move a proportional distance</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+</para>
+<sect3 id="Example">
+<title>Example</title>
+<para>
+<!-- .LP -->
+If you wish to force the Dialog to never resize one or more of its children
+then set <function>left</function> and <function>right</function> to <function>XawChainLeft</function> and
+<function>top</function> and <function>bottom</function> to <function>XawChainTop</function>.  This will cause
+the child to remain a fixed distance from the top and left
+edges of the Dialog, and to never resize.
+</para>
+</sect3>
+<sect3 id="Special_Considerations">
+<title>Special Considerations</title>
+<indexterm><primary>Dialog widget</primary><secondary>special considerations</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Dialog widget automatically sets the <function>top</function> and <function>bottom</function>
+resources for all Children that are subclasses of the Command widget,
+as well as the widget children that are used to contain the <function>label</function>,
+<function>value</function>, and <function>icon</function>.  This policy allows the buttons at the
+bottom of the Dialog to interact correctly with the predefined children,
+and makes it possible for a client to simply create and manage a new
+Command button without having to specify its constraints.
+</para>
+<para>
+<!-- .LP -->
+The Dialog will also set <function>fromLeft</function> to the last button in the
+<indexterm><primary>fromLeft</primary></indexterm>
+Dialog for each new button added to the Dialog widget.
+</para>
+<para>
+<!-- .LP -->
+The automatically added constraints cannot be overridden, as they are
+policy decisions of the Dialog widget.  If a more flexible Dialog is
+desired, the application is free to use the Form widget to create its
+own Dialog policy.
+</para>
+</sect3>
+</sect2>
+<sect2 id='Automatically_Created_Children'>
+<title>Automatically Created Children.</title>
+<indexterm><primary>Dialog widget</primary><secondary>automatically created children</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Dialog uses Label widgets to contain the <function>label</function> and <function>icon</function>.
+These widgets are named <emphasis remap='I'>label</emphasis> and <emphasis remap='I'>icon</emphasis> respectively.  The
+Dialog <function>value</function> is contained in an AsciiText widget whose name is
+<function>value</function>.  Using <function>XtNameToWidget</function> the application can change
+<indexterm><primary>XtNameToWidget</primary></indexterm>
+those resources associated with each of these widgets that are not
+available through the Dialog widget itself.
+</para>
+<para>
+<!-- .LP -->
+</para>
+</sect2>
+<sect2 id='Dialog::Convenience_Routines'>
+<title>Convenience Routines</title>
+<para>
+<!-- .LP -->
+To return the character string in the text field, use
+<!-- .PN XawDialogGetValueString . -->
+<indexterm significance="preferred"><primary>XawDialogGetValueString</primary></indexterm>
+<funcsynopsis id='XawDialogGetValueString'>
+<funcprototype>
+  <funcdef>String<function> XawDialogGetValueString</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Dialog widget.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function returns a copy of the value string of the Dialog
+widget.  This string is allocated by the AsciiText widget and will
+remain valid and unchanged until another call to
+<xref linkend='XawDialogGetValueString' xrefstyle='select: title'/> or an <xref linkend='XtGetValues' xrefstyle='select: title'/> call on the
+<function>value</function> widget, when the string will be automatically freed, and
+a new string is returned.  This string may be freed earlier by calling
+the function <xref linkend='XawAsciiSourceFreeString' xrefstyle='select: title'/>.
+<indexterm><primary>XawAsciiSourceFreeString</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+To add a new button to the Dialog widget use
+<xref linkend='XawDialogAddButton' xrefstyle='select: title'/>.
+<indexterm significance="preferred"><primary>XawDialogAddButton</primary></indexterm>
+<funcsynopsis id='XawDialogAddButton'>
+<funcprototype>
+  <funcdef>void<function> XawDialogAddButton</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>String<parameter> name</parameter></paramdef>
+  <paramdef>XtCallbackProc<parameter> func</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Dialog widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>name</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the name of the new Command button to be added to the Dialog.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>func</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a callback function to be called when this button is activated.  If
+NULL is specified then no callback is added.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the client_data to be passed to the <emphasis remap='I'>func</emphasis>.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function is merely a shorthand for the code sequence:
+<!-- .sp -->
+<literallayout class="monospaced">
+<!-- .SM -->
+<!-- .TA 1i 2i -->
+<!-- .ta 1i 2i -->
+{
+	Widget button = XtCreateManagedWidget(name, commandWidgetClass, w, NULL, ZERO);
+	XtAddCallback(button, XtNcallback, func, client_data);
+}
+<!-- .NL -->
+</literallayout>
+<!-- .sp -->
+
+</para>
+</sect2>
+</sect1>

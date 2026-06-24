@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE book PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "">
+<book xmlns="http://www.devhelp.net/book" title="Libwnck Reference Manual" link="index.html" author="" name="libwnck" version="2" language="c">
+  <chapters>
+    <sub name="Libwnck Overview" link="overview.html"/>
+    <sub name="Getting Started with libwnck" link="getting-started.html"/>
+    <sub name="Libwnck Core Window Management Support" link="core.html">
+      <sub name="WnckWindow" link="WnckWindow.html"/>
+      <sub name="WnckClassGroup" link="WnckClassGroup.html"/>
+      <sub name="WnckApplication" link="WnckApplication.html"/>
+      <sub name="WnckWorkspace" link="WnckWorkspace.html"/>
+      <sub name="WnckScreen" link="WnckScreen.html"/>
+    </sub>
+    <sub name="Libwnck Widgets" link="widgets.html">
+      <sub name="WnckActionMenu" link="libwnck-Window-Action-Menu.html"/>
+      <sub name="WnckPager" link="WnckPager.html"/>
+      <sub name="WnckSelector" link="WnckSelector.html"/>
+      <sub name="WnckTasklist" link="WnckTasklist.html"/>
+    </sub>
+    <sub name="Libwnck Utilities" link="utils.html">
+      <sub name="Resource Usage of X Clients" link="libwnck-Resource-Usage-of-X-Clients.html"/>
+      <sub name="Icon Files" link="libwnck-Icons-Functions.html"/>
+      <sub name="Miscellaneous Functions" link="libwnck-Miscellaneous-Functions.html"/>
+      <sub name="Version Information" link="libwnck-Version-Information.html"/>
+    </sub>
+    <sub name="Index of symbols" link="indexes.html">
+      <sub name="Index of all symbols" link="ix01.html"/>
+      <sub name="Index of deprecated symbols" link="ix02.html"/>
+      <sub name="Index of new symbols in 2.2" link="ix03.html"/>
+      <sub name="Index of new symbols in 2.4" link="ix04.html"/>
+      <sub name="Index of new symbols in 2.6" link="ix05.html"/>
+      <sub name="Index of new symbols in 2.8" link="ix06.html"/>
+      <sub name="Index of new symbols in 2.10" link="ix07.html"/>
+      <sub name="Index of new symbols in 2.12" link="ix08.html"/>
+      <sub name="Index of new symbols in 2.14" link="ix09.html"/>
+      <sub name="Index of new symbols in 2.16" link="ix10.html"/>
+      <sub name="Index of new symbols in 2.20" link="ix11.html"/>
+      <sub name="Index of new symbols in 2.22" link="ix12.html"/>
+      <sub name="Index of new symbols in 3.0" link="ix13.html"/>
+      <sub name="Index of new symbols in 3.4" link="ix14.html"/>
+    </sub>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="wnck_window_get ()" link="WnckWindow.html#wnck-window-get"/>
+    <keyword type="function" name="wnck_window_get_screen ()" link="WnckWindow.html#wnck-window-get-screen"/>
+    <keyword type="function" name="wnck_window_has_name ()" link="WnckWindow.html#wnck-window-has-name" since="2.16"/>
+    <keyword type="function" name="wnck_window_get_name ()" link="WnckWindow.html#wnck-window-get-name"/>
+    <keyword type="function" name="wnck_window_has_icon_name ()" link="WnckWindow.html#wnck-window-has-icon-name" since="2.16"/>
+    <keyword type="function" name="wnck_window_get_icon_name ()" link="WnckWindow.html#wnck-window-get-icon-name"/>
+    <keyword type="function" name="wnck_window_get_icon_is_fallback ()" link="WnckWindow.html#wnck-window-get-icon-is-fallback"/>
+    <keyword type="function" name="wnck_window_get_icon ()" link="WnckWindow.html#wnck-window-get-icon"/>
+    <keyword type="function" name="wnck_window_get_mini_icon ()" link="WnckWindow.html#wnck-window-get-mini-icon"/>
+    <keyword type="function" name="wnck_window_get_application ()" link="WnckWindow.html#wnck-window-get-application"/>
+    <keyword type="function" name="wnck_window_get_transient ()" link="WnckWindow.html#wnck-window-get-transient" since="2.12"/>
+    <keyword type="function" name="wnck_window_get_group_leader ()" link="WnckWindow.html#wnck-window-get-group-leader"/>
+    <keyword type="function" name="wnck_window_get_xid ()" link="WnckWindow.html#wnck-window-get-xid"/>
+    <keyword type="function" name="wnck_window_get_class_group ()" link="WnckWindow.html#wnck-window-get-class-group" since="2.2"/>
+    <keyword type="function" name="wnck_window_get_class_group_name ()" link="WnckWindow.html#wnck-window-get-class-group-name"/>
+    <keyword type="function" name="wnck_window_get_class_instance_name ()" link="WnckWindow.html#wnck-window-get-class-instance-name"/>
+    <keyword type="function" name="wnck_window_get_session_id ()" link="WnckWindow.html#wnck-window-get-session-id"/>
+    <keyword type="function" name="wnck_window_get_session_id_utf8 ()" link="WnckWindow.html#wnck-window-get-session-id-utf8"/>
+    <keyword type="function" name="wnck_window_get_pid ()" link="WnckWindow.html#wnck-window-get-pid"/>
+    <keyword type="function" name="wnck_window_get_sort_order ()" link="WnckWindow.html#wnck-window-get-sort-order" since="2.10"/>
+    <keyword type="function" name="wnck_window_set_sort_order ()" link="WnckWindow.html#wnck-window-set-sort-order" since="2.20"/>
+    <keyword type="function" name="wnck_window_get_window_type ()" link="WnckWindow.html#wnck-window-get-window-type"/>
+    <keyword type="function" name="wnck_window_set_window_type ()" link="WnckWindow.html#wnck-window-set-window-type" since="2.12"/>
+    <keyword type="function" name="wnck_window_get_state ()" link="WnckWindow.html#wnck-window-get-state"/>
+    <keyword type="function" name="wnck_window_is_minimized ()" link="WnckWindow.html#wnck-window-is-minimized"/>
+    <keyword type="function" name="wnck_window_is_maximized_horizontally ()" link="WnckWindow.html#wnck-window-is-maximized-horizontally"/>
+    <keyword type="function" name="wnck_window_is_maximized_vertically ()" link="WnckWindow.html#wnck-window-is-maximized-vertically"/>
+    <keyword type="function" name="wnck_window_is_maximized ()" link="WnckWindow.html#wnck-window-is-maximized"/>
+    <keyword type="function" name="wnck_window_is_shaded ()" link="WnckWindow.html#wnck-window-is-shaded"/>
+    <keyword type="function" name="wnck_window_is_pinned ()" link="WnckWindow.html#wnck-window-is-pinned"/>
+    <keyword type="function" name="wnck_window_is_sticky ()" link="WnckWindow.html#wnck-window-is-sticky"/>
+    <keyword type="function" name="wnck_window_is_above ()" link="WnckWindow.html#wnck-window-is-above" since="2.14"/>
+    <keyword type="function" name="wnck_window_is_below ()" link="WnckWindow.html#wnck-window-is-below" since="2.20"/>
+    <keyword type="function" name="wnck_window_is_skip_pager ()" link="WnckWindow.html#wnck-window-is-skip-pager"/>
+    <keyword type="function" name="wnck_window_is_skip_tasklist ()" link="WnckWindow.html#wnck-window-is-skip-tasklist"/>
+    <keyword type="function" name="wnck_window_is_fullscreen ()" link="WnckWindow.html#wnck-window-is-fullscreen" since="2.8"/>
+    <keyword type="function" name="wnck_window_needs_attention ()" link="WnckWindow.html#wnck-window-needs-attention" since="2.12"/>
+    <keyword type="function" name="wnck_window_or_transient_needs_attention ()" link="WnckWindow.html#wnck-window-or-transient-needs-attention" since="2.12"/>
+    <keyword type="function" name="wnck_window_get_actions ()" link="WnckWindow.html#wnck-window-get-actions"/>
+    <keyword type="function" name="wnck_window_minimize ()" link="WnckWindow.html#wnck-window-minimize"/>
+    <keyword type="function" name="wnck_window_unminimize ()" link="WnckWindow.html#wnck-window-unminimize"/>
+    <keyword type="function" name="wnck_window_maximize_horizontally ()" link="WnckWindow.html#wnck-window-maximize-horizontally"/>
+    <keyword type="function" name="wnck_window_unmaximize_horizontally ()" link="WnckWindow.html#wnck-window-unmaximize-horizontally"/>
+    <keyword type="function" name="wnck_window_maximize_vertically ()" link="WnckWindow.html#wnck-window-maximize-vertically"/>
+    <keyword type="function" name="wnck_window_unmaximize_vertically ()" link="WnckWindow.html#wnck-window-unmaximize-vertically"/>
+    <keyword type="function" name="wnck_window_maximize ()" link="WnckWindow.html#wnck-window-maximize"/>
+    <keyword type="function" name="wnck_window_unmaximize ()" link="WnckWindow.html#wnck-window-unmaximize"/>
+    <keyword type="function" name="wnck_window_shade ()" link="WnckWindow.html#wnck-window-shade"/>
+    <keyword type="function" name="wnck_window_unshade ()" link="WnckWindow.html#wnck-window-unshade"/>
+    <keyword type="function" name="wnck_window_pin ()" link="WnckWindow.html#wnck-window-pin"/>
+    <keyword type="function" name="wnck_window_unpin ()" link="WnckWindow.html#wnck-window-unpin"/>
+    <keyword type="function" name="wnck_window_stick ()" link="WnckWindow.html#wnck-window-stick"/>
+    <keyword type="function" name="wnck_window_unstick ()" link="WnckWindow.html#wnck-window-unstick"/>
+    <keyword type="function" name="wnck_window_make_above ()" link="WnckWindow.html#wnck-window-make-above" since="2.14"/>
+    <keyword type="function" name="wnck_window_unmake_above ()" link="WnckWindow.html#wnck-window-unmake-above" since="2.14"/>
+    <keyword type="function" name="wnck_window_make_below ()" link="WnckWindow.html#wnck-window-make-below" since="2.20"/>
+    <keyword type="function" name="wnck_window_unmake_below ()" link="WnckWindow.html#wnck-window-unmake-below" since="2.20"/>
+    <keyword type="function" name="wnck_window_set_skip_pager ()" link="WnckWindow.html#wnck-window-set-skip-pager"/>
+    <keyword type="function" name="wnck_window_set_skip_tasklist ()" link="WnckWindow.html#wnck-window-set-skip-tasklist"/>
+    <keyword type="function" name="wnck_window_set_fullscreen ()" link="WnckWindow.html#wnck-window-set-fullscreen" since="2.8"/>
+    <keyword type="function" name="wnck_window_close ()" link="WnckWindow.html#wnck-window-close" since="2.6"/>
+    <keyword type="function" name="wnck_window_get_workspace ()" link="WnckWindow.html#wnck-window-get-workspace"/>
+    <keyword type="function" name="wnck_window_is_on_workspace ()" link="WnckWindow.html#wnck-window-is-on-workspace"/>
+    <keyword type="function" name="wnck_window_is_visible_on_workspace ()" link="WnckWindow.html#wnck-window-is-visible-on-workspace"/>
+    <keyword type="function" name="wnck_window_move_to_workspace ()" link="WnckWindow.html#wnck-window-move-to-workspace"/>
+    <keyword type="function" name="wnck_window_is_in_viewport ()" link="WnckWindow.html#wnck-window-is-in-viewport" since="2.4"/>
+    <keyword type="function" name="wnck_window_activate ()" link="WnckWindow.html#wnck-window-activate" since="2.10"/>
+    <keyword type="function" name="wnck_window_is_active ()" link="WnckWindow.html#wnck-window-is-active"/>
+    <keyword type="function" name="wnck_window_is_most_recently_activated ()" link="WnckWindow.html#wnck-window-is-most-recently-activated" since="2.8"/>
+    <keyword type="function" name="wnck_window_activate_transient ()" link="WnckWindow.html#wnck-window-activate-transient" since="2.10"/>
+    <keyword type="function" name="wnck_window_transient_is_most_recently_activated ()" link="WnckWindow.html#wnck-window-transient-is-most-recently-activated" since="2.12"/>
+    <keyword type="function" name="wnck_window_set_icon_geometry ()" link="WnckWindow.html#wnck-window-set-icon-geometry"/>
+    <keyword type="function" name="wnck_window_get_client_window_geometry ()" link="WnckWindow.html#wnck-window-get-client-window-geometry" since="2.20"/>
+    <keyword type="function" name="wnck_window_get_geometry ()" link="WnckWindow.html#wnck-window-get-geometry"/>
+    <keyword type="function" name="wnck_window_set_geometry ()" link="WnckWindow.html#wnck-window-set-geometry" since="2.16"/>
+    <keyword type="function" name="wnck_window_keyboard_move ()" link="WnckWindow.html#wnck-window-keyboard-move"/>
+    <keyword type="function" name="wnck_window_keyboard_size ()" link="WnckWindow.html#wnck-window-keyboard-size"/>
+    <keyword type="struct" name="WnckWindow" link="WnckWindow.html#WnckWindow-struct"/>
+    <keyword type="enum" name="enum WnckWindowType" link="WnckWindow.html#WnckWindowType"/>
+    <keyword type="enum" name="enum WnckWindowState" link="WnckWindow.html#WnckWindowState"/>
+    <keyword type="enum" name="enum WnckWindowActions" link="WnckWindow.html#WnckWindowActions"/>
+    <keyword type="enum" name="enum WnckWindowGravity" link="WnckWindow.html#WnckWindowGravity" since="2.16"/>
+    <keyword type="enum" name="enum WnckWindowMoveResizeMask" link="WnckWindow.html#WnckWindowMoveResizeMask" since="2.16"/>
+    <keyword type="signal" name="The “actions-changed” signal" link="WnckWindow.html#WnckWindow-actions-changed"/>
+    <keyword type="signal" name="The “class-changed” signal" link="WnckWindow.html#WnckWindow-class-changed"/>
+    <keyword type="signal" name="The “geometry-changed” signal" link="WnckWindow.html#WnckWindow-geometry-changed"/>
+    <keyword type="signal" name="The “icon-changed” signal" link="WnckWindow.html#WnckWindow-icon-changed"/>
+    <keyword type="signal" name="The “name-changed” signal" link="WnckWindow.html#WnckWindow-name-changed"/>
+    <keyword type="signal" name="The “role-changed” signal" link="WnckWindow.html#WnckWindow-role-changed"/>
+    <keyword type="signal" name="The “state-changed” signal" link="WnckWindow.html#WnckWindow-state-changed"/>
+    <keyword type="signal" name="The “workspace-changed” signal" link="WnckWindow.html#WnckWindow-workspace-changed"/>
+    <keyword type="function" name="wnck_class_group_get ()" link="WnckClassGroup.html#wnck-class-group-get" since="2.2"/>
+    <keyword type="function" name="wnck_class_group_get_id ()" link="WnckClassGroup.html#wnck-class-group-get-id" since="3.2"/>
+    <keyword type="function" name="wnck_class_group_get_res_class ()" link="WnckClassGroup.html#wnck-class-group-get-res-class" deprecated="3.2: Use wnck_class_group_get_id() instead." since="2.2"/>
+    <keyword type="function" name="wnck_class_group_get_name ()" link="WnckClassGroup.html#wnck-class-group-get-name" since="2.2"/>
+    <keyword type="function" name="wnck_class_group_get_icon ()" link="WnckClassGroup.html#wnck-class-group-get-icon" since="2.2"/>
+    <keyword type="function" name="wnck_class_group_get_mini_icon ()" link="WnckClassGroup.html#wnck-class-group-get-mini-icon" since="2.2"/>
+    <keyword type="function" name="wnck_class_group_get_windows ()" link="WnckClassGroup.html#wnck-class-group-get-windows" since="2.2"/>
+    <keyword type="struct" name="WnckClassGroup" link="WnckClassGroup.html#WnckClassGroup-struct"/>
+    <keyword type="signal" name="The “icon-changed” signal" link="WnckClassGroup.html#WnckClassGroup-icon-changed"/>
+    <keyword type="signal" name="The “name-changed” signal" link="WnckClassGroup.html#WnckClassGroup-name-changed"/>
+    <keyword type="function" name="wnck_application_get ()" link="WnckApplication.html#wnck-application-get"/>
+    <keyword type="function" name="wnck_application_get_xid ()" link="WnckApplication.html#wnck-application-get-xid"/>
+    <keyword type="function" name="wnck_application_get_name ()" link="WnckApplication.html#wnck-application-get-name"/>
+    <keyword type="function" name="wnck_application_get_icon_name ()" link="WnckApplication.html#wnck-application-get-icon-name"/>
+    <keyword type="function" name="wnck_application_get_pid ()" link="WnckApplication.html#wnck-application-get-pid"/>
+    <keyword type="function" name="wnck_application_get_icon_is_fallback ()" link="WnckApplication.html#wnck-application-get-icon-is-fallback"/>
+    <keyword type="function" name="wnck_application_get_icon ()" link="WnckApplication.html#wnck-application-get-icon"/>
+    <keyword type="function" name="wnck_application_get_mini_icon ()" link="WnckApplication.html#wnck-application-get-mini-icon"/>
+    <keyword type="function" name="wnck_application_get_startup_id ()" link="WnckApplication.html#wnck-application-get-startup-id" since="2.2"/>
+    <keyword type="function" name="wnck_application_get_windows ()" link="WnckApplication.html#wnck-application-get-windows"/>
+    <keyword type="function" name="wnck_application_get_n_windows ()" link="WnckApplication.html#wnck-application-get-n-windows"/>
+    <keyword type="struct" name="WnckApplication" link="WnckApplication.html#WnckApplication-struct"/>
+    <keyword type="signal" name="The “icon-changed” signal" link="WnckApplication.html#WnckApplication-icon-changed"/>
+    <keyword type="signal" name="The “name-changed” signal" link="WnckApplication.html#WnckApplication-name-changed"/>
+    <keyword type="function" name="wnck_workspace_get_screen ()" link="WnckWorkspace.html#wnck-workspace-get-screen"/>
+    <keyword type="function" name="wnck_workspace_get_number ()" link="WnckWorkspace.html#wnck-workspace-get-number"/>
+    <keyword type="function" name="wnck_workspace_get_name ()" link="WnckWorkspace.html#wnck-workspace-get-name"/>
+    <keyword type="function" name="wnck_workspace_change_name ()" link="WnckWorkspace.html#wnck-workspace-change-name" since="2.2"/>
+    <keyword type="function" name="wnck_workspace_get_width ()" link="WnckWorkspace.html#wnck-workspace-get-width" since="2.4"/>
+    <keyword type="function" name="wnck_workspace_get_height ()" link="WnckWorkspace.html#wnck-workspace-get-height" since="2.4"/>
+    <keyword type="function" name="wnck_workspace_get_viewport_x ()" link="WnckWorkspace.html#wnck-workspace-get-viewport-x" since="2.4"/>
+    <keyword type="function" name="wnck_workspace_get_viewport_y ()" link="WnckWorkspace.html#wnck-workspace-get-viewport-y" since="2.4"/>
+    <keyword type="function" name="wnck_workspace_is_virtual ()" link="WnckWorkspace.html#wnck-workspace-is-virtual" since="2.4"/>
+    <keyword type="function" name="wnck_workspace_get_layout_row ()" link="WnckWorkspace.html#wnck-workspace-get-layout-row" since="2.20"/>
+    <keyword type="function" name="wnck_workspace_get_layout_column ()" link="WnckWorkspace.html#wnck-workspace-get-layout-column" since="2.20"/>
+    <keyword type="function" name="wnck_workspace_get_neighbor ()" link="WnckWorkspace.html#wnck-workspace-get-neighbor" since="2.20"/>
+    <keyword type="function" name="wnck_workspace_activate ()" link="WnckWorkspace.html#wnck-workspace-activate" since="2.10"/>
+    <keyword type="struct" name="WnckWorkspace" link="WnckWorkspace.html#WnckWorkspace-struct"/>
+    <keyword type="enum" name="enum WnckMotionDirection" link="WnckWorkspace.html#WnckMotionDirection" since="2.14"/>
+    <keyword type="signal" name="The “name-changed” signal" link="WnckWorkspace.html#WnckWorkspace-name-changed"/>
+    <keyword type="function" name="wnck_screen_get_default ()" link="WnckScreen.html#wnck-screen-get-default"/>
+    <keyword type="function" name="wnck_screen_get ()" link="WnckScreen.html#wnck-screen-get"/>
+    <keyword type="function" name="wnck_screen_get_for_root ()" link="WnckScreen.html#wnck-screen-get-for-root"/>
+    <keyword type="function" name="wnck_screen_get_number ()" link="WnckScreen.html#wnck-screen-get-number" since="2.20"/>
+    <keyword type="function" name="wnck_screen_get_width ()" link="WnckScreen.html#wnck-screen-get-width"/>
+    <keyword type="function" name="wnck_screen_get_height ()" link="WnckScreen.html#wnck-screen-get-height"/>
+    <keyword type="function" name="wnck_screen_force_update ()" link="WnckScreen.html#wnck-screen-force-update"/>
+    <keyword type="function" name="wnck_screen_get_window_manager_name ()" link="WnckScreen.html#wnck-screen-get-window-manager-name" since="2.20"/>
+    <keyword type="function" name="wnck_screen_net_wm_supports ()" link="WnckScreen.html#wnck-screen-net-wm-supports"/>
+    <keyword type="function" name="wnck_screen_get_active_window ()" link="WnckScreen.html#wnck-screen-get-active-window"/>
+    <keyword type="function" name="wnck_screen_get_previously_active_window ()" link="WnckScreen.html#wnck-screen-get-previously-active-window" since="2.8"/>
+    <keyword type="function" name="wnck_screen_get_windows ()" link="WnckScreen.html#wnck-screen-get-windows"/>
+    <keyword type="function" name="wnck_screen_get_windows_stacked ()" link="WnckScreen.html#wnck-screen-get-windows-stacked"/>
+    <keyword type="function" name="wnck_screen_get_active_workspace ()" link="WnckScreen.html#wnck-screen-get-active-workspace"/>
+    <keyword type="function" name="wnck_screen_get_workspaces ()" link="WnckScreen.html#wnck-screen-get-workspaces" since="2.20"/>
+    <keyword type="function" name="wnck_screen_get_workspace ()" link="WnckScreen.html#wnck-screen-get-workspace"/>
+    <keyword type="function" name="wnck_screen_get_workspace_count ()" link="WnckScreen.html#wnck-screen-get-workspace-count"/>
+    <keyword type="function" name="wnck_screen_change_workspace_count ()" link="WnckScreen.html#wnck-screen-change-workspace-count" since="2.2"/>
+    <keyword type="function" name="wnck_screen_try_set_workspace_layout ()" link="WnckScreen.html#wnck-screen-try-set-workspace-layout"/>
+    <keyword type="function" name="wnck_screen_release_workspace_layout ()" link="WnckScreen.html#wnck-screen-release-workspace-layout"/>
+    <keyword type="function" name="wnck_screen_calc_workspace_layout ()" link="WnckScreen.html#wnck-screen-calc-workspace-layout" deprecated="2.20:" since="2.12"/>
+    <keyword type="function" name="wnck_screen_free_workspace_layout ()" link="WnckScreen.html#wnck-screen-free-workspace-layout" deprecated="2.20:" since="2.12"/>
+    <keyword type="function" name="wnck_screen_move_viewport ()" link="WnckScreen.html#wnck-screen-move-viewport" since="2.4"/>
+    <keyword type="function" name="wnck_screen_get_background_pixmap ()" link="WnckScreen.html#wnck-screen-get-background-pixmap"/>
+    <keyword type="function" name="wnck_screen_get_showing_desktop ()" link="WnckScreen.html#wnck-screen-get-showing-desktop" since="2.2"/>
+    <keyword type="function" name="wnck_screen_toggle_showing_desktop ()" link="WnckScreen.html#wnck-screen-toggle-showing-desktop" since="2.2"/>
+    <keyword type="struct" name="struct WnckScreen" link="WnckScreen.html#WnckScreen-struct"/>
+    <keyword type="struct" name="struct WnckWorkspaceLayout" link="WnckScreen.html#WnckWorkspaceLayout" deprecated="2.20:" since="2.12"/>
+    <keyword type="signal" name="The “active-window-changed” signal" link="WnckScreen.html#WnckScreen-active-window-changed"/>
+    <keyword type="signal" name="The “active-workspace-changed” signal" link="WnckScreen.html#WnckScreen-active-workspace-changed"/>
+    <keyword type="signal" name="The “application-closed” signal" link="WnckScreen.html#WnckScreen-application-closed"/>
+    <keyword type="signal" name="The “application-opened” signal" link="WnckScreen.html#WnckScreen-application-opened"/>
+    <keyword type="signal" name="The “background-changed” signal" link="WnckScreen.html#WnckScreen-background-changed"/>
+    <keyword type="signal" name="The “class-group-closed” signal" link="WnckScreen.html#WnckScreen-class-group-closed"/>
+    <keyword type="signal" name="The “class-group-opened” signal" link="WnckScreen.html#WnckScreen-class-group-opened"/>
+    <keyword type="signal" name="The “showing-desktop-changed” signal" link="WnckScreen.html#WnckScreen-showing-desktop-changed"/>
+    <keyword type="signal" name="The “viewports-changed” signal" link="WnckScreen.html#WnckScreen-viewports-changed"/>
+    <keyword type="signal" name="The “window-closed” signal" link="WnckScreen.html#WnckScreen-window-closed"/>
+    <keyword type="signal" name="The “window-manager-changed” signal" link="WnckScreen.html#WnckScreen-window-manager-changed"/>
+    <keyword type="signal" name="The “window-opened” signal" link="WnckScreen.html#WnckScreen-window-opened"/>
+    <keyword type="signal" name="The “window-stacking-changed” signal" link="WnckScreen.html#WnckScreen-window-stacking-changed"/>
+    <keyword type="signal" name="The “workspace-created” signal" link="WnckScreen.html#WnckScreen-workspace-created"/>
+    <keyword type="signal" name="The “workspace-destroyed” signal" link="WnckScreen.html#WnckScreen-workspace-destroyed"/>
+    <keyword type="function" name="wnck_action_menu_new ()" link="libwnck-Window-Action-Menu.html#wnck-action-menu-new" since="2.22"/>
+    <keyword type="struct" name="struct WnckActionMenu" link="libwnck-Window-Action-Menu.html#WnckActionMenu-struct"/>
+    <keyword type="property" name="The “window” property" link="libwnck-Window-Action-Menu.html#WnckActionMenu--window"/>
+    <keyword type="function" name="wnck_pager_new ()" link="WnckPager.html#wnck-pager-new"/>
+    <keyword type="function" name="wnck_pager_set_orientation ()" link="WnckPager.html#wnck-pager-set-orientation"/>
+    <keyword type="function" name="wnck_pager_set_n_rows ()" link="WnckPager.html#wnck-pager-set-n-rows"/>
+    <keyword type="function" name="wnck_pager_set_display_mode ()" link="WnckPager.html#wnck-pager-set-display-mode"/>
+    <keyword type="function" name="wnck_pager_set_show_all ()" link="WnckPager.html#wnck-pager-set-show-all"/>
+    <keyword type="function" name="wnck_pager_set_shadow_type ()" link="WnckPager.html#wnck-pager-set-shadow-type" since="2.2"/>
+    <keyword type="struct" name="struct WnckPager" link="WnckPager.html#WnckPager-struct"/>
+    <keyword type="enum" name="enum WnckPagerDisplayMode" link="WnckPager.html#WnckPagerDisplayMode"/>
+    <keyword type="function" name="wnck_selector_new ()" link="WnckSelector.html#wnck-selector-new" since="2.10"/>
+    <keyword type="struct" name="struct WnckSelector" link="WnckSelector.html#WnckSelector-struct"/>
+    <keyword type="function" name="wnck_tasklist_new ()" link="WnckTasklist.html#wnck-tasklist-new"/>
+    <keyword type="function" name="wnck_tasklist_set_grouping ()" link="WnckTasklist.html#wnck-tasklist-set-grouping"/>
+    <keyword type="function" name="wnck_tasklist_set_grouping_limit ()" link="WnckTasklist.html#wnck-tasklist-set-grouping-limit"/>
+    <keyword type="function" name="wnck_tasklist_set_include_all_workspaces ()" link="WnckTasklist.html#wnck-tasklist-set-include-all-workspaces"/>
+    <keyword type="function" name="wnck_tasklist_set_switch_workspace_on_unminimize ()" link="WnckTasklist.html#wnck-tasklist-set-switch-workspace-on-unminimize"/>
+    <keyword type="function" name="wnck_tasklist_set_button_relief ()" link="WnckTasklist.html#wnck-tasklist-set-button-relief" since="2.12"/>
+    <keyword type="function" name="WnckLoadIconFunction ()" link="WnckTasklist.html#WnckLoadIconFunction" since="2.2"/>
+    <keyword type="function" name="wnck_tasklist_set_icon_loader ()" link="WnckTasklist.html#wnck-tasklist-set-icon-loader" since="2.2"/>
+    <keyword type="function" name="wnck_tasklist_get_size_hint_list ()" link="WnckTasklist.html#wnck-tasklist-get-size-hint-list"/>
+    <keyword type="struct" name="struct WnckTasklist" link="WnckTasklist.html#WnckTasklist-struct"/>
+    <keyword type="enum" name="enum WnckTasklistGroupingType" link="WnckTasklist.html#WnckTasklistGroupingType"/>
+    <keyword type="property" name="The “fade-loop-time” style property" link="WnckTasklist.html#WnckTasklist--s-fade-loop-time"/>
+    <keyword type="property" name="The “fade-max-loops” style property" link="WnckTasklist.html#WnckTasklist--s-fade-max-loops"/>
+    <keyword type="property" name="The “fade-opacity” style property" link="WnckTasklist.html#WnckTasklist--s-fade-opacity"/>
+    <keyword type="property" name="The “fade-overlay-rect” style property" link="WnckTasklist.html#WnckTasklist--s-fade-overlay-rect"/>
+    <keyword type="function" name="wnck_xid_read_resource_usage ()" link="libwnck-Resource-Usage-of-X-Clients.html#wnck-xid-read-resource-usage" since="2.6"/>
+    <keyword type="function" name="wnck_pid_read_resource_usage ()" link="libwnck-Resource-Usage-of-X-Clients.html#wnck-pid-read-resource-usage" since="2.6"/>
+    <keyword type="struct" name="struct WnckResourceUsage" link="libwnck-Resource-Usage-of-X-Clients.html#WnckResourceUsage" since="2.6"/>
+    <keyword type="function" name="wnck_set_default_icon_size ()" link="libwnck-Icons-Functions.html#wnck-set-default-icon-size" since="2.4.6"/>
+    <keyword type="function" name="wnck_set_default_mini_icon_size ()" link="libwnck-Icons-Functions.html#wnck-set-default-mini-icon-size" since="2.4.6"/>
+    <keyword type="macro" name="WNCK_DEFAULT_ICON_SIZE" link="libwnck-Icons-Functions.html#WNCK-DEFAULT-ICON-SIZE:CAPS"/>
+    <keyword type="macro" name="WNCK_DEFAULT_MINI_ICON_SIZE" link="libwnck-Icons-Functions.html#WNCK-DEFAULT-MINI-ICON-SIZE:CAPS"/>
+    <keyword type="function" name="wnck_set_client_type ()" link="libwnck-Miscellaneous-Functions.html#wnck-set-client-type" since="2.14"/>
+    <keyword type="function" name="wnck_shutdown ()" link="libwnck-Miscellaneous-Functions.html#wnck-shutdown" since="3.4"/>
+    <keyword type="enum" name="enum WnckClientType" link="libwnck-Miscellaneous-Functions.html#WnckClientType" since="2.14"/>
+    <keyword type="macro" name="WNCK_MAJOR_VERSION" link="libwnck-Version-Information.html#WNCK-MAJOR-VERSION:CAPS" since="3.0"/>
+    <keyword type="macro" name="WNCK_MINOR_VERSION" link="libwnck-Version-Information.html#WNCK-MINOR-VERSION:CAPS" since="3.0"/>
+    <keyword type="macro" name="WNCK_MICRO_VERSION" link="libwnck-Version-Information.html#WNCK-MICRO-VERSION:CAPS" since="3.0"/>
+    <keyword type="macro" name="WNCK_CHECK_VERSION()" link="libwnck-Version-Information.html#WNCK-CHECK-VERSION:CAPS" since="3.0"/>
+  </functions>
+</book>

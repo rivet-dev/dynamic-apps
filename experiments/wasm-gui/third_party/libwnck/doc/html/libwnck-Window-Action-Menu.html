@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: WnckActionMenu</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="widgets.html" title="Part IV. Libwnck Widgets">
+<link rel="prev" href="widgets.html" title="Part IV. Libwnck Widgets">
+<link rel="next" href="WnckPager.html" title="WnckPager">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#libwnck-Window-Action-Menu.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#libwnck-Window-Action-Menu.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces"> <span class="dim">|</span> 
+                  <a href="#libwnck-Window-Action-Menu.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties"> <span class="dim">|</span> 
+                  <a href="#libwnck-Window-Action-Menu.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="widgets.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="WnckPager.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libwnck-Window-Action-Menu"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libwnck-Window-Action-Menu.top_of_page"></a>WnckActionMenu</span></h2>
+<p>WnckActionMenu — a menu widget, used to manipulate a window.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody><tr>
+<td class="function_type">
+<a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libwnck-Window-Action-Menu.html#wnck-action-menu-new" title="wnck_action_menu_new ()">wnck_action_menu_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a></td>
+<td class="property_name"><a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu--window" title="The “window” property">window</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr></tbody>
+</table></div>
+</div>
+<a name="WnckActionMenu"></a><div class="refsect1">
+<a name="libwnck-Window-Action-Menu.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu-struct" title="struct WnckActionMenu">WnckActionMenu</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+    <span class="lineart">╰──</span> <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GInitiallyUnowned">GInitiallyUnowned</a>
+        <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkWidget.html">GtkWidget</a>
+            <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkContainer.html">GtkContainer</a>
+                <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkMenuShell.html">GtkMenuShell</a>
+                    <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkMenu.html">GtkMenu</a>
+                        <span class="lineart">╰──</span> WnckActionMenu
+</pre>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+WnckActionMenu implements
+ AtkImplementorIface and  <a href="http://developer.gnome.org/gtk2/GtkBuildable.html">GtkBuildable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.description"></a><h2>Description</h2>
+<p>A <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a> is a menu containing items to manipulate a window.
+Relevant actions are displayed in the menu, and updated if the window state
+changes. The content of this menu is synchronized with the similar menu
+available in Metacity.</p>
+<div class="note">
+<p>
+If there is only one workspace with a viewport, the <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a> will
+contain items to move the window in the viewport as if the viewport feature
+was used to create workspaces. This is useful since viewport is generally
+used as an alternative way to create virtual desktops.
+ </p>
+<p>
+The <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a> does not support moving the window in the viewport if
+there are multiple workspaces on the screen: those two notions are so
+similar that having both at the same time would result in a menu which would
+be confusing to the user.
+ </p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="wnck-action-menu-new"></a><h3>wnck_action_menu_new ()</h3>
+<pre class="programlisting"><a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+wnck_action_menu_new (<em class="parameter"><code><a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> *window</code></em>);</pre>
+<p>Creates a new <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a>. The <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a> will be filled with menu
+items for window operations on <em class="parameter"><code>window</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.5.2.12.2.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> for which a menu will be created.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.5.2.12.2.6"></a><h4>Returns</h4>
+<p> a newly created <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a>.</p>
+<p></p>
+</div>
+<p class="since">Since 2.22</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="WnckActionMenu-struct"></a><h3>struct WnckActionMenu</h3>
+<pre class="programlisting">struct WnckActionMenu;</pre>
+<p>The <a class="link" href="libwnck-Window-Action-Menu.html#WnckActionMenu"><span class="type">WnckActionMenu</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="WnckActionMenu--window"></a><h3>The <code class="literal">“window”</code> property</h3>
+<pre class="programlisting">  “window”                   <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a></pre>
+<p>The window that will be manipulated through this menu.</p>
+<p>Flags: Read / Write / Construct Only</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Window-Action-Menu.see-also"></a><h2>See Also</h2>
+<p><a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a></p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

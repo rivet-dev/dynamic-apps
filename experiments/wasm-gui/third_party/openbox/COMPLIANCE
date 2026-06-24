@@ -1,0 +1,78 @@
+EWMH Compliance Document:
+==========================
+
+Listed below are all the NetWM (or EWM) hints decided upon on freedesktop.org 
+and Openbox's current level of compliance with the spec. Beside each hint is
+the version of the spec which Openbox is compliant up to for the hint.
+
+(
+ compliance :
+    - = none,
+    / = partial,
+    + = complete,
+    * = Openbox is compliant, but something else needs checking
+    ? = unknown
+)
+
++ _NET_SUPPORTED (1.3)
++ _NET_CLIENT_LIST (1.3)
++ _NET_NUMBER_OF_DESKTOPS (1.3)
++ _NET_DESKTOP_GEOMETRY (1.3)
+	Openbox doesn't support large desktops so these just match the
+	screen size.
++ _NET_DESKTOP_VIEWPORT (1.3)
+	Openbox doesn't support large desktops so these are just (0, 0).
++ _NET_CURRENT_DESKTOP (1.3)
++ _NET_DESKTOP_NAMES (1.3)
++ _NET_ACTIVE_WINDOW (1.3)
++ _NET_WORKAREA (1.3)
++ _NET_SUPPORTING_WM_CHECK (1.3)
++ _NET_VIRTUAL_ROOTS (1.3)
+	Openbox does not use virtual roots, so this is not needed.
++ _NET_DESKTOP_LAYOUT (1.3)
++ _NET_SHOWING_DESKTOP (1.3)
++ _NET_CLOSE_WINDOW (1.3)
++ _NET_MOVERESIZE_WINDOW (1.3)
++ _NET_WM_MOVERESIZE (1.3)
++ _NET_WM_NAME (1.3)
++ _NET_WM_VISIBLE_NAME (1.3)
++ _NET_WM_ICON_NAME (1.3)
++ _NET_WM_VISIBLE_ICON_NAME (1.3)
++ _NET_WM_DESKTOP (1.3)
++ _NET_WM_WINDOW_TYPE (1.3)
+	Openbox does not let windows change this hint after mapping.
++ _NET_WM_STATE (1.3)
++ _NET_WM_ALLOWED_ACTIONS (1.3)
++ _NET_WM_STRUT (1.3)
++ _NET_WM_STRUT_PARTIAL (1.3)
+	Openbox uses these to create per-monitor struts in Xinerama setups.
++ _NET_WM_ICON_GEOMETRY (1.3)
++ _NET_WM_ICON (1.3)
+- _NET_WM_PID (1.3)
+	Openbox does not currently kill processes.
+- _NET_WM_HANDLED_ICONS (1.3)
+	Openbox does not display icons for iconic windows.
++ _NET_WM_USER_TIME (1.3)
+- _NET_WM_USER_TIME_WINDOW (1.4)
+- _NET_WM_PING (1.3)
+	Openbox doesn't look for hung processes at this time.
++ _NET_FRAME_EXTENTS (1.3)
++ _NET_WM_STATE_DEMANDS_ATTENTION (1.3)
++ _NET_RESTACK_WINDOW (1.3)
++ _NET_WM_SYNC_REQUEST (1.3)
++ _NET_WM_FULL_PLACEMENT (1.4)
++ _NET_WM_MOVERESIZE_CANCEL (1.4)
++ _NET_REQUEST_FRAME_EXTENTS (1.3)
++ _NET_WM_ACTION_MOVE (1.3)
++ _NET_WM_ACTION_RESIZE (1.3)
++ _NET_WM_ACTION_MINIMIZE (1.3)
++ _NET_WM_ACTION_SHADE (1.3)
+- _NET_WM_ACTION_STICK (1.3)
+	Openbox does not do large desktops, so no sticky state is needed.
++ _NET_WM_ACTION_MAXIMIZE_HORZ (1.3)
++ _NET_WM_ACTION_MAXIMIZE_VERT (1.3)
++ _NET_WM_ACTION_FULLSCREEN (1.3)
++ _NET_WM_ACTION_CHANGE_DESKTOP (1.3)
++ _NET_WM_ACTION_CLOSE (1.3)
++ _NET_WM_ACTION_ABOVE (1.4?)
++ _NET_WM_ACTION_BELOW (1.4?)

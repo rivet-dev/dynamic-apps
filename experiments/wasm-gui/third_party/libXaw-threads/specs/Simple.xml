@@ -1,0 +1,252 @@
+<sect1 id="Simple_Widget">
+<title>Simple Widget</title>
+<!-- .XS -->
+<!-- 	Simple Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Simple widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;Xaw/Simple.h&gt;
+<indexterm><primary>Simple.h</primary></indexterm>
+Class Header file	&lt;Xaw/SimpleP.h&gt;
+<indexterm><primary>SimpleP.h</primary></indexterm>
+Class		simpleWidgetClass
+<indexterm><primary>simpleWidgetClass</primary></indexterm>
+Class Name	Simple
+<indexterm><primary>Simple widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Core
+<!-- .sp -->
+</literallayout>
+<para>
+<!-- .LP -->
+The Simple widget is not very useful by itself, as it has no semantics
+of its own.  It main purpose is to be used as a common superclass for
+the other <emphasis remap='I'>simple</emphasis> Athena widgets.  This widget adds six resources
+to the resource list provided by the Core widget and its superclasses.
+</para>
+<sect2 id='Simple::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Simple widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Simple widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Cm -->
+<!-- .Cu Bold -->
+<!-- .Cn Bold -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Hw -->
+<!-- .Ib Bold -->
+<!-- .Ix Bold -->
+<!-- .Mm -->
+<!-- .Pf Bold -->
+<!-- .Pb Bold -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+
+</para>
+</sect2>
+</sect1>

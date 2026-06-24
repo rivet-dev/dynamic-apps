@@ -1,0 +1,559 @@
+<sect1 id="Repeater_Widget">
+<title>Repeater Widget</title>
+<!-- .XS -->
+<!-- 	Repeater Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Repeater widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application header file	&lt;X11/Xaw/Repeater.h&gt;
+<indexterm><primary>Repeater.h</primary></indexterm>
+Class header file	&lt;X11/Xaw/RepeaterP.h&gt;
+<indexterm><primary>RepeaterP.h</primary></indexterm>
+Class	repeaterWidgetClass
+<indexterm><primary>repeaterWidgetClass</primary></indexterm>
+Class Name	Repeater
+<indexterm><primary>Repeater widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Command
+<!-- .sp -->
+</literallayout>
+<para>
+<!-- .LP -->
+The Repeater widget is a subclass of the Command widget; see the
+<link linkend='Command_Widget'>Command documentation</link>
+for details.  The difference is that the Repeater can call its
+registered callbacks repeatedly, at an increasing rate.  The default translation
+does so for the duration the user holds down pointer button 1 while the pointer
+is on the Repeater.
+</para>
+<sect2 id='Repeater::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Repeater widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Repeater widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>bitmap</entry>
+      <entry>Bitmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cornerRoundPercent</entry>
+      <entry>CornerRoundPercent</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>25</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>decay</entry>
+      <entry>Decay</entry>
+      <entry>Int</entry>
+      <entry></entry>
+      <entry>5</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>encoding</entry>
+      <entry>Encoding</entry>
+      <entry>UnsignedChar</entry>
+      <entry></entry>
+      <entry>XawTextEncoding8bit</entry>
+    </row>
+    <row>
+      <entry>flash</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>font</entry>
+      <entry>Font</entry>
+      <entry>XFontStruct</entry>
+      <entry></entry>
+      <entry>XtDefaultFont</entry>
+    </row>
+    <row>
+      <entry>fontSet</entry>
+      <entry>FontSet</entry>
+      <entry>XFontSet</entry>
+      <entry></entry>
+      <entry>XtDefaultFontSet</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic height + 2 * <function>internalHeight</function></entry>
+    </row>
+    <row>
+      <entry>highlightThickness</entry>
+      <entry>Thickness</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>2 (0 if Shaped)</entry>
+    </row>
+    <row>
+      <entry>initialDelay</entry>
+      <entry>Delay</entry>
+      <entry>Int</entry>
+      <entry></entry>
+      <entry>200</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>internalHeight</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>2</entry>
+    </row>
+    <row>
+      <entry>internalWidth</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>justify</entry>
+      <entry>Justify</entry>
+      <entry>Justify</entry>
+      <entry></entry>
+      <entry>XtJustifyCenter (center)</entry>
+    </row>
+    <row>
+      <entry>label</entry>
+      <entry>Label</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>name of widget</entry>
+    </row>
+    <row>
+      <entry>leftBitmap</entry>
+      <entry>LeftBitmap</entry>
+      <entry>Bitmap</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>minimumDelay</entry>
+      <entry>MinimumDelay</entry>
+      <entry>Int</entry>
+      <entry></entry>
+      <entry>10</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>repeatDelay</entry>
+      <entry>Delay</entry>
+      <entry>Int</entry>
+      <entry></entry>
+      <entry>50</entry>
+    </row>
+    <row>
+      <entry>resize</entry>
+      <entry>Resize</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Pointer</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>shapeStyle</entry>
+      <entry>ShapeStyle</entry>
+      <entry>ShapeStyle</entry>
+      <entry></entry>
+      <entry>Rectangle</entry>
+    </row>
+    <row>
+      <entry>startCallback</entry>
+      <entry>StartCallback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>stopCallback</entry>
+      <entry>StopCallback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>graphic width + 2 * <function>internalWidth</function></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+\" Resource Descriptions
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bm -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Cb -->
+<!-- .Cm -->
+<!-- .Cr -->
+<!-- .Cu -->
+<!-- .Cn -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>decay</function>
+    </term>
+    <listitem>
+      <para>
+The number of milliseconds that should be subtracted from each succeeding
+interval while the Repeater button is being held down until the interval
+has reached <function>minimumDelay</function> milliseconds.
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Le -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>flash</function>
+    </term>
+    <listitem>
+      <para>
+Whether or not to flash the Repeater button whenever the timer goes off.
+<!-- .Lf -->
+<!-- .Ls -->
+<!-- .Lg -->
+<!-- .Hw -->
+<!-- .Ht -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>initialDelay</function>
+    </term>
+    <listitem>
+      <para>
+The number of milliseconds between the beginning of the Repeater button
+being held down and the first invocation of the <function>callback</function> function.
+<!-- .Ib -->
+<!-- .Ih -->
+<!-- .In -->
+<!-- .Ju -->
+<!-- .La -->
+<!-- .Ll -->
+<!-- .Mm -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>minimumDelay</function>
+    </term>
+    <listitem>
+      <para>
+The minimum time between callbacks in milliseconds.
+<!-- .Pf -->
+<!-- .Pb -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>repeatDelay</function>
+    </term>
+    <listitem>
+      <para>
+The number of milliseconds between each callback after the first (minus an
+increasing number of <function>decay</function>s).
+<!-- .Re -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Ss -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>startCallback</function>
+    </term>
+    <listitem>
+      <para>
+The list of functions to invoke by the <function>start</function> action (typically
+when the Repeater button is first pressed).  The callback data parameter
+is set to NULL.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>stopCallback</function>
+    </term>
+    <listitem>
+      <para>
+The list of functions to invoke by the <function>stop</function> action (typically
+when the Repeater button is released).  The callback data parameter
+is set to NULL.
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Repeater_Actions">
+<title>Repeater Actions</title>
+<indexterm><primary>Repeater widget</primary><secondary>actions</secondary></indexterm>
+<para>
+<!-- .LP -->
+The Repeater widget supports the following actions beyond those of the Command
+button:
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>start</function>()
+    </term>
+    <listitem>
+      <para>
+This invokes the functions on the <function>startCallback</function> and <function>callback</function> lists
+and sets a timer to go off in <function>initialDelay</function> milliseconds.  The timer
+will cause the <function>callback</function> functions to be invoked with increasing
+frequency until the <function>stop</function> action occurs.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>stop</function>()
+    </term>
+    <listitem>
+      <para>
+This invokes the functions on the <function>stopCallback</function> list and prevents any
+further timers from occurring until the next <function>start</function> action.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+<indexterm><primary>Repeater widget</primary><secondary>translation bindings</secondary></indexterm>
+The following are the default translation bindings used by the
+Repeater widget:
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA .5i 2.25i -->
+<!-- .ta .5i 2.25i -->
+	&lt;EnterWindow&gt;:	highlight(&#x2006;)
+	&lt;LeaveWindow&gt;:	unhighlight(&#x2006;)
+	&lt;Btn1Down&gt;:	set(&#x2006;) start(&#x2006;)
+	&lt;Btn1Up&gt;:	stop(&#x2006;) unset(&#x2006;)
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+
+</para>
+</sect2>
+</sect1>

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+if test -n "$1"; then
+    echo "Syntax: openbox-kde-session"
+    echo
+    echo "See the openbox-kde-session(1) manpage for help."
+  exit
+fi
+
+# Set the prefix for the menu layout to use
+export XDG_MENU_PREFIX="kde-4-"
+
+# Clean up after GDM
+xprop -root -remove _NET_NUMBER_OF_DESKTOPS \
+      -remove _NET_DESKTOP_NAMES \
+      -remove _NET_CURRENT_DESKTOP 2> /dev/null
+
+# Run KDE with Openbox as its window manager
+export KDEWM="@bindir@/openbox"
+exec startkde "$@"

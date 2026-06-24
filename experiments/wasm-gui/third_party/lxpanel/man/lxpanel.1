@@ -1,0 +1,200 @@
+'\" t
+.\"     Title: LXPANEL
+.\"    Author: Ying-Chun Liu
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: March  2, 2008
+.\"    Manual: http://LXDE.org
+.\"    Source: http://LXDE.org
+.\"  Language: English
+.\"
+.TH "LXPANEL" "1" "February, 2016" "http://LXDE\&.org" "http://LXDE.org"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+lxpanel \- a lightweight GTK2\-based panel for the LXDE desktop\&.
+.SH "SYNOPSIS"
+.HP \w'\fBlxpanel\fR\ 'u
+\fBlxpanel\fR
+[ options ]
+.SH "DESCRIPTION"
+.PP
+This manual page documents briefly the
+\fBlxpanel\fR
+command\&.
+.PP
+\fBlxpanel\fR
+is a program that provides a panel for the desktop, usually for LXDE\&. It is a lightweight GTK+ 2\&.x based desktop panel\&.
+.PP
+.PP
+\fBFeatures\fR
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+User\-friendly application menu automatically generated from
+\&.desktop
+files on the system\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Launcher bar (small icons clicked to launch apps)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Task bar supporting ICCCM/EWMH `urgency\*(Aq hint (Pidgin IM windows can flash on new incoming messages)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Notification area (system tray)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Digital clock
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Run dialog (type command to run, without opening a terminal )
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Net status icon plug\-in (optional)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Volume control plug\-in (optional)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+lxpanelctl, an external controller lets you control lxpanel in other programs\&. For example, "lxpanelctl run" will show the Run dialog in lxpanel, and "lxpanelctl menu" will show the application menu\&. This is useful in key bindings provided by window managers\&.
+.RE
+.sp
+.SH "OPTIONS"
+.PP
+This program follows the usual
+GNU
+command line syntax, with long options starting with two dashes (`\-\*(Aq)\&. A summary of options is included below\&.
+.PP
+\fB\-h\fR \fB\-\-help\fR
+.RS 4
+Print help on the options\&.
+.RE
+.PP
+\fB\-v\fR \fB\-\-version\fR
+.RS 4
+Print the program version\&.
+.RE
+.PP
+\fB\-p \fR\fB\fINAME\fR\fR, \fB\-\-profile \fR\fB\fINAME\fR\fR
+.RS 4
+Set the profile to be loaded\&.
+.RE
+.SH "FILES"
+.PP
+~/\&.config/lxpanel/\fIPROFILE\fR/
+.RS 4
+config files directory, can be edited by preference dialog\&.
+.RE
+.PP
+~/\&.config/lxpanel/\fIPROFILE\fR/gtkrc
+.RS 4
+optional GTK+ 2.0 RC file to alterate appearance, can be used to create custom panel style\&.
+.RE
+.SH "SEE ALSO"
+.BR lxpanelctl (1)
+.SH "AUTHOR"
+.PP
+The \fBlxpanel\fR is written by great LXDE developers team under lead of
+Hong Jen Yee (PCMan) since 2006.
+.PP
+This manual page was written by paulliu (\fBYing\-Chun Liu\fR)
+<grandpaul@gmail\&.com> for the Debian system (but may be used by others)\&.
+Permission is granted to copy, distribute and/or modify this document under the terms of the
+GNU General Public License, Version 2 any later version published by the Free Software Foundation\&.
+.PP
+On Debian systems, the complete text of the GNU General Public License can be found in /usr/share/common\-licenses/GPL-2\&.
+.PP
+Updated by Andriy Grytsenko (LStranger)\&.
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2008 paulliu
+.br
+Copyright \(co 2016 LStranger
+.br

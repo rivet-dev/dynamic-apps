@@ -1,0 +1,57 @@
+XSETDEVICEMODE(libmansuffix)
+============================
+
+NAME
+----
+
+   XSetDeviceMode - change the mode of a device
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput.h>
+
+   XSetDeviceMode( Display *display,
+                   XDevice *device,
+                   int mode);
+
+   display
+          Specifies the connection to the X server.
+
+   device
+          Specifies the device whose mode is to be changed.
+
+   mode
+          Specifies the mode. You can pass Absolute, or Relative.
+
+DESCRIPTION
+-----------
+
+   The XSetDeviceMode request changes the mode of an input device
+   that is capable of reporting either absolute positional
+   information or relative motion information. Not all input
+   devices are capable of reporting motion data, and not all are
+   capable of changing modes from Absolute to Relative.
+
+   XSetDeviceMode can generate a BadDevice or BadMode error.
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The specified device
+          does not exist or has not been opened by this client via
+          XOpenInputDevice. This error may also occur if some
+          other client has caused the specified device to become
+          the X keyboard or X pointer device via the
+          XChangeKeyboardDevice or XChangePointerDevice requests.
+
+   BadMatch
+          This error may occur if an XSetDeviceMode request is
+          made specifying a device that has no valuators and
+          reports no axes of motion.
+
+   BadMode
+          An invalid mode was specified. This error will also be
+          returned if the specified device is not capable of
+          supporting the XSetDeviceMode request.

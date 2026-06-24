@@ -1,0 +1,288 @@
+'\" t
+.\"     Title: XTest
+.\"    Author: Kieron Drake
+.\" Generator: DocBook XSL Stylesheets vsnapshot_9276 <http://docbook.sf.net/>
+.\"      Date: <pubdate>6 June 2007</pubdate>
+.\"    Manual: XTST FUNCTIONS
+.\"    Source: __xorgversion__
+.\"  Language: English
+.\"
+.TH "XTEST" "__libmansuffix__" "<pubdate>6 June 2007</pubdate>" "__xorgversion__" "XTST FUNCTIONS"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+XTestQueryExtension, XTestCompareCursorWithWindow, XTestCompareCurrentCursorWithWindow, XTestFakeKeyEvent, XTestFakeButtonEvent, XTestFakeMotionEvent, XTestFakeRelativeMotionEvent, XTestGrabControl, XTestSetGContextOfGC, XTestSetVisualIDOfVisual, XTestDiscard \- XTest extension functions
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+cc [ flag \&.\&.\&. ] file \&.\&.\&. \-lXtst  [ library \&.\&.\&. ]
+.fi
+.ft
+.sp
+.ft B
+.nf
+#include <X11/extensions/XTest\&.h>
+.fi
+.ft
+.HP \w'Bool\ XTestQueryExtension('u
+.BI "Bool XTestQueryExtension(" "display" ", " "event_base_return" ", " "error_base_return" ", " "major_version_return" ", " "minor_version_return" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ int *event_base_return;
+ int *error_base_return;
+ int *major_version_return;
+ int *minor_version_return;
+.fi
+.ft
+.HP \w'Bool\ XTestCompareCursorWithWindow('u
+.BI "Bool XTestCompareCursorWithWindow(" "display" ", " "window" ", " "cursor" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ Window window;
+ Cursor cursor;
+.fi
+.ft
+.HP \w'Bool\ XTestCompareCurrentCursorWithWindow('u
+.BI "Bool XTestCompareCurrentCursorWithWindow(" "display" ", " "window" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ Window window;
+.fi
+.ft
+.HP \w'int\ XTestFakeKeyEvent('u
+.BI "int XTestFakeKeyEvent(" "display" ", " "keycode" ", " "is_press" ", " "delay" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ unsigned int keycode;
+ Bool is_press;
+ unsigned long delay;
+.fi
+.ft
+.HP \w'int\ XTestFakeButtonEvent('u
+.BI "int XTestFakeButtonEvent(" "display" ", " "button" ", " "is_press" ", " "delay" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ unsigned int button;
+ Bool is_press;
+ unsigned long delay;
+.fi
+.ft
+.HP \w'int\ XTestFakeMotionEvent('u
+.BI "int XTestFakeMotionEvent(" "display" ", " "screen_number" ", " "x" ", " "y" ", " "delay" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ int screen_number;
+ int x, y;
+ unsigned long delay;
+.fi
+.ft
+.HP \w'int\ XTestFakeRelativeMotionEvent('u
+.BI "int XTestFakeRelativeMotionEvent(" "display" ", " "screen_number" ", " "x" ", " "y" ", " "delay" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ int screen_number;
+ int x, y;
+ unsigned long delay;
+.fi
+.ft
+.HP \w'int\ XTestGrabControl('u
+.BI "int XTestGrabControl(" "display" ", " "impervious" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+ Bool impervious;
+.fi
+.ft
+.HP \w'void\ XTestSetGContextOfGC('u
+.BI "void XTestSetGContextOfGC(" "gc" ", " "gid" ");"
+.sp
+.ft B
+.nf
+ GC gc;
+ GContext gid;
+.fi
+.ft
+.HP \w'void\ XTestSetVisualIDOfVisual('u
+.BI "void XTestSetVisualIDOfVisual(" "visual" ", " "visualid" ");"
+.sp
+.ft B
+.nf
+ Visual *visual;
+ VisualID visualid;
+.fi
+.ft
+.HP \w'Status\ XTestDiscard('u
+.BI "Status XTestDiscard(" "display" ");"
+.sp
+.ft B
+.nf
+ Display *display;
+.fi
+.ft
+.SH "DESCRIPTION"
+.PP
+This extension is a minimal set of client and server extensions required to completely test the X11 server with no user intervention\&. This extension is not intended to support general journaling and playback of user actions\&.
+.PP
+The functions provided by this extension fall into two groups:
+.PP
+\fBClient Operations\fR
+.RS 4
+These routines manipulate otherwise hidden client\-side behavior\&. The actual implementation will depend on the details of the actual language binding and what degree of request buffering, GContext caching, and so on, is provided\&. In the C binding, routines are provided to access the internals of two opaque data structures \(em
+GCs and
+Visuals \(em and to discard any requests pending within the output buffer of a connection\&. The exact details can be expected to differ for other language bindings\&.
+.RE
+.PP
+\fBServer Requests\fR
+.RS 4
+The first of these requests is similar to that provided in most extensions: it allows a client to specify a major and minor version number to the server and for the server to respond with major and minor versions of its own\&. The remaining two requests allow the following:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Access to an otherwise
+\fIwrite\-only\fR
+server resource: the cursor associated with a given window
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Perhaps most importantly, limited synthesis of input device events, almost as if a cooperative user had moved the pointing device or pressed a key or button\&.
+.RE
+.RE
+.PP
+All XTEST extension functions and procedures, and all manifest constants and macros, will start with the string
+\fIXTest\fR\&. All operations are classified as server/client (Server) or client\-only (Client)\&.
+.PP
+\fBXTestQueryExtension\fR
+returns
+True
+if the specified display supports the XTEST extension, else
+False\&. If the extension is supported, *event_base would be set to the event number for the first event for this extension and *error_base would be set to the error number for the first error for this extension\&. As no errors or events are defined for this version of the extension, the values returned here are not defined (nor useful)\&. If the extension is supported, *major_version and *minor_version are set to the major and minor version numbers of the extension supported by the display\&. Otherwise, none of the arguments are set\&.
+.PP
+If the extension is supported,
+\fBXTestCompareCursorWithWindow\fR
+performs a comparison of the cursor whose ID is specified by cursor (which may be
+\fBNone\fR) with the cursor of the window specified by window returning
+True
+if they are the same and
+False
+otherwise\&. If the extension is not supported, then the request is ignored and zero is returned\&.
+.PP
+If the extension is supported,
+\fBXTestCompareCurrentCursorWithWindow\fR
+performs a comparison of the current cursor with the cursor of the specified window returning
+True
+if they are the same and
+False
+otherwise\&. If the extension is not supported, then the request is ignored and zero is returned\&.
+.PP
+If the extension is supported,
+\fBXTestFakeKeyEvent\fR
+requests the server to simulate either a
+\fBKeyPress\fR
+(if is_press is
+True) or a
+\fBKeyRelease\fR
+(if is_press is
+False) of the key with the specified keycode; otherwise, the request is ignored\&.
+.PP
+If the extension is supported, the simulated event will not be processed until delay milliseconds after the request is received (if delay is
+\fBCurrentTime\fR, then this is interpreted as no delay at all)\&. No other requests from this client will be processed until this delay, if any, has expired and subsequent processing of the simulated event has been completed\&.
+.PP
+If the extension is supported,
+\fBXTestFakeButtonEvent\fR
+requests the server to simulate either a
+\fBButtonPress\fR
+(if is_press is
+True) or a
+\fBButtonRelease\fR
+(if is_press is
+False) of the logical button numbered by the specified button; otherwise, the request is ignored\&.
+.PP
+If the extension is supported, the simulated event will not be processed until delay milliseconds after the request is received (if delay is
+\fBCurrentTime\fR, then this is interpreted as no delay at all)\&. No other requests from this client will be processed until this delay, if any, has expired and subsequent processing of the simulated event has been completed\&.
+.PP
+If the extension is supported,
+\fBXTestFakeMotionEvent\fR
+requests the server to simulate a movement of the pointer to the specified position (x, y) on the root window of screen_number; otherwise, the request is ignored\&. If screen_number is \-1, the current screen (that the pointer is on) is used\&.
+.PP
+If the extension is supported, the simulated event will not be processed until delay milliseconds after the request is received (if delay is
+\fBCurrentTime\fR, then this is interpreted as no delay at all)\&. No other requests from this client will be processed until this delay, if any, has expired and subsequent processing of the simulated event has been completed\&.
+.PP
+If the extension is supported,
+\fBXTestFakeRelativeMotionEvent\fR
+requests the server to simulate a movement of the pointer by the specified offsets (x, y) relative to the current pointer position on screen_number; otherwise, the request is ignored\&. If screen_number is \-1, the current screen (that the pointer is on) is used\&.
+.PP
+If the extension is supported, the simulated event will not be processed until delay milliseconds after the request is received (if delay is
+\fBCurrentTime\fR, then this is interpreted as no delay at all)\&. No other requests from this client will be processed until this delay, if any, has expired and subsequent processing of the simulated event has been completed\&.
+.PP
+If impervious is
+True, then the executing client becomes impervious to server grabs\&. If impervious is
+False, then the executing client returns to the normal state of being susceptible to server grabs\&.
+.PP
+\fBXTestSetGContextOfGC\fR
+sets the GContext within the opaque datatype referenced by gc to be that specified by gid\&.
+.PP
+\fBXTestSetVisualIDOfVisual\fR
+sets the VisualID within the opaque datatype referenced by visual to be that specified by visualid\&.
+.PP
+\fBXTestDiscard\fR
+discards any requests within the output buffer for the specified display\&. It returns
+True
+if any requests were discarded; otherwise, it returns
+False\&.
+.SH "RETURN VALUES"
+.PP
+All routines that have return type Status will return nonzero for success and zero for failure\&. Even if the XTEST extension is supported, the server may withdraw such facilities arbitrarily; in which case they will subsequently return zero\&.
+.SH "AUTHOR"
+.PP
+\fBKieron Drake\fR
+.br
+UniSoft Ltd\&.
+.RS 4
+Author.
+.RE

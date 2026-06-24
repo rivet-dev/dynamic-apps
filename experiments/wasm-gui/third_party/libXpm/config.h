@@ -91,7 +91,7 @@
 #define STDC_HEADERS 1
 
 /* Define to 1 if you want to use the gettext() function. */
-/* #undef USE_GETTEXT */
+#define USE_GETTEXT 1
 
 /* Version number of package */
 #define VERSION "3.5.17"

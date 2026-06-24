@@ -1,0 +1,78 @@
+XDEVICEBELL(libmansuffix)
+=========================
+
+NAME
+----
+
+   XDeviceBell - ring a bell on a device supported through the
+   input extension
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput.h>
+
+   Status XDeviceBell( Display *display,
+                       XDevice *device,
+                       XID feedbackclass,
+                       XID feedbackid,
+                       int percent);
+   display
+          Specifies the connection to the X server.
+
+   device
+          Specifies the device with which the bell is associated.
+
+   feedbackclass
+          Specifies the class of the feedback with which the bell
+          is associated.
+
+   feedbackid
+          Specifies the id of the feedback with which the bell is
+          associated.
+
+   percent
+          Specifies the volume in the range -100 to 100 at which
+          the bell should be rung.
+
+DESCRIPTION
+-----------
+
+   The XDeviceBell request causes the server to ring a bell on the
+   specified feedback of the specified device, if possible. The
+   specified volume is relative to the base volume for the bell.
+   If an invalid device is specified, a BadDevice error will be
+   returned. The feedbackclass and feedbackid parameters contain
+   values returned by an XGetFeedbackControl request and uniquely
+   identify the bell to ring. If a feedbackclass is specified that
+   does not support a bell, or if a nonexistent feedbackid is
+   specified, or a percent value is specified that is not in the
+   range -100 to 100, a BadValue error will be returned.
+
+   The volume at which the bell is rung when the percent argument
+   is nonnegative is: base - [(base * percent) / 100] + percent
+
+   The volume at which the bell rings when the percent argument is
+   negative is: base + [(base * percent) / 100]
+
+   To change the base volume of the bell, use
+   XChangeFeedbackControl.
+
+   XDeviceBell can generate a BadDevice or a BadValue error.
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The specified device
+          does not exist, or has not been opened by this client
+          via XOpenInputDevice.
+
+   BadValue
+          An invalid feedbackclass, feedbackid, or percent value
+          was specified.
+
+SEE ALSO
+--------
+
+   XChangeFeedbackControl(libmansuffix), XBell(libmansuffix)

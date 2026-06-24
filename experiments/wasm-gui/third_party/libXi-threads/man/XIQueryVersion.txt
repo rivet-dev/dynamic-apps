@@ -1,0 +1,84 @@
+XIQUERYVERSION(libmansuffix)
+============================
+
+NAME
+----
+
+   XIQueryVersion - announce and query the support XI2 version.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   Status XIQueryVersion( Display *display,
+                          int *major_version_inout,
+                          int *minor_version_inout);
+   
+   display
+          Specifies the connection to the X server.
+
+   major_version_inout
+          Specifies the client's supported XI2 version, and
+          returns the server's supported version.
+
+   minor_version_inout
+          Specifies the client's supported XI2 version, and
+          returns the server's supported version.
+
+DESCRIPTION
+-----------
+
+   XIQueryVersion announces the client's supported XI2 version to
+   the server and returns server's supported X Input version. Clients 
+   are required to use XIQueryVersion instead of XGetExtensionVersion 
+   if they use XI2 calls. The server may treat a client differently 
+   depending on the supported version announced by the client.
+   The major_version_inout must be 2 or greater, otherwise a BadValue 
+   error occurs.
+
+   If the server does not support XI2, XIQueryVersion returns BadRequest 
+   to the client. Otherwise, XIQueryVersion returns Success. In both 
+   cases major_version_inout and minor_version_inout are set to the 
+   server's supported version.
+
+   If the client has previously called XIQueryVersion, then the result
+   depends on the previously requested version and the currently
+   requested version.
+
+   If either the previous or current requested versions is less than
+   2.2, or if the requested major version numbers do not match, then
+   consecutive calls to XIQueryVersion by the same client always
+   return the first returned major.minor version. If the client
+   requests a version lower than the first returned major.minor
+   version in a subsequent call, a BadValue error occurs.
+
+   If all of the requested versions are 2.2 or greater, then
+   consecutive calls to XIQueryVersion by the same client with the
+   same major version will return the requested version, but the server
+   will operate according to the highest requested version number or
+   the highest supported version, whichever is lower.
+
+   XIQueryVersion can generate a BadValue error.
+
+EXAMPLES
+--------
+
+        int rc;
+        int major = 2;
+        int minor = 0;
+
+        rc = XIQueryVersion(dpy, &major, &minor);
+        if (rc == Success)
+            printf("XI2 supported. (%d.%d)\n", major, minor);
+        else if (rc == BadRequest)
+            printf("No XI2 support. (%d.%d only)\n", major, minor);
+        else
+            printf("Internal error\n");
+
+DIAGNOSTICS
+-----------
+
+   BadValue
+          A value is outside of the permitted range.
+

@@ -1,0 +1,108 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included
+.\" in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+.\" OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealing in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtGet-Selection-Value XtGet-Selection-Values wid-get
+.na
+.TH XtGetSelectionValue __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtGetSelectionValue, XtGetSelectionValues \- obtain selection values
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtGetSelectionValue(Widget \fIw\fP,
+Atom \fIselection\fP,
+Atom \fItarget\fP,
+XtSelectionCallbackProc \fIcallback\fP,
+XtPointer \fIclient_data\fP, Time \fItime\fP);
+.HP
+void XtGetSelectionValues(Widget \fIw\fP,
+Atom \fIselection\fP,
+Atom *\fItargets\fP, int \fIcount\fP,
+XtSelectionCallbackProc \fIcallback\fP,
+XtPointer *\fIclient_data\fP, Time \fItime\fP);
+.SH ARGUMENTS
+.IP \fIcallback\fP 1i
+Specifies the callback procedure that is to be called when the selection value has been obtained.
+.IP \fIclient_data\fP 1i
+Specifies the argument that is to be passed to the specified procedure
+when it is called.
+.IP \fIclient_data\fP 1i
+Specifies the client data (one for each target type)
+that is passed to the callback procedure when it is called for that target.
+.IP \fIcount\fP 1i
+Specifies the length of the targets and client_data lists.
+.IP \fIselection\fP 1i
+Specifies the particular selection desired (that is, primary or secondary).
+.IP \fItarget\fP 1i
+Specifies the type of the information that is needed about the selection.
+.IP \fItargets\fP 1i
+Specifies the types of information that is needed about the selection.
+.IP \fItime\fP 1i
+Specifies the timestamp that indicates when the selection value is desired.
+.IP \fIw\fP 1i
+Specifies the widget that is making the request.
+.SH DESCRIPTION
+The
+.B XtGetSelectionValue
+function requests the value of the selection that has been converted to
+the target type.
+The specified callback will be called some time after
+.B XtGetSelectionValue
+is called;
+in fact, it may be called before or after
+.B XtGetSelectionValue
+returns.
+.LP
+The
+.B XtGetSelectionValues
+function is similar to
+.B XtGetSelectionValue
+except that it takes a list of target types and a list of client data
+and obtains the current value of the selection converted to each of the targets.
+The effect is as if each target were specified in a separate call to
+.BR XtGetSelectionValue .
+The callback is called once with the corresponding client data for each target.
+.B XtGetSelectionValues
+does guarantee that all the conversions will use the same selection value
+because the ownership of the selection cannot change in the middle of the list,
+as would be when calling
+.B XtGetSelectionValue
+repeatedly.
+.SH "SEE ALSO"
+XtAppGetSelectionTimeout(__libmansuffix__),
+XtOwnSelection(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

@@ -1,0 +1,884 @@
+<sect1 id="Scrollbar_Widget">
+<title>Scrollbar Widget</title>
+
+<literallayout class="monospaced">
+Application header file     &lt;X11/Xaw/Scrollbar.h&gt;
+Class header file           &lt;X11/Xaw/ScrollbarP.h&gt;
+Class                       scrollbarWidgetClass
+Class Name                  Scrollbar
+Superclass                  Simple
+</literallayout>
+
+<para>
+A Scrollbar widget is a rectangle, called the <quote>canvas,</quote> on
+which another rectangle, the <quote>thumb,</quote> moves in one
+dimension, either vertically or horizontally.  A Scrollbar
+can be used alone, as a value generator, or it can be used
+within a composite widget (for example, a Viewport).  When a
+Scrollbar is used to move, or <quote>scroll,</quote> the contents of
+another widget, the size and the position of the thumb usually give
+feedback as to what portion of the other widget's contents
+are visible.
+</para>
+
+<para>
+Each pointer button invokes a specific action.  Pointer
+buttons 1 and 3 do not move the thumb automatically.
+Instead, they return the pixel position of the cursor on the
+scroll region.  When pointer button 2 is clicked, the thumb
+moves to the current pointer position.  When pointer button
+2 is held down and the pointer is moved, the thumb follows
+the pointer.
+</para>
+
+<para>
+The pointer cursor in the scroll region changes depending on the current
+action.  When no pointer button is pressed, the cursor appears as a
+double-headed arrow that points in the direction that scrolling can
+occur.  When pointer button 1 or 3 is pressed, the cursor appears as a
+single-headed arrow that points in the logical direction that the thumb
+will move.  When pointer button 2 is pressed, the cursor
+appears as an arrow that points to the top or the left of the thumb.
+</para>
+
+<para>
+When the user scrolls, the application receives notification
+through callback procedures.  For both discrete scrolling actions, the
+callback returns the Scrollbar widget, the client_data, and the pixel
+position of the pointer when the button was released.  For continuous
+scrolling, the callback routine returns the scroll bar widget, the
+client data, and the current relative position of the thumb.  When the
+thumb is moved using pointer button 2, the callback procedure is invoked
+continuously.  When either button 1 or 3 is pressed, the callback
+procedure is invoked only when the button is released and the client
+callback procedure is responsible for moving the thumb.
+</para>
+
+<sect2 id='Scrollbar::Resources'>
+<title>Resources</title>
+
+<para>
+When creating a Scrollbar widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>cursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>None</entry>
+    </row>
+    <row>
+      <entry>cursorName</entry>
+      <entry>Cursor</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>foreground</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>depends on orientation</entry>
+    </row>
+    <row>
+      <entry>insensitiveBorder</entry>
+      <entry>Insensitive</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>international</entry>
+      <entry>International</entry>
+      <entry>Boolean</entry>
+      <entry>C</entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>jumpProc</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>length</entry>
+      <entry>Length</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>minimumThumb</entry>
+      <entry>MinimumThumb</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>7</entry>
+    </row>
+    <row>
+      <entry>orientation</entry>
+      <entry>Orientation</entry>
+      <entry>Orientation</entry>
+      <entry></entry>
+      <entry>XtorientVertical (vertical)</entry>
+    </row>
+    <row>
+      <entry>pointerColor</entry>
+      <entry>Foreground</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>pointerColorBackground</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>parent's Screen</entry>
+    </row>
+    <row>
+      <entry>scrollDCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_down_arrow</entry>
+    </row>
+    <row>
+      <entry>scrollHCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_h_double_arrow</entry>
+    </row>
+    <row>
+      <entry>scrollLCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_left_arrow</entry>
+    </row>
+    <row>
+      <entry>scrollProc</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>scrollRCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_right_arrow</entry>
+    </row>
+    <row>
+      <entry>scrollUCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_up_arrow</entry>
+    </row>
+    <row>
+      <entry>scrollVCursor</entry>
+      <entry>Cursor</entry>
+      <entry>Cursor</entry>
+      <entry></entry>
+      <entry>XC_sb_v_arrow</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>shown</entry>
+      <entry>Shown</entry>
+      <entry>Float</entry>
+      <entry></entry>
+      <entry>0.0</entry>
+    </row>
+    <row>
+      <entry>thickness</entry>
+      <entry>Thickness</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>14</entry>
+    </row>
+    <row>
+      <entry>thumb</entry>
+      <entry>Thumb</entry>
+      <entry>Bitmap</entry>
+      <entry></entry>
+      <entry>GreyPixmap</entry>
+    </row>
+    <row>
+      <entry>thumbProc</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>topOfThumb</entry>
+      <entry>TopOfThumb</entry>
+      <entry>Float</entry>
+      <entry></entry>
+      <entry>0.0</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>See below</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>depends on orientation</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>foreground</function>
+    </term>
+    <listitem>
+      <para>
+A pixel value which indexes the widget's colormap to derive the color
+used to draw the thumb.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>jumpProc</function>
+    </term>
+    <listitem>
+      <para>
+All functions on this callback list are called when the
+<function>NotifyThumb</function> action is invoked.  See
+<xref linkend="Scrollbar_Actions" /> for details.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>length</function>
+    </term>
+    <listitem>
+      <para>
+The height of a vertical scrollbar or the width of a horizontal scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>minimumThumb</function>
+    </term>
+    <listitem>
+      <para>
+The smallest size, in pixels, to which the thumb can shrink.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>orientation</function>
+    </term>
+    <listitem>
+      <para>
+The orientation is the direction that the thumb will be allowed to move.
+This value can be either <function>XtorientVertical</function> or
+<function>XtorientHorizontal</function>.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollDCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when scrolling backward in a vertical scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollHCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when a horizontal scrollbar is inactive.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollLCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when scrolling forward in a horizontal scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollProc</function>
+    </term>
+    <listitem>
+      <para>
+All functions on this callback list may be called when the
+<function>NotifyScroll</function> action is invoked.  See
+<xref linkend="Scrollbar_Actions" /> for details.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollRCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when scrolling backward in a horizontal scrollbar,
+or when thumbing a vertical scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollUCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when scrolling forward in a vertical scrollbar, or when
+thumbing a horizontal scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>scrollVCursor</function>
+    </term>
+    <listitem>
+      <para>
+This cursor is used when a vertical scrollbar is inactive.
+<!-- .Se -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>shown</function>
+    </term>
+    <listitem>
+      <para>
+This is the size of the thumb, expressed as a percentage (0.0 - 1.0)
+of the length of the scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>thickness</function>
+    </term>
+    <listitem>
+      <para>
+The width of a vertical scrollbar or the height of a horizontal scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>thumb</function>
+    </term>
+    <listitem>
+      <para>
+This pixmap is used to tile (or stipple) the thumb of the scrollbar.  If
+no tiling is desired, then set this resource to <function>None</function>.  This
+resource will accept either a bitmap or a pixmap that is the same depth
+as the window.  The resource converter for this resource constructs
+bitmaps from the contents of files.  (See <function>Converting Bitmaps</function> for
+details.)
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>topOfThumb</function>
+    </term>
+    <listitem>
+      <para>
+The location of the top of the thumb, as a percentage (0.0 - 1.0)
+of the length of the scrollbar.  This resource was called <function>top</function> in
+previous versions of the Athena widget set.  The name collided with the
+a Form widget constraint resource, and had to be changed.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="Scrollbar_Actions">
+<title>Scrollbar Actions</title>
+<para>
+<!-- .LP -->
+The actions supported by the Scrollbar widget are:
+</para>
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>StartScroll</function>(<emphasis remap='I'>value</emphasis>)
+    </term>
+    <listitem>
+      <para>
+The possible <emphasis remap='I'>values</emphasis> are Forward, Backward, or Continuous.
+This must be the first action to begin a new movement.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>NotifyScroll</function>(<emphasis remap='I'>value</emphasis>)
+    </term>
+    <listitem>
+      <para>
+The possible <emphasis remap='I'>values</emphasis> are Proportional or FullLength.  If the
+argument to StartScroll was Forward or Backward, NotifyScroll executes
+the <function>scrollProc</function> callbacks and passes either; the position of the
+pointer, if <emphasis remap='I'>value</emphasis> is Proportional, or the full length of the
+scroll bar, if <emphasis remap='I'>value</emphasis> is FullLength.  If the argument to
+StartScroll was Continuous, NotifyScroll returns without executing any
+callbacks.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>EndScroll</function>(&#x200A;)
+    </term>
+    <listitem>
+      <para>
+This must be the last action after a movement is complete.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>MoveThumb</function>(&#x200A;)
+    </term>
+    <listitem>
+      <para>
+Repositions the Scrollbar's thumb to the current pointer location.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>NotifyThumb</function>(&#x200A;)\
+    </term>
+    <listitem>
+      <para>
+Calls the
+<!-- .PN jumpProc -->
+callbacks and passes the relative position of the
+pointer as a percentage of the scroll bar length.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+<para>
+The default bindings for Scrollbar are:
+<indexterm><primary>Scrollbar widget</primary><secondary>default translation table</secondary></indexterm>
+</para>
+
+<literallayout class="monospaced">
+     &lt;Btn1Down&gt;:     StartScroll(Forward)
+     &lt;Btn2Down&gt;:     StartScroll(Continuous) MoveThumb(&#x2006;) NotifyThumb(&#x2006;)
+     &lt;Btn3Down&gt;:     StartScroll(Backward)
+     &lt;Btn2Motion&gt;:     MoveThumb(&#x2006;) NotifyThumb(&#x2006;)
+     &lt;BtnUp&gt;:     NotifyScroll(Proportional) EndScroll(&#x2006;)
+</literallayout>
+
+<para>
+Examples of additional bindings a user might wish to specify in a
+resource file are:
+</para>
+
+<literallayout class="monospaced">
+*Scrollbar.Translations: \\
+     ~Meta&lt;Key&gt;space:     StartScroll(Forward) NotifyScroll(FullLength) \\n\\
+      Meta&lt;Key&gt;space:     StartScroll(Backward) NotifyScroll(FullLength) \\n\\
+          EndScroll(&#x2006;)
+</literallayout>
+
+</sect2>
+
+<sect2 id="Scrollbar_Callbacks">
+<title>Scrollbar Callbacks</title>
+<indexterm><primary>Scrollbar widget</primary><secondary>callbacks</secondary></indexterm>
+<para>
+<!-- .LP -->
+There are two callback lists provided by the Scrollbar widget.
+The procedural interface for these functions is described here.
+</para>
+
+<para>
+<!-- .LP -->
+The calling interface to the <function>scrollProc</function> callback procedure is:
+<indexterm significance="preferred"><primary>ScrollProc</primary></indexterm>
+</para>
+<funcsynopsis id='ScrollProc'>
+<funcprototype>
+  <funcdef>void<function> ScrollProc</function></funcdef>
+  <paramdef>Widget<parameter> scrollbar</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> position</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>scrollbar</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Scrollbar widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the client data.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>position</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies a pixel position in integer form.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The <function>scrollProc</function> callback is used for incremental scrolling
+and is called by the <function>NotifyScroll</function> action.
+The position argument is a signed quantity and should be cast to an int
+when used. Using the default button bindings, button 1 returns a
+positive value, and button 3 returns a negative value. In both cases,
+the magnitude of the value is the distance of the pointer in
+pixels from the top (or left) of the Scrollbar. The value will never
+be greater than the length of the Scrollbar.
+</para>
+
+<para>
+The calling interface to the <function>jumpProc</function> callback procedure is:
+</para>
+<indexterm significance="preferred"><primary>jumpProc</primary></indexterm>
+<funcsynopsis id='JumpProc'>
+<funcprototype>
+  <funcdef>void<function> JumpProc</function></funcdef>
+  <paramdef>Widget<parameter> scrollbar</parameter></paramdef>
+  <paramdef>XtPointer<parameter> client_data</parameter></paramdef>
+  <paramdef>XtPointer<parameter> percent_ptr</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>scrollbar</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the ID of the scroll bar widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>client_data</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the client data.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>percent_ptr</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the floating point position of the thumb (0.0 &#x2013; 1.0).
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+The <function>jumpProc</function> callback is used to implement smooth scrolling and
+is called by the <function>NotifyThumb</function> action.  Percent_ptr must be cast
+to a pointer to float before use; i.e.
+</para>
+
+<literallayout class="monospaced">
+     float percent = *(float*)percent_ptr;
+</literallayout>
+
+<para>
+With the default button bindings, button 2 moves the thumb interactively,
+and the <function>jumpProc</function> is called on each new position of the pointer,
+while the pointer button remains down.  The value specified by
+<emphasis remap='I'>percent_ptr</emphasis> is the current location of the thumb (from the top or
+left of the Scrollbar) expressed as a percentage of the length of the
+Scrollbar.
+</para>
+
+</sect2>
+
+<sect2 id="Convenience_Routines">
+<title>Convenience Routines</title>
+<para>
+<indexterm><primary>Scrollbar widget</primary><secondary>setting thumb values</secondary></indexterm>
+To set the position and length of a Scrollbar thumb, use
+<!-- .PN XawScrollbarSetThumb . -->
+<indexterm significance="preferred"><primary>XawScrollbarSetThumb</primary></indexterm>
+</para>
+<funcsynopsis id='XawScrollbarSetThumb'>
+<funcprototype>
+  <funcdef>void<function> XawScrollbarSetThumb</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>float<parameter> top</parameter></paramdef>
+  <paramdef>float<parameter> shown</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the Scrollbar widget.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>top</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the position of the top of the thumb as a fraction of the
+length of the Scrollbar.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>shown</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the length of the thumb as a fraction of the total length
+of the Scrollbar.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>
+<function>XawScrollbarThumb</function>
+moves the visible thumb to a new position (0.0 &#x2013; 1.0) and length (0.0 &#x2013; 1.0).
+Either the top or shown arguments can be specified as -1.0,
+in which case the current value is left unchanged.
+Values greater than 1.0 are truncated to 1.0.
+</para>
+
+<para>
+If called from <function>jumpProc</function>, <xref linkend='XawScrollbarSetThumb' xrefstyle='select: title'/> has no effect.
+</para>
+
+</sect2>
+
+<sect2 id="Setting_Float_Resources">
+<title>Setting Float Resources</title>
+<indexterm><primary>float resources</primary><secondary>setting</secondary></indexterm>
+<para>
+The <function>shown</function> and <function>topOfThumb</function> resources are of type
+<emphasis remap='I'>float</emphasis>.  These resources can be difficult to get into an
+argument list.  The reason is that C performs an automatic cast of
+the float value to an integer value, usually truncating the important
+information.  The following code fragment is one portable method of
+getting a float into an argument list.
+</para>
+<literallayout class="monospaced">
+     top = 0.5;
+     if (sizeof(float) &gt; sizeof(XtArgVal)) {
+     /*
+      * If a float is larger than an XtArgVal then pass this
+      * resource value by reference.
+      */
+          XtSetArg(args[0], XtNshown, &amp;top);
+     }
+     else {
+     /*
+      * Convince C not to perform an automatic conversion, which
+      * would truncate 0.5 to 0.
+      */
+          XtArgVal * l_top = (XtArgVal *) &amp;top;
+          XtSetArg(args[0], XtNshown, *l_top);
+     }
+</literallayout>
+
+</sect2>
+</sect1>

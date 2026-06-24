@@ -1,0 +1,229 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+	docbook-to-man $< > $@
+
+    
+	The docbook-to-man binary is found in the docbook-to-man package.
+	Please remember that if you create the nroff version in one of the
+	debian/rules file targets (such as build), you will need to include
+	docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhucpackage "<refentrytitle>OPENBOX</refentrytitle>">
+  <!ENTITY dhpackage   "openbox">
+]>
+
+<refentry>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>A minimalistic, highly configurable, next generation window
+      manager with extensive standards support.</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <arg><option>--help</option></arg>
+      <arg><option>--version</option></arg>
+      <arg><option>--replace</option></arg>
+      <arg><option>--reconfigure</option></arg>
+      <arg><option>--restart</option></arg>
+      <arg><option>--sm-disable</option></arg>
+      <arg><option>--sync</option></arg>
+      <arg><option>--debug</option></arg>
+      <arg><option>--debug-focus</option></arg>
+      <arg><option>--debug-xinerama</option></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>Openbox is minimalistic, highly configurable, next generation window
+      manager with extensive standards support.</para>
+
+    <para>You can start Openbox in three ways:</para>
+
+    <para>If you run a display manager such as GDM, you will find 3 entries
+      in the login session type menu for Openbox:
+      <command>GNOME/Openbox</command>, <command>KDE/Openbox</command>
+      and <command>Openbox</command>. If you want to use Openbox
+      within GNOME or KDE, you can choose the appropriate entry, and it will
+      launch GNOME or KDE with Openbox as the window manager.</para>
+
+    <para>The third option at log in, which is <command>Openbox</command>
+      without a session manager, uses the <command>openbox-session</command>
+      command to start Openbox. On log in, <command>&dhpackage;</command> will
+      run the ~/.config/openbox/autostart.sh script if it exists, and will run
+      the system-wide script @configdir@/openbox/autostart.sh otherwise. You
+      may place anything you want to run automatically in those files, for
+      example:
+      </para>
+
+    <blockquote><literallayout>
+      xsetroot -solid grey &
+      gnome-settings-daemon &</literallayout></blockquote>
+
+    <para>Make sure that each line is followed by a "&" or else the script will
+      stop there and further commands will not be executed. You can use the
+      @configdir@/openbox/autostart.sh file as an example for creating your
+      own.</para>
+
+    <para>The default @configdir@/openbox/autostart.sh runs a number of things
+      with Openbox.</para>
+
+    <para>Lastly, if you use <command>startx</command> to launch your X
+      session, you can set up a ~/.xinitrc file to run
+      <command>openbox-session</command> and follow the same directions as
+      above regarding the autostart.sh file.</para>
+
+    <para>You can use the <command>obconf</command> tool to configure Openbox
+      easily with a graphical interface, however more in-depth configuration
+      is possible by editing the configuration files by hand.</para>
+
+    <para>The default configuration and menu files are installed in
+      @configdir@/openbox/, and the user configuration is placed in
+      ~/.config/openbox/. You can copy the default configuration and menus
+      to ~/.config/openbox and edit it to your liking.</para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>These are the possible options that <command>&dhpackage;</command> accepts:</para>
+    <variablelist>
+      <varlistentry>
+        <term><option>--help</option></term>
+        <listitem>
+          <para>Show a summary of the command line options available
+            and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--version</option></term>
+        <listitem>
+          <para>Show the version of the program and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--replace</option></term>
+        <listitem>
+          <para>Replace the currently running window manager.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--config-file FILE</option></term>
+        <listitem>
+          <para>Specify the path to the config file to use.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--reconfigure</option></term>
+        <listitem>
+          <para>If Openbox is already running on the display, tell it to
+            reload its configuration.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--restart</option></term>
+        <listitem>
+          <para>If Openbox is already running on the display, tell it to
+            restart. This is useful if you have upgraded Openbox and don't
+            want to restart X.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--exit</option></term>
+        <listitem>
+          <para>Exit Openbox.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sm-disable</option></term>
+        <listitem>
+          <para>Do not connect to the session manager.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--sync</option></term>
+        <listitem>
+          <para>Run in synchronous mode (for debugging).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--startup CMD</option></term>
+        <listitem>
+          <para>Run CMD after starting.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--debug</option></term>
+        <listitem>
+          <para>Display debugging output.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--debug-focus</option></term>
+        <listitem>
+          <para>Display debugging output for focus handling.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--debug-session</option></term>
+        <listitem>
+          <para>Display debugging output for session management.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--debug-xinerama</option></term>
+        <listitem>
+          <para>Split the display into two fake xinerama regions, if
+	    xinerama is not already enabled. This is for debugging
+	    xinerama support.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>obconf (1), openbox-session(1), openbox-gnome-session(1),
+      openbox-kde-session(1).</para>
+
+    <para>The program's full documentation is available on the website:
+      <literal>http://openbox.org/</literal></para>
+
+    <para>Please report bugs to: <literal>http://bugzilla.icculus.org/
+      </literal></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
+
+

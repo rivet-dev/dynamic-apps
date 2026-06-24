@@ -1,0 +1,346 @@
+<sect1 id="Box_Widget">
+<title>Box Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Box Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Box widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Box.h&gt;
+<indexterm><primary>Box.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/BoxP.h&gt;
+<indexterm><primary>BoxP.h</primary></indexterm>
+Class		boxWidgetClass
+<indexterm><primary>boxWidgetClass</primary></indexterm>
+Class Name	Box
+<indexterm><primary>Box widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Composite
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Box widget provides geometry management of arbitrary widgets in a
+box of a specified dimension.  The children are rearranged when
+resizing events occur either on the Box or its children, or when
+children are managed or unmanaged.  The Box widget always attempts to
+pack its children as tightly as possible within the geometry allowed by
+its parent.
+</para>
+<para>
+<!-- .LP -->
+Box widgets are commonly used to manage a related set of buttons and
+are often called ButtonBox widgets, but the children are not
+limited to buttons.  The Box's children are arranged on a background that
+has its own specified dimensions and color.
+</para>
+<sect2 id='Box::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Box widget instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Box widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>see <function>Layout Semantics</function></entry>
+    </row>
+    <row>
+      <entry>hSpace</entry>
+      <entry>HSpace</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>orientation</entry>
+      <entry>Orientation</entry>
+      <entry>Orientation</entry>
+      <entry></entry>
+      <entry>XtorientVertical</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>vSpace</entry>
+      <entry>VSpace</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>4</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry>A</entry>
+      <entry>see <function>Layout Semantics</function></entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<!-- .Dp -->
+<!-- .Dc -->
+<!-- .Hw -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>hSpace</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>vSpace</function>
+    </term>
+    <listitem>
+      <para>
+The amount of space, in pixels, to leave between the children.  This
+resource specifies the amount of space left between the outermost
+children and the edge of the box.
+<!-- .Mm -->
+<!-- .Nc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>orientation</function>
+    </term>
+    <listitem>
+      <para>
+Specifies whether the preferred shape of the box (i.e. the result
+returned by the query_geometry class method) is tall and narrow
+<function>XtorientVertical</function> or short and wide <function>XtorientHorizontal</function>.
+<indexterm><primary>XtorientVertical</primary></indexterm>
+<indexterm><primary>XtorientHorizontal</primary></indexterm>
+<indexterm><primary>conversions</primary><secondary>Orientation</secondary></indexterm>
+When the Box is a child of a parent which enforces width constraints, it
+is usually better to specify <function>XtorientVertical</function> (the default).
+When the parent enforces height constraints, it is usually better to
+specify <function>XtorientHorizontal</function>.
+<!-- .Rs "horizontal \fPand\fB vertical" -->
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id="Layout_Semantics">
+<title>Layout Semantics</title>
+<indexterm><primary>Box widget</primary><secondary>layout semantics</secondary></indexterm>
+<para>
+<!-- .LP -->
+Each time a child is managed or unmanaged, the Box widget will attempt
+to reposition the remaining children to compact the box.  Children are
+positioned in order left to right, top to bottom.  The packing
+algorithm used depends on the <function>orientation</function> of the Box.
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>XtorientVertical</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm significance="preferred"><primary>XtorientVertical</primary></indexterm>
+When the next child does not fit on the current row, a new row is
+started.  If a child is wider than the width of the box, the box will
+request a larger width from its parent and will begin the layout
+process from the beginning if a new width is granted.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>XtorientHorizontal</function>
+    </term>
+    <listitem>
+      <para>
+<indexterm significance="preferred"><primary>XtorientHorizontal</primary></indexterm>
+When the next child does not fit on the current row, the Box widens if
+possible (so as to keep children on a single row); otherwise a new row is
+started.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+After positioning all children, the Box widget attempts to shrink its
+own size to the minimum dimensions required for the layout.
+
+</para>
+</sect2>
+</sect1>

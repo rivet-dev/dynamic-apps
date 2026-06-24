@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<!-- lifted from troff+man by doclifter -->
+<refentry id='XTest.man'>
+<!--
+Copyright &copy; 1992 by UniSoft Group Ltd.
+Permission to use, copy, modify, and distribute this documentation for
+any purpose and without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+UniSoft makes no representations about the suitability for any purpose of
+the information in this document.  This documentation is provided "as is"
+without express or implied warranty.
+
+Copyright &copy; 1992, 1994 X Consortium
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Except as contained in this notice, the name of the X Consortium shall not
+be used in advertising or otherwise to promote the sale, use or other
+dealings in this Software without prior written authorization from the
+X Consortium.
+ -->
+
+<!-- edited for DP edits and code consistency w/ core protocol/xlib 4/2/96 -->
+<!-- Converted from xorg-docs/specs/Xext/xtestlib.ms 6/6/07 -->
+ <refentryinfo>
+  <productname>__vendorversion__</productname>
+  <pubdate>6 June 2007</pubdate>
+   <author><firstname>Kieron</firstname><surname>Drake</surname>
+   <affiliation><orgname>UniSoft Ltd.</orgname></affiliation>
+   </author>
+ </refentryinfo>
+<refmeta>
+<refentrytitle>XTest</refentrytitle>
+<manvolnum>__libmansuffix__</manvolnum>
+<refmiscinfo class='source'>__xorgversion__</refmiscinfo>
+<refmiscinfo class='manual'>XTST FUNCTIONS</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>XTestQueryExtension</refname>
+<refname>XTestCompareCursorWithWindow</refname>
+<refname>XTestCompareCurrentCursorWithWindow</refname>
+<refname>XTestFakeKeyEvent</refname>
+<refname>XTestFakeButtonEvent</refname>
+<refname>XTestFakeMotionEvent</refname>
+<refname>XTestFakeRelativeMotionEvent</refname>
+<refname>XTestGrabControl</refname>
+<refname>XTestSetGContextOfGC</refname>
+<refname>XTestSetVisualIDOfVisual</refname>
+<refname>XTestDiscard</refname>
+<refpurpose>XTest extension functions</refpurpose>
+</refnamediv>
+<!-- body begins here -->
+<refsynopsisdiv id='synopsis'>
+<funcsynopsis>
+<funcsynopsisinfo>
+cc [ flag ... ] file ... -lXtst  [ library ... ]
+</funcsynopsisinfo>
+<funcsynopsisinfo>
+#include &lt;X11/extensions/XTest.h&gt;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef><function>Bool</function> XTestQueryExtension</funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>event_base_return</parameter></paramdef>
+<paramdef><parameter>error_base_return</parameter></paramdef>
+<paramdef><parameter>major_version_return</parameter></paramdef>
+<paramdef><parameter>minor_version_return</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ int *event_base_return;
+ int *error_base_return;
+ int *major_version_return;
+ int *minor_version_return;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef><function>Bool</function> XTestCompareCursorWithWindow</funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>window</parameter></paramdef>
+<paramdef><parameter>cursor</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ Window window;
+ Cursor cursor;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef><function>Bool</function> XTestCompareCurrentCursorWithWindow</funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>window</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ Window window;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>int <function>XTestFakeKeyEvent</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>keycode</parameter></paramdef>
+<paramdef><parameter>is_press</parameter></paramdef>
+<paramdef><parameter>delay</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ unsigned int keycode;
+ Bool is_press;
+ unsigned long delay;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>int <function>XTestFakeButtonEvent</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>button</parameter></paramdef>
+<paramdef><parameter>is_press</parameter></paramdef>
+<paramdef><parameter>delay</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ unsigned int button;
+ Bool is_press;
+ unsigned long delay;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>int <function>XTestFakeMotionEvent</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>screen_number</parameter></paramdef>
+<paramdef><parameter>x</parameter></paramdef>
+<paramdef><parameter>y</parameter></paramdef>
+<paramdef><parameter>delay</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ int screen_number;
+ int x, y;
+ unsigned long delay;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>int <function>XTestFakeRelativeMotionEvent</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>screen_number</parameter></paramdef>
+<paramdef><parameter>x</parameter></paramdef>
+<paramdef><parameter>y</parameter></paramdef>
+<paramdef><parameter>delay</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ int screen_number;
+ int x, y;
+ unsigned long delay;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>int <function>XTestGrabControl</function></funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+<paramdef><parameter>impervious</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+ Bool impervious;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>void <function>XTestSetGContextOfGC</function></funcdef>
+<paramdef><parameter>gc</parameter></paramdef>
+<paramdef><parameter>gid</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ GC gc;
+ GContext gid;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef>void <function>XTestSetVisualIDOfVisual</function></funcdef>
+<paramdef><parameter>visual</parameter></paramdef>
+<paramdef><parameter>visualid</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Visual *visual;
+ VisualID visualid;
+</funcsynopsisinfo>
+<funcprototype>
+<funcdef><function>Status</function> XTestDiscard</funcdef>
+<paramdef><parameter>display</parameter></paramdef>
+</funcprototype>
+<funcsynopsisinfo>
+ Display *display;
+</funcsynopsisinfo>
+</funcsynopsis>
+</refsynopsisdiv>
+
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>This extension is a minimal set of client and server extensions
+required to completely test the X11 server with no user intervention.
+This extension is not intended to support general journaling and
+playback of user actions.</para>
+
+<para>The functions provided by this extension fall into two groups:</para>
+<variablelist remap='IP'>
+  <varlistentry>
+  <term><emphasis remap='B'>Client Operations</emphasis></term>
+  <listitem>
+<para>These routines manipulate otherwise hidden client-side behavior.  The
+actual implementation will depend on the details of the actual language
+binding and what degree of request buffering, GContext caching, and so on, is
+provided.  In the C binding, routines are provided
+to access the internals of two opaque data structures
+&mdash; <structname>GC</structname>s
+and
+<structname>Visual</structname>s &mdash;
+and to discard any requests pending within the
+output buffer of a connection.  The exact details can be expected to differ for
+other language bindings.</para>
+  </listitem>
+  </varlistentry>
+  <varlistentry>
+  <term><emphasis remap='B'>Server Requests</emphasis></term>
+  <listitem>
+<para>The first of these requests is similar to that provided in most
+extensions: it allows a client to specify a major and minor version
+number to the server and for the server to respond with major and minor
+versions of its own.  The remaining two requests allow the following:</para>
+ <itemizedlist>
+  <listitem>
+<para>Access to an otherwise <emphasis>write-only</emphasis> server resource:
+the cursor associated with a given window</para>
+  </listitem>
+  <listitem>
+<para>Perhaps most importantly, limited synthesis of input device events,
+almost as if a cooperative user had moved the pointing device
+or pressed a key or button.</para>
+  </listitem>
+ </itemizedlist>
+  </listitem>
+  </varlistentry>
+</variablelist>
+
+<para>All XTEST extension functions and procedures, and all manifest
+constants and macros, will start with the string <emphasis>XTest</emphasis>.
+All operations are classified as
+server/client (Server) or client-only (Client).</para>
+
+<para><function>XTestQueryExtension</function>
+returns
+<returnvalue>True</returnvalue>
+if the specified display supports the XTEST extension, else
+<returnvalue>False</returnvalue>.
+If the extension is supported, *event_base would be set to the event number for
+the first event for this extension and
+*error_base would be set to the error number for the first error for
+this extension.  As no errors or events are defined for this version of the extension,
+the values returned here are not defined (nor useful).
+If the extension is supported, *major_version and *minor_version are set to
+the major and minor version numbers of the extension supported by the
+display.  Otherwise, none of the arguments are set.</para>
+
+
+<para>If the extension is supported,
+<function>XTestCompareCursorWithWindow</function>
+performs a comparison of the cursor
+whose ID is specified by cursor (which may be
+<emphasis remap='B'>None</emphasis>)
+with the cursor of the window specified by window returning
+<returnvalue>True</returnvalue>
+if they are the same and
+<returnvalue>False</returnvalue>
+otherwise.
+If the extension is not supported, then the request is ignored and
+zero is returned.</para>
+
+
+<para>If the extension is supported,
+<function>XTestCompareCurrentCursorWithWindow</function>
+performs a comparison of the current cursor
+with the cursor of the specified window returning
+<returnvalue>True</returnvalue>
+if they are the same and
+<returnvalue>False</returnvalue>
+otherwise.
+If the extension is not supported, then the request is ignored and
+zero is returned.</para>
+
+
+<para>If the extension is supported,
+<function>XTestFakeKeyEvent</function>
+requests the server to simulate either a
+<emphasis remap='B'>KeyPress</emphasis>
+(if is_press is
+<returnvalue>True</returnvalue>)
+or a
+<emphasis remap='B'>KeyRelease</emphasis>
+(if is_press is
+<returnvalue>False</returnvalue>)
+of the key with the specified keycode;
+otherwise, the request is ignored.</para>
+
+<para>If the extension is supported,
+the simulated event will not be processed until delay milliseconds
+after the request is received (if delay is
+<emphasis remap='B'>CurrentTime</emphasis>,
+then this is interpreted as no delay at all).  No other requests from
+this client will be processed until this delay, if any, has expired
+and subsequent processing of the simulated event has been completed.</para>
+
+
+<para>If the extension is supported,
+<function>XTestFakeButtonEvent</function>
+requests the server to simulate either
+a
+<emphasis remap='B'>ButtonPress</emphasis>
+(if is_press is
+<returnvalue>True</returnvalue>)
+or a
+<emphasis remap='B'>ButtonRelease</emphasis>
+(if is_press is
+<returnvalue>False</returnvalue>)
+of the logical button numbered by the specified button;
+otherwise, the request is ignored.</para>
+
+<para>If the extension is supported,
+the simulated event will not be processed until delay milliseconds
+after the request is received (if delay is
+<emphasis remap='B'>CurrentTime</emphasis>,
+then this is interpreted as no delay at all).  No other requests from
+this client will be processed until this delay, if any, has expired
+and subsequent processing of the simulated event has been completed.</para>
+
+
+<para>If the extension is supported,
+<function>XTestFakeMotionEvent</function>
+requests the server to simulate
+a movement of the pointer to the specified position (x, y) on the
+root window of screen_number;
+otherwise, the request is ignored.  If screen_number is -1, the
+current screen (that the pointer is on) is used.</para>
+
+<para>If the extension is supported,
+the simulated event will not be processed until delay milliseconds
+after the request is received (if delay is
+<emphasis remap='B'>CurrentTime</emphasis>,
+then this is interpreted as no delay at all).  No other requests from
+this client will be processed until this delay, if any, has expired
+and subsequent processing of the simulated event has been completed.</para>
+
+
+<para>If the extension is supported,
+<function>XTestFakeRelativeMotionEvent</function>
+requests the server to simulate
+a movement of the pointer by the specified offsets (x, y) relative
+to the current pointer position on screen_number;
+otherwise, the request is ignored.  If screen_number is -1, the
+current screen (that the pointer is on) is used.</para>
+
+<para>If the extension is supported,
+the simulated event will not be processed until delay milliseconds
+after the request is received (if delay is
+<emphasis remap='B'>CurrentTime</emphasis>,
+then this is interpreted as no delay at all).  No other requests from
+this client will be processed until this delay, if any, has expired
+and subsequent processing of the simulated event has been completed.</para>
+
+
+
+<para>If impervious is
+<returnvalue>True</returnvalue>,
+then the executing client becomes impervious to server grabs.
+If impervious is
+<returnvalue>False</returnvalue>,
+then the executing client returns to the normal state of being
+susceptible to server grabs.</para>
+
+
+<para><function>XTestSetGContextOfGC</function>
+sets the GContext within the opaque datatype referenced by gc to
+be that specified by gid.</para>
+
+
+<para><function>XTestSetVisualIDOfVisual</function>
+sets the VisualID within the opaque datatype referenced by visual to
+be that specified by visualid.</para>
+
+
+<para><function>XTestDiscard</function>
+discards any requests within the output buffer for the specified display.
+It returns
+<returnvalue>True</returnvalue>
+if any requests were discarded; otherwise, it returns
+<returnvalue>False</returnvalue>.</para>
+
+</refsect1>
+
+<refsect1 id='return_values'><title>RETURN VALUES</title>
+<para>All routines that have return type Status will return nonzero for
+success and zero for failure.  Even if the XTEST extension is
+supported, the server may withdraw such facilities arbitrarily; in which case
+they will subsequently return zero.</para>
+</refsect1>
+</refentry>
+

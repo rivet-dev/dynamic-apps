@@ -1,0 +1,87 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtApp-Add-Converter XtAdd-Converter wid-get
+.na
+.TH XtAppAddConverter __libmansuffix__ __xorgversion__ "XT COMPATIBILITY FUNCTIONS"
+.SH NAME
+XtAppAddConverter, XtAddConverter \- register resource converter
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtAppAddConverter(XtAppContext \fIapp_context\fP, const char *\fIfrom_type\fP,
+const char *\fIto_type\fP, XtConverter \fIconverter\fP,
+XtConvertArgList \fIconvert_args\fP, Cardinal \fInum_args\fP);
+.HP
+void XtAddConverter(const char *\fIfrom_type\fP, const char *\fIto_type\fP,
+XtConverter \fIconverter\fP, XtConvertArgList \fIconvert_args\fP,
+Cardinal \fInum_args\fP);
+.SH ARGUMENTS
+.IP \fIapp_context\fP 1i
+Specifies the application context.
+.IP \fIconverter\fP 1i
+Specifies the type converter procedure.
+.IP \fIconvert_args\fP 1i
+Specifies how to compute the additional arguments to the converter or NULL.
+.IP \fIfrom_type\fP 1i
+Specifies the source type.
+.IP \fInum_args\fP 1i
+Specifies the number of additional arguments to the converter or zero.
+.IP \fIto_type\fP 1i
+Specifies the destination type.
+.SH DESCRIPTION
+.B XtAppAddConverter
+is equivalent in function to
+.B XtAppSetTypeConverter
+with \fIcache_type\fP equal to
+.B XtCacheAll
+for old-format type converters.
+It has been superseded by
+.BR XtAppSetTypeConverter .
+.LP
+.B XtAddConverter
+is equivalent in function to
+.B XtSetTypeConverter
+with \fIcache_type\fP equal to
+.B XtCacheAll
+for old-format type converters.
+It has been superseded by
+.BR XtSetTypeConverter .
+.SH "SEE ALSO"
+XtConvert(__libmansuffix__),
+XtStringConversionWarning(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

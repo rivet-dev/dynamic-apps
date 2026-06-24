@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libwnck
+Description: Window Navigator Construction Kit library
+Version: @VERSION@
+Requires: glib-2.0 gobject-2.0 gtk+-3.0
+Requires.private: @X11_PACKAGE@ pango cairo @STARTUP_NOTIFICATION_PACKAGE@ @XRES_PACKAGE@
+Libs: ${pc_top_builddir}/${pcfiledir}/libwnck/libwnck-3.la
+Cflags: -I${pc_top_builddir}/${pcfiledir}
+

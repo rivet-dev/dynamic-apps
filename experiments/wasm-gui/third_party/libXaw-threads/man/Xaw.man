@@ -1,0 +1,778 @@
+.\"
+.\" Copyright (c) 1999 by The XFree86 Project, Inc.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE XFREE86 PROJECT BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the XFree86 Project shall
+.\" not be used in advertising or otherwise to promote the sale, use or other
+.\" dealings in this Software without prior written authorization from the
+.\" XFree86 Project.
+.\"
+.\" Author: Paulo César Pereira de Andrade
+.\"
+.TH Xaw __libmansuffix__ __vendorversion__
+.de TQ
+.ns
+.TP
+..
+.de bP
+.ie n  .IP \(bu 4
+.el    .IP \(bu 2
+..
+.SH NAME
+Xaw \-
+X Athena Widgets
+.SH DESCRIPTION
+.B Xaw
+is a widget set based on the X Toolkit Intrinsics (Xt) Library.
+This release by the X.Org Foundation includes additions and modifications
+originally made for The XFree86 Project, Inc.
+This manual page describes
+these changes as well as some of the common interfaces between its version
+and the previous X Consortium release (Xaw6).
+.PP
+The bulk of the Xaw documentation is located in the API specification
+which may be installed in __docdir__, or found on the X.Org website.
+.SH ACTIONS
+All of the \fIXaw\fR widgets now have the additional translations
+.B call-proc, declare, get-values
+and \fBset-values\fP.
+The syntax for these actions is:
+.PP
+.I action-name \fP(\fIboolean-expression\fP, \fIarguments\fP)
+.PP
+\fIaction-name\fP is one of \fBcall-proc\fP, \fBdeclare\fP,
+\fBget-values\fP or \fBset-values\fP.
+.PP
+\fIboolean-expression\fP is composed with the operators
+.RS
+.TP
+\fB|\fR (or),
+.TP
+\fB&\fR (and),
+.TP
+\fB^\fR (xor), and
+.TP
+\fB~\fR (not).
+.RE
+.IP
+Its operands can be
+.RS
+.bP
+a variable name, which starts with a \fI$\fR,
+.bP
+a resource name without the bindings \fI.\fP or \fI*\fP, or
+.bP
+a constant name, including
+.RS
+.bP
+\fImine\fP (event->xany.window == XtWindow(widget)),
+.bP
+\fIfaked\fP (event->xany.send_event != 0),
+.bP
+\fItrue\fP (1) and
+.bP
+\fIfalse\fP (0).
+.RE
+.RE
+.PP
+\fIarguments\fP are self-explanatory:
+.RS
+.bP
+when starting with a \fI$\fP they name a variable,
+.bP
+otherwise they indicate a resource name.
+.RE
+.TP 8
+.B call-proc \fP(\fIboolean-expression\fP, \fIprocedure-name\fP)
+This action allows the evaluation of a boolean expression in the first
+parameter before calling a action procedure.
+The procedure is only called if the expression evaluates as true.
+Example:
+.EX
+\fBcall-proc\fP("$inside & $pressed", notify)
+.EE
+.TP 8
+.B declare \fP(\fIboolean-expression\fP, \fIvariable\fP, \fIvalue\fP, ...)
+This action is used to create new variables or change their values.
+Any number of variable-value tuples may be specified.
+Example:
+.EX
+\fBdeclare\fP(1, $pressed, 1)
+.EE
+.TP 8
+.B get-values \fP(\fIboolean-expression\fP, \fIvariable\fP, \fIvalue\fP, ...)
+This action reads a widget resource value into a variable.
+Any number of variable-value tuples may be specified.
+Example:
+.EX
+\fBget-values\fP(1, $fg, foreground, $bg, background)
+.EE
+.TP 8
+.B set-values \fP(\fIboolean-expression\fP, \fIvariable\fP, \fIvalue\fP, ...)
+This action sets a widget resource to the given value, which may be a
+variable.
+Any number of variable-value tuples may be specified.
+Example:
+.EX
+\fBset-values\fP(1, foreground, $bg, background, $fg)
+.EE
+.ne 5
+.PP
+Here is a sample translation to make a label widget behave like a button:
+.PP
+.EX
+<Map>:      get-values(1, $fg, foreground, $bg, background)\en\e
+<Btn1Down>: set-values(1, foreground, yellow, background, gray30)\en\e
+<Btn1Up>:   set-values(1, foreground, $fg, background, $bg)
+.EE
+.SH DISPLAY LISTS
+All of the \fBXaw\fP widgets have now the additional resource
+\fIdisplayList\fP.
+This resource allows drawing the widget decorations
+using commands embedded in a resource string.
+The displayList resource has the syntax:
+.PP
+\fI[class-name:]function-name arguments[[{;\en}]...]\fP
+.PP
+\fIclass-name\fP is any registered set of functions to draw in the widget.
+Currently the only existing class is \fBxlib\fP, which provides access to
+the Xlib drawing primitives.
+.PP
+\fIfunction-name\fP is the drawing or configuration function to be called,
+described below.
+.PP
+\fIarguments\fP may be anything suitable to the displayList function being
+called.
+When the function requires a coordinate, the syntax is
+.IP
+.EX
+\fI{+-}<integer>\fP or
+\fI<integer>/<integer>\fP.
+.EE
+.ne 6
+.IP
+Examples:
+.RS
+.EX
++0,+0      top, left
+-0,-0      bottom, right
+-+10,-+10  bottom+10, right+10
++0,1/2     left, vertical-center
+.EE
+.RE
+.TP 8
+.B arc-mode \fImode
+Sets the arc mode.
+Accepted \fImode\fPs are "pieslice" and "chord", which
+set the arc to ArcPieSlice or ArcChord, respectively.
+Example:
+.EX
+\fBarc-mode\fP chord
+.EE
+.TP 8
+.B bg \fIcolor-spec
+.TQ
+.B background \fIcolor-spec
+Sets the background color.
+\fIcolor-spec\fP must a valid color
+specification.
+Example:
+.EX
+\fBbackground\fP red
+.EE
+.TP 8
+.B cap-style \fIstyle
+Sets the cap style.
+Accepted \fIstyle\fPs are "notlast", "butt", "round",
+and "projecting", which set the cap style to CapNotLast, CapBut, CapRound
+or CapProjecting, respectively.
+Example:
+.EX
+\fBcap-style\fP round
+.EE
+.TP 8
+.B clip-mask \fIpixmap-spec
+Sets the pixmap for the clip mask.
+Requires a pixmap parameter, as described in the \fBPIXMAPS\fP section below.
+Example:
+.EX
+\fBclip-mask\fP xlogo11
+.EE
+.TP 8
+.B clip-origin \fIx,y
+Sets the clip x and y origin.
+Requires two arguments, the x and y coordinates.
+Example:
+.EX
+\fBclip-origin\fP 10,10
+.EE
+.TP 8
+.B clip-rects \fPx1,y1,x2,y2 [...,xn,yn]
+.TQ
+.B clip-rectangles \fPx1,y1,x2,y2 [...,xn,yn]
+Sets a list of rectangles to the clip mask.
+The number of arguments must be a multiple of four.
+The arguments are coordinates.
+The parser calculates the width and height of the rectangles.
+Example:
+.EX
+\fBclip-rects\fP 0,0,10,20, 20,10,30,30
+.EE
+.TP 8
+.B coord-mode \fPmode
+Changes the coordinate mode for \fIfill-polygon\fP, \fIdraw-lines\fP, and
+\fIdraw-points\fP.
+Accepted parameters are "modeorigin" and "previous",
+that sets the coord mode to CoordModeOrigin or CoordModePrevious, respectively.
+Example:
+.EX
+\fBcoord-mode\fP previous
+.EE
+.TP 8
+.B copy-area \fP{pixmap-spec|.},dstx,dsty[,x2,y2,srcx,srcy]
+Calls XCopyArea.
+The character \fI.\fP means copy the window contents;
+pixmap-spec is as defined in the \fBPIXMAPS\fP section below.
+\fIX2\fP and
+\fIy2\fP are the coordinates of the end copy, not the width and height;
+if not defined, the parser calculates them.
+\fIsrc_x\fP and \fIsrc_y\fP default to zero.
+Example:
+.EX
+\fBcopy-area\fP Term,10,10
+.EE
+.TP 8
+.B copy-plane \fP{pixmap-spec|.},dstx,dsty[,x2,y2,srcx,srcy,plane]
+Calls XCopyPlane.
+The character \fI.\fP means copy the window contents;
+pixmap-spec is as defined in the \fBPIXMAPS\fP section below.
+\fIX2\fP and
+\fIy2\fP are the coordinates of the end copy, not the width and height;
+if not defined, the parser calculates them.
+\fIsrc_x\fP and \fIsrc_y\fP default to zero.
+\fIPlane\fP defaults to one.
+Example:
+.EX
+\fBcopy-plane\fP star,10,10
+.EE
+.TP 8
+.B dashes \fPi1[...,in]
+Sets the dashes for line drawing.
+Accepts up to 127 arguments.
+Example:
+.EX
+\fBdashes\fP 3,7 9,10
+.EE
+.TP 8
+.B draw-arc \fPx1,y1,x2,y2[,start-angle,end-angle]
+Draws an arc.
+The four first arguments are the rectangle enclosing the arc.
+The two remaining arguments, if specified,
+are the start and end angle, in degrees.
+Example:
+.EX
+\fBdraw-arc\fP +0,+0,-1,-1,0,90
+.EE
+.TP 8
+.B draw-rect \fPx1,y1,x2,y2
+.TQ
+.B draw-rectangle \fPx1,y1,x2,y2
+Draws a rectangle.
+Requires four arguments, which are the start and end coordinate pairs.
+Example:
+.EX
+\fBdraw-rect\fP +1,+1,-5,-5
+.EE
+.TP 8
+.B draw-string \fPx,y,"string"
+Draws a text string.
+Requires three arguments, a x coordinate, a y coordinate, and a string.
+Strings that have white space can be quoted with
+the \fI"\fP character; the backslash character \fI\e\fP can also be used,
+but it will be necessary escape it twice.
+Example:
+.EX
+\fBdraw-string\fP 10,10, "Hello world!"\fP
+.EE
+.TP 8
+.B exposures \fPboolean
+Sets graphics exposures in the GC.
+Allowed parameters are a integer
+or the strings "true", "false", "on" and "off".
+Example:
+.EX
+\fBexposures\fP true
+.EE
+.TP 8
+.B fill-arc \fPx1,y1,x2,y2[,start-angle,end-angle]
+Like \fIdraw-arc\fP, but fills the contents of the arc with the currently
+selected foreground.
+Example:
+.EX
+\fBfill-arc\fP +0,+0,-1,-1,0,180
+.EE
+.TP 8
+.B fill-poly \fPx1,y1 [...,xn,yn]
+.TQ
+.B fill-polygon \fPx1,y1 [...,xn,yn]
+Like \fIdraw-lines\fP, but fills the enclosed polygon and joins the first
+and last point, if they are not at the same position.
+Example:
+.EX
+\fBfill-poly\fP +0,+10, +10,+20, +30,+0
+.EE
+.TP
+.B fill-rect \fPx1,y1,x2,y2
+.TQ
+.B fill-rectangle \fPx1,y1,x2,y2
+Like \fIdraw-rect\fP, but fills the contents of the rectangle with the
+selected foreground color.
+Example:
+.EX
+\fBfill-rect\fP +10,+10,-20,-20
+.EE
+.TP 8
+.B fill-rule \fPrule
+Sets the fill rule.
+Accepted parameters are "evenodd" and "winding", which
+set the fill rule to EvenOddRule or WindingRule, respectively.
+Example:
+.EX
+\fBfill-rule\fP winding
+.EE
+.TP 8
+.B fill-style \fPstyle
+Sets the fill style.
+Allowed parameters are "solid", "tiled", "stippled" and
+"opaquestippled", which set the fill style to FillSolid, FillTiled,
+FillStippled or FillOpaqueStippled, respectively.
+Example:
+.EX
+\fBfill-style\fP tiled
+.EE
+.TP 8
+.B font \fPfont-spec
+Sets the font for text functions.
+Example:
+.EX
+\fBfont\fP -*-*-*-R-*-*-*-120-*-*-*-*-ISO8859-1
+.EE
+.TP 8
+.B fg \fPcolor-spec
+.TQ
+.B foreground \fPcolor-spec
+Like \fIbackground\fP, but sets the current foreground color.
+Example:
+.EX
+\fBforeground\fP blue
+.EE
+.TP 8
+.B mask
+This command is useful when you want to draw only in the region that really
+needs to be repainted.
+It requires no arguments.
+.TP 8
+.B function \fPfunction-spec
+Sets the specific GC function.
+Allowed parameters are "set", "clear", "and",
+"andreverse", "copy", "andinverted", "noop", "xor", "or", "nor", "equiv",
+"invert", "orreverse", "copyinverted" and "nand", which set the function to
+GXset, GXclear, GXand, GXandReverse, GXcopy, GXandInverted, GXnoop, GXxor,
+GXor, GXnor, GXequiv, GXinvert, GXorReverse, GXcopyInverted or GXnand,
+respectively.
+Example:
+.EX
+\fBfunction\fP xor
+.EE
+.TP 8
+.B join-style \fPstyle
+Sets the join style.
+Allowed parameters are "miter", "round" and "bevel",
+which set the join style to JoinMiter, JoinRound and JoinBevel,
+respectively.
+Example:
+.EX
+\fBjoin-style\fP round
+.EE
+.TP 8
+.B image \fP{pixmap-spec},xs,ys,[xe,ye]
+This function is implemented as a way to quickly compose complex
+decorations in widgets.
+\fIPixmap-spec\fP is as defined in the
+\fBPIXMAPS\fP section below.
+\fIxs\fP and \fIys\fP are the coordinates from
+where to start copying the pixmap; \fIxe\fP and \fIye\fP are optional
+(they default to xs + pixmap.width and ys + pixmap.height, respectively).
+If the pixmap has a mask, the copy is masked accordingly.
+Example:
+.EX
+\fBimage\fP pixmap.xpm,0,0,20,20
+.EE
+.TP 8
+.B line \fPx1,y1,x2,y2
+.TQ
+.B draw-line \fPx1,y1,x2,y2
+Draws a line with the current foreground color.
+Requires four arguments, the starting and ending coordinate pairs.
+Example:
+.EX
+\fBline\fP +0,+0, -1,-1
+.EE
+.TP 8
+.B line-width \fPinteger
+Selects a line width for drawing.
+Example:
+.EX
+\fBline-width\fP 2
+.EE
+.TP 8
+.B line-style \fPstyle
+Sets the line style.
+Accepted parameters are "solid", "onoffdash" and
+"doubledash", which set the line style to LineSolid, LineOnOffDash or
+LineDoubleDash, respectively.
+Example:
+.EX
+\fBline-style\fP onoffdash
+.EE
+.TP 8
+.B lines \fPx1,y1,x2,y2 [...,xn,yn]
+.TQ
+.B draw-lines \fPx1,y1,x2,y2 [...,xn,yn]
+Draws a list of lines.
+Any number of argument pairs may be supplied.
+Example:
+.EX
+\fBlines\fP +0,-1, -1,-1, -1,+0
+.EE
+.TP 8
+.B paint-string \fPx,y,"string"
+Identical to draw-string, but also uses the background color.
+Example:
+.EX
+\fBpaint-string\fP 10,20, "Sample text"\fP
+.EE
+.TP 8
+.B point \fPx,y
+.TQ
+.B draw-point \fPx,y
+Draws a point.
+Requires two arguments, a coordinate pair.
+Example:
+.EX
+\fBpoint\fP +10,+10
+.EE
+.TP 8
+.B plane-mask \fPinteger
+Sets the plane mask.
+Requires an integer parameter.
+Example:
+.EX
+\fBplane-mask\fP -1
+.EE
+.TP 8
+.B points \fPx1,y1 [...,xn,yn]
+.TQ
+.B draw-points \fPx1,y1 [...,xn,yn]
+Draws a list of points at the specified coordinates.
+Example:
+.EX
+\fBpoints\fP +1,+2, +1,+4, +1,+6
+.EE
+.TP 8
+.B segments \fPx1,y1,x2,y2 [...,xn,yn]
+.TQ
+.B draw-segments \fPx1,y1,x2,y2 [...,xn,yn]
+Draws a list of segment lines.
+The number of parameters must be multiple of 4.
+Example:
+.EX
+\fBsegments\fP +1,+2,+1,-3, +2,-2,-3,-2
+.EE
+.TP 8
+.B shape-mode \fPmode
+Sets the shape mode used in \fIfill-polygon\fP.
+Accepted parameters are
+"complex", "convex" or "nonconvex", which set the shape mode to Complex,
+Convex or Nonconvex, accordingly.
+Example:
+.EX
+\fBshape-mode\fP convex
+.EE
+.TP 8
+.B stipple \fPpixmap-spec
+Sets the pixmap for a stipple.
+Requires a pixmap parameter, as described in the \fBPIXMAPS\fP section below.
+Example:
+.EX
+\fBstipple\fP plaid
+.EE
+.TP 8
+.B subwindow-mode \fPmode
+Sets the subwindow mode in the GC.
+Accepted parameters are
+"includeinferiors" and "clipbychildren",
+which set the subwindow mode to
+IncludeInferiors or ClipByChildren, respectively.
+Example:
+.EX
+\fBsubwindow-mode\fP includeinferiors
+.EE
+.TP 8
+.B tile \fPpixmap-spec
+Sets the pixmap for a tile.
+Requires a pixmap parameter, as described
+in the \fBPIXMAPS\fP section below.
+Example:
+.EX
+\fBtile\fP xlogo11?foreground=red&background=gray80
+.EE
+.TP 8
+.B ts-origin \fPx,y
+Sets the tile stipple x and y origin.
+Requires two arguments, a x and y coordinate.
+Example:
+.EX
+\fBts-origin\fP 10,10
+.EE
+.TP 8
+.B umask
+Disables the GC mask, if it has been set with the command \fImask\fP.
+Requires no arguments.
+.ne 7
+.PP
+Example for drawing a shadow effect in a widget:
+.PP
+.EX
+\fBforeground\fP gray30;\e
+\fBdraw-lines\fP +1,-1,-1,-1,-1,+1;\e
+\fBforeground\fP gray85;\e
+\fBdraw-lines\fP -1,+0,+0,+0,+0,-1
+.EE
+.SH PIXMAPS
+A String to Pixmap converter has been added to \fBXaw\fP.
+This converter is meant to be extended,
+and has enough abstraction to allow loading several image formats.
+It uses a format that resembles a \fIURL\fP, with the syntax:
+.PP
+.I [type:]name[?arg=val[{&}...]]
+.TP
+\fItype\fP
+can be one of \fIbitmap\fP, \fIgradient\fP or \fIxpm\fP.
+.TP
+\fIname\fP
+may be a file name, or, in the case of type \fIgradient\fP, may be
+either \fIvertical\fP or \fIhorizontal\fP.
+.TP
+\fIarg=val\fP
+is a list of arguments to the converter.
+.IP
+An argument list is preceded by a question mark,
+and multiple arguments are separated by ampersands.
+.IP
+The most common arguments are \fIforeground\fP and \fIbackground\fP.
+.IP
+Gradients also support the arguments \fIstart\fP and \fIend\fP
+(colors with which to start and end the gradient),
+the \fPsteps\fP argument (to allow using fewer colors),
+and the \fIdimension\fP argument (to specify the size of the gradient).
+.IP
+The \fIxpm\fP converter
+understands the \fIcloseness\fP argument, which aids in using fewer colors
+(useful if you have a limited colormap).
+.SH TEXT WIDGET
+Most of the changes to this version of the Xaw library were done in the
+TextWidget, TextSrcObject, TextSinkObject and related files.
+.PP
+A couple of highly visible changes in the Text widget are due to many bugs
+in the Xaw6 implementation involving scrollbars and auto-resizing.
+Scrollbars being added or removed caused several problems in keeping the
+text cursor visible, and in Xaw6 it was very easy to have a widget thinking
+the cursor was visible, when it was not.
+Also, permitting automatic
+resizing of the widget to a larger geometry created other problems, making
+it difficult to have a consistent layout in the application, and, if the
+window manager did not interfere, windows larger than the screen could
+result.
+Therefore, some functionality involving scrollbars and
+auto-resizing has been disabled; see the section on new and modified
+Text widget resources below.
+.PP
+The Text widget's default key bindings were originally based on the Emacs
+text editor.
+In this release, even more operations familiar to Emacs users have been added.
+New text actions include:
+.TP 8
+.B indent
+Indents text blocks.
+Not bound by default.
+The Text widget also does not
+attempt to perform auto-indentation of its source object by default.
+.TP 8
+.B keyboard-reset
+Resets the keyboard state.
+Reverts the action multiplier to 1, and if undo
+is enabled, toggles between undo and redo.
+Bound by default to
+\fIControl<Key>G\fP.
+.TP 8
+.B kill-ring-yank
+In this version of Xaw, text killed in any text field is kept in memory,
+allowing cut and paste operations internally to the program between text
+fields.
+Bound by default to \fIMeta<Key>Y\fP.
+.TP 8
+.B numeric
+Listed here only for purposes of documentation.
+Called by default when one
+of the characters \fI1, 2, 3, 4, 5, 6, 7, 8, 9, 0,\fP or \fI-\fP is typed,
+allowing composition of the multiplication number of text actions.
+.TP 8
+.B set-keyboard-focus
+Sets the input focus of the top level widget to the text field.
+Not
+enabled by default, but bound to the \fI<Btn1Down>\fP event.
+.TP 8
+.B toggle-overwrite
+Toggles overwrite mode.
+In overwrite mode, any text inserted in a text field will replace existing text.
+Bound by default to \fI<Key>Insert\fP.
+.TP 8
+.B undo
+Sets the \fIenableUndo\fP resource of the textSrcObject.
+Not enabled by
+default, but bound to \fIControl<Key>_\fP.
+.PP
+New and modified Text widget resources include:
+.TP 8
+.B justify (\fPClass\fB Justify)
+Sets the text justification.
+Can be one of \fIleft, right, center\fP, or
+\fIfull\fP.
+Only enabled when the \fIautoFill\fP resource is set, and the
+resources \fIleftColumn\fP and \fIrightColumn\fP are correctly set.
+.TP 8
+.B leftColumn (\fPClass\fB Column)
+Specifies the left column at which to break text.
+Text lines started with
+an alphanumeric character will automatically start at this column.
+.TP 8
+.B positionCallback (\fPClass\fB Callback)
+Allows installation of a callback to be called every time the cursor is
+moved, and/or the file changes its size.
+The callback is called with a
+pointer to a structure containing the following data:
+.RS
+.PP
+.EX
+typedef struct {
+    int line_number;
+    int column_number;
+    XawTextPosition insert_position;
+    XawTextPosition last_position;
+    Boolean overwrite_mode;
+} XawTextPositionInfo;
+.EE
+.RE
+.IP
+This callback is intended to help programmers write text editors based
+on the Xaw widget set.
+.TP 8
+.B resize (\fPClass\fB Resize)
+No longer supported, but recognized for backward compatibility with
+resource specifications written for the Xaw6 Text widget.
+.TP 8
+.B rightColumn (\fPClass\fB Column)
+Specifies the right column at which to break text.
+Text lines started with
+an alphanumeric character will automatically end at this column.
+.TP 8
+.B scrollHorizontal (\fPClass\fB Scroll)
+.TQ
+.B scrollVertical (\fPClass\fB Scroll)
+These resources control the placement of scrollbars on the left and bottom
+edges of the Text widget.
+They accept the values \fIXawtextScrollAlways\fP and \fIXawtextScrollNever\fP.
+A converter is registered for this resource
+that will convert the following strings: \fIalways\fP and \fInever\fP.
+The
+value \fIXawtextScrollWhenNeeded\fP (and \fIwhenNeeded\fP, recognized by
+the converter), is accepted for backwards compatibility with resource
+specifications written for the Xaw6 Text widget, but ignored (effectively
+treated as \fIXawtextScrollNever\fP).
+.SH TEXT SOURCE OBJECT
+The textSrcObject allows display of its contents to more than one window,
+and also stores undo information.
+The new resources for the textSrcObject
+are:
+.TP 8
+.B callback (\fPClass\fB Callback)
+Previous versions of Xaw had this resource in subclasses of the TextSource
+object.
+This was changed to make it possible to tell the callback the
+state of the text when undo is enabled.
+.TP 8
+.B enableUndo (\fPClass\fB Undo)
+A boolean resource that enables or disables the undo function.
+The default value is False.
+.TP 8
+.B sourceChanged (\fPClass\fB Changed)
+Like the callback resource, this resource was previously in subclasses of
+the TextSource object.
+It is now in the textSrcObject to control the
+changed/unchanged state when undo is enabled.
+.SH TEXT SINK OBJECT
+The textSinkObject subclasses asciiSinkObject and multiSinkObject have been
+changed slightly to use a new cursor shape (no longer a caret at the
+baseline) that indicates the input focus of the text widget, and allow
+specification of the cursor color.
+The new resource is:
+.TP 8
+.B cursorColor (\fPClass\fB Color)
+Sets the cursor color of the text.
+This color is also used to draw
+selected text.
+.SH SIMPLE MENU WIDGET
+The simpleMenuWidget algorithm to lay out menu entries has been changed to
+enable multiple columns when a single column does not fit on the screen.
+It was also modified to enable submenus.
+.SH SME BSB OBJECT
+A new resource has been added to the smeBSBObject to allow binding submenus
+to it.
+The new resource is:
+.TP 8
+.B menuName (\fPClass\fB MenuName)
+Specifies the name of the popup widget to be popped up when the pointer is
+over the menu entry, or NULL.
+Note that the named menu must be a child of
+the popup parent of the smeBSBObject.
+.SH AUTHORS
+The original X Consortium version of the Athena Widget Set and its
+documentation were the work of many people, including Chris D. Peterson,
+Ralph Swick, Mark Ackerman, Donna Converse, Jim Fulton, Loretta
+Guarino-Reid, Charles Haynes, Rich Hyde, Mary Larson, Joel McCormack, Ron
+Newman, Jeanne Rich, Terry Weissman, Mike Gancarz, Phil Karlton, Kathleen
+Langone, Ram Rao, Smokey Wallace, Al Mento, and Jean Diaz.
+.PP
+The additions and modifications to \fIXaw\fR which were
+originally made for XFree86 were written by Paulo
+C\('esar Pereira de Andrade.
+.SH SEE ALSO
+.I Athena Widget Set - C Language Interface

@@ -89,7 +89,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnux32
 host_triplet = wasm32-unknown-wasi
-bin_PROGRAMS = sxpm$(EXEEXT)
+#bin_PROGRAMS = sxpm$(EXEEXT)
 subdir = sxpm
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_define_dir.m4 \
@@ -106,12 +106,12 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__sxpm_SOURCES_DIST = sxpm.c
-am_sxpm_OBJECTS = sxpm.$(OBJEXT)
+#am_sxpm_OBJECTS = sxpm.$(OBJEXT)
 sxpm_OBJECTS = $(am_sxpm_OBJECTS)
 sxpm_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
-sxpm_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/src/libXpm.la
+#sxpm_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+#	$(top_builddir)/src/libXpm.la
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
@@ -178,7 +178,7 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} '/home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/missing' aclocal-1.16
+ACLOCAL = ${SHELL} '/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/missing' aclocal-1.16
 ADMIN_MAN_DIR = $(mandir)/man$(ADMIN_MAN_SUFFIX)
 ADMIN_MAN_SUFFIX = 8
 AMTAR = $${TAR-tar}
@@ -186,16 +186,16 @@ AM_DEFAULT_VERBOSITY = 0
 APP_MAN_DIR = $(mandir)/man$(APP_MAN_SUFFIX)
 APP_MAN_SUFFIX = 1
 AR = /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/bin/llvm-ar
-AUTOCONF = ${SHELL} '/home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/missing' autoconf
-AUTOHEADER = ${SHELL} '/home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/missing' autoheader
-AUTOMAKE = ${SHELL} '/home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/missing' automake-1.16
+AUTOCONF = ${SHELL} '/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/missing' autoconf
+AUTOHEADER = ${SHELL} '/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/missing' autoheader
+AUTOMAKE = ${SHELL} '/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/missing' automake-1.16
 AWK = mawk
 BASE_CFLAGS =  -Wall -Wpointer-arith -Wmissing-declarations -Wformat=2 -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Wbad-function-cast -Wold-style-definition -Wdeclaration-after-statement -Wunused -Wuninitialized -Wshadow -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Werror=implicit -Werror=nonnull -Werror=init-self -Werror=main -Werror=missing-braces -Werror=sequence-point -Werror=return-type -Werror=trigraphs -Werror=array-bounds -Werror=write-strings -Werror=address -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast
 CC = /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/bin/clang
 CCDEPMODE = depmode=gcc3
-CFLAGS = --target=wasm32-wasip1 --sysroot=/home/nathan/secure-exec/registry/native/c/sysroot -O2 -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec/experiments/wasm-gui/toolchain/wasi-compat.h
+CFLAGS = --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h
 CHANGELOG_CMD = ((GIT_DIR=$(top_srcdir)/.git git log > $(top_srcdir)/.changelog.tmp) 2>/dev/null && mv $(top_srcdir)/.changelog.tmp $(top_srcdir)/ChangeLog) || (rm -f $(top_srcdir)/.changelog.tmp; test -e $(top_srcdir)/ChangeLog || ( touch $(top_srcdir)/ChangeLog; echo 'git failed to create ChangeLog: installing empty ChangeLog.' >&2))
-CPPFLAGS = --target=wasm32-wasip1 --sysroot=/home/nathan/secure-exec/registry/native/c/sysroot -I/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include -I/home/nathan/secure-exec/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec/experiments/wasm-gui/toolchain/wasi-compat.h
+CPPFLAGS = --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h
 CSCOPE = cscope
 CTAGS = ctags
 CWARNFLAGS =  -Wall -Wpointer-arith -Wmissing-declarations -Wformat=2 -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Wbad-function-cast -Wold-style-definition -Wdeclaration-after-statement -Wunused -Wuninitialized -Wshadow -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Werror=implicit -Werror=nonnull -Werror=init-self -Werror=main -Werror=missing-braces -Werror=sequence-point -Werror=return-type -Werror=trigraphs -Werror=array-bounds -Werror=write-strings -Werror=address -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast -fno-strict-aliasing
@@ -221,15 +221,15 @@ GLIB_CFLAGS =
 GLIB_LIBS = 
 GREP = /usr/bin/grep
 INSTALL = /usr/bin/install -c
-INSTALL_CMD = (cp -f /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/share/util-macros/INSTALL $(top_srcdir)/.INSTALL.tmp && mv $(top_srcdir)/.INSTALL.tmp $(top_srcdir)/INSTALL) || (rm -f $(top_srcdir)/.INSTALL.tmp; test -e $(top_srcdir)/INSTALL || ( touch $(top_srcdir)/INSTALL; echo 'failed to copy INSTALL from util-macros: installing empty INSTALL.' >&2))
+INSTALL_CMD = (cp -f /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/share/util-macros/INSTALL $(top_srcdir)/.INSTALL.tmp && mv $(top_srcdir)/.INSTALL.tmp $(top_srcdir)/INSTALL) || (rm -f $(top_srcdir)/.INSTALL.tmp; test -e $(top_srcdir)/INSTALL || ( touch $(top_srcdir)/INSTALL; echo 'failed to copy INSTALL from util-macros: installing empty INSTALL.' >&2))
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = /home/linuxbrew/.linuxbrew/bin/ld
-LDFLAGS = --target=wasm32-wasip1 --sysroot=/home/nathan/secure-exec/registry/native/c/sysroot -L/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1 -lwasi-emulated-mman -lwasi-emulated-process-clocks
+LDFLAGS = --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks
 LIBOBJS = 
-LIBS = 
+LIBS = -lintl 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIB_MAN_DIR = $(mandir)/man$(LIB_MAN_SUFFIX)
 LIB_MAN_SUFFIX = 3
@@ -238,7 +238,7 @@ LN_S = ln -s
 LOCALEDIR = /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/share/locale
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
-MAKEINFO = ${SHELL} '/home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/missing' makeinfo
+MAKEINFO = ${SHELL} '/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/missing' makeinfo
 MANIFEST_TOOL = :
 MAN_SUBSTS = 	-e 's|__vendorversion__|"$(PACKAGE_STRING)" "$(XORG_MAN_PAGE)"|' 	-e 's|__xorgversion__|"$(PACKAGE_STRING)" "$(XORG_MAN_PAGE)"|' 	-e 's|__xservername__|Xorg|g' 	-e 's|__xconfigfile__|xorg.conf|g' 	-e 's|__projectroot__|$(prefix)|g' 	-e 's|__apploaddir__|$(appdefaultdir)|g' 	-e 's|__appmansuffix__|$(APP_MAN_SUFFIX)|g' 	-e 's|__drivermansuffix__|$(DRIVER_MAN_SUFFIX)|g' 	-e 's|__adminmansuffix__|$(ADMIN_MAN_SUFFIX)|g' 	-e 's|__libmansuffix__|$(LIB_MAN_SUFFIX)|g' 	-e 's|__miscmansuffix__|$(MISC_MAN_SUFFIX)|g' 	-e 's|__filemansuffix__|$(FILE_MAN_SUFFIX)|g'
 MISC_MAN_DIR = $(mandir)/man$(MISC_MAN_SUFFIX)
@@ -259,7 +259,7 @@ PACKAGE_URL =
 PACKAGE_VERSION = 3.5.17
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
-PKG_CONFIG_LIBDIR = /home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/lib/pkgconfig:/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/share/pkgconfig
+PKG_CONFIG_LIBDIR = /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/pkgconfig:/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/share/pkgconfig
 PKG_CONFIG_PATH = 
 RANLIB = /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/bin/llvm-ranlib
 SED = /usr/bin/sed
@@ -267,20 +267,20 @@ SET_MAKE =
 SHELL = /bin/bash
 STRICT_CFLAGS =  -pedantic -Werror -Werror=attributes
 STRIP = strip
-SXPM_CFLAGS = -I/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include 
-SXPM_LIBS = -L/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/lib -lXt -lX11 -lXext 
+SXPM_CFLAGS = 
+SXPM_LIBS = 
 VERSION = 3.5.17
 XORG_MALLOC_DEBUG_ENV = 
 XORG_MAN_PAGE = X Version 11
-XPM_CFLAGS = -I/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/include 
-XPM_LIBS = -L/home/nathan/secure-exec/experiments/wasm-gui/third_party/wasm-prefix/lib -lX11 
+XPM_CFLAGS = -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include 
+XPM_LIBS = -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lX11 
 XPM_PATH_COMPRESS = 
 XPM_PATH_GZIP = /usr/bin/gzip
 XPM_PATH_UNCOMPRESS = /usr/bin/uncompress
-abs_builddir = /home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/sxpm
-abs_srcdir = /home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/sxpm
-abs_top_builddir = /home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm
-abs_top_srcdir = /home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm
+abs_builddir = /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/sxpm
+abs_srcdir = /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/sxpm
+abs_top_builddir = /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm
+abs_top_srcdir = /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm
 ac_ct_AR = 
 ac_ct_CC = 
 ac_ct_DUMPBIN = link -dump
@@ -309,7 +309,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/nathan/secure-exec/experiments/wasm-gui/third_party/libXpm/install-sh
+install_sh = ${SHELL} /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/libXpm/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -330,10 +330,10 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_CFLAGS = $(CWARNFLAGS) $(SXPM_CFLAGS)
-sxpm_SOURCES = sxpm.c
-LDADD = $(SXPM_LIBS) $(top_builddir)/src/libXpm.la
+#AM_CPPFLAGS = -I$(top_srcdir)/include
+#AM_CFLAGS = $(CWARNFLAGS) $(SXPM_CFLAGS)
+#sxpm_SOURCES = sxpm.c
+#LDADD = $(SXPM_LIBS) $(top_builddir)/src/libXpm.la
 #noinst_DATA = sxpm.po
 #CLEANFILES = sxpm.po
 EXTRA_DIST = \

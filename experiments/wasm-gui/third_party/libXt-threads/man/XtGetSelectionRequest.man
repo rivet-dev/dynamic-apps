@@ -1,0 +1,73 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtGet-Selection-Request wid-get
+.na
+.TH XtGetSelectionRequest __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtGetSelectionRequest \- retrieve the event that triggered the XtConvertSelectionProc
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+XSelectionRequestEvent* XtGetSelectionRequest(Widget \fIw\fP, Atom
+\fIselection\fP, XtRequestId \fIrequest_id\fP);
+.SH ARGUMENTS
+.IP \fIw\fP 1i
+Specifies the widget.
+.IP \fIselection\fP 1i
+Specifies the selection being processed.
+.IP \fIrequest_id\fP 1i
+Specifies the requestor id in the case of incremental selections, or
+NULL in the case of atomic transfers.
+.SH DESCRIPTION
+.B XtGetSelectionRequest
+may only be called from within an
+.B XtConvertSelectionProc
+procedure and returns a pointer to the
+.B SelectionRequest
+event that caused the conversion procedure to be invoked.
+\fIRequest_id\fP
+specifies a unique id for the individual request in the case that
+multiple incremental transfers are outstanding.
+For atomic transfers,
+\fIrequest_id\fP must be specified as NULL. If no
+.B SelectionRequest
+event is being processed for the specified \fIwidget\fP, \fIselection\fP,
+and \fIrequest_id\fP,
+.B XtGetSelectionRequest
+returns NULL.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

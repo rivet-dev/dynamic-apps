@@ -1,0 +1,71 @@
+.\" Copyright \(co 1986-1997   The Open Group    All Rights Reserved
+.\" Copyright (c) 1999, 2005, Oracle and/or its affiliates.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice (including the next
+.\" paragraph) shall be included in all copies or substantial portions of the
+.\" Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+.\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+.\" DEALINGS IN THE SOFTWARE.
+.\"
+.\" X Window System is a trademark of The Open Group.
+.\"
+.TH XcupQueryVersion __libmansuffix__ 2005-01-22 __xorgversion__
+.SH NAME
+XcupQueryVersion \- Returns TOG-CUP protocol version supported by the X server
+.SH SYNOPSIS
+.nf
+\fBcc\fR [ \fIflag\fR \&.\&.\&. ] \fIfile\fR \&.\&.\&. -\fBlXext\fR [ \fIlibrary\fR \&.\&.\&. ]
+\&#include <X11/extensions/Xcup.h>
+.sp
+Status \fBXcupQueryVersion\fP\^(\^Display *\fIdisplay\fP\^,
+    int *\fImajor_version_return\fP\^, int *\fIminor_version_return\fP\^);
+.if n .ti +5n
+.if t .ti +.5i
+.SH ARGUMENTS
+.IP \fIdisplay\fP 1i
+Specifies the connection to the X server
+.IP \fImajor_version_return\fP 1i
+Returns the major version supported by the server
+.IP \fIminor_version_return\fP 1i
+Returns the minor version supported by the server
+.SH DESCRIPTION
+.B XcupQueryVersion
+sets
+.I major_version_return
+and
+.I minor_version_return
+to the major and minor TOG-CUP protocol version supported by the
+server.
+If the TOG-CUP library is compatible with the version returned
+by the server, it returns nonzero.
+If the server does not support the TOG-CUP extension,
+or if there was an error during communications with the server,
+or if the server and library protocol versions are incompatible,
+it returns zero.
+No other Xcup functions may be called before this function.
+If a client violates this rule, the effects of
+all subsequent Xcup calls that it makes are undefined.
+.LP
+To get the list of reserved colormap entries, use
+.BR XcupGetReservedColormapEntries .
+.LP
+To allocate one or more read-only color cells with RGB values, use
+.BR XcupStoreColors .
+.SH "SEE ALSO"
+.BR XcupGetReservedColormapEntries (3Xext),
+.BR XcupStoreColors (3Xext),
+.br
+\fIColormap Utilization Policy and Extension\fP

@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Set a background color
+BG=""
+if which hsetroot >/dev/null 2>/dev/null; then
+  BG=hsetroot
+elif which esetroot >/dev/null 2>/dev/null; then
+  BG=esetroot
+elif which xsetroot >/dev/null 2>/dev/null; then
+  BG=xsetroot
+fi
+test -z $BG || $BG -solid "#303030"
+
+GLOBALAUTOSTART="@rcdir@/autostart"
+AUTOSTART="${XDG_CONFIG_HOME:-"$HOME/.config"}/openbox/autostart"
+
+# Run the global openbox autostart script
+if test -f $GLOBALAUTOSTART; then
+    sh $GLOBALAUTOSTART
+elif test -f $GLOBALAUTOSTART.sh; then
+    sh $GLOBALAUTOSTART.sh
+fi
+
+# Run the user openbox autostart script
+if test -f $AUTOSTART; then
+    sh $AUTOSTART
+elif test -f $AUTOSTART.sh; then
+    sh $AUTOSTART.sh
+fi
+
+# Run the XDG autostart stuff.  These are found in /etc/xdg/autostart and
+# in $HOME/.config/autostart.  This requires PyXDG to be installed.
+# See openbox-xdg-autostart --help for more details.
+@libexecdir@/openbox-xdg-autostart "$@"

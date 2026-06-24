@@ -1,0 +1,95 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtCall-Callbacks XtHas-Callbacks XtCall-Callbacks-List wid-get
+.na
+.TH XtCallCallbacks __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtCallCallbacks, XtCallCallbackList, XtHasCallbacks \- process callbacks
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtCallCallbacks(Widget \fIw\fP, const char *\fIcallback_name\fP,
+XtPointer \fIcall_data\fP);
+.HP
+void XtCallCallbackList(Widget \fIw\fP, XtCallbackList \fIcallbacks\fP,
+XtPointer \fIcall_data\fP);
+.LP
+typedef enum {XtCallbackNoList, XtCallbackHasNone, XtCallbackHasSome}
+XtCallbackStatus;
+.HP
+XtCallbackStatus XtHasCallbacks(Widget \fIw\fP, const char *\fIcallback_name\fP);
+.SH ARGUMENTS
+.IP \fIcallback_name\fP 1i
+Specifies the callback list to be executed or checked.
+.IP \fIcall_data\fP 1i
+Specifies a callback-list specific data value to pass to each of the callback
+procedure in the list.
+.IP \fIcallbacks\fP 1i
+Specifies the callback list to be executed.
+.IP \fIw\fP 1i
+Specifies the widget.
+.SH DESCRIPTION
+The
+.B XtCallCallbacks
+function calls each procedure that is registered in the specified widget's
+callback list.
+.LP
+If \fIcallbacks\fP is not NULL,
+.B XtCallCallbackList
+calls each of the callback procedures in the list, passing client data
+and \fIcall_data\fP. The \fIcallbacks\fP parameter must specify the
+contents of a widget or object resource declared with representation
+type
+.BR XtRCallback .
+.LP
+The
+.B XtHasCallbacks
+function first checks to see if the widget has a callback list identified
+by callback_name.
+If the callback list does not exist,
+.B XtHasCallbacks
+returns
+.BR XtCallbackNoList .
+If the callback list exists but is empty,
+it returns
+.BR XtCallbackHasNone .
+If the callback list exists and has at least one callback registered,
+it returns
+.BR XtCallbackHasSome .
+.SH "SEE ALSO"
+XtAddCallback(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

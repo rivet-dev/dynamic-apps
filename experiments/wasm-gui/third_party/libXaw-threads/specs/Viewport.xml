@@ -1,0 +1,391 @@
+<sect1 id="Viewport_Widget">
+<title>Viewport Widget</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	Viewport Widget -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>Viewport widget</primary></indexterm>
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+<!-- .sp -->
+Application Header file	&lt;X11/Xaw/Viewport.h&gt;
+<indexterm><primary>Viewport.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/ViewportP.h&gt;
+<indexterm><primary>ViewportP.h</primary></indexterm>
+Class		viewportWidgetClass
+<indexterm><primary>viewportWidgetClass</primary></indexterm>
+Class Name	Viewport
+<indexterm><primary>Viewport widget</primary><secondary>class name</secondary></indexterm>
+Superclass	Form
+<!-- .sp -->
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The Viewport widget consists of a frame window, one or two Scrollbars,
+and an inner window.  The size of the frame window is determined by the
+viewing size of the data that is to be displayed and the dimensions to
+which the Viewport is created.  The inner window is the full size of the
+data that is to be displayed and is clipped by the frame window.  The
+Viewport widget controls the scrolling of the data directly.  No
+application callbacks are required for scrolling.
+</para>
+<para>
+<!-- .LP -->
+When the geometry of the frame window is equal in size to the inner
+window, or when the data does not require scrolling, the Viewport widget
+automatically removes any scrollbars.  The <function>forceBars</function> option causes
+the Viewport widget to display all scrollbars permanently.
+</para>
+<sect2 id='Viewport::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating a Viewport widget instance, the following resources are
+retrieved from the argument list or the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>Viewport widget</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>accelerators</entry>
+      <entry>Accelerators</entry>
+      <entry>AcceleratorTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>allowHoriz</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>allowVert</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>ancestorSensitive</entry>
+      <entry>AncestorSensitive</entry>
+      <entry>Boolean</entry>
+      <entry>D</entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>background</entry>
+      <entry>Background</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultBackground</entry>
+    </row>
+    <row>
+      <entry>backgroundPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderColor</entry>
+      <entry>BorderColor</entry>
+      <entry>Pixel</entry>
+      <entry></entry>
+      <entry>XtDefaultForeground</entry>
+    </row>
+    <row>
+      <entry>borderPixmap</entry>
+      <entry>Pixmap</entry>
+      <entry>Pixmap</entry>
+      <entry></entry>
+      <entry>XtUnspecifiedPixmap</entry>
+    </row>
+    <row>
+      <entry>borderWidth</entry>
+      <entry>BorderWidth</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>1</entry>
+    </row>
+    <row>
+      <entry>children</entry>
+      <entry>ReadOnly</entry>
+      <entry>WidgetList</entry>
+      <entry>R</entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>colormap</entry>
+      <entry>Colormap</entry>
+      <entry>Colormap</entry>
+      <entry></entry>
+      <entry>Parent's Colormap</entry>
+    </row>
+    <row>
+      <entry>depth</entry>
+      <entry>Depth</entry>
+      <entry>int</entry>
+      <entry>C</entry>
+      <entry>Parent's Depth</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>forceBars</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>height</entry>
+      <entry>Height</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>height of the child</entry>
+    </row>
+    <row>
+      <entry>mappedWhenManaged</entry>
+      <entry>MappedWhenManaged</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>numChildren</entry>
+      <entry>ReadOnly</entry>
+      <entry>Cardinal</entry>
+      <entry>R</entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>reportCallback</entry>
+      <entry>ReportCallback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>screen</entry>
+      <entry>Screen</entry>
+      <entry>Screen</entry>
+      <entry>R</entry>
+      <entry>Parent's Screen</entry>
+    </row>
+    <row>
+      <entry>sensitive</entry>
+      <entry>Sensitive</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>translations</entry>
+      <entry>Translations</entry>
+      <entry>TranslationTable</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>useBottom</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>useRight</entry>
+      <entry>Boolean</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>width</entry>
+      <entry>Width</entry>
+      <entry>Dimension</entry>
+      <entry></entry>
+      <entry>width of the child</entry>
+    </row>
+    <row>
+      <entry>x</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>y</entry>
+      <entry>Position</entry>
+      <entry>Position</entry>
+      <entry></entry>
+      <entry>0</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Ac -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <function>allowHoriz</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>allowVert</function>
+    </term>
+    <listitem>
+      <para>
+If these resources are <function>False</function> then the Viewport will never create
+a scrollbar in this direction.  If it is <function>True</function> then the scrollbar will
+only appear when it is needed, unless <function>forceBars</function> is <function>True</function>.
+<!-- .As -->
+<!-- .Bg -->
+<!-- .Gp -->
+<!-- .Bc -->
+<!-- .Bp -->
+<!-- .Bw -->
+<!-- .Ch -->
+<!-- .Cm -->
+<!-- .Dp -->
+<!-- .Dc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>forceBars</function>
+    </term>
+    <listitem>
+      <para>
+When <function>True</function> the scrollbars that have been <emphasis remap='I'>allowed</emphasis> will always be
+visible on the screen.  If <function>False</function> the scrollbars will be visible only
+when the inner window is larger than the frame.
+<!-- .Hw -->
+<!-- .Mm -->
+<!-- .Nc -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>reportCallback</function>
+    </term>
+    <listitem>
+      <para>
+These callbacks will be executed whenever the Viewport adjusts the viewed
+area of the child.  The call_data parameter is a pointer to an XawPannerReport
+structure.
+<!-- .Sc -->
+<!-- .Se -->
+<!-- .Tr -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>useBottom</function>
+    </term>
+    <listitem>
+      <para>
+<!-- .br -->
+<!-- .ns -->
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <function>useRight</function>
+    </term>
+    <listitem>
+      <para>
+By default the scrollbars appear on the left and top of the screen.
+These resources allow the vertical scrollbar to be placed on the right
+edge of the Viewport, and the horizontal scrollbar on the bottom edge of
+the Viewport.
+<!-- .Xy -->
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+</sect2>
+<sect2 id='Viewport::Layout_Semantics'>
+<title>Layout Semantics</title>
+<para>
+<!-- .LP -->
+<indexterm><primary>Viewport widget</primary><secondary>layout semantics</secondary></indexterm>
+The Viewport widget manages a single child widget.  When the size of the
+child is larger than the size of the Viewport, the user can interactively
+move the child within the Viewport by repositioning the scrollbars.
+</para>
+<para>
+<!-- .LP -->
+The default size of the Viewport before it is realized is the width and/or
+height of the child.  After it is realized, the Viewport will allow its
+child to grow vertically or horizontally if <function>allowVert</function> or
+<function>allowHoriz</function> are set, respectively.  If the corresponding vertical
+or horizontal scrollbar is not enabled, the Viewport will propagate the
+geometry request to its own parent and the child will be allowed to change
+size only if the Viewport's parent allows it.  Regardless of whether or not
+scrollbars are enabled in the corresponding direction, if the child requests
+a new size smaller than the Viewport size, the change will be allowed only
+if the parent of the Viewport allows the Viewport to shrink to the
+appropriate dimension.
+</para>
+<para>
+<!-- .LP -->
+The scrollbar children of the Viewport are named <function>horizontal</function> and
+<function>vertical</function>.  By using these names the programmer can specify resources
+for the individual scrollbars.  <xref linkend='XtSetValues' xrefstyle='select: title'/> can be used to modify
+the resources dynamically once the widget ID has been obtained with
+<function>XtNameToWidget</function>.
+<indexterm><primary>XtNameToWidget</primary></indexterm>
+<!-- .NT -->
+</para>
+<note><para>
+Although the Viewport is a Subclass of the Form, no resources for the Form
+may be supplied for any of the children of the Viewport.  These constraints
+are managed internally and are not meant for public consumption.
+</para></note>
+<!-- .NE -->
+
+</sect2>
+</sect1>

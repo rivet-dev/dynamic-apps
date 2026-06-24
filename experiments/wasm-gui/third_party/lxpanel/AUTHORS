@@ -1,0 +1,59 @@
+LXPanel - Lightweight X11 desktop panel
+  http://lxpanel.sourceforge.net/
+
+[Developers]
+    Hong Jen Yee (PCMan)  <pcman.tw@gmail.com>
+    Jim Huang  <jserv.tw@gmail.com>
+    Greg McNew <gmcnew@gmail.com> (battery plugin)
+    Fred Chien <cfsghost@gmail.com>
+    Daniel Kesler <kesler.daniel@gmail.com>
+    Juergen Hoetzel <juergen@archlinux.org>
+    Marty Jack <martyj19@comcast.net>
+    Martin Bagge <brother@bsnet.se>
+    Andriy Grytsenko <andrej@rep.kiev.ua>
+    Giuseppe Penone <giuspen@gmail.com>
+    Piotr Sipika <piotr.sipika@gmail.com>
+    Raimar Bühmann <raimar@buehmann.de>
+    Peter <ombalaxitabou@users.sf.net>
+    Balló György <ballogyor@gmail.com>
+    Rafał Mużyło <galtgendo@gmail.com>
+    Charles Lehner <cel10@users.sf.net>
+    Stanislav Kozina, Ersin <xersin@users.sf.net>
+    Mamoru TASAKA <mtasaka@fedoraproject.org>
+    number Zero <numzero@users.sf.net>
+    Carles Pina i Estany <carles@pina.cat>
+    Max Kirillov <max@max630.net>
+    Stuart D. Gathman <stuart@gathman.org>
+    TheZxcv <the.uint64.t@gmail.com>
+
+[History]
+LXPanel is a derivative work from fbpanel [1] written by Anatoly Asviyan,
+and fbpanel is derived from another project, fspanel [2], originally 
+written by Peter Zelezny.
+
+[Credits]
+Fbpanel has done its good job, but it didn't satisfy our needs. Originally 
+PCMan sent patches to the author of fbpanel, Anatoly Asviyan, and they had
+some discussions.  After Asviyan received some patches, PCMan would be 
+willing to enhance this little panel application which might be differnt 
+from the goal of Anatoly in the future. However, PCMan didn'get enough 
+chance to join fbpanel project. So, finally PCMan decided to create his own
+branch, and started the hacking regarding he want to do. Thank to Anatoly 
+Asviyan and Peter Zelezny, the original creator for this little panel. And 
+the most important, thank free software, which gives us the freedom to 
+modify existing projects to serve our needs. :-)
+
+* src/plugins/menu.c contains few pieces of code from menu.c of gnome-panel.
+
+* src/plugins/menu.c and src/misc.c contain code from SuxPanel [3], written
+  by Leandro Pereira.
+
+* gtk-builder-convert is a fixed version of the original program included in
+  gtk+ package. It's originally developed by gtk+ developers, but it contains
+  some bugs. So a fixed version is included here.
+
+Window commands plugin icon from http://www.oxygen-icons.org/ (licensed under LGPL)
+
+[1] fbpanel, http://fbpanel.sourceforge.net/
+[2] fspanel, http://freshmeat.net/projects/fspanel/
+[3] suxpanel, http://suxpanel.berlios.de/

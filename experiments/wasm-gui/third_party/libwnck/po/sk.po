@@ -1,0 +1,1258 @@
+# translation of libwnck.HEAD.po to Slovak
+# translation of sk.po to Slovak
+# libwnck Slovak translation.
+# Copyright (C) 2001,2002,2003,2009 Free Software Foundation, Inc.
+# Stanislav Visnovsky <visnovsky@nenya.ms.mff.cuni.cz>, 2001,2003.
+# Stanislav Višňovský <visnovsky@nenya.ms.mff.cuni.cz>, 2002.
+# Stanislav Visnovsky <visnovsky@kde.org>, 2003.
+# Ivan Noris <vix@vazka.sk>, 2004.
+# Pavol Šimo <palo.simo@gmail.com>, 2007-2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libwnck.HEAD\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libwnck&component=general\n"
+"POT-Creation-Date: 2009-02-11 04:51+0000\n"
+"PO-Revision-Date: 2009-02-11 21:55+0100\n"
+"Last-Translator: Pavol Šimo <palo.simo@gmail.com>\n"
+"Language-Team: Slovak <sk-i18n@linux.sk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. *
+#. * SECTION:application
+#. * @short_description: an object representing a group of windows of the same
+#. * application.
+#. * @see_also: wnck_window_get_application()
+#. * @stability: Unstable
+#. *
+#. * The #WnckApplication is a group of #WnckWindow that are all in the same
+#. * application. It can be used to represent windows by applications, group
+#. * windows by applications or to manipulate all windows of a particular
+#. * application.
+#. *
+#. * A #WnckApplication is identified by the group leader of the #WnckWindow
+#. * belonging to it, and new #WnckWindow are added to a #WnckApplication if and
+#. * only if they have the group leader of the #WnckApplication.
+#. *
+#. * The #WnckApplication objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/application.c:51
+msgid "Untitled application"
+msgstr "Aplikácia bez názvu"
+
+#: ../libwnck/pager-accessible.c:322
+msgid "Workspace Switcher"
+msgstr "Prepínač plôch"
+
+#: ../libwnck/pager-accessible.c:333
+msgid "Tool to switch between workspaces"
+msgstr "Nástroj pre prepínanie medzi pracovnými plochami"
+
+#: ../libwnck/pager-accessible.c:437
+#, c-format
+msgid "Click this to switch to workspace %s"
+msgstr "Kliknutím sa prepnete na plochu %s"
+
+#: ../libwnck/pager.c:1910
+#, c-format
+msgid "Click to start dragging \"%s\""
+msgstr "Kliknutím naštartujete ťahanie \"%s\""
+
+#: ../libwnck/pager.c:1913
+#, c-format
+msgid "Current workspace: \"%s\""
+msgstr "Aktuálna plocha: \"%s\""
+
+#: ../libwnck/pager.c:1918
+#, c-format
+msgid "Click to switch to \"%s\""
+msgstr "Kliknutím sa prepnete na %s"
+
+#: ../libwnck/selector.c:1171
+msgid "No Windows Open"
+msgstr "Nie sú otvorené žiadne okná"
+
+#: ../libwnck/selector.c:1224
+msgid "Window Selector"
+msgstr "Výber okien"
+
+#: ../libwnck/selector.c:1225
+msgid "Tool to switch between windows"
+msgstr "Nástroj pre prepínanie medzi oknami"
+
+#: ../libwnck/tasklist.c:729
+msgid "Window List"
+msgstr "Zoznam okien"
+
+#: ../libwnck/tasklist.c:730
+msgid "Tool to switch between visible windows"
+msgstr "Nástroj pre prepínanie medzi viditeľnými oknami"
+
+#: ../libwnck/tasklist.c:3018
+msgid "Mi_nimize All"
+msgstr "Mi_nimalizovať všetky"
+
+#: ../libwnck/tasklist.c:3029
+msgid "Un_minimize All"
+msgstr "Zrušiť _minimalizáciu všetkých"
+
+#: ../libwnck/tasklist.c:3037
+msgid "Ma_ximize All"
+msgstr "Ma_ximalizovať všetky"
+
+#: ../libwnck/tasklist.c:3048
+msgid "_Unmaximize All"
+msgstr "Zrušiť m_aximalizáciu všetkých"
+
+#: ../libwnck/tasklist.c:3060
+msgid "_Close All"
+msgstr "_Zavrieť všetky"
+
+#: ../libwnck/test-pager.c:15
+msgid "Use N_ROWS rows"
+msgstr "Použiť N_ROWS riadkov"
+
+#: ../libwnck/test-pager.c:15
+msgid "N_ROWS"
+msgstr "N_ROWS"
+
+#: ../libwnck/test-pager.c:16
+msgid "Only show current workspace"
+msgstr "_Len na tejto pracovnej ploche"
+
+#: ../libwnck/test-pager.c:17 ../libwnck/test-tasklist.c:19
+msgid "Use RTL as default direction"
+msgstr "Použiť RTL ako predvolený smer"
+
+#: ../libwnck/test-pager.c:18
+msgid "Show workspace names instead of workspace contents"
+msgstr "Ukázať názvy pracovných plôch namiesto ich obsahu"
+
+#: ../libwnck/test-pager.c:19
+msgid "Use a vertical orientation"
+msgstr "Použiť zvislú orientáciu"
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/test-selector.c:12 ../libwnck/test-tasklist.c:20
+msgid "Don't show window in tasklist"
+msgstr "Neukazovať okno v zozname okien"
+
+#: ../libwnck/test-tasklist.c:16
+msgid "Always group windows"
+msgstr "Vždy zoskupovať okná"
+
+#: ../libwnck/test-tasklist.c:17
+msgid "Never group windows"
+msgstr "Nikdy nezoskupovať okná"
+
+#: ../libwnck/test-tasklist.c:18
+msgid "Display windows from all workspaces"
+msgstr "Zobraziť okná zo všetkých plôch"
+
+#: ../libwnck/test-tasklist.c:21
+msgid "Enable Transparency"
+msgstr "Povoliť priesvitnosť"
+
+#: ../libwnck/window-action-menu.c:417
+msgid "Unmi_nimize"
+msgstr "Zrušiť mi_nimalizáciu"
+
+#: ../libwnck/window-action-menu.c:424
+msgid "Mi_nimize"
+msgstr "Mi_nimalizovať"
+
+#: ../libwnck/window-action-menu.c:432
+msgid "Unma_ximize"
+msgstr "Zrušiť ma_ximalizáciu"
+
+#: ../libwnck/window-action-menu.c:439
+msgid "Ma_ximize"
+msgstr "Ma_ximalizovať"
+
+#: ../libwnck/window-action-menu.c:746 ../libwnck/workspace.c:281
+#, c-format
+msgid "Workspace %d"
+msgstr "Pracovná plocha %d"
+
+#: ../libwnck/window-action-menu.c:755 ../libwnck/window-action-menu.c:902
+#, c-format
+msgid "Workspace 1_0"
+msgstr "Pracovná plocha 1_0"
+
+#: ../libwnck/window-action-menu.c:757 ../libwnck/window-action-menu.c:904
+#, c-format
+msgid "Workspace %s%d"
+msgstr "Pracovná plocha %s%d"
+
+#: ../libwnck/window-action-menu.c:1047
+msgid "_Move"
+msgstr "Pre_miestniť"
+
+#: ../libwnck/window-action-menu.c:1054
+msgid "_Resize"
+msgstr "Zmeniť veľko_sť"
+
+#: ../libwnck/window-action-menu.c:1063
+msgid "Always On _Top"
+msgstr "Vždy na_vrchu"
+
+#: ../libwnck/window-action-menu.c:1071
+msgid "_Always on Visible Workspace"
+msgstr "Vž_dy na viditeľnej pracovnej ploche"
+
+#: ../libwnck/window-action-menu.c:1076
+msgid "_Only on This Workspace"
+msgstr "_Len na tejto pracovnej ploche"
+
+#: ../libwnck/window-action-menu.c:1083
+msgid "Move to Workspace _Left"
+msgstr "Presunúť na pracovnú plochu vľav_o"
+
+#: ../libwnck/window-action-menu.c:1089
+msgid "Move to Workspace R_ight"
+msgstr "Presunúť na pracovnú plochu v_pravo"
+
+#: ../libwnck/window-action-menu.c:1095
+msgid "Move to Workspace _Up"
+msgstr "Presunúť na pracovnú plochu _hore"
+
+#: ../libwnck/window-action-menu.c:1101
+msgid "Move to Workspace _Down"
+msgstr "Presunúť na pracovnú plochu _dole"
+
+#: ../libwnck/window-action-menu.c:1104
+msgid "Move to Another _Workspace"
+msgstr "P_resunúť na inú pracovnú plochu"
+
+#: ../libwnck/window-action-menu.c:1124
+msgid "_Close"
+msgstr "_Zavrieť"
+
+#. *
+#. * SECTION:window
+#. * @short_description: an object representing a window.
+#. * @see_also: #WnckWorkspace, #WnckApplication, #WnckClassGroup
+#. * @stability: Unstable
+#. *
+#. * The #WnckWindow objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/window.c:50
+msgid "Untitled window"
+msgstr "Okno bez názvu"
+
+#: ../libwnck/wnckprop.c:139
+msgid "X window ID of the window to examine or modify"
+msgstr "X window ID okna na skúmanie alebo zmenu"
+
+#: ../libwnck/wnckprop.c:139 ../libwnck/wnckprop.c:145
+#: ../libwnck/wnckprop.c:154
+msgid "XID"
+msgstr "XID"
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one window
+#. * has some information about the application (like the application name).
+#: ../libwnck/wnckprop.c:144
+msgid "X window ID of the group leader of an application to examine"
+msgstr "X window ID vedúceho skupiny aplikácie na skúmanie"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:148
+msgid "Class resource of the class group to examine"
+msgstr "Triedny zdroj skupiny tried na skúmanie"
+
+#: ../libwnck/wnckprop.c:148
+msgid "CLASS"
+msgstr "TRIEDA"
+
+#: ../libwnck/wnckprop.c:150
+msgid "NUMBER of the workspace to examine or modify"
+msgstr "ČÍSLO pracovnej plochy na skúmanie alebo zmenu"
+
+#: ../libwnck/wnckprop.c:150 ../libwnck/wnckprop.c:152
+#: ../libwnck/wnckprop.c:169 ../libwnck/wnckprop.c:171
+#: ../libwnck/wnckprop.c:173 ../libwnck/wnckprop.c:262
+msgid "NUMBER"
+msgstr "ČÍSLO"
+
+#: ../libwnck/wnckprop.c:152
+msgid "NUMBER of the screen to examine or modify"
+msgstr "ČÍSLO obrazovky na skúmanie alebo zmenu"
+
+#: ../libwnck/wnckprop.c:154
+msgid "Alias of --window"
+msgstr "Alias pre --window"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:161
+msgid ""
+"List windows of the application/class group/workspace/screen (output format: "
+"\"XID: Window Name\")"
+msgstr ""
+"Zobrazť zoznam okien aplikácie/skupiny okien/plochy/obrazovky (výstupný "
+"formát: \"XID: Názov okna\")"
+
+#: ../libwnck/wnckprop.c:163
+msgid ""
+"List workspaces of the screen (output format: \"Number: Workspace Name\")"
+msgstr ""
+"Zobraziť zoznam pracovných plôch obrazovky (výstupný formát: \"Číslo: Názov "
+"plochy\")"
+
+#: ../libwnck/wnckprop.c:169
+msgid "Change the number of workspaces of the screen to NUMBER"
+msgstr "Zmeniť počet pracovných plôch na obrazovke na hodnotu ČÍSLO"
+
+#: ../libwnck/wnckprop.c:171
+msgid "Change the workspace layout of the screen to use NUMBER rows"
+msgstr "Zmeniť rozloženie plôch na obrazovke na hodnotu ČÍSLO riadkov"
+
+#: ../libwnck/wnckprop.c:173
+msgid "Change the workspace layout of the screen to use NUMBER columns"
+msgstr "Zmeniť rozloženie plôch na obrazovke na hodnotu ČÍSLO stĺpcov"
+
+#: ../libwnck/wnckprop.c:175
+msgid "Show the desktop"
+msgstr "Zobraziť pracovnú plochu"
+
+#: ../libwnck/wnckprop.c:177
+msgid "Stop showing the desktop"
+msgstr "Zrušiť zobrazenie pracovnej plochy"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:181
+msgid "Move the viewport of the current workspace to X coordinate X"
+msgstr "Premiestniť výhľad aktuálnej pracovnej plochy na X-ovú pozíciu X"
+
+#: ../libwnck/wnckprop.c:181 ../libwnck/wnckprop.c:264
+msgid "X"
+msgstr "X"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:185
+msgid "Move the viewport of the current workspace to Y coordinate Y"
+msgstr "Premiestniť výhľad aktuálnej pracovnej plochy na Y-ovú pozíciu Y"
+
+#: ../libwnck/wnckprop.c:185 ../libwnck/wnckprop.c:266
+msgid "Y"
+msgstr "Y"
+
+#: ../libwnck/wnckprop.c:191
+msgid "Minimize the window"
+msgstr "Minimalizovať okno"
+
+#: ../libwnck/wnckprop.c:193
+msgid "Unminimize the window"
+msgstr "Zrušiť minimalizáciu okna"
+
+#: ../libwnck/wnckprop.c:195
+msgid "Maximize the window"
+msgstr "Maximalizovať okno"
+
+#: ../libwnck/wnckprop.c:197
+msgid "Unmaximize the window"
+msgstr "Zrušiť maximalizáciu okna"
+
+#: ../libwnck/wnckprop.c:199
+msgid "Maximize horizontally the window"
+msgstr "Horizontálne maximalizovať okno"
+
+#: ../libwnck/wnckprop.c:201
+msgid "Unmaximize horizontally the window"
+msgstr "Zrušiť horizontálnu maximalizáciu okna"
+
+#: ../libwnck/wnckprop.c:203
+msgid "Maximize vertically the window"
+msgstr "Vertikálne maximalizovať okno"
+
+#: ../libwnck/wnckprop.c:205
+msgid "Unmaximize vertically the window"
+msgstr "Zrušiť vertikálnu maximalizáciu okna"
+
+#: ../libwnck/wnckprop.c:207
+msgid "Start moving the window via the keyboard"
+msgstr "Začať premiestnenie okna pomocou klávesnice"
+
+#: ../libwnck/wnckprop.c:209
+msgid "Start resizing the window via the keyboard"
+msgstr "Začať zmenu veľkosti okna pomocou klávesnice"
+
+#: ../libwnck/wnckprop.c:211
+msgid "Activate the window"
+msgstr "Aktivovať okno"
+
+#: ../libwnck/wnckprop.c:213
+msgid "Close the window"
+msgstr "Zavrieť okno"
+
+#: ../libwnck/wnckprop.c:216
+msgid "Make the window fullscreen"
+msgstr "Zobraziť okno na celú obrazovku"
+
+#: ../libwnck/wnckprop.c:218
+msgid "Make the window quit fullscreen mode"
+msgstr "Zrušiť zobrazenie okna na celú obrazovku"
+
+#: ../libwnck/wnckprop.c:220
+msgid "Make the window always on top"
+msgstr "Zobraziť okno vždy navrchu"
+
+#: ../libwnck/wnckprop.c:222
+msgid "Make the window not always on top"
+msgstr "Zrušiť zobrazenie okna \"vždy navrchu\""
+
+#: ../libwnck/wnckprop.c:224
+msgid "Make the window below other windows"
+msgstr "Presunúť okno pod ostatné okná"
+
+#: ../libwnck/wnckprop.c:226
+msgid "Make the window not below other windows"
+msgstr "Zrušiť presunutie okna pod ostatné okná"
+
+#: ../libwnck/wnckprop.c:228
+msgid "Shade the window"
+msgstr "Zrolovať okno"
+
+#: ../libwnck/wnckprop.c:230
+msgid "Unshade the window"
+msgstr "Zrušiť zrolovanie okna"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:234
+msgid "Make the window have a fixed position in the viewport"
+msgstr "Umiestniť okno na fixnú pozíciu vo výhľade"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:238
+msgid "Make the window not have a fixed position in the viewport"
+msgstr "Zrušiť umiestnenie okna na fixnej pozícií vo výhľade"
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:244
+msgid "Make the window not appear in pagers"
+msgstr "Nezobrazovať okno v prepínaní plôch"
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:250
+msgid "Make the window appear in pagers"
+msgstr "Zobrazovať okno v prepínaní plôch"
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:253
+msgid "Make the window not appear in tasklists"
+msgstr "Nezobrazovať okno v zozname okien"
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:256
+msgid "Make the window appear in tasklists"
+msgstr "Zobrazovať okno v zozname okien"
+
+#: ../libwnck/wnckprop.c:258
+msgid "Make the window visible on all workspaces"
+msgstr "Zobraziť okno na všetkých pracovných plochách"
+
+#: ../libwnck/wnckprop.c:260
+msgid "Make the window visible on the current workspace only"
+msgstr "Zobraziť okno len na aktuálnej pracovnej ploche"
+
+#: ../libwnck/wnckprop.c:262
+msgid "Move the window to workspace NUMBER (first workspace is 0)"
+msgstr "Presunúť okno na pracovnú plochu ČÍSLO (prvá plocha má číslo 0)"
+
+#: ../libwnck/wnckprop.c:264
+msgid "Change the X coordinate of the window to X"
+msgstr "Nastaviť x-ovú súradnicu okna na hodnotu X"
+
+#: ../libwnck/wnckprop.c:266
+msgid "Change the Y coordinate of the window to Y"
+msgstr "Nastaviť y-ovú súradnicu okna na hodnotu Y"
+
+#: ../libwnck/wnckprop.c:268
+msgid "Change the width of the window to WIDTH"
+msgstr "Nastaviť šírku okna na hodnotu ŠÍRKA"
+
+#: ../libwnck/wnckprop.c:268
+msgid "WIDTH"
+msgstr "ŠÍRKA"
+
+#: ../libwnck/wnckprop.c:270
+msgid "Change the height of the window to HEIGHT"
+msgstr "Nastaviť výšku okna na hodnotu VÝŠKA"
+
+#: ../libwnck/wnckprop.c:270
+msgid "HEIGHT"
+msgstr "VÝŠKA"
+
+#. Translators: do not translate "normal, desktop, dock..."
+#: ../libwnck/wnckprop.c:273
+msgid ""
+"Change the type of the window to TYPE (valid values: normal, desktop, dock, "
+"dialog, toolbar, menu, utility, splash)"
+msgstr ""
+"Nastaviť typ okna na hodnotu TYP (možné hodnoty: normal, desktop, dock, "
+"dialog, toolbar, menu, utility, splash)"
+
+#: ../libwnck/wnckprop.c:273
+msgid "TYPE"
+msgstr "TYP"
+
+#: ../libwnck/wnckprop.c:279
+msgid "Change the name of the workspace to NAME"
+msgstr "Zmeniť názov pracovnej plochy na NÁZOV"
+
+#: ../libwnck/wnckprop.c:279
+msgid "NAME"
+msgstr "NÁZOV"
+
+#: ../libwnck/wnckprop.c:281
+msgid "Activate the workspace"
+msgstr "Aktivovať pracovnú plochu"
+
+#: ../libwnck/wnckprop.c:373 ../libwnck/wnckprop.c:397
+#: ../libwnck/wnckprop.c:433 ../libwnck/wnckprop.c:456
+#, c-format
+msgid "Invalid value \"%s\" for --%s"
+msgstr "Chybná hodnota \"%s\" pre --%s"
+
+#: ../libwnck/wnckprop.c:490 ../libwnck/wnckprop.c:509
+#, c-format
+msgid ""
+"Conflicting options are present: screen %d should be interacted with, but --%"
+"s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: má sa pracovať s obrazovkou %d, ale bolo "
+"určené --%s\n"
+
+#: ../libwnck/wnckprop.c:499
+#, c-format
+msgid ""
+"Conflicting options are present: windows or workspaces of screen %d should "
+"be listed, but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: majú byť vypísané okná alebo plochy obrazovky %"
+"d, ale bolo určené --%s\n"
+
+#: ../libwnck/wnckprop.c:522 ../libwnck/wnckprop.c:542
+#, c-format
+msgid ""
+"Conflicting options are present: workspace %d should be interacted with, but "
+"--%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: má sa pracovať s plochou %d, ale bolo určené --"
+"%s\n"
+
+#: ../libwnck/wnckprop.c:532
+#, c-format
+msgid ""
+"Conflicting options are present: windows of workspace %d should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: majú byť vypísané okná plochy %d, ale bolo "
+"určené --%s\n"
+
+#: ../libwnck/wnckprop.c:554
+#, c-format
+msgid ""
+"Conflicting options are present: an application should be interacted with, "
+"but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: má sa pracovať s aplikáciou, ale bolo určené --"
+"%s\n"
+
+#: ../libwnck/wnckprop.c:564
+#, c-format
+msgid ""
+"Conflicting options are present: windows of an application should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: majú byť vypísané okná aplikácie, ale bolo "
+"určené --%s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:577
+#, c-format
+msgid ""
+"Conflicting options are present: class group \"%s\" should be interacted "
+"with, but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: má sa pracovať so skupinou okien \"%s\", ale "
+"bolo určené --%s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:588
+#, c-format
+msgid ""
+"Conflicting options are present: windows of class group \"%s\" should be "
+"listed, but --%s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: majú byť vypísané okná skupiny \"%s\", ale "
+"bolo určené --%s\n"
+
+#: ../libwnck/wnckprop.c:600 ../libwnck/wnckprop.c:609
+#, c-format
+msgid ""
+"Conflicting options are present: a window should be interacted with, but --%"
+"s has been used\n"
+msgstr ""
+"Použité voľby sú v konflikte: má sa pracovať s oknom, ale bolo určené --%s\n"
+
+#: ../libwnck/wnckprop.c:628 ../libwnck/wnckprop.c:709
+#: ../libwnck/wnckprop.c:756
+#, c-format
+msgid "Conflicting options are present: --%s and --%s\n"
+msgstr "Použité voľby sú v konflikte: --%s a --%s\n"
+
+#: ../libwnck/wnckprop.c:667
+#, c-format
+msgid ""
+"Invalid argument \"%d\" for --%s: the argument must be strictly positive\n"
+msgstr "Neplatná hodnota \"%d\" pre --%s: hodnota musí byť kladná\n"
+
+#: ../libwnck/wnckprop.c:680
+#, c-format
+msgid "Invalid argument \"%d\" for --%s: the argument must be positive\n"
+msgstr "Neplatná hodnota \"%d\" pre --%s: hodnota musí byť nezáporná\n"
+
+#: ../libwnck/wnckprop.c:775
+#, c-format
+msgid "Conflicting options are present: --%s or --%s, and --%s\n"
+msgstr "Použité voľby sú v konflikte: --%s (alebo --%s) a --%s\n"
+
+#: ../libwnck/wnckprop.c:807
+#, c-format
+msgid "Invalid argument \"%s\" for --%s, valid values are: %s\n"
+msgstr "Neplatná hodnota \"%s\" pre --%s, možné hodnoty sú: %s\n"
+
+#: ../libwnck/wnckprop.c:850
+#, c-format
+msgid ""
+"Cannot change the workspace layout on the screen: the layout is already "
+"owned\n"
+msgstr ""
+"Nie je možné zmeniť rozloženie plôch na obrazovke: rozloženie je už "
+"priradené\n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:884
+#, c-format
+msgid ""
+"Viewport cannot be moved: the current workspace does not contain a viewport\n"
+msgstr ""
+"Výhľad sa nedá premiestniť: aktuálna pracovná plocha neobsahuje výhľad\n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:890
+#, c-format
+msgid "Viewport cannot be moved: there is no current workspace\n"
+msgstr "Výhľad sa nedá premiestniť: aktuálna nie je žiadna plocha\n"
+
+#. FIXME: why do we have dual & boolean API. This is not consistent!
+#: ../libwnck/wnckprop.c:926 ../libwnck/wnckprop.c:935
+#: ../libwnck/wnckprop.c:944 ../libwnck/wnckprop.c:951
+#: ../libwnck/wnckprop.c:961 ../libwnck/wnckprop.c:968
+#: ../libwnck/wnckprop.c:977 ../libwnck/wnckprop.c:1026
+#, c-format
+msgid "Action not allowed\n"
+msgstr "Nepovolená akcia\n"
+
+#: ../libwnck/wnckprop.c:1022
+#, c-format
+msgid "Window cannot be moved to workspace %d: the workspace does not exist\n"
+msgstr "Okno nemôže byť premiestnené na plochu %d: taká plocha neexistuje\n"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1086 ../libwnck/wnckprop.c:1218
+msgid "<name unset>"
+msgstr "<názov nenastavený>"
+
+#. Translators: %lu is a window number and %s a window name
+#: ../libwnck/wnckprop.c:1089
+#, c-format
+msgid "%lu: %s\n"
+msgstr "%lu: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1109
+#, c-format
+msgid "%d: %s\n"
+msgstr "%d: %s\n"
+
+#: ../libwnck/wnckprop.c:1172
+#, c-format
+msgid "Screen Number: %d\n"
+msgstr "Číslo obrazovky: %d\n"
+
+#: ../libwnck/wnckprop.c:1174 ../libwnck/wnckprop.c:1255
+#, c-format
+msgid "Geometry (width, height): %d, %d\n"
+msgstr "Geometria (šírka, výška): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1178
+#, c-format
+msgid "Number of Workspaces: %d\n"
+msgstr "Počet pracovných plôch: %d\n"
+
+#: ../libwnck/wnckprop.c:1184
+#, c-format
+msgid "Workspace Layout (rows, columns, orientation): %d, %d, %s\n"
+msgstr "Rozloženie plôch (riadky, stĺpce, orientácia): %d, %d, %s\n"
+
+#: ../libwnck/wnckprop.c:1194 ../libwnck/wnckprop.c:1251
+#: ../libwnck/wnckprop.c:1443
+msgid "<no EWMH-compliant window manager>"
+msgstr "<žiaden správca okien spĺňajúci EWMH>"
+
+#: ../libwnck/wnckprop.c:1195
+#, c-format
+msgid "Window Manager: %s\n"
+msgstr "Správca okien: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1200 ../libwnck/wnckprop.c:1279
+#: ../libwnck/wnckprop.c:1291 ../libwnck/wnckprop.c:1303
+#: ../libwnck/wnckprop.c:1315 ../libwnck/wnckprop.c:1428
+#, c-format
+msgid "%d (\"%s\")"
+msgstr "%d (\"%s\")"
+
+#. Translators: "none" here means "no workspace"
+#: ../libwnck/wnckprop.c:1205 ../libwnck/wnckprop.c:1284
+#: ../libwnck/wnckprop.c:1296 ../libwnck/wnckprop.c:1308
+#: ../libwnck/wnckprop.c:1320 ../libwnck/wnckprop.c:1435
+msgctxt "workspace"
+msgid "none"
+msgstr "žiadna"
+
+#: ../libwnck/wnckprop.c:1206
+#, c-format
+msgid "Active Workspace: %s\n"
+msgstr "Aktívna plocha: %s\n"
+
+#: ../libwnck/wnckprop.c:1215
+#, c-format
+msgid "\"%s\""
+msgstr "\"%s\""
+
+#. Translators: %lu is a window number and %s a window name
+#: ../libwnck/wnckprop.c:1221
+#, c-format
+msgid "%lu (%s)"
+msgstr "%lu (%s)"
+
+#. Translators: "none" here means "no window"
+#: ../libwnck/wnckprop.c:1227
+msgctxt "window"
+msgid "none"
+msgstr "žiadne"
+
+#: ../libwnck/wnckprop.c:1228
+#, c-format
+msgid "Active Window: %s\n"
+msgstr "Aktívne okno: %s\n"
+
+#: ../libwnck/wnckprop.c:1231
+#, c-format
+msgid "Showing the desktop: %s\n"
+msgstr "Zobrazená plocha: %s\n"
+
+#: ../libwnck/wnckprop.c:1233
+msgid "true"
+msgstr "áno"
+
+#: ../libwnck/wnckprop.c:1233
+msgid "false"
+msgstr "nie"
+
+#: ../libwnck/wnckprop.c:1244
+#, c-format
+msgid "Workspace Name: %s\n"
+msgstr "Názov plochy: %s\n"
+
+#: ../libwnck/wnckprop.c:1245
+#, c-format
+msgid "Workspace Number: %d\n"
+msgstr "Číslo plochy: %d\n"
+
+#: ../libwnck/wnckprop.c:1252 ../libwnck/wnckprop.c:1444
+#, c-format
+msgid "On Screen: %d (Window Manager: %s)\n"
+msgstr "Na obrazovke: %d (Správca okien: %s)\n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:1266
+msgid "<no viewport>"
+msgstr "<žiaden výhľad>"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:1269
+#, c-format
+msgid "Viewport position (x, y): %s\n"
+msgstr "Pozícia výhľadu (x, y): %s\n"
+
+#: ../libwnck/wnckprop.c:1272
+#, c-format
+msgid "Position in Layout (row, column): %d, %d\n"
+msgstr "Pozícia v rozložení (riadok, stĺpec): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1285
+#, c-format
+msgid "Left Neighbor: %s\n"
+msgstr "Ľavý sused: %s\n"
+
+#: ../libwnck/wnckprop.c:1297
+#, c-format
+msgid "Right Neighbor: %s\n"
+msgstr "Pravý sused: %s\n"
+
+#: ../libwnck/wnckprop.c:1309
+#, c-format
+msgid "Top Neighbor: %s\n"
+msgstr "Horný sused: %s\n"
+
+#: ../libwnck/wnckprop.c:1321
+#, c-format
+msgid "Bottom Neighbor: %s\n"
+msgstr "Dolný sused: %s\n"
+
+#. Translators: Ressource class is the name to identify a class.
+#: ../libwnck/wnckprop.c:1333
+#, c-format
+msgid "Resource Class: %s\n"
+msgstr "Názov triedy: %s\n"
+
+#: ../libwnck/wnckprop.c:1335
+#, c-format
+msgid "Group Name: %s\n"
+msgstr "Názov skupiny: %s\n"
+
+#. Translators: 'set' in the sense of "something has been set".
+#: ../libwnck/wnckprop.c:1341 ../libwnck/wnckprop.c:1365
+#: ../libwnck/wnckprop.c:1419
+msgid "set"
+msgstr "nastavené"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1344 ../libwnck/wnckprop.c:1368
+#: ../libwnck/wnckprop.c:1375 ../libwnck/wnckprop.c:1405
+#: ../libwnck/wnckprop.c:1412 ../libwnck/wnckprop.c:1422
+#: ../libwnck/wnckprop.c:1487 ../libwnck/wnckprop.c:1497
+#: ../libwnck/wnckprop.c:1505
+msgid "<unset>"
+msgstr "<bez hodnoty>"
+
+#: ../libwnck/wnckprop.c:1345 ../libwnck/wnckprop.c:1369
+#: ../libwnck/wnckprop.c:1423
+#, c-format
+msgid "Icons: %s\n"
+msgstr "Ikony: %s\n"
+
+#: ../libwnck/wnckprop.c:1348 ../libwnck/wnckprop.c:1386
+#, c-format
+msgid "Number of Windows: %d\n"
+msgstr "Počet okien: %d\n"
+
+#: ../libwnck/wnckprop.c:1360 ../libwnck/wnckprop.c:1406
+#, c-format
+msgid "Name: %s\n"
+msgstr "Názov: %s\n"
+
+#. Translators: note that "Icon" here has a specific window
+#. * management-related meaning. It means minimized.
+#: ../libwnck/wnckprop.c:1361 ../libwnck/wnckprop.c:1415
+#, c-format
+msgid "Icon Name: %s\n"
+msgstr "Ikonizovaný názov: %s\n"
+
+#: ../libwnck/wnckprop.c:1376 ../libwnck/wnckprop.c:1498
+#, c-format
+msgid "PID: %s\n"
+msgstr "PID: %s\n"
+
+#. Translators: "none" here means "no startup ID"
+#: ../libwnck/wnckprop.c:1383
+msgctxt "startupID"
+msgid "none"
+msgstr "žiadne"
+
+#: ../libwnck/wnckprop.c:1384
+#, c-format
+msgid "Startup ID: %s\n"
+msgstr "Štartovacie ID: %s\n"
+
+#: ../libwnck/wnckprop.c:1432
+msgid "all workspaces"
+msgstr "všetky plochy"
+
+#: ../libwnck/wnckprop.c:1436
+#, c-format
+msgid "On Workspace: %s\n"
+msgstr "Pracovná plocha: %s\n"
+
+#: ../libwnck/wnckprop.c:1451
+msgid "normal window"
+msgstr "normálne okno"
+
+#: ../libwnck/wnckprop.c:1454
+msgid "desktop"
+msgstr "plocha"
+
+#: ../libwnck/wnckprop.c:1457
+msgid "dock or panel"
+msgstr "dok alebo panel"
+
+#: ../libwnck/wnckprop.c:1460
+msgid "dialog window"
+msgstr "dialógové okno"
+
+#: ../libwnck/wnckprop.c:1463
+msgid "tearoff toolbar"
+msgstr "odtrhnutý panel nástrojov"
+
+#: ../libwnck/wnckprop.c:1466
+msgid "tearoff menu"
+msgstr "odtrhnutá ponuka"
+
+#: ../libwnck/wnckprop.c:1469
+msgid "utility window"
+msgstr "úžitkové okno"
+
+#: ../libwnck/wnckprop.c:1472
+msgid "splash screen"
+msgstr "úvodná obrazovka"
+
+#: ../libwnck/wnckprop.c:1477
+#, c-format
+msgid "Window Type: %s\n"
+msgstr "Typ okna: %s\n"
+
+#: ../libwnck/wnckprop.c:1480
+#, c-format
+msgid "Geometry (x, y, width, height): %d, %d, %d, %d\n"
+msgstr "Geometria (x, y, šírka, výška): %d, %d, %d, %d\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:1489
+#, c-format
+msgid "Class Group: %s\n"
+msgstr "Skupina okien: %s\n"
+
+#: ../libwnck/wnckprop.c:1491
+#, c-format
+msgid "XID: %lu\n"
+msgstr "XID: %lu\n"
+
+#: ../libwnck/wnckprop.c:1506
+#, c-format
+msgid "Session ID: %s\n"
+msgstr "ID relácie: %s\n"
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one window
+#. * has some information about the application (like the application name).
+#: ../libwnck/wnckprop.c:1512
+#, c-format
+msgid "Group Leader: %lu\n"
+msgstr "Hlavné okno: %lu\n"
+
+#. Translators: A window can be transient for another window: it means it's on top of it
+#: ../libwnck/wnckprop.c:1517
+#, c-format
+msgid "Transient for: %lu\n"
+msgstr "Navrchu pre: %lu\n"
+
+#. FIXME: else print something?
+#. Translators: we're building a list of items here.             * For example, the result is "a, b".                            * In this case, the first string is "a", the second             * string is ", " and the third string is "b".                   * We can then use this information here to also                 * recursively build longer lists, like "a, b, c, d"
+#. Translators: we're building a list of items here.             * The end result is something like "a, b, c"                    * In this case, the first string is "a, b", the second          * string is ", " and the third string is "c"
+#: ../libwnck/wnckprop.c:1532 ../libwnck/wnckprop.c:1579
+#, c-format
+msgid "%1$s%2$s%3$s"
+msgstr "%1$s%2$s%3$s"
+
+#. Translators: see comment for "%1$s%2$s%3$s" in order          * to properly translate this
+#: ../libwnck/wnckprop.c:1536 ../libwnck/wnckprop.c:1581
+msgid ", "
+msgstr ", "
+
+#: ../libwnck/wnckprop.c:1542
+msgid "minimized"
+msgstr "minimalizované"
+
+#: ../libwnck/wnckprop.c:1543
+msgid "maximized"
+msgstr "maximalizované"
+
+#: ../libwnck/wnckprop.c:1547
+msgid "maximized horizontally"
+msgstr "horizontálne maximalizované"
+
+#: ../libwnck/wnckprop.c:1549
+msgid "maximized vertically"
+msgstr "vertikálne maximalizované"
+
+#: ../libwnck/wnckprop.c:1551
+msgid "shaded"
+msgstr "zrolované"
+
+#: ../libwnck/wnckprop.c:1552
+msgid "pinned"
+msgstr "pripnuté"
+
+#: ../libwnck/wnckprop.c:1553
+msgid "sticky"
+msgstr "lepkavé"
+
+#: ../libwnck/wnckprop.c:1554
+msgid "above"
+msgstr "nad"
+
+#: ../libwnck/wnckprop.c:1555
+msgid "below"
+msgstr "pod"
+
+#: ../libwnck/wnckprop.c:1556
+msgid "fullscreen"
+msgstr "celoobrazovkové"
+
+#: ../libwnck/wnckprop.c:1557
+msgid "needs attention"
+msgstr "vyžaduje pozornosť"
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:1562
+msgid "skip pager"
+msgstr "vynechať prepínač"
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:1564
+msgid "skip tasklist"
+msgstr "vynechať zoznam"
+
+#: ../libwnck/wnckprop.c:1566
+msgid "normal"
+msgstr "normálne"
+
+#: ../libwnck/wnckprop.c:1567
+#, c-format
+msgid "State: %s\n"
+msgstr "Stav: %s\n"
+
+#: ../libwnck/wnckprop.c:1588
+msgid "move"
+msgstr "premiestniť"
+
+#: ../libwnck/wnckprop.c:1589
+msgid "resize"
+msgstr "zmeniť veľkosť"
+
+#: ../libwnck/wnckprop.c:1590
+msgid "shade"
+msgstr "zrolovať"
+
+#: ../libwnck/wnckprop.c:1591
+msgid "unshade"
+msgstr "zrušiť zrolovanie"
+
+#: ../libwnck/wnckprop.c:1592
+msgid "stick"
+msgstr "prilepiť"
+
+#: ../libwnck/wnckprop.c:1593
+msgid "unstick"
+msgstr "zrušiť prilepenie"
+
+#: ../libwnck/wnckprop.c:1595
+msgid "maximize horizontally"
+msgstr "horizontálne maximalizovať"
+
+#: ../libwnck/wnckprop.c:1597
+msgid "unmaximize horizontally"
+msgstr "zrušiť horizontálnu maximalizáciu"
+
+#: ../libwnck/wnckprop.c:1599
+msgid "maximize vertically"
+msgstr "vertikálne maximalizovať"
+
+#: ../libwnck/wnckprop.c:1601
+msgid "unmaximize vertically"
+msgstr "zrušiť vertikálnu maximalizíciu"
+
+#: ../libwnck/wnckprop.c:1604
+msgid "change workspace"
+msgstr "zmeniť plochu"
+
+#: ../libwnck/wnckprop.c:1606
+msgid "pin"
+msgstr "pripnúť"
+
+#: ../libwnck/wnckprop.c:1608
+msgid "unpin"
+msgstr "zrušiť pripnutie"
+
+#: ../libwnck/wnckprop.c:1609
+msgid "minimize"
+msgstr "minimalizovať"
+
+#: ../libwnck/wnckprop.c:1610
+msgid "unminimize"
+msgstr "zrušiť minimalizáciu"
+
+#: ../libwnck/wnckprop.c:1611
+msgid "maximize"
+msgstr "maximalizovať"
+
+#: ../libwnck/wnckprop.c:1612
+msgid "unmaximize"
+msgstr "zrušiť maximalizáciu"
+
+#: ../libwnck/wnckprop.c:1614
+msgid "change fullscreen mode"
+msgstr "zmeniť celoobrazovkový režim"
+
+#: ../libwnck/wnckprop.c:1615
+msgid "close"
+msgstr "zavrieť"
+
+#: ../libwnck/wnckprop.c:1617
+msgid "make above"
+msgstr "dať nad"
+
+#: ../libwnck/wnckprop.c:1619
+msgid "unmake above"
+msgstr "zrušiť nad"
+
+#: ../libwnck/wnckprop.c:1621
+msgid "make below"
+msgstr "dať pod"
+
+#: ../libwnck/wnckprop.c:1623
+msgid "unmake below"
+msgstr "zrušiť pod"
+
+#: ../libwnck/wnckprop.c:1625
+msgid "no action possible"
+msgstr "žiadne akcie"
+
+#: ../libwnck/wnckprop.c:1626
+#, c-format
+msgid "Possible Actions: %s\n"
+msgstr "Možné akcie: %s\n"
+
+#: ../libwnck/wnckprop.c:1805
+msgid ""
+"Print or modify the properties of a screen/workspace/window, or interact "
+"with it, following the EWMH specification.\n"
+"For information about this specification, see:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+msgstr ""
+"Zobraziť alebo zmeniť vlastnosti obrazovky/plochy/okna, alebo s nimi "
+"manipulovať, podľa špecifikácie EWMH.\n"
+"Viac informácií o tejto špecifikácií je dostupných na:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+
+#: ../libwnck/wnckprop.c:1815
+msgid "Options to list windows or workspaces"
+msgstr "Možnosti pre zoznam okien alebo plôch"
+
+#: ../libwnck/wnckprop.c:1816
+msgid "Show options to list windows or workspaces"
+msgstr "Zobraziť možnosti pre vypísanie zoznamu okien alebo plôch"
+
+#: ../libwnck/wnckprop.c:1823
+msgid "Options to modify properties of a window"
+msgstr "Možnosti pre zmenu vlastností okna"
+
+#: ../libwnck/wnckprop.c:1824
+msgid "Show options to modify properties of a window"
+msgstr "Zobraziť možnosti pre zmenu vlastností okna"
+
+#: ../libwnck/wnckprop.c:1831
+msgid "Options to modify properties of a workspace"
+msgstr "Možnosti pre zmenu vlastností pracovnej plochy"
+
+#: ../libwnck/wnckprop.c:1832
+msgid "Show options to modify properties of a workspace"
+msgstr "Zobraziť možnosti pre zmenu vlastností pracovnej plochy"
+
+#: ../libwnck/wnckprop.c:1839
+msgid "Options to modify properties of a screen"
+msgstr "Možnosti pre zmenu vlastností obrazovky"
+
+#: ../libwnck/wnckprop.c:1840
+msgid "Show options to modify properties of a screen"
+msgstr "Zobraziť možnosti pre zmenu vlastností obrazovky"
+
+#: ../libwnck/wnckprop.c:1851
+#, c-format
+msgid "Error while parsing arguments: %s\n"
+msgstr "Chyba pri spracovaní parametrov: %s\n"
+
+#: ../libwnck/wnckprop.c:1874
+#, c-format
+msgid "Cannot interact with screen %d: the screen does not exist\n"
+msgstr "Nedá sa manipulovať s obrazovkou %d: obrazovka neexistuje\n"
+
+#: ../libwnck/wnckprop.c:1930
+#, c-format
+msgid "Cannot interact with workspace %d: the workspace cannot be found\n"
+msgstr "Nedá sa manipulovať s obrazovkou %d: obrazovka nebola nájdená\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:1953
+#, c-format
+msgid ""
+"Cannot interact with class group \"%s\": the class group cannot be found\n"
+msgstr "Nedá sa manipulovať so skupinou okien \"%s\": skupina nebola nájdená\n"
+
+#: ../libwnck/wnckprop.c:1976
+#, c-format
+msgid ""
+"Cannot interact with application having its group leader with XID %lu: the "
+"application cannot be found\n"
+msgstr ""
+"Nedá sa manipulovať s aplikáciou, ktorá má vedúceho skupiny s XID %lu: "
+"aplikácia nebola nájdená\n"
+
+#: ../libwnck/wnckprop.c:1999
+#, c-format
+msgid "Cannot interact with window with XID %lu: the window cannot be found\n"
+msgstr "Nedá sa manipulovať s oknom s XID %lu: okno nebolo nájdené\n"
+
+#~ msgid "workspace|none"
+#~ msgstr "žiadna plocha"
+
+#~ msgid "window|none"
+#~ msgstr "žiadne"
+
+#~ msgid "startupID|none"
+#~ msgstr "žiadne"
+
+#~ msgid "Unknown Window"
+#~ msgstr "Neznáme okno"
+
+#~ msgid "_Unroll"
+#~ msgstr "_Rozbaliť"
+
+#~ msgid "Roll _Up"
+#~ msgstr "_Zabaliť"

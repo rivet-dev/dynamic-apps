@@ -1,0 +1,74 @@
+.\" Copyright \(co 1986-1997   The Open Group    All Rights Reserved
+.\" Copyright (c) 1999, 2005, Oracle and/or its affiliates.
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software is furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice (including the next
+.\" paragraph) shall be included in all copies or substantial portions of the
+.\" Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.\" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+.\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+.\" DEALINGS IN THE SOFTWARE.
+.\"
+.\" X Window System is a trademark of The Open Group.
+.\"
+.TH XcupStoreColors __libmansuffix__ 2005-01-22 __xorgversion__
+.SH NAME
+XcupStoreColors \- initialize shareable colormap entries at specific locations
+.SH SYNOPSIS
+.nf
+\fBcc\fR [ \fIflag\fR \&.\&.\&. ] \fIfile\fR \&.\&.\&. -\fBlXext\fR [ \fIlibrary\fR \&.\&.\&. ]
+\&#include <X11/extensions/Xcup.h>
+.sp
+Status \fBXcupStoreColors\fP\^(\^Display *\fIdisplay\fP\^, Colormap \fIcolormap\fP\^,
+    XColor *\fIcolors_in_out\fP\^, int \fIncolors\fP\^);
+.if n .ti +5n
+.if t .ti +.5i
+.SH ARGUMENTS
+.IP \fIdisplay\fP 1i
+Specifies the connection to the X server
+.IP \fIcolormap\fP 1i
+Specifies the colormap
+.IP \fIcolors_in_out\fP 1i
+Specifies and returns the values actually used in the colormap
+.IP \fIncolors\fP 1i
+Specifies the number of items in colors_in_out
+.SH DESCRIPTION
+The
+.B XcupStoreColors
+function changes the colormap entries of the pixel values in the pixel
+members of the XColor structures.
+The colormap entries are allocated as if an AllocColor has been used instead,
+i.e. the colors are read-only (shareable).
+.B XcupStoreColors
+returns the number of colors that were successfully allocated in the colormap.
+.LP
+A
+.B Value
+error is generated if a pixel is not a valid index into the colormap.
+A
+.B BadMatch
+error is generated if the colormap does not belong to a GrayScale,
+PseudoColor, or DirectColor visual.
+.LP
+Applications which allocate many colors in a screen's default colormap, e.g.
+a color-cube or a gray-ramp, should allocate them with
+.BR XCupStoreColors .
+By using XCupStoreColors the colors will be allocated shareable (read-only)
+and any other application which allocates the same color will share that
+color cell.
+.SH "SEE ALSO"
+.BR XcupQueryVersion (3Xext),
+.BR XcupGetReservedColormapEntries (3Xext),
+.br
+\fIColormap Utilization Policy and Extension\fP

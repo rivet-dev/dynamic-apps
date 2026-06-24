@@ -1,0 +1,1015 @@
+# libwnck Finnish translation
+# Copyright (C) 2002-2009 Free Software Foundation, Inc.
+#
+# Suomennos: http://gnome.fi/
+# Ilkka Tuohela <hile@iki.fi>, 2005-2009.
+# Tommi Vainikainen <thv@iki.fi>, 2011.
+# Pauli Virtanen <pauli.virtanen@hut.fi>, 2002.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libwnck\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-09-26 10:00+0300\n"
+"PO-Revision-Date: 2011-09-26 10:00+0300\n"
+"Last-Translator: Tommi Vainikainen <thv@iki.fi>\n"
+"Language-Team: Finnish <gnome-fi-laatu@lists.sourceforge.net>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. *
+#. * SECTION:application
+#. * @short_description: an object representing a group of windows of the same
+#. * application.
+#. * @see_also: wnck_window_get_application()
+#. * @stability: Unstable
+#. *
+#. * The #WnckApplication is a group of #WnckWindow that are all in the same
+#. * application. It can be used to represent windows by applications, group
+#. * windows by applications or to manipulate all windows of a particular
+#. * application.
+#. *
+#. * A #WnckApplication is identified by the group leader of the #WnckWindow
+#. * belonging to it, and new #WnckWindow are added to a #WnckApplication if and
+#. * only if they have the group leader of the #WnckApplication.
+#. *
+#. * The #WnckApplication objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/application.c:51
+msgid "Untitled application"
+msgstr "Nimetön sovellus"
+
+msgid "Workspace Switcher"
+msgstr "Työtilanvaihtaja"
+
+msgid "Tool to switch between workspaces"
+msgstr "Työkalu, jolla voi vaihtaa työtilaa"
+
+#, c-format
+msgid "Click this to switch to workspace %s"
+msgstr "Napsauta tätä vaihtaaksesi työtilaan %s"
+
+#, c-format
+msgid "Click to start dragging \"%s\""
+msgstr "Raahaa ikkunaa ”%s” napsauttamalla"
+
+#, c-format
+msgid "Current workspace: \"%s\""
+msgstr "Nykyinen työpöytä: ”%s”"
+
+#, c-format
+msgid "Click to switch to \"%s\""
+msgstr "Siirry työtilaan ”%s” napsauttamalla"
+
+msgid "No Windows Open"
+msgstr "Ei ikkunoita avoinna"
+
+msgid "Window Selector"
+msgstr "Ikkunanvalitsin"
+
+msgid "Tool to switch between windows"
+msgstr "Työkalu, jolla voi siirtyä ikkunoiden välillä"
+
+msgid "Window List"
+msgstr "Ikkunaluettelo"
+
+msgid "Tool to switch between visible windows"
+msgstr "Työkalu, jolla voi siirtyä näkyvien ikkunoiden välillä"
+
+msgid "Mi_nimize All"
+msgstr "_Pienennä kaikki"
+
+msgid "Un_minimize All"
+msgstr "_Palauta kaikki"
+
+msgid "Ma_ximize All"
+msgstr "S_uurenna kaikki"
+
+msgid "_Unmaximize All"
+msgstr "_Palauta kaikki"
+
+msgid "_Close All"
+msgstr "_Sulje kaikki"
+
+msgid "Unmi_nimize"
+msgstr "_Palauta"
+
+msgid "Mi_nimize"
+msgstr "_Pienennä"
+
+msgid "Unma_ximize"
+msgstr "Pa_lauta koko"
+
+msgid "Ma_ximize"
+msgstr "S_uurenna"
+
+#, c-format
+msgid "Workspace %d"
+msgstr "Työtila %d"
+
+#, c-format
+msgid "Workspace 1_0"
+msgstr "Työtila 1_0"
+
+#, c-format
+msgid "Workspace %s%d"
+msgstr "Työtila %s%d"
+
+msgid "_Move"
+msgstr "S_iirrä"
+
+msgid "_Resize"
+msgstr "_Muuta kokoa"
+
+msgid "Always On _Top"
+msgstr "Aina _päällimmäisenä"
+
+msgid "_Always on Visible Workspace"
+msgstr "Näytä _aina näkyvässä työtilassa"
+
+msgid "_Only on This Workspace"
+msgstr "Näytä vain _tässä työtilassa"
+
+msgid "Move to Workspace _Left"
+msgstr "Siirrä _vasempaan työtilaan"
+
+msgid "Move to Workspace R_ight"
+msgstr "Siirrä _oikeaan työtilaan"
+
+msgid "Move to Workspace _Up"
+msgstr "Siirrä _yllä olevaan työtilaan"
+
+msgid "Move to Workspace _Down"
+msgstr "Siirrä _alla olevaan työtilaan"
+
+msgid "Move to Another _Workspace"
+msgstr "Siirrä toiseen t_yötilaan"
+
+msgid "_Close"
+msgstr "_Sulje"
+
+#. *
+#. * SECTION:window
+#. * @short_description: an object representing a window.
+#. * @see_also: #WnckWorkspace, #WnckApplication, #WnckClassGroup
+#. * @stability: Unstable
+#. *
+#. * The #WnckWindow objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/window.c:50
+msgid "Untitled window"
+msgstr "Nimeämätön ikkuna"
+
+msgid "X window ID of the window to examine or modify"
+msgstr "Tutkittavan tai muokattavan ikkunan X-ikkunatunniste"
+
+msgid "XID"
+msgstr "XID"
+
+#. Translators: A group leader is the window that is the "owner" of a
+#. * group of windows, ie: if you have multiple windows in one
+#. * application, one window has some information about the application
+#. * (like the application name).
+#: ../libwnck/wnckprop.c:144
+msgid "X window ID of the group leader of an application to examine"
+msgstr "Tutkittavan sovelluksen ikkunaryhmän johtajan X-ikkunatunniste"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+msgid "Class resource of the class group to examine"
+msgstr "Luokkaryhmästä tutkittava luokkaresurssi"
+
+msgid "CLASS"
+msgstr "LUOKKA"
+
+msgid "NUMBER of the workspace to examine or modify"
+msgstr "Tutkittavan tai muokattavan työpöydän numero"
+
+msgid "NUMBER"
+msgstr "NUMERO"
+
+msgid "NUMBER of the screen to examine or modify"
+msgstr "Tutkittavan tai muokattavan näytön NUMERO"
+
+msgid "Alias of --window"
+msgstr "Alias valitsimelle --window"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+msgid ""
+"List windows of the application/class group/workspace/screen (output format: "
+"\"XID: Window Name\")"
+msgstr ""
+"Näytä sovelluksen/luokan, ryhmän/työpöydän/ruudun ikkunat (näyttömuoto: "
+"”XID: Window Name”)"
+
+msgid ""
+"List workspaces of the screen (output format: \"Number: Workspace Name\")"
+msgstr "Näytä ruudun työtilat (näyttömuoto: ”Numero: Työtilan nimi”)"
+
+msgid "Change the number of workspaces of the screen to NUMBER"
+msgstr "Muuta ruudun työtilojen lukumääräksi NUMERO"
+
+msgid "Change the workspace layout of the screen to use NUMBER rows"
+msgstr "Muuta työtilojen asettelu käyttämään NUMEROa riviä"
+
+msgid "Change the workspace layout of the screen to use NUMBER columns"
+msgstr "Muuta työtilojen asettelu käyttämään NUMEROa saraketta"
+
+msgid "Show the desktop"
+msgstr "Näytä työpöytä"
+
+msgid "Stop showing the desktop"
+msgstr "Lopeta työpöydän näyttäminen"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+msgid "Move the viewport of the current workspace to X coordinate X"
+msgstr "Siirrä nykyisen työtilan katselunäkymä X-koordinaattiin X"
+
+msgid "X"
+msgstr "X"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+msgid "Move the viewport of the current workspace to Y coordinate Y"
+msgstr "Siirrä nykyisen työtilan katselunäkymä Y-koordinaattiin Y"
+
+msgid "Y"
+msgstr "Y"
+
+msgid "Minimize the window"
+msgstr "Pienennä ikkuna"
+
+msgid "Unminimize the window"
+msgstr "Palauta ikkuna"
+
+msgid "Maximize the window"
+msgstr "Suurenna ikkuna"
+
+msgid "Unmaximize the window"
+msgstr "Pa_lauta ikkunan koko"
+
+msgid "Maximize horizontally the window"
+msgstr "Suurenna ikkuna vaakasuunnassa"
+
+msgid "Unmaximize horizontally the window"
+msgstr "Peru ikkunan suurennus vaakasuunnassa"
+
+msgid "Maximize vertically the window"
+msgstr "Suurenna ikkunan pystysuunnassa"
+
+msgid "Unmaximize vertically the window"
+msgstr "Peru ikkunan suurennus pystysuunnassa"
+
+msgid "Start moving the window via the keyboard"
+msgstr "Aloita ikkunan siirtäminen näppäimistöltä"
+
+msgid "Start resizing the window via the keyboard"
+msgstr "Aloita ikkunan koon muuttaminen näppäimistöltä"
+
+msgid "Activate the window"
+msgstr "nimetön ikkuna"
+
+msgid "Close the window"
+msgstr "Sulje ikkuna"
+
+msgid "Make the window fullscreen"
+msgstr "Tee ikkunasta koko ruudun kokoinen"
+
+msgid "Make the window quit fullscreen mode"
+msgstr "Palauta ikkuna kokoruututilasta"
+
+msgid "Make the window always on top"
+msgstr "Pidä ikkuna aina päällimmäisenä"
+
+msgid "Make the window not always on top"
+msgstr "Peru ikkunan olo aina päällimmäisenä"
+
+msgid "Make the window below other windows"
+msgstr "Pidä ikkuna aina muiden ikkunoiden alla"
+
+msgid "Make the window not below other windows"
+msgstr "Peru ikkunan olo aina muiden alla"
+
+msgid "Shade the window"
+msgstr "Rullaa ikkuna"
+
+msgid "Unshade the window"
+msgstr "Avaa rullattu ikkuna"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+msgid "Make the window have a fixed position in the viewport"
+msgstr "Kiinnitä ikkuna tiettyyn paikkaan katselunäkymässä"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+msgid "Make the window not have a fixed position in the viewport"
+msgstr "Irrota ikkunan kiinnitys tiettyyn paikkaan katselunäkymässä"
+
+#. Translators: A pager is the technical term for the workspace
+#. * switcher. It's a representation of all workspaces with windows
+#. * inside it. Please make sure that the translation is in sync with
+#. * gnome-panel, where this term is also used in translatable strings
+#.
+msgid "Make the window not appear in pagers"
+msgstr "Piilota ikkuna työtilanäkymistä"
+
+#. Translators: A pager is the technical term for the workspace
+#. * switcher. It's a representation of all workspaces with windows
+#. * inside it. Please make sure that the translation is in sync with
+#. * gnome-panel, where this term is also used in translatable strings
+#.
+msgid "Make the window appear in pagers"
+msgstr "Näytä ikkuna työtilanäkymissä"
+
+#. Translators: "tasklist" is the list of running applications (the
+#. * window list)
+msgid "Make the window not appear in tasklists"
+msgstr "Piilota ikkuna tehtävälistoista"
+
+#. Translators: "tasklist" is the list of running applications (the
+#. * window list)
+msgid "Make the window appear in tasklists"
+msgstr "Näytä ikkuna tehtävälistoissa"
+
+msgid "Make the window visible on all workspaces"
+msgstr "Näytä ikkuna kaikissa työtiloissa"
+
+msgid "Make the window visible on the current workspace only"
+msgstr "Näytä ikkunan vain tässä työtilassa"
+
+msgid "Move the window to workspace NUMBER (first workspace is 0)"
+msgstr "Siirrä ikkuna työtilaan NUMERO (ensimmäinen on numero 0)"
+
+msgid "Change the X coordinate of the window to X"
+msgstr "Muuta ikkunan X-koordinaatti arvoon X"
+
+msgid "Change the Y coordinate of the window to Y"
+msgstr "Muuta ikkunan Y-koordinaatti arvoon Y"
+
+msgid "Change the width of the window to WIDTH"
+msgstr "Muuta ikkunan leveys arvoon LEVEYS"
+
+msgid "WIDTH"
+msgstr "LEVEYS"
+
+msgid "Change the height of the window to HEIGHT"
+msgstr "Muuta ikkunan korkeus arvoon KORKEUS"
+
+msgid "HEIGHT"
+msgstr "KORKEUS"
+
+#. Translators: do not translate "normal, desktop, dock..."
+msgid ""
+"Change the type of the window to TYPE (valid values: normal, desktop, dock, "
+"dialog, toolbar, menu, utility, splash)"
+msgstr ""
+"Muuta ikkunan tyypiksi TYYPPI (kelvolliset arvot: normal, desktop, dock, "
+"dialog, toolbar, menu, utility tai splash)"
+
+msgid "TYPE"
+msgstr "TYYPPI"
+
+msgid "Change the name of the workspace to NAME"
+msgstr "Muuta työtilan nimi arvoon NIMI"
+
+msgid "NAME"
+msgstr "NIMI"
+
+msgid "Activate the workspace"
+msgstr "Siirry työtilaan"
+
+#, c-format
+msgid "Invalid value \"%s\" for --%s"
+msgstr "Virheellinen arvo ”%s” valitsimelle --%s"
+
+#, c-format
+msgid ""
+"Conflicting options are present: screen %d should be interacted with, but --"
+"%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti käsitellä ruutua %d, mutta havaittiin "
+"valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: windows or workspaces of screen %d should "
+"be listed, but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti näyttää ruudun %d ikkunoita tai työtiloja, "
+"mutta havaittiin valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: workspace %d should be interacted with, but "
+"--%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti käsitellä työtilaa %d, mutta havaittiin "
+"valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: windows of workspace %d should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti näyttää työtilan %d ikkunat, mutta "
+"havaittiin valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: an application should be interacted with, "
+"but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti käsitellä sovellusta, mutta havaittiin "
+"valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: windows of an application should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti näyttää sovelluksen ikkunat, mutta "
+"havaittiin valitsin --%s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#, c-format
+msgid ""
+"Conflicting options are present: class group \"%s\" should be interacted "
+"with, but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti käsitellä luokkaryhmää ”%s”, mutta "
+"havaittiin valitsin --%s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#, c-format
+msgid ""
+"Conflicting options are present: windows of class group \"%s\" should be "
+"listed, but --%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti näyttää luokkaryhmää ”%s” ikkunat, mutta "
+"havaittiin valitsin --%s\n"
+
+#, c-format
+msgid ""
+"Conflicting options are present: a window should be interacted with, but --"
+"%s has been used\n"
+msgstr ""
+"Ristiriitaisia valitsimia: piti käsitellä ikkunaa, mutta havaittiin valitsin "
+"--%s\n"
+
+#, c-format
+msgid "Conflicting options are present: --%s and --%s\n"
+msgstr "Ristiriitaisia valitsimia: --%s ja --%s\n"
+
+#, c-format
+msgid ""
+"Invalid argument \"%d\" for --%s: the argument must be strictly positive\n"
+msgstr ""
+"Virheellinen arvo ”%d” valitsimelle --%s: arvon tulee olla positiivinen "
+"kokonaisluku\n"
+
+#, c-format
+msgid "Invalid argument \"%d\" for --%s: the argument must be positive\n"
+msgstr ""
+"virheellinen arvo ”%d” valitsimelle --%s: arvon tulee olla positiivinen\n"
+
+#, c-format
+msgid "Conflicting options are present: --%s or --%s, and --%s\n"
+msgstr "Ristiriitaisia valitsimia: --%s tai --%s ja --%s\n"
+
+#, c-format
+msgid "Invalid argument \"%s\" for --%s, valid values are: %s\n"
+msgstr "Virheellinen arvo ”%s” valitsimelle --%s, kelvolliset arvot ovat: %s\n"
+
+#, c-format
+msgid ""
+"Cannot change the workspace layout on the screen: the layout is already "
+"owned\n"
+msgstr "Ruudun työtilojen asettelua ei voi muuttaa: asettelu on jo omistettu\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#, c-format
+msgid ""
+"Viewport cannot be moved: the current workspace does not contain a viewport\n"
+msgstr ""
+"Katselunäkymää ei voi siirtää: nykyisessä työtilassa ei ole katselunäkymää\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#, c-format
+msgid "Viewport cannot be moved: there is no current workspace\n"
+msgstr "Katselunäkymää ei voi siirtää: nykyistä työtilaa ei ole määritelty\n"
+
+#. FIXME: why do we have dual & boolean API. This is not consistent!
+#, c-format
+msgid "Action not allowed\n"
+msgstr "Toiminto ei ole sallittu\n"
+
+#, c-format
+msgid "Window cannot be moved to workspace %d: the workspace does not exist\n"
+msgstr "Ikkunaa ei voi siirtää työtilaan %d: työtilaa ei ole olemassa\n"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+msgid "<name unset>"
+msgstr "<nimeä ei ole asetettu>"
+
+#. Translators: %lu is a window number and %s a window name
+#, c-format
+msgid "%lu: %s\n"
+msgstr "%lu: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#, c-format
+msgid "%d: %s\n"
+msgstr "%d: %s\n"
+
+#, c-format
+msgid "Screen Number: %d\n"
+msgstr "Ruudun numero: %d\n"
+
+#, c-format
+msgid "Geometry (width, height): %d, %d\n"
+msgstr "Geometria (leveys, korkeus): %d, %d\n"
+
+#, c-format
+msgid "Number of Workspaces: %d\n"
+msgstr "Työtilojen lukumäärä: %d\n"
+
+#, c-format
+msgid "Workspace Layout (rows, columns, orientation): %d, %d, %s\n"
+msgstr "Työtilojen asettelu (rivejä, sarakkeita, suunta): %d, %d, %s\n"
+
+msgid "<no EWMH-compliant window manager>"
+msgstr "<EWMH-yhteensopivaa ikkunamanageria ei löydy>"
+
+#, c-format
+msgid "Window Manager: %s\n"
+msgstr "Ikkunamanager: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#, c-format
+msgid "%d (\"%s\")"
+msgstr "%d (”%s”)"
+
+#. Translators: "none" here means "no workspace"
+msgctxt "workspace"
+msgid "none"
+msgstr "ei työpöytää"
+
+#, c-format
+msgid "Active Workspace: %s\n"
+msgstr "Valittu työtila %s\n"
+
+#, c-format
+msgid "\"%s\""
+msgstr "”%s”"
+
+#. Translators: %lu is a window identifier (number) and %s a window name
+#, c-format
+msgid "%lu (%s)"
+msgstr "%lu (%s)"
+
+#. Translators: "none" here means "no window"
+msgctxt "window"
+msgid "none"
+msgstr "ei ikkunaa"
+
+#, c-format
+msgid "Active Window: %s\n"
+msgstr "Aktiivinen ikkuna: %s\n"
+
+#, c-format
+msgid "Showing the desktop: %s\n"
+msgstr "Näytetään työpöytä: %s\n"
+
+msgid "true"
+msgstr "tosi"
+
+msgid "false"
+msgstr "epätosi"
+
+#, c-format
+msgid "Workspace Name: %s\n"
+msgstr "Työtilan nimi: %s\n"
+
+#, c-format
+msgid "Workspace Number: %d\n"
+msgstr "Työtilan numero: %d\n"
+
+#, c-format
+msgid "On Screen: %d (Window Manager: %s)\n"
+msgstr "Näytöllä: %d (ikkunamanager: %s)\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport can be
+#. * used to implement workspaces (e.g. compiz is an example); however it is
+#. * not just the current workspace.
+msgid "<no viewport>"
+msgstr "<ei katselunäkymää>"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport can be
+#. * used to implement workspaces (e.g. compiz is an example); however it is
+#. * not just the current workspace.
+#, c-format
+msgid "Viewport position (x, y): %s\n"
+msgstr "Katselunäkymä sijainti (x, y): %s\n"
+
+#, c-format
+msgid "Position in Layout (row, column): %d, %d\n"
+msgstr "Sijainti asettelussa (rivi, sarake): %d %d\n"
+
+#, c-format
+msgid "Left Neighbor: %s\n"
+msgstr "Vasen naapuri: %s\n"
+
+#, c-format
+msgid "Right Neighbor: %s\n"
+msgstr "Oikea naapuri: %s\n"
+
+#, c-format
+msgid "Top Neighbor: %s\n"
+msgstr "Ylempi naapuri: %s\n"
+
+#, c-format
+msgid "Bottom Neighbor: %s\n"
+msgstr "Alempi naapuri: %s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class.
+#, c-format
+msgid "Class Group ID: %s\n"
+msgstr "Luokkaryhmätunniste: %s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class.
+#, c-format
+msgid "Class Group Name: %s\n"
+msgstr "Luokkaryhmänimi: %s\n"
+
+#. Translators: 'set' in the sense of "something has been set".
+msgid "set"
+msgstr "asetettu"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+msgid "<unset>"
+msgstr "<ei asetettu>"
+
+#, c-format
+msgid "Icons: %s\n"
+msgstr "Kuvakkeet: %s\n"
+
+#, c-format
+msgid "Number of Windows: %d\n"
+msgstr "Ikkunoiden lukumäärä: %d\n"
+
+#, c-format
+msgid "Name: %s\n"
+msgstr "Nim: %s\n"
+
+#. Translators: note that "Icon" here has a specific window
+#. * management-related meaning. It means minimized.
+#, c-format
+msgid "Icon Name: %s\n"
+msgstr "Kuvakkeen nimi: %s\n"
+
+#, c-format
+msgid "PID: %s\n"
+msgstr "PID: %s\n"
+
+#. Translators: "none" here means "no startup ID"
+msgctxt "startupID"
+msgid "none"
+msgstr "ei tunnistetta"
+
+#, c-format
+msgid "Startup ID: %s\n"
+msgstr "Käynnistystunniste: %s\n"
+
+msgid "all workspaces"
+msgstr "kaikki työtilat"
+
+#, c-format
+msgid "On Workspace: %s\n"
+msgstr "Työtilassa: %s\n"
+
+msgid "normal window"
+msgstr "tavallinen ikkuna"
+
+msgid "desktop"
+msgstr "työpöytä"
+
+msgid "dock or panel"
+msgstr "telakka tai paneeli"
+
+msgid "dialog window"
+msgstr "valintaikkuna"
+
+msgid "tearoff toolbar"
+msgstr "irrotettu työkalupalkki"
+
+msgid "tearoff menu"
+msgstr "irrotettu valikko"
+
+msgid "utility window"
+msgstr "apuikkuna"
+
+msgid "splash screen"
+msgstr "aloitusikkuna"
+
+#, c-format
+msgid "Window Type: %s\n"
+msgstr "Ikkunan tyyppi: %s\n"
+
+#, c-format
+msgid "Geometry (x, y, width, height): %d, %d, %d, %d\n"
+msgstr "Geometria (x, y, leveys, korkeus): %d, %d, %d, %d\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class. The class instance is a way to differentiate windows belonging
+#. * to the same class group.
+#, c-format
+msgid "Class Instance: %s\n"
+msgstr "Luokkainstanssi: %s\n"
+
+#, c-format
+msgid "XID: %lu\n"
+msgstr "XID: %lu\n"
+
+#, c-format
+msgid "Session ID: %s\n"
+msgstr "Istuntotunniste: %s\n"
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one
+#. * window has some information about the application (like the application
+#. * name).
+#, c-format
+msgid "Group Leader: %lu\n"
+msgstr "Ryhmänjohtaja: %lu\n"
+
+#. Translators: A window can be transient for another window: it means it's
+#. * on top of it
+#, c-format
+msgid "Transient for: %lu\n"
+msgstr "Ali-ikkuna tunnisteelle: %lu\n"
+
+#. FIXME: else print something?
+#. Translators: we're building a list of items here.             * For example, the result is "a, b".                            * In this case, the first string is "a", the second             * string is ", " and the third string is "b".                   * We can then use this information here to also                 * recursively build longer lists, like "a, b, c, d"
+#. Translators: we're building a list of items here.             * The end result is something like "a, b, c"                    * In this case, the first string is "a, b", the second          * string is ", " and the third string is "c"
+#, c-format
+msgid "%1$s%2$s%3$s"
+msgstr "%1$s%2$s%3$s"
+
+#. Translators: see comment for "%1$s%2$s%3$s" in order          * to properly translate this
+msgid ", "
+msgstr ", "
+
+msgid "minimized"
+msgstr "pienennetty"
+
+msgid "maximized"
+msgstr "suurennettu"
+
+msgid "maximized horizontally"
+msgstr "suurennettu vaakasuunnassa"
+
+msgid "maximized vertically"
+msgstr "suurennettu pystysuunnassa"
+
+msgid "shaded"
+msgstr "rullattu"
+
+msgid "pinned"
+msgstr "kiinnitetty"
+
+msgid "sticky"
+msgstr "tahmea"
+
+msgid "above"
+msgstr "yllä"
+
+msgid "below"
+msgstr "alla"
+
+msgid "fullscreen"
+msgstr "kokoruutu"
+
+msgid "needs attention"
+msgstr "kaipaa huomiota"
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+msgid "skip pager"
+msgstr "ei ikkunavalitsimessa"
+
+#. Translators: "tasklist" is the list of running applications (the window
+#. * list)
+msgid "skip tasklist"
+msgstr "ei ikkunaluettelossa"
+
+msgid "normal"
+msgstr "tavallinen"
+
+#, c-format
+msgid "State: %s\n"
+msgstr "Tila: %s\n"
+
+msgid "move"
+msgstr "siirrä"
+
+msgid "resize"
+msgstr "muuta kokoa"
+
+msgid "shade"
+msgstr "rullaa"
+
+msgid "unshade"
+msgstr "peru rullaus"
+
+msgid "stick"
+msgstr "tee tahmeaksi"
+
+msgid "unstick"
+msgstr "peru tahmeus"
+
+msgid "maximize horizontally"
+msgstr "suurenna vaakasuunnassa"
+
+msgid "unmaximize horizontally"
+msgstr "peru vaakasuuntainen suurennus"
+
+msgid "maximize vertically"
+msgstr "suurenna pystysuunnassa"
+
+msgid "unmaximize vertically"
+msgstr "peru pystysuuntainen suurennus"
+
+msgid "change workspace"
+msgstr "vaihda työtilaa"
+
+msgid "pin"
+msgstr "kiinnitä"
+
+msgid "unpin"
+msgstr "vapauta"
+
+msgid "minimize"
+msgstr "pienennä"
+
+msgid "unminimize"
+msgstr "peru pienennys"
+
+msgid "maximize"
+msgstr "suurenna"
+
+msgid "unmaximize"
+msgstr "palauta koko"
+
+msgid "change fullscreen mode"
+msgstr "vaihda kokoruututilaa"
+
+msgid "close"
+msgstr "sulje"
+
+msgid "make above"
+msgstr "nosta ylemmäs"
+
+msgid "unmake above"
+msgstr "peru nosto"
+
+msgid "make below"
+msgstr "laske alle"
+
+msgid "unmake below"
+msgstr "peru lasku"
+
+msgid "no action possible"
+msgstr "toiminto ei ole mahdollinen"
+
+#, c-format
+msgid "Possible Actions: %s\n"
+msgstr "Mahdolliset toiminnot: %s\n"
+
+msgid ""
+"Print or modify the properties of a screen/workspace/window, or interact "
+"with it, following the EWMH specification.\n"
+"For information about this specification, see:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+msgstr ""
+"Tulosta tai muokkaa näytön, työtilan tai ikkunan ominaisuuksia, tai "
+"käsittele niitä interaktiivisesti EWMH-määrittelyn mukaan.\n"
+"Lisätietoja tästä määrittelystä:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+
+msgid "Options to list windows or workspaces"
+msgstr "Valinnat ikkunoiden tai työpöytien listaamiselle"
+
+msgid "Show options to list windows or workspaces"
+msgstr "Näytä valitsimet, joilla listataan ikkunoita tai työpöytiä"
+
+msgid "Options to modify properties of a window"
+msgstr "Valitsimet ikkunan ominaisuuksien muuttamiseksi"
+
+msgid "Show options to modify properties of a window"
+msgstr "Näytä valitsimet, joilla muutetaan ikkunan ominaisuuksia"
+
+msgid "Options to modify properties of a workspace"
+msgstr "Valitsimet työtilan ominaisuuksien muuttamiseksi"
+
+msgid "Show options to modify properties of a workspace"
+msgstr "Näytä valitsimet, joilla muutetaan työtilan ominaisuuksia"
+
+msgid "Options to modify properties of a screen"
+msgstr "Valitsimet ruudun ominaisuuksien muuttamiseksi"
+
+msgid "Show options to modify properties of a screen"
+msgstr "Näytä valitsimet, joilla muutetaan ruudun ominaisuuksia"
+
+#, c-format
+msgid "Error while parsing arguments: %s\n"
+msgstr "Virhe tulkittaessa argumentteja: %s\n"
+
+#, c-format
+msgid "Cannot interact with screen %d: the screen does not exist\n"
+msgstr "Ruutua %d ei voi käsitellä: ruutua ei ole olemassa\n"
+
+#, c-format
+msgid "Cannot interact with workspace %d: the workspace cannot be found\n"
+msgstr "Työtilaa %d ei voi käsitellä: työtilaa ei löydy\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are
+#. * of the same class.
+#, c-format
+msgid ""
+"Cannot interact with class group \"%s\": the class group cannot be found\n"
+msgstr "Luokkaryhmää ”%s” ei voi käsitellä: luokkaryhmää ei löydy\n"
+
+#, c-format
+msgid ""
+"Cannot interact with application having its group leader with XID %lu: the "
+"application cannot be found\n"
+msgstr ""
+"Sovellusta, jonka ryhmänjohtajan XID on %lu, ei voi käsitellä: sovellusta ei "
+"löydy\n"
+
+#, c-format
+msgid "Cannot interact with window with XID %lu: the window cannot be found\n"
+msgstr "Ikkunaa, jonka XID on %lu, ei voi käsitellä: ikkunaa ei löydy\n"
+
+#~ msgid "Only show current workspace"
+#~ msgstr "Näytä vain _nykyinen työtila"
+
+#~ msgid "Use RTL as default direction"
+#~ msgstr "Käytä suuntana oikealta vasemmalle oletuksena"
+
+#~ msgid "Show workspace names instead of workspace contents"
+#~ msgstr "Näytä työpöytien nimet sisällön sijasta"
+
+#~ msgid "Use a vertical orientation"
+#~ msgstr "Käytä pystysuuntaa"
+
+#~ msgid "Don't show window in tasklist"
+#~ msgstr "Älä näytä ikkunaa ikkunaluettelossa"
+
+#~ msgid "Always group windows"
+#~ msgstr "Ryhmittele ikkuna aina"
+
+#~ msgid "Never group windows"
+#~ msgstr "Älä koskaan ryhmittele ikkunoita"
+
+#~ msgid "Display windows from all workspaces"
+#~ msgstr "Näytä ikkunat kaikilta työpöydiltä"
+
+#~ msgid "Enable Transparency"
+#~ msgstr "Käytä läpinäkyvyyttä"
+
+#~ msgid "Resource Class: %s\n"
+#~ msgstr "Resurssiluokka: %s\n"
+
+#~ msgid "Group Name: %s\n"
+#~ msgstr "Ryhmän nimi: %s\n"
+
+#~ msgid "Unknown Window"
+#~ msgstr "Tuntematon ikkuna"
+
+#~ msgid "_Unroll"
+#~ msgstr "_Rullaa auki"
+
+#~ msgid "Roll _Up"
+#~ msgstr "_Rullaa"

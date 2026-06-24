@@ -1,0 +1,2140 @@
+=============
+Version 3.4.9
+=============
+
+  Fixes
+
+  * TaskList: remove new Startup Notification API
+
+=============
+Version 3.4.8
+=============
+
+  Features
+
+  * Add support for _GTK_FRAME_EXTENTS (Rico Tzschichholz)
+
+  Fixes
+
+  * WindowActionMenu: unset window and stop async events on dispose (Marco Trevisan)
+  * TaskList: use new Startup Notification API (Stefan Sperling)
+
+  Translators
+
+  * Fran Diéguez (gl)
+  * GunChleoc (gd)
+  * Milo Casagrande (it)
+  * Noriko Mizumoto (ja)
+  * Rūdolfs Mazurs (lv)
+  * Wylmer Wang (zh_CN)
+
+=============
+Version 3.4.7
+=============
+
+  Features
+
+  * Add wnck_set_default_icon_size and wnck_set_default_mini_icon_size functions
+    to allow clients to define the size of the icons to be used for windows
+    and applications.
+
+=============
+Version 3.4.6
+=============
+
+  Features
+
+  * Add option to close windows with mouse middle click on button in tasklist
+    (Stefano Karapetsas)
+  * Add API to define task list orientation (Jean-Luc Porquet and Josselin Mouette)
+
+  Fixes
+
+  * ClassGroup: fix class signal signature (Marco Trevisan)
+  * Get rid of the deprecated code in TaskList, Selector and Pager (Marco Trevisan)
+
+  Translators
+
+  * Andika Triwidada (id)
+  * Ani Peter (ml)
+  * Aurimas Černius (lt)
+  * Balázs Úr (hu)
+  * Daniel Mustieles (es)
+  * Enrico Nicoletto (pt_BR)
+  * Joe Hansen (da)
+  * Krishnababu Krothapalli (te)
+  * ManojKumar Giri (or)
+  * Marek Černocký (cs)
+  * Matej Urbančič (sl)
+  * Nilamdyuti Goswami (as)
+  * Rajesh Ranjan (hi)
+  * Sandeep Sheshrao Shedmake (mr)
+  * Shankar Prasad (kn)
+  * Shantha kumar (ta)
+  * Sweta Kothari (gu)
+  * Theppitak Karoonboonyanan (th)
+  * Yuri Myasoedov (ru)
+  * Мирослав Николић (sr) (sr@latin
+
+=============
+Version 3.4.5
+=============
+
+  Features
+
+	* Add getter and notifier for the Window role
+	* Emit signals when a window instance or group name (WM_CLASS) changes (Marco Trevisan)
+
+  Fixes
+
+	* Remove deprecated APIs for device grabbing (Marco Trevisan)
+	* Fix wnckprop hang, that made the system unusable (Marco Trevisan)
+	* Fix build with recent automake (Nuno Araujo)
+	* Use a little less power using g_timeout_add_seconds (B.Prathibha)
+
+  Translators
+
+	* ManojKumar Giri (or)
+	* Piotr Drąg (pl)
+	* Shankar Prasad (kn)
+
+=============
+Version 3.4.4
+=============
+
+  Translators
+
+	* Runa Bhattacharjee (bn_IN)
+	* chandankumar (hi)
+	* Khoem Sokhem (km)
+	* Rūdolfs Mazurs (lv)
+	* Anish A (ml)
+	* Piotr Drąg (pl)
+
+=============
+Version 3.4.3
+=============
+
+  Fixes
+
+	* Add deprecation attributes to deprecated functions (Javier Jardón)
+
+  Misc
+
+	* Require gtk+-3.0 >= 3.4.0 (Vincent)
+
+  Translators
+
+	* Nilamdyuti Goswami (as)
+	* Tom Tryfonidis (el)
+	* Sandeep Shedmake (mr)
+	* Kjartan Maraas (nb)
+
+=============
+Version 3.4.2
+=============
+
+  Fixes
+
+	* Fix mouse wheel scrolling with new GTK+ (Christian Persch, Vincent)
+
+  Misc
+
+	* Add --enable-tools to enable/disable installation of tools (Vincent)
+
+  Translators
+
+	* Sílvia Miranda (ca)
+	* Sílvia Miranda (ca@valencia)
+	* Sweta Kothari (gu)
+	* Mitsuya Shibata (ja)
+
+=============
+Version 3.4.0
+=============
+
+  Translators
+
+	* Nilamdyuti Goswami (as)
+	* Reşat SABIQ (crh)
+	* Kristjan SCHMIDT (eo)
+	* Mattias Põldaru (et)
+	* Gabor Kelemen (hu)
+
+=============
+Version 3.3.5
+=============
+
+ Features
+
+	* Add wnck_shutdown() API (Martin Pitt, Vincent)
+
+  Fixes
+
+	* Don't ask for tasklist menus to be pushed in (Vincent)
+
+  Translators
+
+	* OKANO Takayoshi (ja)
+	* Kjartan Maraas (nb)
+	* Wouter Bolsterlee (nl)
+
+=============
+Version 3.2.1
+=============
+
+  Translators
+
+	* Sílvia Miranda (ca@valencia)
+	* Мирослав Николић (sr)
+	* Miroslav Nikolić (sr@latin)
+	* Hari Krishna (te)
+	* Muhammet Kara (tr)
+	* Korostil Daniel (uk)
+	* Nguyễn Thái Ngọc Duy (vi)
+
+=============
+Version 3.2.0
+=============
+
+  Translators
+
+	* Petr Kovar (cs)
+	* Aputsiaq Niels Janussen (da)
+	* Inaki Larranaga Murgoitio (eu)
+	* Tommi Vainikainen (fi)
+	* Gabor Kelemen (hu)
+	* Antonio Fernandes C. Neto (pt_BR)
+
+==============
+Version 3.1.92
+==============
+
+ Misc
+
+  - Fix srcdir != builddir build (Colin Walters)
+
+ Translators
+
+  - Ihar Hrachyshka (be)
+  - Sílvia Miranda (ca)
+  - Bruce Cowan (en_GB)
+  - Arash Mousavi (fa)
+  - Milo Casagrande (it)
+  - Jiro Matsuzawa (ja)
+  - Changwoo Ryu (ko)
+  - Aurimas Černius (lt)
+  - Rūdofls Mazurs (lv)
+  - A S Alam (pa)
+  - Duarte Loreto (pt)
+  - Yuri Myasoedov (ru)
+  - Matej Urbančič (sl)
+  - Dr.T.Vasudevan (ta)
+  - Ray Wang (zh_CN)
+  - Chao-Hsiung Liao (zh_HK)
+  - Chao-Hsiung Liao (zh_TW)
+
+==============
+Version 3.1.90
+==============
+
+ Fixes
+
+  - Added missing introspection annotations (Priit Laes)
+
+ Misc
+
+  - Link against libm (Vincent)
+
+ Translators
+
+  - Alexander Shopov (bg)
+  - Mario Blättermann (de)
+  - Jorge González (es)
+  - Vincent Untz (fr)
+  - Fran Diéguez (gl)
+  - Yaron Shahrabani (he)
+  - Andika Triwidada (id)
+  - Kjartan Maraas (nb)
+  - Piotr Drąg (pl)
+  - Daniel Nylander (sv)
+  - Theppitak Karoonboonyanan (th)
+
+=============
+Version 3.1.5
+=============
+
+ Features
+
+  - Add API to get WM_CLASS group name & instance name of a WnckWindow:
+    wnck_window_get_class_group_name(), wnck_window_get_class_instance_name()
+    (Marco Trevisan)
+  - Change WnckClassGroup to talk about identifier instead of resource class.
+    This includes deprecating wnck_class_group_get_res_class() in favor of
+    wnck_class_group_get_id() (Vincent)
+
+ Fixes
+
+  - Fix tasklist taking some space when there is no window (Vincent)
+  - Remove unused variables (Vincent)
+  - Stop using several deprecated APIs (Vincent)
+  - Remove disabling of libgnomeui sounds (Vincent)
+  - Do not connect same signal handler twice (Vincent)
+
+ Misc
+
+  - Modernize build system (Vincent)
+
+ Translators
+
+  - Petr Kovar (cs)
+
+=============
+Version 3.0.2
+=============
+
+  Translators
+
+	* Sahran (ug)
+
+=============
+Version 3.0.0
+=============
+
+ Translators
+
+  - Sílvia Miranda (ca)
+  - Kristjan SCHMIDT (eo)
+  - Arash Mousavi (fa)
+  - Gheyret Kenji (ug)
+
+===============
+Version 2.91.92
+===============
+
+ Misc
+
+  - Require GTK+ 3.0 (Carlos Garcia Campos)
+
+ Translators
+
+  - Sense Hofstede (fy)
+  - Adi Roiban (ro)
+
+===============
+Version 2.91.90
+===============
+
+ Fixes
+
+  - Port widgets to GtkStyleContext (Carlos Garcia Campos)
+  - Improve geometry management of WnckPager (Vincent)
+  - Add switching workspace on scroll events to WnckPager (Vincent)
+  - Fix crash when fetching some icons (Vincent)
+  - Make most of the code not assume the display is the default one (Vincent)
+  - Code cleanups (Vincent)
+
+ Misc
+
+  - Add high-level documentation, with hints and examples (Vincent)
+  - Build fixes (Vincent)
+
+ Translators
+
+  - Gheyret Kenji (ug)
+
+==============
+Version 2.91.6
+==============
+
+This is the first version of libwnck, ported to GTK+ 3. It should be
+parallel-installable with the GTK+ 2 version of libwnck. Some API changes
+might still happen until 3.0, but the libtool versioning won't change.
+There might be some issues left after the GTK+ 3 port, so please report any
+unusual behavior with the library.
+
+ Major changes
+
+  - Port to GTK+ 3 (Benjamin Otte, Christian Persch, David Ronis, Vincent)
+  - Enforce single include for libwnck (Vincent)
+  - Add macros to determine libwnck version at build time: WNCK_CHECK_VERSION,
+    WNCK_MAJOR_VERSION, WNCK_MINOR_VERSION, WNCK_MICRO_VERSION (Vincent)
+
+ API Changes
+
+  - Drop previously deprecated API: wnck_screen_get_workspace_index,
+    wnck_screen_get_workspace_neighbor, wnck_pager_set_screen,
+    wnck_tasklist_set_minimum_width, wnck_tasklist_get_minimum_width,
+    wnck_tasklist_set_minimum_height, wnck_tasklist_get_minimum_height,
+    wnck_tasklist_set_screen, wnck_gtk_window_set_dock_type,
+    wnck_create_window_action_menu (Vincent)
+  - Remove screen argument from wnck_pager_new and wnck_tasklist_new (Vincent)
+
+ Fixes
+
+  - Fix link errors for wnckprop (Diego Escalante Urrelo)
+  - Start removing assumptions where default display was used (Vincent)
+  - Add missing introspectio annotation (Vincent)
+  - Plug a leak (Lampersperger Andreas)
+
+ Translators
+
+  - Ivar Smolin (et)
+  - Vincent Untz (fr)
+  - Fran Diéguez (gl)
+  - Gheyret Kenji (ug)
+
+==============
+Version 2.30.6
+==============
+
+ Fixes
+
+  - Adapt to GtkObject removal in GTK3 (Javier Jardón)
+
+ Misc
+
+  - Add a small test utility to make it easy to test urgency hints (Vincent)
+
+ Translators
+
+  - Sílvia Miranda (ca@valencia)
+  - Gheyret Kenji (ug)
+
+==============
+Version 2.30.5
+==============
+
+ Fixes
+
+  - Fix pager with multiple rows, regression from 2.30.4 (Theppitak
+    Karoonboonyanan)
+
+ Misc
+
+  - Associate .gir with pkg-config file (Vincent)
+  - Rename --enable-deprecations configure option to --enable-deprecation-flags
+    (Vincent)
+
+ Translators
+
+  - Takeshi AIHANA (ja)
+  - Baurzhan Muftakhidinov (kk)
+
+==============
+Version 2.30.4
+==============
+
+ Fixes
+
+  - Stop using gdk_display (Vincent)
+
+ Misc
+
+  - Update information in README and other files (Vincent)
+
+ Translators
+
+  - Dirgita (id)
+
+==============
+Version 2.30.3
+==============
+
+ Fixes
+
+  - Additional GSeal-related fix (Federico Mena Quintero)
+  - Fix failure to build outside source tree (Theppitak Karoonboonyanan)
+  - Add introspection annotations (Tomeu Vizoso)
+
+ Misc
+
+  - gobject-introspection 0.6.14 is needed to build introspection data
+    (Theppitak Karoonboonyanan)
+
+ Translators
+
+  - Shankar Prasad (kn)
+  - Matej Urbančič (sl)
+
+==============
+Version 2.30.2
+==============
+
+ Fixes
+
+  - Many GSeal-related fixes (Andre Klapper, Vincent)
+  - Do not ship gir files in the tarball (Yaakov Selkowitz)
+
+ Translators
+
+  - Denis (br)
+  - Sílvia Miranda (ca)
+  - Thomas Thurman (en@shaw)
+  - Iñaki Larrañaga Murgoitio (eu)
+  - Fran Diéguez (gl)
+  - Shankar Prasad (kn)
+  - Rudols Mazurs (lv)
+  - Kjartan Maraas (nb)
+
+==============
+Version 2.30.0
+==============
+
+ Fixes
+
+  - Many GSeal-related fixes (Vincent)
+  - Use a GtkMenuSeparator with a label instead of a hack for workspace menu
+    items in selector (Vincent)
+
+ Misc
+
+  - Add configure summary (Vincent)
+
+ Translators
+
+  - Iñaki Larrañaga Murgoitio (eu)
+  - Ani Peter (ml)
+
+===============
+Version 2.29.92
+===============
+
+ Feature
+
+  - Integrate gobject-introspection support (Vincent)
+
+ Fixes
+
+  - Build with latest GSeal'ed GTK+ (Vincent)
+  - Do not lose the pinned status when dragging a window in a tasklist
+    (Vincent)
+  - Use _NET_WM_WINDOW_TYPE_SPLASH instead of non-existing
+    _NET_WM_WINDOW_TYPE_SPLASHSCREEN (Vincent)
+
+ Misc
+
+  - Small documentation improvement for wnck_window_move_to_workspace() to
+    specify what happens to pinned windows (Vincent)
+  - Fix build when building out of source tree (Theppitak Karoonboonyanan)
+
+ Translators
+
+  - Tomasz Dominikowski (pl)
+
+===============
+Version 2.29.91
+===============
+
+ Fixes
+
+  - Use single-include for atk (Vincent)
+
+ Translators
+
+  - Ivar Smolin (et)
+  - Fran Diéguez (gl)
+  - Matej Urbančič (sl)
+
+==============
+Version 2.29.6
+==============
+
+ Fixes
+
+  - Fix generation of wnck-enum-types.c to not break bindings (Arun Raghavan)
+
+ Misc
+
+  - Modernize a bit the build system (Vincent)
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - astur (ast)
+  - Sílvia Miranda (ca@valencia)
+  - Thomas Thurman (en@shaw)
+  - Andika Triwidada (id)
+  - Reinout van Schouwen (nl)
+  - Adi Roiban (ro)
+
+==============
+Version 2.28.0
+==============
+
+ Translators
+
+  - Rajesh Ranjan (hi)
+  - Sangeeta Kumari (mai)
+  - Maxim Dziumanenko (uk)
+
+===============
+Version 2.27.92
+===============
+
+ Fixes
+
+  - Always show icons in tasklist group menu (Marcus Carlson)
+
+ Misc
+
+  - Make startup-notification non-automagic (Gilles Dartiguelongue, Vincent)
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Alexander Nyakhaychyk (be)
+  - Maruf Ovee (bn)
+  - Jorge González (es)
+  - Ivar Smolin (et)
+  - Seán de Búrca (ga)
+  - Antón Méixome (gl)
+  - Kjartan Maraas (nb)
+  - Vladimir Melo (pt_BR)
+  - Милош Поповић (sr)
+  - Miloš Popović (sr@latin)
+
+==============
+Version 2.27.5
+==============
+
+ Features
+
+  - New wnck-urgency-monitor utility to monitor windows with urgent hint
+    (Vincent)
+
+ Misc
+
+  - Use silent-rules with automake 1.11 (Vincent)
+
+==============
+Version 2.27.4
+==============
+
+ Fixes
+
+  - Fix wnck_application_get_icon_is_fallback() to actually work (Vincent)
+  - Fix gtk-doc warning (Vincent)
+  - Code cleanup (Vincent)
+  - Always show icons in selector menu (Vincent)
+
+ Misc
+
+  - Use shave to improve build log readability (Vincent)
+  - Build system tweaks (Vincent)
+
+ Translators
+
+  - Runa Bhattacharjee (bn_IN)
+  - Ivar Smolin (et)
+  - Nabin Gautam (ne)
+
+2.26.1
+======
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Reşat SABIQ (crh)
+  - Suso Baleato (gl)
+  - Shankar Prasad (kn)
+  - Ray Wang (zh_CN)
+
+2.26.0
+======
+
+ Translators
+
+  - Amitakhya Phukan (as)
+  - Petr Kovar (cs)
+  - Kenneth Nielsen (da)
+  - Jennie Petoumenou (el)
+  - David Lodge (en_GB)
+  - Pauli Virtanen (fi)
+  - Ankit Patel (gu)
+  - Gil Osher (he)
+  - Luca Ferretti (it)
+  - Ani Peter (ml)
+  - Sandeep Shedmake (mr)
+  - wadim dziedzic (pl)
+  - Adi Roiban (ro)
+  - Nickolay V. Shmyrev (ru)
+  - I. Felix (ta)
+  - Krishna Babu K (te)
+  - Baris Cicek (tr)
+
+2.25.91
+=======
+
+ Misc
+
+  - Require glib 2.16.0
+
+ Translators
+
+  - Yavor Doganov (bg)
+  - Runa Bhattacharjee (bn_IN)
+  - Sílvia Miranda (ca)
+  - Rhys Jones (cy)
+  - Andre Klapper (de)
+  - Dawa pemo (dz)
+  - Kostas Papadimas (el)
+  - David Lodge (en_GB)
+  - Guillaume Savaton (eo)
+  - Jorge González (es)
+  - Iñaki Larrañaga Murgoitio (eu)
+  - Pauli Virtanen (fi)
+  - Ankit Patel (gu)
+  - Rajesh Ranjan (hi)
+  - Gabor Kelemen (hu)
+  - Takeshi AIHANA (ja)
+  - Shankar Prasad (kn)
+  - Changwoo Ryu (ko)
+  - Žygimantas Beručka (lt)
+  - Arangel Angov (mk)
+  - Sanlig Badral (mn)
+  - Hasbullah Bin Pit (ms)
+  - Wouter Bolsterlee (nl)
+  - Manoj Kumar Giri (or)
+  - Amanpreet Singh Alam (pa)
+  - Vladimir Melo (pt_BR)
+  - Duarte Loreto (pt)
+  - Vasiliy Faronov (ru)
+  - Steve Murphy (rw)
+  - Pavol Šimo (sk)
+  - Слободан Д. Средојевић (sr)
+  - Theppitak Karoonboonyanan (th)
+  - Maxim Dziumanenko (uk)
+  - Clytie Siddall (vi)
+  - Deng Xiyue (zh_CN)
+  - Chao-Hsiung Liao (zh_HK)
+  - Chao-Hsiung Liao (zh_TW)
+
+2.25.5
+======
+
+ Fixes
+
+  - Make libwnck compile with gnome-common DEPRECATED variables (Vincent)
+  - Use C_() instead of Q_() (Matthias Clasen)
+
+ Translators
+
+  - Andre Klapper (de)
+  - Jorge González (es)
+  - Mattias Põldaru (et)
+  - Claude Paroz (fr)
+  - Luca Ferretti (it)
+  - Vladimir Melo (pt_BR)
+  - Matej Urbančič (sl)
+  - Daniel Nylander (sv)
+
+2.25.3
+======
+
+ Fixes
+
+  - Use single include for GTK+ (Pedro Fragoso)
+  - Fix compiler warning (Vincent)
+
+2.24.2
+======
+
+ Translators
+
+  - Robert Millan (ca@valencia)
+  - Vladimir Melo (pt_BR)
+
+2.24.1
+======
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Dawa pemo (dz)
+  - Claude Paroz (fr)
+  - Luca Ferretti (it)
+  - Vladimir Melo (pt_BR)
+
+2.24.0
+======
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Ivar Smolin (et)
+  - Ankit Patel (gu)
+  - Launchpad Translations Administrators (hr)
+  - Gabor Kelemen (hu)
+  - Shankar Prasad (kn)
+  - Mugurel Tudor (ro)
+  - Слободан Д. Средојевић (sr)
+  - Theppitak Karoonboonyanan (th)
+  - Baris Cicek (tr)
+  - Chao-Hsiung Liao (zh_HK)
+  - Chao-Hsiung Liao (zh_TW)
+
+2.23.92
+=======
+
+ Translators
+
+  - Runa Bhattacharjee (bn_IN)
+  - Manoj Kumar Giri (or)
+
+2.23.91
+=======
+
+ Misc
+
+  - Update the default window icon (Baptiste Mille-Mathias)
+
+ Translators
+
+  - Khaled Hosny (ar)
+
+2.23.6
+======
+
+ Translators
+
+  - Djihed Afifi (ar)
+  - Gabor Kelemen (hu)
+  - Vladimir Melo (pt_BR)
+
+2.23.4
+======
+
+ Fixes
+
+  - Fix a bug where when the last window disappears, libwnck internals don't
+    get updated and you still have a window in the window list, eg.  (Malebria)
+
+ Misc
+
+  - Require intltool 0.40.0 (Vincent)
+
+ Translators
+
+  - Djihed Afifi (ar)
+  - Yavor Doganov (bg)
+
+2.22.1
+======
+
+Fixes
+
+  - Fix crash caused by a race condition when pager is destroyed (Vincent)
+    [#517750]
+  - List windows that demands attention in the tasklist when they're in the
+    current workspace but not visible in the viewport (Vincent) [#520124]
+  - Unstick windows when moving them in another workspace (viewport mode),
+    else the windows are just outside the visible screen (Travis Watkins)
+    [#520704]
+  - Fix moving a window to an arbitrary workspace in viewport mode (Vincent)
+    [#520726]
+
+ Translators
+
+  - Kostas Papadimas (el)
+  - Eskild Hustvedt (nn)
+
+2.22.0
+======
+
+Fixes
+
+  - Properly translate --help output of wnckprop (Vincent) [#518070]
+  - Fix wnck_window_set_geometry() to work as intended, ie including
+    decorations (Mikkel Kamstrup Erlandsen, Elijah, Vincent) [#518606]
+
+ Translators
+
+  - Sankarshan Mukhopadhyay (bn_IN)
+  - Kenneth Nielsen (da)
+  - David Lodge (en_GB)
+  - Jorge González (es)
+  - Rajesh Ranjan (hi)
+  - Gabor Kelemen (hu)
+  - Žygimantas Beručka (lt)
+  - Vasiliy Faronov (ru)
+  - Dr.T.Vasudevan (ta)
+  - Maxim Dziumanenko (uk)
+
+2.21.92
+=======
+
+Fixes
+
+  - Fix wnck_window_set_geometry() not working without a main loop
+
+ Translators
+
+  - Sílvia Miranda (ca)
+  - Pauli Virtanen (fi)
+  - Robert-André-Mauchin (fr)
+  - Ignacio Casal Quinteiro (gl)
+  - Gil Osher (he)
+  - Luca Ferretti (it)
+  - Changwoo Ryu (ko)
+  - Nabin Gautam (ne)
+  - Tino Meinen (nl)
+  - Jonh Wendell (pt_BR)
+  - Woodman Tuen (zh_HK)
+  - Woodman Tuen (zh_TW)
+
+2.21.91
+=======
+
+Misc
+
+  - Require gtk-doc 1.9 (Vincent) [#511414]
+
+ Translators
+
+  - Djihed Afifi (ar)
+  - Takeshi AIHANA (ja)
+  - Arangel Angov (mk)
+  - sandeep shedmake (mr)
+  - Tomasz Dominikowski (pl)
+  - Duarte Loreto (pt)
+  - Pavol Šimo (sk)
+  - Theppitak Karoonboonyanan (th)
+
+2.21.90
+=======
+
+Fixes
+
+  - Fix pager to correctly work in multiscreen environment (Vincent, with help
+    from David Sundqvist)
+
+2.21.5
+======
+
+ Translators
+
+  - Djihed Afifi (ar)
+  - Ihar Hrachyshka (be@latin)
+  - Petr Kovar (cs)
+  - Andre Klapper (de)
+  - Jorge González (es)
+  - Ivar Smolin (et)
+  - Iñaki Larrañaga Murgoitio (eu)
+  - Seán de Búrca (ga)
+  - Santhosh Thottingal (ml)
+  - Kjartan Maraas (nb)
+  - Yannig Marchegay (Kokoyaya) (oc)
+  - Pavol Šimo (sk)
+  - Matej Urbančič (sl)
+  - Clytie Siddall (vi)
+
+2.21.2.1
+========
+
+ Fixes
+
+  - Fix accidental ABI break in 2.21.2 (Vincent)
+
+ Misc
+
+  - Fix for X libraries detection to work with Xorg 6.8 (Vincent)
+
+ Translators
+
+  - Daniel Nylander (sv)
+
+2.21.2
+======
+
+ Features
+  - Make the window action menu a WnckActionMenu widget (Vincent)
+
+ Fixes
+
+  - Avoid crashing if the X Resource extension is not present (Matthias Clasen)
+    [#489087]
+  - Code cleanups (Roland Bär, Vincent) [#494077]
+  - Add context for some strings to help translators (Vincent) [#476512]
+  - Activate the window when the user drags and drops it quickly on itself
+    (Jan Niklas Hasse, Vincent) [#460403]
+  - Do not re-implement some functions GDK has (Vincent)
+
+ Misc
+
+  - API doc improvements (Vincent) [parts of this fix #477847]
+  - Clean up the configure script for X libraries detection (Vincent) [#332264]
+  - Be more complete in the requirements in the pkg-config files (Vincent)
+
+ Translators
+
+  - Anas Husseini (ar)
+  - Jorge González (es)
+  - Ivar Smolin (et)
+  - Robert-André-Mauchin (fr)
+  - Gil Osher (he)
+  - Matej Urbančič (sl)
+  - Daniel Nylander (sv)
+
+2.20.1
+======
+
+ Fixes
+
+  - Fix icon of the active window not changing in the selector (Vincent)
+  - Fix crash when startup notification messages are not encoded in UTF-8
+    (Vincent) [#476299]
+
+ Translators
+
+  - Jorge González (es)
+  - Changwoo Ryu (ko)
+  - Baris Cicek (tr)
+
+2.20.0
+======
+
+ The 2.19/2.20 releases have broken API and ABI compatibility with 2.18
+ releases. Read the various entries for 2.19.x releases to learn more about the
+ breaks.
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Runa Bhattacharjee (bn_IN)
+  - Sílvia Miranda (ca)
+  - Robert-André-Mauchin (fr)
+  - Gabor Kelemen (hu)
+  - Luca Ferretti (it)
+  - Žygimantas Beručka (lt)
+  - Duarte Loreto (pt)
+  - Nickolay V. Shmyrev (ru)
+  - Maxim Dziumanenko (uk)
+
+2.19.92
+=======
+
+ Fixes
+
+  - Add translator comments for wnckprop (Andre Klapper) [#468320]
+
+ Translators
+
+  - Ask Hjorth Larsen (da)
+  - Andre Klapper (de)
+  - Kostas Papadimas (el)
+  - Jovan Naumovski (mk)
+  - Kjartan Maraas (nb)
+  - Og Maciel (pt_BR)
+  - Clytie Siddall (vi)
+
+2.19.90
+=======
+
+ Fixes
+
+  - Remove weak pointers on fields in task structure before freeing 
+    task block (Ray Strode) [#139080]
+
+ Translators
+
+  - Ihar Hrachyshka (be@latin)
+  - Takeshi Aihana (ja)
+  - Inaki Larranaga Murgoitio (eu)
+  - Ilkka Tuohela (fi)
+  - Ankit Patel (gu)
+  - I. Felix (ta)
+  - Žygimantas Beručka (lt)
+
+2.19.6
+======
+
+ Fixes
+
+  - Make the window action menu work with viewport (Vincent) [#352383]
+  - Correctly draw workspaces with viewport in the pager (Vincent)
+  - Fix typo in a string of wnckprop (Theppitak Karoonboonyanan)
+
+ Misc
+
+  - Various API documentation improvements (Vincent)
+
+ Translators
+
+  - Alexander Shopov (bg)
+  - Jorge González (es)
+  - Pauli Virtanen (fi)
+  - Kjartan Maraas (nb)
+  - Vincent van Adrighem (nl)
+  - Daniel Nylander (sv)
+  - Theppitak Karoonboonyanan (th)
+  - Wang Jian (zh_CN)
+
+2.19.5
+======
+
+ Features
+
+  - Install wnckprop utility (Vincent)
+  - Add tooltips for workspaces in the pager (Vincent) [#125644]
+  - New wnck_screen_get_workspaces() API (Vincent)
+  - New wnck_workspace_get_layout_row(), wnck_workspace_get_layout_column() and
+    wnck_workspace_get_neighbor() API, to get layout information about a
+    workspace (Vincent)
+  - New wnck_workspace_get_screen() API (Vincent)
+  - New wnck_window_is_below(), wnck_window_make_below() and
+    wnck_window_unmake_below() API (Vincent) [#453982]
+
+ Deprecations
+
+  - Deprecate wnck_screen_get_workspace_index(). wnck_workspace_get_number()
+    should be used (Vincent)
+  - Deprecate wnck_screen_calc_workspace_layout(),
+    wnck_screen_free_workspace_layout() and WnckWorkspaceLayout (Vincent)
+  - Deprecate wnck_screen_get_workspace_neighbor().
+    wnck_workspace_get_neighbor() should be used (Vincent)
+  - Deprecate wnck_tasklist_set_minimum_width(),
+    wnck_tasklist_get_minimum_width(), wnck_tasklist_set_minimum_height(),
+    wnck_tasklist_get_minimum_height(). They are useless with the new sizing
+    algorithm (Vincent)
+
+ Fixes
+
+  - Improve a bit drawing of the pager (Vincent)
+  - Fix logic when cleaning up after dragging a window from the pager (Vincent)
+  - Use the last allocation of the tasklist as a basis for the fake allocation
+    used to compute the size hints. This gives better results. (Joe Shaw,
+    Vincent)
+  - Rationalize the using of icon names/names in the tasklist and the pager
+    (Vincent)
+  - Do not put state indicators in the tooltip text of tasklist buttons
+    (Vincent)
+  - Fix compilation of wnckprop (Vincent) [#449186]
+  - Import minor fixes from the XFCE fork (small leak, and safety checks)
+    (Vincent)
+  - Code cleanups (Vincent)
+  - Use g_type_class_add_private() everywhere (Vincent)
+  - Use GSlice when it makes sense (Vincent)
+  - Probable fix to show windows needing attention not shown in the viewport
+    (Vincent)
+  - Make wnckprop able to change properties of windows and screens (Vincent)
+  - Make wnckprop translatable (Vincent)
+  - Redraw a workspace in the pager when the state of a window changes and is
+    relevant (Vincent)
+  - Stop the glowing effect in the tasklist for urgent windows after a while
+    (Vincent) [#327870]
+  - Add new fade-max-loops to control the number of loops before the glowing
+    effect stops. Makes it possible to nearly disable the effect. (Vincent)
+    [#356452]
+  - Don't draw dots for group buttons in the tasklist, but use gtk_paint_tab()
+    (Vincent) [#139523]
+  - Make the glowing effect in the tasklist use cairo. This also makes it work
+    with RGBA. (Ryan Lortie) [#439417]
+  - Makes it possible to drag a window from a grouped task menu of the tasklist
+    (Vincent)
+  - Never group together in the tasklist windows without a class (Vincent)
+    [#165075]
+  - Add new mode to wnckprop to interact with a workspace (Vincent)
+  - Add new modes to wnckprop to interact with a class group or an application
+    (Vincent)
+  - Improve wnckprop command line arguments (Vincent)
+  - Add some XSync calls where needed in libwnck for wnckprop to work (Vincent)
+  - Make wnckprop use the real X server timestamp when needed (Vincent)
+  - Fix size of buttons in tasklist changing with the text. This should be an
+    important usability improvement. (Vincent) [#310809]
+  - Fix image of tasklist buttons floating outside of the buttons when buttons
+    are small (Vincent) [#308552]
+  - Update the window action menu when a workspace is created/destroyed, and
+    when the window has changed workspace (Vincent)
+
+ Misc
+
+  - Improve API documentation (Vincent)
+  - Add a --transparent command line for test-tasklist (Ryan Lortie)
+
+ Translators
+
+  - Jorge González (es)
+  - Luca Ferretti (it)
+  - Takeshi AIHANA (ja)
+  - Kjartan Maraas (nb)
+  - Danishka Navin (si)
+  - Daniel Nylander (sv)
+  - Clytie Siddall (vi)
+
+2.19.4
+======
+
+ Features
+
+  - Show workspace names in the window selector (Vincent) [#354667]
+  - Add support for _NET_FRAME_EXTENTS.
+    wnck_window_get_client_window_geometry() is a new API and
+    wnck_window_get_geometry() now returns the geometry including the window
+    manager decorations (Vincent) [#351055]
+  - Add wnck_screen_get_number() API (Vincent) [#169590]
+  - Add wnck_screen_get_window_manager_name() API and window-manager-changed
+    signal (Vincent) [#448043]
+
+ Deprecations
+
+  - Deprecate wnck_gtk_window_set_dock_type() (Vincent)
+  - Deprecate wnck_pager_set_screen() (Vincent)
+  - Deprecate wnck_tasklist_set_screen() (Vincent)
+  - Deprecate the screen argument of wnck_pager_new() and of
+    wnck_tasklist_new() (Vincent)
+
+ Fixes
+
+  - Code cleanups (Vincent)
+  - Make wnck_screen_net_wm_supports() work on all screens (Vincent)
+  - Do not forget about the "Make below" action for the default possible
+    actions (Vincent)
+  - Rework selection ownership for the desktop layout: do not steal it and
+    release it (Vincent)
+  - Do not change the layout shown in the pager if the the pager couldn't
+    update the layout hint (Vincent) [#445686]
+  - Make the pager use the real layout of the screen when it cannot set the
+    layout (Vincent)
+  - Use g_timeout_add_seconds() when possible (Vincent)
+  - Migrate to new GtkTooltip API (Vincent)
+  - Add some safety guards to the public API (Vincent)
+  - Improve position of the drag icon when dragging a window (Vincent)
+    [#446531]
+  - Make wnck_pid_read_resource_usage() work for more X clients (Vincent)
+    [#150153]
+  - Fix a crash happening sometimes when a tasklist is destroyed (Vincent)
+  - Be more solid against invalid values for _NET_NUMBER_OF_DESKTOPS (Vincent)
+  - Do not skip taskbar for transient windows if the window they're transient
+    for don't exist (Vincent)
+  - Fix a crash when dragging a window to somewhere like another
+    workspace/viewport (Vincent) [#420713]
+  - Make WnckSelector and WnckTasklist correctly work from bindings (Vincent)
+  - Fix crash on multihead setups introduced in 2.19.3 (Vincent)
+  - Fix potential invalidity of the previously active window when there are
+    multiple screens (Vincent)
+
+ Misc
+
+  - Totally rework API documentation (Vincent)
+  - New wnckprop utility, not installed by default (Vincent)
+  - Require glib 2.13.0 (Vincent)
+  - Require GTK+ 2.11.3 (Vincent)
+
+ Translators
+
+  - Mindu Dorji (dz)
+  - Jorge González (es)
+  - Ivar Smolin (et)
+  - Wang Jian (zh_CN)
+
+2.19.3.1
+========
+
+ This release breaks API compatibility again (it contains changes that should
+ have been in 2.19.3).
+
+ Features
+
+  - The active-window-changed and active-workspace-changed signals for
+    WnckScreen now provides the previously active window/workspace (Vincent)
+
+ Fixes
+
+  - Add some padding in classes to make it possible to add new signals without
+    breaking ABI in the future (Vincent)
+  - Make the action menu work again on tasklist buttons (Vincent)
+
+ Misc
+
+  - Remove old files from svn (Vincent)
+
+2.19.3
+======
+
+ This release breaks API compatibility.
+
+ Features
+
+  - Show workspace names in the window selector (Vincent) [#354667]
+  - Make it possible to activate the next window in a class group by clicking
+    with the middle button on the group in the tasklist (Vincent) [#342707]
+  - Add Maximize all and Unmaximize all to the context menu of group buttons in
+    the tasklist (Vincent) [#155875]
+
+ Fixes
+
+  - Improve fallback title for windows and applications (Vincent)
+  - Fix vertical pager in RTL environments (Vincent) [#431461]
+  - Move the Close mneu item at the bottom of the action menu (Vincent)
+    [#104026]
+  - Change API for wnck_selector_new(): we don't need the screen argument
+    (Vincent) [#164474]
+  - Code cleanups, especially in the selector (Vincent)
+  - Put pinned windows in the current workspace in the selector (Vincent)
+  - Fix selector when the last window disappears while the selector is opened,
+    and handle other similar issues (Vincent) [#156918]
+  - Add missing signals for WnckScreen (Vincent)
+  - Sort the windows in the window selector (Vincent)
+  - Fix potential crash when a window disappears from the tasklist and its
+    context menu was opened (Vincent)
+  - Remove all reference to _NET_WM_WINDOW_TYPE_MODAL_DIALOG since it's not in
+    the EWMH spec. This breaks API. (Vincent) [#124332]
+  - Make sure the size hints of the tasklist are sane when there's no window in
+    always group mode (Vincent) [#440625]
+
+ Misc
+
+  - Add useful command-line options for test programs (Vincent)
+  - Require libstartup-notification-1.0 in the pkg-config file when startup
+    notification support is enabled (Vincent)
+
+ Translators
+
+  - Ihar Hrachyshka (be@latin)
+  - David Lodge (en_GB)
+  - Jorge González (es)
+  - Ivar Smolin (et)
+  - Daniel Nylander (sv)
+  - Theppitak Karoonboonyanan (th)
+
+2.19.2
+======
+
+ Features
+
+  - Make it possible to drag a window from the window selector (Vincent)
+    [#354667]
+  - Make it possible to reorder tasklist buttons with drag and drop
+    (Nickolay V. Shmyrev) [#302398]
+
+ Fixes
+
+  - Add small missing bit forgotten for move/resize window API (Elijah)
+  - Plug leak (Matthias Clasen) [#428056]
+  - Check whether window manager supports _NET_WM_ACTION_ABOVE and
+    _NET_WM_ACTION_BELOW instead of guessing whether these are supported
+    (Elijah) [#352383, #115247]
+  - Fix crash on startup in the pager (Kim Woelders) [#403377]
+  - Fix crash when dragging small windows in the pager (Vincent) [#428280]
+  - Fix compilation warnings (Bernard Leak, Vincent) [#431175]
+  - Update action menu to be the same as the metacity one (Bruno Boaventura,
+    Vincent) [#376522]
+  - Fix crash when a menu is opening for a window being destroyed (Vincent)
+    [#410133]
+  - Fix crash happening in some cases on drop on the pager (Vincent) [#415675]
+  - Don't reset the drag icon to the default one when dragging and the dragged
+    window is destroyed (Vincent) [#414967]
+  - Don't use deprecated functions (Vincent)
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Ihar Hrachyshka (be@latin)
+  - Jorge González (es)
+  - Ignacio Casal Quinteiro (gl)
+  - Kjartan Maraas (nb)
+  - Daniel Nylander (sv)
+
+2.18.0
+======
+
+ Translators
+
+  - Alaksandar Navicki (be@latin)
+  - Žygimantas Beručka (lt)
+  - Og Maciel (pt_BR)
+  - Maxim Dziumanenko (uk)
+
+2.17.92
+=======
+
+ Fixes
+
+  - Don't accept to set less than one row in the pager (Vincent)
+  - Improvements to the test programs (Vincent)
+  - Improve size of drag and drop icons for windows (Vincent)
+  - Fix mouse scroll on tasklist in RTL environments (Vincent)
+
+ Misc
+
+  - Distribute MAINTAINERS (Kjartan Maraas)
+
+ Translators
+
+  - Gil Osher (he)
+
+2.17.91
+=======
+
+ Fixes
+
+  - Remove warnings (Kjartan Maraas)
+  - Code cleanups (Christian Persch)
+  - Make tasklist RTL aware (Vincent)
+  - Make pager RTL aware (Vincent)
+
+ Translators
+
+  - Ihar Hrachyshka (be)
+  - Jordi Mallach (ca)
+  - Og Maciel (pt_BR)
+
+2.16.2
+======
+
+ Fixes
+
+  - Change to the workspace of a window before activating it on dragging
+    (Sven Herzberg) [#359874]
+
+ Translators
+
+  - Khaled Hosny (ar)
+  - Francisco Javier F. Serrador (es)
+  - Christophe Merlet (RedFox) (fr)
+  - Takeshi AIHANA (ja)
+  - GNOME PL Team (pl)
+  - Duarte Loreto (pt)
+
+2.16.1
+======
+
+ Fixes
+
+  - Fix critical warning and leak (Benjamin Berg) [#354268]
+  - Avoid sending spurious icon geometry updates (Ryan Lortie) [#355523]
+  - Fix leaks (Benjamin Berg) [#354830]
+
+ Misc
+
+  - Require GTK+ 2.8.0 (Vincent) [#348189]
+
+ Translators
+
+  - Vladimir Petkov (bg)
+  - Jordi Mallach (ca)
+  - David Lodge (en_GB)
+  - Francisco Javier F. Serrador (es)
+  - Pauli Virtanen (fi)
+  - Ankit Patel (gu)
+  - Rajesh Ranjan (hi)
+  - Mohammad DAMT (id)
+  - Ani Peter (ml)
+  - Wouter Bolsterlee (nl)
+  - Matic Žgur (sl)
+  - Daniel Nylander (sv)
+  - Felix (ta)
+  - Sree Ganesh (te)
+  - Woodman Tuen (zh_HK)
+  - Woodman Tuen (zh_TW)
+
+2.16.0
+======
+
+ Translators
+
+  - Khandakar Mujahidul Islam (bn)
+
+2.15.92
+=======
+
+ Fixes
+
+  - Fix crash when tasklist is destroyed (Vincent)
+
+ Misc
+
+  - Update delete icon for the context menu (Baptiste Mille-Mathias)
+
+ Translators
+
+  - Ivar Smolin (et)
+  - Matic Žgur (sl)
+
+2.15.91
+=======
+
+ Fixes
+
+  - Changed the glowing code to have less and saner style properties
+    (Benjamin Berg) [#350138]
+
+ Translators
+
+  - Runa Bhattacharjee (bn_IN)
+  - Ani Peter (ml)
+
+2.15.90
+=======
+
+ Features
+
+  - Add move/resize window API (Magnus Therning)
+
+ Fixes
+
+  - Correctly set relief for group buttons in the tasklist (Benjamin Otte)
+
+2.15.4
+======
+
+ Fixes
+
+  - Make windows that go to the bottom occupy the last pixel of the pager
+    (Benjamin Otte)
+
+ Translators
+
+  - Mahay Alam Khan (bn_IN)
+  - Rahul Bhalerao (mr)
+
+2.15.3
+======
+
+ Fixes
+
+  - restart activation timeout when the mouse moves to a different
+    workspace (Benjamin)
+  - new methods to test if the names returned by wnck_window_get_name
+    and wnck_window_get_icon_name are real or just FALLBACK_NAME (Dan)
+    [#342577]
+
+ Misc
+
+  - don't translate %s (Vincent) [#339069]
+
+ Translations
+
+  - Guillaume Savaton (eo)
+
+2.15.2
+======
+
+ Features
+
+  - Improve glowing effect in tasklist and make it themeable (Benjamin Berg)
+    [#325176]
+  - Use cairo in the pager (Benjamin Otte) [#339293]
+  - Improve drag and drop in the pager (Nickolay V. Shmyrev, Benjamin Otte)
+    [#96675, #339293]
+  - Improve look of the pager (Benjamin Otte) [#339293]
+  - Add dragging of windows from the tasklist (Nickolay V. Shmyrev) [#96675]
+
+ Fixes
+
+  - Fix crash when a X resource doesn't exist anymore (Vincent) [#336823]
+  - Don't change workspace when releasing the button on another workspace
+    (Vincent) [#110510]
+
+ Misc
+
+  - Use po/LINGUAS (Brian Pepple) [#337953]
+  - Depends on intltool 0.35.0
+
+ Translations
+
+  - Mindu Dorji (dz)
+  - Baptiste Mille-Mathias (fr)
+  - GNOME PL Team (pl)
+
+2.14.1
+======
+
+ Fixes
+
+  - Fix leaks (Dan Winship) [#334137]
+  - Fix minimization of "always on visible desktop" windows with the tasklist
+    (Vincent) [#335316]
+  - Fix transient cycles causing infinite loops (Dan Winship, Elijah) [#332493]
+  - Immediately show notification for demands-attent/urgent windows on other
+    workspaces in the tasklist (Leszek Matok) [#336142]
+
+ Translations
+
+  - Ales Nyakhaychyk (be)
+  - Gora Mohanty (or)
+
+2.14.0
+======
+
+ Fixes
+
+  - Don't minimize the window when it's on another desktop and it was the last
+    active window (Vincent) [#331661]
+  - Fix C89 compliance (Jens Granseuer) [#332866]
+
+ Translations
+
+  - Rhys Jones (cy)
+  - Hendrik Richter (de)
+  - Rajesh Ranjan (hi)
+  - Raivis Dejus (lv)
+  - Mugurel Tudor (ro)
+  - Laurent Dhima (sq)
+  - Daniel Nylander (sv)
+  - Maxim Dziumanenko (uk)
+
+2.13.92
+=======
+
+ Fixes
+
+  - Fix window disappearing in workspace switcher after drag and drop (Vincent)
+    [#317373]
+  - Fix corrupted drawing of windows (Vincent) [#155502]
+  - Fix critical warning with action menu of pinned windows (Vincent)
+
+ Translations
+
+  - Lasse Bang Mikkelsen (da)
+  - Kostas Papadimas (el)
+  - Iñaki Larrañaga (eu)
+  - Gabor Kelemen (hu)
+  - Aiet Kolkhi (ka)
+  - Žygimantas Beručka (lt)
+  - Duarte Loreto (pt)
+  - Leonid Kanter (ru)
+  - Woodman Tuen (zh_HK)
+  - Woodman Tuen (zh_TW)
+
+2.13.91
+=======
+
+ Misc
+
+  - Automate the creation of some files (Torsten Schoenfeld)
+  - Don't redefine the _ macro for translation (Vincent) [#328621]
+  - Make the selector widget translations work again (Vincent) [#323181]
+
+ Translations
+
+  - Vladimir Petkov (bg)
+  - Miloslav Trmac (cs)
+  - Priit Laes (et)
+  - Luca Ferretti (it)
+  - Takeshi AIHANA (ja)
+  - Слободан Д. Средојевић (sr)
+
+2.13.90
+=======
+
+ Fixes
+
+  - Fix crash on workspace activation (Elijah, Bart Vanbrabant)
+    [#327435]
+  - Include demands-attention/urgent windows unconditionally in
+    tasklist; this should help users not miss important windows on
+    other workspaces (Elijah) [#305979]
+  - Synchronize the right-click-menu with that of Metacity's (Srirama
+    Sharma, Leena Gunda, Christian Neumair) [#135710]
+  - Escape window titles used in pango markup, avoids some crashes too
+    (Vincent Noel, jylefort FreeBSD org) [#306289]
+  - Correctly catch and handle demands-attention/urgent state changes
+    for transients of windows in the tasklist (Elijah) [#317541]
+  - Make the pager Fitts's law compliant when shadow type is none
+    (Vincent) [#304248]
+  - Avoid a compiler warning (Kjartan)
+
+ Translations
+
+  - Jordi Mallach (ca)
+  - Adam Weinberger (en_CA)
+  - Lucas Vieites (es)
+  - Pauli Virtanen (fi)
+  - Ignacio Casal Quinteiro (gl)
+  - Ankit Patel (gu)
+  - Kjartan Maraas (nb)
+  - Tino Meinen (nl)
+  - Kjartan Maraas (no)
+  - Evandro Fernandes Giovanini (pt_BR)
+  - Theppitak Karoonboonyanan (th)
+  - Clytie Siddall (vi)
+  - Wang Jian (zh_CN)
+
+2.13.5
+======
+
+ Fixes
+
+  - Correctly specify the source indication (Elijah)
+  - Doc generation fixes (Thomas Vander Stichele)
+
+ Translations
+
+  - Abel Cheung (zh_HK)
+
+2.13.4
+======
+
+ Features
+
+  - Sort window in a group alphabetically (Xavier Claessens, Vincent)
+  - Change active window when scrolling on the selector (Nigel Tao)
+
+ Fixes
+
+  - Remove critical warning (Vincent)
+  - Use virtual desktop size when computing size of pager (Loic Minier, Vincent)
+
+2.13.3
+=======
+
+ Features
+
+  - Add scrolling support to the tasklist (Xavier Claessens)
+
+ Misc
+
+  - Remove old hack (Vincent)
+
+ Translators
+
+  - Ivar Smolin (et)
+  - Kjartan Maraas (nb)
+  - Kjartan Maraas (nn)
+  - Kjartan Maraas (no)
+
+2.13.1
+=======
+
+ Fixes
+
+  - Minor code cleanup (Elijah)
+
+ Translators
+
+  - Erdal Ronahi (ku)
+  - Ilyas Bakirov (ky)
+
+2.12.1
+=======
+
+ Features
+
+  - add a test-selector program for testing. It doesn't get installed.
+    (Denis Jacquerye) [#165269]
+
+ Fixes
+
+  - Use intltool & various other build enhanements (Rodney Dawes, Vincent)
+    [#317190]
+  - Detect windows that are removed from the skip_taskbar state (Jochen Baier)
+    [#163293]
+
+ Translators
+
+  - Mahay Alam Khan (bn)
+  - Iñaki Larrañaga Murgoitio (eu)
+
+2.12.0
+=======
+
+ Translators
+
+  - Bryn Salisbury (cy)
+
+2.11.92
+=======
+
+ Translators
+
+  - Mişu Moldovan (ro)
+  - Maxim Dziumanenko (uk)
+
+2.11.91
+=======
+
+ Fixes
+
+  - Have window list tooltips display WM_NAME instead of WM_ICON_NAME
+    (Mariano Suarez-Alvarez) [#124463]
+  - Zero out unused fields in ClientMessages, as required by the EWMH
+    spec (Gregory Merchan) [#135024]
+  - Fix an activation/minimization inconsistency (Elijah Newren)
+  - Correctly determine the active task when dealing with transients
+    (Xavier Claessens) [#310381]
+  - Clean up a number of warnings (Philipp Thomas, Benoit Dejean)
+    [#140175, #310829]
+  - Fix builds that don't disable docs, get make distcheck to work
+    (Matthias Clasen) [#302231]
+  - Add wnck_window_set_window_type() function (Olivier Andrieu)
+    [#133306]
+  - Add API for allowing the button relief to be set to
+    GTK_RELIEF_NONE for transparent panels (Ryan Lortie) [#167932]
+  - Fix workspace switching behavior (revert the stuff related to the
+    behavioral change from bug 161361 made in the 2.10 cycle -- Elijah
+    Newren)
+  - Prevent pager from flickering when moving windows between
+    workspaces (Christian Neumair) [#167745]
+
+ Translators
+
+  - Christophe Merlet (RedFox) (fr)
+  - Jaydeep Bhusal (ne)
+
+2.11.4
+======
+
+ Features
+
+  - Add support for the Urgent hint (Elijah)
+
+ Fixes
+
+  -  Show the mini_icon instead of the regular icon for the selector
+     (Vincent Noel)
+
+ Translators
+
+  - Takeshi AIHANA (ja)
+  - Abel Cheung (zh_TW)
+
+2.11.3
+======
+
+ Features
+
+  - Make windows that demand attention more noticeable by glowing their
+    tasklist buttons (Ray Strode)
+
+ Fixes
+
+  - fix possible leak (Benoît Dejean)
+  - determine a group leader when the previous one gets removed (Jaap Haitsma)
+
+ Translators
+
+  - Ignacio Casal Quinteiro (gl)
+
+2.11.1
+======
+
+ Translators
+
+  - Adam Weinberger (en_CA)
+  - Ivar Smolin (et)
+  - Steve Murphy (rw)
+  - Ivan Noris (sk)
+  - Baris Cicek (tr)
+  - Canonical Ltd (xh)
+
+2.10.0
+======
+
+ Translators
+
+  - Jordi Mallach (ca)
+  - Gabor Kelemen (hu)
+  - Mişu Moldovan (ro)
+  - Александар Урошевић (sr)
+  - Abel Cheung (zh_TW)
+
+2.9.92.1
+========
+
+ Misc
+  - COPYING was wrongly updated during 2.9.92 release. This is now fixed.
+
+2.9.92
+======
+
+ Fixes
+
+  - Fix warnings (Kjartan Maraas)
+  - Remove hack needed because of a metacity bug (Elijah)
+  - Check for whether a window or one of its transients has the demands
+    attention hint set (Elijah)
+  - Handle the changes to _NET_ACTIVE_WINDOW (Elijah)
+  - API change to add a timestamp to _NET_CURRENT_DESKTOP message (Elijah)
+  - Plug leak (Vincent)
+  - Fix tasklist button not requesting a reasonable size (Vincent)
+
+ Translators
+
+  - Jordi Mallach (ca)
+  - Nikos Charonitakis (el)
+  - Benoît Dejean (fr)
+  - Ankit Patel (gu)
+  - Luca Ferretti (it)
+  - Takeshi AIHANA (ja)
+  - Changwoo Ryu (ko)
+  - Tino Meinen (nl)
+  - GNOME PL Team (pl)
+  - Evandro Fernandes Giovanini (pt_BR)
+  - Duarte Loreto (pt)
+  - Leonid Kanter (ru)
+  - Laurent Dhima (sq)
+  - Paisa Seeluangsawat (th)
+  - Maxim Dziumanenko (uk)
+
+2.9.91
+======
+
+ Features
+
+  - New WnckSelector widget, using code from gnome-panel (Vincent Noel)
+
+ Fixes
+
+  - Correct misleading and inaccurate wording (Elijah)
+  - Make the tasklist window menu popup appear near the mouse pointer
+    (Vincent Noel)
+  - Fix warnings in WnckSelector (Vincent)
+
+ Misc
+
+  - Add MAINTAINERS & HACKING files (Elijah)
+
+ Translators
+
+  - Vladimir Petkov (bg)
+  - Miloslav Trmac (cs)
+  - Ole Laursen (da)
+  - Frank Arnold (de)
+  - Adam Weinberger (en_CA)
+  - David Lodge (en_GB)
+  - Lucas Vieites (es)
+  - Priit Laes (et)
+  - Pauli Virtanen (fi)
+  - Takeshi AIHANA (ja)
+  - Changwoo Ryu (ko)
+  - Žygimantas Beručka (lt)
+  - Kjartan Maraas (nb)
+  - Kjartan Maraas (no)
+  - Duarte Loreto (pt)
+  - Christian Rose (sv)
+
+2.9.90
+======
+
+ Fixes
+
+  - Don't check the monitor-change if there's only one monitor (Juerg Billeter)
+  - Show "close all" and "(un)minimize all" options in the right click menu for
+    grouped windows (Jaap Haitsma)
+  - Make the task order in the tasklist intuitive (Elijah Newren)
+
+ Translators
+
+  - Vladimir Petkov (bg)
+  - Miloslav Trmac (cs)
+  - Frank Arnold (de)
+  - Adam Weinberger (en_CA)
+  - Francisco Javier F. Serrador (es)
+  - Kjartan Maraas (nb)
+  - Åsmund Skjæveland (nn)
+  - Kjartan Maraas (no)
+  - Mişu Moldovan (ro)
+  - Christian Rose (sv)
+  - Wang Jian (zh_CN)
+
+2.9.4
+=====
+
+ Fixes
+
+  - Implemented switching workspaces when doing a DnD operation
+    (Carlos Garnacho Parro, Fernando Villacis Postigo)
+  - Allow minimizing an app via tasklist even when it has a transient
+    (Elijah Newren)
+  - Include pinned windows only for the active workspace (Elijah Newren)
+
+ Translators
+
+  - Rajeev Shrestha (ne)
+
+2.9.3
+=====
+
+ Fixes
+
+  - Ellipsize labels in tasklist (Benjamin Kahn)
+  - Use right icon size in tasklist (Benjamin Kahn)
+  - Add a default icon for windows without icon in tasklist (Benjamin Kahn)
+  - Fix leak (Benoît Dejean)
+  - Do not show windows from all screen when the tasklist is first created (Juerg Billeter)
+  -  Show all windows in tasklist with xinerama if there's only one tasklist (Juerg Billeter)
+  - Increase padding between text and icon in the tasklist (Benjamin Kahn)
+  - Code cleanups (Mark McLoughlin)
+
+ Misc
+
+  - Add a rationales.txt file (Elijah Newren)
+
+ Translators
+
+  - Vladimir Petkov (bg)
+
+2.8.1
+===
+
+ Fixes
+
+  - Only highlight sticky windows on the current workspace (Elijah Newren)
+
+ Translators
+
+  - Aiet Kolkhi (ka)
+
+2.8.0.1
+===
+
+ Fixes
+
+  - Don't activate windows when clicking on the pager (Elijah Newren)
+  - Only show windows which are on the same monitor as the tasklist (Juerg Billeter)
+  - Add missing prototype - wnck_window_set_fullscreen() (Ross Burton)
+  - Fix runtime warning spew (Mark)
+
+ Translators
+
+  - Meelad Zakaria (fa)
+
+2.8.0
+===
+
+ Translators
+
+  - Adam Weinberger (en_CA)
+
+2.7.92
+===
+
+ Fixes
+
+  - Setup gtk-doc to pull out API documentation (J.H.M. Dassen (Ray))
+
+ Translators
+
+  - Laszlo Dvornik (hu)
+  - Kjartan Maraas (nb)
+  - Laurent Dhima (sq)
+
+2.7.91
+===
+
+ Fixes
+
+  - Fix issue with AtkComponent co-ordinates (Arvind Samptur)
+  - Fix window minimization vs. activation for mouse focus (Elijah Newren)
+  - Resolve some no-focus-on-map issues (Elijah Newren)
+  - Regenerate stale built sources (Torsten Schoenfeld)
+
+ Translators
+
+  - Kemal Sanjta (bs)
+  - Pauli Virtanen (fi)
+  - Amanpreet Singh Alam (pa)
+
+2.7.90
+===
+
+ Fixes
+
+  - Add support for the _NET_WM_STATE_DEMANDS_ATTENTION hint (Rob Adams)
+  - Display shaded windows as "= <name> =" instead of "[ <name> ]" (James M. Cape)
+  - Desensitize "Move To Workspace" items for sticky windows (Arvind Samptur)
+
+ Translators
+
+  - Vladimir Petkov (bg)
+  - Laurent Dhima (sq)
+
+2.6.2.1
+===
+
+ Fixes
+
+ - Activate window in workspace switcher only if its on
+   the current workspace (Elijah Newren)
+ - Use timestamp with _NET_CLOSE_WINDOW (Anders Carlsson)
+
+ Translators
+
+ - John C Barstow (mi)
+ - Laurent Dhima (sq)
+
+2.6.2
+===
+
+ Fixes
+
+ - Don't show multi-workspace related menu items if there is only
+   a single workspace (Johan Persson)
+
+ Translators
+
+ - Vladimir Petkov (bg)
+ - Gil Osher (he)
+ - Kjartan Maraas (no)
+ - Mişu Moldovan (ro)
+ - Ivan Noris (sk)
+
+2.6.1
+===
+
+ Fixes
+
+ - Fix icon-reading crash when using enlightenment (Neil Muller)
+ - AIX portability fixes (Kjartan Maraas)
+ - Don't attempt to center the workspace on the mouse click (Kim Woelders)
+ 
+ Translators
+
+ - Iñaki Larrañaga Murgoitio (eu)
+ - Guntupalli Karunakar (gu)
+ - Mohammad DAMT (id)
+ - Samúel Jón Gunnarsson (is)
+ - Baris Cicek (tr)
+
+2.5.90
+===
+
+Thanks to Laszlo Peter, Leena Gunda Padraig O'Briain for fixes in
+this release
+
+  - allow building against an uninstalled libwnck build
+  - add "Move to Workspace" menu
+  - fix crash with updated allowed actions hint
+
+===
+2.4.0
+===
+
+Thanks to Arvind Samptur, Mariano Suarez-Alvarez, Kim Woelders for 
+fixes in this release.
+
+ - fix workspace name property handling
+ - fix updating of window/icon names
+ - fixes to viewport handling
+ - lots of new translations
+
+2.3.1
+===
+
+Thanks to Hidetoshi Tajima, Ross Burton, Masahiro Sakai, Kim Woelders,
+Arvind Samptur, Matt Wilson for fixes in this release.
+
+- put -lX11 in link flags
+- add API to manipulate window fullscreen state
+- use an icon from one of the windows in a group, rather than 
+  the "white piece of paper" icon, if a group doesn't set an icon
+- fixes for Cygwin compilation
+- add support for viewports in window list and workspace switcher
+- fix multihead glitches
+- set desktop layout properly on 64-bit platforms
+- new/updated translations
+
+2.3.0
+===
+
+- fixed fitt's law for window list applet (Mark McLoughlin)
+- incorporated fixes from stable branch
+
+2.1.90
+===
+
+- Fixed a big-ass memleak (Arjan van de Ven)
+- Added Czech translations
+- Updated README for first time ever

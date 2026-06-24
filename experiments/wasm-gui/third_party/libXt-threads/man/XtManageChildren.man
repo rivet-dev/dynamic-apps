@@ -1,0 +1,263 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtManage-Children XtManage-Child XtUnmanage-Children XtUnmanage-Child
+.hw XtChange-ManagedSet XtIs-Managed wid-get
+.na
+.TH XtManageChildren __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtManageChildren, XtManageChild, XtUnmanageChildren, XtUnmanageChild, XtChangeManagedSet, XtIsManaged \- manage and unmanage children
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+typedef Widget *WidgetList;
+.HP
+void XtManageChildren(WidgetList \fIchildren\fP, Cardinal \fInum_children\fP);
+.HP
+void XtManageChild(Widget \fIchild\fP);
+.HP
+void XtUnmanageChildren(WidgetList \fIchildren\fP, Cardinal
+\fInum_children\fP);
+.HP
+void XtUnmanageChild(Widget \fIchild\fP);
+.HP
+void XtChangeManagedSet(WidgetList \fIunmanage_children\fP,
+Cardinal \fInum_unmanage_children\fP, XtDoChangeProc \fIdo_change_proc\fP,
+XtPointer \fIclient_data\fP, WidgetList \fImanage_children\fP,
+Cardinal \fInum_manage_children\fP);
+.HP
+Boolean XtIsManaged(Widget \fIwidget\fP);
+.SH ARGUMENTS
+.IP \fIchild\fP 1i
+Specifies the child.
+.IP \fIchildren\fP 1i
+Specifies a list of child widgets.
+.IP \fInum_children\fP 1i
+Specifies the number of children.
+.IP \fIwidget\fP 1i
+Specifies the widget.
+.IP \fImanage_children\fP 1i
+Specifies the list of widget children to add to the managed set.
+.IP \fInum_manage_children\fP 1i
+Specifies the number of entries in the manage_children list.
+.IP \fIunmanage_children\fP 1i
+Specifies the list of widget children to remove from the managed set.
+.IP \fInum_unmanage_children\fP 1i
+Specifies the number of entries in the unmanage_children list.
+.IP \fIdo_change_proc\fP 1i
+Specifies the post unmanage, pre manage hook procedure to invoke.
+.IP \fIclient_data\fP 1i
+Specifies the client data to be passed to the hook procedure.
+.SH DESCRIPTION
+The
+.B XtManageChildren
+function performs the following:
+.IP \(bu 5
+Issues an error if the children do not all have the same parent or
+if the parent is not a subclass of
+.BR compositeWidgetClass .
+.IP \(bu 5
+Returns immediately if the common parent is being destroyed;
+otherwise, for each unique child on the list,
+.B XtManageChildren
+ignores the child if it already is managed or is being destroyed
+and marks it if not.
+.IP \(bu 5
+If the parent is realized and after all children have been marked,
+it makes some of the newly managed children viewable:
+.RS
+.IP \- 5
+Calls the change_managed routine of the widgets' parent.
+.IP \- 5
+Calls
+.B XtRealizeWidget
+on each previously unmanaged child that is unrealized.
+.IP \- 5
+Maps each previously unmanaged child that has map_when_managed
+.BR True .
+.RE
+.LP
+Managing children is independent of the ordering of children and
+independent of creating and deleting children.
+The layout routine of the parent
+should consider children whose managed field is
+.B True
+and should ignore all other children.
+Note that some composite widgets, especially fixed boxes, call
+.B XtManageChild
+from their insert_child procedure.
+.LP
+If the parent widget is realized,
+its change_managed procedure is called to notify it
+that its set of managed children has changed.
+The parent can reposition and resize any of its children.
+It moves each child as needed by calling
+.BR XtMoveWidget ,
+which first updates the x and y fields and then calls
+.B XMoveWindow
+if the widget is realized.
+.LP
+The
+.B XtManageChild
+function constructs a
+.B WidgetList
+of length one and calls
+.BR XtManageChildren .
+.LP
+The
+.B XtUnmanageChildren
+function performs the following:
+.IP \(bu 5
+Issues an error if the children do not all have the same parent
+or if the parent is not a subclass of
+.BR compositeWidgetClass .
+.IP \(bu 5
+Returns immediately if the common parent is being destroyed;
+otherwise, for each unique child on the list,
+.B XtUnmanageChildren
+performs the following:
+.RS
+.IP \- 5
+Ignores the child if it already is unmanaged or is being destroyed
+and marks it if not.
+.IP \- 5
+If the child is realized,
+it makes it nonvisible by unmapping it.
+.RE
+.IP \(bu 5
+Calls the change_managed routine of the widgets' parent
+after all children have been marked
+if the parent is realized.
+.LP
+.B XtUnmanageChildren
+does not destroy the children widgets.
+Removing widgets from a parent's managed set is often a temporary banishment,
+and, some time later, you may manage the children again.
+.LP
+The
+.B XtUnmanageChild
+function constructs a widget list
+of length one and calls
+.BR XtUnmanageChildren .
+.LP
+The
+.B XtChangeManagedSet
+function performs the following:
+.IP \(bu 5
+Issues an error if the widgets specified in the \fImanage_children\fP
+and the \fIunmanage_children\fP lists to no all have the same parent, or
+if that parent is not a subclass of compositeWidgetClass.
+.IP \(bu 5
+Returns immediately if the common parent is being destroyed.
+.IP \(bu 5
+If no
+.B CompositeClassExtension
+is defined, or a
+.B CompositeClassExtension
+is defined but with an \fIallows_change_managed_set\fP field with a
+value of
+.BR False ,
+and
+.B XtChangeManagedSet
+was invoked with a non-NULL \fIdo_change_proc\fP procedure
+then
+.B XtChangeManagedSet
+performs the following:
+.RS
+.IP \- 5
+Calls
+.B XtUnmanageChildren
+(\fIunmanage_children\fP, \fInum_unmanage_children\fP).
+.IP \- 5
+Calls the \fIdo_change_proc\fP specified.
+.IP \- 5
+Calls
+.B XtManageChildren
+(\fImanage_children\fP, \fInum_manage_children\fP) and then returns
+immediately.
+.RE
+.IP \(bu 5
+Otherwise, if a
+.B CompositeClassExtension
+is defined with an \fIallows_change_managed_set\fP field with a value of
+.BR True ,
+or if no
+.B CompositeClassExtension
+is defined, and
+.B XtChangeManagedSet 
+was invoked with a NULL \fIdo_change_proc\fP procedure, then the following is
+performed:
+.RS
+.IP \- 5
+For each child on the \fIunmanage_children\fP list; if the child is
+already unmanaged or is being destroyed it is ignored, otherwise it
+is marked as being unmanaged and if it is realized it is made nonvisible
+by being unmapped.
+.IP \- 5
+If the \fIdo_change_proc\fP procedure is non-NULL then
+it is invoked as specified.
+.IP \- 5
+For each child on the \fImanage_children\fP list; if the child is
+already managed or it is being destroyed it is ignored, otherwise it
+is marked as managed
+.RE
+.IP \(bu 5
+If the parent is realized and after all children have been marked, the
+change_managed method of the parent is invoked and subsequently some
+of the newly managed children are made viewable by:
+.RS
+.IP \- 5
+Calling
+.B XtRealizeWidget
+on each of the previously unmanaged child that is unrealized.
+.IP \- 5
+Mapping each previously unmanaged child that has \fImap_when_managed\fP
+.BR True .
+.RE
+.LP
+The
+.B XtIsManaged
+function returns
+.B True
+if the specified widget is of class RectObj or any subclass thereof and
+is managed, or
+.B False
+otherwise.
+.SH "SEE ALSO"
+XtMapWidget(__libmansuffix__),
+XtRealizeWidget(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

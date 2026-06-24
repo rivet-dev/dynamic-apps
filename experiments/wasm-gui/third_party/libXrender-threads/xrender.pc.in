@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Xrender
+Description: X Render Library
+Version: @VERSION@
+Requires: xproto renderproto >= @RENDER_VERSION@ x11
+Requires.private: x11
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXrender

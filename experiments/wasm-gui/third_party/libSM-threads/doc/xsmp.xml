@@ -1,0 +1,2499 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="xsmp">
+
+<bookinfo>
+   <title>X Session Management Protocol</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <releaseinfo>Version 1.0</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Mike</firstname><surname>Wexler</surname>
+         <affiliation><orgname>Kubota Pacific Computer, Inc</orgname></affiliation>
+      </author>
+   </authorgroup>
+   <copyright>
+     <year>1992</year><year>1993</year><year>1994</year><year>2002</year>
+     <holder>The Open Group</holder>
+   </copyright>
+
+   <legalnotice>
+     <para>
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation files
+(the &ldquo;Software&rdquo;), to deal in the Software without
+restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+     </para>
+
+     <para>
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+     </para>
+
+     <para>
+THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT.  IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+     </para>
+
+     <para>
+Except as contained in this notice, the name of the X Consortium
+shall not be used in advertising or otherwise to promote the sale, use
+or other dealings in this Software without prior written authorization
+from the X Consortium.
+     </para>
+
+     <para>
+X Window System is a trademark of The Open Group.
+     </para>
+   </legalnotice>
+
+   <abstract>
+     <para>
+This document specifies a protocol that facilitates the management of
+groups of client applications by a session manager.  The session
+manager can cause clients to save their state, to shut down, and to be
+restarted into a previously saved state.  This protocol is layered on
+top of the X.Org <acronym>ICE</acronym> protocol.
+     </para>
+   </abstract>
+
+</bookinfo>
+
+<chapter id='Acknowledgments'>
+  <title>Acknowledgments</title>
+
+  <para>
+First I would like to thank the entire <acronym>ICCCM</acronym> and Intrinsics
+working groups for the comments and suggestions. I would like to make special
+thanks to the following people (in alphabetical order), Jordan Brown,
+Ellis Cohen, Donna Converse, Vania Joloboff, Stuart Marks, Ralph Mor
+and Bob Scheifler.
+  </para>
+</chapter>
+
+<chapter id='Definitions_and_Goals'>
+  <title>Definitions and Goals</title>
+
+  <para>
+The purpose of the X Session Management Protocol (<acronym>XSMP</acronym>) is
+to provide a uniform mechanism for users to save and restore their sessions.
+A <firstterm>session</firstterm> is a group of clients, each
+of which has a particular state.  The session is controlled by a
+network service called the <firstterm>session manager</firstterm>.
+The session manager issues commands to its
+clients on behalf of the user.  These commands may cause clients to
+save their state or to terminate.  It is expected that the client will
+save its state in such a way that the client can be restarted at a
+later time and resume its operation as if it had never been
+terminated.  A client's state might include information about the file
+currently being edited, the current position of the insertion point
+within the file, or the start of an uncommitted transaction.  The
+means by which clients are restarted is unspecified by this
+protocol.
+  </para>
+
+  <para>
+For purposes of this protocol, a <firstterm>client</firstterm>
+of the session manager is defined as a connection to the session
+manager.  A client is typically, though not necessarily, a process
+running an application program connected to an X Window System
+display.  However, a client may be connected to more than one X
+display or not be connected to any X displays at all.
+  </para>
+
+  <para>
+This protocol is layered on top of the X Consortium's <acronym>ICE</acronym> protocol and
+relies on the <acronym>ICE</acronym> protocol to handle connection management and authentication.
+  </para>
+
+</chapter>
+
+<chapter id='Overview_of_the_Protocol'>
+  <title>Overview of the Protocol</title>
+
+  <para>
+Clients use XSMP to register themselves with the session manager (SM).
+When a client starts up, it should connect to the SM.  The client
+should remain connected for as long as it runs.  A client may resign
+from the session by issuing the proper protocol messages before
+disconnecting.  Termination of the connection without notice will be
+taken as an indication that the client died unexpectedly.
+  </para>
+
+  <para>
+Clients are expected to save their state in such a way as to allow
+multiple instantiations of themselves to be managed independently.  A
+unique value called a <firstterm>client-ID</firstterm> is
+provided by the protocol for the purpose of disambiguating multiple
+instantiations of clients.  Clients may use this ID, for example, as
+part of a filename in which to store the state for a particular
+instantiation.  The client-ID should be saved as part of the command
+used to restart this client
+(the <property>RestartCommand</property>) so that the client
+will retain the same ID after it is restarted.  Certain small pieces
+of state might also be stored in the RestartCommand.  For example, an
+X11 client might place a '-twoWindow' option in its RestartCommand to
+indicate that it should start up in two window mode when it is
+restarted.
+  </para>
+
+  <para>
+The client finds the network address of the SM in a system-dependent
+way.  On <acronym>POSIX</acronym> systems an environment
+variable called <envar>SESSION_MANAGER</envar>
+will contain a list of network IDs.  Each id will contain the
+transport name followed by a slash and the (transport-specific)
+address.  A TCP/IP address would look like this:
+    <informalexample><para>
+      <literal>tcp/</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>portnumber</replaceable>
+    </para></informalexample>
+where the hostname is a fully qualified domain name.
+A Unix Domain address looks like this:
+    <informalexample><para>
+	<literal>local/</literal><replaceable>hostname</replaceable><literal>:</literal><replaceable>path</replaceable>
+    </para></informalexample>
+A DECnet address would look like this:
+    <informalexample><para>
+	<literal>decnet/</literal><replaceable>nodename</replaceable><literal>::</literal><replaceable>objname</replaceable>
+    </para></informalexample>
+  </para>
+
+  <para>
+If multiple network IDs are specified, they should be separated by commas.
+  </para>
+
+  <note><title>Rationale</title>
+    <para>
+There was much discussion over whether the XSMP protocol should use X
+as the transport protocol or whether it should use its own independent
+transport.  It was decided that it would use an independent protocol
+for several reasons.  First, the Session Manager should be able to
+manage programs that do not maintain an X connection.  Second, the X
+protocol is not appropriate to use as a general-purpose transport
+protocol.  Third, a session might span multiple displays.
+    </para>
+
+    <para>
+The protocol is connection based, because there is no other way for
+the SM to determine reliably when clients terminate.
+    </para>
+
+    <para>
+It should be noted that this protocol introduces another single point
+of failure into the system.  Although it is possible for clients to
+continue running after the SM has exited, this will probably not be
+the case in normal practice.  Normally the program that starts the SM
+will consider the session to be terminated when the SM exits (either
+normally or abnormally).
+    </para>
+
+    <para>
+To get around this would require some sort of rendezvous server that
+would also introduce a single point of failure.  In the absence of a
+generally available rendezvous server, XSMP is kept simple in the
+hopes of making simple reliable SMs.
+    </para>
+  </note>
+
+  <para>
+Some clients may wish to manage the programs they start.  For example,
+a mail program could start a text editor for editing the text of a
+mail message.  A client that does this is a session manager itself; it
+should supply the clients it starts with the appropriate connection
+information (i.e., the <envar>SESSION_MANAGER</envar> environment variable)
+that specifies a connection to itself instead of to the top level session
+manager.
+  </para>
+
+  <para>
+Each client has associated with it a list of properties.  A property
+set by one client is not visible to any other client.  These
+properties are used for the client to inform the SM of the client's
+current state.  When a client initially connects to the SM, there are
+no properties set.
+  </para>
+</chapter>
+
+<chapter id='Data_Types'>
+  <title>Data Types</title>
+
+  <para>
+XSMP messages contain several types of data.  Both the SM and the
+client always send messages in their native byte order.  Thus, both
+sides may need to byte-swap the messages received.  The need to do
+byte-swapping is determined at run-time by the <acronym>ICE</acronym> protocol.
+  </para>
+
+  <para>
+If an invalid value is specified for a field of any of the enumerated
+types, a <errorname>BadValue</errorname> error message must be sent by
+the receiver of the message to the sender of the message.
+  </para>
+
+<informaltable frame='topbot'>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='3.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Type Name</entry>
+        <entry>Description</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>BOOL</entry>
+        <entry><para><constant>False</constant> or <constant>True</constant></para></entry>
+      </row>
+      <row>
+        <entry>INTERACT_STYLE</entry>
+        <entry><function>None</function> <function>Errors</function> or <function>Any</function></entry>
+      </row>
+      <row>
+        <entry>DIALOG_TYPE</entry>
+        <entry><function>Error</function> or <function>Normal</function></entry>
+      </row>
+      <row>
+        <entry>SAVE_TYPE</entry>
+        <entry><function>Global</function> <function>Local</function> or <function>Both</function></entry>
+      </row>
+      <row>
+        <entry>CARD8</entry>
+        <entry>a one-byte unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD16</entry>
+        <entry>a two-byte unsigned integer</entry>
+      </row>
+      <row>
+        <entry>CARD32</entry>
+        <entry>a four-byte unsigned integer</entry>
+      </row>
+      <row>
+        <entry>ARRAY8</entry>
+        <entry>a sequence of CARD8s</entry>
+      </row>
+      <row>
+        <entry>LISTofARRAY8</entry>
+        <entry>a sequence of ARRAY8s</entry>
+      </row>
+      <row>
+        <entry>PROPERTY</entry>
+        <entry>a property name (an ARRAY8), a type name, and a value of that type</entry>
+      </row>
+      <row>
+        <entry>LISTofPROPERTY</entry>
+        <entry>a counted collection of &shy;PROPERTYs.</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+</chapter>
+
+<chapter id='Protocol_Setup_and_Message_Format'>
+  <title>Protocol Setup and Message Format</title>
+
+  <para>
+To start the XSMP protocol, the client sends the server an
+<acronym>ICE</acronym> <function>ProtocolSetup</function> message.  All XSMP messages are
+in the standard <acronym>ICE</acronym> message format.  The message's major opcode is
+assigned to XSMP by <acronym>ICE</acronym> at run-time.  The different parties (client
+and SM) may be assigned different major opcodes for XSMP.  Once
+assigned, all XSMP messages issued by this party will use the same
+major opcode.  The message's minor opcode specifies which protocol
+message this message contains.
+  </para>
+</chapter>
+
+<chapter id='Client_Identification_String'>
+  <title>Client Identification String</title>
+  <para>
+A client ID is a string of XPCS characters encoded in ISO Latin 1 (ISO
+8859-1).  No null characters are allowed in this string.  The client
+ID string is used in the <function>Register&shy;Client</function>
+and <function>Register&shy;ClientReply</function> messages.
+  </para>
+
+  <para>
+Client IDs consist of the pieces described below.  The ID is formed by
+concatenating the pieces in sequence, without separator characters.
+All pieces are padded on the left with '<literal>0</literal>'
+characters so as to fill the specified length.  Decimal numbers are
+encoded using the characters '<literal>0</literal>' through
+'<literal>9</literal>', and hexadecimal numbers using the characters
+'<literal>0</literal>' through '<literal>9</literal>' and
+'<literal>A</literal>' through '<literal>F</literal>'.
+  </para>
+
+  <itemizedlist mark='bullet'>
+     <listitem><para>
+Version.  This is currently the character '<literal>1</literal>'.
+     </para></listitem>
+     <listitem>
+       <para>Address type and address.  The address type will be one of
+<literallayout remap='DS'>
+     '<literal>1</literal>'     a 4-byte IPv4 address encoded as 8 hexadecimal digits
+     '<literal>2</literal>'     a 6-byte DECNET address encoded as 12 hexadecimal digits
+     '<literal>6</literal>'     a 16-byte IPv6 address encoded as 32 hexadecimal digits
+</literallayout>
+       </para>
+
+       <para>
+The address is the one of the network addresses of the machine where
+the session manager (not the client) is running.  For example, the IP
+address 198.112.45.11 would be encoded as the string
+"<literal>QC6702D0B</literal>".
+       </para>
+     </listitem>
+     <listitem><para>
+	 Time stamp.  A 13-digit decimal number specifying
+	 the number of milliseconds since 00:00:00 UTC, January 1, 1970.
+     </para></listitem>
+     <listitem>
+       <para>
+	Process-ID type and process-ID.  The process-ID type will be one of
+<literallayout remap='DS'>
+     '<literal>1</literal>'	a <acronym>POSIX</acronym> process-ID encoded as a 10-digit decimal number.
+</literallayout>
+       </para>
+       <para>
+The process-ID is the process-ID of the session manager, not of a client.
+       </para>
+     </listitem>
+     <listitem>
+       <para>
+Sequence number.  This is a four-digit decimal number.  It is
+incremented every time the session manager creates an ID.  After
+reaching "Q9999" it wraps to "Q0000".
+       </para>
+       <note><title>Rationale</title>
+	 <para>
+Once a client ID has been assigned to the client, the client keeps
+this ID indefinitely.  If the client is terminated and restarted, it
+will be reassigned the same ID.  It is desirable to be able to pass
+client IDs around from machine to machine, from user to user, and from
+session manager to session manager, while retaining the identity of
+the client.  This, combined with the indefinite persistence of client
+IDs, means that client IDs need to be globally unique.  The
+construction specified above will ensure that any client ID created by
+any user, session manager, and machine will be different from any other.
+	 </para>
+       </note>
+     </listitem>
+  </itemizedlist>
+</chapter>
+
+<chapter id='Protocol'>
+  <title>Protocol</title>
+  <para>
+The protocol consists of a sequence of messages as described below.
+Each message type is specified by an <acronym>ICE</acronym> minor opcode.  A given
+message type is sent either from a client to the session manager or
+from the session manager to a client; the appropriate direction is
+listed with each message's description.  For each message type, the
+set of valid responses and possible error messages are listed.  The
+<acronym>ICE</acronym> severity is given in parentheses following each error class.
+  </para>
+
+  <synopsis>
+<function>RegisterClient</function> [Client &rarr; SM]
+
+  <parameter>previous-ID</parameter>: ARRAY8
+
+  Valid Responses: <function>RegisterClientReply</function>
+
+  Possible Errors: <errorname>BadValue</errorname> (<symbol role='Pn'>CanContinue</symbol>)
+  </synopsis>
+
+  <para>
+The client must send this message to the SM to register the client's
+existence.  If a client is being restarted from a previous session,
+the <parameter>previous-ID</parameter> field must contain the client
+ID from the previous session.  For new clients,
+<parameter>previous-ID</parameter> should be of zero length.
+  </para>
+
+  <para>
+If <parameter>previous-ID</parameter> is not valid,
+the SM will send a <errorname>BadValue</errorname>
+error message to the client.  At this point the SM reverts to the
+register state and waits for another <function>RegisterClient</function>
+The client should then send a <function>RegisterClient</function> with a
+null <parameter>previous-ID</parameter> field.
+  </para>
+
+  <synopsis>
+<function>RegisterClientReply</function> [Client &larr; SM]
+
+  <parameter>client-ID</parameter>: <type>ARRAY8</type>
+  </synopsis>
+
+  <para>
+The <parameter>client-ID</parameter> specifies a unique identification
+for this client.  If the client had specified an ID in the
+<parameter>previous-ID</parameter> field of the
+<function>RegisterClient</function> message,
+<parameter>client-ID</parameter> will be identical to the previously
+specified ID.  If <parameter>previous-ID</parameter> was null,
+<parameter>client-ID</parameter> will be a unique ID freshly generated
+by the SM.  The <parameter>client-ID</parameter> format is specified in
+<link linkend='Client_Identification_String'>section 6</link>.
+  </para>
+
+  <para>
+If the client didn't supply a <parameter>previous-ID</parameter> field to
+the <function>Register&shy;Client</function> message, the SM must send
+a <function>SaveYourself</function> message with type = Local,
+shutdown = False, interact-style = None, and fast = False immediately
+after the <function>RegisterClientReply</function> The client should
+respond to this like any other <function>Save&shy;Yourself</function>
+message.
+  </para>
+
+  <synopsis>
+<function>SaveYourself</function> [Client &larr; SM]
+
+  <parameter>type</parameter>: <type>SAVE_TYPE</type>
+  <parameter>shutdown</parameter>: <type>BOOL</type>
+  <parameter>interact-style</parameter>: <type>INTERACT_STYLE</type>
+  <parameter>fast</parameter>: <type>BOOL</type>
+
+  Valid Responses:
+    <function>SetProperties</function>
+    <function>DeleteProperties</function>
+    <function>GetProperties</function>
+    <function>SaveYourselfDone</function>
+    <function>SaveYourselfPhase2Request</function>
+    <function>InteractRequest</function>
+  </synopsis>
+
+  <para>
+The SM sends this message to a client to ask it to save its state.
+The client writes a state file, if necessary, and, if necessary,
+uses <function>SetProperties</function> to inform the SM of how to
+restart it and how to discard the saved state.  During this process it
+can, if allowed by <parameter>interact-style</parameter>, request permission
+to interact with
+the user by sending an <function>InteractRequest</function> message.
+After the state has been saved, or if it cannot be successfully saved,
+and the properties are appropriately set, the client sends
+a <function>SaveYourselfDone</function> message.  If the client wants
+to save additional information after all the other clients have
+finished changing their own state, the client should
+send <function>SaveYourselfPhase2Request</function> instead
+of <function>SaveYourselfDone</function> The client must then freeze
+interaction with the user and wait until it receives
+a <function>SaveComplete</function> <function>Die</function> or
+a <function>ShutdownCancelled</function> message.
+  </para>
+
+  <para>
+If <parameter>interact-style</parameter> is <function>None</function> the
+client must not interact with the user while saving state.  If the
+<parameter>interact-style</parameter>
+is <function>Errors</function> the client may interact with the user
+only if an error condition arises.  If <parameter>interact-style</parameter>
+is <function>Any</function> then the client may interact with the user
+for any purpose.  This is done by sending
+an <function>Interact&shy;Request</function> message.  The SM will
+send an <function>Interact</function> message to each client that sent
+an <function>Interact&shy;Request</function> The client must postpone
+all interaction until it gets the <function>Interact</function>
+message.  When the client is done interacting it should send the SM
+an <function>Interact&shy;Done</function> message.
+The <function>Interact&shy;Request</function> message can be sent any
+time after a <function>Save&shy;Yourself</function> and before
+a <function>Save&shy;Yourself&shy;Done</function>
+  </para>
+
+  <para>
+Unusual circumstances may dictate multiple interactions.  The client
+may initiate as many <function>Interact&shy;Request</function>
+- <function>Interact</function> - <function>InteractDone</function>
+sequences as it needs before it sends <function>SaveYourselfDone</function>
+  </para>
+
+  <para>
+When a client receives <function>Save&shy;Yourself</function> and has
+not yet responded <function>Save&shy;Yourself&shy;Done</function> to a
+previous <function>Save&shy;Yourself</function> it must send
+a <function>Save&shy;Yourself&shy;Done</function> and may then begin
+responding as appropriate to the newly received
+<function>Save&shy;Yourself</function>
+</para>
+
+  <para>
+The <parameter>type</parameter> field specifies the type of information that
+should be saved: <function>Global</function> <function>Local</function>
+or <function>Both</function> The <function>Local</function> type
+indicates that the application must update the properties to reflect
+its current state, send
+a <function>Save&shy;Yourself&shy;Done</function> and continue.
+Specifically it should save enough information to restore the state as
+seen by the user of this client.  It should not affect the state as
+seen by other users.  The <function>Global</function> type indicates
+that the user wants the client to commit all of its data to permanent,
+globally-accessible storage.  <function>Both</function> indicates that
+the client should do both of these.  If <function>Both</function> is
+specified, the client should first commit the data to permanent
+storage before updating its SM properties.
+  </para>
+
+  <note><title>Examples</title>
+    <para>
+If a word processor was sent a <function>SaveYourself</function> with
+a type of <function>Local</function> it could create a temporary file
+that included the current contents of the file, the location of the
+cursor, and other aspects of the current editing session.  It would
+then update its <function>Restart&shy;Command</function> property with
+enough information to find the temporary file, and
+its <function>Discard&shy;Command</function> with enough information
+to remove it.
+    </para>
+
+    <para>
+If a word processor was sent a <function>SaveYourself</function> with
+a type of <function>Global</function> it would simply save the
+currently edited file.
+    </para>
+
+    <para>
+If a word processor was sent a <function>SaveYourself</function> with
+a type of <function>Both</function> it would first save the currently
+edited file.  It would then create a temporary file with information
+such as the current position of the cursor and what file is being
+edited.  It would then update
+its <function>Restart&shy;Command</function> property with enough
+information to find the temporary file, and
+its <function>Discard&shy;Command</function> with enough information
+to remove it.
+    </para>
+
+    <para>
+Once the SM has send <function>SaveYourself</function> to a client, it
+can't send another <function>SaveYourself</function> to that client until
+the client either responds with a <function>SaveYourselfDone</function> or
+the SM sends a <function>ShutdownCancelled</function>
+    </para>
+  </note>
+
+  <note><title>Advice to Implementors</title>
+    <para>
+If the client stores local any state in a file or similar "external"
+storage, it must create a distinct copy in response to
+each <function>SaveYourself</function> message.
+It <emphasis remap='I'>must not</emphasis> simply refer to a previous
+copy, because the SM may discard that previous saved state using
+a <function>DiscardCommand</function> without knowing that it is
+needed for the new checkpoint.
+    </para>
+  </note>
+
+  <para>
+The <parameter>shutdown</parameter> field specifies whether the system is
+being shut down.
+  </para>
+
+  <note><title>Rationale</title>
+    <para>
+The interaction may be different depending on whether or not shutdown is set.
+    </para>
+  </note>
+
+  <para>
+The client must save and then must prevent interaction until it
+receives a <function>SaveComplete</function> <function>Die</function>
+or a <function>Shutdown&shy;Cancelled</function> because anything the
+user does after the save will be lost.
+  </para>
+
+  <para>
+The <parameter>fast</parameter> field specifies whether or not the client
+should save its state as quickly as possible.  For example, if the SM knows
+that power is about to fail, it should set the <parameter>fast</parameter>
+field to <constant>True</constant>.
+  </para>
+
+  <synopsis>
+<function>SaveYourselfPhase2</function> [Client &rarr; SM]
+
+  Valid Responses:
+    <function>SetProperties</function>
+    <function>DeleteProperties</function>
+    <function>GetProperties</function>
+    <function>SaveYourselfDone</function>
+    <function>InteractRequest</function>
+  </synopsis>
+
+  <para>
+The SM sends this message to a client that has previously sent
+a <function>SaveYourselfPhase2Request</function> message.  This
+message informs the client that all other clients are in a fixed state
+and this client can save state that is associated with other clients.
+  </para>
+
+  <note><title>Rationale</title>
+    <para>
+Clients that manager other clients (window managers, workspace
+managers, etc) need to know when all clients they are managing are
+idle, so that the manager can save state related to each of the
+clients without being concerned with that state changing.
+    </para>
+  </note>
+  <para>
+The client writes a state file, if necessary, and, if necessary,
+uses <function>SetProperties</function> to inform the SM of how to
+restart it and how to discard the saved state.  During this process it
+can request permission to interact with the user by sending
+an <function>InteractRequest</function> message.  This should only be
+done if an error occurs that requires user interaction to resolve.
+After the state has been saved, or if it cannot be successfully saved,
+and the properties are appropriately set, the client sends
+a <function>SaveYourselfDone</function> message.
+  </para>
+
+  <synopsis>
+<function>SaveYourselfRequest</function> [Client &rarr; SM]
+
+  <parameter>type</parameter>: <type>SAVE_TYPE</type>
+  <parameter>shutdown</parameter>: <type>BOOL</type>
+  <parameter>interact-style</parameter>: <type>INTERACT_STYLE</type>
+  <parameter>fast</parameter>: <type>BOOL</type>
+  <parameter>global</parameter>: <type>BOOL</type>
+
+  Valid Responses: <function>SaveYourself</function>
+  </synopsis>
+
+  <para>
+An application sends this to the SM to request a checkpoint.  When the
+SM receives this request it may generate a <function>SaveYourself</function>
+message in response and it may leave the fields intact.
+  </para>
+
+  <note><title>Example</title> <para>
+A vendor of a <acronym>UPS</acronym> (Uninterruptible Power Supply)
+might include an SM client that would monitor the status of
+the <acronym>UPS</acronym> and generate a fast shutdown if the power
+is about to be lost.
+  </para></note>
+
+  <para>
+If <parameter>global</parameter> is set to <constant>True</constant> then the
+resulting <function>SaveYourself</function> should be sent to all
+applications.  If <parameter>global</parameter> is set to
+<constant>False</constant> then the
+resulting <function>SaveYourself</function> should be sent to the
+application that sent the <function>Save&shy;Yourself&shy;Request</function>
+  </para>
+
+  <synopsis>
+<function>InteractRequest</function> [Client &rarr; SM]
+
+  <parameter>dialog-type</parameter>: <type>DIALOG_TYPE</type>
+
+  Valid Responses: <function>Interact</function> <function>ShutdownCancelled</function>
+
+  Possible Errors: <errorname>BadState</errorname> (<symbol role='Pn'>CanContinue</symbol>)
+  </synopsis>
+
+  <para>
+During a checkpoint or session-save operation, only one client at a
+time might be granted the privilege of interacting with the user.
+The <function>InteractRequest</function> message causes the SM to emit
+an <function>Interact</function> message at some later time if the
+shutdown is not cancelled by another client first.
+  </para>
+
+  <para>
+The <parameter>dialog-type</parameter> field specifies either
+<function>Errors</function> indicating that the client wants to start an
+error dialog or <function>Normal</function> meaning the client wishes
+to start a non-error dialog.
+  </para>
+
+  <synopsis>
+<function>Interact</function> [Client &larr; SM]
+
+  Valid Responses: <function>InteractDone</function>
+  </synopsis>
+
+  <para>
+This message grants the client the privilege of interacting with the
+user.  When the client is done interacting with the user it must send
+an <function>InteractDone</function> message to the SM unless a
+shutdown cancel is received.
+  </para>
+  <note><title>Advice to Implementors</title>
+    <para>If a client receives a ShutdownCancelled
+after receiving an <function>Interact</function> message, but before
+sending a <function>InteractDone</function> the client should abort
+the interaction and send a <function>SaveYourselfDone</function>
+  </para></note>
+
+  <synopsis>
+<function>InteractDone</function> [Client &rarr; SM]
+
+  <parameter>cancel-shutdown</parameter>: <type>BOOL</type>
+
+  Valid Responses: <function>ShutdownCancelled</function>
+  </synopsis>
+
+  <para>
+This message is used by a client to notify the SM that it is done interacting.
+  </para>
+
+  <para>
+Setting the <parameter>cancel-shutdown</parameter> field to <constant>True</constant>
+indicates that the user has requested that the entire shutdown be
+cancelled.  <parameter>Cancel-shutdown</parameter> may only be <constant>True</constant> if
+the corresponding <function>SaveYourself</function> message
+specified <constant>True</constant> for the shutdown field
+and <function>Any</function> or <function>Errors</function> for the
+<parameter>interact-style</parameter> field.  Otherwise,
+<parameter>cancel-shutdown</parameter> must be <constant>False</constant>.
+  </para>
+
+  <synopsis>
+<function>SaveYourselfDone</function> [Client &rarr; SM]
+
+  <parameter>success</parameter>: <type>BOOL</type>
+
+  Valid Responses:
+    <function>SaveComplete</function>
+    <function>Die</function>
+    <function>ShutdownCancelled</function>
+
+  </synopsis>
+
+  <para>
+This message is sent by a client to indicate that all of the
+properties representing its state have been updated.  After
+sending <function>SaveYourselfDone</function> the client must wait for
+a <function>SaveComplete</function> <function>ShutdownCancelled</function>
+or <function>Die</function> message before changing its state.  If
+the <function>SaveYourself</function> operation was successful, then
+the client should set the <parameter>success</parameter> field to
+<constant>True</constant> otherwise the client should set it to
+<constant>False</constant>.
+  </para>
+
+  <note><title>Example</title>
+    <para>
+If a client tries to save its state and runs out of disk space, it
+should return <constant>False</constant> in the <parameter>success</parameter>
+field of the <function>SaveYourselfDone</function> message.
+    </para>
+  </note>
+
+  <synopsis>
+<function>SaveYourselfPhase2Request</function> [Client &rarr; SM]
+
+  Valid Responses:
+    <function>ShutdownCancelled</function>
+    <function>SaveYourselfPhase2</function>
+
+  </synopsis>
+
+  <para>
+This message is sent by a client to indicate that it needs to be informed
+when all the other clients are quiescent, so it can continue its state.
+  </para>
+
+  <synopsis>
+<function>Die</function> [Client &larr; SM]
+
+  Valid Responses: <function>ConnectionClosed</function>
+  </synopsis>
+
+  <para>
+When the SM wants a client to die it sends a <function>Die</function>
+message.  Before the client dies it responds by sending
+a <function>ConnectionClosed</function> message and may then close its
+connection to the SM at any time.
+  </para>
+
+  <synopsis>
+<function>SaveComplete</function> [Client &rarr; SM]
+
+  Valid Responses:
+  </synopsis>
+
+  <para>
+When the SM is done with a checkpoint, it will send each of the
+clients a <function>SaveComplete</function> message.  The client is
+then free to change its state.
+  </para>
+
+  <synopsis>
+<function>ShutdownCancelled</function> [Client &larr; SM]
+  </synopsis>
+
+  <para>
+The shutdown currently in process has been aborted.  The client can
+now continue as if the shutdown had never happened.  If the client has
+not sent <function>SaveYourselfDone</function> yet, the client can
+either abort the save and send <function>SaveYourselfDone</function>
+with the success field set to <constant>False</constant> or it can
+continue with the save and send a <function>SaveYourselfDone</function>
+with the success field set to reflect the outcome of the save.
+  </para>
+
+  <synopsis>
+<function>ConnectionClosed</function> [Client &rarr; SM]
+
+  <parameter>reason</parameter>: <type>LISTofARRAY8</type>
+  </synopsis>
+
+  <para>
+Specifies that the client has decided to terminate.  It should be
+immediately followed by closing the connection.
+  </para>
+
+  <para>
+The <parameter>reason</parameter> field specifies why the client is resigning
+from the session.  It is encoded as an array of Compound Text strings.  If the
+resignation is expected by the user, there will typically be zero
+ARRAY8s here.  But if the client encountered an unexpected fatal
+error, the error message (which might otherwise be printed on stderr
+on a <acronym>POSIX</acronym> system) should be forwarded to the SM here, one ARRAY8 per
+line of the message.  It is the responsibility of the SM to display
+this reason to the user.
+  </para>
+
+  <para>
+After sending this message, the client must not send any additional
+XSMP messages to the SM.
+  </para>
+  <note><title>Advice to Implementors</title><para>
+If additional messages are received, they should be discarded.
+  </para></note>
+  <note><title>Rationale</title><para>
+The reason for sending the <function>ConnectionClosed</function>
+message before actually closing the connections is that some transport
+protocols will not provide immediate notification of connection
+closure.
+  </para></note>
+
+  <synopsis>
+<function>SetProperties</function> [Client &rarr; SM]
+
+  <parameter>properties</parameter>: <type>LISTofPROPERTY</type>
+  </synopsis>
+
+  <para>
+Sets the specified <parameter>properties</parameter> to the specified values.
+Existing
+properties not specified in the <function>Set&shy;Properties</function>
+message are unaffected. Some properties have predefined semantics.
+See <link linkend='Predefined_Properties'>section 11, 
+&ldquo;Predefined Properties.&rdquo;</link>
+  </para>
+
+  <para>
+The protocol specification recommends that property names used for
+properties not defined by the standard should begin with an
+underscore.  To prevent conflicts among organizations, additional
+prefixes should be chosen (for example, _KPC_FAST_SAVE_OPTION).  The
+organizational prefixes should be registered with the X Registry.  The
+XSMP reserves all property names not beginning with an underscore for
+future use.
+  </para>
+
+  <synopsis>
+<function>DeleteProperties</function> [Client &rarr; SM]
+
+  <parameter>property-names</parameter>: <type>LISTofARRAY8</type>
+  </synopsis>
+
+  <para>Removes the named properties.</para>
+
+  <synopsis>
+<function>GetProperties</function> [Client &rarr; SM]
+
+  Valid Responses: <function>GetPropertiesReply</function>
+  </synopsis>
+
+  <para>
+Requests that the SM respond with the values of all the properties for
+this client.
+  </para>
+
+  <synopsis>
+<function>GetPropertiesReply</function> [Client &larr; SM]
+
+  <parameter>values</parameter>: <type>LISTofPROPERTY</type>
+  </synopsis>
+
+  <para>
+This message is sent in reply to a <function>GetProperties</function>
+message and includes the <parameter>values</parameter> of all the properties.
+  </para>
+</chapter>
+
+<chapter id='Errors'>
+  <title>Errors</title>
+
+  <para>
+When the receiver of a message detects an error condition, the
+receiver sends an <acronym>ICE</acronym> error message to the sender.  There are only two
+types of errors that are used by the XSMP:
+<errorname>BadValue</errorname> and <errorname>BadState</errorname>
+These are both defined in the <acronym>ICE</acronym> protocol.
+  </para>
+
+  <para>
+Any message received out-of-sequence will generate
+a <errorname>BadState</errorname> error message.
+  </para>
+</chapter>
+
+<chapter id='State_Diagrams'>
+  <title>State Diagrams</title>
+  <para>
+These state diagrams are designed to cover all actions of both the
+client and the SM.
+  </para>
+
+  <sect1 id='Client_State_Diagram'>
+<title>Client State Diagram</title>
+
+<!-- <literallayout remap='DS'> -->
+<literallayout>
+<emphasis remap='I'>start:</emphasis>
+     <acronym>ICE</acronym> protocol setup complete &rarr; <emphasis remap='C'>register</emphasis></literallayout>
+
+<literallayout>
+<emphasis remap='I'>register:</emphasis>
+     send <emphasis remap='B'>RegisterClient</emphasis> &rarr; <emphasis remap='C'>collect-id</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>collect-id:</emphasis>
+     receive <emphasis remap='B'>RegisterClientReply</emphasis> &rarr; <emphasis remap='C'>idle</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>shutdown-cancelled:</emphasis>
+     send <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>idle</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>idle:</emphasis> [Undoes any freeze of interaction with user.]
+     receive <emphasis remap='B'>Die</emphasis> &rarr; <emphasis remap='C'>die</emphasis>
+     receive <emphasis remap='B'>SaveYourself</emphasis> &rarr; <emphasis remap='C'>freeze-interaction</emphasis>
+     send <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>GetPropertiesReply</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     send <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     send <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     send <emphasis remap='B'>ConnectionClosed</emphasis> &rarr; <emphasis remap='C'>connection-closed</emphasis>
+     send <emphasis remap='B'>SaveYourselfRequest</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+</literallayout> <!-- remap='DE' -->
+
+<literallayout remap='DS'>
+<emphasis remap='I'>die:</emphasis>
+     send <emphasis remap='B'>ConnectionClosed</emphasis> &rarr; <emphasis remap='C'>connection-closed</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>freeze-interaction:</emphasis>
+     freeze interaction with user &rarr; <emphasis remap='C'>save-yourself</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>save-yourself:</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>shutdown-cancelled</emphasis>
+     send <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     receive <emphasis remap='B'>GetPropertiesReply</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>InteractRequest</emphasis> &rarr; <emphasis remap='C'>interact-request</emphasis>
+     send <emphasis remap='B'>SaveYourselfPhase2Request</emphasis> &rarr; waiting-for-phase2
+
+<emphasis remap='I'>save-yourself:</emphasis>
+     if shutdown mode:
+          send <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>save-yourself-done</emphasis>
+     otherwise:
+          send <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>idle</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>waiting-for-phase2:</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>shutdown-cancelled</emphasis>
+     receive <emphasis remap='B'>SaveYourselfPhase2</emphasis> &rarr; <emphasis remap='C'>phase2</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>phase2:</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>shutdown-cancelled</emphasis>
+     send <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     receive <emphasis remap='B'>GetPropertiesReply</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>InteractRequest</emphasis> &rarr; <emphasis remap='C'>interact-request</emphasis> (errors only)
+     if shutdown mode:
+          send <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>save-yourself-done</emphasis>
+     otherwise:
+          send <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>idle</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>interact-request:</emphasis>
+     receive <emphasis remap='B'>Interact</emphasis> &rarr; <emphasis remap='C'>interact</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>shutdown-cancelled</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>interact:</emphasis>
+     send <emphasis remap='B'>InteractDone</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>shutdown-cancelled</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>save-yourself-done:</emphasis> (changing state is forbidden)
+     receive <emphasis remap='B'>SaveComplete</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>Die</emphasis> &rarr; <emphasis remap='C'>die</emphasis>
+     receive <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>idle</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>connection-closed:</emphasis>
+     client stops participating in session </literallayout>
+</sect1>
+
+<sect1 id='Session_Manager_State_Diagram'>
+<title>Session Manager State Diagram</title>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>start:</emphasis>
+     receive <emphasis remap='B'>ProtocolSetup</emphasis> &rarr; <emphasis remap='C'>protocol-setup</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>protocol-setup:</emphasis>
+     send <emphasis remap='B'>ProtocolSetupReply</emphasis> &rarr; <emphasis remap='C'>register</emphasis></literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>register:</emphasis>
+     receive <emphasis remap='B'>RegisterClient</emphasis> &rarr; <emphasis remap='C'>acknowledge-register</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>acknowledge-register:</emphasis>
+     send <emphasis remap='B'>RegisterClientReply</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>idle:</emphasis>
+     receive <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>ConnectionClosed</emphasis> &rarr; <emphasis remap='C'>start</emphasis>
+     receive <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>get-properties</emphasis>
+     receive <emphasis remap='B'>SaveYourselfRequest</emphasis> &rarr; <emphasis remap='C'>save-yourself</emphasis>
+     send <emphasis remap='B'>SaveYourself</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>save-yourself:</emphasis>
+     send <emphasis remap='B'>SaveYourself</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>get-properties:</emphasis>
+     send <emphasis remap='B'>GetPropertiesReply</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>saving-get-properties:</emphasis>
+     send <emphasis remap='B'>GetPropertiesReply</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>saving-yourself:</emphasis>
+     receive <emphasis remap='B'>InteractRequest</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     send <emphasis remap='B'>Interact</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     send <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>InteractDone</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     receive <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+      receive <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     receive <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>saving-get-properties</emphasis>
+     receive <emphasis remap='B'>SaveYourselfPhase2Request</emphasis> &rarr; <emphasis remap='C'>start-phase2</emphasis>
+     receive <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>save-yourself-done</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>start-phase2:</emphasis>
+     If all clients have sent either SaveYourselfPhase2Request or SaveYourselfDone:
+          send <emphasis remap='B'>SaveYourselfPhase2</emphasis> &rarr; <emphasis remap='C'>phase2</emphasis>
+     else
+          &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>phase2:</emphasis>
+     receive <emphasis remap='B'>InteractRequest</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     send <emphasis remap='B'>Interact</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     send <emphasis remap='B'>ShutdownCancelled</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+     receive <emphasis remap='B'>InteractDone</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     receive <emphasis remap='B'>SetProperties</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+      receive <emphasis remap='B'>DeleteProperties</emphasis> &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+     receive <emphasis remap='B'>GetProperties</emphasis> &rarr; <emphasis remap='C'>saving-get-properties</emphasis>
+     receive <emphasis remap='B'>SaveYourselfDone</emphasis> &rarr; <emphasis remap='C'>save-yourself-done</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>save-yourself-done:</emphasis>
+     If all clients are saved:
+          If shutting down:
+               send <emphasis remap='B'>Die</emphasis> &rarr; <emphasis remap='C'>die</emphasis>
+          otherwise
+               send <emphasis remap='B'>SaveComplete</emphasis> &rarr; <emphasis remap='C'>idle</emphasis>
+
+     If some clients are not saved:
+     &rarr; <emphasis remap='C'>saving-yourself</emphasis>
+</literallayout>
+
+<literallayout remap='DS'>
+<emphasis remap='I'>die:</emphasis>
+     SM stops accepting connections
+</literallayout>
+  </sect1>
+</chapter>
+
+<chapter id='Protocol_Encoding'>
+  <title>Protocol Encoding</title>
+  <sect1 id='Types'>
+<title>Types</title>
+
+<informaltable frame='none'>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='10.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">BOOL</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>0</entry>
+        <entry>False</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>True</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='10.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">INTERACT_STYLE</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>0</entry>
+        <entry>None</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>Errors</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry>Any</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='10.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">DIALOG_TYPE</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>0</entry>
+        <entry>Error</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>Normal</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='10.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">SAVE_TYPE</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>0</entry>
+        <entry>Global</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>Local</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry>Both</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">ARRAY8</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>4</entry>
+        <entry>CARD32</entry>
+        <entry>length</entry>
+      </row>
+      <row>
+        <entry>n</entry>
+        <entry>ListofCARD8, the array</entry>
+        <entry>p = pad (4 + n, 8)</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry>Both</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">LISTofARRAY8</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>4</entry>
+        <entry>CARD32</entry>
+        <entry>count</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>ARRAY8</entry>
+        <entry>first array</entry>
+      </row>
+      <row>
+        <entry>b</entry>
+        <entry>ARRAY8</entry>
+        <entry>second array</entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>q</entry>
+        <entry>ARRAY8</entry>
+        <entry>last array</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">PROPERTY</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>a</entry>
+        <entry>ARRAY8</entry>
+        <entry>name</entry>
+      </row>
+      <row>
+        <entry>b</entry>
+        <entry>ARRAY8</entry>
+        <entry>type (XPCS encoded in Latin-1, case sensitive)</entry>
+      </row>
+      <row>
+        <entry>c</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>values</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='32' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c2'><emphasis role="bold">LISTofPROPERTY</emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>4</entry>
+        <entry>CARD32</entry>
+        <entry>count</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>PROPERTY</entry>
+        <entry>first property</entry>
+      </row>
+      <row>
+        <entry>b</entry>
+        <entry>PROPERTY</entry>
+        <entry>second property</entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>.</entry>
+        <entry></entry>
+        <entry></entry>
+      </row>
+      <row>
+        <entry>q</entry>
+        <entry>PROPERTY</entry>
+        <entry>last property</entry>
+      </row>
+     </tbody>
+  </tgroup>
+</informaltable>
+
+  </sect1>
+
+  <sect1 id='Messages'>
+<title>Messages</title>
+    <para>
+XSMP is a sub-protocol of <acronym>ICE</acronym>.  The major opcode is
+assigned at run-time by <acronym>ICE</acronym> and is represented here
+by '<literal>?</literal>'.
+    </para>
+
+    <para>
+To start the XSMP protocol, the client sends the server an
+<acronym>ICE</acronym> <function>ProtocolSetup</function> message.
+The protocol-name field should be specified as "<literal>XSMP</literal>",
+the major version of the protocol is 1, the minor version is 0.  These
+values may change if the protocol is revised.  The minor version
+number will be incremented if the change is compatible, otherwise the
+major version number will be incremented.
+    </para>
+
+    <para>
+In <function>ProtocolReply</function> message sent by the session
+manager, the XSMP protocol defines the vendor parameter as product
+identification of the session manager, and defines the release
+parameter as the software release identification of the session
+manager.  The session manager should supply this information in the
+<acronym>ICE</acronym> <function>ProtocolReply</function> message.
+    </para>
+
+<informaltable frame='none'>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+	<entry namest="c1" nameend="c3"><emphasis role="bold"><function>RegisterClient</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>1</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>ARRAY8</entry>
+        <entry>previous-ID</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c3'><emphasis role="bold"><function>RegisterClientReply</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>2</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>ARRAY8</entry>
+        <entry>client-ID</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest='c1' nameend='c3'><emphasis role="bold"><function>SaveYourself</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>3</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>1</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>SAVE_TYPE</entry>
+        <entry>type</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>shutdown</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>INTERACT_STYLE</entry>
+        <entry>interact-style</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>fast</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SaveYourselfRequest</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>4</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>1</entry>
+        <entry>length of remainning data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>SAVE_TYPE</entry>
+        <entry>type</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>shutdown</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>INTERACT_STYLE</entry>
+        <entry>interact-style</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>fast</entry>
+      </row>
+      <row>
+        <entry>3</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>InteractRequest</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>5</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>DIALOG_TYPE</entry>
+        <entry>dialog type</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>Interact</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>6</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>InteractDone</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>7</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>cancel-shutdown</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>InteractDone</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>7</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>cancel-shutdown</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SaveYourselfDone</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>8</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>BOOL</entry>
+        <entry>success</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>Die</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>9</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>ShutdownCancelled</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>10</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>ConnectionClosed</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>11</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>reason</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SetProperties</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>12</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>LISTofPROPERTY</entry>
+        <entry>properties</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>DeleteProperties</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>13</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>LISTofPROPERTY</entry>
+        <entry>properties</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>GetProperties</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>14</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>GetPropertiesReply</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>15</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>a/8</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+      <row>
+        <entry>a</entry>
+        <entry>LISTofPROPERTY</entry>
+        <entry>properties</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SaveYourselfPhase2Request</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>16</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SaveYourselfPhase2</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>17</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+  <tgroup cols='3' align='left' colsep='0' rowsep='0'>
+    <?dbfo keep-together="always" ?>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='5.0*'/>
+    <colspec colname='c3' colwidth='5.0*'/>
+    <thead>
+      <row>
+        <entry namest="c1" nameend="c3"><emphasis role="bold"><function>SaveComplete</function></emphasis></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>1</entry>
+        <entry>?</entry>
+        <entry>XSMP</entry>
+      </row>
+      <row>
+        <entry>1</entry>
+        <entry>18</entry>
+        <entry>opcode</entry>
+      </row>
+      <row>
+        <entry>2</entry>
+        <entry></entry>
+        <entry>unused</entry>
+      </row>
+      <row>
+        <entry>4</entry>
+        <entry>0</entry>
+        <entry>length of remaining data in 8-byte units</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+  </sect1>
+</chapter>
+
+<chapter id='Predefined_Properties'>
+  <title>Predefined Properties</title>
+  <para>
+All property values are stored in a LISTofARRAY8.  If the type of the
+property is CARD8, the value is stored as a LISTofARRAY8 with one
+ARRAY8 that is one byte long.  That single byte contains the CARD8.
+If the type of the property is ARRAY8, the value is stored in the
+first element of a single element LISTofARRAY8.
+  </para>
+
+  <para>
+The required properties must be set each time a client connects with
+the SM.  The properties must be set after the client
+sends <function>RegisterClient</function> and before the client
+sends <function>SaveYourselfDone</function> Otherwise, the behavior of
+the session manager is not defined.
+  </para>
+
+  <para>
+Clients may set, get, and delete nonstandard properties.  The lifetime
+of stored properties does not extend into subsequent sessions.
+  </para>
+
+<informaltable frame='topbot'>
+  <tgroup cols='4' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='2.0*' />
+    <colspec colname='c2' colwidth='2.0*' />
+    <colspec colname='c3' colwidth='2.0*' />
+    <colspec colname='c4' colwidth='1.0*' />
+    <thead>
+      <row rowsep='1'>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry>Posix Type</entry>
+        <entry>Required?</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>CloneCommand</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry>CurrentDirectory</entry>
+        <entry>OS-specific</entry>
+        <entry>ARRAY8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>DiscardCommand</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>No*</entry>
+      </row>
+      <row>
+        <entry>Environment</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>ProcessID</entry>
+        <entry>OS-specific</entry>
+        <entry>ARRAY8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>Program</entry>
+        <entry>OS-specific</entry>
+        <entry>ARRAY8</entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry>RestartCommand</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry>ResignCommand</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>RestartStyleHint</entry>
+        <entry>CARD8</entry>
+        <entry>CARD8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>ShutdownCommand</entry>
+        <entry>OS-specific</entry>
+        <entry>LISTofARRAY8</entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry>UserID</entry>
+        <entry>ARRAY8</entry>
+        <entry>ARRAY8</entry>
+        <entry>Yes</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+  <para>
+* Required if any state is stored in an external repository (e.g., state file).
+  </para>
+
+  <variablelist remap='IP'>
+    <varlistentry>
+      <term>CloneCommand</term>
+      <listitem> <para>
+This is like the <function>RestartCommand</function> except it
+restarts a copy of the application.  The only difference is that the
+application doesn't supply its client id at register time.  On <acronym>POSIX</acronym>
+systems the type should be a LISTofARRAY8.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>CurrentDirectory</term>
+      <listitem><para>
+On <acronym>POSIX</acronym>-based systems specifies the value of the current directory that
+needs to be set up prior to starting the program and should be of type ARRAY8.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>DiscardCommand</term>
+      <listitem><para>
+The discard command contains a command that when delivered to the host
+that the client is running on (determined from the connection), will
+cause it to discard any information about the current state.  If this
+command is not specified, the SM will assume that all of the client's
+state is encoded in the <function>Restart&shy;Command</function> On
+<acronym>POSIX</acronym> systems the type should be LISTofARRAY8.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Environment</term>
+      <listitem><para>
+On <acronym>POSIX</acronym> based systems, this will be of type LISTofARRAY8 where the
+ARRAY8s alternate between environment variable name and environment
+variable value.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>ProcessID</term>
+      <listitem><para>
+This specifies an OS-specific identifier for the process.  On <acronym>POSIX</acronym>
+systems this should of type ARRAY8 and contain the return value of
+getpid() turned into a Latin-1 (decimal) string.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Program</term>
+      <listitem><para>
+The name of the program that is running.  On <acronym>POSIX</acronym> systems this should
+be the first parameter passed to execve and should be of type ARRAY8.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>RestartCommand</term>
+      <listitem><para>
+The restart command contains a command that when delivered to the host
+that the client is running on (determined from the connection), will
+cause the client to restart in its current state.  On <acronym>POSIX</acronym>-based
+systems this is of type LISTofARRAY8 and each of the elements in the
+array represents an element in the argv array.  This restart command
+should ensure that the client restarts with the specified
+client-ID.
+      </para></listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>ResignCommand</term>
+      <listitem>
+	<para>
+A client that sets the <function>RestartStyleHint</function>
+to <function>RestartAnyway</function> uses this property to specify a
+command that undoes the effect of the client and removes any saved
+state.
+	</para>
+	<note><title>Example</title><para>
+A user runs xmodmap.  xmodmap registers with the SM,
+sets <function>Restart&shy;Style&shy;Hint</function>
+to <function>Restart&shy;Anyway</function> and then terminates.  In
+order to allow the SM (at the user's request) to undo this, xmodmap
+would register a <function>Resign&shy;Command</function> that undoes
+the effects of the xmodmap.
+	</para></note>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>RestartStyleHint</term>
+      <listitem>
+	<para>
+If the RestartStyleHint property is present, it will contain the style
+of restarting the client prefers.  If this flag isn't
+specified, <function>RestartIfRunning</function> is assumed.  The
+possible values are as follows:
+	</para>
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='2.5*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Name</entry>
+        <entry>Value</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>RestartIfRunning</entry>
+        <entry>0</entry>
+      </row>
+      <row>
+        <entry>RestartAnyway</entry>
+        <entry>1</entry>
+      </row>
+      <row>
+        <entry>RestartImmediately</entry>
+        <entry>2</entry>
+      </row>
+      <row>
+        <entry>RestartNever</entry>
+        <entry>3</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+	<para>
+The <function>RestartIfRunning</function> style is used in the usual
+case.  The client should be restarted in the next session if it is
+connected to the session manager at the end of the current session.
+	</para>
+
+	<para>
+The <function>RestartAnyway</function> style is used to tell the SM
+that the application should be restarted in the next session even if
+it exits before the current session is terminated.  It should be noted
+that this is only a hint and the SM will follow the policies specified
+by its users in determining what applications to restart.
+	</para>
+
+	<note><title>Rationale</title><para>
+This can be specified by a client which supports (as MS-Windows
+clients do) a means for the user to indicate while exiting that
+restarting is desired.  It can also be used for clients that spawn
+other clients and then go away, but which want to be restarted.
+	</para></note>
+
+	<para>
+A client that uses <function>RestartAnyway</function> should also set
+the <function>ResignCommand</function> and <function>ShutdownCommand</function>
+properties to commands that undo the state of the client after it exits.
+	</para>
+
+	<para>
+The <function>RestartImmediately</function> style is
+like <function>RestartAnyway</function> but in addition, the client is
+meant to run continuously.  If the client exits, the SM should try to
+restart it in the current session.
+	</para>
+
+	<note><title>Advice to Implementors</title><para>
+It would be wise to sanity-check the frequency which
+which <function>RestartImmediately</function> clients are restarted,
+to avoid a sick client being restarted continuously.
+	</para></note>
+
+	<para>
+The <function>RestartNever</function> style specifies that the client
+does not wish to be restarted in the next session.
+	</para>
+
+	<note><title>Advice to Implementors</title> <para>
+This should be used rarely, if at all.  It will cause the client to be
+silently left out of sessions when they are restarted and will
+probably be confusing to users.
+	</para></note> <!-- remap='NE' -->
+	<!-- .RE -->
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>ShutdownCommand</term>
+      <listitem>
+	<para>
+This command is executed at shutdown time to clean up after a client
+that is no longer running but retained its state by
+setting <function>RestartStyleHint</function>
+to <function>RestartAnyway</function> The command must not remove any
+saved state as the client is still part of the session.
+	</para>
+	<note><title>Example</title><para>
+A client is run at start up time that turns on a camera.  This client
+then exits.  At session shutdown, the user wants the camera turned
+off.  This client would set the <function>Restart&shy;Style&shy;Hint</function>
+to <function>Restart&shy;Anyway</function> and would register a
+<function>Shutdown&shy;Command</function> that would turn off the camera.
+	</para></note>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>UserID</term>
+    <listitem><para>
+Specifies the user's ID.  On <acronym>POSIX</acronym>-based systems
+this will contain the the user's name (the <structfield>pw_name</structfield>
+field of <structname>struct passwd</structname>).
+    </para></listitem>
+    </varlistentry>
+  </variablelist>
+</chapter>
+</book>

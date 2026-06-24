@@ -1,0 +1,112 @@
+<sect1 id="Public_Header_File">
+<title>Public Header File</title>
+<para>
+The public header file contains declarations that will be required by any
+application module that needs to refer to the widget; whether to create
+an instance of the class, to perform an
+<xref linkend='XtSetValues' xrefstyle='select: title'/>
+operation, or to call a public routine implemented by the widget class.
+</para>
+<para>
+<!-- .LP -->
+The contents of the Template public header file,
+<filename class="headerfile">&lt;X11/Xaw/Template.h&gt;</filename>,
+are:
+</para>
+<literallayout class="monospaced">
+..
+<!-- .CB -->
+<!-- .\".so ../../lib/Xaw/Template.h -->
+/* Copyright (c) X Consortium 1987, 1988 */
+
+#ifndef _Template_h
+#define _Template_h
+
+/****************************************************************
+ *
+ * Template widget
+ *
+ ****************************************************************/
+
+/* Resources:
+
+ Name                Class               RepType     Default Value
+ ----                -----               -------     -------------
+ background          Background          Pixel       XtDefaultBackground
+ border              BorderColor         Pixel       XtDefaultForeground
+ borderWidth         BorderWidth         Dimension   1
+ destroyCallback     Callback            Pointer     NULL
+ height              Height              Dimension   0
+ mappedWhenManaged   MappedWhenManaged   Boolean     True
+ sensitive           Sensitive           Boolean     True
+ width               Width               Dimension   0
+ x                   Position            Position    0
+ y                   Position            Position    0
+
+*/
+
+/* define any special resource names here that are not in &lt;X11/StringDefs.h&gt; */
+
+#define XtNtemplateResource "templateResource"
+
+#define XtCTemplateResource "TemplateResource"
+
+/* declare specific TemplateWidget class and instance datatypes */
+
+typedef struct _TemplateClassRec*	TemplateWidgetClass;
+typedef struct _TemplateRec*	TemplateWidget;
+
+/* declare the class constant */
+
+extern WidgetClass templateWidgetClass;
+
+#endif /* _Template_h */
+<!-- .CE -->
+</literallayout>
+<para>
+<!-- .LP -->
+<!-- .sp -->
+You will notice that most of this file is documentation.  The crucial
+parts are the last 8 lines where macros for any private resource names
+and classes are defined and where the widget class datatypes and class
+record pointer are declared.
+</para>
+<para>
+<!-- .LP -->
+For the "WindowWidget", we want 2 drawing colors, a callback list for
+user input and an
+<function>exposeCallback</function> callback list, and we will declare three
+convenience procedures, so we need to add
+</para>
+<literallayout class="monospaced">
+<!-- .LP -->
+<!-- .sp -->
+<!-- .CB -->
+/* Resources:
+	...
+ callback       Callback        Callback        NULL
+ drawingColor1  Color           Pixel           XtDefaultForeground
+ drawingColor2  Color           Pixel           XtDefaultForeground
+ exposeCallback Callback        Callback        NULL
+ font           Font            XFontStruct*    XtDefaultFont
+	...
+ */
+
+#define XtNdrawingColor1 "drawingColor1"
+#define XtNdrawingColor2 "drawingColor2"
+#define XtNexposeCallback "exposeCallback"
+
+extern Pixel WindowColor1(&#x2006;/* Widget */&#x2006;);
+extern Pixel WindowColor2(&#x2006;/* Widget */&#x2006;);
+extern Font  WindowFont(&#x2006;/* Widget */&#x2006;);
+<!-- .CE -->
+</literallayout>
+<para>
+<!-- .LP -->
+Note that we have chosen to call the input callback list by the generic
+name, <function>callback</function>, rather than a specific name.  If widgets that define
+a single user-input action all choose the same resource name then there
+is greater possibility for an application to switch between widgets of
+different types.
+</para>
+</sect1>

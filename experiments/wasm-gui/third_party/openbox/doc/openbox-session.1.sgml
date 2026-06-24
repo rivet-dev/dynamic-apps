@@ -1,0 +1,93 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+	docbook-to-man $< > $@
+
+    
+	The docbook-to-man binary is found in the docbook-to-man package.
+	Please remember that if you create the nroff version in one of the
+	debian/rules file targets (such as build), you will need to include
+	docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhucpackage "<refentrytitle>OPENBOX</refentrytitle>">
+  <!ENTITY dhpackage   "openbox-session">
+]>
+
+<refentry>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>Runs an Openbox session without any session manager.
+      </refpurpose>
+  </refnamediv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> runs an openbox session without
+      any session manager. Without a session manager, you will not be able
+      to save your state from one log in to the next.</para>
+
+    <para><command>&dhpackage;</command> does not take any command line
+      arguments.</para>
+
+    <para>On log in, <command>&dhpackage;</command> will run the
+      ~/.config/openbox/autostart.sh script if it exists, and will run the
+      system-wide script @configdir@/openbox/autostart.sh otherwise. You may
+      place anything you want to run automatically in those files, for example:
+      </para>
+
+    <blockquote><literallayout>
+      xsetroot -solid grey &
+      gnome-settings-daemon &</literallayout></blockquote>
+
+    <para>Make sure that each line is followed by a "&" or else the script will
+      stop there and further commands will not be executed. You can use the
+      @configdir@/openbox/autostart.sh file as an example for creating your
+      own.</para>
+
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>openbox(1), openbox-session(1), openbox-gnome-session(1).
+      </para>
+
+    <para>The program's full documentation is available on the website:
+      <literal>http://openbox.org/</literal></para>
+
+    <para>Please report bugs to: <literal>http://bugzilla.icculus.org/
+      </literal></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
+
+

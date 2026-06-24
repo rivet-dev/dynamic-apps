@@ -1,0 +1,82 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtError XtSet-Error-Handler XtSet-Warning-Handler XtWarning wid-get
+.na
+.TH XtError __libmansuffix__ __xorgversion__ "XT COMPATIBILITY FUNCTIONS"
+.SH NAME
+XtError, XtSetErrorHandler, XtSetWarningHandler, XtWarning \- low-level error handlers
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+_X_NORETURN void XtError(const char *\fImessage\fP);
+.HP
+void XtSetErrorHandler(_X_NORETURN XtErrorHandler \fIhandler\fP);
+.HP
+void XtSetWarningHandler(XtErrorHandler \fIhandler\fP);
+.HP
+void XtWarning(const char *\fImessage\fP);
+.SH ARGUMENTS
+.IP \fImessage\fP 1i
+Specifies the nonfatal error message that is to be reported.
+.IP \fIhandler\fP 1i
+Specifies the new fatal error procedure, which should not return, 
+or the nonfatal error procedure, which usually returns.
+.IP \fImessage\fP 1i
+Specifies the message that is to be reported.
+.SH DESCRIPTION
+The
+.B XtError
+function has been superseded by
+.BR XtAppError .
+.LP
+The
+.B XtSetErrorHandler
+function has been superseded by
+.BR XtAppSetErrorHandler .
+.LP
+The
+.B XtSetWarningHandler
+function has been superseded by
+.BR XtAppSetWarningHandler .
+.LP
+The
+.B XtWarning
+function has been superseded by
+.BR XtAppWarning .
+.SH "SEE ALSO"
+.BR XtAppError (__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

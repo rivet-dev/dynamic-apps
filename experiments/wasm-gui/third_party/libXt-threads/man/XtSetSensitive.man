@@ -1,0 +1,99 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtSet-Sensitive XtIs-Sensitive wid-get
+.na
+.TH XtSetSensitive __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtSetSensitive, XtIsSensitive \- set and check a widget's sensitivity state
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtSetSensitive(Widget \fIw\fP, Boolean \fIsensitive\fP);
+.HP
+Boolean XtIsSensitive(Widget \fIw\fP);
+.SH ARGUMENTS
+.IP \fIsensitive\fP 1i
+Specifies a Boolean value that indicates whether the widget should receive
+keyboard and pointer events.
+.IP \fIw\fP 1i
+Specifies the widget.
+.SH DESCRIPTION
+The
+.B XtSetSensitive
+function first calls
+.B XtSetValues
+on the current widget with an argument list specifying that the
+sensitive field should change to the new value.
+It then recursively propagates the new value
+down the managed children tree by calling
+.B XtSetValues
+on each child to set the ancestor_sensitive to the new value if the new
+values for sensitive and the child's ancestor_sensitive are not the same.
+.LP
+.B XtSetSensitive
+calls
+.B XtSetValues
+to change sensitive and ancestor_sensitive.
+Therefore, when one of these changes,
+the widget's set_values procedure should
+take whatever display actions are needed
+(for example, greying out or stippling the widget).
+.LP
+.B XtSetSensitive
+maintains the invariant that if parent has either sensitive
+or ancestor_sensitive
+.BR False ,
+then all children have ancestor_sensitive
+.BR False .
+.LP
+The
+.B XtIsSensitive
+function returns
+.B True
+or
+.B False
+to indicate whether or not user input events are being dispatched.
+If both core.sensitive and core.ancestor_sensitive are
+.BR True ,
+.B XtIsSensitive
+returns
+.BR True ;
+otherwise, it returns
+.BR False .
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

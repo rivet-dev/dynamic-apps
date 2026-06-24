@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+
+  <bookinfo>
+    <title>Libwnck Reference Manual</title>
+  </bookinfo>
+
+  <part id="overview">
+   <title>Libwnck Overview</title>
+   <partintro>
+    <para>
+     libwnck is the Window Navigator Construction Kit, a library for use in writing pagers, tasklists, and more generally applications that are dealing with window management. It tries hard to respect the <ulink url="http://standards.freedesktop.org/wm-spec/wm-spec-latest.html">Extended Window Manager Hints specification</ulink> (EWMH). The <ulink url="http://tronche.com/gui/x/icccm/">Inter-Client Communication Conventions Manual</ulink> (ICCCM) is also a useful resource.
+    </para>
+
+    <para>
+     libwnck depends on the following libraries:
+     <variablelist>
+      <varlistentry>
+       <term>GTK+</term>
+       <listitem><para>
+        The GTK+ GUI library.
+       </para></listitem>
+      </varlistentry>
+      <varlistentry>
+       <term>libstartupnotification</term>
+       <listitem><para>
+        A library which allows providing visual feedback to the user that an application or operation is being launched (typically through a "busy" cursor).
+       </para></listitem>
+      </varlistentry>
+     </variablelist>
+    </para>
+   </partintro>
+  </part>
+
+  <part id="getting-started">
+   <title>Getting Started with libwnck</title>
+
+   <refsect1 id="getting-started.use-cases">
+    <title>Use Cases</title>
+
+    <para>
+     Most users of libwnck should be tools that deal heavily with window management in one way or another: tasklists and pagers are obvious examples, but tools to automatically organize windows, to track resources of windows, or to inspect what is happening on a display can also be built with this library.
+    </para>
+
+    <para>
+     Applications that just need to do some management on their own windows (like positioning one of their windows on a specific workspace) should likely not use libwnck, as the use of this library is relatively expensive in terms of resources. The internals of libwnck make sure that the library always tracks everything that is occurring on the display, mirroring various information from the X server and actively using resources to update the cached information as it changes. In concrete terms, every time something changes on the display, every application using libwnck will wake up. An application that is not dealing specifically with window management should not do this. While <link linkend="wnck-shutdown"><function>wnck_shutdown()</function></link> can be used to mitigate the expensiveness of libwnck, it is generally not considered a proper solution.
+    </para>
+
+    <note><simpara>
+     When considering the use of libwnck, it makes sense to keep in mind the cost of the library. For example, it is possible to share this cost between various tools all dealing in one way or another with window management, by grouping them in the same process, even if from a UI perspective they all look like different applications.
+    </simpara></note>
+   </refsect1>
+
+   <refsect1 id="getting-started.pitfalls">
+    <title>Common Pitfalls</title>
+    <para>
+     While the API provided by libwnck should be mostly straight-forward in general, a few pitfalls are often hit by users of the library.
+    </para>
+
+    <sect2 id="getting-started.pitfalls.force-update">
+     <title>Explicit fetching of information</title>
+     <para>
+      At its creation, a <link linkend="WnckScreen"><type>WnckScreen</type></link> object will not have fetched information from the X server. If queried immediately after its creation (via <link linkend="wnck-screen-get-windows"><function>wnck_screen_get_windows()</function></link> or <link linkend="wnck-screen-get-workspaces"><function>wnck_screen_get_workspaces()</function></link>, for example), the <link linkend="WnckScreen"><type>WnckScreen</type></link> object will look like there are no workspaces nor windows on the screen. This information is fetched in the main event loop with an idle source, to avoid an expensive synchronous operation on startup. If no main event loop is used, or if the information is needed as soon as possible after the creation of the object, <link linkend="wnck-screen-force-update"><function>wnck_screen_force_update()</function></link> can be used to explicitly fetch the information.
+     </para>
+    </sect2>
+
+    <sect2 id="getting-started.pitfalls.lazy-initialization">
+     <title>Lazy initialization of WnckScreen objects and signals</title>
+     <para>
+      As mentioned above, a <link linkend="WnckScreen"><type>WnckScreen</type></link> object will have no information at its creation: it is lazily initialized during a main event loop. This lazy initialization will lead to the emission of many signals by the <link linkend="WnckScreen"><type>WnckScreen</type></link> object: for instance, the <link linkend="WnckScreen-window-opened"><function>"window-opened"</function></link> signal will be emitted for all <link linkend="WnckWindow"><type>WnckWindow</type></link> objects representing existing windows during the lazy initialization. This is actually a feature that enables you to easily initialize the state of your application, with the same code you will use to update its state when new windows get opened; there is an <link linkend="getting-started.examples.lazy-initialization">example</link> showing this.
+     </para>
+    </sect2>
+
+    <sect2 id="getting-started.pitfalls.memory-management">
+     <title>Memory management</title>
+     <para>
+      All objects provided by the <link linkend="core">Core Window Management Support</link> are owned by libwnck and should not be referenced or unreferenced by the user. Those objects are tied to X resources, and it makes no sense to keep the objects alive when the X resources are gone; doing so could lead to errors. Therefore it is important that, when keeping in memory a pointer to such an object, the life of this object is tracked to make sure the pointer is always valid.
+     </para>
+     <para>
+      This memory management model is important to keep in mind for users of <link linkend="wnck-shutdown"><function>wnck_shutdown()</function></link>, and especially for users of libwnck through introspection. With introspection, all variables pointing to objects owned by libwnck must be cleared before <link linkend="wnck-shutdown"><function>wnck_shutdown()</function></link> as the introspection support can add some references to the objects.
+     </para>
+     <para>
+      For instance, the following would work in Python:
+      <informalexample>
+       <programlisting language="python">
+from gi.repository import Wnck
+
+screen = Wnck.Screen.get_default()
+[...]
+screen = None
+Wnck.Shutdown()
+       </programlisting>
+      </informalexample>
+     </para>
+    </sect2>
+
+    <sect2 id="getting-started.pitfalls.client-type">
+     <title>Source indication</title>
+     <para>
+      Window management actions that are performed with libwnck are generally implemented as requests to the window manager. In order to not disturb the workflow of the user, the window manager may choose to put restrictions on various requests sent from applications. However, if those requests represent direct actions from the user, then the window manager will obey them. To indicate that the requests are the result of actions from the user, the application should set the <ulink url="http://standards.freedesktop.org/wm-spec/wm-spec-latest.html#sourceindication">source indication</ulink> in the requests, as defined in the EWMH. The <link linkend="wnck-set-client-type"><function>wnck_set_client_type()</function></link> can be used to define the source indication.
+     </para>
+    </sect2>
+
+    <sect2 id="getting-started.pitfalls.gdk-init">
+     <title>GDK initialization</title>
+     <para>
+      Internally, libwnck uses GDK. This means that before any call to libwnck API, GDK needs to be initialized. This can be achieved with <function>gdk_init()</function>, or indirectly via <function>gtk_init()</function>.
+     </para>
+    </sect2>
+   </refsect1>
+
+   <refsect1 id="getting-started.examples">
+    <title>Examples</title>
+
+    <para id="getting-started.examples.force-update">
+     This first example is a small utility listing all windows on the current screen. As this is all done synchronously, without using a main event loop, we use <link linkend="wnck-screen-force-update"><function>wnck_screen_force_update()</function></link> to explicitly fetch the information needed for the <link linkend="WnckScreen"><type>WnckScreen</type></link> object.
+
+     <informalexample>
+      <programlisting language="c">
+       <xi:include href="example-force-update.c" parse="text"/>
+      </programlisting>
+     </informalexample>
+    </para>
+
+    <para id="getting-started.examples.lazy-initialization">
+     The second example is similar, except that we use a main event loop. We connect to the <link linkend="WnckScreen-window-opened"><function>"window-opened"</function></link> signal to print information about new <link linkend="WnckScreen"><type>WnckScreen</type></link> objects. Here, we use the fact that the <link linkend="WnckScreen-window-opened"><function>"window-opened"</function></link> signal is emitted for all existing windows during the lazy initialization of the <link linkend="WnckScreen"><type>WnckScreen</type></link> object, in order to achieve an output similar to the previous example. However, during the lazy initialization, the active window is not necessarily known yet and we cannot tell whether the opened window is the currently active one. We connect to the <link linkend="WnckScreen-active-window-changed"><function>"active-window-changed"</function></link> signal to determine the active window when this information becomes available.
+
+     <informalexample>
+      <programlisting language="c">
+       <xi:include href="example-lazy-initialization.c" parse="text"/>
+      </programlisting>
+     </informalexample>
+    </para>
+
+   </refsect1>
+
+  </part>
+
+  <part id="core">
+    <title>Libwnck Core Window Management Support</title>
+    <xi:include href="xml/window.xml"/>
+    <xi:include href="xml/class-group.xml"/>
+    <xi:include href="xml/application.xml"/>
+    <xi:include href="xml/workspace.xml"/>
+    <xi:include href="xml/screen.xml"/>
+  </part>
+
+  <part id="widgets">
+    <title>Libwnck Widgets</title>
+    <xi:include href="xml/window-action-menu.xml"/>
+    <xi:include href="xml/pager.xml"/>
+    <xi:include href="xml/selector.xml"/>
+    <xi:include href="xml/tasklist.xml"/>
+  </part>
+
+  <part id="utils">
+    <title>Libwnck Utilities</title>
+    <xi:include href="xml/resource.xml"/>
+    <xi:include href="xml/icons.xml"/>
+    <xi:include href="xml/misc.xml"/>
+    <xi:include href="xml/version.xml"/>
+  </part>
+
+  <part id="indexes">
+    <title>Index of symbols</title>
+    <index>
+      <title>Index of all symbols</title>
+    </index>
+    <index role="deprecated">
+      <title>Index of deprecated symbols</title>
+    </index>
+    <index role="2.2">
+      <title>Index of new symbols in 2.2</title>
+    </index>
+    <index role="2.4">
+      <title>Index of new symbols in 2.4</title>
+    </index>  
+    <index role="2.6">
+      <title>Index of new symbols in 2.6</title>
+    </index>  
+    <index role="2.8">
+      <title>Index of new symbols in 2.8</title>
+    </index>  
+    <index role="2.10">
+      <title>Index of new symbols in 2.10</title>
+    </index>  
+    <index role="2.12">
+      <title>Index of new symbols in 2.12</title>
+    </index>  
+    <index role="2.14">
+      <title>Index of new symbols in 2.14</title>
+    </index> 
+    <index role="2.16">
+      <title>Index of new symbols in 2.16</title>
+    </index> 
+    <index role="2.20">
+      <title>Index of new symbols in 2.20</title>
+    </index> 
+    <index role="2.22">
+      <title>Index of new symbols in 2.22</title>
+    </index> 
+    <index role="3.0">
+      <title>Index of new symbols in 3.0</title>
+    </index> 
+    <index role="3.4">
+      <title>Index of new symbols in 3.4</title>
+    </index>
+  </part>
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

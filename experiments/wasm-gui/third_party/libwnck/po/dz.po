@@ -1,0 +1,1225 @@
+# Dzongkha translation of libwnck
+# Copyright @ 2006 Free Software Foundation, Inc.
+# Mindu Dorji
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libwnck.gnome-2-14.dz\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-04-19 03:25+0000\n"
+"PO-Revision-Date: 2008-10-14 12:09+0530\n"
+"Last-Translator: Dawa pemo <daws_403@hotmail.com>\n"
+"Language-Team: DZONGKHA <pgeyleg@dit.gov.bt>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2;plural=(n!=1);\n"
+"X-Poedit-Language: Dzongkha\n"
+"X-Poedit-Country: BHUTAN\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#. *
+#. * SECTION:application
+#. * @short_description: an object representing a group of windows of the same
+#. * application.
+#. * @see_also: wnck_window_get_application()
+#. * @stability: Unstable
+#. *
+#. * The #WnckApplication is a group of #WnckWindow that are all in the same
+#. * application. It can be used to represent windows by applications, group
+#. * windows by applications or to manipulate all windows of a particular
+#. * application.
+#. *
+#. * A #WnckApplication is identified by the group leader of the #WnckWindow
+#. * belonging to it, and new #WnckWindow are added to a #WnckApplication if and
+#. * only if they have the group leader of the #WnckApplication.
+#. *
+#. * The #WnckApplication objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/application.c:51
+msgid "Untitled application"
+msgstr "མགོ་མིང་མ་བཏགས་པའི་ གློག་རིམ་"
+
+#: ../libwnck/pager-accessible.c:322
+msgid "Workspace Switcher"
+msgstr "ལཱ་གི་ས་སྒོ་ སོར་བསྒྱུར་འབད་མི།"
+
+#: ../libwnck/pager-accessible.c:333
+msgid "Tool to switch between workspaces"
+msgstr "ལཱ་གི་ས་སྒོའི་བར་ན་ སོར་བསྒྱུར་འབད་ནིའི་ལག་ཆས།"
+
+#: ../libwnck/pager-accessible.c:437
+#, c-format
+msgid "Click this to switch to workspace %s"
+msgstr "ལཱ་གི་ས་སྒོ་%sལུ་ སོར་བསྒྱུར་འབད་ནི་ལུ་ འདི་ལུ་ཨེབ་གཏང་འབད།"
+
+#: ../libwnck/pager.c:1908
+#, c-format
+msgid "Click to start dragging \"%s\""
+msgstr "\"%s\" འདྲུད་ནི་འགོ་བཙུགས་ནིའི་དོན་ལས་ ཨེབ་གཏང་འབད་ "
+
+#: ../libwnck/pager.c:1911
+#, c-format
+msgid "Current workspace: \"%s\""
+msgstr "ད་ལྟོའི་ ལཱ་གི་ས་སྒོ་ : \"%s\""
+
+#: ../libwnck/pager.c:1916
+#, c-format
+msgid "Click to switch to \"%s\""
+msgstr "\"%s\" ལུ་ སོར་བསྒྱུར་འབད་ནིའི་དོན་ལུ་ ཨེབ་གཏང་འབད་ "
+
+#: ../libwnck/selector.c:1171
+msgid "No Windows Open"
+msgstr "སྒོ་སྒྲིག་གཅིག་ཡང་ ཁ་མ་ཕྱེ་བས།"
+
+#: ../libwnck/selector.c:1224
+msgid "Window Selector"
+msgstr "སྒོ་སྒྲིག་སེལ་བྱེད།"
+
+#: ../libwnck/selector.c:1225
+msgid "Tool to switch between windows"
+msgstr "སྒོ་སྒྲིག་གི་བར་ན་ སོར་བསྒྱུར་འབད་ནིའི་ལག་ཆས།"
+
+#: ../libwnck/tasklist.c:727
+msgid "Window List"
+msgstr "སྒོ་སྒྲིག་གི་ཐོ་ཡིག།"
+
+#: ../libwnck/tasklist.c:728
+msgid "Tool to switch between visible windows"
+msgstr "མཐོང་ཚུགས་པའི་ སྒོ་སྒྲིག་གི་བར་ན་ སོར་བསྒྱུར་འབད་ནིའི་ལག་ཆས།"
+
+#: ../libwnck/tasklist.c:3016
+msgid "Mi_nimize All"
+msgstr "ཆ་མཉམ་ཆུང་ཀུ་བཟོ་ "
+
+#: ../libwnck/tasklist.c:3027
+msgid "Un_minimize All"
+msgstr "ཆ་མཉམ་ ཀུ་མ་བཟོ་ (_M)"
+
+#: ../libwnck/tasklist.c:3035
+msgid "Ma_ximize All"
+msgstr "ཆ་མཉམ་ སྦོམ་བཟོ་ (_X)"
+
+#: ../libwnck/tasklist.c:3046
+msgid "_Unmaximize All"
+msgstr "ཆ་མཉམ་ སྦོམ་མ་བཟོ་ (_U)"
+
+#: ../libwnck/tasklist.c:3058
+msgid "_Close All"
+msgstr "ཆ་མཉམ་ཁ་བསྡམས།(_C)"
+
+#: ../libwnck/test-pager.c:15
+msgid "Use N_ROWS rows"
+msgstr "N_ROWS གྲལ་ཐིག་ཚུ་ ལག་ལེན་འཐབ་ "
+
+#: ../libwnck/test-pager.c:15
+msgid "N_ROWS"
+msgstr "ཨེན་ གྲལ་ཐིག་ཚུ་ (_R)"
+
+#: ../libwnck/test-pager.c:16
+msgid "Only show current workspace"
+msgstr "ད་ལྟོའི་ ལཱ་གི་ས་སྒོ་འདི་གུ་རྐྱངམ་ཅིག་སྟོན་ "
+
+#: ../libwnck/test-pager.c:17
+#: ../libwnck/test-tasklist.c:19
+msgid "Use RTL as default direction"
+msgstr "ཨར་ཊི་ཨེལ་ དེ་ སྔོན་སྒྲིག་ བཀོད་རྒྱ་སྦེ་ལག་ལེན་འཐབ་ "
+
+#: ../libwnck/test-pager.c:18
+msgid "Show workspace names instead of workspace contents"
+msgstr "ལཱ་གི་ས་སྒོ་གི་ ནང་དོན་ཚུ་གི་ཚབ་ལུ་ ལཱ་གི་ས་སྒོ་གི་ མིང་ཚུ་སྟོན་"
+
+#: ../libwnck/test-pager.c:19
+msgid "Use a vertical orientation"
+msgstr "ཀེར་ཕྲང་ ཕྱོགས་ ལག་ལེན་འཐབ་ "
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/test-selector.c:12
+#: ../libwnck/test-tasklist.c:20
+msgid "Don't show window in tasklist"
+msgstr "ལས་ཀའི་ཐོ་ཡིག་ནང་ ཝིན་ཌོ་ མ་སྟོན་ "
+
+#: ../libwnck/test-tasklist.c:16
+msgid "Always group windows"
+msgstr "ཨ་རྟག་རང་ ཝིན་ཌོསི་ སྡེ་ཚན་བཟོ་ "
+
+#: ../libwnck/test-tasklist.c:17
+msgid "Never group windows"
+msgstr "ནམ་རང་འབད་རུང་ ཝིན་ཌིསི་ སྡེ་ཚན་མ་བཟོ་ "
+
+#: ../libwnck/test-tasklist.c:18
+msgid "Display windows from all workspaces"
+msgstr "ལཱ་གི་ས་སྒོ་ ག་ར་ནང་ལས་ སྒོ་སྒྲིག་སྟོན་ "
+
+#: ../libwnck/test-tasklist.c:21
+msgid "Enable Transparency"
+msgstr "དྭངས་གསལ་ ལྕོགས་ཅན་བཟོ་ "
+
+#: ../libwnck/window-action-menu.c:415
+msgid "Unmi_nimize"
+msgstr "ཆུང་བཟོ་བཤོལ།(_n)"
+
+#: ../libwnck/window-action-menu.c:422
+msgid "Mi_nimize"
+msgstr "ཆུང་ཀུ་བཟོ།(_n)"
+
+#: ../libwnck/window-action-menu.c:430
+msgid "Unma_ximize"
+msgstr "སྦོམ་བཟོ་བཤོལ།(_x)"
+
+#: ../libwnck/window-action-menu.c:437
+msgid "Ma_ximize"
+msgstr "སྦོམ་བཟོ།(_x)"
+
+#: ../libwnck/window-action-menu.c:744
+#: ../libwnck/workspace.c:281
+#, c-format
+msgid "Workspace %d"
+msgstr "ལཱ་གི་ས་སྒོ་%d"
+
+#: ../libwnck/window-action-menu.c:753
+#: ../libwnck/window-action-menu.c:900
+#, c-format
+msgid "Workspace 1_0"
+msgstr "ལཱ་གི་ས་སྒོ་ ༡ ༠།(_0)"
+
+#: ../libwnck/window-action-menu.c:755
+#: ../libwnck/window-action-menu.c:902
+#, c-format
+msgid "Workspace %s%d"
+msgstr "ལཱ་གི་ས་སྒོ་ %s%d"
+
+#: ../libwnck/window-action-menu.c:1045
+msgid "_Move"
+msgstr "སྤོ།(_M)"
+
+#: ../libwnck/window-action-menu.c:1052
+msgid "_Resize"
+msgstr "ཚད་སླར་སྒྲིག(_R)"
+
+#: ../libwnck/window-action-menu.c:1061
+msgid "Always On _Top"
+msgstr "ཨ་རྟག་རང་ མགོ་ལུ་ (_T)"
+
+#: ../libwnck/window-action-menu.c:1069
+msgid "_Always on Visible Workspace"
+msgstr "ཨ་རྟག་རང་ མཐོང་ཚུགས་པའི་ ལཱ་གི་ས་སྒོ་གུ(_A)"
+
+#: ../libwnck/window-action-menu.c:1074
+msgid "_Only on This Workspace"
+msgstr "ལཱ་གི་ས་སྒོ་འདི་གུ་རྐྱངམ་གཅིག།(_O)"
+
+#: ../libwnck/window-action-menu.c:1081
+msgid "Move to Workspace _Left"
+msgstr "ས་སྒོ་གཡོན་ལུ་སྤོ།(_L)"
+
+#: ../libwnck/window-action-menu.c:1087
+msgid "Move to Workspace R_ight"
+msgstr "ལཱ་གི་ས་སྒོ་གཡས་ལུ་སྤོ།(_i)"
+
+#: ../libwnck/window-action-menu.c:1093
+msgid "Move to Workspace _Up"
+msgstr "ལཱ་གི་ས་སྒོ་ལྟགམ་ལུ་སྤོ།(_U)"
+
+#: ../libwnck/window-action-menu.c:1099
+msgid "Move to Workspace _Down"
+msgstr "ལཱ་གི་ས་སྒོ་འོགམ་ལུ་སྤོ།(_D)"
+
+#: ../libwnck/window-action-menu.c:1102
+msgid "Move to Another _Workspace"
+msgstr "ལཱ་གི་ས་སྒོ་གཞན་ལུ་སྤོ།(_W)"
+
+#: ../libwnck/window-action-menu.c:1122
+msgid "_Close"
+msgstr "ཁ་བསྡམས།(_C)"
+
+#. *
+#. * SECTION:window
+#. * @short_description: an object representing a window.
+#. * @see_also: #WnckWorkspace, #WnckApplication, #WnckClassGroup
+#. * @stability: Unstable
+#. *
+#. * The #WnckWindow objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/window.c:50
+msgid "Untitled window"
+msgstr "མགོ་མིང་མ་བཏགས་པའི་སྒོ་སྒྲིག་ "
+
+#: ../libwnck/wnckprop.c:139
+msgid "X window ID of the window to examine or modify"
+msgstr "བརྟག་དཔྱད་ ཡང་ན་  ལེགས་བཅོས་ འབད་ནིའི་དོན་ལུ་ ཝིན་ཌོ་གི་ ཨེགསི་ ཝིན་ཌོ་ ཨའི་ཌི"
+
+#: ../libwnck/wnckprop.c:139
+#: ../libwnck/wnckprop.c:145
+#: ../libwnck/wnckprop.c:154
+msgid "XID"
+msgstr "ཨེགསི་ཨའི་ཌི་ "
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one window
+#. * has some information about the application (like the application name).
+#: ../libwnck/wnckprop.c:144
+msgid "X window ID of the group leader of an application to examine"
+msgstr "བརྟག་དཔྱད་འབད་ནིའི་ གློག་རིམ་གྱི་ སྡེ་ཚན་འགོ་ཁྲིད་པའི་ ཨེགསི་ ཝིན་ཌོ་ ཨའི་ཌི་ "
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:148
+msgid "Class resource of the class group to examine"
+msgstr "བརྟག་དཔྱད་འབད་ནིའི་ དབྱེ་རིགས་སྡེ་ཚན་གྱི་ དབྱེ་རིགས་ ཐོན་ཁུངས་ "
+
+#: ../libwnck/wnckprop.c:148
+msgid "CLASS"
+msgstr "དབྱེ་རིགས་ "
+
+#: ../libwnck/wnckprop.c:150
+msgid "NUMBER of the workspace to examine or modify"
+msgstr "བརྟག་དཔྱད་ ཡང་ན་ ལེགས་བཅོས་འབད་ནིའི་ ལཱ་གི་ས་སྒོ་གི་ གྱངས་ཁ་ "
+
+#: ../libwnck/wnckprop.c:150
+#: ../libwnck/wnckprop.c:152
+#: ../libwnck/wnckprop.c:169
+#: ../libwnck/wnckprop.c:171
+#: ../libwnck/wnckprop.c:173
+#: ../libwnck/wnckprop.c:262
+msgid "NUMBER"
+msgstr "ཨང་ "
+
+#: ../libwnck/wnckprop.c:152
+msgid "NUMBER of the screen to examine or modify"
+msgstr "བརྟག་དཔྱད་ ཡང་ན་ ལེགས་བཅོས་འབད་ནིའི་ གསལ་གཞིའི་ གྱངས་ཁ་ "
+
+#: ../libwnck/wnckprop.c:154
+msgid "Alias of --window"
+msgstr "ཝིན་ཌེ་གི་མིང་གཞན་ "
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:161
+msgid "List windows of the application/class group/workspace/screen (output format: \"XID: Window Name\")"
+msgstr "གློག་རིམ་/དབྱེ་རིགས་/ལཱ་གི་ས་སྒོ་/གསལ་གཞིའི་ ཐོ་ཡིག་ (output format: \"XID: Window Name\")"
+
+#: ../libwnck/wnckprop.c:163
+msgid "List workspaces of the screen (output format: \"Number: Workspace Name\")"
+msgstr "གསལ་གཞི་གི་ ལཱ་གི་ས་སྒོའི་ ཐོ་ཡིག་  (output format: \"Number: Workspace Name\")"
+
+#: ../libwnck/wnckprop.c:169
+msgid "Change the number of workspaces of the screen to NUMBER"
+msgstr "གསལ་གཞིའི་ ལཱ་གི་ས་སྒོའི་གྱངས་ཁ་དེ་ NUMBER ལུ་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:171
+msgid "Change the workspace layout of the screen to use NUMBER rows"
+msgstr "NUMBER གྲལ་ཐིག་ལག་ལེན་འཐབ་ནིའི་དོན་ལུ་ གསལ་གཞིའི་ ལཱ་གི་ས་སྒོའི་སྒྲིག་བཀོད་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:173
+msgid "Change the workspace layout of the screen to use NUMBER columns"
+msgstr "NUMBER ཀེར་ཐིག་ ལག་ལེན་འཐབ་ནིའི་དོན་ལུ་ གསལ་གཞིའི་ ལཱ་གི་ས་སྒོའི་སྒྲིག་བཀོད་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:175
+msgid "Show the desktop"
+msgstr "ཌེཀསི་ཊོཔ་ སྟོན་ "
+
+#: ../libwnck/wnckprop.c:177
+msgid "Stop showing the desktop"
+msgstr "ཌེཀསི་ཊོབ་ སྟོན་ནི་བཀག་བཞག་ "
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:181
+msgid "Move the viewport of the current workspace to X coordinate X"
+msgstr "ད་ལྟོའི་ལཱ་གི་ས་སྒོ་གི་ མཐོང་སྣང་མཐུད་ལམ་དེ་ X coordinate X ལུ་ སྤོ་བཤུད་འབད་ "
+
+#: ../libwnck/wnckprop.c:181
+#: ../libwnck/wnckprop.c:264
+msgid "X"
+msgstr "ཨེགསི་ "
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:185
+msgid "Move the viewport of the current workspace to Y coordinate Y"
+msgstr "ད་ལྟོའི་ལཱ་གི་ས་སྒོ་གི་ མཐོང་སྣང་མཐུད་ལམ་དེ་ Y coordinate Y ལུ་ སྤོ་བཤུད་འབད་ "
+
+#: ../libwnck/wnckprop.c:185
+#: ../libwnck/wnckprop.c:266
+msgid "Y"
+msgstr "ཝའི་ "
+
+#: ../libwnck/wnckprop.c:191
+msgid "Minimize the window"
+msgstr "ཝིན་ཌོ་ ཆུང་ཀུ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:193
+msgid "Unminimize the window"
+msgstr "ཝིན་ཌོ་ ཆུང་ཀུ་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:195
+msgid "Maximize the window"
+msgstr "ཝིན་ཌོ་ སྦོམ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:197
+msgid "Unmaximize the window"
+msgstr "ཝིན་ཌོ་ སྦོབ་མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:199
+msgid "Maximize horizontally the window"
+msgstr "ཝིན་ཌོ་ ཐད་སྙོམས་སྦེ་ སྦོམ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:201
+msgid "Unmaximize horizontally the window"
+msgstr "ཝིན་ཌོ་ ཐད་སྙོམས་སྦེ་ སྦོམ་མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:203
+msgid "Maximize vertically the window"
+msgstr "ཝིན་ཌོ་ ཀེར་ཕྲང་སྦེ་ སྦོམ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:205
+msgid "Unmaximize vertically the window"
+msgstr "ཝིན་ཌོ་ ཀེར་འཕྲང་སྦེ་ སྦོམ་མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:207
+msgid "Start moving the window via the keyboard"
+msgstr "ཝིན་ཌོ་ ལྡེ་སྒྲོམ་བརྒྱདུ་དེ་ སྤོ་བཤུད་འབད་ནི་འགོ་བཙུགས་ "
+
+#: ../libwnck/wnckprop.c:209
+msgid "Start resizing the window via the keyboard"
+msgstr "ཝིན་ཌོ་ ལྡེ་སྒྲོམ་བརྒྱུད་དེ་ ཚད་བསྐྱར་བཟོ་འབད་ནི་ འགོ་བཙུགས་ "
+
+#: ../libwnck/wnckprop.c:211
+msgid "Activate the window"
+msgstr "ཝིན་ཌོ་ ཤུགས་ལྡན་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:213
+msgid "Close the window"
+msgstr "ཝིན་ཌོ་ཁ་བསྡམས་ "
+
+#: ../libwnck/wnckprop.c:216
+msgid "Make the window fullscreen"
+msgstr "ཝིན་ཌོ་ གསལ་གཞི་གངམ་ བཟོ་ "
+
+#: ../libwnck/wnckprop.c:218
+msgid "Make the window quit fullscreen mode"
+msgstr "ཝིན་དོ་  གསལ་གཞི་གངམ་ ཐབས་ལམ་ སྤང་བཅུག་ "
+
+#: ../libwnck/wnckprop.c:220
+msgid "Make the window always on top"
+msgstr "ཝིན་ཌོ་དེ་ ཨ་རྟག་རང་ རྟག་ལུ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:222
+msgid "Make the window not always on top"
+msgstr "ཝིན་ཌོ་ ཨ་རྟག་རང་ རྟག་ལུ་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:224
+msgid "Make the window below other windows"
+msgstr "ཝིན་ཌོ་དེ་ ཝིན་ཌོ་ གཞན་ཚུ་གི་འོག་ལུ་ བཟོ་ "
+
+#: ../libwnck/wnckprop.c:226
+msgid "Make the window not below other windows"
+msgstr "ཝིན་ཌོ་དེ་ ཝིན་ཌོ་གཞན་ཚུ་གི་འོག་ལུ་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:228
+msgid "Shade the window"
+msgstr "ཝིན་ཌོ་ ནག་སྒྲིབ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:230
+msgid "Unshade the window"
+msgstr "ཝིན་ཌོ་ ནག་གྲིབ་བཤོལ་ "
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:234
+msgid "Make the window have a fixed position in the viewport"
+msgstr "མཐོང་སྣང་མཐུད་ལམ་ནང་ ཝིན་ཌོ་ལུ་ གནས་ས་ བརྟན་ཏོག་ཏོ་ ཡོདཔ་སྦེ་བཟོ་ "
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:238
+msgid "Make the window not have a fixed position in the viewport"
+msgstr "མཐོང་སྣང་མཐུད་ལམ་ནང་ ཝིན་ཌོ་ལུ་ གནས་ས་ བརྟན་ཏོག་ཏོ་ མེདཔ་སྦེ་བཟོ་ "
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:244
+msgid "Make the window not appear in pagers"
+msgstr "ཝིན་ཌོ་ བརྡ་འཕྲུལ་ཚུ་ནང་མ་ཐོནམ་སྦེ་ བཟོ་ "
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:250
+msgid "Make the window appear in pagers"
+msgstr "ཝིན་དོ་ བརྡ་འཕྲུལ་ཚུ་ནང་ ཐོན་བཏུབ་སྦེ་བཟོ་ "
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:253
+msgid "Make the window not appear in tasklists"
+msgstr "ཝིན་དོ་ ལས་ཀའི་ཐོ་ཡིག་ནང་ ཐོན་མ་བཏུབ་སྦེ་ བཟོ་ "
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:256
+msgid "Make the window appear in tasklists"
+msgstr "ཝིན་དོ་ ལས་ཀའི་ཐོ་ཡིག་ནང་ཐོན་བཏུབ་སྦེ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:258
+msgid "Make the window visible on all workspaces"
+msgstr "ལཱ་གི་ས་སྒོ་ག་ར་ནང་ ཝིན་ཌོ་ མཐོང་ཚུགསཔ་ བཟོ་ "
+
+#: ../libwnck/wnckprop.c:260
+msgid "Make the window visible on the current workspace only"
+msgstr "ཝིན་ཌོ་དེ་ ད་ལྟོའི་ལཱ་གི་ས་སྒོ་ནང་རྐྱངམ་ཅིག་ མཐོང་ཚུགསཔ་སྦེ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:262
+msgid "Move the window to workspace NUMBER (first workspace is 0)"
+msgstr "ཝིན་ཌོ་ ལཱ་གི་་ས་སྒོ་ NUMBER ལུ་ སྤོ་བཤུད་འབད་  (ལཱ་གི་ས་སྒོ་དང་པ་དེ་ ༠ ཨིན)"
+
+#: ../libwnck/wnckprop.c:264
+msgid "Change the X coordinate of the window to X"
+msgstr "ཝིན་ཌོ་གི་ X coordinate དེ་ X ལུ་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:266
+msgid "Change the Y coordinate of the window to Y"
+msgstr "ཝིན་ཌོ་གི་ Y coordinate དེ་  Y ལུ་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:268
+msgid "Change the width of the window to WIDTH"
+msgstr "ཝིན་ཌོ་གི་ width དེ་   WIDTH ལུ་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:268
+msgid "WIDTH"
+msgstr "རྒྱ་ཚད་ "
+
+#: ../libwnck/wnckprop.c:270
+msgid "Change the height of the window to HEIGHT"
+msgstr "ཝིན་ཌོ་གི་ height དེ་ HEIGHT ལུ་བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:270
+msgid "HEIGHT"
+msgstr "མཐོ་ཚད་ "
+
+#. Translators: do not translate "normal, desktop, dock..."
+#: ../libwnck/wnckprop.c:273
+msgid "Change the type of the window to TYPE (valid values: normal, desktop, dock, dialog, toolbar, menu, utility, splash)"
+msgstr "ཝིན་ཌོ་གི་ type དེ་ TYPE ལུ་ བསྒྱུར་བཅོས་འབད་ (valid values: normal, desktop, dock, dialog, toolbar, menu, utility, splash)"
+
+#: ../libwnck/wnckprop.c:273
+msgid "TYPE"
+msgstr "དབྱེ་བ་ "
+
+#: ../libwnck/wnckprop.c:279
+msgid "Change the name of the workspace to NAME"
+msgstr "ལཱ་གི་ས་སྒོ་གི་ name དེ་ NAME ལུ་བསྒཡུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:279
+msgid "NAME"
+msgstr "མིང་ "
+
+#: ../libwnck/wnckprop.c:281
+msgid "Activate the workspace"
+msgstr "ལཱ་གི་ས་སྒོ་ ཤུགས་ལྡན་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:373
+#: ../libwnck/wnckprop.c:397
+#: ../libwnck/wnckprop.c:433
+#: ../libwnck/wnckprop.c:456
+#, c-format
+msgid "Invalid value \"%s\" for --%s"
+msgstr "ནུས་མེད་ བེ་ལུ་  \"%s\" for --%s"
+
+#: ../libwnck/wnckprop.c:490
+#: ../libwnck/wnckprop.c:509
+#, c-format
+msgid "Conflicting options are present: screen %d should be interacted with, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་ : གསལ་གཞི་ %d ཕན་ཚུན་འབྲེལ་བ་འཐབ་དགོཔ་ཨིན་རུང་  -%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#: ../libwnck/wnckprop.c:499
+#, c-format
+msgid "Conflicting options are present: windows or workspaces of screen %d should be listed, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: སྒོ་སྒྲིག་ ཡང་ན་ གསལ་གཞིའི་ལཱ་གི་ས་སྒོ་ %d དེ་ ཐོ་བཀོད་འབད་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#: ../libwnck/wnckprop.c:522
+#: ../libwnck/wnckprop.c:542
+#, c-format
+msgid "Conflicting options are present: workspace %d should be interacted with, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: ལཱ་གི་ས་སྒོ་ %d ཕན་ཚུན་འབྲེལ་བ་འཐབ་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#: ../libwnck/wnckprop.c:532
+#, c-format
+msgid "Conflicting options are present: windows of workspace %d should be listed, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: ལཱ་གི་ས་སྒོ་ %d གི་ སྒོ་སྒྲིག་ ཐོ་བཀོད་འབད་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་\n"
+
+#: ../libwnck/wnckprop.c:554
+#, c-format
+msgid "Conflicting options are present: an application should be interacted with, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: གློག་རིམ་ཅིག་ ཕན་ཚུན་འབྲེལ་བ་འཐབ་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#: ../libwnck/wnckprop.c:564
+#, c-format
+msgid "Conflicting options are present: windows of an application should be listed, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་ : གློག་རིམ་ཅིག་གི་ སྒོ་སྒྲིག་ཐོ་བཀོད་འབད་དགོཔ་ཨིན་རུང་ -%s ལག་ལེན་འཐབ་དེ་འདུག་\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:577
+#, c-format
+msgid "Conflicting options are present: class group \"%s\" should be interacted with, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག: དབྱེ་རིགས་སྡེ་ཚན་ \"%s\" ཕན་ཚུན་འབྲེལབ་འཐབ་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:588
+#, c-format
+msgid "Conflicting options are present: windows of class group \"%s\" should be listed, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: དབྱེ་རིགས་སྡེ་ཚན་ \"%s\" གི་ སྒོ་སྒྲིག་ཐོ་བཀོད་འབད་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག\n"
+
+#: ../libwnck/wnckprop.c:600
+#: ../libwnck/wnckprop.c:609
+#, c-format
+msgid "Conflicting options are present: a window should be interacted with, but --%s has been used\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་: ཝིན་ཌོ་ཅིག་ ཕན་ཚུན་འབྲེལ་བ་འཐབ་དགོཔ་ཨིན་རུང་ --%s ལག་ལེན་འཐབ་དེ་འདུག་ \n"
+
+#: ../libwnck/wnckprop.c:628
+#: ../libwnck/wnckprop.c:709
+#: ../libwnck/wnckprop.c:756
+#, c-format
+msgid "Conflicting options are present: --%s and --%s\n"
+msgstr "མི་མཐུན་པའི་གདམ་ཁ་ཚུ་འདུག་ : --%s དང་ --%s\n"
+
+#: ../libwnck/wnckprop.c:667
+#, c-format
+msgid "Invalid argument \"%d\" for --%s: the argument must be strictly positive\n"
+msgstr "ནུས་མེད་ སྒྲུབ་རྟགས་ \"%d\" དེ་ --%s གི་དོན་ལུ་  : སྒྲུབ་རྟགས་ དེ་ ཡོད་ཆ་སྦེ་ དགོ་ \n"
+
+#: ../libwnck/wnckprop.c:680
+#, c-format
+msgid "Invalid argument \"%d\" for --%s: the argument must be positive\n"
+msgstr "ནུས་མེད་ སྒྲུབ་རྟགས་ \"%d\" དེ་ --%s གི་དོན་ལུ་ :  སྒྲུབ་རྟགས་དེ་ ཡོད་ཆ་སྦེ་དགོ་\n"
+
+#: ../libwnck/wnckprop.c:775
+#, c-format
+msgid "Conflicting options are present: --%s or --%s, and --%s\n"
+msgstr "མི་མཐུན་པའི་ གདམ་ཁ་ཚུ་འདུག་ : --%s or --%s, and --%s\n"
+
+#: ../libwnck/wnckprop.c:807
+#, c-format
+msgid "Invalid argument \"%s\" for --%s, valid values are: %s\n"
+msgstr "ནུས་མེད་ སྒྲུབ་རྟགས་ \"%s\"  དེ   --%s གི་ དོན་ལུ་ ནུས་ཅན་གྱི་ བེ་ལུ་ཚུ་་ : %s ཨིན་\n"
+
+#: ../libwnck/wnckprop.c:850
+#, c-format
+msgid "Cannot change the workspace layout on the screen: the layout is already owned\n"
+msgstr "གསལ་གཞི་གུ་ ལཱ་གི་ས་སྒོའི་སྒྲིག་བཀོད་ བསྒྱུར་བཅོས་འབད་མི་བཏུབ་   སྒྲིག་བཀོད་དེ་ ཧེ་མ་ལས་རང་ བདག་བཟུང་འབད་དེ་འདུག་ \n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:884
+#, c-format
+msgid "Viewport cannot be moved: the current workspace does not contain a viewport\n"
+msgstr "མཐོང་སྣང་མཐུད་ལམ་ སྤོ་བཤུད་འབད་མི་བཏུབ་   ད་ལྟོའི་ ལཱ་གི་ས་སྒོ་ནང་ མཐོང་སྣང་མཐུད་ལམ་མིན་ནུག་\n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:890
+#, c-format
+msgid "Viewport cannot be moved: there is no current workspace\n"
+msgstr "མཐོང་སྣང་མཐུད་ལམ་ སྤོ་བཤུད་འབད་མི་བཏུབ་   ད་ལྟོའི་ ལཱ་གི་ས་སྒོ་མིན་ནུག་ \n"
+
+#. FIXME: why do we have dual & boolean API. This is not consistent!
+#: ../libwnck/wnckprop.c:926
+#: ../libwnck/wnckprop.c:935
+#: ../libwnck/wnckprop.c:944
+#: ../libwnck/wnckprop.c:951
+#: ../libwnck/wnckprop.c:961
+#: ../libwnck/wnckprop.c:968
+#: ../libwnck/wnckprop.c:977
+#: ../libwnck/wnckprop.c:1026
+#, c-format
+msgid "Action not allowed\n"
+msgstr "བྱ་བ་ མི་ཆོག་ \n"
+
+#: ../libwnck/wnckprop.c:1022
+#, c-format
+msgid "Window cannot be moved to workspace %d: the workspace does not exist\n"
+msgstr "ཝིན་ཌོ་ ལཱ་གི་ས་སྒོ་ %d ནང་ སྤོ་བཤུད་འབད་མི་བཏུབ་  ལཱ་གི་ས་སྒོ་དེ་ མིན་ནུག་ \n"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1086
+#: ../libwnck/wnckprop.c:1218
+msgid "<name unset>"
+msgstr "<name unset>"
+
+#. Translators: %lu is a window number and %s a window name
+#: ../libwnck/wnckprop.c:1089
+#, c-format
+msgid "%lu: %s\n"
+msgstr "%lu: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1109
+#, c-format
+msgid "%d: %s\n"
+msgstr "%d: %s\n"
+
+#: ../libwnck/wnckprop.c:1172
+#, c-format
+msgid "Screen Number: %d\n"
+msgstr "གསལ་གཞིའི་ ཨང་གྲངས་: %d\n"
+
+#: ../libwnck/wnckprop.c:1174
+#: ../libwnck/wnckprop.c:1255
+#, c-format
+msgid "Geometry (width, height): %d, %d\n"
+msgstr "ཐིག་རྩིས་  (རྒྱ་ཚད་  མཐོ་ཚད་): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1178
+#, c-format
+msgid "Number of Workspaces: %d\n"
+msgstr "ལཱ་གི་ས་སྒོ་ཚུ་ : %d\n"
+
+#: ../libwnck/wnckprop.c:1184
+#, c-format
+msgid "Workspace Layout (rows, columns, orientation): %d, %d, %s\n"
+msgstr "ལཱ་གི་ས་སྒོའི་ སྒྲིག་བཀོད་(གྲལ་ཐིག་ ཀེར་ཐིག་ ཕྱོགས་): %d, %d, %s\n"
+
+#: ../libwnck/wnckprop.c:1194
+#: ../libwnck/wnckprop.c:1251
+#: ../libwnck/wnckprop.c:1443
+msgid "<no EWMH-compliant window manager>"
+msgstr "<no EWMH-compliant window manager>"
+
+#: ../libwnck/wnckprop.c:1195
+#, c-format
+msgid "Window Manager: %s\n"
+msgstr "ཝིན་ཌོ་ འཛིན་སྐྱོང་པ་ : %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1200
+#: ../libwnck/wnckprop.c:1279
+#: ../libwnck/wnckprop.c:1291
+#: ../libwnck/wnckprop.c:1303
+#: ../libwnck/wnckprop.c:1315
+#: ../libwnck/wnckprop.c:1428
+#, c-format
+msgid "%d (\"%s\")"
+msgstr "%d (\"%s\")"
+
+#. Translators: "none" here means "no workspace"
+#: ../libwnck/wnckprop.c:1205
+#: ../libwnck/wnckprop.c:1284
+#: ../libwnck/wnckprop.c:1296
+#: ../libwnck/wnckprop.c:1308
+#: ../libwnck/wnckprop.c:1320
+#: ../libwnck/wnckprop.c:1435
+msgid "workspace|none"
+msgstr "ལཱ་གི་ས་སྒོ་/ ཅི་མེད་ "
+
+#: ../libwnck/wnckprop.c:1206
+#, c-format
+msgid "Active Workspace: %s\n"
+msgstr "ལཱ་གི་ས་སྒོ་ ཤུགས་ལྡན་: %s\n"
+
+#: ../libwnck/wnckprop.c:1215
+#, c-format
+msgid "\"%s\""
+msgstr "\"%s\""
+
+#. Translators: %lu is a window number and %s a window name
+#: ../libwnck/wnckprop.c:1221
+#, c-format
+msgid "%lu (%s)"
+msgstr "%lu (%s)"
+
+#. Translators: "none" here means "no window"
+#: ../libwnck/wnckprop.c:1227
+msgid "window|none"
+msgstr "ཝིན་ཌོ་|ཅི་མེད་"
+
+#: ../libwnck/wnckprop.c:1228
+#, c-format
+msgid "Active Window: %s\n"
+msgstr "ཝིན་ཌོ་ ཤུགས་ལྡན་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1231
+#, c-format
+msgid "Showing the desktop: %s\n"
+msgstr "ཌེཀསི་ཊོཔ་སྟོན་དོ་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1233
+msgid "true"
+msgstr "བདེན་པ་ "
+
+#: ../libwnck/wnckprop.c:1233
+msgid "false"
+msgstr "རྫུན་མ་ "
+
+#: ../libwnck/wnckprop.c:1244
+#, c-format
+msgid "Workspace Name: %s\n"
+msgstr "ལཱ་གི་ས་སྒོ་གི་མིང་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1245
+#, c-format
+msgid "Workspace Number: %d\n"
+msgstr "ལཱ་གི་ས་སྒོ་ ཨང་ : %d\n"
+
+#: ../libwnck/wnckprop.c:1252
+#: ../libwnck/wnckprop.c:1444
+#, c-format
+msgid "On Screen: %d (Window Manager: %s)\n"
+msgstr "གསལ་གཞི་ གུ་ : %d (ཝིན་ཌོ་ འཛིན་སྐྱོང་པ་ : %s)\n"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:1266
+msgid "<no viewport>"
+msgstr "<no viewport>"
+
+#. Translators: 'viewport' is kind of the viewable area. a viewport can be used to implement
+#. a workspace (e.g. compiz is an example); however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:1269
+#, c-format
+msgid "Viewport position (x, y): %s\n"
+msgstr "མཐོང་སྣང་མཐུད་ལམ་ གནས་ས་  (x, y): %s\n"
+
+#: ../libwnck/wnckprop.c:1272
+#, c-format
+msgid "Position in Layout (row, column): %d, %d\n"
+msgstr "སྒྲིག་བཀོད་ ནང་ གནས་ས་ (གྲལ་ཐིག་  ཀེར་ཐིག་): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1285
+#, c-format
+msgid "Left Neighbor: %s\n"
+msgstr "གཡོན་གྱི་ ཁྱིམ་མཚེས་: %s\n"
+
+#: ../libwnck/wnckprop.c:1297
+#, c-format
+msgid "Right Neighbor: %s\n"
+msgstr "གཡས་ཀྱི་ ཁྱིམ་མཚེས་: %s\n"
+
+#: ../libwnck/wnckprop.c:1309
+#, c-format
+msgid "Top Neighbor: %s\n"
+msgstr "ལྟག་གི་ཁྱིམ་མཚེས་: %s\n"
+
+#: ../libwnck/wnckprop.c:1321
+#, c-format
+msgid "Bottom Neighbor: %s\n"
+msgstr "མཇུག་གི་ཁྱིམ་མཚེས་: %s\n"
+
+#. Translators: Ressource class is the name to identify a class.
+#: ../libwnck/wnckprop.c:1333
+#, c-format
+msgid "Resource Class: %s\n"
+msgstr "ཐོན་ཁུངས་ དབྱེ་རིགས: %s\n"
+
+#: ../libwnck/wnckprop.c:1335
+#, c-format
+msgid "Group Name: %s\n"
+msgstr "སྡེ་ཚན་གྱི་མིང་ : %s\n"
+
+#. Translators: 'set' in the sense of "something has been set".
+#: ../libwnck/wnckprop.c:1341
+#: ../libwnck/wnckprop.c:1365
+#: ../libwnck/wnckprop.c:1419
+msgid "set"
+msgstr "ཆ་ཚན་ "
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1344
+#: ../libwnck/wnckprop.c:1368
+#: ../libwnck/wnckprop.c:1375
+#: ../libwnck/wnckprop.c:1405
+#: ../libwnck/wnckprop.c:1412
+#: ../libwnck/wnckprop.c:1422
+#: ../libwnck/wnckprop.c:1487
+#: ../libwnck/wnckprop.c:1497
+#: ../libwnck/wnckprop.c:1505
+msgid "<unset>"
+msgstr "<unset>"
+
+#: ../libwnck/wnckprop.c:1345
+#: ../libwnck/wnckprop.c:1369
+#: ../libwnck/wnckprop.c:1423
+#, c-format
+msgid "Icons: %s\n"
+msgstr "ངོས་དཔར་ཚུ་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1348
+#: ../libwnck/wnckprop.c:1386
+#, c-format
+msgid "Number of Windows: %d\n"
+msgstr "སྒོ་སྒྲིག་གི་ གྱངས་ཁ་ : %d\n"
+
+#: ../libwnck/wnckprop.c:1360
+#: ../libwnck/wnckprop.c:1406
+#, c-format
+msgid "Name: %s\n"
+msgstr "མིང་ : %s\n"
+
+#. Translators: note that "Icon" here has a specific window
+#. * management-related meaning. It means minimized.
+#: ../libwnck/wnckprop.c:1361
+#: ../libwnck/wnckprop.c:1415
+#, c-format
+msgid "Icon Name: %s\n"
+msgstr "ངོས་དཔར་མིང་: %s\n"
+
+#: ../libwnck/wnckprop.c:1376
+#: ../libwnck/wnckprop.c:1498
+#, c-format
+msgid "PID: %s\n"
+msgstr "པི་ཨའི་ཌི་: %s\n"
+
+#. Translators: "none" here means "no startup ID"
+#: ../libwnck/wnckprop.c:1383
+msgid "startupID|none"
+msgstr "འགོ་བཙུགས་ ཨའི་ཌི/ཅི་མེད་ "
+
+#: ../libwnck/wnckprop.c:1384
+#, c-format
+msgid "Startup ID: %s\n"
+msgstr "འགོ་བཙུགས་ ཨའི་ཌི་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1432
+msgid "all workspaces"
+msgstr "ལཱ་གི་ས་སྒོ་ ག་ར་ "
+
+#: ../libwnck/wnckprop.c:1436
+#, c-format
+msgid "On Workspace: %s\n"
+msgstr "ལཱ་གི་ས་སྒོ་ : %s གུ་ \n"
+
+#: ../libwnck/wnckprop.c:1451
+msgid "normal window"
+msgstr "སྤྱིར་གཏང་ ཝིན་ཌོ་ "
+
+#: ../libwnck/wnckprop.c:1454
+msgid "desktop"
+msgstr "ཌེཀསི་ཊོཔ་ "
+
+#: ../libwnck/wnckprop.c:1457
+msgid "dock or panel"
+msgstr "ཌོཀ་ ཡང་ན་ པེ་ནཱལ་ "
+
+#: ../libwnck/wnckprop.c:1460
+msgid "dialog window"
+msgstr "ཌའི་ལོག་ ཝིན་ཌོ་ "
+
+#: ../libwnck/wnckprop.c:1463
+msgid "tearoff toolbar"
+msgstr "འཕྲལ་གཏང་ ལག་ཆས་ཕྲ་རིང་ "
+
+#: ../libwnck/wnckprop.c:1466
+msgid "tearoff menu"
+msgstr "འཕྲལ་གཏང་ དཀར་ཆག་ "
+
+#: ../libwnck/wnckprop.c:1469
+msgid "utility window"
+msgstr "སྤྱོད་ཆས་ ཝིན་ཌོ་ "
+
+#: ../libwnck/wnckprop.c:1472
+msgid "splash screen"
+msgstr "སིཔེལེཤ་ གསལ་གཞི་ "
+
+#: ../libwnck/wnckprop.c:1477
+#, c-format
+msgid "Window Type: %s\n"
+msgstr "ཝིན་ཌོ་ དབྱེ་བ་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1480
+#, c-format
+msgid "Geometry (x, y, width, height): %d, %d, %d, %d\n"
+msgstr "ཐིག་རྩིས་ (x, y, རྒྱ་ཚད་  མཐོ་ཚད་): %d, %d, %d, %d\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:1489
+#, c-format
+msgid "Class Group: %s\n"
+msgstr "དབྱེ་རིགས་སྡེ་ཚན་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1491
+#, c-format
+msgid "XID: %lu\n"
+msgstr "ཨེགསི་ཨའི་ཌི་ : %lu\n"
+
+#: ../libwnck/wnckprop.c:1506
+#, c-format
+msgid "Session ID: %s\n"
+msgstr "ལཱ་ཡུན་ ཨའི་ཌི་ : %s\n"
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one window
+#. * has some information about the application (like the application name).
+#: ../libwnck/wnckprop.c:1512
+#, c-format
+msgid "Group Leader: %lu\n"
+msgstr "སྡེ་ཚན་ འགོ་ཁྲིད་པ་ : %lu\n"
+
+#. Translators: A window can be transient for another window: it means it's on top of it
+#: ../libwnck/wnckprop.c:1517
+#, c-format
+msgid "Transient for: %lu\n"
+msgstr "གི་དོན་ལུ་ ཊཱན་སི་ཡེནཊི་:%lu\n"
+
+#. FIXME: else print something?
+#. Translators: we're building a list of items here.             * For example, the result is "a, b".                            * In this case, the first string is "a", the second             * string is ", " and the third string is "b".                   * We can then use this information here to also                 * recursively build longer lists, like "a, b, c, d"
+#. Translators: we're building a list of items here.             * The end result is something like "a, b, c"                    * In this case, the first string is "a, b", the second          * string is ", " and the third string is "c"
+#: ../libwnck/wnckprop.c:1532
+#: ../libwnck/wnckprop.c:1579
+#, c-format
+msgid "%1$s%2$s%3$s"
+msgstr "%1$s%2$s%3$s"
+
+#. Translators: see comment for "%1$s%2$s%3$s" in order          * to properly translate this
+#: ../libwnck/wnckprop.c:1536
+#: ../libwnck/wnckprop.c:1581
+msgid ", "
+msgstr ", "
+
+#: ../libwnck/wnckprop.c:1542
+msgid "minimized"
+msgstr "ཆུང་བཟོ་ཡོདཔ་ "
+
+#: ../libwnck/wnckprop.c:1543
+msgid "maximized"
+msgstr "སྦོམ་བཟོ་ཡོདཔ་ "
+
+#: ../libwnck/wnckprop.c:1547
+msgid "maximized horizontally"
+msgstr "ཐད་སྙོམས་སྦེ་ སྦོམ་བཟོ་ཡོདཔ་ "
+
+#: ../libwnck/wnckprop.c:1549
+msgid "maximized vertically"
+msgstr "ཀེར་ཕྲང་སྦེ་ སྦོམ་བཟོ་ཡོདཔ་ "
+
+#: ../libwnck/wnckprop.c:1551
+msgid "shaded"
+msgstr "ནག་གྲིབ་བཟོ་ཡོདཔ་ "
+
+#: ../libwnck/wnckprop.c:1552
+msgid "pinned"
+msgstr "བརྡབ་ཡོདཔ་"
+
+#: ../libwnck/wnckprop.c:1553
+msgid "sticky"
+msgstr "རྩི་ཅན་ "
+
+#: ../libwnck/wnckprop.c:1554
+msgid "above"
+msgstr "ལྟག་ལུ་ "
+
+#: ../libwnck/wnckprop.c:1555
+msgid "below"
+msgstr "འོག་ལུ་ "
+
+#: ../libwnck/wnckprop.c:1556
+msgid "fullscreen"
+msgstr "གསལ་གཞི་གངམ་ "
+
+#: ../libwnck/wnckprop.c:1557
+msgid "needs attention"
+msgstr "དྲན་བཏོན་ དགོ་པས་ "
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:1562
+msgid "skip pager"
+msgstr "བརྡ་འཕྲུལ་ གོམ་འགྱོ་ "
+
+#. Translators: "tasklist" is the list of running applications (the window list)
+#: ../libwnck/wnckprop.c:1564
+msgid "skip tasklist"
+msgstr "ལས་ཀའི་ ཐོ་ཡིག་ གོམ་འགྱོ་ "
+
+#: ../libwnck/wnckprop.c:1566
+msgid "normal"
+msgstr "སྤྱིར་བཏང་ "
+
+#: ../libwnck/wnckprop.c:1567
+#, c-format
+msgid "State: %s\n"
+msgstr "གནས་ལུགས་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1588
+msgid "move"
+msgstr "སྤོ་"
+
+#: ../libwnck/wnckprop.c:1589
+msgid "resize"
+msgstr "ཚད་སླར་སྒྲིག་"
+
+#: ../libwnck/wnckprop.c:1590
+msgid "shade"
+msgstr "ནག་གྲིབ་ "
+
+#: ../libwnck/wnckprop.c:1591
+msgid "unshade"
+msgstr "ནག་གྲིབ་བཤོལ་ "
+
+#: ../libwnck/wnckprop.c:1592
+msgid "stick"
+msgstr "སྦྱར་ "
+
+#: ../libwnck/wnckprop.c:1593
+msgid "unstick"
+msgstr "དཔོག་ "
+
+#: ../libwnck/wnckprop.c:1595
+msgid "maximize horizontally"
+msgstr "ཐད་སྙོམས་སྦེ་ སྦོབ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1597
+msgid "unmaximize horizontally"
+msgstr "ཐད་སྙོམས་སྦེ་ སྦོམ་མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1599
+msgid "maximize vertically"
+msgstr "ཀེར་ཕྲང་སྦེ་ སྦོམ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1601
+msgid "unmaximize vertically"
+msgstr "ཀེར་ཕྲང་སྦེ་ སྦོབ་མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1604
+msgid "change workspace"
+msgstr "ལཱ་གི་ས་སྒོ་ བསྒྱུར་བཅོས་ འབད་ "
+
+#: ../libwnck/wnckprop.c:1606
+msgid "pin"
+msgstr "བརྡབ་ "
+
+#: ../libwnck/wnckprop.c:1608
+msgid "unpin"
+msgstr "མ་བརྡབ་ "
+
+#: ../libwnck/wnckprop.c:1609
+msgid "minimize"
+msgstr "ཆུང་ཀུ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1610
+msgid "unminimize"
+msgstr "ཆུང་ཀུ་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1611
+msgid "maximize"
+msgstr "སྦོམ་བཟོ་"
+
+#: ../libwnck/wnckprop.c:1612
+msgid "unmaximize"
+msgstr "སྦོམ་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1614
+msgid "change fullscreen mode"
+msgstr "གསལ་གཞི་གངམ་ ཐབས་ལམ་ བསྒྱུར་བཅོས་འབད་ "
+
+#: ../libwnck/wnckprop.c:1615
+msgid "close"
+msgstr "ཁ་བསྡམས་"
+
+#: ../libwnck/wnckprop.c:1617
+msgid "make above"
+msgstr "ལྟག་གི་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1619
+msgid "unmake above"
+msgstr "ལྟག་གི་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1621
+msgid "make below"
+msgstr "འོག་གི་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1623
+msgid "unmake below"
+msgstr "འོག་གི་ མ་བཟོ་ "
+
+#: ../libwnck/wnckprop.c:1625
+msgid "no action possible"
+msgstr "བྱ་བ་ ག་ནི་ཡང་ མི་ཆོག་པས་ "
+
+#: ../libwnck/wnckprop.c:1626
+#, c-format
+msgid "Possible Actions: %s\n"
+msgstr "ཆོག་པའི་ བྱ་བ་ཚུ་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1805
+msgid ""
+"Print or modify the properties of a screen/workspace/window, or interact with it, following the EWMH specification.\n"
+"For information about this specification, see:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+msgstr ""
+"གལལ་གཞི་/ལཱ་གི་ས་སྒོ་/ཝིན་ཌོ་/  རྒྱུ་དངོས་ཚུ་ དཔར་བསསྐྲུན་ ཡང་ན་ ལེགས་བཅོས་འབད་    ཡང་ན་ EWMH གསལ་བཀོད་དང་འཁྲུལ་ཏེ་ ཕན་ཚུན་འབྲེལ་བ་འབད། \n"
+"འདི་གི་ བརྡ་དོན་གྱི་དོན་ལུ་ \n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec  བལྟ་ "
+
+#: ../libwnck/wnckprop.c:1815
+msgid "Options to list windows or workspaces"
+msgstr "སྒོ་སྒྲིག་ ཡང་ན་ ལཱ་གི་ས་སྒོ་ཚུ་ཐོ་བཀོད་འབད་ནིའི་དོན་ལས་ གདམ་ཁ་ཚུ་ "
+
+#: ../libwnck/wnckprop.c:1816
+msgid "Show options to list windows or workspaces"
+msgstr "སྒོ་སྒྲིག་ ཡང་ན་ ལཱ་གི་ས་སྒོ་ཚུ་ ཐོ་བཀོད་འབད་ནིའི་དོན་ལུ་ གདམ་ཁ་ཚུ་སྟོན་ "
+
+#: ../libwnck/wnckprop.c:1823
+msgid "Options to modify properties of a window"
+msgstr "ཝིན་ཌོ་གི་ རྒྱུ་དངོས་ཚུ་ ལེགས་བཅོས་འབད་ནིའི་ གདམ་ཁ་ཚུ་ "
+
+#: ../libwnck/wnckprop.c:1824
+msgid "Show options to modify properties of a window"
+msgstr "ཝིན་ཌོ་གི་ རྒྱུ་དངོས་ཚུ་ ལེགས་བཅོས་འབད་ནིའི་དོན་ལས་ གདམ་ཁ་ཚུ་སྟོན་ "
+
+#: ../libwnck/wnckprop.c:1831
+msgid "Options to modify properties of a workspace"
+msgstr "ལཱ་གི་ས་སྒོ་གི་ རྒྱུ་དངོས་ ལེགས་བཅོས་འབད་ནིའི་ གདམ་ཁ་ཚུ་ "
+
+#: ../libwnck/wnckprop.c:1832
+msgid "Show options to modify properties of a workspace"
+msgstr "ལཱ་གི་ས་སྒོའི་ རྒྱུ་དངོས་ཚུ་ ལེགས་བཅོས་འབད་ནིའི་ གདམ་ཁ་ཚུ་སྟོན་ "
+
+#: ../libwnck/wnckprop.c:1839
+msgid "Options to modify properties of a screen"
+msgstr "གསལ་གཞིའི་རྒྱུ་དངོས་ ལེགས་བཅོས་འབད་ནིའི་ གདམ་ཁ་ཚུ་ "
+
+#: ../libwnck/wnckprop.c:1840
+msgid "Show options to modify properties of a screen"
+msgstr "གསལ་གཞིའི་རྒྱུ་དངོས་ ལེགས་བཅོས་འབད་ནིའི་གདམ་ཁ་ཚུ་སྟོན་ "
+
+#: ../libwnck/wnckprop.c:1851
+#, c-format
+msgid "Error while parsing arguments: %s\n"
+msgstr "སྒྲུབ་རྟགས་ཚུ་ མིང་དཔྱད་འབད་བའི་སྐབས་ འཛོལ་བ་ : %s\n"
+
+#: ../libwnck/wnckprop.c:1874
+#, c-format
+msgid "Cannot interact with screen %d: the screen does not exist\n"
+msgstr "གསལ་གཞི་ %d དང་གཅིག་ཁར་ ཕན་ཚུན་འབྲེལ་བ་འབད་མི་ཚུགས་  གསལ་གཞི་དེ་ མི་ཐོབ་\n"
+
+#: ../libwnck/wnckprop.c:1930
+#, c-format
+msgid "Cannot interact with workspace %d: the workspace cannot be found\n"
+msgstr "ལཱ་གི་ས་སྒོ་ %d དང་གཅིག་ཁར་ཕན་ཚུན་འབྲེལ་བ་འབད་མི་ཚུགས་   ལཱ་གི་ས་སྒོ་དེ་ མི་ཐོབ་\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the same class.
+#: ../libwnck/wnckprop.c:1953
+#, c-format
+msgid "Cannot interact with class group \"%s\": the class group cannot be found\n"
+msgstr "དབྱེ་རིགས་སྡེ་ཚན་ \"%s\": དང་གཅིག་ཁར་ ཕན་ཚུན་འབྲེལ་བ་འབད་མི་ཚུགས་  དབྱེ་རིགས་སྡེ་ཚན་དེ་ མི་ཐོབ་\n"
+
+#: ../libwnck/wnckprop.c:1976
+#, c-format
+msgid "Cannot interact with application having its group leader with XID %lu: the application cannot be found\n"
+msgstr "གློག་རིམ་གྱི་སྡེ་ཚན་འཁོ་ཁྲིདཔ་ XID %lu: ཡོད་མི་དང་གཅིག་ཁར་ ཕན་ཚུན་འབྲེལ་བ་འབད་མི་ཚུགས་  གློག་རིམ་དེ་ མི་ཐོབ་ \n"
+
+#: ../libwnck/wnckprop.c:1999
+#, c-format
+msgid "Cannot interact with window with XID %lu: the window cannot be found\n"
+msgstr "XID %lu: ཡོད་མི་ ཝིན་ཌོ་དང་གཅིག་ཁར་ ཕན་ཚུན་འབྲེལ་བ་འབད་མི་ཚུགས་པས་  ཝིན་དོ་དེ་ མི་ཐོབ་\n"
+
+#~ msgid "Unknown Window"
+#~ msgstr "ངོ་མ་ཤེས་པའི་སྒོ་སྒྲིག།"
+#~ msgid "_Unroll"
+#~ msgstr "སྒྲིལ་བཤོལ་འབད།(_U)"
+#~ msgid "Roll _Up"
+#~ msgstr "སྒྲིལ།(_U)"
+

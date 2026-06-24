@@ -1,0 +1,121 @@
+.\" Copyright 1993 X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining
+.\" a copy of this software and associated documentation files (the
+.\" "Software"), to deal in the Software without restriction, including
+.\" without limitation the rights to use, copy, modify, merge, publish,
+.\" distribute, sublicense, and/or sell copies of the Software, and to
+.\" permit persons to whom the Software is furnished to do so, subject to
+.\" the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be
+.\" included in all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.\" EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.\" MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.\" IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR
+.\" OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+.\" ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+.\" OTHER DEALINGS IN THE SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall
+.\" not be used in advertising or otherwise to promote the sale, use or
+.\" other dealings in this Software without prior written authorization
+.\" from the X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtSet-Key-Translator XtTranslate-Keycode XtRegister-Case-Converter
+.hw XtConvert-Case wid-get
+.na
+.TH XtSetKeyTranslator __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtSetKeyTranslator, XtTranslateKeycode, XtRegisterCaseConverter, XtConvertCase \- convert KeySym to KeyCodes
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtSetKeyTranslator(Display *\fIdisplay\fP, XtKeyProc \fIproc\fP);
+.HP
+void XtTranslateKeycode(Display *\fIdisplay\fP, KeyCode \fIkeycode\fP,
+Modifiers \fImodifiers\fP, Modifiers *\fImodifiers_return\fP, KeySym
+*\fIkeysym_return\fP);
+.HP
+void XtRegisterCaseConverter(Display *\fIdisplay\fP, XtCaseProc \fIproc\fP,
+KeySym \fIstart\fP, KeySym \fIstop\fP);
+.HP
+void XtConvertCase(Display *\fIdisplay\fP, KeySym \fIkeysym\fP, KeySym
+*\fIlower_return\fP, KeySym *\fIupper_return\fP);
+.SH ARGUMENTS
+.IP \fIdisplay\fP 1i
+Specifies the display.
+.IP \fIkeycode\fP 1i
+Specifies the KeyCode to translate.
+.IP \fIkeysym\fP 1i
+Specifies the KeySym to convert.
+.IP \fIkeysym_return\fP 1i
+Returns the resulting KeySym.
+.IP \fIlower_return\fP 1i
+Returns the lowercase equivalent of the KeySym.
+.IP \fIupper_return\fP 1i
+Returns the uppercase equivalent of the KeySym.
+.IP \fImodifiers\fP 1i
+Specifies the modifiers to the KeyCode.
+.IP \fImodifiers_return\fP 1i
+Returns a mask that indicates the modifiers actually used
+to generate the KeySym.
+.IP \fIproc\fP 1i
+Specifies the procedure that is to perform key translations or conversions.
+.IP \fIstart\fP 1i
+Specifies the first KeySym for which this converter is valid.
+.IP \fIstop\fP 1i
+Specifies the last KeySym for which this converter is valid.
+.SH DESCRIPTION
+The
+.B XtSetKeyTranslator
+function sets the specified procedure as the current key translator.
+The default translator is
+.BR XtTranslateKey ,
+an
+.B XtKeyProc
+that uses Shift and Lock modifiers with the interpretations defined
+by the core protocol.
+It is provided so that new translators can call it to get default
+KeyCode-to-KeySym translations and so that the default translator
+can be reinstalled.
+.LP
+The
+.B XtTranslateKeycode
+function passes the specified arguments
+directly to the currently registered KeyCode to KeySym translator.
+.LP
+The
+.B XtRegisterCaseConverter
+registers the specified case converter.
+The start and stop arguments provide the inclusive range of KeySyms
+for which this converter is to be called.
+The new converter overrides any previous converters for KeySyms in that range.
+No interface exists to remove converters;
+you need to register an identity converter.
+When a new converter is registered,
+the \*(xI refreshes the keyboard state if necessary.
+The default converter understands case conversion for all
+KeySyms defined in the core protocol.
+.LP
+The
+.B XtConvertCase
+function calls the appropriate converter and returns the results.
+A user-supplied
+.B XtKeyProc
+may need to use this function.
+.SH "SEE ALSO"
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

@@ -1,0 +1,37 @@
+Substantive patches can be approved by any two of the current
+maintainers (see the MAINTAINERS file), obvious patches by any one of
+them.
+
+libwnck sits halfway between the panel (as an applet) and the window
+manager.  libwnck can be used by other applications and thus isn't
+technically limited to usage as an applet, but it is not stable and
+thus other usage isn't recommended unless you want to update your app
+often.  If you'd like to work on libwnck, some useful places to look
+for more information are:
+
+  gnome-applets/HACKING
+    The HACKING file in gnome-applets contains links, tips, and
+    information on writing panel applets, debugging them, and various
+    best practices with them
+
+  metacity/HACKING
+    The HACKING file in metacity contains information on the ICCCM and
+    EWMH which cover relevant X and freedesktop.org standards for
+    communication between the window manager, specialized programs
+    like the window list and workspace switcher applets, and clients.
+
+  http://pobox.com/~hp/features.html
+    devilspie is for crack.  Not libwnck.
+
+  gnome-panel/applets/wncklet/
+    The actual panel applets based on libwnck (the window list, window
+    selector, workspace switcher and show desktop button) are found in
+    this directory under gnome-panel, and all run as the process
+    "wnck-applet".
+
+  rationales.txt
+    This file contains bugs that explains UI choices we've made (kind
+    of empty at the moment, but we'll fill it in over time--it's
+    similar to the file with the same name in the metacity module),
+    and also has a bunch of tracker bugs which serve to help
+    categorize bugs.

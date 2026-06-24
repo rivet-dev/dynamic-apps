@@ -1,0 +1,1288 @@
+# Dutch translation for libwnck
+#
+# This file is distributed under the same license as the libwnck package.
+#
+# Ronald Hummelink <ronald@hummelink.xs4all.nl>, 2002.
+# Reinout van Schouwen <reinout@gmail.com>, 2002, 2009 (small fix spotted by Armijn Hemel)
+# Tino Meinen <a.t.meinen@chello.nl> 2002, 2003, 2004, 2005. 2006. 2008.
+# Wouter Bolsterlee <wbolster@gnome.org>, 2006, 2009.
+#
+# Deze berichten zijn ook te zien als je met de rechter muisknop
+# op optieknop van het venster klikt
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libwnck\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-02-04 15:22+0100\n"
+"PO-Revision-Date: 2012-02-04 15:23+0100\n"
+"Last-Translator: Wouter Bolsterlee <wbolster@gnome.org>\n"
+"Language-Team: Dutch <vertaling@vrijschrift.org>\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. *
+#. * SECTION:application
+#. * @short_description: an object representing a group of windows of the same
+#. * application.
+#. * @see_also: wnck_window_get_application()
+#. * @stability: Unstable
+#. *
+#. * The #WnckApplication is a group of #WnckWindow that are all in the same
+#. * application. It can be used to represent windows by applications, group
+#. * windows by applications or to manipulate all windows of a particular
+#. * application.
+#. *
+#. * A #WnckApplication is identified by the group leader of the #WnckWindow
+#. * belonging to it, and new #WnckWindow are added to a #WnckApplication if and
+#. * only if they have the group leader of the #WnckApplication.
+#. *
+#. * The #WnckApplication objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/application.c:51
+msgid "Untitled application"
+msgstr "Naamloze toepassing"
+
+#: ../libwnck/pager-accessible.c:342
+msgid "Workspace Switcher"
+msgstr "Werkbladwisselaar"
+
+#: ../libwnck/pager-accessible.c:353
+msgid "Tool to switch between workspaces"
+msgstr "Hulpje om tussen verschillende werkbladen te wisselen"
+
+#: ../libwnck/pager-accessible.c:465
+#, c-format
+msgid "Click this to switch to workspace %s"
+msgstr "Klik hier om te wisselen naar werkblad %s"
+
+#: ../libwnck/pager.c:2200
+#, c-format
+msgid "Click to start dragging \"%s\""
+msgstr "Klik om te starten met slepen van ʻ%sʼ"
+
+#: ../libwnck/pager.c:2203
+#, c-format
+msgid "Current workspace: \"%s\""
+msgstr "Huidige werkblad: ʻ%sʼ"
+
+#: ../libwnck/pager.c:2208
+#, c-format
+msgid "Click to switch to \"%s\""
+msgstr "Klik hier om te wisselen naar ʻ%sʼ"
+
+#: ../libwnck/selector.c:1180
+msgid "No Windows Open"
+msgstr "Geen geopende vensters"
+
+# niet helemaal exact vertaald, maar het is wel duidelijk zo
+#: ../libwnck/selector.c:1236
+msgid "Window Selector"
+msgstr "Vensterselectie"
+
+#: ../libwnck/selector.c:1237
+msgid "Tool to switch between windows"
+msgstr "Een hulpje om te wisselen van venster"
+
+#: ../libwnck/tasklist.c:673
+msgid "Window List"
+msgstr "Vensterlijst"
+
+# degenen die zichtbaar zijn
+#: ../libwnck/tasklist.c:674
+msgid "Tool to switch between visible windows"
+msgstr "Een hulpje om te wisselen van venster (die zichbaar zijn)"
+
+#: ../libwnck/tasklist.c:2896
+msgid "Mi_nimize All"
+msgstr "Alles _minimaliseren"
+
+#: ../libwnck/tasklist.c:2907
+msgid "Un_minimize All"
+msgstr "Alles _herstellen"
+
+#: ../libwnck/tasklist.c:2915
+msgid "Ma_ximize All"
+msgstr "Alles Ma_ximaliseren"
+
+#: ../libwnck/tasklist.c:2926
+msgid "_Unmaximize All"
+msgstr "Alles her_stellen"
+
+#: ../libwnck/tasklist.c:2938
+msgid "_Close All"
+msgstr "Alles sl_uiten"
+
+#: ../libwnck/window-action-menu.c:413
+msgid "Unmi_nimize"
+msgstr "_Herstellen"
+
+#: ../libwnck/window-action-menu.c:420
+msgid "Mi_nimize"
+msgstr "_Minimaliseren"
+
+#: ../libwnck/window-action-menu.c:428
+msgid "Unma_ximize"
+msgstr "_Herstellen"
+
+#: ../libwnck/window-action-menu.c:435
+msgid "Ma_ximize"
+msgstr "Ma_ximaliseren"
+
+#: ../libwnck/window-action-menu.c:742 ../libwnck/workspace.c:281
+#, c-format
+msgid "Workspace %d"
+msgstr "Werkblad %d"
+
+#: ../libwnck/window-action-menu.c:751 ../libwnck/window-action-menu.c:898
+#, c-format
+msgid "Workspace 1_0"
+msgstr "Werkblad 1_0"
+
+#: ../libwnck/window-action-menu.c:753 ../libwnck/window-action-menu.c:900
+#, c-format
+msgid "Workspace %s%d"
+msgstr "Werkblad %s%d"
+
+#: ../libwnck/window-action-menu.c:1043
+msgid "_Move"
+msgstr "_Verplaatsen"
+
+# grootte/afmeting
+#: ../libwnck/window-action-menu.c:1050
+msgid "_Resize"
+msgstr "Afmetingen _wijzigen"
+
+#: ../libwnck/window-action-menu.c:1059
+msgid "Always On _Top"
+msgstr "_Bovenop"
+
+#: ../libwnck/window-action-menu.c:1067
+msgid "_Always on Visible Workspace"
+msgstr "Op _alle werkbladen zichtbaar"
+
+#: ../libwnck/window-action-menu.c:1072
+msgid "_Only on This Workspace"
+msgstr "_Alleen op dit werkblad"
+
+#: ../libwnck/window-action-menu.c:1079
+msgid "Move to Workspace _Left"
+msgstr "Verplaatsen naar werkblad lin_ks"
+
+#: ../libwnck/window-action-menu.c:1085
+msgid "Move to Workspace R_ight"
+msgstr "Verplaatsen naar werkblad _rechts"
+
+#: ../libwnck/window-action-menu.c:1091
+msgid "Move to Workspace _Up"
+msgstr "Verplaatsen naar werkblad hierbov_en"
+
+#: ../libwnck/window-action-menu.c:1097
+msgid "Move to Workspace _Down"
+msgstr "Verplaatsen naar werkblad hier_onder"
+
+#: ../libwnck/window-action-menu.c:1100
+msgid "Move to Another _Workspace"
+msgstr "_Verplaatsen naar ander werkblad"
+
+#: ../libwnck/window-action-menu.c:1120
+msgid "_Close"
+msgstr "Sl_uiten"
+
+#. *
+#. * SECTION:window
+#. * @short_description: an object representing a window.
+#. * @see_also: #WnckWorkspace, #WnckApplication, #WnckClassGroup
+#. * @stability: Unstable
+#. *
+#. * The #WnckWindow objects are always owned by libwnck and must not be
+#. * referenced or unreferenced.
+#.
+#: ../libwnck/window.c:50
+msgid "Untitled window"
+msgstr "Naamloos venster"
+
+#: ../libwnck/wnckprop.c:138
+msgid "X window ID of the window to examine or modify"
+msgstr "X window ID van het weer te geven of te bewerken venster"
+
+#: ../libwnck/wnckprop.c:138 ../libwnck/wnckprop.c:145
+#: ../libwnck/wnckprop.c:155
+msgid "XID"
+msgstr "XID"
+
+#. Translators: A group leader is the window that is the "owner" of a
+#. * group of windows, ie: if you have multiple windows in one
+#. * application, one window has some information about the application
+#. * (like the application name).
+#: ../libwnck/wnckprop.c:144
+msgid "X window ID of the group leader of an application to examine"
+msgstr "X window ID van de groepsleider van een programma"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#: ../libwnck/wnckprop.c:149
+msgid "Class resource of the class group to examine"
+msgstr "Class resource van de weer te geven groep"
+
+#: ../libwnck/wnckprop.c:149
+msgid "CLASS"
+msgstr "CLASS"
+
+#: ../libwnck/wnckprop.c:151
+msgid "NUMBER of the workspace to examine or modify"
+msgstr "NUMBER van het weer te geven werkblad"
+
+#: ../libwnck/wnckprop.c:151 ../libwnck/wnckprop.c:153
+#: ../libwnck/wnckprop.c:171 ../libwnck/wnckprop.c:173
+#: ../libwnck/wnckprop.c:175 ../libwnck/wnckprop.c:272
+msgid "NUMBER"
+msgstr "NUMBER"
+
+#: ../libwnck/wnckprop.c:153
+msgid "NUMBER of the screen to examine or modify"
+msgstr "NUMBER van het weer te geven scherm"
+
+#: ../libwnck/wnckprop.c:155
+msgid "Alias of --window"
+msgstr "Alias van --window"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#: ../libwnck/wnckprop.c:163
+msgid ""
+"List windows of the application/class group/workspace/screen (output format: "
+"\"XID: Window Name\")"
+msgstr ""
+"Vensters weergeven van de programmagroep/klasse/werkblad/scherm (uitvoer: "
+"\"XID: Vensternaam\")"
+
+#: ../libwnck/wnckprop.c:165
+msgid ""
+"List workspaces of the screen (output format: \"Number: Workspace Name\")"
+msgstr ""
+"Werkbladen van het scherm weergeven (Uitvoer: \"Nummer: Werkbladnaam\")"
+
+#: ../libwnck/wnckprop.c:171
+msgid "Change the number of workspaces of the screen to NUMBER"
+msgstr "Het aantal werkbladen van het scherm wijzigen naar NUMBER"
+
+#: ../libwnck/wnckprop.c:173
+msgid "Change the workspace layout of the screen to use NUMBER rows"
+msgstr "Werkbladlayout wijzigen zodat NUMBER rijen gebruikt worden"
+
+#: ../libwnck/wnckprop.c:175
+msgid "Change the workspace layout of the screen to use NUMBER columns"
+msgstr "Werkbladlayout wijzigen zodat NUMBER kollommen gebruikt worden"
+
+#: ../libwnck/wnckprop.c:177
+msgid "Show the desktop"
+msgstr "Bureaublad weergeven"
+
+#: ../libwnck/wnckprop.c:179
+msgid "Stop showing the desktop"
+msgstr "Bureaublad niet meer weergeven"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:184
+msgid "Move the viewport of the current workspace to X coordinate X"
+msgstr "Blikveld van het huidige werkblad verplaatsen naar X-coördinaat X"
+
+#: ../libwnck/wnckprop.c:184 ../libwnck/wnckprop.c:274
+msgid "X"
+msgstr "X"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:189
+msgid "Move the viewport of the current workspace to Y coordinate Y"
+msgstr "Blikveld van het huidige werkblad verplaatsen naar Y-coördinaat Y"
+
+#: ../libwnck/wnckprop.c:189 ../libwnck/wnckprop.c:276
+msgid "Y"
+msgstr "Y"
+
+#: ../libwnck/wnckprop.c:195
+msgid "Minimize the window"
+msgstr "Venster minimaliseren"
+
+#: ../libwnck/wnckprop.c:197
+msgid "Unminimize the window"
+msgstr "Venster herstellen"
+
+#: ../libwnck/wnckprop.c:199
+msgid "Maximize the window"
+msgstr "Venster maximaliseren"
+
+#: ../libwnck/wnckprop.c:201
+msgid "Unmaximize the window"
+msgstr "Venster herstellen"
+
+#: ../libwnck/wnckprop.c:203
+msgid "Maximize horizontally the window"
+msgstr "Venster horizontaal maximaliseren"
+
+#: ../libwnck/wnckprop.c:205
+msgid "Unmaximize horizontally the window"
+msgstr "Venstergrootte horizontaal herstellen"
+
+#: ../libwnck/wnckprop.c:207
+msgid "Maximize vertically the window"
+msgstr "Venster vertikaal maximaliseren"
+
+#: ../libwnck/wnckprop.c:209
+msgid "Unmaximize vertically the window"
+msgstr "Venstergrootte vertikaal herstellen"
+
+#: ../libwnck/wnckprop.c:211
+msgid "Start moving the window via the keyboard"
+msgstr "Venster gaan verplaatsen met toetsenbord"
+
+#: ../libwnck/wnckprop.c:213
+msgid "Start resizing the window via the keyboard"
+msgstr "Venstergrootte gaan wijzigen met het toetsenbord"
+
+#: ../libwnck/wnckprop.c:215
+msgid "Activate the window"
+msgstr "Venster activeren"
+
+#: ../libwnck/wnckprop.c:217
+msgid "Close the window"
+msgstr "Venster sluiten"
+
+#: ../libwnck/wnckprop.c:220
+msgid "Make the window fullscreen"
+msgstr "Volledig scherm-modus inschakelen"
+
+#: ../libwnck/wnckprop.c:222
+msgid "Make the window quit fullscreen mode"
+msgstr "Volledig scherm-modus uitschakelen"
+
+#: ../libwnck/wnckprop.c:224
+msgid "Make the window always on top"
+msgstr "Venster altijd bovenop laten staan"
+
+#: ../libwnck/wnckprop.c:226
+msgid "Make the window not always on top"
+msgstr "Venster niet meer altijd bovenop laten staan"
+
+#: ../libwnck/wnckprop.c:228
+msgid "Make the window below other windows"
+msgstr "Venster onder andere vensters stoppen"
+
+#: ../libwnck/wnckprop.c:230
+msgid "Make the window not below other windows"
+msgstr "Venster niet meer onder andere vensters stoppen"
+
+#: ../libwnck/wnckprop.c:232
+msgid "Shade the window"
+msgstr "Venster oprollen"
+
+#: ../libwnck/wnckprop.c:234
+msgid "Unshade the window"
+msgstr "Venster uitrollen"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:239
+msgid "Make the window have a fixed position in the viewport"
+msgstr "Vensterpositie vastzetten"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:244
+msgid "Make the window not have a fixed position in the viewport"
+msgstr "Vensterpositie niet meer vastzetten"
+
+#. Translators: A pager is the technical term for the workspace
+#. * switcher. It's a representation of all workspaces with windows
+#. * inside it. Please make sure that the translation is in sync with
+#. * gnome-panel, where this term is also used in translatable strings
+#.
+#: ../libwnck/wnckprop.c:251
+msgid "Make the window not appear in pagers"
+msgstr "Venster niet in vensterlijst zetten"
+
+#. Translators: A pager is the technical term for the workspace
+#. * switcher. It's a representation of all workspaces with windows
+#. * inside it. Please make sure that the translation is in sync with
+#. * gnome-panel, where this term is also used in translatable strings
+#.
+#: ../libwnck/wnckprop.c:258
+msgid "Make the window appear in pagers"
+msgstr "Venster in vensterlijst zetten"
+
+#. Translators: "tasklist" is the list of running applications (the
+#. * window list)
+#: ../libwnck/wnckprop.c:262
+msgid "Make the window not appear in tasklists"
+msgstr "Venster niet in takenlijst zetten"
+
+#. Translators: "tasklist" is the list of running applications (the
+#. * window list)
+#: ../libwnck/wnckprop.c:266
+msgid "Make the window appear in tasklists"
+msgstr "Venster in takenlijst zetten"
+
+#: ../libwnck/wnckprop.c:268
+msgid "Make the window visible on all workspaces"
+msgstr "Venster zichtbaar maken op alle werkbladen"
+
+#: ../libwnck/wnckprop.c:270
+msgid "Make the window visible on the current workspace only"
+msgstr "Venster alleen zichtbaar maken op het huidige werkblad"
+
+#: ../libwnck/wnckprop.c:272
+msgid "Move the window to workspace NUMBER (first workspace is 0)"
+msgstr "Venster verplaatsen naar werkblad NUMBER (eerste werkblad is 0)"
+
+#: ../libwnck/wnckprop.c:274
+msgid "Change the X coordinate of the window to X"
+msgstr "X-coördinaat van het venster wijzigen naar X"
+
+#: ../libwnck/wnckprop.c:276
+msgid "Change the Y coordinate of the window to Y"
+msgstr "Y-coördinaat van het venster wijzigen naar Y"
+
+#: ../libwnck/wnckprop.c:278
+msgid "Change the width of the window to WIDTH"
+msgstr "Vensterbreedte wijzigen in WIDTH"
+
+#: ../libwnck/wnckprop.c:278
+msgid "WIDTH"
+msgstr "WIDTH"
+
+#: ../libwnck/wnckprop.c:280
+msgid "Change the height of the window to HEIGHT"
+msgstr "Vensterhoogt wijzigen in HEIGHT"
+
+#: ../libwnck/wnckprop.c:280
+msgid "HEIGHT"
+msgstr "HEIGHT"
+
+#. Translators: do not translate "normal, desktop, dock..."
+#: ../libwnck/wnckprop.c:283
+msgid ""
+"Change the type of the window to TYPE (valid values: normal, desktop, dock, "
+"dialog, toolbar, menu, utility, splash)"
+msgstr ""
+"Venstertype wijzigen naar TYPE (geldige waarden: normal, desktop, dock, "
+"dialog, toolbar, menu, utility, splash)"
+
+#: ../libwnck/wnckprop.c:283
+msgid "TYPE"
+msgstr "TYPE"
+
+#: ../libwnck/wnckprop.c:289
+msgid "Change the name of the workspace to NAME"
+msgstr "Werkbladnaam wijzigen in NAME"
+
+#: ../libwnck/wnckprop.c:289
+msgid "NAME"
+msgstr "NAME"
+
+#: ../libwnck/wnckprop.c:291
+msgid "Activate the workspace"
+msgstr "Werkblad activeren"
+
+#: ../libwnck/wnckprop.c:385 ../libwnck/wnckprop.c:409
+#: ../libwnck/wnckprop.c:445 ../libwnck/wnckprop.c:468
+#, c-format
+msgid "Invalid value \"%s\" for --%s"
+msgstr "Ongeldige waarde \"%s\" voor --%s"
+
+#: ../libwnck/wnckprop.c:502 ../libwnck/wnckprop.c:521
+#, c-format
+msgid ""
+"Conflicting options are present: screen %d should be interacted with, but --"
+"%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties aanwezig: scherm %d zou gebruikt worden, maar "
+"--%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:511
+#, c-format
+msgid ""
+"Conflicting options are present: windows or workspaces of screen %d should "
+"be listed, but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: er zouden vensters of werkbladen van "
+"scherm %d opgesomd moeten zijn, maar de optie --%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:534 ../libwnck/wnckprop.c:554
+#, c-format
+msgid ""
+"Conflicting options are present: workspace %d should be interacted with, but "
+"--%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: werkblad %d moet gebruikt worden, "
+"maar --%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:544
+#, c-format
+msgid ""
+"Conflicting options are present: windows of workspace %d should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: er zouden vensters van werkblad %d "
+"opgesomd moeten zijn, maar de optie --%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:566
+#, c-format
+msgid ""
+"Conflicting options are present: an application should be interacted with, "
+"but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: we werken met een applicatie, maar "
+"de optie --%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:576
+#, c-format
+msgid ""
+"Conflicting options are present: windows of an application should be listed, "
+"but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: er zou een vensterlijst van een "
+"programma moeten zijn, maar --%s is gebruikt\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#: ../libwnck/wnckprop.c:590
+#, c-format
+msgid ""
+"Conflicting options are present: class group \"%s\" should be interacted "
+"with, but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: klassegroep \"%s\" zou gebruikt "
+"moeten worden, maar --%s is gebruikt\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows
+#. * are of the same class.
+#: ../libwnck/wnckprop.c:602
+#, c-format
+msgid ""
+"Conflicting options are present: windows of class group \"%s\" should be "
+"listed, but --%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties gebruikt: er zouden vensters of klassegroepen "
+"\"%s\" in de lijst moeten staan, maar --%s wordt gebruikt\n"
+
+#: ../libwnck/wnckprop.c:614 ../libwnck/wnckprop.c:623
+#, c-format
+msgid ""
+"Conflicting options are present: a window should be interacted with, but --"
+"%s has been used\n"
+msgstr ""
+"Er zijn conflicterende opties aanwezig: interactie gewenst met een venster, "
+"maar --%s is gebruikt\n"
+
+#: ../libwnck/wnckprop.c:642 ../libwnck/wnckprop.c:723
+#: ../libwnck/wnckprop.c:770
+#, c-format
+msgid "Conflicting options are present: --%s and --%s\n"
+msgstr "Er zijn conflicterende opties aanwezig: --%s en --%s\n"
+
+#: ../libwnck/wnckprop.c:681
+#, c-format
+msgid ""
+"Invalid argument \"%d\" for --%s: the argument must be strictly positive\n"
+msgstr ""
+"Ongeldig argument \"%d\" voor --%s: het moet absoluut een positief getal "
+"zijn\n"
+
+#: ../libwnck/wnckprop.c:694
+#, c-format
+msgid "Invalid argument \"%d\" for --%s: the argument must be positive\n"
+msgstr "Ongeldig argument \"%d\" voor --%s: het moet een positief getal zijn\n"
+
+#: ../libwnck/wnckprop.c:789
+#, c-format
+msgid "Conflicting options are present: --%s or --%s, and --%s\n"
+msgstr "Er zijn conflicterende opties aanwezig: --%s of --%s en --%s\n"
+
+#: ../libwnck/wnckprop.c:821
+#, c-format
+msgid "Invalid argument \"%s\" for --%s, valid values are: %s\n"
+msgstr "Het argument \"%s\" is ongeldig voor --%s. Geldige waardes zijn %s\n"
+
+#: ../libwnck/wnckprop.c:864
+#, c-format
+msgid ""
+"Cannot change the workspace layout on the screen: the layout is already "
+"owned\n"
+msgstr "Kan de werkbladlayout niet wijzigen: De layout heeft al een eigenaar\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:899
+#, c-format
+msgid ""
+"Viewport cannot be moved: the current workspace does not contain a viewport\n"
+msgstr "Kan blikveld niet verplaatsen: Huidige werkblad heeft geen blikveld\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport
+#. * can be used to implement workspaces (e.g. compiz is an example);
+#. * however it is not just the current workspace.
+#: ../libwnck/wnckprop.c:906
+#, c-format
+msgid "Viewport cannot be moved: there is no current workspace\n"
+msgstr "Kan blikveld niet verplaatsen: Er is geen werkblad geselecteerd\n"
+
+#. FIXME: why do we have dual & boolean API. This is not consistent!
+#: ../libwnck/wnckprop.c:942 ../libwnck/wnckprop.c:951
+#: ../libwnck/wnckprop.c:960 ../libwnck/wnckprop.c:967
+#: ../libwnck/wnckprop.c:977 ../libwnck/wnckprop.c:984
+#: ../libwnck/wnckprop.c:993 ../libwnck/wnckprop.c:1042
+#, c-format
+msgid "Action not allowed\n"
+msgstr "Actie niet toegestaan\n"
+
+#: ../libwnck/wnckprop.c:1038
+#, c-format
+msgid "Window cannot be moved to workspace %d: the workspace does not exist\n"
+msgstr "Kan venster niet verplaatsen naar werkblad %d: werkblad bestaat niet\n"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1102 ../libwnck/wnckprop.c:1234
+msgid "<name unset>"
+msgstr "<name unset>"
+
+#. Translators: %lu is a window number and %s a window name
+#: ../libwnck/wnckprop.c:1105
+#, c-format
+msgid "%lu: %s\n"
+msgstr "%lu: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1125
+#, c-format
+msgid "%d: %s\n"
+msgstr "%d: %s\n"
+
+#: ../libwnck/wnckprop.c:1188
+#, c-format
+msgid "Screen Number: %d\n"
+msgstr "Schermnummer: %d\n"
+
+#: ../libwnck/wnckprop.c:1190 ../libwnck/wnckprop.c:1271
+#, c-format
+msgid "Geometry (width, height): %d, %d\n"
+msgstr "Afmetingen (breedte, hoogte): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1194
+#, c-format
+msgid "Number of Workspaces: %d\n"
+msgstr "Aantal werkbladen: %d\n"
+
+#: ../libwnck/wnckprop.c:1200
+#, c-format
+msgid "Workspace Layout (rows, columns, orientation): %d, %d, %s\n"
+msgstr "Werkbladlayout (rijen, kolommen, oriëntatie):%d, %d, %s\n"
+
+#: ../libwnck/wnckprop.c:1210 ../libwnck/wnckprop.c:1267
+#: ../libwnck/wnckprop.c:1464
+msgid "<no EWMH-compliant window manager>"
+msgstr "<geen EWMH-vensterbeheer>"
+
+#: ../libwnck/wnckprop.c:1211
+#, c-format
+msgid "Window Manager: %s\n"
+msgstr "Vensterbeheer: %s\n"
+
+#. Translators: %d is a workspace number and %s a workspace name
+#: ../libwnck/wnckprop.c:1216 ../libwnck/wnckprop.c:1297
+#: ../libwnck/wnckprop.c:1309 ../libwnck/wnckprop.c:1321
+#: ../libwnck/wnckprop.c:1333 ../libwnck/wnckprop.c:1449
+#, c-format
+msgid "%d (\"%s\")"
+msgstr "%d (\"%s\")"
+
+#. Translators: "none" here means "no workspace"
+#: ../libwnck/wnckprop.c:1221 ../libwnck/wnckprop.c:1302
+#: ../libwnck/wnckprop.c:1314 ../libwnck/wnckprop.c:1326
+#: ../libwnck/wnckprop.c:1338 ../libwnck/wnckprop.c:1456
+msgctxt "workspace"
+msgid "none"
+msgstr "geen"
+
+#: ../libwnck/wnckprop.c:1222
+#, c-format
+msgid "Active Workspace: %s\n"
+msgstr "Actieve werkblad: %s\n"
+
+#: ../libwnck/wnckprop.c:1231
+#, c-format
+msgid "\"%s\""
+msgstr "\"%s\""
+
+#. Translators: %lu is a window identifier (number) and %s a window name
+#: ../libwnck/wnckprop.c:1237
+#, c-format
+msgid "%lu (%s)"
+msgstr "%lu (%s)"
+
+#. Translators: "none" here means "no window"
+#: ../libwnck/wnckprop.c:1243
+msgctxt "window"
+msgid "none"
+msgstr "geen"
+
+#: ../libwnck/wnckprop.c:1244
+#, c-format
+msgid "Active Window: %s\n"
+msgstr "Actieve vensters: %s\n"
+
+#: ../libwnck/wnckprop.c:1247
+#, c-format
+msgid "Showing the desktop: %s\n"
+msgstr "Bureabladweergave: %s\n"
+
+#: ../libwnck/wnckprop.c:1249
+msgid "true"
+msgstr "waar"
+
+#: ../libwnck/wnckprop.c:1249
+msgid "false"
+msgstr "onwaar"
+
+#: ../libwnck/wnckprop.c:1260
+#, c-format
+msgid "Workspace Name: %s\n"
+msgstr "Werkbladnaam: %s\n"
+
+#: ../libwnck/wnckprop.c:1261
+#, c-format
+msgid "Workspace Number: %d\n"
+msgstr "Werkbladnummer: %d\n"
+
+#: ../libwnck/wnckprop.c:1268 ../libwnck/wnckprop.c:1465
+#, c-format
+msgid "On Screen: %d (Window Manager: %s)\n"
+msgstr "Scherm: %d (vensterbeheer: %s)\n"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport can be
+#. * used to implement workspaces (e.g. compiz is an example); however it is
+#. * not just the current workspace.
+#: ../libwnck/wnckprop.c:1283
+msgid "<no viewport>"
+msgstr "<geen blikveld>"
+
+#. Translators: 'viewport' is kind of the viewable area. A viewport can be
+#. * used to implement workspaces (e.g. compiz is an example); however it is
+#. * not just the current workspace.
+#: ../libwnck/wnckprop.c:1287
+#, c-format
+msgid "Viewport position (x, y): %s\n"
+msgstr "Positie blikveld (x, y): %s\n"
+
+#: ../libwnck/wnckprop.c:1290
+#, c-format
+msgid "Position in Layout (row, column): %d, %d\n"
+msgstr "Huidige positie (rij, kolom): %d, %d\n"
+
+#: ../libwnck/wnckprop.c:1303
+#, c-format
+msgid "Left Neighbor: %s\n"
+msgstr "Linker buurman: %s\n"
+
+#: ../libwnck/wnckprop.c:1315
+#, c-format
+msgid "Right Neighbor: %s\n"
+msgstr "Rechter buurman: %s\n"
+
+#: ../libwnck/wnckprop.c:1327
+#, c-format
+msgid "Top Neighbor: %s\n"
+msgstr "Bovenbuurman: %s\n"
+
+#: ../libwnck/wnckprop.c:1339
+#, c-format
+msgid "Bottom Neighbor: %s\n"
+msgstr "Onderbuurman: %s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class.
+#: ../libwnck/wnckprop.c:1352 ../libwnck/wnckprop.c:1511
+#, c-format
+msgid "Class Group ID: %s\n"
+msgstr "Groep-id voor class: %s\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class.
+#: ../libwnck/wnckprop.c:1356
+#, c-format
+msgid "Class Group Name: %s\n"
+msgstr "Groepsnaam voor class: %s\n"
+
+#. Translators: 'set' in the sense of "something has been set".
+#: ../libwnck/wnckprop.c:1362 ../libwnck/wnckprop.c:1386
+#: ../libwnck/wnckprop.c:1440
+msgid "set"
+msgstr "ingesteld"
+
+#. Translators: 'unset' in the sense of "something has not been set".
+#: ../libwnck/wnckprop.c:1365 ../libwnck/wnckprop.c:1389
+#: ../libwnck/wnckprop.c:1396 ../libwnck/wnckprop.c:1426
+#: ../libwnck/wnckprop.c:1433 ../libwnck/wnckprop.c:1443
+#: ../libwnck/wnckprop.c:1508 ../libwnck/wnckprop.c:1517
+#: ../libwnck/wnckprop.c:1529 ../libwnck/wnckprop.c:1537
+msgid "<unset>"
+msgstr "<niet ingesteld>"
+
+#: ../libwnck/wnckprop.c:1366 ../libwnck/wnckprop.c:1390
+#: ../libwnck/wnckprop.c:1444
+#, c-format
+msgid "Icons: %s\n"
+msgstr "Pictogrammen: %s\n"
+
+#: ../libwnck/wnckprop.c:1369 ../libwnck/wnckprop.c:1407
+#, c-format
+msgid "Number of Windows: %d\n"
+msgstr "Aantal vensters: %d\n"
+
+#: ../libwnck/wnckprop.c:1381 ../libwnck/wnckprop.c:1427
+#, c-format
+msgid "Name: %s\n"
+msgstr "Naam: %s\n"
+
+#. Translators: note that "Icon" here has a specific window
+#. * management-related meaning. It means minimized.
+#: ../libwnck/wnckprop.c:1382 ../libwnck/wnckprop.c:1436
+#, c-format
+msgid "Icon Name: %s\n"
+msgstr "Naam geminimaliseerd venster: %s\n"
+
+#: ../libwnck/wnckprop.c:1397 ../libwnck/wnckprop.c:1530
+#, c-format
+msgid "PID: %s\n"
+msgstr "PID: %s\n"
+
+#. Translators: "none" here means "no startup ID"
+#: ../libwnck/wnckprop.c:1404
+msgctxt "startupID"
+msgid "none"
+msgstr "geen"
+
+#: ../libwnck/wnckprop.c:1405
+#, c-format
+msgid "Startup ID: %s\n"
+msgstr "Opstart-ID: %s\n"
+
+#: ../libwnck/wnckprop.c:1453
+msgid "all workspaces"
+msgstr "alle werkbladen"
+
+#: ../libwnck/wnckprop.c:1457
+#, c-format
+msgid "On Workspace: %s\n"
+msgstr "Op werkblad: %s\n"
+
+#: ../libwnck/wnckprop.c:1472
+msgid "normal window"
+msgstr "normaal venster"
+
+#: ../libwnck/wnckprop.c:1475
+msgid "desktop"
+msgstr "bureaublad"
+
+#: ../libwnck/wnckprop.c:1478
+msgid "dock or panel"
+msgstr "paneel"
+
+#: ../libwnck/wnckprop.c:1481
+msgid "dialog window"
+msgstr "dialoogvenster"
+
+#: ../libwnck/wnckprop.c:1484
+msgid "tearoff toolbar"
+msgstr "loskoppelbare werkbalk"
+
+#: ../libwnck/wnckprop.c:1487
+msgid "tearoff menu"
+msgstr "loskoppelbaar menu"
+
+#: ../libwnck/wnckprop.c:1490
+msgid "utility window"
+msgstr "hulpvenster"
+
+#: ../libwnck/wnckprop.c:1493
+msgid "splash screen"
+msgstr "introvenster"
+
+#: ../libwnck/wnckprop.c:1498
+#, c-format
+msgid "Window Type: %s\n"
+msgstr "Venstertype: %s\n"
+
+#: ../libwnck/wnckprop.c:1501
+#, c-format
+msgid "Geometry (x, y, width, height): %d, %d, %d, %d\n"
+msgstr "Afmetingen (x, y, breedte, hoogte):%d, %d, %d, %d\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are of the
+#. * same class. The class instance is a way to differentiate windows belonging
+#. * to the same class group.
+#: ../libwnck/wnckprop.c:1521
+#, c-format
+msgid "Class Instance: %s\n"
+msgstr "Instantie van class: %s\n"
+
+#: ../libwnck/wnckprop.c:1523
+#, c-format
+msgid "XID: %lu\n"
+msgstr "XID: %lu\n"
+
+#: ../libwnck/wnckprop.c:1538
+#, c-format
+msgid "Session ID: %s\n"
+msgstr "Sessie-ID: %s\n"
+
+#. Translators: A group leader is the window that is the "owner" of a group
+#. * of windows, ie: if you have multiple windows in one application, one
+#. * window has some information about the application (like the application
+#. * name).
+#: ../libwnck/wnckprop.c:1545
+#, c-format
+msgid "Group Leader: %lu\n"
+msgstr "Groepsleider: %lu\n"
+
+#. Translators: A window can be transient for another window: it means it's
+#. * on top of it
+#: ../libwnck/wnckprop.c:1551
+#, c-format
+msgid "Transient for: %lu\n"
+msgstr "Transiënt voor: %lu\n"
+
+#. FIXME: else print something?
+#. Translators: we're building a list of items here.             * For example, the result is "a, b".                            * In this case, the first string is "a", the second             * string is ", " and the third string is "b".                   * We can then use this information here to also                 * recursively build longer lists, like "a, b, c, d"
+#. Translators: we're building a list of items here.             * The end result is something like "a, b, c"                    * In this case, the first string is "a, b", the second          * string is ", " and the third string is "c"
+#: ../libwnck/wnckprop.c:1566 ../libwnck/wnckprop.c:1614
+#, c-format
+msgid "%1$s%2$s%3$s"
+msgstr "%1$s%2$s%3$s"
+
+#. Translators: see comment for "%1$s%2$s%3$s" in order          * to properly translate this
+#: ../libwnck/wnckprop.c:1570 ../libwnck/wnckprop.c:1616
+msgid ", "
+msgstr ", "
+
+#: ../libwnck/wnckprop.c:1576
+msgid "minimized"
+msgstr "geminimaliseerd"
+
+#: ../libwnck/wnckprop.c:1577
+msgid "maximized"
+msgstr "gemaximaliseerd"
+
+#: ../libwnck/wnckprop.c:1581
+msgid "maximized horizontally"
+msgstr "horizontaal gemaximaliseerd"
+
+#: ../libwnck/wnckprop.c:1583
+msgid "maximized vertically"
+msgstr "vertikaal gemaximaliseerd"
+
+#: ../libwnck/wnckprop.c:1585
+msgid "shaded"
+msgstr "opgerold"
+
+#: ../libwnck/wnckprop.c:1586
+msgid "pinned"
+msgstr "vastgezet"
+
+#: ../libwnck/wnckprop.c:1587
+msgid "sticky"
+msgstr "vastgezet"
+
+#: ../libwnck/wnckprop.c:1588
+msgid "above"
+msgstr "bovenop"
+
+#: ../libwnck/wnckprop.c:1589
+msgid "below"
+msgstr "onderaan"
+
+#: ../libwnck/wnckprop.c:1590
+msgid "fullscreen"
+msgstr "volledig scherm"
+
+#: ../libwnck/wnckprop.c:1591
+msgid "needs attention"
+msgstr "wil de aandacht"
+
+#. Translators: A pager is the technical term for the workspace switcher.
+#. * It's a representation of all workspaces with windows inside it.
+#. * Please make sure that the translation is in sync with gnome-panel,
+#. * where this term is also used in translatable strings
+#: ../libwnck/wnckprop.c:1596
+msgid "skip pager"
+msgstr "niet in vensterlijst"
+
+#. Translators: "tasklist" is the list of running applications (the window
+#. * list)
+#: ../libwnck/wnckprop.c:1599
+msgid "skip tasklist"
+msgstr "niet in takenlijst"
+
+#: ../libwnck/wnckprop.c:1601
+msgid "normal"
+msgstr "normaal"
+
+#: ../libwnck/wnckprop.c:1602
+#, c-format
+msgid "State: %s\n"
+msgstr "Staat: %s\n"
+
+#: ../libwnck/wnckprop.c:1623
+msgid "move"
+msgstr "verplaatsen"
+
+# grootte/afmeting
+#: ../libwnck/wnckprop.c:1624
+msgid "resize"
+msgstr "Afmetingen wijzigen"
+
+#: ../libwnck/wnckprop.c:1625
+msgid "shade"
+msgstr "oprollen"
+
+#: ../libwnck/wnckprop.c:1626
+msgid "unshade"
+msgstr "uitrollen"
+
+#: ../libwnck/wnckprop.c:1627
+msgid "stick"
+msgstr "vastzetten"
+
+#: ../libwnck/wnckprop.c:1628
+msgid "unstick"
+msgstr "loskoppelen"
+
+#: ../libwnck/wnckprop.c:1630
+msgid "maximize horizontally"
+msgstr "horizontaal maximaliseren"
+
+#: ../libwnck/wnckprop.c:1632
+msgid "unmaximize horizontally"
+msgstr "grootte horizontaal herstellen"
+
+#: ../libwnck/wnckprop.c:1634
+msgid "maximize vertically"
+msgstr "verticaal maximaliseren"
+
+#: ../libwnck/wnckprop.c:1636
+msgid "unmaximize vertically"
+msgstr "verticaal afmetingen herstellen"
+
+#: ../libwnck/wnckprop.c:1639
+msgid "change workspace"
+msgstr "werkblad wijzigen"
+
+#: ../libwnck/wnckprop.c:1641
+msgid "pin"
+msgstr "vastzetten"
+
+#: ../libwnck/wnckprop.c:1643
+msgid "unpin"
+msgstr "loskoppelen"
+
+#: ../libwnck/wnckprop.c:1644
+msgid "minimize"
+msgstr "minimaliseren"
+
+#: ../libwnck/wnckprop.c:1645
+msgid "unminimize"
+msgstr "grootte herstellen"
+
+#: ../libwnck/wnckprop.c:1646
+msgid "maximize"
+msgstr "maximaliseren"
+
+#: ../libwnck/wnckprop.c:1647
+msgid "unmaximize"
+msgstr "grootte herstellen"
+
+#: ../libwnck/wnckprop.c:1649
+msgid "change fullscreen mode"
+msgstr "volledig-scherm-modues omschakelen"
+
+#: ../libwnck/wnckprop.c:1650
+msgid "close"
+msgstr "sluiten"
+
+#: ../libwnck/wnckprop.c:1652
+msgid "make above"
+msgstr "bovenop"
+
+#: ../libwnck/wnckprop.c:1654
+msgid "unmake above"
+msgstr "niet meer bovenop"
+
+#: ../libwnck/wnckprop.c:1656
+msgid "make below"
+msgstr "onderop"
+
+#: ../libwnck/wnckprop.c:1658
+msgid "unmake below"
+msgstr "niet meer onderop"
+
+#: ../libwnck/wnckprop.c:1660
+msgid "no action possible"
+msgstr "geen actie mogelijk"
+
+#: ../libwnck/wnckprop.c:1661
+#, c-format
+msgid "Possible Actions: %s\n"
+msgstr "Mogelijke acties: %s\n"
+
+#: ../libwnck/wnckprop.c:1842
+msgid ""
+"Print or modify the properties of a screen/workspace/window, or interact "
+"with it, following the EWMH specification.\n"
+"For information about this specification, see:\n"
+"\thttp://freedesktop.org/wiki/Specifications/wm-spec"
+msgstr ""
+"Eigenschappen van een scherm/werkblad/venster weergeven of wijzigen, of "
+"acties uitvoeren erop volgens de EWMH-specificaties.\n"
+"Voor informatie over deze specificatie kunt u kijken op:\n"
+"http://freedesktop.org/wiki/Specifications/wm-spec"
+
+#: ../libwnck/wnckprop.c:1852
+msgid "Options to list windows or workspaces"
+msgstr "Opties om vensters of werkbladen weer te geven"
+
+#: ../libwnck/wnckprop.c:1853
+msgid "Show options to list windows or workspaces"
+msgstr "Opties weergeven om vensters of werkbladen weer te geven"
+
+#: ../libwnck/wnckprop.c:1860
+msgid "Options to modify properties of a window"
+msgstr "Opties om venstereigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1861
+msgid "Show options to modify properties of a window"
+msgstr "Opties weergeven om venstereigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1868
+msgid "Options to modify properties of a workspace"
+msgstr "Opties om werkbladeigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1869
+msgid "Show options to modify properties of a workspace"
+msgstr "Opties weergeven om werkbladeigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1876
+msgid "Options to modify properties of a screen"
+msgstr "Opties om schermeigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1877
+msgid "Show options to modify properties of a screen"
+msgstr "Opties weergeven om schermeigenschappen te wijzigen"
+
+#: ../libwnck/wnckprop.c:1888
+#, c-format
+msgid "Error while parsing arguments: %s\n"
+msgstr "Fout bij inlezen argumenten: %s\n"
+
+#: ../libwnck/wnckprop.c:1911
+#, c-format
+msgid "Cannot interact with screen %d: the screen does not exist\n"
+msgstr "Kan geen acties uitvoeren op scherm %d: het scherm bestaat niet\n"
+
+#: ../libwnck/wnckprop.c:1967
+#, c-format
+msgid "Cannot interact with workspace %d: the workspace cannot be found\n"
+msgstr ""
+"Kan geen acties uitvoeren op werkblad %d: kan het werkblad niet vinden\n"
+
+#. Translators: A class is like a "family". E.g., all gvim windows are
+#. * of the same class.
+#: ../libwnck/wnckprop.c:1991
+#, c-format
+msgid ""
+"Cannot interact with class group \"%s\": the class group cannot be found\n"
+msgstr ""
+"Kan geen acties uitvoeren op klassegroep \"%s\": kan de klassegroep niet "
+"vinden\n"
+
+#: ../libwnck/wnckprop.c:2014
+#, c-format
+msgid ""
+"Cannot interact with application having its group leader with XID %lu: the "
+"application cannot be found\n"
+msgstr ""
+"Kan geen acties uitvoeren op programma met groepsleider-XID %lu: kan "
+"programma niet vinden\n"
+
+#: ../libwnck/wnckprop.c:2037
+#, c-format
+msgid "Cannot interact with window with XID %lu: the window cannot be found\n"
+msgstr ""
+"Kan geen acties uitvoeren op venster met XID %lu: kan het venster niet "
+"vinden\n"
+
+#~ msgid "Use N_ROWS rows"
+#~ msgstr "N_ROWS rijen gebruiken"
+
+#~ msgid "N_ROWS"
+#~ msgstr "N_ROWS"
+
+#~ msgid "Only show current workspace"
+#~ msgstr "Alleen huidige werkblad weergeven"
+
+#~ msgid "Use RTL as default direction"
+#~ msgstr "RTL als standaardrichting gebruiken"
+
+#~ msgid "Show workspace names instead of workspace contents"
+#~ msgstr "Werkbladnamen weergeven in plaats van inhoud"
+
+#~ msgid "Use a vertical orientation"
+#~ msgstr "Vertikaal"
+
+#~ msgid "Don't show window in tasklist"
+#~ msgstr "Geen venster weergeven in takenlijst"
+
+#~ msgid "Always group windows"
+#~ msgstr "Vensters altijd groeperen"
+
+#~ msgid "Never group windows"
+#~ msgstr "Vensters nooit groeperen"
+
+#~ msgid "Display windows from all workspaces"
+#~ msgstr "Vensters van alle werkbladen weergeven"
+
+#~ msgid "Enable Transparency"
+#~ msgstr "Transparantie gebruiken"
+
+#~ msgid "Resource Class: %s\n"
+#~ msgstr "Resource-klasse: %s\n"
+
+#~ msgid "Group Name: %s\n"
+#~ msgstr "Groepnaam: %s\n"
+
+#~ msgid "workspace|none"
+#~ msgstr "geen"
+
+#~ msgid "window|none"
+#~ msgstr "geen"
+
+#~ msgid "startupID|none"
+#~ msgstr "geen"
+
+#~ msgid "Unknown Window"
+#~ msgstr "Onbekend venster"
+
+#~ msgid "_Unroll"
+#~ msgstr "_Uitrollen"
+
+#~ msgid "Roll _Up"
+#~ msgstr "_Oprollen"

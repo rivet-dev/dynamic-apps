@@ -1,0 +1,79 @@
+XIDEFINECURSOR(libmansuffix)
+============================
+
+NAME
+----
+
+   XIDefineCursor, XIUndefineCursor - define device cursors.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   int XIDefineCursor( Display *display,
+                       int deviceid,
+                       Window win,
+                       Cursor cursor);
+
+   int XIUndefineCursor( Display *display,
+                         int deviceid,
+                         Window win);
+
+   cursor
+          Specifies the cursor that is to be displayed or None.
+
+   deviceid
+          Specifies the device whose cursor is to change.
+
+   display
+          Specifies the connection to the X server.
+
+   win
+          Specifies the window.
+
+DESCRIPTION
+-----------
+
+   If a cursor is set, it will be used when the device's pointer
+   is in the window. If the cursor is None, it is equivalent to
+   XIUndefineCursor.
+
+   The deviceid must be a master pointer device or a BadDevice error is
+   returned.
+
+   XIDefineCursor can generate BadDevice, BadCursor and BadWindow.
+
+   The XIUndefineCursor function undoes the effect of a previous
+   XIDefineCursor for this window. When the pointer is in the
+   window, the window's default cursor will now be used. If no
+   default cursor is defined, the parent's cursor for this device
+   will be used (if defined) or the parent's default cursor will
+   be used.
+
+   XIDefineCursor and XIUndefineCursor are identical to
+   XDefineCursor and XUndefineCursor but specify the device
+   explicitly.
+
+   XIUndefineCursor can generate a BadDevice and a BadWindow
+   error.
+
+DIAGNOSTICS
+-----------
+
+   BadCursor
+          A value for a cursor argument does not name a defined
+          cursor.
+
+   BadDevice
+          An invalid device was specified. The device does not
+          exist or is not a pointer device.
+
+   BadWindow
+          A value for a Window argument does not name a defined
+          window.
+
+See also
+
+   XDefineCursor, XUndefineCursor
+

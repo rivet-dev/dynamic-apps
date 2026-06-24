@@ -1,0 +1,89 @@
+XIWARPPOINTER(libmansuffix)
+===========================
+
+NAME
+----
+
+   XIWarpPointer - move a device's pointer.
+
+SYNOPSIS
+--------
+
+   #include <X11/extensions/XInput2.h>
+
+   Bool XIWarpPointer( Display *display,
+                       int deviceid,
+                       Window src_w,
+                       Window dest_w,
+                       double src_x,
+                       double src_y,
+                       int src_width,
+                       int src_height,
+                       double dest_x,
+                       double dest_y);
+   
+   dest_w
+          Specifies the destination window or None.
+
+   dest_x, dest_y
+          Specify the x and y coordinates within the destination
+          window.
+
+   deviceid
+          Specifies the master pointer device or floating slave
+          device to move.
+
+   display
+          Specifies the connection to the X server.
+
+   src_x, src_y, src_width, src_height
+          Specify a rectangle in the source window.
+
+   src_w
+          Specifies the source window or None.
+
+DESCRIPTION
+-----------
+
+   If dest_w is None, XIWarpPointer moves the pointer by the
+   offsets (dest_x, dest_y) relative to the current position of
+   the pointer. If dest_w is a window, XIWarpPointer moves the
+   pointer to the offsets (dest_x, dest_y) relative to the origin
+   of dest_w. However, if src_w is a window, the move only takes
+   place if the window src_w contains the pointer and if the
+   specified rectangle of src_w contains the pointer.
+
+   The src_x and src_y coordinates are relative to the origin of
+   src_w. If src_height is zero, it is replaced with the current
+   height of src_w minus src_y. If src_width is zero, it is
+   replaced with the current width of src_w minus src_x.
+
+   There is seldom any reason for calling this function. The
+   pointer should normally be left to the user. If you do use this
+   function, however, it generates events just as if the user had
+   instantaneously moved the pointer from one position to another.
+   Note that you cannot use XIWarpPointer to move the pointer
+   outside the confine_to window of an active pointer grab. An
+   attempt to do so will only move the pointer as far as the
+   closest edge of the confine_to window.
+
+   XIWarpPointer is identical to XWarpPointer but specifies the
+   device explicitly.
+
+   XIWarpPointer can generate a BadDevice and a BadWindow error.
+
+DIAGNOSTICS
+-----------
+
+   BadDevice
+          An invalid device was specified. The device does not
+          exist or is not a pointer device.
+
+   BadWindow
+          A value for a Window argument does not name a defined
+          window.
+
+SEE ALSO
+--------
+
+   XWarpPointer(libmansuffix)

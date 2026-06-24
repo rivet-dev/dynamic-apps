@@ -1,0 +1,104 @@
+.TH "OPENBOX" "1" 
+.SH "NAME" 
+openbox \(em A minimalistic, highly configurable, next generation window 
+manager with extensive standards support. 
+.SH "SYNOPSIS" 
+.PP 
+\fBopenbox\fR [\fB\-\-help\fP]  [\fB\-\-version\fP]  [\fB\-\-replace\fP]  [\fB\-\-reconfigure\fP]  [\fB\-\-restart\fP]  [\fB\-\-sm-disable\fP]  [\fB\-\-sync\fP]  [\fB\-\-debug\fP]  [\fB\-\-debug-focus\fP]  [\fB\-\-debug-xinerama\fP]  
+.SH "DESCRIPTION" 
+.PP 
+Openbox is minimalistic, highly configurable, next generation window 
+manager with extensive standards support. 
+.PP 
+You can start Openbox in three ways: 
+.PP 
+If you run a display manager such as GDM, you will find 3 entries 
+in the login session type menu for Openbox: 
+\fBGNOME/Openbox\fR, \fBKDE/Openbox\fR       and \fBOpenbox\fR. If you want to use Openbox 
+within GNOME or KDE, you can choose the appropriate entry, and it will 
+launch GNOME or KDE with Openbox as the window manager. 
+.PP 
+The third option at log in, which is \fBOpenbox\fR       without a session manager, uses the \fBopenbox-session\fR       command to start Openbox. On log in, \fBopenbox\fR will 
+run the ~/.config/openbox/autostart.sh script if it exists, and will run 
+the system-wide script @configdir@/openbox/autostart.sh otherwise. You 
+may place anything you want to run automatically in those files, for 
+example: 
+ 
+.PP 
+.RS 
+.PP 
+.nf 
+xsetroot \-solid grey & 
+gnome-settings-daemon & 
+.fi 
+.RE 
+.PP 
+Make sure that each line is followed by a "&" or else the script will 
+stop there and further commands will not be executed. You can use the 
+@configdir@/openbox/autostart.sh file as an example for creating your 
+own. 
+.PP 
+The default @configdir@/openbox/autostart.sh runs a number of things 
+with Openbox. 
+.PP 
+Lastly, if you use \fBstartx\fR to launch your X 
+session, you can set up a ~/.xinitrc file to run 
+\fBopenbox-session\fR and follow the same directions as 
+above regarding the autostart.sh file. 
+.PP 
+You can use the \fBobconf\fR tool to configure Openbox 
+easily with a graphical interface, however more in-depth configuration 
+is possible by editing the configuration files by hand. 
+.PP 
+The default configuration and menu files are installed in 
+@configdir@/openbox/, and the user configuration is placed in 
+~/.config/openbox/. You can copy the default configuration and menus 
+to ~/.config/openbox and edit it to your liking. 
+.SH "OPTIONS" 
+.PP 
+These are the possible options that \fBopenbox\fR accepts: 
+.IP "\fB\-\-help\fP" 10 
+Show a summary of the command line options available 
+and exit. 
+.IP "\fB\-\-version\fP" 10 
+Show the version of the program and exit. 
+.IP "\fB\-\-replace\fP" 10 
+Replace the currently running window manager. 
+.IP "\fB\-\-config-file FILE\fP" 10 
+Specify the path to the config file to use. 
+.IP "\fB\-\-reconfigure\fP" 10 
+If Openbox is already running on the display, tell it to 
+reload its configuration. 
+.IP "\fB\-\-restart\fP" 10 
+If Openbox is already running on the display, tell it to 
+restart. This is useful if you have upgraded Openbox and don't 
+want to restart X. 
+.IP "\fB\-\-exit\fP" 10 
+Exit Openbox. 
+.IP "\fB\-\-sm-disable\fP" 10 
+Do not connect to the session manager. 
+.IP "\fB\-\-sync\fP" 10 
+Run in synchronous mode (for debugging). 
+.IP "\fB\-\-startup CMD\fP" 10 
+Run CMD after starting. 
+.IP "\fB\-\-debug\fP" 10 
+Display debugging output. 
+.IP "\fB\-\-debug-focus\fP" 10 
+Display debugging output for focus handling. 
+.IP "\fB\-\-debug-session\fP" 10 
+Display debugging output for session management. 
+.IP "\fB\-\-debug-xinerama\fP" 10 
+Split the display into two fake xinerama regions, if 
+xinerama is not already enabled. This is for debugging 
+xinerama support. 
+.SH "SEE ALSO" 
+.PP 
+obconf (1), openbox-session(1), openbox-gnome-session(1), 
+openbox-kde-session(1). 
+.PP 
+The program's full documentation is available on the website: 
+\fBhttp://openbox.org/\fP 
+.PP 
+Please report bugs to: \fBhttp://bugzilla.icculus.org/ 
+\fP 
+.\" created by instant / docbook-to-man, Sun 30 Sep 2012, 17:58 

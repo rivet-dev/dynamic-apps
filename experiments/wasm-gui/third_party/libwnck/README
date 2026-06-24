@@ -1,0 +1,48 @@
+libwnck
+=======
+
+libwnck is Window Navigator Construction Kit, i.e. a library to use
+for writing pagers and taskslists and stuff.  
+
+libwnck is not supported in the devel platform, which means OS vendors
+won't guarantee the API/ABI long-term, but authors of open source apps
+should feel free to use libwnck as users can always recompile against
+a new version. The API/ABI has historically changed very little: we are
+not changing it gratuitously or without soname increments.
+
+Documentation for the API is available with gtk-doc. The code
+implementing the tasklist or pager widgets (tasklist.c and pager.c) can
+also be used as sample code.
+
+You may download updates to the package from:
+
+   http://download.gnome.org/sources/libwnck/
+
+To discuss libwnck, you may use the desktop-devel-list mailing list:
+
+  http://mail.gnome.org/mailman/listinfo/desktop-devel-list
+
+
+Installation
+============
+
+See the file 'INSTALL'. If you are not using a released version of
+libwnck (for example, if you checked out the code from git), you first
+need to run './autogen.sh'.
+
+
+How to report bugs
+==================
+
+Bugs should be reported to the GNOME bug tracking system:
+
+   https://bugzilla.gnome.org/ (product libwnck)
+
+You will need to create an account for yourself.
+
+Please read the following page on how to prepare a useful bug report:
+
+   https://bugzilla.gnome.org/page.cgi?id=bug-writing.html
+
+Please read the HACKING file for information on where to send changes or
+bugfixes for this package.

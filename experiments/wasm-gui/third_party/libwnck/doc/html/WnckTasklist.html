@@ -1,0 +1,670 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: WnckTasklist</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="widgets.html" title="Part IV. Libwnck Widgets">
+<link rel="prev" href="WnckSelector.html" title="WnckSelector">
+<link rel="next" href="utils.html" title="Part V. Libwnck Utilities">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#WnckTasklist.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#WnckTasklist.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces"> <span class="dim">|</span> 
+                  <a href="#WnckTasklist.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_style_properties"> <span class="dim">|</span> 
+                  <a href="#WnckTasklist.style-properties" class="shortcut">Style Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="widgets.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="WnckSelector.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="utils.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="WnckTasklist"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="WnckTasklist.top_of_page"></a>WnckTasklist</span></h2>
+<p>WnckTasklist — a tasklist widget, showing the list of windows as a list
+of buttons.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="WnckTasklist.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-new" title="wnck_tasklist_new ()">wnck_tasklist_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-grouping" title="wnck_tasklist_set_grouping ()">wnck_tasklist_set_grouping</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-grouping-limit" title="wnck_tasklist_set_grouping_limit ()">wnck_tasklist_set_grouping_limit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-include-all-workspaces" title="wnck_tasklist_set_include_all_workspaces ()">wnck_tasklist_set_include_all_workspaces</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-switch-workspace-on-unminimize" title="wnck_tasklist_set_switch_workspace_on_unminimize ()">wnck_tasklist_set_switch_workspace_on_unminimize</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-button-relief" title="wnck_tasklist_set_button_relief ()">wnck_tasklist_set_button_relief</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkPixbuf</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="WnckTasklist.html#WnckLoadIconFunction" title="WnckLoadIconFunction ()">*WnckLoadIconFunction</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-icon-loader" title="wnck_tasklist_set_icon_loader ()">wnck_tasklist_set_icon_loader</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">int</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckTasklist.html#wnck-tasklist-get-size-hint-list" title="wnck_tasklist_get_size_hint_list ()">wnck_tasklist_get_size_hint_list</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.style-properties"></a><h2>Style Properties</h2>
+<div class="informaltable"><table border="0">
+<colgroup>
+<col width="150px" class="style_properties_type">
+<col width="300px" class="style_properties_name">
+<col width="200px" class="style_properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gfloat"><span class="type">gfloat</span></a></td>
+<td class="property_name"><a class="link" href="WnckTasklist.html#WnckTasklist--s-fade-loop-time" title="The “fade-loop-time” style property">fade-loop-time</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="WnckTasklist.html#WnckTasklist--s-fade-max-loops" title="The “fade-max-loops” style property">fade-max-loops</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gfloat"><span class="type">gfloat</span></a></td>
+<td class="property_name"><a class="link" href="WnckTasklist.html#WnckTasklist--s-fade-opacity" title="The “fade-opacity” style property">fade-opacity</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="WnckTasklist.html#WnckTasklist--s-fade-overlay-rect" title="The “fade-overlay-rect” style property">fade-overlay-rect</a></td>
+<td class="property_flags">Read</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="WnckTasklist.html#WnckTasklist-struct" title="struct WnckTasklist">WnckTasklist</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="WnckTasklist.html#WnckTasklistGroupingType" title="enum WnckTasklistGroupingType">WnckTasklistGroupingType</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+    <span class="lineart">╰──</span> <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GInitiallyUnowned">GInitiallyUnowned</a>
+        <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkWidget.html">GtkWidget</a>
+            <span class="lineart">╰──</span> <a href="http://developer.gnome.org/gtk2/GtkContainer.html">GtkContainer</a>
+                <span class="lineart">╰──</span> WnckTasklist
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+WnckTasklist implements
+ AtkImplementorIface and  <a href="http://developer.gnome.org/gtk2/GtkBuildable.html">GtkBuildable</a>.</p>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.description"></a><h2>Description</h2>
+<p>The <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> represents client windows on a screen as a list of buttons
+labelled with the window titles and icons. Pressing a button can activate or
+minimize the represented window, and other typical actions are available
+through a popup menu. Windows needing attention can also be distinguished
+by a fade effect on the buttons representing them, to help attract the
+user's attention.</p>
+<p>The behavior of the <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> can be customized in various ways, like
+grouping multiple windows of the same application in one button (see
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-grouping" title="wnck_tasklist_set_grouping ()"><code class="function">wnck_tasklist_set_grouping()</code></a> and <a class="link" href="WnckTasklist.html#wnck-tasklist-set-grouping-limit" title="wnck_tasklist_set_grouping_limit ()"><code class="function">wnck_tasklist_set_grouping_limit()</code></a>), or
+showing windows from all workspaces (see
+<a class="link" href="WnckTasklist.html#wnck-tasklist-set-include-all-workspaces" title="wnck_tasklist_set_include_all_workspaces ()"><code class="function">wnck_tasklist_set_include_all_workspaces()</code></a>). The fade effect for windows
+needing attention can be controlled by various style properties like
+<span class="type">“fade-max-loops”</span> and <span class="type">“fade-opacity”</span>.</p>
+<p>The tasklist also acts as iconification destination. If there are multiple
+<a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> or other applications setting the iconification destination
+for windows, the iconification destinations might not be consistent among
+windows and it is not possible to determine which <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> (or which
+other application) owns this propriety.</p>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="wnck-tasklist-new"></a><h3>wnck_tasklist_new ()</h3>
+<pre class="programlisting"><a href="http://developer.gnome.org/gtk2/GtkWidget.html"><span class="returnvalue">GtkWidget</span></a> *
+wnck_tasklist_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>. The <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> will list <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the
+<a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a> it is on.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.2.5"></a><h4>Returns</h4>
+<p> a newly created <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-grouping"></a><h3>wnck_tasklist_set_grouping ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_grouping (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                            <em class="parameter"><code><a class="link" href="WnckTasklist.html#WnckTasklistGroupingType" title="enum WnckTasklistGroupingType"><span class="type">WnckTasklistGroupingType</span></a> grouping</code></em>);</pre>
+<p>Sets the grouping policy for <em class="parameter"><code>tasklist</code></em>
+ to <em class="parameter"><code>grouping</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>grouping</p></td>
+<td class="parameter_description"><p>a grouping policy.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-grouping-limit"></a><h3>wnck_tasklist_set_grouping_limit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_grouping_limit (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                                  <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> limit</code></em>);</pre>
+<p>Sets the maximum size of buttons in <em class="parameter"><code>tasklist</code></em>
+ before <em class="parameter"><code>tasklist</code></em>
+ tries to
+group <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in the same <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> in only one button. This
+limit is valid only when the grouping policy of <em class="parameter"><code>tasklist</code></em>
+ is
+<a class="link" href="WnckTasklist.html#WNCK-TASKLIST-AUTO-GROUP:CAPS"><code class="literal">WNCK_TASKLIST_AUTO_GROUP</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.4.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>limit</p></td>
+<td class="parameter_description"><p>a size in pixels.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-include-all-workspaces"></a><h3>wnck_tasklist_set_include_all_workspaces ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_include_all_workspaces
+                               (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                                <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> include_all_workspaces</code></em>);</pre>
+<p>Sets <em class="parameter"><code>tasklist</code></em>
+ to display <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> from all <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> or not,
+according to <em class="parameter"><code>include_all_workspaces</code></em>
+.</p>
+<p>Note that if the active <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> has a viewport and if
+<em class="parameter"><code>include_all_workspaces</code></em>
+ is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, then only the <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> visible in the
+viewport are displayed in <em class="parameter"><code>tasklist</code></em>
+. The rationale for this is that the
+viewport is generally used to implement workspace-like behavior. A
+side-effect of this is that, when using multiple <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> with
+viewport, it is not possible to show all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> from a <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>
+(even those that are not visible in the viewport) in <em class="parameter"><code>tasklist</code></em>
+ without
+showing all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> from all <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.5.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>include_all_workspaces</p></td>
+<td class="parameter_description"><p>whether to display <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> from all
+<a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> in <em class="parameter"><code>tasklist</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-switch-workspace-on-unminimize"></a><h3>wnck_tasklist_set_switch_workspace_on_unminimize ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_switch_workspace_on_unminimize
+                               (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                                <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> switch_workspace_on_unminimize</code></em>);</pre>
+<p>Sets <em class="parameter"><code>tasklist</code></em>
+ to activate or not the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> a <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is on
+when unminimizing it, according to <em class="parameter"><code>switch_workspace_on_unminimize</code></em>
+.</p>
+<p>FIXME: does it still work?</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.6.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>switch_workspace_on_unminimize</p></td>
+<td class="parameter_description"><p>whether to activate the <a class="link" href="WnckWorkspace.html" title="WnckWorkspace"><span class="type">WnckWorkspace</span></a> a
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> is on when unminimizing it.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-button-relief"></a><h3>wnck_tasklist_set_button_relief ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_button_relief (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                                 <em class="parameter"><code><a href="http://developer.gnome.org/gtk2/gtk3-Standard-Enumerations.html#GtkReliefStyle"><span class="type">GtkReliefStyle</span></a> relief</code></em>);</pre>
+<p>Sets the relief type of the buttons in <em class="parameter"><code>tasklist</code></em>
+ to <em class="parameter"><code>relief</code></em>
+. The main use of
+this function is proper integration of <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> in panels with
+non-system backgrounds.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>relief</p></td>
+<td class="parameter_description"><p>a relief type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.12</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckLoadIconFunction"></a><h3>WnckLoadIconFunction ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkPixbuf</span> *
+<span class="c_punctuation">(</span>*WnckLoadIconFunction<span class="c_punctuation">)</span> (<em class="parameter"><code>const <span class="type">char</span> *icon_name</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> size</code></em>,
+                         <em class="parameter"><code>unsigned <span class="type">int</span> flags</code></em>,
+                         <em class="parameter"><code><span class="type">void</span> *data</code></em>);</pre>
+<p>Specifies the type of function passed to <a class="link" href="WnckTasklist.html#wnck-tasklist-set-icon-loader" title="wnck_tasklist_set_icon_loader ()"><code class="function">wnck_tasklist_set_icon_loader()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.8.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>icon_name</p></td>
+<td class="parameter_description"><p>an icon name as in the Icon field in a .desktop file for the
+icon to load.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>size</p></td>
+<td class="parameter_description"><p>the desired icon size.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>not defined to do anything yet.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>data passed to the function, set when the <a class="link" href="WnckTasklist.html#WnckLoadIconFunction" title="WnckLoadIconFunction ()"><span class="type">WnckLoadIconFunction</span></a> has
+been set for the <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.5.5.11.8.6"></a><h4>Returns</h4>
+<p> it should return a <code class="classname">GdkPixbuf</code> of <em class="parameter"><code>icon_name</code></em>
+at size <em class="parameter"><code>size</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no icon for <em class="parameter"><code>icon_name</code></em>
+at size <em class="parameter"><code>size</code></em>
+could be
+loaded.</p>
+<p></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-set-icon-loader"></a><h3>wnck_tasklist_set_icon_loader ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+wnck_tasklist_set_icon_loader (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                               <em class="parameter"><code><a class="link" href="WnckTasklist.html#WnckLoadIconFunction" title="WnckLoadIconFunction ()"><span class="type">WnckLoadIconFunction</span></a> load_icon_func</code></em>,
+                               <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                               <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> free_data_func</code></em>);</pre>
+<p>Sets a function to be used for loading icons.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.9.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>load_icon_func</p></td>
+<td class="parameter_description"><p>icon loader function</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>data for icon loader function</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>free_data_func</p></td>
+<td class="parameter_description"><p>function to free the data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-tasklist-get-size-hint-list"></a><h3>wnck_tasklist_get_size_hint_list ()</h3>
+<pre class="programlisting">const <span class="returnvalue">int</span> *
+wnck_tasklist_get_size_hint_list (<em class="parameter"><code><a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> *tasklist</code></em>,
+                                  <em class="parameter"><code><span class="type">int</span> *n_elements</code></em>);</pre>
+<p>Since a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> does not have a fixed size (<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> can be grouped
+when needed, for example), the standard size request mechanism in GTK+ is
+not enough to announce what sizes can be used by <em class="parameter"><code>tasklist</code></em>
+. The size hints
+mechanism is a solution for this. See <code class="function">panel_applet_set_size_hints()</code> for more
+information.</p>
+<div class="refsect3">
+<a name="id-1.5.5.11.10.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>tasklist</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n_elements</p></td>
+<td class="parameter_description"><p>return location for the number of elements in the array
+returned by this function. This number should always be pair.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.5.5.11.10.6"></a><h4>Returns</h4>
+<p> a list of size hints that can be used to allocate an
+appropriate size for <em class="parameter"><code>tasklist</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="WnckTasklist-struct"></a><h3>struct WnckTasklist</h3>
+<pre class="programlisting">struct WnckTasklist;</pre>
+<p>The <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckTasklistGroupingType"></a><h3>enum WnckTasklistGroupingType</h3>
+<p>Type defining the policy of the <a class="link" href="WnckTasklist.html" title="WnckTasklist"><span class="type">WnckTasklist</span></a> for grouping multiple
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the same <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.5.5.12.3.4"></a><h4>Members</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="WNCK-TASKLIST-NEVER-GROUP:CAPS"></a>WNCK_TASKLIST_NEVER_GROUP</p></td>
+<td class="enum_member_description">
+<p>never group multiple <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the same
+<a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="WNCK-TASKLIST-AUTO-GROUP:CAPS"></a>WNCK_TASKLIST_AUTO_GROUP</p></td>
+<td class="enum_member_description">
+<p>group multiple <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the same
+<a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> for some <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>, when there is not enough place
+to have a good-looking list of all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a>.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="WNCK-TASKLIST-ALWAYS-GROUP:CAPS"></a>WNCK_TASKLIST_ALWAYS_GROUP</p></td>
+<td class="enum_member_description">
+<p>always group multiple <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> of the same
+<a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>, for all <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a>.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.style-property-details"></a><h2>Style Property Details</h2>
+<div class="refsect2">
+<a name="WnckTasklist--s-fade-loop-time"></a><h3>The <code class="literal">“fade-loop-time”</code> style property</h3>
+<pre class="programlisting">  “fade-loop-time”           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gfloat"><span class="type">gfloat</span></a></pre>
+<p>When a window needs attention, a fade effect is drawn on the button
+representing the window. This property controls the time one loop of this
+fade effect takes, in seconds.</p>
+<p>Flags: Read</p>
+<p>Allowed values: [0.2,10]</p>
+<p>Default value: 3</p>
+<p class="since">Since 2.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckTasklist--s-fade-max-loops"></a><h3>The <code class="literal">“fade-max-loops”</code> style property</h3>
+<pre class="programlisting">  “fade-max-loops”           <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>When a window needs attention, a fade effect is drawn on the button
+representing the window. This property controls the number of loops for
+this fade effect. 0 means the button will only fade to the final color.</p>
+<p>Flags: Read</p>
+<p>Allowed values: [0,50]</p>
+<p>Default value: 5</p>
+<p class="since">Since 2.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckTasklist--s-fade-opacity"></a><h3>The <code class="literal">“fade-opacity”</code> style property</h3>
+<pre class="programlisting">  “fade-opacity”             <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gfloat"><span class="type">gfloat</span></a></pre>
+<p>When a window needs attention, a fade effect is drawn on the button
+representing the window. This property controls the final opacity that
+will be reached by the fade effect.</p>
+<p>Flags: Read</p>
+<p>Allowed values: [0,1]</p>
+<p>Default value: 0.8</p>
+<p class="since">Since 2.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckTasklist--s-fade-overlay-rect"></a><h3>The <code class="literal">“fade-overlay-rect”</code> style property</h3>
+<pre class="programlisting">  “fade-overlay-rect”        <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>When a window needs attention, a fade effect is drawn on the button
+representing the window. Set this property to <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable a
+compatibility mode for pixbuf engine themes that cannot react to color
+changes. If enabled, a rectangle with the correct color will be drawn on
+top of the button.</p>
+<p>Flags: Read</p>
+<p>Default value: TRUE</p>
+<p class="since">Since 2.16</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckTasklist.see-also"></a><h2>See Also</h2>
+<p><a class="link" href="WnckScreen.html" title="WnckScreen"><span class="type">WnckScreen</span></a>, <a class="link" href="WnckSelector.html" title="WnckSelector"><span class="type">WnckSelector</span></a></p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

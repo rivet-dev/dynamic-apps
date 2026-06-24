@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8"?> <!-- -*- nxml -*- -->
+
+<!-- XML Schema for the Openbox window manager configuration file -->
+
+<!DOCTYPE schema PUBLIC "-//W3C//DTD XMLSCHEMA 200102//EN"
+				"http://www.w3.org/2001/XMLSchema.dtd" [
+<!ATTLIST schema xmlns:ob CDATA #IMPLIED>
+<!ENTITY % p "xsd:">
+<!ENTITY % s ":xsd">
+]>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://openbox.org/4.0/rc"
+    xmlns:ob="http://openbox.org/4.0/rc"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+    <!--
+         root node
+      -->
+    <xsd:element name="openbox_config">
+        <xsd:annotation>
+            <xsd:documentation>all these elements are expected in a openbox config file</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element name="resistance" type="ob:resistance"/>
+                <xsd:element name="focus" type="ob:focus"/>
+                <xsd:element name="placement" type="ob:placement"/>
+                <xsd:element name="theme" type="ob:theme"/>
+                <xsd:element name="desktops" type="ob:desktops"/>
+                <xsd:element name="resize" type="ob:resize"/>
+                <xsd:element minOccurs="0" name="margins" type="ob:margins"/>
+                <xsd:element name="dock" type="ob:dock"/>
+                <xsd:element name="keyboard" type="ob:keyboard"/>
+                <xsd:element name="mouse" type="ob:mouse"/>
+                <xsd:element name="menu" type="ob:menu"/>
+                <xsd:element name="applications" type="ob:applications"/>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+    <!--
+         complex types
+      -->
+    <xsd:complexType name="resistance">
+        <xsd:annotation>
+            <xsd:documentation>defines behaviour of windows when close to each other or the screen edge</xsd:documentation>
+        </xsd:annotation>
+        <xsd:all>
+            <xsd:element minOccurs="0" name="strength" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="screen_edge_strength" type="xsd:integer"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="focus">
+        <xsd:annotation>
+            <xsd:documentation>defines aspects of window focus</xsd:documentation>
+        </xsd:annotation>
+        <xsd:all>
+            <xsd:element minOccurs="0" name="focusNew" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="focusLast" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="followMouse" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="underMouse" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="focusDelay" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="raiseOnFocus" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="unfocusOnLeave" type="ob:bool"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="placement">
+        <xsd:annotation>
+            <xsd:documentation>defines how new windows are placed</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="policy" type="ob:placementpolicy"/>
+            <xsd:element minOccurs="0" name="center" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="monitor" type="ob:placementmonitor"/>
+            <xsd:element minOccurs="0" name="primaryMonitor" type="ob:primarymonitor"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="margins">
+        <xsd:annotation>
+            <xsd:documentation>defines desktop margins</xsd:documentation>
+        </xsd:annotation>
+        <xsd:all>
+            <xsd:element minOccurs="0" name="top" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="left" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="right" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="bottom" type="xsd:integer"/>
+        </xsd:all>
+    </xsd:complexType>              
+    <xsd:complexType name="theme">
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="name" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="titleLayout" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="keepBorder" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="animateIconify" type="ob:bool"/>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="font" type="ob:font"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="font">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="name" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="size" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="weight" type="ob:fontweight"/>
+            <xsd:element minOccurs="0" name="slant" type="ob:fontslant"/>
+        </xsd:all>
+        <xsd:attribute name="place" type="ob:fontplace" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="desktops">
+        <xsd:annotation>
+            <xsd:documentation>defines the number and names of desktops</xsd:documentation>
+        </xsd:annotation>
+        <xsd:all>
+            <xsd:element minOccurs="0" name="number" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="firstdesk" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="names">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" maxOccurs="unbounded" name="name" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="popupTime" type="xsd:integer"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="resize">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="drawContents" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="popupShow" type="ob:popupshow"/>
+            <xsd:element minOccurs="0" name="popupPosition" type="ob:popupposition"/>
+            <xsd:element minOccurs="0" name="popupFixedPosition" type="ob:popupfixedposition"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="popupfixedposition">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="x" type="ob:center_or_int"/>
+            <xsd:element minOccurs="0" name="y" type="ob:center_or_int"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="dock">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="position" type="ob:dock_position"/>
+            <xsd:element minOccurs="0" name="floatingX" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="floatingY" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="noStrut" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="stacking" type="ob:layer"/>
+            <xsd:element minOccurs="0" name="direction" type="ob:direction"/>
+            <xsd:element minOccurs="0" name="autoHide" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="hideDelay" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="showDelay" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="moveButton" type="ob:button"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="action">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="execute" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="startupnotify" type="ob:notify"/>
+            <xsd:element minOccurs="0" name="command" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="allDesktops" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="menu" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="delta" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="x" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="y" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="left" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="right" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="up" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="down" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="desktop">
+                <xsd:simpleType>
+                    <xsd:union memberTypes="xsd:integer ob:bool"/>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="edge" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="wrap" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="follow" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="dialog" type="ob:dialogtype"/>
+            <xsd:element minOccurs="0" name="panels" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="here" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="linear" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="group" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="strict" type="ob:bool"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="ob:actionname" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="keybind">
+        <xsd:choice>
+            <xsd:element maxOccurs="unbounded" name="action" type="ob:action"/>
+            <xsd:element maxOccurs="unbounded" name="keybind" type="ob:keybind"/>
+        </xsd:choice>
+        <xsd:attribute name="chroot" type="ob:bool"/>
+        <xsd:attribute name="key" type="ob:keyname" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="keyboard">
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="chainQuitKey" type="ob:keyname"/>
+            <xsd:element maxOccurs="unbounded" name="keybind" type="ob:keybind"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="mousebind">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" name="action" type="ob:action"/>
+        </xsd:sequence>
+        <xsd:attribute name="action" type="ob:mouseaction" use="required"/>
+        <xsd:attribute name="button" type="ob:button" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="context">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" name="mousebind" type="ob:mousebind"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="ob:contextname" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="mouse">
+        <xsd:sequence>
+            <xsd:element minOccurs="0" name="dragThreshold" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="doubleClickTime" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="screenEdgeWarpTime" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="screenEdgeWarpMouse" type="ob:bool"/>
+            <xsd:element maxOccurs="unbounded" name="context" type="ob:context"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="menu">
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" name="file" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="hideDelay" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="middle" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="submenuShowDelay" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="showIcons" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="manageDesktops" type="ob:bool"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="window_position">
+        <xsd:all>
+            <xsd:element name="x" type="ob:center_or_int"/>
+            <xsd:element name="y" type="ob:center_or_int"/>
+            <xsd:element minOccurs="0" name="monitor" type="ob:mouse_or_int"/>    
+            <xsd:element minOccurs="0" name="head" type="xsd:string"/>
+        </xsd:all>
+        <xsd:attribute name="force" type="ob:bool"/>
+    </xsd:complexType>
+    <xsd:complexType name="window_size">
+        <xsd:all>
+            <xsd:element name="width" type="ob:size_value"/>
+            <xsd:element name="height" type="ob:size_value"/>
+        </xsd:all>
+    </xsd:complexType>
+    <xsd:complexType name="application">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="decor" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="shade" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="position" type="ob:window_position"/>
+            <xsd:element minOccurs="0" name="size" type="ob:window_size"/>
+            <xsd:element minOccurs="0" name="focus" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="desktop" type="xsd:integer"/>
+            <xsd:element minOccurs="0" name="layer" type="ob:layer"/>
+            <xsd:element minOccurs="0" name="iconic" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="skip_pager" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="skip_taskbar" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="fullscreen" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="maximized" type="ob:maximization"/>
+        </xsd:all>
+        <!-- at least one of these must be present -->
+        <xsd:attribute name="role" type="xsd:string"/>
+        <xsd:attribute name="title" type="xsd:string"/>
+        <xsd:attribute name="type" type="ob:clienttype"/>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="class" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:complexType name="applications">
+        <xsd:sequence>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="application" type="ob:application"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="notify">
+        <xsd:all>
+            <xsd:element minOccurs="0" name="enabled" type="ob:bool"/>
+            <xsd:element minOccurs="0" name="name" type="xsd:string"/>
+            <xsd:element minOccurs="0" name="icon" type="xsd:string"/>
+        </xsd:all>
+    </xsd:complexType>
+    <!--
+         simple types / restrictions
+      -->
+    <xsd:simpleType name="actionname">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[Ii][Ff]"/>
+            <xsd:pattern value="[Aa][Cc][Tt][Ii][Vv][Aa][Tt][Ee]"/>
+            <xsd:pattern value="[Bb][Rr][Ee][Aa][Kk][Cc][Hh][Rr][Oo][Oo][Tt]"/>
+            <xsd:pattern value="[Cc][Ll][Oo][Ss][Ee]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Dd][Oo][Ww][Nn]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Ll][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Ll][Ee][Ff][Tt]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Nn][Ee][Xx][Tt]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Pp][Rr][Ee][Vv][Ii][Oo][Uu][Ss]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Rr][Ii][Gg][Hh][Tt]"/>
+            <xsd:pattern value="[Dd][Ee][Ss][Kk][Tt][Oo][Pp][Uu][Pp]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Nn][Oo][Rr][Tt][Hh]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Nn][Oo][Rr][Tt][Hh][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Nn][Oo][Rr][Tt][Hh][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Ss][Oo][Uu][Tt][Hh]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Ss][Oo][Uu][Tt][Hh][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Ss][Oo][Uu][Tt][Hh][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Dd][Ii][Rr][Ee][Cc][Tt][Ii][Oo][Nn][Aa][Ll][Ff][Oo][Cc][Uu][Ss][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Ee][Xx][Ee][Cc][Uu][Tt][Ee]"/>
+            <xsd:pattern value="[Ee][Xx][Ii][Tt]"/>
+            <xsd:pattern value="[Ss][Ee][Ss][Ss][Ii][Oo][Nn][Ll][Oo][Gg][Oo][Uu][Tt]"/>
+            <xsd:pattern value="[Ff][Oo][Cc][Uu][Ss]"/>
+            <xsd:pattern value="[Ff][Oo][Cc][Uu][Ss][Tt][Oo][Bb][Oo][Tt][Tt][Oo][Mm]"/>
+            <xsd:pattern value="[Gg][Rr][Oo][Ww][Tt][Oo][Ee][Dd][Gg][Ee][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Gg][Rr][Oo][Ww][Tt][Oo][Ee][Dd][Gg][Ee][Nn][Oo][Rr][Tt][Hh]"/>
+            <xsd:pattern value="[Gg][Rr][Oo][Ww][Tt][Oo][Ee][Dd][Gg][Ee][Ss][Oo][Uu][Tt][Hh]"/>
+            <xsd:pattern value="[Gg][Rr][Oo][Ww][Tt][Oo][Ee][Dd][Gg][Ee][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Ii][Cc][Oo][Nn][Ii][Ff][Yy]"/>
+            <xsd:pattern value="[Kk][Ii][Ll][Ll]"/>
+            <xsd:pattern value="[Ll][Oo][Ww][Ee][Rr]"/>
+            <xsd:pattern value="[Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Ff][Uu][Ll][Ll]"/>
+            <xsd:pattern value="[Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Hh][Oo][Rr][Zz]"/>
+            <xsd:pattern value="[Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Vv][Ee][Rr][Tt]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee][Hh][Oo][Rr][Zz]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee][Vv][Ee][Rr][Tt]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Tt][Oo][Cc][Ee][Nn][Tt][Ee][Rr]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Ff][Rr][Oo][Mm][Ee][Dd][Gg][Ee][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Ff][Rr][Oo][Mm][Ee][Dd][Gg][Ee][Nn][Oo][Rr][Tt][Hh]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Ff][Rr][Oo][Mm][Ee][Dd][Gg][Ee][Ss][Oo][Uu][Tt][Hh]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Ff][Rr][Oo][Mm][Ee][Dd][Gg][Ee][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Tt][Oo][Ee][Dd][Gg][Ee][Ee][Aa][Ss][Tt]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Tt][Oo][Ee][Dd][Gg][Ee][Nn][Oo][Rr][Tt][Hh]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Tt][Oo][Ee][Dd][Gg][Ee][Ss][Oo][Uu][Tt][Hh]"/>
+            <xsd:pattern value="[Mm][Oo][Vv][Ee][Tt][Oo][Ee][Dd][Gg][Ee][Ww][Ee][Ss][Tt]"/>
+            <xsd:pattern value="[Nn][Ee][Xx][Tt][Ww][Ii][Nn][Dd][Oo][Ww]"/>
+            <xsd:pattern value="[Pp][Rr][Ee][Vv][Ii][Oo][Uu][Ss][Ww][Ii][Nn][Dd][Oo][Ww]"/>
+            <xsd:pattern value="[Rr][Aa][Ii][Ss][Ee]"/>
+            <xsd:pattern value="[Rr][Aa][Ii][Ss][Ee][Ll][Oo][Ww][Ee][Rr]"/>
+            <xsd:pattern value="[Rr][Ee][Cc][Oo][Nn][Ff][Ii][Gg][Uu][Rr][Ee]"/>
+            <xsd:pattern value="[Rr][Ee][Ss][Ii][Zz][Ee]"/>
+            <xsd:pattern value="[Rr][Ee][Ss][Ii][Zz][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee]"/>
+            <xsd:pattern value="[Rr][Ee][Ss][Ii][Zz][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee][Hh][Oo][Rr][Zz]"/>
+            <xsd:pattern value="[Rr][Ee][Ss][Ii][Zz][Ee][Rr][Ee][Ll][Aa][Tt][Ii][Vv][Ee][Vv][Ee][Rr][Tt]"/>
+            <xsd:pattern value="[Rr][Ee][Ss][Tt][Aa][Rr][Tt]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Bb][Oo][Tt][Tt][Oo][Mm][Ll][Aa][Yy][Ee][Rr]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Dd][Oo][Ww][Nn]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Ll][Ee][Ff][Tt]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Nn][Ee][Xx][Tt]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Pp][Rr][Ee][Vv][Ii][Oo][Uu][Ss]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Rr][Ii][Gg][Hh][Tt]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Dd][Ee][Ss][Kk][Tt][Oo][Pp][Uu][Pp]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Nn][Oo][Rr][Mm][Aa][Ll][Ll][Aa][Yy][Ee][Rr]"/>
+            <xsd:pattern value="[Ss][Ee][Nn][Dd][Tt][Oo][Tt][Oo][Pp][Ll][Aa][Yy][Ee][Rr]"/>
+            <xsd:pattern value="[Ss][Hh][Aa][Dd][Ee]"/>
+            <xsd:pattern value="[Ss][Hh][Aa][Dd][Ee][Ll][Oo][Ww][Ee][Rr]"/>
+            <xsd:pattern value="[Ss][Hh][Oo][Ww][Dd][Ee][Ss][Kk][Tt][Oo][Pp]"/>
+            <xsd:pattern value="[Ss][Hh][Oo][Ww][Mm][Ee][Nn][Uu]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Aa][Ll][Ww][Aa][Yy][Ss][Oo][Nn][Bb][Oo][Tt][Tt][Oo][Mm]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Aa][Ll][Ww][Aa][Yy][Ss][Oo][Nn][Tt][Oo][Pp]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Dd][Ee][Cc][Oo][Rr][Aa][Tt][Ii][Oo][Nn][Ss]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Dd][Oo][Cc][Kk][Aa][Uu][Tt][Oo][Hh][Ii][Dd][Ee]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Ff][Uu][Ll][Ll][Ss][Cc][Rr][Ee][Ee][Nn]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Ff][Uu][Ll][Ll]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Hh][Oo][Rr][Zz]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Vv][Ee][Rr][Tt]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Oo][Mm][Nn][Ii][Pp][Rr][Ee][Ss][Ee][Nn][Tt]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Ss][Hh][Aa][Dd][Ee]"/>
+            <xsd:pattern value="[Tt][Oo][Gg][Gg][Ll][Ee][Ss][Hh][Oo][Ww][Dd][Ee][Ss][Kk][Tt][Oo][Pp]"/>
+            <xsd:pattern value="[Uu][Nn][Ff][Oo][Cc][Uu][Ss]"/>
+            <xsd:pattern value="[Uu][Nn][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Ff][Uu][Ll][Ll]"/>
+            <xsd:pattern value="[Uu][Nn][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Hh][Oo][Rr][Zz]"/>
+            <xsd:pattern value="[Uu][Nn][Mm][Aa][Xx][Ii][Mm][Ii][Zz][Ee][Vv][Ee][Rr][Tt]"/>
+            <xsd:pattern value="[Uu][Nn][Ss][Hh][Aa][Dd][Ee]"/>
+            <xsd:pattern value="[Uu][Nn][Ss][Hh][Aa][Dd][Ee][Rr][Aa][Ii][Ss][Ee]"/>
+            <xsd:pattern value="[Uu][Nn][Ss][Hh][Oo][Ww][Dd][Ee][Ss][Kk][Tt][Oo][Pp]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="clienttype">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="desktop"/>
+            <xsd:enumeration value="dock"/>
+            <xsd:enumeration value="toolbar"/>
+            <xsd:enumeration value="menu"/>
+            <xsd:enumeration value="splash"/>
+            <xsd:enumeration value="utility"/>
+            <xsd:enumeration value="dialog"/>
+            <xsd:enumeration value="normal"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="bool">
+        <!-- this is copied to maximization.  Keep that in sync. -->
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="on"/>
+            <xsd:enumeration value="off"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="fontplace">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ActiveWindow"/>
+            <xsd:enumeration value="InactiveWindow"/>
+            <xsd:enumeration value="MenuHeader"/>
+            <xsd:enumeration value="MenuItem"/>
+            <xsd:enumeration value="ActiveOnScreenDisplay"/>
+            <xsd:enumeration value="InactiveOnScreenDisplay"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="fontweight">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal"/>
+            <xsd:enumeration value="bold"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="fontslant">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal"/>
+            <xsd:enumeration value="italic"/>
+            <xsd:enumeration value="opaque"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="button">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="(([ACMSW]|Mod[1-5])-){,5}(Left|Middle|Right|Up|Down|Button[0-9]+)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="center_or_int">
+        <xsd:restriction base="xsd:string">
+            <!-- ob: atoi($_) unless $_ eq 'center'; -->
+            <!-- I think the regexp DTRT WRT atoi. -->
+            <xsd:pattern value="default|center|-?(0|[1-9][0-9]*)(|%|/[1-9][0-9]*)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="size_value">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="default|([1-9][0-9]*)(|%|/[1-9][0-9]*)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="mouse_or_int">
+        <xsd:restriction base="xsd:string">
+            <!-- ob: atoi($_) unless $_ eq 'center'; -->
+            <!-- I think the regexp DTRT WRT atoi. -->
+            <xsd:pattern value="mouse|0|[1-9][0-9]*"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="contextname">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Desktop"/>
+            <xsd:enumeration value="Root"/>
+            <xsd:enumeration value="Client"/>
+            <xsd:enumeration value="Titlebar"/>
+            <xsd:enumeration value="Frame"/>
+            <xsd:enumeration value="TLCorner"/>
+            <xsd:enumeration value="TRCorner"/>
+            <xsd:enumeration value="BLCorner"/>
+            <xsd:enumeration value="BRCorner"/>
+            <xsd:enumeration value="Top"/>
+            <xsd:enumeration value="Left"/>
+            <xsd:enumeration value="Right"/>
+            <xsd:enumeration value="Bottom"/>
+            <xsd:enumeration value="Maximize"/>
+            <xsd:enumeration value="AllDesktops"/>
+            <xsd:enumeration value="Shade"/>
+            <xsd:enumeration value="Iconify"/>
+            <xsd:enumeration value="Icon"/>
+            <xsd:enumeration value="Close"/>
+            <xsd:enumeration value="MoveResize"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="direction">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Horizontal"/>
+            <xsd:enumeration value="Vertical"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="dock_position">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="TopLeft"/>
+            <xsd:enumeration value="Top"/>
+            <xsd:enumeration value="TopRight"/>
+            <xsd:enumeration value="Right"/>
+            <xsd:enumeration value="BottomRight"/>
+            <xsd:enumeration value="Bottom"/>
+            <xsd:enumeration value="BottomLeft"/>
+            <xsd:enumeration value="Left"/>
+            <xsd:enumeration value="Floating"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="keyname">
+        <xsd:restriction base="xsd:string">
+            <!-- FIXME: M, Mod2, Mod5 in addition to S, A, C -->
+            <!-- how do we do all substrings and permutations? -->
+            <xsd:pattern value="(([ACMSW]|Mod[1-5])-){,5}[a-zA-Z0-9]*"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="layer">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[Aa][Bb][Oo][Vv][Ee]"/>
+            <xsd:pattern value="[Nn][Oo][Rr][Mm][Aa][Ll]"/>
+            <xsd:pattern value="[Bb][Ee][Ll][Oo][Ww]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="maximization">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Horizontal"/>
+            <xsd:enumeration value="Vertical"/>
+            <!-- this is a copy of ob:bool.  Keep it in sync. -->
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="no"/>
+            <xsd:enumeration value="true"/>
+            <xsd:enumeration value="false"/>
+            <xsd:enumeration value="on"/>
+            <xsd:enumeration value="off"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="mouseaction">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Click"/>
+            <xsd:enumeration value="DoubleClick"/>
+            <xsd:enumeration value="Drag"/>
+            <xsd:enumeration value="Press"/>
+            <xsd:enumeration value="Release"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="placementpolicy">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Smart"/>
+            <xsd:enumeration value="UnderMouse"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="placementmonitor">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Any"/>
+            <xsd:enumeration value="Mouse"/>
+            <xsd:enumeration value="Active"/>
+            <xsd:enumeration value="Primary"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="primarymonitor">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Mouse"/>
+            <xsd:enumeration value="Active"/>
+            <xsd:pattern value="[0-9][0-9][0-9][0-9][0-9]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="popupposition">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Top"/>
+            <xsd:enumeration value="Center"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="popupshow">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Always"/>
+            <xsd:enumeration value="Never"/>
+            <xsd:enumeration value="Nonpixel"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="dialogtype">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="None"/>
+            <xsd:enumeration value="Icons"/>
+            <xsd:enumeration value="List"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

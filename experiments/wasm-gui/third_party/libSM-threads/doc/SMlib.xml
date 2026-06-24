@@ -1,0 +1,3230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+<!ENTITY % defs SYSTEM "defs.ent"> %defs;
+]>
+
+
+<!-- lifted from troff+ms+XMan by doclifter -->
+<book id="SMlib">
+
+<bookinfo>
+   <title>X Session Management Library</title>
+   <subtitle>X Consortium Standard</subtitle>
+   <releaseinfo>X Version 11, Release &fullrelvers;</releaseinfo>
+   <authorgroup>
+      <author>
+         <firstname>Ralph</firstname><surname>Mor</surname>
+         <affiliation><orgname>X Consortium</orgname></affiliation>
+      </author>
+   </authorgroup>
+   <copyright>
+     <year>1993</year><year>1994</year>
+     <holder>X Consortium</holder>
+   </copyright>
+   <releaseinfo>Version 1.0</releaseinfo>
+
+   <legalnotice>
+     <para>
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+&ldquo;Software&rdquo;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+     </para>
+
+     <para>
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+     </para>
+
+     <para>
+THE SOFTWARE IS PROVIDED &ldquo;AS IS&rdquo;, WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+AND NONINFRINGEMENT.  IN NO EVENT SHALL THE X CONSORTIUM BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+     </para>
+
+     <para>
+Except as contained in this notice, the name of the X Consortium shall
+not be used in advertising or otherwise to promote the sale, use or
+other dealings in this Software without prior written authorization
+from the X Consortium.
+     </para>
+
+     <para>
+X Window System is a trademark of The Open Group.
+     </para>
+   </legalnotice>
+
+</bookinfo>
+
+<chapter id='Overview_of_Session_Management'>
+  <title>Overview of Session Management</title>
+
+  <abstract>
+    <para>
+The purpose of the X Session Management Protocol (<acronym>XSMP</acronym>)
+is to provide a uniform mechanism for users to save and restore their
+sessions.  A <firstterm>session</firstterm> is a group of clients,
+each of which has a particular state.  The session is controlled by a
+network service called the <firstterm>session manager</firstterm>.
+The session manager issues commands to its clients on behalf of the
+user.  These commands may cause clients to save their state or to
+terminate.  It is expected that the client will save its state in such
+a way that the client can be restarted at a later time and resume its
+operation as if it had never been terminated.  A client's state might
+include information about the file currently being edited, the current
+position of the insertion point within the file, or the start of an
+uncommitted transaction.  The means by which clients are restarted is
+unspecified by this protocol.
+    </para>
+
+    <para>
+For purposes of this protocol, a <firstterm>client</firstterm> of the
+session manager is defined as a connection to the session manager.  A
+client is typically, though not necessarily, a process running an
+application program connected to an X display.  However, a client may
+be connected to more than one X display or not be connected to any X
+displays at all.
+    </para>
+  </abstract>
+</chapter>
+
+<chapter id='The_Session_Management_Library'>
+  <title>The Session Management Library</title>
+  <abstract>
+    <para>
+The Session Management Library (<abbrev>SMlib</abbrev>) is a low-level
+"C" language interface to XSMP.  It is expected that higher level
+toolkits, such as Xt, will hide many of the details of session
+management from clients.  Higher level toolkits might also be developed
+for session managers to use, but no such effort is currently under way.
+    </para>
+  </abstract>
+
+  <para>
+    SMlib has two parts to it:
+    <itemizedlist mark='bullet'>
+      <listitem><para>One set of functions for clients that want to be part of a session</para></listitem>
+      <listitem><para>One set of functions for session managers to call</para></listitem>
+    </itemizedlist>
+  </para>
+
+  <para>
+Some applications will use both sets of functions and act as
+<firstterm>nested session managers</firstterm>.  That is, they will be
+both a session manager and a client of another session.  An example is
+a mail program that could start a text editor for editing the text of
+a mail message.  The mail program is part of a regular session and, at
+the same time, is also acting as a session manager to the editor.
+  </para>
+
+  <para>
+Clients initialize by connecting to the session manager and obtaining
+a <firstterm>client-ID</firstterm> that uniquely identifies them in
+the session.  The session manager maintains a list of properties for
+each client in the session.  These properties describe the client's
+environment and, most importantly, describe how the client can be
+restarted (via an <property>SmRestartCommand</property>). Clients are
+expected to save their state in such a way as to allow multiple
+instantiations of themselves to be managed independently.  For
+example, clients may use their client-ID as part of a filename in
+which to store the state for a particular instantiation.  The
+client-ID should be saved as part of the <property>SmRestartCommand</property>
+so that the client will retain the same ID after it is restarted.
+  </para>
+
+  <para>
+Once the client initializes itself with the session manager, it must
+be ready to respond to messages from the session manager.  For
+example, it might be asked to save its state or to terminate.  In the
+case of a shutdown, the session manager might give each client a
+chance to interact with the user and cancel the shutdown.
+  </para>
+</chapter>
+
+<chapter id='Understanding_SMlibs_Dependence_on_ICE'>
+  <title>Understanding SMlib's Dependence on ICE</title>
+
+  <para>
+The X Session Management Protocol is layered on top of the
+Inter-Client Exchange (<acronym>ICE</acronym>) Protocol.  The ICE
+protocol is designed to multiplex several protocols over a single
+connection.  As a result, working with SMlib requires a little
+knowledge of how the ICE library works.
+  </para>
+
+  <para>
+The ICE library utilizes callbacks to process messages.  When a client
+detects that there is data to read on an ICE connection, it should
+call the <olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink> function.
+<olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink> will read the message header
+and look at the major opcode in order to determine which protocol the
+message was intended for.  The appropriate protocol library will then
+be triggered to unpack the message and hand it off to the client via a
+callback.
+  </para>
+
+  <para>
+The main point to be aware of is that an application using SMlib must
+have some code that detects when there is data to read on an ICE
+connection.  This can be done via a <function>select</function> call
+on the file descriptor for the ICE connection, but more
+typically, <function>XtAppAddInput</function> will be used to register
+a callback that will invoke <olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink>
+each time there is data to read on the ICE connection.
+  </para>
+
+  <para>
+To further complicate things, knowing which file descriptors to
+call <function>select</function> on requires an understanding of how
+ICE connections are created.  On the client side, a call must be made
+to <xref linkend='SmcOpenConnection' xrefstyle='select: title'/> in order to open a connection
+with a session manager.  <xref linkend='SmcOpenConnection' xrefstyle='select: title'/> will
+internally makea call into <olink targetdoc='ICElib' targetptr='IceOpenConnection'><function>IceOpenConnection</function></olink>
+which will, in turn, determine if an ICE connection already exists
+between the client and session manager.  Most likely, a connection
+will not already exist and a new ICE connection will be created.  The
+main point to be aware of is that, on the client side, it is not
+obvious when ICE connections get created or destroyed, because
+connections are shared when possible.  To deal with this, the ICE
+library lets the application register watch procedures that will be
+invoked each time an ICE connection is opened or closed.  These watch
+procedures could be used to add or remove ICE file descriptors from
+the list of descriptors to call <function>select</function> on.
+  </para>
+
+  <para>
+On the session manager side, things work a bit differently.  The
+session manager has complete control over the creation of ICE
+connections.  The session manager has to first
+call <olink targetdoc='ICElib' targetptr='IceListenForConnections'><function>IceListenForConnections</function></olink> in order to start
+listening for connections from clients.  Once a connection attempt is
+detected, <olink targetdoc='ICElib' targetptr='IceAcceptConnection'><function>IceAcceptConnection</function></olink> must be called, and
+the session manager can simply add the new ICE file descriptor to the
+list of descriptors to call <function>select</function> on.
+
+  </para>
+
+  <para>
+For further information on the library functions related to ICE connections,
+see the <citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+  </para>
+</chapter>
+
+<chapter id='Header_Files_and_Library_Name'>
+<title>Header Files and Library Name</title>
+
+  <para>
+Applications (both session managers and clients) should include the
+header file &lt;<filename class='headerfile'>X11/SM/SMlib.h</filename>&gt;.
+This header file defines all of the SMlib data structures and function
+prototypes.  <filename class='headerfile'>SMlib.h</filename> includes the
+header file &lt;<filename class='headerfile'>X11/SM/SM.h</filename>&gt;,
+which defines all of the SMlib constants.
+  </para>
+
+  <para>
+Because SMlib is dependent on ICE, applications should link against
+SMlib and ICElib by using
+<quote><option>-lSM</option> <option>-lICE</option></quote>.
+  </para>
+</chapter>
+
+<chapter id='Session_Management_Client_Smc_Functions'>
+  <title>Session Management Client (<acronym>Smc</acronym>) Functions</title>
+
+  <para>
+    This section discusses how Session Management clients:
+    <itemizedlist mark='bullet'>
+      <listitem><para>Connect to the Session Manager</para></listitem>
+      <listitem><para>Close the connection</para></listitem>
+      <listitem><para>Modify callbacks</para></listitem>
+      <listitem><para>Set, delete, and retrieve Session Manager properties</para></listitem>
+      <listitem><para>Interact with the user</para></listitem>
+      <listitem><para>Request a &ldquo;Save Yourself&rdquo;</para></listitem>
+      <listitem><para>Request a &ldquo;Save Yourself Phase 2&rdquo;</para></listitem>
+      <listitem><para>Complete a &ldquo;Save Yourself&rdquo;</para></listitem>
+      <listitem><para>Use Smc informational functions</para></listitem>
+      <listitem><para>Handle Errors</para></listitem>
+    </itemizedlist>
+  </para>
+
+  <sect1 id='Connecting_to_the_Session_Manager'>
+<title>Connecting to the Session Manager</title>
+
+    <para>
+To open a connection with a session manager,
+use <xref linkend='SmcOpenConnection' xrefstyle='select: title'/>
+    </para>
+
+    <funcsynopsis id='SmcOpenConnection'>
+      <funcprototype>
+	<funcdef>SmcConn <function>SmcOpenConnection</function></funcdef>
+	<paramdef>char *<parameter>network_ids_list</parameter></paramdef>
+	<paramdef>SmPointer <parameter>context</parameter></paramdef>
+	<paramdef>int <parameter>xsmp_major_rev</parameter></paramdef>
+	<paramdef>int <parameter>xsmp_minor_rev</parameter></paramdef>
+	<paramdef>unsigned long <parameter>mask</parameter></paramdef>
+	<paramdef>SmcCallbacks *<parameter>callbacks</parameter></paramdef>
+	<paramdef>char *<parameter>previous_id</parameter></paramdef>
+	<paramdef>char **<parameter>client_id_ret</parameter></paramdef>
+	<paramdef>int <parameter>error_length</parameter></paramdef>
+	<paramdef>char *<parameter>error_string_ret</parameter></paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term><parameter>network_ids_list</parameter></term>
+	<listitem><para>Specifies the network ID(s) of the session manager.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>context</parameter></term>
+	<listitem><para>
+A pointer to an opaque object or <constant>NULL</constant>.  Used to determine
+if an ICE connection can be shared
+(see <link linkend='context_sharing'>below</link>).
+     </para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>xsmp_major_rev</parameter></term>
+	<listitem><para>
+The highest major version of the XSMP the application supports.
+	</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>xsmp_minor_rev</parameter></term>
+	<listitem><para>
+The highest minor version of the XSMP the application supports (for
+the specified <parameter>xsmp_major_rev</parameter>).
+	</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>mask</parameter></term>
+	<listitem><para>A mask indicating which callbacks to register.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>callbacks</parameter></term>
+	<listitem><para>
+The callbacks to register.  These callbacks are used to respond to
+messages from the session manager.
+	</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>previous_id</parameter></term>
+	<listitem><para>The client ID from the previous session.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>client_id_ret</parameter></term>
+	<listitem><para>The client ID for the current session is returned.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>error_length</parameter></term>
+	<listitem><para>Length of the <parameter>error_string_ret</parameter> argument passed in.</para></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><parameter>error_string_ret</parameter></term>
+	<listitem><para>
+Returns a null-terminated error message, if any.
+The <parameter>error_string_ret</parameter> argument points to user supplied
+memory.  No more than <parameter>error_length</parameter> bytes are used.
+	</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>
+The <parameter>network_ids_list</parameter> argument is a
+null-terminated string containing a list of network IDs for the session
+manager, separated by commas. If <parameter>network_ids_list</parameter>
+is <constant>NULL</constant>, the value of
+the <envar>SESSION_MANAGER</envar> environment variable will be used.
+Each network ID has the following format:
+
+<informaltable frame='none'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.5*'/>
+    <tbody>
+      <row>
+        <entry><literal>tcp/</literal><parameter>&lt;hostname&gt;</parameter><literal>:</literal><parameter>&lt;portnumber&gt;</parameter></entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry><literal>decnet/</literal><parameter>&lt;hostname&gt;</parameter><literal>::</literal><parameter>&lt;objname&gt;</parameter></entry>
+        <entry>or</entry>
+      </row>
+      <row>
+        <entry><literal>local/</literal><parameter>&lt;hostname&gt;</parameter><literal>:</literal><parameter>&lt;path&gt;</parameter></entry>
+        <entry></entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+    </para>
+
+    <para>
+An attempt will be made to use the first network ID.  If that fails,
+an attempt will be made using the second network ID, and so on.
+    </para>
+
+    <para>
+After the connection is established, <xref linkend='SmcOpenConnection' xrefstyle='select: title'/>
+registers the client with the session manager.  If the client is being
+restarted from a previous session, <parameter>previous_id</parameter>
+should contain a null terminated string representing the client ID from the
+previous session.  If the client is first joining the session,
+<parameter>previous_id</parameter> should be set to <constant>NULL</constant>.
+If <parameter>previous_id</parameter> is specified but is determined
+to be invalid by the session manager, SMlib will re-register the
+client with <parameter>previous_id</parameter> set to <constant>NULL</constant>.
+    </para>
+
+    <para>
+If <xref linkend='SmcOpenConnection' xrefstyle='select: title'/> succeeds, it returns an
+opaque connection pointer of type <function>SmcConn</function> and the
+<parameter>client_id_ret</parameter> argument contains the client ID to be
+used for this session.  The <parameter>client_id_ret</parameter> should be
+freed with a call to <function>free</function> when no longer needed.  On
+failure, <xref linkend='SmcOpenConnection' xrefstyle='select: title'/> returns
+<constant>NULL</constant>, and the reason for failure is returned in
+<parameter>error_string_ret</parameter>.
+    </para>
+
+    <para>
+Note that SMlib uses the ICE protocol to establish a connection with
+the session manager.  If an ICE connection already exists between the
+client and session manager, it might be possible for the same ICE
+connection to be used for session management.
+    </para>
+
+    <para id='context_sharing'>
+The context argument indicates how willing the client is to share the
+ICE connection with other protocols.  If context is <constant>NULL</constant>,
+then the caller is always willing to share the connection.  If context is not
+<constant>NULL</constant>, then the caller is not willing to use a previously
+opened ICE connection that has a different non-<constant>NULL</constant>
+context associated with it.
+    </para>
+
+    <para>
+As previously discussed
+(<link linkend='Understanding_SMlibs_Dependence_on_ICE'>section 3,
+&ldquo;Understanding SMlib's Dependence on ICE&rdquo;</link>), the
+client will have to keep track of when ICE connections are created or
+destroyed (using <olink targetdoc='ICElib' targetptr='IceAddConnectionWatch'><function>IceAddConnectionWatch</function></olink>
+and <olink targetdoc='ICElib' targetptr='IceRemoveConnectionWatch'><function>IceRemoveConnectionWatch</function></olink> and will have to
+call <olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink> each time
+a <function>select</function> shows that there is data to read on an
+ICE connection.  For further information, see the
+<citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+    </para>
+
+    <para>
+The callbacks argument contains a set of callbacks used to respond to
+session manager events.  The mask argument specifies which callbacks
+are set.  All of the callbacks specified in this version of SMlib are
+mandatory.  The mask argument is necessary in order to maintain
+backwards compatibility in future versions of the library.
+    </para>
+
+    <para>
+The following values may be ORed together to obtain a
+<parameter>mask</parameter> value:
+
+      <simplelist type='vert'>
+	<member><constant>SmcSaveYourselfProcMask</constant></member>
+	<member><constant>SmcDieProcMask</constant></member>
+	<member><constant>SmcSaveCompleteProcMask</constant></member>
+	<member><constant>SmcShutdownCancelledProcMask</constant></member>
+      </simplelist>
+    </para>
+
+    <para>
+For each callback, the client can register a pointer to client data.
+When SMlib invokes the callback, it will pass the client data pointer.
+    </para>
+
+<!-- .ne 4  IGNORED -->
+
+<synopsis>
+typedef struct {
+
+	struct {
+		SmcSaveYourselfProc callback;
+		SmPointer client_data;
+	} save_yourself;
+
+	struct {
+		SmcDieProc callback;
+		SmPointer client_data;
+	} die;
+
+	struct {
+		SmcSaveCompleteProc callback;
+		SmPointer client_data;
+	} save_complete;
+
+	struct {
+		SmcShutdownCancelledProc callback;
+		SmPointer client_data;
+	} shutdown_cancelled;
+
+} SmcCallbacks;
+</synopsis>
+
+    <sect2 id='The_Save_Yourself_Callback'>
+<title>The Save Yourself Callback</title>
+
+      <para>
+The Save Yourself callback is of type <function>SmcSaveYourselfProc</function>
+      </para>
+
+<funcsynopsis id='SaveYourselfProc'>
+<funcprototype>
+  <funcdef>typedef void (*<function>SaveYourselfProc</function>)</funcdef>
+    <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+    <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+    <paramdef>int <parameter>save_type</parameter></paramdef>
+    <paramdef>Bool <parameter>shutdown</parameter></paramdef>
+    <paramdef>int <parameter>interact_style</parameter></paramdef>
+    <paramdef>Bool <parameter>fast</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>Client data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>save_type</parameter></term>
+    <listitem><para>Specifies the type of information that should be saved.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>shut_down</parameter></term>
+    <listitem><para>Specifies if a shutdown is taking place.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>interact_style</parameter></term>
+    <listitem><para>The type of interaction allowed with the user.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>fast</parameter></term>
+    <listitem><para>if <symbol>True</symbol>, then client should save its state as quickly as possible.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The session manager sends a &ldquo;Save Yourself&rdquo; message to a
+client either to checkpoint it or just before termination so that it
+can save its state.  The client responds with zero or more calls
+to <xref linkend='SmcSetProperties' xrefstyle='select: title'/> to update the properties
+indicating how to restart the client.  When all the properties have
+been set, the client calls <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/>
+      </para>
+
+      <para>
+If <parameter>interact_style</parameter> is
+<constant>SmInteractStyleNone</constant> the
+client must not interact with the user while saving state.
+If <parameter>interact_style</parameter> is
+<constant>SmInteractStyleErrors</constant> the
+client may interact with the user only if an error condition arises.
+If <parameter>interact_style</parameter> is
+<constant>SmInteractStyleAny</constant> then the
+client may interact with the user for any purpose.  Because only one
+client can interact with the user at a time, the client must
+call <xref linkend='SmcInteractRequest' xrefstyle='select: title'/> and wait for an
+&ldquo;Interact&rdquo; message from the session manager.  When the
+client is done interacting with the user, it
+calls <xref linkend='SmcInteractDone' xrefstyle='select: title'/> The client may only
+call <xref linkend='SmcInteractRequest' xrefstyle='select: title'/> after it receives a
+&ldquo;Save Yourself&rdquo; message and before it
+calls <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/>
+      </para>
+
+      <para>
+If <parameter>save_type</parameter> is <constant>SmSaveLocal</constant> the
+client must update the properties to reflect its current state.  Specifically,
+it should save enough information to restore the state as seen by the
+user of this client.  It should not affect the state as seen by other users.
+If <parameter>save_type</parameter> is <constant>SmSaveGlobal</constant>
+the user wants the client to commit all of its data to permanent, globally
+accessible storage.
+If <parameter>save_type</parameter> is <constant>SmSaveBoth</constant>
+the client should do both of these (it should first commit the data to
+permanent storage before updating its properties).
+      </para>
+
+      <para>
+Some examples are as follows:
+
+        <itemizedlist mark='bullet'>
+	  <listitem><para>
+If a word processor were sent a &ldquo;Save Yourself&rdquo; with a
+type of <constant>SmSaveLocal</constant> it could create a temporary
+file that included the current contents of the file, the location of
+the cursor, and other aspects of the current editing session.  It
+would then update its <property>SmRestartCommand</property> property with
+enough information to find this temporary file.
+	  </para></listitem>
+	  <listitem><para>
+If a word processor were sent a &ldquo;Save Yourself&rdquo; with a
+type of <constant>SmSaveGlobal</constant> it would simply save the
+currently edited file.
+	  </para></listitem>
+	  <listitem><para>
+If a word processor were sent a &ldquo;Save Yourself&rdquo; with a
+type of <constant>SmSaveBoth</constant> it would first save the
+currently edited file.  It would then create a temporary file with
+information such as the current position of the cursor and what file
+is being edited.  Finally, it would update its
+<property>SmRestartCommand</property> property with enough information
+to find the temporary file.
+	  </para></listitem>
+	</itemizedlist>
+      </para>
+
+      <para>
+The <parameter>shutdown</parameter> argument specifies whether the
+system is being shut down.
+The interaction is different depending on whether or not shutdown is
+set.  If not shutting down, the client should save its state and wait
+for a &ldquo;Save Complete&rdquo; message.  If shutting down, the
+client must save state and then prevent interaction until it receives
+either a &ldquo;Die&rdquo; or a &ldquo;Shutdown Cancelled.&rdquo;
+      </para>
+
+      <para>
+The <parameter>fast</parameter> argument specifies that the client
+should save its state as quickly as possible.  For example, if the
+session manager knows that power is about to fail, it would
+set <parameter>fast</parameter> to <constant>True</constant>.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Die_Callback'>
+<title>The Die Callback</title>
+
+      <para>
+The Die callback is of type <xref linkend='SmcDieProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmcDieProc'>
+<funcprototype>
+  <funcdef>typedef void (*<function>SmcDieProc</function>)</funcdef>
+    <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+    <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>Client data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+      <para>
+The session manager sends a &ldquo;Die&rdquo; message to a client when
+it wants it to die.  The client should respond by calling
+<xref linkend='SmcCloseConnection' xrefstyle='select: title'/>.  A session manager that
+behaves properly will send a &ldquo;Save Yourself&rdquo; message
+before the &ldquo;Die&rdquo; message.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Save_Complete_Callback'>
+<title>The Save Complete Callback</title>
+
+      <para>
+The Save Complete callback is of type <xref linkend='SmcSaveCompleteProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmcSaveCompleteProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmcSaveCompleteProc</function>)</funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>Client data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+    </sect2>
+
+
+    <sect2 id='The_Shutdown_Cancelled_Callback'>
+<title>The Shutdown Cancelled Callback</title>
+
+      <para>
+The Shutdown Cancelled callback is of type
+<xref linkend='SmcShutdownCancelledProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmcShutdownCancelledProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmcShutdownCancelledProc</function>)</funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>Client data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The session manager sends a &ldquo;Shutdown Cancelled&rdquo; message
+when the user cancelled the shutdown during an interaction
+(see <link linkend='Interacting_With_the_User'>section 5.5,
+&ldquo;Interacting With the User&rdquo;</link>).  The client can now
+continue as if the shutdown had never happened.  If the client has not
+called <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/> yet, it can either
+abort the save and then call <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/>
+with the success argument set to <constant>False</constant> or it can
+continue with the save and then call <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/>
+with the <parameter>success</parameter> argument set to reflect the outcome
+of the save.
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1 id='Closing_the_Connection'>
+<title>Closing the Connection</title>
+
+    <para>
+To close a connection with a session manager,
+use <xref linkend='SmcCloseConnection' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcCloseConnection'>
+   <funcprototype>
+      <funcdef>SmcCloseStatus <function>SmcCloseConnection</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>int <parameter>count</parameter></paramdef>
+      <paramdef>char **<parameter>reason_msgs</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>count</parameter></term>
+    <listitem><para>The number of reasons for closing the connection.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>reason_msgs</parameter></term>
+    <listitem><para>The reasons for closing the connection.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The <parameter>reason_msgs</parameter> argument will most likely be
+<constant>NULL</constant> if resignation is expected by the client.
+Otherwise, it contains a list of null-terminated Compound Text strings
+representing the reason for termination.  The session manager should
+display these reason messages to the user.
+    </para>
+
+    <para>
+Note that SMlib used the ICE protocol to establish a connection with
+the session manager, and various protocols other than session
+management may be active on the ICE connection.
+When <xref linkend='SmcCloseConnection' xrefstyle='select: title'/> is called, the ICE
+connection will be closed only if all protocols have been shutdown on
+the connection.  Check the ICElib standard
+for <olink targetdoc='ICElib' targetptr='IceAddConnectionWatch'><function>IceAddConnectionWatch</function></olink>
+and <olink targetdoc='ICElib' targetptr='IceRemoveConnectionWatch'><function>IceRemoveConnectionWatch</function></olink> to learn how to set
+up a callback to be invoked each time an ICE connection is opened or
+closed.  Typically this callback adds/removes the ICE file descriptor
+from the list of active descriptors to call <function>select</function> on
+(or calls <function>XtAppAddInput</function> or
+<function>XtRemoveInput</function>).
+    </para>
+
+
+    <para>
+<xref linkend='SmcCloseConnection' xrefstyle='select: title'/> returns one of the following values:
+
+      <itemizedlist mark='bullet'>
+	<listitem><para>
+<constant>SmcClosedNow</constant> - the ICE connection was closed at
+this time, the watch procedures were invoked, and the connection was freed.
+	</para></listitem>
+	<listitem><para>
+<constant>SmcClosedASAP</constant> - an IO error had occurred on the
+connection, but <xref linkend='SmcCloseConnection' xrefstyle='select: title'/> is being
+called within a nested <olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink> The
+watch procedures have been invoked at this time, but the connection
+will be freed as soon as possible (when the nesting level reaches zero
+and <olink targetdoc='ICElib' targetptr='IceProcessMessages'><function>IceProcessMessages</function></olink> returns a status
+of <function>IceProcessMessagesConnectionClosed</function>
+	</para> </listitem>
+	<listitem><para>
+<constant>SmcConnectionInUse</constant> - the connection was not closed at
+this time, because it is being used by other active protocols.
+	</para> </listitem>
+      </itemizedlist>
+    </para>
+  </sect1>
+
+
+  <sect1 id='Modifying_Callbacks'>
+<title>Modifying Callbacks</title>
+
+    <para>
+To modify callbacks set up in <xref linkend='SmcOpenConnection' xrefstyle='select: title'/>
+use <xref linkend='SmcModifyCallbacks' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcModifyCallbacks'>
+   <funcprototype>
+      <funcdef>void <function>SmcModifyCallbacks</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>unsigned long <parameter>mask</parameter></paramdef>
+      <paramdef>SmcCallbacks *<parameter>callbacks</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>mask</parameter></term>
+    <listitem><para>A mask indicating which callbacks to modify.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>callbacks</parameter></term>
+    <listitem><para>The new callbacks.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+When specifying a value for the <parameter>mask</parameter> argument,
+the following values may be ORed together:
+
+      <simplelist type='vert'>
+	<member><constant>SmcSaveYourselfProcMask</constant></member>
+	<member><constant>SmcDieProcMask</constant></member>
+	<member><constant>SmcSaveCompleteProcMask</constant></member>
+	<member><constant>SmcShutdownCancelledProcMask</constant></member>
+      </simplelist>
+    </para>
+  </sect1>
+
+  <sect1 id='Setting_Deleting_and_Retrieving_Session_Management_Properties'>
+<title>Setting, Deleting, and Retrieving Session Management Properties</title>
+
+    <para>
+To set session management properties for this client,
+use <xref linkend='SmcSetProperties' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcSetProperties'>
+   <funcprototype>
+      <funcdef>void <function>SmcSetProperties</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>SmProp **<parameter>props</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>props</parameter></term>
+    <listitem><para>The list of properties to set.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+    <para>
+The properties are specified as an array of property pointers.
+Previously set property values may be over-written using
+the <xref linkend='SmcSetProperties' xrefstyle='select: title'/> function.  Note that the
+session manager is not expected to restore property values when the
+session is restarted.  Because of this, clients should not try to use
+the session manager as a database for storing application specific state.
+    </para>
+
+    <para>
+For a description of session management properties and
+the <structname>SmProp</structname> structure,
+see <link linkend='Session_Management_Properties'>section 7,
+&ldquo;Session Management Properties.&rdquo;</link>
+    </para>
+
+
+    <para>
+To delete properties previously set by the client,
+use <xref linkend='SmcDeleteProperties' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcDeleteProperties'>
+   <funcprototype>
+      <funcdef>void <function>SmcDeleteProperties</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>char **<parameter>prop_names</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>prop_names</parameter></term>
+    <listitem><para>The list of properties to set.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+To get properties previously stored by the client,
+use <xref linkend='SmcGetProperties' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcGetProperties'>
+   <funcprototype>
+      <funcdef>Status <function>SmcGetProperties</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmcPropReplyProc <parameter>prop_reply_proc</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>prop_reply_proc</parameter></term>
+    <listitem><para>The callback to be invoked when the properties reply comes back.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>This pointer to client data will be passed to the <xref linkend='SmcPropReplyProc' xrefstyle='select: title'/> callback.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The return value of <xref linkend='SmcGetProperties' xrefstyle='select: title'/> is zero for
+failure and a positive value for success.
+    </para>
+
+    <para>
+Note that the library does not block until the properties reply comes
+back.  Rather, a callback of type <xref linkend='SmcPropReplyProc' xrefstyle='select: title'/>
+is invoked when the data is ready.
+    </para>
+
+<funcsynopsis id='SmcPropReplyProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmcPropReplyProc</function>)</funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>SmProp **<parameter>props</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>This pointer to client data will be passed to the <xref linkend='SmcPropReplyProc' xrefstyle='select: title'/> callback.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties returned.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>props</parameter></term>
+    <listitem><para>The list of properties returned.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+To free each property, use <xref linkend='SmFreeProperty' xrefstyle='select: title'/>
+(see <link linkend='Freeing_Data'>section 8, &ldquo;Freeing
+Data&rdquo;</link>).  To free the actual array of pointers,
+use <function>free</function>
+    </para>
+  </sect1>
+
+  <sect1 id='Interacting_With_the_User'>
+<title>Interacting With the User</title>
+
+    <para>
+After receiving a &ldquo;Save Yourself&rdquo; message with an
+<parameter>interact_style</parameter> of
+<constant>SmInteractStyleErrors</constant>
+or <constant>SmInteractStyleAny</constant> the client may choose to
+interact with the user.  Because only one client can interact with the
+user at a time, the client must call <xref linkend='SmcInteractRequest' xrefstyle='select: title'/>
+and wait for an &ldquo;Interact&rdquo; message from the session manager.
+    </para>
+
+<funcsynopsis id='SmcInteractRequest'>
+   <funcprototype>
+      <funcdef>Status <function>SmcInteractRequest</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>int <parameter>dialog_type</parameter></paramdef>
+      <paramdef>SmcInteractProc <parameter>interact_proc</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>dialog_type</parameter></term>
+    <listitem><para>The type of dialog the client wishes to present to the user.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>interact_proc</parameter></term>
+    <listitem><para>The callback to be invoked when the &ldquo;Interact&rdquo; message arrives from the session manager.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>
+This pointer to client data will be passed to
+the <xref linkend='SmcInteractProc' xrefstyle='select: title'/> callback when the
+&ldquo;Interact&rdquo; message arrives.
+    </para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The return value of <xref linkend='SmcInteractRequest' xrefstyle='select: title'/> is zero
+for failure and a positive value for success.
+    </para>
+
+    <para>
+The <parameter>dialog_type</parameter> argument specifies
+either <constant>SmDialogError</constant> indicating that the client
+wants to start an error dialog, or <constant>SmDialogNormal</constant>
+meaning that the client wishes to start a nonerror dialog.
+    </para>
+
+    <para>
+Note that if a shutdown is in progress, the user may have the option
+of cancelling the shutdown.  If the shutdown is cancelled, the clients
+that have not interacted yet with the user will receive a
+&ldquo;Shutdown Cancelled&rdquo; message instead of the
+&ldquo;Interact&rdquo; message.
+    </para>
+
+    <para>
+The <xref linkend='SmcInteractProc' xrefstyle='select: title'/> callback will be invoked when
+the &ldquo;Interact&rdquo; message arrives from the session manager.
+    </para>
+
+<funcsynopsis id='SmcInteractProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmcInteractProc</function>)</funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>Client data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+After interacting with the user (in response to an &ldquo;Interact&rdquo;
+message), you should call <xref linkend='SmcInteractDone' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcInteractDone'>
+   <funcprototype>
+      <funcdef>void <function>SmcInteractDone</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>Bool <parameter>cancel_shutdown</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>cancel_shutdown</parameter></term>
+    <listitem><para>If <constant>True</constant>, indicates that the user requests that the entire shutdown be cancelled.</para></listitem>
+  </varlistentry>
+</variablelist>
+    <para>
+The <parameter>cancel_shutdown</parameter> argument may only be
+<constant>True</constant> if the corresponding &ldquo;Save Yourself&rdquo;
+specified <constant>True</constant> for shutdown
+and <constant>SmInteractStyleErrors</constant>
+or <constant>SmInteractStyleAny</constant> for
+the <parameter>interact_style</parameter>.
+    </para>
+  </sect1>
+
+  <sect1 id='Requesting_a_Save_Yourself'>
+<title>Requesting a Save Yourself</title>
+
+    <para>
+To request a checkpoint from the session manager,
+use <xref linkend='SmcRequestSaveYourself' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcRequestSaveYourself'>
+   <funcprototype>
+      <funcdef>void <function>SmcRequestSaveYourself</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>int <parameter>save_type</parameter></paramdef>
+      <paramdef>Bool <parameter>shutdown</parameter></paramdef>
+      <paramdef>int <parameter>interact_style</parameter></paramdef>
+      <paramdef>Bool <parameter>fast</parameter></paramdef>
+      <paramdef>Bool <parameter>global</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>save_type</parameter></term>
+    <listitem><para>Specifies the type of information that should be saved.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>shutdown</parameter></term>
+    <listitem><para>Specifies if a shutdown is taking place.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>interact_style</parameter></term>
+    <listitem><para>The type of interaction allowed with the user.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>fast</parameter></term>
+    <listitem><para>If <constant>True</constant> the client should save its state as quickly as possible.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>global</parameter></term>
+    <listitem><para>Controls who gets the &ldquo;Save Yourself.&rdquo;</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The <parameter>save_type</parameter>, <parameter>shutdown</parameter>,
+<parameter>interact_style</parameter>, and <parameter>fast</parameter>
+arguments are discussed in more detail in
+<link linkend='The_Save_Yourself_Callback'>section 5.1.1,
+&ldquo;The Save Yourself Callback.&rdquo;</link>
+    </para>
+
+    <para>
+If <parameter>global</parameter> is set to <constant>True</constant> then
+the resulting &ldquo;Save Yourself&rdquo; should be sent to all clients in the
+session.  For example, a vendor of a Uninterruptible Power Supply
+(<acronym>UPS</acronym>) might include a Session Management client
+that would monitor the status of the UPS and generate a fast shutdown
+if the power is about to be lost.
+    </para>
+
+    <para>
+If global is set to <constant>False</constant> then the &ldquo;Save
+Yourself&rdquo; should only be sent to the client that requested it.
+    </para>
+  </sect1>
+
+  <sect1 id='Requesting_a_Save_Yourself_Phase_2_2'>
+<title>Requesting a Save Yourself Phase 2</title>
+
+    <para>
+In response to a &ldquo;Save Yourself&rdquo;, the client may request to be
+informed when all the other clients are quiescent so that it can save their
+state.  To do so, use <xref linkend='SmcRequestSaveYourselfPhase2' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcRequestSaveYourselfPhase2'>
+   <funcprototype>
+      <funcdef>Status <function>SmcRequestSaveYourselfPhase2</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>SmcSaveYourselfPhase2Proc <parameter>save_yourself_phase2_proc</parameter></paramdef>
+      <paramdef>SmPointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>save_type_phase2_proc</parameter></term>
+    <listitem><para>The callback to be invoked when the &ldquo;Save Yourself Phase 2&rdquo; message arrives from the session manager.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>This pointer to client data will be passed to the <function>SmcSaveYourselfPhase2Proc</function> callback when the &ldquo;Save Yourself Phase 2&rdquo; message arrives.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The return value of <xref linkend='SmcRequestSaveYourselfPhase2' xrefstyle='select: title'/>
+is zero for failure and a positive value for success.
+    </para>
+
+    <para>
+This request is needed by clients that manage other clients (for
+example, window managers, workspace managers, and so on).  The manager
+must make sure that all of the clients that are being managed are in
+an idle state so that their state can be saved.
+    </para>
+  </sect1>
+
+  <sect1 id='Completing_a_Save_Yourself'>
+<title>Completing a Save Yourself</title>
+
+    <para>
+After saving state in response to a &ldquo;Save Yourself&rdquo;
+message, you should call <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmcSaveYourselfDone'>
+   <funcprototype>
+      <funcdef>void <function>SmcSaveYourselfDone</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>Bool <parameter>success</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>success</parameter></term>
+    <listitem><para>If <constant>True</constant> the &ldquo;Save Yourself&rdquo; operation was completed successfully.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+Before calling <xref linkend='SmcSaveYourselfDone' xrefstyle='select: title'/> the client
+must have set each required property at least once since the client
+registered with the session manager.
+    </para>
+  </sect1>
+
+  <sect1 id='Using_Smc_Informational_Functions'>
+<title>Using Smc Informational Functions</title>
+
+<funcsynopsis id='SmcProtocolVersion'>
+   <funcprototype>
+      <funcdef>int <function>SmcProtocolVersion</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcProtocolVersion' xrefstyle='select: title'/> returns the major version of
+the session management protocol associated with this session.
+    </para>
+
+
+<funcsynopsis id='SmcProtocolRevision'>
+   <funcprototype>
+      <funcdef>int <function>SmcProtocolRevision</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcProtocolRevision' xrefstyle='select: title'/> returns the minor version of
+the session management protocol associated with this session.
+    </para>
+
+<funcsynopsis id='SmcVendor'>
+   <funcprototype>
+      <funcdef>char *<function>SmcVendor</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcVendor' xrefstyle='select: title'/> returns a string that provides some
+identification of the owner of the session manager.  The string should
+be freed with a call to <function>free</function>
+    </para>
+
+<funcsynopsis id='SmcRelease'>
+   <funcprototype>
+      <funcdef>char *<function>SmcRelease</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcRelease' xrefstyle='select: title'/> returns a string that provides the
+release number of the session manager.  The string should be freed
+with a call to <function>free</function>
+    </para>
+
+<funcsynopsis id='SmcClientID'>
+   <funcprototype>
+      <funcdef>char *<function>SmcClientID</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcClientID' xrefstyle='select: title'/> returns a null-terminated string for
+the client ID associated with this connection.  This information was
+also returned in <xref linkend='SmcOpenConnection' xrefstyle='select: title'/> (it is
+provided here for convenience).  Call <function>free</function> on
+this pointer when the client ID is no longer needed.
+    </para>
+
+<funcsynopsis id='SmcGetIceConnection'>
+   <funcprototype>
+      <funcdef>IceConn <function>SmcGetIceConnection</function></funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmcGetIceConnection' xrefstyle='select: title'/> returns the ICE connection
+object associated with this session management connection object.  The
+ICE connection object can be used to get some additional information
+about the connection.  Some of the more useful functions which can be
+used on the IceConn are <function>IceConnectionNumber</function>,
+<function>IceConnectionString</function>,
+<olink targetdoc='ICElib' targetptr='IceLastSentSequenceNumber'><function>IceLastSentSequenceNumber</function></olink>,
+<function>IceLastReceivedSequenceNumber</function>,
+and <olink targetdoc='ICElib' targetptr='IcePing'><function>IcePing</function></olink>. For further information, see
+the <citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+    </para>
+  </sect1>
+
+  <sect1 id='Error_Handling'>
+<title>Error Handling</title>
+
+    <para>
+If the client receives an unexpected protocol error from the session
+manager, an error handler is invoked by SMlib.  A default error
+handler exists that simply prints the error message
+to <varname>stderr</varname> and exits if the severity of the error
+is fatal.  The client can change this error handler by calling
+the <xref linkend='SmcSetErrorHandler' xrefstyle='select: title'/> function.
+    </para>
+
+<funcsynopsis id='SmcSetErrorHandler'>
+  <funcprototype>
+      <funcdef>SmcErrorHandler <function>SmcSetErrorHandler</function></funcdef>
+      <paramdef>SmcErrorHandler <parameter>handler</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+The error handler.  You should pass <constant>NULL</constant> to
+restore the default handler.
+    </para>
+
+
+    <para>
+<xref linkend='SmcSetErrorHandler' xrefstyle='select: title'/> returns the previous error handler.
+    </para>
+
+    <para>
+The <xref linkend='SmcErrorHandler' xrefstyle='select: title'/> has the following type:
+    </para>
+
+<funcsynopsis id='SmcErrorHandler'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmcErrorHandler</function>)</funcdef>
+      <paramdef>SmcConn <parameter>smc_conn</parameter></paramdef>
+      <paramdef>Bool <parameter>swap</parameter></paramdef>
+      <paramdef>int <parameter>offending_minor_opcode</parameter></paramdef>
+      <paramdef>unsigned long <parameter>offending_sequence_num</parameter></paramdef>
+      <paramdef>int <parameter>error_class</parameter></paramdef>
+      <paramdef>int <parameter>severity</parameter></paramdef>
+      <paramdef>IcePointer <parameter>values</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>smc_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>swap</parameter></term>
+     <listitem><para>A flag that indicates if the specified values need byte swapping.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>offending_minor_opcode</parameter></term>
+     <listitem><para>The minor opcode of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>offending_sequence_num</parameter></term>
+     <listitem><para>The sequence number of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>error_class</parameter></term>
+     <listitem><para>The error class of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>severity</parameter></term>
+     <listitem><para><constant>IceCanContinue</constant>,
+	 <constant>IceFatalToProtocol</constant>, or
+	 <constant>IceFatalToConnection</constant>
+     </para></listitem>
+  </varlistentry>
+  <varlistentry>
+     <term><parameter>values</parameter></term>
+     <listitem><para>Any additional error values specific to the minor opcode and class.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+Note that this error handler is invoked for protocol related errors.
+To install an error handler to be invoked when an IO error occurs, use
+<olink targetdoc='ICElib' targetptr='IceSetIOErrorHandler'><function>IceSetIOErrorHandler</function></olink> For further information, see
+the <citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+    </para>
+  </sect1>
+</chapter>
+
+<chapter id='Session_Management_Server_Sms_Functions'>
+  <title>Session Management Server (<acronym>Sms</acronym>) Functions</title>
+
+  <para>
+This section discusses how Session Management servers:
+
+    <itemizedlist mark='bullet'>
+      <listitem><para>Initialize the library</para></listitem>
+      <listitem><para>Register the client</para></listitem>
+      <listitem><para>Send a &ldquo;Save Yourself&rdquo; message</para></listitem>
+      <listitem><para>Send a &ldquo;Save Yourself Phase 2&rdquo; message</para></listitem>
+      <listitem><para>Send an &ldquo;Interact&rdquo; message</para></listitem>
+      <listitem><para>Send a &ldquo;Save Complete&rdquo; message</para></listitem>
+      <listitem><para>Send a &ldquo;Die&rdquo; message</para></listitem>
+      <listitem><para>Cancel a shutdown</para></listitem>
+      <listitem><para>Return properties</para></listitem>
+      <listitem><para>Ping a client</para></listitem>
+      <listitem><para>Clean up after a client disconnects</para></listitem>
+      <listitem><para>Use Sms informational functions</para></listitem>
+      <listitem><para>Handle errors</para></listitem>
+    </itemizedlist>
+  </para>
+
+  <sect1 id='Initializing_the_Library'>
+<title>Initializing the Library</title>
+
+    <para>
+<xref linkend='SmsInitialize' xrefstyle='select: title'/> is the first SMlib function that
+should be called by a session manager.  It provides information about
+the session manager and registers a callback that will be invoked each
+time a new client connects to the session manager.
+    </para>
+
+<funcsynopsis id='SmsInitialize'>
+   <funcprototype>
+      <funcdef>Status <function>SmsInitialize</function></funcdef>
+      <paramdef>const char *<parameter>vendor</parameter></paramdef>
+      <paramdef>const char *<parameter>release</parameter></paramdef>
+      <paramdef>SmsNewClientProc <parameter>new_client_proc</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>IceHostBasedAuthProc <parameter>host_based_auth_proc</parameter></paramdef>
+      <paramdef>int <parameter>error_length</parameter></paramdef>
+      <paramdef>char *<parameter>error_string_ret</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>vendor</parameter></term>
+    <listitem><para>A string specifying the session manager vendor.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>release</parameter></term>
+    <listitem><para>A string specifying the session manager release number.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>new_client_proc</parameter></term>
+    <listitem><para>Callback to be invoked each time a new client connects to the session manager.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>When the <xref linkend='SmsNewClientProc' xrefstyle='select: title'/> callback is invoked, this pointer to manager data will be passed.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>host_based_auth_proc</parameter></term>
+    <listitem><para>Host based authentication callback.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>error_length</parameter></term>
+    <listitem><para>Length of the <parameter>error_string_ret</parameter> argument passed in.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>error_string_ret</parameter></term>
+    <listitem><para>
+Returns a null-terminated error message, if any.
+The <parameter>error_string_ret</parameter> points to user supplied memory.
+No more than <parameter>error_length</parameter> bytes are used.
+    </para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+After the <xref linkend='SmsInitialize' xrefstyle='select: title'/> function is called, the
+session manager should call the <olink targetdoc='ICElib' targetptr='IceListenForConnections'><function>IceListenForConnections</function></olink>
+function to listen for new connections.  Afterwards, each time a
+client connects, the session manager should
+call <olink targetdoc='ICElib' targetptr='IceAcceptConnection'><function>IceAcceptConnection</function></olink>
+    </para>
+
+    <para>
+See <link linkend='Authentication_of_Clients'>section 9,
+&ldquo;Authentication of Clients,&rdquo;</link> for more details on
+authentication (including host based authentication).  Also see
+the <citetitle pubwork='article'>Inter-Client Exchange
+Library</citetitle> standard for further details on listening for and
+accepting ICE connections.
+    </para>
+
+    <para>
+Each time a new client connects to the session manager,
+the <xref linkend='SmsNewClientProc' xrefstyle='select: title'/> callback is invoked.  The
+session manager obtains a new opaque connection object that it should
+use for all future interaction with the client.  At this time, the
+session manager must also register a set of callbacks to respond to
+the different messages that the client might send.
+    </para>
+
+<funcsynopsis id='SmsNewClientProc'>
+   <funcprototype>
+      <funcdef>typedef Status (*<function>SmsNewClientProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>unsigned long *<parameter>mask_ret</parameter></paramdef>
+      <paramdef>SmsCallbacks *<parameter>callbacks_ret</parameter></paramdef>
+      <paramdef>char **<parameter>failure_reason_ret</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>A new opaque connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>mask_ret</parameter></term>
+    <listitem><para>On return, indicates which callbacks were set by the session manager.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>callbacks_ret</parameter></term>
+    <listitem><para>On return, contains the callbacks registered by the session manager.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>failure_reason_ret</parameter></term>
+    <listitem><para>Failure reason returned.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+If a failure occurs, the <xref linkend='SmsNewClientProc' xrefstyle='select: title'/> should
+return a zero status as well as allocate and return a failure reason
+string in <parameter>failure_reason_ret</parameter>.
+SMlib will be responsible for freeing this memory.
+    </para>
+
+    <para>
+The session manager must register a set of callbacks to respond to
+client events.  The <parameter>mask_ret</parameter> argument specifies
+which callbacks are set.  All of the callbacks specified in this version of
+SMlib are mandatory.  The <parameter>mask_ret</parameter> argument is
+necessary in order to maintain backwards compatibility in future versions
+of the library.
+    </para>
+
+    <para>
+The following values may be ORed together to obtain a mask value:
+
+      <simplelist type='vert'>
+	<member><constant>SmsRegisterClientProcMask</constant></member>
+	<member><constant>SmsInteractRequestProcMask</constant></member>
+	<member><constant>SmsInteractDoneProcMask</constant></member>
+	<member><constant>SmsSaveYourselfRequestProcMask</constant></member>
+	<member><constant>SmsSaveYourselfP2RequestProcMask</constant></member>
+	<member><constant>SmsSaveYourselfDoneProcMask</constant></member>
+	<member><constant>SmsCloseConnectionProcMask</constant></member>
+	<member><constant>SmsSetPropertiesProcMask</constant></member>
+	<member><constant>SmsDeletePropertiesProcMask</constant></member>
+	<member><constant>SmsGetPropertiesProcMask</constant></member>
+      </simplelist>
+    </para>
+
+    <para>
+For each callback, the session manager can register a pointer to
+manager data specific to that callback.  This pointer will be passed
+to the callback when it is invoked by SMlib.
+    </para>
+
+<synopsis>
+typedef struct {
+	struct {
+		SmsRegisterClientProc callback;
+		SmPointer manager_data;
+	} register_client;
+
+	struct {
+		SmsInteractRequestProc callback;
+		SmPointer manager_data;
+	} interact_request;
+
+	struct {
+		SmsInteractDoneProc callback;
+		SmPointer manager_data;
+	} interact_done;
+
+	struct {
+		SmsSaveYourselfRequestProc callback;
+		SmPointer manager_data;
+	} save_yourself_request;
+
+	struct {
+		SmsSaveYourselfPhase2RequestProc callback;
+		SmPointer manager_data;
+	} save_yourself_phase2_request;
+
+	struct {
+		SmsSaveYourselfDoneProc callback;
+		SmPointer manager_data;
+	} save_yourself_done;
+
+	struct {
+		SmsCloseConnectionProc callback;
+		SmPointer manager_data;
+	} close_connection;
+
+	struct {
+		SmsSetPropertiesProc callback;
+		SmPointer manager_data;
+	} set_properties;
+
+	struct {
+		SmsDeletePropertiesProc callback;
+		SmPointer manager_data;
+	} delete_properties;
+
+	struct {
+		SmsGetPropertiesProc callback;
+		SmPointer manager_data;
+	} get_properties;
+
+} SmsCallbacks;
+</synopsis>
+
+    <sect2 id='The_Register_Client_Callback'>
+<title>The Register Client Callback</title>
+
+      <para>
+The Register Client callback is the first callback that will be
+invoked after the client connects to the session manager.  Its type
+is <xref linkend='SmsRegisterClientProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmsRegisterClientProc'>
+   <funcprototype>
+      <funcdef>typedef Status (*<function>SmsRegisterClientProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>char *<parameter>previous_id</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>previous_id</parameter></term>
+    <listitem><para>The client ID from the previous session.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+Before any further interaction takes place with the client, the client
+must be registered with the session manager.
+      </para>
+
+      <para>
+If the client is being restarted from a previous session,
+<parameter>previous_id</parameter> will contain a null-terminated string
+representing the client ID from the previous session.
+Call <function>free</function> on the <parameter>previous_id</parameter>
+pointer when it is no longer needed.  If the client is first joining the
+session, <parameter>previous_id</parameter> will be <constant>NULL</constant>.
+      </para>
+
+      <para>
+If <parameter>previous_id</parameter> is invalid, the session manager should
+not register the client at this time.  This callback should return a status
+of zero, which will cause an error message to be sent to the client.  The
+client should re-register with previous_id set to <constant>NULL</constant>.
+      </para>
+
+      <para>
+Otherwise, the session manager should register the client with a unique
+client ID by calling the <xref linkend='SmsRegisterClientReply' xrefstyle='select: title'/>
+function (to be discussed shortly), and the
+<xref linkend='SmsRegisterClientProc' xrefstyle='select: title'/> callback should return a
+status of one.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Interact_Request_Callback'>
+<title>The Interact Request Callback</title>
+
+      <para>
+The Interact Request callback is of
+type <xref linkend='SmsInteractRequestProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmsInteractRequestProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsInteractRequestProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>int <parameter>dialog_type</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>dialog_type</parameter></term>
+    <listitem><para>The type of dialog the client wishes to present to the user.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+When a client receives a &ldquo;Save Yourself&rdquo; message with an
+<parameter>interact_style</parameter> of
+<constant>SmInteractStyleErrors</constant>
+or <constant>SmInteractStyleAny</constant> the client may choose to
+interact with the user.  Because only one client can interact with the
+user at a time, the client must request to interact with the user.
+The session manager should keep a queue of all clients wishing to
+interact.  It should send an &ldquo;Interact&rdquo; message to one
+client at a time and wait for an &ldquo;Interact Done&rdquo; message
+before continuing with the next client.
+      </para>
+
+      <para>
+The <parameter>dialog_type</parameter> argument specifies
+either <constant>SmDialogError</constant> indicating that the client
+wants to start an error dialog, or <constant>SmDialogNormal</constant>
+meaning that the client wishes to start a nonerror dialog.
+      </para>
+
+      <para>
+If a shutdown is in progress, the user may have the option of
+cancelling the shutdown.  If the shutdown is cancelled (specified in
+the &ldquo;Interact Done&rdquo; message), the session manager should
+send a &ldquo;Shutdown Cancelled&rdquo; message to each client that
+requested to interact.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Interact_Done_Callback'>
+<title>The Interact Done Callback</title>
+
+      <para>
+When the client is done interacting with the user,
+the <xref linkend='SmsInteractDoneProc' xrefstyle='select: title'/> callback will be invoked.
+      </para>
+
+<funcsynopsis id='SmsInteractDoneProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsInteractDoneProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>Bool <parameter>cancel_shutdown</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>cancel_shutdown</parameter></term>
+    <listitem><para>Specifies if the user requests that the entire shutdown be cancelled.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+Note that the shutdown can be cancelled only if the corresponding
+&ldquo;Save Yourself&rdquo; specified <constant>True</constant> for
+shutdown and <constant>SmInteractStyleErrors</constant>
+or <constant>SmInteractStyleAny</constant> for the
+<parameter>interact_style</parameter>.
+      </para>
+    </sect2>
+
+
+    <sect2 id='The_Save_Yourself_Request_Callback'>
+<title>The Save Yourself Request Callback</title>
+
+      <para>
+The Save Yourself Request callback is of
+type <function>SmsSaveYourselfRequestProc</function>
+      </para>
+
+<funcsynopsis id='SaveYourselfRequestProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SaveYourselfRequestProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>int <parameter>save_type</parameter></paramdef>
+      <paramdef>Bool <parameter>shutdown</parameter></paramdef>
+      <paramdef>int <parameter>interact_style</parameter></paramdef>
+      <paramdef>Bool <parameter>fast</parameter></paramdef>
+      <paramdef>Bool <parameter>global</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>save_type</parameter></term>
+    <listitem><para>Specifies the type of information that should be saved.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>shutdown</parameter></term>
+    <listitem><para>Specifies if a shutdown is taking place.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>interact_style</parameter></term>
+    <listitem><para>The type of interaction allowed with the user.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>fast</parameter></term>
+    <listitem><para>If <constant>True</constant> the client should save its state as quickly as possible.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>global</parameter></term>
+    <listitem><para>Controls who gets the &ldquo;Save Yourself.&rdquo;</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The Save Yourself Request prompts the session manager to initiate a
+checkpoint or shutdown.  For information on the
+<parameter>save_type</parameter>, <parameter>shutdown</parameter>,
+<parameter>interact_style</parameter>, and <parameter>fast</parameter>
+arguments, see <link linkend='Sending_a_Save_Yourself_Message'>section 6.3,
+&ldquo;Sending a Save Yourself Message.&rdquo;</link>
+      </para>
+
+      <para>
+If <parameter>global</parameter> is set to <constant>True</constant> then the
+resulting &ldquo;Save Yourself&rdquo; should be sent to all applications.
+If <parameter>global</parameter> is set to <constant>False</constant> then the
+&ldquo;Save Yourself&rdquo; should only be sent to the client that requested it.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Save_Yourself_Phase_2_Request_Callback'>
+<title>The Save Yourself Phase 2 Request Callback</title>
+
+      <para>
+The Save Yourself Phase 2 Request callback is of
+type <xref linkend='SmsSaveYourselfPhase2RequestProc' xrefstyle='select: title'/>
+      </para>
+
+<funcsynopsis id='SmsSaveYourselfPhase2RequestProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsSaveYourselfPhase2RequestProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+This request is sent by clients that manage other clients (for
+example, window managers, workspace managers, and so on).  Such
+managers must make sure that all of the clients that are being managed
+are in an idle state so that their state can be saved.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Save_Yourself_Done_Callback'>
+<title>The Save Yourself Done Callback</title>
+
+      <para>
+When the client is done saving its state in response to a
+&ldquo;Save Yourself&rdquo; message,
+the <function>SmsSaveYourselfDoneProc</function> will be invoked.
+      </para>
+
+<funcsynopsis id='SaveYourselfDoneProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SaveYourselfDoneProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>Bool <parameter>success</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>success</parameter></term>
+    <listitem><para>If <constant>True</constant> the Save Yourself operation was completed successfully.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+Before the &ldquo;Save Yourself Done&rdquo; was sent, the client must
+have set each required property at least once since it registered with
+the session manager.
+      </para>
+    </sect2>
+
+    <sect2 id='The_Connection_Closed_Callback'>
+<title>The Connection Closed Callback</title>
+
+      <para>
+If the client properly terminates (that is, it
+calls <xref linkend='SmcCloseConnection' xrefstyle='select: title'/>,
+the <xref linkend='SmsCloseConnectionProc' xrefstyle='select: title'/> callback is invoked.
+      </para>
+
+<funcsynopsis id='SmsCloseConnectionProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsCloseConnectionProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>int <parameter>count</parameter></paramdef>
+      <paramdef>char **<parameter>reason_msgs</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+<varlistentry>
+  <term><parameter>manager_data</parameter></term>
+  <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>count</parameter></term>
+    <listitem><para>The number of reason messages.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>reason_msgs</parameter></term>
+    <listitem><para>The reasons for closing the connection.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The <parameter>reason_msgs</parameter> argument will most likely
+be <constant>NULL</constant> and the <parameter>count</parameter>
+argument zero (0) if resignation is expected by the user.  Otherwise,
+it contains a list of null-terminated Compound Text strings
+representing the reason for termination.  The session manager should
+display these reason messages to the user.
+      </para>
+
+      <para>
+Call <xref linkend='SmFreeReasons' xrefstyle='select: title'/> to free the reason messages.
+For further information, see
+<link linkend='Freeing_Data'>section 8, &ldquo;Freeing Data&rdquo;</link>
+      </para>
+    </sect2>
+
+    <sect2 id='The_Set_Properties_Callback'>
+<title>The Set Properties Callback</title>
+
+      <para>
+When the client sets session management properties,
+the <xref linkend='SmsSetPropertiesProc' xrefstyle='select: title'/> callback will be invoked.
+      </para>
+
+<funcsynopsis id='SmsSetPropertiesProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsSetPropertiesProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>SmProp **<parameter>props</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>props</parameter></term>
+    <listitem><para>The list of properties to set.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The properties are specified as an array of property pointers.  For a
+description of session management properties and
+the <structname>SmProp</structname> structure,
+see <link linkend='Session_Management_Properties'>section 7,
+&ldquo;Session Management Properties.&rdquo;</link>
+      </para>
+
+      <para>
+Previously set property values may be over-written.  Some properties
+have predefined semantics.  The session manager is required to store
+nonpredefined properties.
+      </para>
+
+      <para>
+To free each property, use <xref linkend='SmFreeProperty' xrefstyle='select: title'/>.
+For further information, see <link linkend='Freeing_Data'>section 8,
+&ldquo;Freeing Data&rdquo;</link> You should free the actual array of
+pointers with a call to <function>free</function>
+      </para>
+    </sect2>
+
+    <sect2 id='The_Delete_Properties_Callback'>
+<title>The Delete Properties Callback</title>
+
+      <para>
+When the client deletes session management properties,
+the <xref linkend='SmsDeletePropertiesProc' xrefstyle='select: title'/> callback will be invoked.
+      </para>
+
+<funcsynopsis id='SmsDeletePropertiesProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsDeletePropertiesProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>char **<parameter>prop_names</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>prop_names</parameter></term>
+    <listitem><para>The list of properties to delete.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The properties are specified as an array of strings.  For a
+description of session management properties and
+the <structname>SmProp</structname> structure,
+see <link linkend='Session_Management_Properties'>section 7,
+&ldquo;Session Management Properties.&rdquo;</link>
+      </para>
+    </sect2>
+
+    <sect2 id='The_Get_Properties_Callback'>
+<title>The Get Properties Callback</title>
+
+      <para>
+The <xref linkend='SmsGetPropertiesProc' xrefstyle='select: title'/> callback is invoked when
+the client wants to retrieve properties it set.
+      </para>
+
+<funcsynopsis id='SmsGetPropertiesProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsGetPropertiesProc</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>SmPointer <parameter>manager_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>manager_data</parameter></term>
+    <listitem><para>Manager data specified when the callback was registered.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+      <para>
+The session manager should respond by
+calling <xref linkend='SmsReturnProperties' xrefstyle='select: title'/>.
+All of the properties set for this client should be returned.
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1 id='Registering_the_Client'>
+<title>Registering the Client</title>
+
+    <para>
+To register a client (in response to
+a <xref linkend='SmsRegisterClientProc' xrefstyle='select: title'/> callback),
+use <xref linkend='SmsRegisterClientReply' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsRegisterClientReply'>
+   <funcprototype>
+      <funcdef>Status <function>SmsRegisterClientReply</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>char *<parameter>client_id</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_id</parameter></term>
+    <listitem><para>A null-terminated string representing a unique client ID.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The return value of <xref linkend='SmsRegisterClientReply' xrefstyle='select: title'/> is
+zero for failure and a positive value for success.  Failure will occur
+if SMlib can not allocate memory to hold a copy of the client ID for
+it's own internal needs.
+    </para>
+
+    <para>
+If a non-<constant>NULL</constant> <parameter>previous_id</parameter> was
+specified when the client registered itself, <parameter>client_id</parameter>
+should be identical to <parameter>previous_id</parameter>.
+    </para>
+
+    <para>
+Otherwise, <parameter>client_id</parameter> should be a unique ID freshly
+generated by the session manager.  In addition, the session manager should
+send a &ldquo;Save Yourself&rdquo; message with
+<parameter>type</parameter> = <constant>Local</constant>,
+<parameter>shutdown</parameter> = <constant>False</constant>,
+<parameter>interact-style</parameter> = <constant>None</constant>,
+and <parameter>fast</parameter> = <constant>False</constant>
+immediately after registering the client.
+    </para>
+
+    <para>
+Note that once a client ID has been assigned to the client, the client
+keeps this ID indefinitely.  If the client is terminated and
+restarted, it will be reassigned the same ID.  It is desirable to be
+able to pass client IDs around from machine to machine, from user to
+user, and from session manager to session manager, while retaining the
+identity of the client.  This, combined with the indefinite
+persistence of client IDs, means that client IDs need to be globally
+unique.
+    </para>
+
+    <para>
+You should call the <xref linkend='SmsGenerateClientID' xrefstyle='select: title'/> function
+to generate a globally unique client ID.
+    </para>
+
+<funcsynopsis id='SmsGenerateClientID'>
+   <funcprototype>
+      <funcdef>char *<function>SmsGenerateClientID</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+    <para>
+<constant>NULL</constant> will be returned if the ID could not be generated.
+Otherwise, the return value of the function is the client ID.
+It should be freed with a call to <function>free</function> when
+no longer needed.
+    </para>
+  </sect1>
+
+  <sect1 id='Sending_a_Save_Yourself_Message'>
+<title>Sending a Save Yourself Message</title>
+
+    <para>
+To send a &ldquo;Save Yourself&rdquo; to a client,
+use <xref linkend='SmsSaveYourself' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsSaveYourself'>
+   <funcprototype>
+      <funcdef>void <function>SmsSaveYourself</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>int <parameter>save_type</parameter></paramdef>
+      <paramdef>Bool <parameter>shutdown</parameter></paramdef>
+      <paramdef>int <parameter>interact_style</parameter></paramdef>
+      <paramdef>Bool <parameter>fast</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>save_type</parameter></term>
+    <listitem><para>Specifies the type of information that should be saved.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>shutdown</parameter></term>
+    <listitem><para>Specifies if a shutdown is taking place.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>interact_style</parameter></term>
+    <listitem><para>The type of interaction allowed with the user.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>fast</parameter></term>
+    <listitem><para>If <constant>True</constant> the client should save its state as quickly as possible.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+    <para>
+The session manager sends a &ldquo;Save Yourself&rdquo; message to a
+client either to checkpoint it or just before termination so that it
+can save its state.  The client responds with zero or more &ldquo;Set
+Properties&rdquo; messages to update the properties indicating how to
+restart the client.  When all the properties have been set, the client
+sends a &ldquo;Save Yourself Done&rdquo; message.
+    </para>
+
+    <para>
+If <parameter>interact_style</parameter>
+is <constant>SmInteractStyleNone</constant> the
+client must not interact with the user while saving state.
+If <parameter>interact_style</parameter>
+is <constant>SmInteractStyleErrors</constant> the
+client may interact with the user only if an error condition arises.
+If <parameter>interact_style</parameter>
+is <constant>SmInteractStyleAny</constant> then the
+client may interact with the user for any purpose.  The client must
+send an &ldquo;Interact Request&rdquo; message and wait for an
+&ldquo;Interact&rdquo; message from the session manager before it can
+interact with the user.  When the client is done interacting with the
+user, it should send an &ldquo;Interact Done&rdquo; message.  The
+&ldquo;Interact Request&rdquo; message can be sent any time after a
+&ldquo;Save Yourself&rdquo; and before a &ldquo;Save Yourself
+Done.&rdquo;
+    </para>
+
+    <para>
+If <parameter>save_type</parameter> is <constant>SmSaveLocal</constant>
+the client must update the properties to reflect its current state.
+Specifically, it should save enough information to restore the state as
+seen by the user of this client.  It should not affect the state as seen
+by other users.
+If <parameter>save_type</parameter> is <constant>SmSaveGlobal</constant>
+the user wants the client to commit all of its data to permanent, globally
+accessible storage.
+If <parameter>save_type</parameter> is <constant>SmSaveBoth</constant>
+the client should do both of these (it should first commit the data to
+permanent storage before updating its properties).
+    </para>
+
+    <para>
+The <parameter>shutdown</parameter> argument specifies whether the session
+is being shut down.  The interaction is different depending on whether or not
+shutdown is set.  If not shutting down, then the client can save and
+resume normal operation.  If shutting down, the client must save and
+then must prevent interaction until it receives either a
+&ldquo;Die&rdquo; or a &ldquo;Shutdown Cancelled,&rdquo; because
+anything the user does after the save will be lost.
+    </para>
+
+    <para>
+The <parameter>fast</parameter> argument specifies that the client should
+save its state as quickly as possible.  For example, if the session manager
+knows that power is about to fail, it should set <parameter>fast</parameter>
+to <constant>True</constant>.
+    </para>
+  </sect1>
+
+  <sect1 id='Sending_a_Save_Yourself_Phase_2_Message'>
+<title>Sending a Save Yourself Phase 2 Message</title>
+
+    <para>
+In order to send a &ldquo;Save Yourself Phase 2&rdquo; message to a
+client, use <xref linkend='SmsSaveYourselfPhase2' xrefstyle='select: title'/>
+    </para>
+
+<funcsynopsis id='SmsSaveYourselfPhase2'>
+   <funcprototype>
+      <funcdef>void <function>SmsSaveYourselfPhase2</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The session manager sends this message to a client that has previously
+sent a &ldquo;Save Yourself Phase 2 Request&rdquo; message.  This
+message informs the client that all other clients are in a fixed state
+and this client can save state that is associated with other clients.
+    </para>
+  </sect1>
+
+  <sect1 id='Sending_an_Interact_Message'>
+<title>Sending an Interact Message</title>
+
+    <para>
+To send an &ldquo;Interact&rdquo; message to a client,
+use <xref linkend='SmsInteract' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsInteract'>
+   <funcprototype>
+      <funcdef>void <function>SmsInteract</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The &ldquo;Interact&rdquo; message grants the client the privilege of
+interacting with the user.  When the client is done interacting with
+the user, it must send an &ldquo;Interact Done&rdquo; message to the
+session manager.
+    </para>
+  </sect1>
+
+  <sect1 id='Sending_a_Save_Complete_Message'>
+<title>Sending a Save Complete Message</title>
+
+    <para>
+To send a &ldquo;Save Complete&rdquo; message to a client,
+use <xref linkend='SmsSaveComplete' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsSaveComplete'>
+   <funcprototype>
+      <funcdef>void <function>SmsSaveComplete</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The session manager sends this message when it is done with a
+checkpoint.  The client is then free to change its state.
+    </para>
+  </sect1>
+
+  <sect1 id='Sending_a_Die_Message'>
+<title>Sending a Die Message</title>
+
+    <para>
+To send a &ldquo;Die&rdquo; message to a client,
+use <xref linkend='SmsDie' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsDie'>
+   <funcprototype>
+      <funcdef>void <function>SmsDie</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+Before the session manager terminates, it should wait for a
+&ldquo;Connection Closed&rdquo; message from each client that it sent
+a &ldquo;Die&rdquo; message to, timing out appropriately.
+    </para>
+  </sect1>
+
+  <sect1 id='Cancelling_a_Shutdown'>
+<title>Cancelling a Shutdown</title>
+
+    <para>
+To cancel a shutdown, use <xref linkend='SmsShutdownCancelled' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsShutdownCancelled'>
+   <funcprototype>
+      <funcdef>void <function>SmsShutdownCancelled</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The client can now continue as if the shutdown had never happened.  If
+the client has not sent a &ldquo;Save Yourself Done&rdquo; message
+yet, it can either abort the save and send a &ldquo;Save Yourself
+Done&rdquo; with the success argument set to <constant>False</constant>
+or it can continue with the save and send a &ldquo;Save Yourself Done&rdquo;
+with the <parameter>success</parameter> argument set to reflect the outcome
+of the save.
+    </para>
+  </sect1>
+<!-- aaaaaaaaaaaaaaaaa -->
+
+  <sect1 id='Returning_Properties'>
+<title>Returning Properties</title>
+
+    <para>
+In response to a &ldquo;Get Properties&rdquo; message, the session
+manager should call <xref linkend='SmsReturnProperties' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsReturnProperties'>
+   <funcprototype>
+      <funcdef>void <function>SmsReturnProperties</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>int <parameter>num_props</parameter></paramdef>
+      <paramdef>SmProp **<parameter>props</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>num_props</parameter></term>
+    <listitem><para>The number of properties.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>props</parameter></term>
+    <listitem><para>The list of properties to return to the client.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+The properties are returned as an array of property pointers.  For a
+description of session management properties and
+the <structname>SmProp</structname> structure,
+see <link linkend='Session_Management_Properties'>section 7,
+&ldquo;Session Management Properties.&rdquo;</link>
+    </para>
+  </sect1>
+
+  <sect1 id='Pinging_a_Client'>
+<title>Pinging a Client</title>
+
+    <para>
+To check that a client is still alive, you should use
+the <olink targetdoc='ICElib' targetptr='IcePing'><function>IcePing</function></olink> function provided by the ICE library.
+To do so, the ICE connection must be obtained using
+the <xref linkend='SmsGetIceConnection' xrefstyle='select: title'/>
+(see <link linkend='Using_Sms_Informational_Functions'>section 6.12,
+&ldquo;Using Sms Informational Functions&rdquo;</link>).
+    </para>
+
+
+<funcsynopsis id='IcePing'>
+   <funcprototype>
+      <funcdef>void <function>IcePing</function></funcdef>
+      <paramdef>IceConn <parameter>ice_conn</parameter></paramdef>
+      <paramdef>IcePingReplyProc <parameter>ping_reply_proc</parameter></paramdef>
+      <paramdef>IcePointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>ice_conn</parameter></term>
+    <listitem><para>A valid ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>ping_reply_proc</parameter></term>
+    <listitem><para>The callback to invoke when the Ping reply arrives.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>This pointer will be passed to the <xref linkend='IcePingReplyProc' xrefstyle='select: title'/> callback.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+
+    <para>
+When the Ping reply is ready (if ever),
+the <xref linkend='IcePingReplyProc' xrefstyle='select: title'/> callback will be invoked.  A
+session manager should have some sort of timeout period, after which
+it assumes the client has unexpectedly died.
+    </para>
+
+<funcsynopsis id='IcePingReplyProc'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>IcePingReplyProc</function>)</funcdef>
+      <paramdef>IceConn <parameter>ice_conn</parameter></paramdef>
+      <paramdef>IcePointer <parameter>client_data</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>ice_conn</parameter></term>
+    <listitem><para>A valid ICE connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>client_data</parameter></term>
+    <listitem><para>The client data specified in the call to <olink targetdoc='ICElib' targetptr='IcePing'><function>IcePing</function></olink></para></listitem>
+  </varlistentry>
+</variablelist>
+
+  </sect1>
+
+  <sect1 id='Cleaning_Up_After_a_Client_Disconnects'>
+<title>Cleaning Up After a Client Disconnects</title>
+
+    <para>
+When the session manager receives a &ldquo;Connection Closed&rdquo;
+message or otherwise detects that the client aborted the connection,
+it should call the <xref linkend='SmsCleanUp' xrefstyle='select: title'/> function in order
+to free up the connection object.
+    </para>
+
+<funcsynopsis id='SmsCleanUp'>
+   <funcprototype>
+      <funcdef>void <function>SmsCleanUp</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+  </sect1>
+
+  <sect1 id='Using_Sms_Informational_Functions'>
+<title>Using Sms Informational Functions</title>
+
+<funcsynopsis id='SmsProtocolVersion'>
+   <funcprototype>
+      <funcdef>int <function>SmsProtocolVersion</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmsProtocolVersion' xrefstyle='select: title'/> returns the major version of
+the session management protocol associated with this session.
+    </para>
+
+<funcsynopsis id='SmsProtocolRevision'>
+   <funcprototype>
+      <funcdef>int <function>SmsProtocolRevision</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmsProtocolRevision' xrefstyle='select: title'/> returns the minor version of
+the session management protocol associated with this session.
+    </para>
+
+<funcsynopsis id='SmsClientID'>
+   <funcprototype>
+      <funcdef>char *<function>SmsClientID</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmsClientID' xrefstyle='select: title'/> returns a null-terminated string for
+the client ID associated with this connection.  You should
+call <function>free</function> on this pointer when the client ID is
+no longer needed.
+    </para>
+
+
+    <para>
+To obtain the host name of a client,
+use <xref linkend='SmsClientHostName' xrefstyle='select: title'/>.
+This host name will be needed to restart the client.
+    </para>
+
+<funcsynopsis id='SmsClientHostName'>
+   <funcprototype>
+      <funcdef>char *<function>SmsClientHostName</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+The string returned is of the form
+<parameter>protocol</parameter><literal>/</literal><parameter>hostname</parameter>,
+where <parameter>protocol</parameter> is one of
+{<literal>tcp</literal>, <literal>decnet</literal>, <literal>local</literal>}.
+You should call <function>free</function> on the string returned when
+it is no longer needed.
+    </para>
+
+<funcsynopsis id='SmsGetIceConnection'>
+   <funcprototype>
+      <funcdef>IceConn <function>SmsGetIceConnection</function></funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+<xref linkend='SmsGetIceConnection' xrefstyle='select: title'/> returns the ICE connection
+object associated with this session management connection object.  The
+ICE connection object can be used to get some additional information
+about the connection.  Some of the more useful functions which can be
+used on the IceConn are <function>IceConnectionNumber</function>
+and <function>IceLastSequenceNumber</function>.
+For further information, see the
+<citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+    </para>
+  </sect1>
+
+  <sect1 id='Error_Handling_2'>
+<title>Error Handling</title>
+
+    <para>
+If the session manager receives an unexpected protocol error from a
+client, an error handler is invoked by SMlib.  A default error handler
+exists which simply prints the error message (it does not exit).  The
+session manager can change this error handler by
+calling <xref linkend='SmsSetErrorHandler' xrefstyle='select: title'/>.
+    </para>
+
+<funcsynopsis id='SmsSetErrorHandler'>
+   <funcprototype>
+      <funcdef>SmsErrorHandler <function>SmsSetErrorHandler</function></funcdef>
+      <paramdef>SmsErrorHandler <parameter>handler</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+    <para>
+The error handler.  You should pass <constant>NULL</constant>
+to restore the default handler.
+    </para>
+
+    <para>
+<xref linkend='SmsSetErrorHandler' xrefstyle='select: title'/> returns the previous error handler.
+The <xref linkend='SmsErrorHandler' xrefstyle='select: title'/> has the following type:
+    </para>
+
+<funcsynopsis id='SmsErrorHandler'>
+   <funcprototype>
+      <funcdef>typedef void (*<function>SmsErrorHandler</function>)</funcdef>
+      <paramdef>SmsConn <parameter>sms_conn</parameter></paramdef>
+      <paramdef>Bool <parameter>swap</parameter></paramdef>
+      <paramdef>int <parameter>offending_minor_opcode</parameter></paramdef>
+      <paramdef>unsigned long <parameter>offending_sequence_num</parameter></paramdef>
+      <paramdef>int <parameter>error_class</parameter></paramdef>
+      <paramdef>int <parameter>severity</parameter></paramdef>
+      <paramdef>IcePointer <parameter>values</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>sms_conn</parameter></term>
+    <listitem><para>The session management connection object.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>swap</parameter></term>
+    <listitem><para>A flag which indicates if the specified values need byte swapping.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>offending_minor_opcode</parameter></term>
+    <listitem><para>The minor opcode of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>offending_sequence_num</parameter></term>
+    <listitem><para>The sequence number of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>error_class</parameter></term>
+    <listitem><para>The error class of the offending message.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>severity</parameter></term>
+    <listitem><para>
+	<constant>IceCanContinue</constant>,
+	<constant>IceFatalToProtocol</constant>, or
+	<constant>IceFatalToConnection</constant>
+    </para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>values</parameter></term>
+    <listitem><para>Any additional error values specific to the minor opcode and class.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+    <para>
+Note that this error handler is invoked for protocol related errors.
+To install an error handler to be invoked when an IO error occurs,
+use <olink targetdoc='ICElib' targetptr='IceSetIOErrorHandler'><function>IceSetIOErrorHandler</function></olink>.
+For further information, see the
+<citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+    </para>
+  </sect1>
+</chapter>
+
+<chapter id='Session_Management_Properties'>
+  <title>Session Management Properties</title>
+
+  <para>
+Each property is defined by the <structname>SmProp</structname> structure:
+
+<synopsis>
+typedef struct {
+	char *name;	/* name of property */
+	char *type;	/* type of property */
+	int num_vals;	/* number of values */
+	SmPropValue *vals;	/* the list of values */
+} SmProp;
+
+typedef struct {
+	int length;	/* the length of the value */
+	SmPointer value;	/* the value */
+} SmPropValue;
+</synopsis>
+  </para>
+
+  <para>
+The X Session Management Protocol defines a list of predefined
+properties, several of which are required to be set by the client.
+The following table specifies the predefined properties and indicates
+which ones are required.  Each property has a type associated with it.
+  </para>
+
+  <para>
+A type of <type>SmCARD8</type> indicates that there is a single 1-byte value.
+A type of <type>SmARRAY8</type> indicates that there is a single array of bytes.
+A type of <type>SmLISTofARRAY8</type> indicates that there is a list of array of
+bytes.
+  </para>
+
+<informaltable pgwide='0' frame='topbot'>
+  <tgroup cols='4' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='2.0*'/>
+    <colspec colname='c2' colwidth='2.0*'/>
+    <colspec colname='c3' colwidth='2.0*'/>
+    <colspec colname='c4' colwidth='1.0*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry><acronym>POSIX</acronym> Type</entry>
+        <entry>Required</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><property>SmCloneCommand</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry><property>SmCurrentDirectory</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmARRAY8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmDiscardCommand</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>No*</entry>
+      </row>
+      <row>
+        <entry><property>SmEnvironment</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmProcessID</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmARRAY8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmProgram</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmARRAY8</type></entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry><property>SmRestartCommand</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>Yes</entry>
+      </row>
+      <row>
+        <entry><property>SmResignCommand</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmRestartStyleHint</property></entry>
+        <entry><type>SmCARD8</type></entry>
+        <entry><type>SmCARD8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmShutdownCommand</property></entry>
+        <entry>OS-specific</entry>
+        <entry><type>SmLISTofARRAY8</type></entry>
+        <entry>No</entry>
+      </row>
+      <row>
+        <entry><property>SmUserID</property></entry>
+        <entry><type>SmARRAY8</type></entry>
+        <entry><type>SmARRAY8</type></entry>
+        <entry>Yes</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+
+  <para>
+* Required if any state is stored in an external repository (for
+example, state file).
+  </para>
+
+  <itemizedlist mark='bullet'>
+    <listitem><para><property>SmCloneCommand</property></para>
+      <para>
+This is like the <property>SmRestartCommand</property>, except it restarts a
+copy of the application.  The only difference is that the application does not
+supply its client ID at register time.  On <acronym>POSIX</acronym> systems,
+this should be of type <type>SmLISTofARRAY8</type>.
+    </para></listitem>
+    <listitem><para><property>SmCurrentDirectory</property></para>
+      <para>
+On <acronym>POSIX</acronym>-based systems, this specifies the value of the
+current directory that needs to be set up prior to starting the
+<property>SmProgram</property> and should of type <type>SmARRAY8</type>.
+    </para></listitem>
+    <listitem><para><property>SmDiscardCommand</property></para>
+      <para>
+The discard command contains a command that when delivered to the host
+that the client is running on (determined from the connection), will
+cause it to discard any information about the current state.  If this
+command is not specified, the Session Manager will assume that all of
+the client's state is encoded in the <property>SmRestartCommand</property>.
+On <acronym>POSIX</acronym> systems, the type should be
+<type>SmLISTofARRAY8</type>.
+    </para></listitem>
+    <listitem><para><property>SmEnvironment</property></para>
+      <para>
+On <acronym>POSIX</acronym> based systems, this will be of type
+<type>SmLISTofARRAY8</type>, where the <type>ARRAY8</type>s alternate between
+environment variable name and environment variable value.
+    </para></listitem>
+    <listitem><para><property>SmProcessID</property></para>
+      <para>
+This specifies an OS-specific identifier for the process.
+On <acronym>POSIX</acronym> systems, this should contain the return value
+of <function>getpid</function> turned into a Latin-1 (decimal) string.
+    </para></listitem>
+    <listitem><para><property>SmProgram</property></para>
+      <para>
+This is the name of the program that is running.  On <acronym>POSIX</acronym>
+systems, this should be first parameter passed to <function>execve</function>
+and should be of type <type>SmARRAY8</type>.
+    </para></listitem>
+    <listitem><para><property>SmRestartCommand</property></para>
+      <para>
+The restart command contains a command that, when delivered to the
+host that the client is running on (determined from the connection),
+will cause the client to restart in its current state.
+On <acronym>POSIX</acronym>-based systems, this is of
+type <type>SmLISTofARRAY8</type>, and each of the elements in
+the array represents an element in the <varname>argv</varname>
+array.  This restart command should ensure that the client restarts
+with the specified client-ID.
+    </para></listitem>
+    <listitem><para><property>SmResignCommand</property></para>
+      <para>
+A client that sets the <property>SmRestartStyleHint</property>
+to <constant>SmRestartAnyway</constant> uses this property to specify a
+command that undoes the effect of the client and removes any saved state.
+As an example, consider a user that runs <command>xmodmap</command> which
+registers with the Session Manager,
+sets <property>SmRestartStyleHint</property>
+to <constant>SmRestartAnyway</constant>, and then
+terminates.  To allow the Session Manager (at the user's request) to
+undo this, <command>xmodmap</command> would register a
+<property>SmResignCommand</property> that undoes the effects of
+the <command>xmodmap</command>.
+    </para></listitem>
+    <listitem><para><property>SmRestartStyleHint</property></para>
+      <para>
+If the <property>SmRestartStyleHint</property> is present, it will contain the
+style of restarting the client prefers.  If this style is not specified,
+<constant>SmRestartIfRunning</constant> is assumed.
+The possible values are as follows:
+
+<informaltable frame='topbot'>
+  <?dbfo keep-together="always" ?>
+  <tgroup cols='2' align='left' colsep='0' rowsep='0'>
+    <colspec colname='c1' colwidth='1.0*'/>
+    <colspec colname='c2' colwidth='1.5*'/>
+    <thead>
+      <row rowsep='1'>
+        <entry>Name</entry>
+        <entry>Value</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry><constant>SmRestartIfRunning</constant></entry>
+        <entry>0</entry>
+      </row>
+      <row>
+        <entry><constant>SmRestartAnyway</constant></entry>
+        <entry>1</entry>
+      </row>
+      <row>
+        <entry><constant>SmRestartImmediately</constant></entry>
+        <entry>2</entry>
+      </row>
+      <row>
+        <entry><constant>SmRestartNever</constant></entry>
+        <entry>3</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</informaltable>
+      </para>
+
+      <para>
+The <constant>SmRestartIfRunning</constant> style is used in the usual case.
+The client should be restarted in the next session if it was running at
+the end of the current session.
+      </para>
+
+      <para>
+The <constant>SmRestartAnyway</constant> style is used to tell the Session
+Manager that the application should be restarted in the next session even if
+it exits before the current session is terminated.  It should be noted that
+this is only a hint and the Session Manager will follow the policies
+specified by its users in determining what applications to restart.
+      </para>
+
+      <para>
+A client that uses <constant>SmRestartAnyway</constant> should also set the
+<property>SmResignCommand</property> and <property>SmShutdownCommand</property>
+properties to commands that undo the state of the client after it exits.
+      </para>
+
+      <para>
+The SmRestartImmediately style is like SmRestartAnyway, but, in addition, the client is meant to run continuously.  If the client exits, the Session Manager should try to restart it in the current session.
+      </para>
+
+      <para>
+<constant>SmRestartNever</constant> style specifies that the client does not
+wish to be restarted in the next session.
+      </para>
+    </listitem>
+    <listitem><para><property>SmShutdownCommand</property></para>
+      <para>
+This command is executed at shutdown time to clean up after a client
+that is no longer running but retained its state by setting
+<property>SmRestartStyleHint</property> to
+<constant>SmRestartAnyway</constant>.  The client must not remove any saved
+state as the client is still part of the session.  As an
+example, consider a client that turns on a camera at start up time.
+This client then exits.  At session shutdown, the user wants the
+camera turned off.  This client would set the
+<property>SmRestartStyleHint</property> to
+<constant>SmRestartAnyway</constant> and would register
+a <property>SmShutdownCommand</property> that would turn off the camera.
+    </para></listitem>
+    <listitem><para><property>SmUserID</property></para>
+      <para>
+Specifies the user ID.  On <acronym>POSIX</acronym>-based systems, this will
+contain the user's name (the <structfield>pw_name</structfield> member of
+<structname>struct passwd</structname>).
+    </para></listitem>
+  </itemizedlist>
+</chapter>
+
+<chapter id='Freeing_Data'>
+  <title>Freeing Data</title>
+
+  <para>
+To free an individual property, use <xref linkend='SmFreeProperty' xrefstyle='select: title'/>
+  </para>
+
+<funcsynopsis id='SmFreeProperty'>
+   <funcprototype>
+      <funcdef>void <function>SmFreeProperty</function></funcdef>
+      <paramdef>SmProp *<parameter>prop</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>prop</parameter></term>
+    <listitem><para>The property to free.</para></listitem>
+  </varlistentry>
+</variablelist>
+
+  <para>
+To free the reason strings from
+the <xref linkend='SmsCloseConnectionProc' xrefstyle='select: title'/> callback,
+use <xref linkend='SmFreeReasons' xrefstyle='select: title'/>
+  </para>
+
+<funcsynopsis id='SmFreeReasons'>
+   <funcprototype>
+      <funcdef>void <function>SmFreeReasons</function></funcdef>
+      <paramdef>int <parameter>count</parameter></paramdef>
+      <paramdef>char **<parameter>reasons</parameter></paramdef>
+  </funcprototype>
+</funcsynopsis>
+
+<variablelist remap='IP'>
+  <varlistentry>
+    <term><parameter>count</parameter></term>
+    <listitem><para>The number of reason strings.</para></listitem>
+  </varlistentry>
+  <varlistentry>
+    <term><parameter>reasons</parameter></term>
+    <listitem><para>The list of reason strings to free.</para></listitem>
+  </varlistentry>
+</variablelist>
+</chapter>
+
+<chapter id='Authentication_of_Clients'>
+  <title>Authentication of Clients</title>
+
+  <para>
+As stated earlier, the session management protocol is layered on top
+of ICE.  Authentication occurs at two levels in the ICE protocol:
+
+<itemizedlist mark='bullet'>
+    <listitem><para>The first is when an ICE connection is opened.</para></listitem>
+    <listitem><para>The second is when a Protocol Setup occurs on an ICE connection.</para></listitem>
+</itemizedlist>
+  </para>
+
+  <para>
+The authentication methods that are available are
+implementation-dependent (that is., dependent on the ICElib and SMlib
+implementations in use).  For further information, see the
+<citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+  </para>
+</chapter>
+
+<chapter id='Working_in_a_Multi_Threaded_Environment'>
+  <title>Working in a Multi-Threaded Environment</title>
+
+  <para>
+To declare that multiple threads in an application will be using SMlib
+(or any other library layered on top of ICElib), you should
+call <function>IceInitThreads</function>.
+For further information, see the
+<citetitle pubwork='article'>Inter-Client Exchange Library</citetitle>
+standard.
+  </para>
+</chapter>
+
+<chapter id='Acknowledgements'>
+  <title>Acknowledgements</title>
+
+  <para>
+Thanks to the following people for their participation in the
+X Session Management design: Jordan Brown, Ellis Cohen, Donna Converse,
+Stephen Gildea, Vania Joloboff, Stuart Marks, Bob Scheifler, Ralph Swick,
+and Mike Wexler.
+  </para>
+
+</chapter>
+</book>

@@ -1,0 +1,2082 @@
+commit be1888a46e446dfcaa62ac0a97d96bb77b6816d4
+Author: Matt Turner <mattst88@gmail.com>
+Date:   Thu Dec 8 10:41:44 2022 -0500
+
+    libICE 1.1.1
+    
+    Signed-off-by: Matt Turner <mattst88@gmail.com>
+
+commit e176b676cff17948d68299c00dddefe41638c752
+Author: Arsen Arsenović <arsen@aarsen.me>
+Date:   Sun Dec 4 22:19:20 2022 +0100
+
+    ICEmsg: Fix C++ interoperability error due to static_assert define
+    
+    Commit 0269c687e954db7aca2a4344e32cb203315a00b6 added a static_assert helper
+    that gets defined to blank if left undefined by assert.h.  As this is not a
+    macro in other languages that use this header, this can lead to a compile-time
+    error.
+    
+    Bug: https://bugs.gentoo.org/884369
+
+commit 6c057be0f0aef0aeabb9a00e6814548fed0c125a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Dec 3 16:48:25 2022 -0800
+
+    libICE 1.1.0
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f032db0964e6d73b4f3c3264c1f8fbbb023fdf4c
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 23 10:29:44 2022 -0800
+
+    configure: Use AC_SYS_LARGEFILE to enable large file support
+    
+    The only files libICE operates on are .ICEauthority files, which
+    it only uses internally and does not make available to other code,
+    so there is no concern about ABI mismatch here.
+    
+    While .ICEauthority files should never be more than 2gb in size,
+    they may be stored on filesystems with large inodes.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit dd207b23f8d8ffe36e6727c813372a7858aafd02
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Nov 10 10:02:24 2022 -0800
+
+    ice.pc.in: "Libs.Private" should be "Libs.private"
+    
+    Fixes: b9411f7 ("ice.pc.in: add -lbsd flags when required")
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0515b88aa55e6e55d7ab2808d245fdd64f7863ff
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 27 19:01:46 2022 -0700
+
+    Avoid -Wdeclaration-after-statement warnings from static_assert
+    
+    Some implementations of static_assert() define a new variable.
+    Avoid warnings from those when calling static_assert() from a
+    macro that may not be at the top of a new code block.
+    
+    ../../src/accept.c: In function 'IceAcceptConnection':
+    ../../src/accept.c:159:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+      159 |     IceGetHeader (iceConn, 0, ICE_ByteOrder,
+          |     ^~~~~~~~~~~~
+    ../../src/connect.c: In function 'IceOpenConnection':
+    ../../src/connect.c:254:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+      254 |     IceGetHeader (iceConn, 0, ICE_ByteOrder,
+          |     ^~~~~~~~~~~~
+    ../../src/connect.c:340:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+      340 |     IceGetHeaderExtra (iceConn, 0, ICE_ConnectionSetup,
+          |     ^~~~~~~~~~~~~~~~~
+    [...etc...]
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 246cbc402aabe5e971c43d1a21b66ab4c602f1cf
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Oct 27 18:42:47 2022 -0700
+
+    Only link with libbsd if needed for arc4random_buf() or getentropy()
+    
+    Avoid unnecessary library dependency when using a libc with these
+    functions included
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 81da58f39d274ab7f822fb22e56b5b2027597a51
+Author: Guillem Jover <guillem@hadrons.org>
+Date:   Thu Oct 6 00:26:11 2022 +0000
+
+    Switch from libbsd to libbsd-overlay
+    
+    This is the preferred usage form for libbsd, as it makes the code more
+    portable and requires no special includes for libbsd, by transparently
+    injects the needed standard headers that would be used on a BSD.
+    
+    Signed-off-by: Guillem Jover <guillem@hadrons.org>
+
+commit 96c84e563610d5c7846e601605f675f3d3840dd2
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 14 16:29:32 2022 -0700
+
+    Handle arrays too large to fit in iceConn buffers
+    
+    Fixes numerous gcc warnings of the form:
+    
+    connect.c: In function ‘IceOpenConnection’:
+    ICElibint.h:160:25: warning: potential null pointer dereference [-Wnull-dereference]
+         *((CARD16 *) _pBuf) = _val; \
+                             ^
+    ICElibint.h:174:5: note: in expansion of macro ‘STORE_CARD16’
+         STORE_CARD16 (_pBuf, _len); \
+         ^~~~~~~~~~~~
+    connect.c:351:5: note: in expansion of macro ‘STORE_STRING’
+         STORE_STRING (pData, IceReleaseString);
+         ^~~~~~~~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0269c687e954db7aca2a4344e32cb203315a00b6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 14:22:44 2022 -0700
+
+    ICEmsg.h: Add static asserts that message header length <= ICE_OUTBUFSIZE
+    
+    A message header length larger than ICE_OUTBUFSIZE will cause
+    buffer overflows.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b399fc2b3c5c2cf5f0d36d98c372f353a8186d15
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 13:37:34 2022 -0700
+
+    IceFlush: signal fatal I/O error if bufptr is past end of buffer
+    
+    It should never happen, but has been possible in the past when
+    we didn't handle buffer checks properly - this would help us
+    catch it if a similar mistake ever happens again (or the wrong
+    memory pointer gets corrupted by something else).
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 918d58772595e7cd9907a7b08874196442fbf599
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 13:36:28 2022 -0700
+
+    Refactor Fatal I/O error handling into a common function
+    
+    Reduce duplicated code in _IceRead() and _IceWrite()
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6ca1ea376c7c6c9dc719d607b7684d87bcf96712
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Sep 7 11:33:13 2022 -0700
+
+    IceGetHeaderExtra: only include extra space in outbufptr if there's room
+    
+    If there's not room for it in the buffer, we already set pData to
+    NULL, but still set the outbufptr to include the space, which could
+    lead to IceFlush() reading past the end of the buffer.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 76fd1cf6534358426cddaed045514d79270275b5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Aug 20 16:54:52 2022 -0700
+
+    Only link to libbsd for arc4random_buf if it is not found in libc
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0124a9ea65118ae70bcc155e2a9a36a6c4869310
+Author: walter harms <wharms@bfs.de>
+Date:   Wed Oct 18 18:09:05 2017 +0200
+
+    make sure buffer is zero filled and report if allocation failed
+    
+    Signed-off-by: Walter Harms <wharms@bfs.de>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1e7787324a788fe84f7e438f4db9a47c8f6dd952
+Author: walter harms <wharms@bfs.de>
+Date:   Wed Oct 18 18:03:47 2017 +0200
+
+    add check for malloc
+    
+    fix a potential null pointer deference error
+    
+    Signed-off-by: Walter Harms <wharms@bfs.de>
+
+commit 7b439c788b94849d4f07cda77518bec43ebbd9a6
+Author: walter harms <wharms@bfs.de>
+Date:   Thu Sep 7 18:46:39 2017 +0200
+
+    connect.c: FIX 'iceConn' shadows a previous local, [-Wshadow]
+    
+    In function 'IceOpenConnection':  gcc give the following warning:
+     connect.c:106:11: warning: declaration of 'iceConn' shadows a previous local  [-Wshadow]
+    fixed by renaming 2. iceConn to iConn (and all its uses)
+    
+    Signed-off-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 348b9a46086ad72d6f29f2637036accff6630db4
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 15:17:40 2022 -0700
+
+    ProcessAuthReply: rename status variable to avoid shadowing
+    
+    Fixes gcc complaint:
+    
+    process.c: In function ‘ProcessAuthReply’:
+    process.c:1478:20: warning: declaration of ‘status’ shadows a previous local [-Wshadow]
+     1478 |             Status status = 1;
+          |                    ^~~~~~
+    process.c:1426:25: note: shadowed declaration is here
+     1426 |         IcePaAuthStatus status =
+          |                         ^~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d70c666549a9ee17de7349904529cf41bf023926
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 15:04:53 2022 -0700
+
+    ConnectToPeer: be doubly sure that use-after-free doesn't happen
+    
+    This resolves an issue reported by the Oracle Parfait static analyzer:
+    
+    Error: Use after free
+       Use after free [use-after-free] (CWE 416):
+          Use after free of pointer trans_conn
+            at line 566 of lib/libICE/src/connect.c in function 'ConnectToPeer'.
+              trans_conn previously freed with _IceTransClose at line 532
+              trans_conn was allocated at line 525 with _IceTransOpenCOTSClient
+    
+    even though I believe this is already handled by the
+    'if (madeConnection) { ... } else trans_conn = NULL;'
+    block, but the analyzer apparently doesn't follow that logic,
+    while this simple change makes it obvious.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8d2cb9e7a897a070b2509f9de60961c9d154ee99
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 14:39:02 2022 -0700
+
+    configure: check for libbsd before libxtrans checks for strlcpy
+    
+    If we're going to link to libbsd, might as well use it for strlcpy too
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9a3534b3e0808a5294f85f2402a2b4410a153b76
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 14:27:55 2022 -0700
+
+    gitlab CI: add a basic build test
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 410d2005f5a1f11e8204d9bc3432e0b145ae3161
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 14:08:43 2022 -0700
+
+    Fix spelling/wording issues
+    
+    Found by using:
+        codespell --builtin clear,rare,usage,informal,code,names
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 08df47e4786d112a639915331702b4a27def6a56
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Apr 30 13:58:58 2022 -0700
+
+    Build xz tarballs instead of bzip2
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b9411f79f59b63d7d363234d795fa5c77cc738c9
+Author: David Callu <callu.david@gmail.com>
+Date:   Tue Apr 7 10:20:49 2020 +0200
+
+    ice.pc.in: add -lbsd flags when required
+
+commit 8e6a14c63d6b73cde87cb331439f2a4d19cba5b9
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Jul 14 10:37:25 2019 -0700
+
+    libICE 1.0.10
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b6aad584c1dc278364c295165512b5f5b98c173e
+Author: Olivier Fourdan <ofourdan@redhat.com>
+Date:   Thu Apr 11 09:05:15 2019 +0200
+
+    cleanup: Separate variable assignment and test
+    
+    Assigning and testing a value in a single statement hinders code clarity
+    and may confuses static code analyzers.
+    
+    Separate the assignment and the test for clarity.
+    
+    Signed-off-by: Olivier Fourdan <ofourdan@redhat.com>
+
+commit 772e5b0fdfc9dbd8bec070bd0c4c7eb5565df2ee
+Author: Olivier Fourdan <ofourdan@redhat.com>
+Date:   Wed Apr 10 11:15:11 2019 +0200
+
+    _IceRead: Avoid possible use-after-free
+    
+    `_IceRead()` gets called from multiple places which do not expect the
+    connection to be freed.
+    
+    Do not free the connection data in `_IceRead()` to avoid potential
+    use-after-free issue in the various callers.
+    
+    The connection data will be freed eventually in `ProcessWantToClose()`,
+    so not freeing it in `_IceRead()` should not introduce an memory leak.
+    
+    Signed-off-by: Olivier Fourdan <ofourdan@redhat.com>
+
+commit 1493beba2aa03bdadeed8b4fa5d424df6e113071
+Author: Olivier Fourdan <ofourdan@redhat.com>
+Date:   Wed Apr 10 11:01:31 2019 +0200
+
+    IceListenForWellKnownConnections: Fix memleak
+    
+    The function `_IceTransMakeAllCOTSServerListeners` allocates memory for
+    `transConns` which is leaked in case of error.
+    
+    Signed-off-by: Olivier Fourdan <ofourdan@redhat.com>
+
+commit a67a477eefdc93c32fa82da6ff0b4e69dd4c2ccb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 24 15:29:34 2019 -0700
+
+    IceWritePad: always use zero values for pad bytes
+    
+    Previously it would just bump the pointer in the buffer leaving
+    whatever values were previously there in place.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 2318ace3340009c44e78eab094f159f0e0b4a197
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Mar 24 14:36:10 2019 -0700
+
+    IceOpenConnection: check for malloc failure on connect_to_you too
+    
+    Fixes: https://gitlab.freedesktop.org/xorg/lib/libice/issues/4
+    
+    Reported-by: mahendra <mahendra.n@samsung.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit b484311c929a1b64966d89da92fafce7263006e1
+Author: Allison Lortie <desrt@desrt.ca>
+Date:   Tue Jun 14 16:09:46 2016 -0400
+
+    authutil: support $XDG_RUNTIME_DIR/ICEauthority
+    
+    If we find that $XDG_RUNTIME_DIR is set (and $ICEAUTHORITY is not), then
+    the ICEauthority file is stored in the XDG_RUNTIME_DIR instead of the
+    home directory, and without a leading dot.
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=49173
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 48ed5e04b5a8ba64dcfeea090cf3a32d3087b749
+Author: Allison Lortie <desrt@desrt.ca>
+Date:   Tue Jun 14 16:08:21 2016 -0400
+
+    authutil: fix an out-of-bounds access
+    
+    There is a theoretical edge case where the $HOME environment variable
+    could be set to the empty string.  IceAuthFileName() unconditionally
+    checks index 1 of this string, which is out of bounds.
+    
+    Fix that up by rejecting empty strings in the same way as we reject
+    NULL.
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=49173
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 468b83ec4810b4ea2373182b5801f998f3dcd471
+Author: Tobias Stoeckmann <tobias@stoeckmann.org>
+Date:   Mon Jul 30 20:50:58 2018 +0200
+
+    Always terminate strncpy results.
+    
+    The function strncpy does not guarantee to append a terminating
+    NUL character to the destination.
+    
+    This patch merges libSM's way of handling this issue into libICE.
+    
+    Signed-off-by: Tobias Stoeckmann <tobias@stoeckmann.org>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1cc4ae8648590f04557a20c8d88d39cef7fe8119
+Author: walter harms <wharms@bfs.de>
+Date:   Thu Sep 7 18:52:13 2017 +0200
+
+    iceauth.c: FIX warning: unused variable 'ret' in 'arc4random_buf'
+    
+    commit ff5e59f32255913bb1cdf51441b98c9107ae165b left ret outside the #if
+    causing a gcc warning:
+    
+     In function 'arc4random_buf':
+     iceauth.c:89:13: warning: unused variable 'ret' [-Wunused-variable]
+    
+    fixed by moving  #if 1 up
+    
+    Signed-off-by:  Walter Harms <wharms@bfs.de>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit ccbcae7d3409789bf346ca35963264d064f54cba
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Dec 7 19:29:55 2018 -0800
+
+    Update configure.ac bug URL for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e72ca90879db149bbee6232dd78a565e630e917d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Nov 18 21:48:59 2018 -0800
+
+    Update README for gitlab migration
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit dc73ec034c9083b8c7d980e80eb6d4c88bcfaa51
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 10 13:13:45 2018 -0800
+
+    Remove obsolete B16 & B32 tags in struct definitions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f66955f7250d7c150dfb97862878acc2222781e5
+Author: walter harms <wharms@bfs.de>
+Date:   Fri Sep 8 20:03:03 2017 +0200
+
+    make IceProtocolShutdown() more readable
+    
+    I found IceProtocolShutdown() hard to read only to find that was
+    it does it aktually very simple. So i rearranged the code to make
+    it more readable.
+    
+    Signed-off-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com>
+    [Emil Velikov: whitespace fixes]
+    Signed-off-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 936dcaac07f7db569ed91a34e0a4b5944aac205f
+Author: walter harms <wharms@bfs.de>
+Date:   Fri Sep 8 19:59:17 2017 +0200
+
+    Drop NULL check prior to free()
+    
+    free() can handle NULL just fine - remove the check.
+    
+    Signed-off-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 43644931cb9cb5cc92391f6f5431535b9b7a3f24
+Author: Eric Engestrom <eric.engestrom@imgtec.com>
+Date:   Fri Jul 7 11:23:48 2017 +0100
+
+    Make sure string is never NULL
+    
+    `error_message` is passed in to strncpy() without any check, which
+    doesn't handle NULL itself, so let's make it a valid empty string in
+    cases where it was NULL.
+    
+    Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+    Acked-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit e8c21056134498c49733f6baf572ffbb051ed886
+Author: Eric Engestrom <eric.engestrom@imgtec.com>
+Date:   Fri Jul 7 11:23:47 2017 +0100
+
+    Make sure error_message is a free-able string
+    
+    Similar to the previous commit, assigning a static string would crash
+    upon freeing.
+    
+    Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+    Acked-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 7a7844bf5ade915268fe7f9b292908c6cd75f3ba
+Author: Eric Engestrom <eric.engestrom@imgtec.com>
+Date:   Fri Jul 7 11:23:46 2017 +0100
+
+    Make sure errorStr is a free-able string
+    
+    If the `errorClass` isn't handled by the switch, `errorStr`'s initial
+    value would be a pointer to some static memory with an empty string,
+    and freeing it would most likely crash.
+    
+    Let's set it to NULL instead, as is done in other similar places.
+    
+    Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+    Acked-by: Walter Harms <wharms@bfs.de>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit 7ef9680caa8c223a09beb637e26fd3471128e6ba
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Sun May 8 09:19:36 2016 +0100
+
+    configure.ac: set TRANS_CLIENT/SERVER
+    
+    Similar to ICE_t just set the define globally and remove the multiple
+    definitions throughout the tree
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com> (IRC)
+
+commit ab64a947b5de5b778f31ede9cfce386566023a14
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Sun May 8 09:19:35 2016 +0100
+
+    Kill off local ICE_t definitions
+    
+    Already defined at global scale in configure.ac
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com> (IRC)
+
+commit f4c00d345edf3dad5893b50ff0ae7cd3e0cfd780
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Sun May 8 09:19:34 2016 +0100
+
+    Remove unneeded ^L symbols.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com> (IRC)
+
+commit d603d7d7d989c4ff1094810e9fcf2a29bc00bb0c
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Sun May 8 09:19:33 2016 +0100
+
+    Kill off Time_t macro
+    
+    Analogous to previous commit, including the megacommit that removed the
+    need for it.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com> (IRC)
+
+commit 82250f26fc76d7b7574cfd472646a98e325d944a
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Sun May 8 09:19:32 2016 +0100
+
+    Kill off Strstr macro
+    
+    Directly use the strstr function as opposed to wrapping it in a macro.
+    The latter is no longer needed as of
+    
+    commit 72e353567f8927996a26e72848d86f692c3f0737
+    Author: Kaleb Keithley <kaleb@freedesktop.org>
+    Date:   Fri Nov 14 16:48:46 2003 +0000
+    
+        XFree86 4.3.0.1
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Adam Jackson <ajax@redhat.com>
+    Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com> (IRC)
+
+commit ff5e59f32255913bb1cdf51441b98c9107ae165b
+Author: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Date:   Tue Apr 4 19:12:53 2017 +0200
+
+    Use getentropy() if arc4random_buf() is not available
+    
+    This allows to fix CVE-2017-2626 on Linux platforms without pulling in
+    libbsd.
+    The libc getentropy() is available since glibc 2.25 but also on OpenBSD.
+    For Linux, we need at least a v3.17 kernel. If the recommended
+    arc4random_buf() function is not available, emulate it by first trying
+    to use getentropy() on a supported glibc and kernel. If the call fails,
+    fall back to the current (partly vulnerable) code.
+    
+    Signed-off-by: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1746abbb1ae1c41ba29c14895c5bd3f1334faef5
+Author: Mihail Konev <k.mvc@ya.ru>
+Date:   Thu Jan 26 13:52:49 2017 +1000
+
+    autogen: add default patch prefix
+    
+    Signed-off-by: Mihail Konev <k.mvc@ya.ru>
+
+commit 3aa14db63fefb7634b1bd4370e33ba14c4ea90ae
+Author: Emil Velikov <emil.l.velikov@gmail.com>
+Date:   Mon Mar 9 12:00:52 2015 +0000
+
+    autogen.sh: use quoted string variables
+    
+    Place quotes around the $srcdir, $ORIGDIR and $0 variables to prevent
+    fall-outs, when they contain space.
+    
+    Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit d41c57eaa0c1474acf0a6fb271f22106e3070016
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Tue Jan 24 10:32:07 2017 +1000
+
+    autogen.sh: use exec instead of waiting for configure to finish
+    
+    Syncs the invocation of configure with the one from the server.
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+    Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+
+commit ac4bb20e74e064b219de70e9b54516a921fdb7c3
+Author: Tobias Stoeckmann <tobias@stoeckmann.org>
+Date:   Tue Nov 22 20:13:29 2016 +0100
+
+    Fix use after free on subsequent calls
+    
+    The function IceAuthFileName is vulnerable to a use after free. The
+    flaw can be triggered by calling the function three times:
+    
+    - First call succeeds and stores the path in buf, a dynamically
+      allocated buffer with size bsize.
+    - Second call fails due to out of memory. It frees buf, but keeps
+      the old size in bsize.
+    - Third call only checks if bsize is large enough. Then it uses
+      buf without allocating it again -- the use after free happens.
+    
+    In order to exploit this, an attacker must change environment variables
+    between each call, namely ICEAUTHORITY or HOME. It also takes subsequent
+    calls. Due to these limitations, I don't consider this to be of high
+    priority.
+    
+    Reviewed-by: Matthieu Herrb <matthieu@herrb.eu>
+
+commit b1720edc9b9f3e7a05caa3fcd81761e5818ea255
+Author: Remko van der Vossen <bugs@yuugen.jp>
+Date:   Sun Jul 19 08:34:11 2015 -0700
+
+    Bug 90616 - libICE build fails on array bounds check
+    
+    https://bugs.freedesktop.org/show_bug.cgi?id=90616
+    
+    Recent versions of gcc have array bounds checking turned on by default,
+    this leads to build failures of libICE. As the _IceVersionCount variable
+    in ICElibint.h is not declared const the compiler cannot assume that the
+    nested for loop in ProcessConnectionSetup stays within bounds.
+    
+    The simple fix is of course to change the declarations of _IceVersionCount,
+    _IceVersions, and the local variable myVersionCount to const declarations.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 8a511dad53774693ed818d54d7896e1663942b18
+Author: Jon TURNEY <jon.turney@dronecode.org.uk>
+Date:   Sat Sep 13 17:13:44 2014 +0100
+
+    Include unistd.h for getpid()
+    
+    Signed-off-by: Jon TURNEY <jon.turney@dronecode.org.uk>
+    Reviewed-by: David Macek <david.macek.0@gmail.com>
+
+commit fd22b62ae6380ddb00fa4c750f5ce175d2a6e76f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Sep 14 13:08:17 2014 -0700
+
+    spec: Convert troff \*Q..\*U to DocBook <quote>...</quote>
+    
+    Reported-by: Jasper St. Pierre <jstpierre@mecheye.net>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jasper St. Pierre <jstpierre@mecheye.net>
+
+commit 0dfab4253e26d5c6e5f058126eb5e9f7a7732ae8
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jun 6 18:28:28 2014 -0700
+
+    libICE 1.0.9
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9fb6ba03d7183ae06644f8a747fdb99b970d65fc
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Dec 24 09:35:02 2013 -0800
+
+    Delete unused name variable in register.c
+    
+    Found by cppcheck 1.62:
+    [src/register.c:84]: (style) Variable 'name' is assigned a value
+     that is never used.
+    [src/register.c:182]: (style) Variable 'name' is assigned a value
+     that is never used.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c5060918164168c0a4f737b76e92df3c03356dc6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Dec 24 09:18:17 2013 -0800
+
+    Free iceConn->connection_string when unwinding after malloc fails
+    
+    Found by cppcheck 1.62:
+    [src/accept.c:113]: (error) Memory leak: iceConn.connection_string
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 80f62c54fbd50a3bbdf9c37258525098c9117830
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Thu Aug 29 22:18:14 2013 +0200
+
+    Use arc4random when available to produce the auth cookie.
+    
+    arc4random() and associated functions can be found in libbsd on
+    GNU/Linux systems.
+    
+    Signed-off-by: Matthieu Herrb <matthieu.herrb@laas.fr>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 2312ee00402088307e69589c3d12529b5232df66
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 23:01:30 2013 -0700
+
+    Make STORE_STRING cast strlen result to CARD16 when storing in CARD16
+    
+    Clears a number of clang warnings of the form:
+    
+    connect.c:328:6: warning: implicit conversion loses integer precision:
+       'size_t' (aka 'unsigned long') to 'CARD16' (aka 'unsigned short')
+       [-Wconversion]
+                STORE_STRING (pData, _IceAuthNames[i]);
+                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ./ICElibint.h:173:19: note: expanded from macro 'STORE_STRING'
+        CARD16 _len = strlen (_string); \
+               ~~~~   ^~~~~~~~~~~~~~~~
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 6d6aa84dc6acb2daa3ef7e20942c38a1416bf543
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 22:58:46 2013 -0700
+
+    Cast assignments in IceErrorHeader() macro
+    
+    Clears many clang warnings about implicit conversions losing
+    integer precision, such as from storing ints into CARD8 or CARD16.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9450bb648ef98efd6f08ea7d14ab8b9ea6e7bb54
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 22:47:41 2013 -0700
+
+    Make write_string call write_counted_string instead of copying it
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 84153eee4db318cd897c464e70cb9f8bc8e469f6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 22:37:09 2013 -0700
+
+    Mark input arguments to write_string functions as const
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9a74512ffdc1628f1b87d2191439915c63b9104f
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 22:31:41 2013 -0700
+
+    Stop casting return values from malloc
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 4033226105fa861ab5f0276850afc24c0fa45406
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Aug 8 22:17:27 2013 -0700
+
+    Get rid of casts to (char *) in calls to free()
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 10c30ae6a7df1a7c352a1d611a313dffcaa42082
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 14:48:33 2013 -0700
+
+    Convert remaining sprintf() call to snprintf()
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0a94633e3d805ca477fba6b7acb673d055a3f43d
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 14:46:09 2013 -0700
+
+    Convert strcpy/strcat pairs to snprintf calls
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 0d276835222eeb57de56f56cd9e12611b1d30466
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 14:35:11 2013 -0700
+
+    Fix some clang warnings about integer sign/size conversions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit bb3d8a7767cf260b97c7e019e4fec0ee7d7b65a8
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Jul 20 14:24:04 2013 -0700
+
+    unifdef WORD64
+    
+    Remove leftover remnants of CRAY support, which still had some
+    functions consisting solely of /* NOT IMPLEMENTED YET */ comments.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 9561eca1ad28afee6dcd0aebea3dd20a154ec481
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Jul 18 00:36:28 2013 -0700
+
+    Constify filename argument to IceLockAuthFile & IceUnlockAuthFile
+    
+    Needed to fix const string warnings in iceauth - functions already
+    copy provided arguments to temporary local buffer for modifications.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 1b1cf8072b2559e15ac440d5484a29a81d6918c6
+Author: Colin Walters <walters@verbum.org>
+Date:   Wed Jan 4 17:37:06 2012 -0500
+
+    autogen.sh: Implement GNOME Build API
+    
+    http://people.gnome.org/~walters/docs/build-api.txt
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 5e784ca7f37823e62733765371c0b8ed1c58e5aa
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Jan 15 14:28:48 2013 -0500
+
+    configure: Remove AM_MAINTAINER_MODE
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit e1677ce019219ac164d99f1e04f17caf16fc785a
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jan 4 19:32:08 2013 -0800
+
+    unifdef -U__UNIXOS2__
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit f166e8bbf16ec214fefdcf02ce81f80442899cb7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Mar 2 19:59:50 2012 -0800
+
+    libICE 1.0.8
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit c87ecd959d61ae97d8a2bd82efc761bb3e299061
+Author: Matt Dew <marcoz@osource.org>
+Date:   Mon Jan 9 21:25:18 2012 -0700
+
+    informaltable cleanup
+    
+    On certain tables, add top and bottom borders to table header
+    and a bottom border to the table. This matches what those
+    tables in the old pdfs looked like.
+    
+    the <?dbfo keep-together='always'> prevents tables from
+    splitting across pages. Useful for tiny tables.
+    
+    Converting the colwidth to a floating point, IE, 1* -> 1.0*
+    cleans up these build errors:
+    WARNING: table-layout="fixed" and column-width unspecified =>
+    falling back to proportional-column-width(1)
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit 8b4321a37a9fa2ad24bf87afabba6b08dcfded12
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Thu Nov 24 12:42:36 2011 -0800
+
+    Plug minor memory leak in unusual path through ProcessConnectionSetup
+    
+    Error: Memory leak (CWE 401)
+       Memory leak of pointer 'release' allocated with malloc((_len + 1))
+            at line 1100 of src/process.c in function 'ProcessConnectionSetup'.
+              'release' allocated at line 920 with malloc((_len + 1)).
+              release leaks when _i >= hisAuthCount at line 925
+                  and i >= _IceAuthCount at line 973
+                  and found != 0 at line 998
+                  and status != 0 at line 1053
+                  and status != 1 at line 1070
+                  and accept_setup_now == 0 at line 1082
+                  and i >= hisAuthCount at line 1093.
+       Memory leak of pointer 'vendor' allocated with malloc((_len + 1))
+            at line 1100 of src/process.c in function 'ProcessConnectionSetup'.
+              'vendor' allocated at line 919 with malloc((_len + 1)).
+              vendor leaks when _i >= hisAuthCount at line 925
+                  and i >= _IceAuthCount at line 973
+                  and found != 0 at line 998
+                  and status != 0 at line 1053
+                  and status != 1 at line 1070
+                  and accept_setup_now == 0 at line 1082
+                  and i >= hisAuthCount at line 1093.
+    
+    [ This bug was found by the Parfait 0.3.7 bug checking tool.
+      For more information see http://labs.oracle.com/projects/parfait/ ]
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit caf9e3393d5d517ea129392d001a2c46a7c1f325
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 19 00:26:29 2011 -0800
+
+    Constify protocol, vendor & release string args to IceRegisterForProtocol*
+    
+    Needed to resolve gcc -Wwrite-strings warnings in callers.
+    These functions only pass the strings to strcmp before calling
+    strdup to make their own private copy for storing away.
+    
+    While fixing the API docs to match, also fix them to match the existing
+    function prototypes, where there were several errors before (including
+    just plain missing most of the args to IceRegisterForProtocolReply).
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 59c1555dff34804c78c7e7443ad13f27300927eb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 22:07:34 2011 -0800
+
+    Remove ancient workaround for System V/386 Release 4.2 compiler bug
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Matthieu Herrb <matthieu.herrb@laas.fr>
+    Reviewed-by: walter <wharms@bfs.de>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit bec4e9c9089fa4cc5a50fc513a3544cf6fd59bf1
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 22:06:36 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings in process.c
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit ffa659dd6dd1fb8847bfdcc5e1e2be353b6395b6
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 21:37:48 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings in AuthNames handling
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 902a52ea9d7b6e6f56f7023009859072854a0fc7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 21:55:17 2011 -0800
+
+    constify arguments to IceGetAuthFileEntry
+    
+    Needed to clear gcc -Wwrite-strings warnings in callers
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 9ff1f97e46903f8f83363f07cf021989bfa6a9f0
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 21:43:59 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings in _IceError* functions
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit e8a16534a9406d5096d9c0ea515d979c7c15e084
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Wed Nov 9 21:23:33 2011 -0800
+
+    Fix gcc -Wwrite-strings warnings in _IceDefaultErrorHandler
+    
+    Had to split char *str into two variables, const char *str for the
+    string literals just being passed to fprintf etal.  and char *estr
+    for use by EXTRACT_STRING for the results of malloc calls that get
+    written to and then freed.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 4fbcba4ee19a49c05440861e1278bc97d29048e0
+Author: Matt Dew <marcoz@osource.org>
+Date:   Tue Oct 4 23:32:02 2011 -0600
+
+    Cleanup IDs and links in doc
+    
+    1 - fix the capitalization of the ID attributes to match either the
+         <title> or <funcdef> string it goes with.
+    2 - fix any <linkend>'s that were affected by 1.
+    3 - any <function> in the docs that has an actual funcdef,
+    will become an olink.
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+
+commit d4e161e35335df82f412d2d2bb1ef95ff3e88401
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Sep 19 15:34:47 2011 -0400
+
+    As of 1997, X Window System is a trademark of The Open Group.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit fc0fc948d25dfa0f6f445a3b55610ea5b864dd60
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Sep 16 22:09:18 2011 -0700
+
+    Strip trailing whitespace
+    
+    Performed with: find * -type f | xargs perl -i -p -e 's{[ \t]+$}{}'
+    git diff -w & git diff -b show no diffs from this change
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 22601de3f38d035eb874d4bd9f649ddd2b3f0ae2
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 17:20:20 2011 -0400
+
+    specs: remove <productnumber> which is not used by default
+    
+    This element is not rendered by default on the title. A template
+    customization is required to display it.
+    X Window System does not have a product number.
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 7f330738f1f5862950b3baa35ff08446093bfd4e
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 17:06:00 2011 -0400
+
+    specs: use DocBook suggested markup for Copyrights
+    
+    Puts the statement on a single line, using commas to separate years
+       --> Copyright © 1993, 1994, 1996 X Consortium
+    
+    As opposed to 3 double-spaced lines.
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit d68d2d2031f623a969784e702c97a07b8cd99010
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 16:56:21 2011 -0400
+
+    specs: remove orphan <corpname>
+    
+    It does not display on the title page and is redundant.
+    No visible change on the doc.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 87c934b9b7973a814763670e2dfad0579a8dcc78
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 16:27:09 2011 -0400
+
+    specs: use the &fullrelvers; entity to set X11 release information
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 41f04fd8673db5c2d8e587ab2c169a694bd7528f
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 14:13:35 2011 -0400
+
+    ice.xml: version number is 1.1, not 1.0
+    
+    This is what it was before the conversion from roff to docbook.
+    
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9e2a596b4ff06fc9c70dfcd94506e536e351ee0b
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Sep 11 14:11:28 2011 -0400
+
+    ice.xml: fix orphan affiliation
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 1309d477a061d165345b602e122990eaab71a0d4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Sep 9 21:21:57 2011 -0400
+
+    ICElib doc: remove empty revision list and specify the doc version number
+    
+    Revision histories are not used, only 3 docs out of 63 have one.
+    
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit e9d57773df26ad9440a49f58941b511e594605a4
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Sep 8 20:00:00 2011 -0400
+
+    docbook.am: embed css styles inside the HTML HEAD element
+    
+    Rather than referring to the external xorg.css stylesheet, embed the content
+    of the file in the html output produced. This is accomplished by using
+    version 1.10 of xorg-xhtml.xsl.
+    
+    This makes the whole html docs tree much more relocatable.
+    In addition, it eliminates xorg.css as a runtime file which makes
+    xorg-sgml-doctools a build time only package.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit b83cbed755315f6300133f2621cbe99bdc06345a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Sep 7 10:31:04 2011 -0400
+
+    docbook.am: global maintenance update - entities, images and olinking
+    
+    Adding support in libX11 for html chunking caused a reorg of docbook.am
+    as well as the xorg-sgml-doctools masterdb for olinking.
+    The parameter img.src.path is added for pdf images.
+    A searchpath to the root builddir is added for local entities, if present.
+    
+    The docbook.am makefile hides all the details and is identical for
+    all 22 modules having DocBook documentation. It is included by a thin
+    Makefile.am which requires no docbook knowledge.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit f35b8b8be16f1903beed34fe23fa53d102329342
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 12 17:54:50 2011 -0400
+
+    Install xml versions of specs even if HAVE_XMLTO is false
+    
+    DocBook/XML input source is also a usefull output format that can be viewed
+    with an XML viewer or editor and by some O/S help system.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 4c9cbdb1b40799121456c692d960135d741f13c7
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Jun 5 16:27:36 2011 -0400
+
+    Install target dbs alongside generated documents
+    
+    This matches a change in xorg-sgml-docs whereby the masterdb will look for
+    the target dbs into the same location as the generated documents.
+    
+    The target dbs are now installed alongside the generated documents.
+    Previously they are installed in $prefix/sgml/X11/dbs alongside masterdb which
+    has the potential of installing outside the package prefix and cause
+    distcheck to fail when user does not have write permission in this package.
+    
+    Requires XORG_CHECK_SGML_DOCTOOLS(1.8) which was released 2011-06-11
+
+commit 72d668dd2ec4db9b75973ba24f42ab49851dbc6d
+Author: Matt Dew <marcoz@osource.org>
+Date:   Wed May 25 22:54:51 2011 -0600
+
+    add id attributes to funcsynopsis to allow other docs to olink to them
+    
+    Signed-off-by: Matt Dew <marcoz@osource.org>
+    Reviewed-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit dd7f2beaa753541aefba499813f25de38cbd17b7
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Apr 19 18:36:58 2011 -0700
+
+    IceWritePad: Zero fill pad bytes used when buffer is full
+    
+    Should be rarely hit, since it's only in the case where most of the
+    message fits in the buffer, but there's not room left for the padding
+    bytes, but better than sending uninitialized bytes off the stack when
+    it happens.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 663782989be82e7893c99eaa7cbe98ec25a23c38
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Apr 19 18:19:19 2011 -0700
+
+    Fix reads outside array bounds in error handlers
+    
+    Error: Buffer overrun
+       Read outside array bounds (CWE 125): In call to memcpy(<unknown>, &mOp, 8), (size(&mOp) < (unsigned) 8)
+          Array size is 1 bytes
+            at line 296 of src/error.c in function '_IceErrorMajorOpcodeDuplicate'.
+    Error: Buffer overrun
+       Read outside array bounds (CWE 125): In call to memcpy(<unknown>, &maj, 8), (size(&maj) < (unsigned) 8)
+          Array size is 1 bytes
+            at line 346 of src/error.c in function '_IceErrorBadMajor'.
+    
+    [ This bug was found by the Parfait 0.3.7 bug checking tool.
+      For more information see http://labs.oracle.com/projects/parfait/ ]
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit daf686b7639919289b07a575a0d88efcb91d9732
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Mar 30 20:15:07 2011 -0400
+
+    doc: xorg-sgml-doctools package at version 1.7 is required
+    
+    This version contains support for external references
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit fadb927532556adb471300c89de29d268aae9102
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Sun Feb 27 15:06:18 2011 -0500
+
+    Documentation: add Docbook external references support
+    
+    When writing technical documentation, it is often necessary to cross
+    reference to other information. When that other information is not in the
+    current document, additional support is needed, namely <olink>.
+    
+    A new feature with version 1.7 of xorg-sgml-doctools adds references to
+    other documents within or outside this package.
+    
+    This patch adds technical support for this feature but does not change
+    the content of the documentation as seen by the end user.
+    
+    Each book or article must generate a database containing the href
+    of sections that can be referred to from another document. This database
+    is installed in DATAROOTDIR/sgml/X11/dbs. There is a requirement that
+    the value of DATAROOTDIR for xorg-sgml-doctools and for the package
+    documentation is the same. This forms a virtual document tree.
+    
+    This database is consulted by other documents while they are being generated
+    in order to fulfill the missing information for linking.
+    Refer to the xorg-sgml-doctools for further technical information.
+    
+    Co-authored-by: Matt Dew <marcoz@osource.org>
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 483d32621c06bcba0c7aa7794633b46b151fd5bf
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Feb 25 08:58:54 2011 -0500
+
+    Docbook: change the book id to match the xml file basename
+    
+    This is required for the up-coming external references support.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 4852c5bb1603fb6d401fe6895d9318555a8d4523
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 19:13:54 2011 -0500
+
+    config: splitting ICE and XTRANS compiler options is not required
+    
+    Simplify configuration by using a single PKG_CHECK_MODULES statement.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 87d34a2f04c9d920da01802cd9707c8107746fa5
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Feb 2 11:43:40 2011 -0500
+
+    config: comment, minor upgrade, quote and layout configure.ac
+    
+    Group statements per section as per Autoconf standard layout
+    Quote statements where appropriate.
+    Autoconf recommends not using dnl instead of # for comments
+    
+    Use AC_CONFIG_FILES to replace the deprecated AC_OUTPUT with parameters.
+    
+    This helps automated maintenance and release activities.
+    Details can be found in http://wiki.x.org/wiki/NewModuleGuidelines
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 548eded10385ccc336e66dac8bbabe05f3225ec2
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Jan 28 14:42:12 2011 -0500
+
+    config: remove unrequired AC_HEADER_STDC
+    
+    Autoconf says:
+    "This macro is obsolescent, as current systems have conforming
+    header files. New programs need not use this macro".
+
+commit 78b8e6b772685a2ed567ac2d30f96116f050dad5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Fri Jan 7 19:29:03 2011 -0800
+
+    Resync fallback asprintf with updated version put into xrdb
+    
+    Fixes issues found during xrdb review on xorg-devel
+    Also make sure <stdarg.h> is #included for varargs macros
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit dc63c253e33b1012c08cd274e6e37bf0fa87c624
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Dec 21 18:28:36 2010 -0800
+
+    Add AC_USE_SYSTEM_EXTENSIONS to make asprintf() visible in GNU libc
+    
+    asprintf is considered a GNU extension and thus one needs to define
+    _GNU_SOURCE before including stdio.h.
+    
+    Reported-by: Cyril Brulebois <kibi@debian.org>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Mark Kettenis <kettenis@openbsd.org>
+    Reviewed-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 4b4ec3aeaa7cf5f5a6490ad2ddc2b07d090214cb
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Dec 19 09:57:05 2010 -0800
+
+    Use correct string pointer in asprintf() fallback
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 308c8d3d5fbf96c1d4f313def50d4b001ac0d685
+Author: Paulo Zanoni <przanoni@gmail.com>
+Date:   Fri Dec 17 14:59:22 2010 -0200
+
+    Remove useless line from a table in specs/ice.xml
+    
+    This seems to be a leftover from a manpage/groff conversion.
+    
+    Signed-off-by: Paulo Zanoni <pzanoni@mandriva.com>
+    Reviewed-by: Matt Dew
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit a72467b21662a63c81418731b540a8843d138750
+Author: Paulo Zanoni <pzanoni@mandriva.com>
+Date:   Thu Dec 16 13:59:52 2010 -0200
+
+    Use docbookx.dtd version 4.3 for all docs
+    
+    Signed-off-by: Paulo Zanoni <pzanoni@mandriva.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit e0280caf7cc9d0e1c2df3ab7c5a4fbe4e42696a9
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sun Dec 5 01:15:42 2010 -0800
+
+    Convert src/process.c from malloc + sprintf to asprintf
+    
+    Includes simple local implemenation of asprintf if configure doesn't
+    find one in system libraries
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+    Reviewed-by: Julien Cristau <jcristau@debian.org>
+
+commit a5669dcb488db19b1ba4f1ef4d4565b6c3d1ea09
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 20 19:47:53 2010 -0800
+
+    config: replace deprecated AM_CONFIG_HEADER with AC_CONFIG_HEADERS
+    
+    Regroup AC statements under the Autoconf initialization section.
+    Regroup AM statements under the Automake initialization section.
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit d902a9f27369fc8388774e73f4bee6ab0ad86ef5
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Sat Nov 20 19:45:42 2010 -0800
+
+    config: Remove unnecessary calls from configure.ac
+    
+    AC_PROG_CC is provided by XORG_DEFAULT_OPTIONS now
+    PKG_CONFIG_MODULES handles AC_SUBST of the CFLAGS & LIBS variables
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit fd56c4e00a564d6385ccb2f8fadf10de201ae411
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Nov 9 11:28:48 2010 -0500
+
+    config: HTML file generation: use the installed copy of xorg.css
+    
+    Currenlty the xorg.css file is copied in each location
+    where a DocBook/XML file resides. This produces about
+    70 copies in the $(docdir) install tree.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9856f5679b2b2d458cf830c1e8fdd206c724dfc5
+Author: Adam Jackson <ajax@redhat.com>
+Date:   Tue Oct 19 11:19:08 2010 -0400
+
+    libICE 1.0.7
+    
+    Signed-off-by: Adam Jackson <ajax@redhat.com>
+
+commit 59a8d5609398824c81b72deb82735a55332ca239
+Author: Jeremy Huddleston <jeremyhu@apple.com>
+Date:   Sun Oct 17 21:26:31 2010 -0700
+
+    Fix include ordering, so -I../include precedes $CPPFLAGS which could
+    cause us to include installed rather than packaged headers.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@apple.com>
+
+commit 4a6f7a357222b2c1fa289d6e7b5fcc8c361e20e9
+Author: Jesse Adkins <jesserayadkins@gmail.com>
+Date:   Tue Sep 28 13:30:01 2010 -0700
+
+    Purge cvs tags.
+    
+    Signed-off-by: Jesse Adkins <jesserayadkins@gmail.com>
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 5bb806a65bf23a507b135abe1e4a8b3cabc7b8aa
+Author: Matt Dew <matt@osource.org>
+Date:   Wed Jun 30 16:52:22 2010 -0400
+
+    specs: convert ICE doc/specs from xorg-docs module to DocBook XML
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 9b54f509832c50c1fac0edc0cb78e1a3454a56dc
+Author: Alan Coopersmith <alan.coopersmith@oracle.com>
+Date:   Tue Jun 8 20:12:53 2010 -0700
+
+    Move ICE protocol & API specs from xorg-docs module
+    
+    For now, just checked in and included in dist tarballs, not processed
+    into a usable format - same as it was in xorg-docs
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@oracle.com>
+
+commit 1967c04c021a4cfd7b3cdd4efdc13610b4385a65
+Author: Julien Cristau <jcristau@debian.org>
+Date:   Tue May 11 16:36:20 2010 +0200
+
+    Set the close-on-exec flag for listening sockets
+    
+    This prevents xsm from leaking file descriptors to the processes it
+    starts.
+    
+    X.Org bug#22932 <http://bugs.freedesktop.org/show_bug.cgi?id=22932>
+    
+    Reported-by: Kalle Olavi Niemitalo <kon@iki.fi>
+    Signed-off-by: Julien Cristau <jcristau@debian.org>
+
+commit b6478dbedcca4d4cf44bd588c050bcc70c2f4963
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Apr 5 19:50:40 2010 -0400
+
+    config: update AC_PREREQ statement to 2.60
+    
+    Unrelated to the previous patches, the new value simply reflects
+    the reality that the minimum level for autoconf to configure
+    all x.org modules is 2.60 dated June 2006.
+    
+    ftp://ftp.gnu.org/gnu/autoconf/autoconf-2.60.tar.gz
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 8e175ff18649bd30e862b6a6a5f82a4ed4d5241a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Mar 29 14:53:48 2010 -0400
+
+    config: remove the pkgconfig pc.in file from EXTRA_DIST
+    
+    Automake always includes it in the tarball.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 09d61dc024d9846525e4c97d33cdf03c9f06c151
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Feb 16 10:37:21 2010 -0500
+
+    config: move CWARNFLAGS from configure.ac to Makefile.am
+    
+    Compiler warning flags should be explicitly set in the makefile
+    rather than being merged with other packages compiler flags.
+    
+    Signed-off-by: Gaetan Nadon <memsize@videotron.ca>
+
+commit 72b8a2d39a57eb0640929b9bb9f276c6032f8213
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Fri Nov 27 20:56:03 2009 -0500
+
+    Makefile.am: add ChangeLog and INSTALL on MAINTAINERCLEANFILES
+    
+    Now that the INSTALL file is generated.
+    Allows running make maintainer-clean.
+
+commit 68231f8574e197a12eff1ddde37166d101567269
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Wed Oct 28 14:09:10 2009 -0400
+
+    INSTALL, NEWS, README or AUTHORS files are missing/incorrect #24206
+    
+    Add missing INSTALL file. Use standard GNU file on building tarball
+    README may have been updated
+    Remove AUTHORS file as it is empty and no content available yet.
+    Remove NEWS file as it is empty and no content available yet.
+
+commit b5cfc1cdd367c93660259a86b3b6683c57e5d76a
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Tue Oct 27 15:07:25 2009 -0400
+
+    Deploy the new XORG_DEFAULT_OPTIONS #24242
+    
+    This macro aggregate a number of existing macros that sets commmon
+    X.Org components configuration options. It shields the configuration file from
+    future changes.
+
+commit 5524fa4d543932e4565b2235515fef9a5d9a501d
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Mon Oct 26 22:08:41 2009 -0400
+
+    Makefile.am: ChangeLog not required: EXTRA_DIST or *CLEANFILES #24432
+    
+    ChangeLog filename is known to Automake and requires no further
+    coding in the makefile.
+
+commit 82ad2d2053af2ad37697793b9718721aa3ff80a0
+Author: Gaetan Nadon <memsize@videotron.ca>
+Date:   Thu Oct 22 12:34:18 2009 -0400
+
+    .gitignore: use common defaults with custom section # 24239
+    
+    Using common defaults will reduce errors and maintenance.
+    Only the very small or inexistent custom section need periodic maintenance
+    when the structure of the component changes. Do not edit defaults.
+
+commit 4b2289ad5481de7fa51941cf6c2ca7a2a3202690
+Author: Jeremy Huddleston <jeremyhu@freedesktop.org>
+Date:   Wed Oct 21 12:47:23 2009 -0700
+
+    This is not a GNU project, so declare it foreign.
+    
+    On Wed, 2009-10-21 at 13:36 +1000, Peter Hutterer wrote:
+    > On Tue, Oct 20, 2009 at 08:23:55PM -0700, Jeremy Huddleston wrote:
+    > > I noticed an INSTALL file in xlsclients and libXvMC today, and it
+    > > was quite annoying to work around since 'autoreconf -fvi' replaces
+    > > it and git wants to commit it.  Should these files even be in git?
+    > > Can I nuke them for the betterment of humanity and since they get
+    > > created by autoreconf anyways?
+    >
+    > See https://bugs.freedesktop.org/show_bug.cgi?id=24206
+    
+    As an interim measure, replace AM_INIT_AUTOMAKE([dist-bzip2]) with
+    AM_INIT_AUTOMAKE([foreign dist-bzip2]). This will prevent the generation
+    of the INSTALL file. It is also part of the 24206 solution.
+    
+    Signed-off-by: Jeremy Huddleston <jeremyhu@freedesktop.org>
+
+commit 94992c686a6850f2303aa78057a64a6369b64692
+Author: Peter Hutterer <peter.hutterer@who-t.net>
+Date:   Fri Aug 28 14:17:50 2009 +1000
+
+    libICE 1.0.6
+    
+    Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+
+commit 7a8bb2a2c991919bcdef63359c74e239045a3f4c
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Feb 2 20:34:30 2009 -0800
+
+    Add README with pointers to mailing list, bugzilla & git repos
+    
+    Signed-off-by: Alan Coopersmith <alan.coopersmith@sun.com>
+
+commit dbb950061f185e1ccf27bff9c71adc34ab4cfae0
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Wed Jan 28 16:55:37 2009 -0200
+
+    Janitor: Correct sparse warnings.
+    
+      Also reorders some code in configure.ac and Makefile.am to
+    match pattern used on other packages.
+
+commit 2f41ddb3a917c4e71184452b68561a15593d33b8
+Author: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+Date:   Tue Jan 6 17:25:25 2009 -0200
+
+    Update .gitignore.
+    
+      Don't warn about files left after a build and/or make distcheck
+    in 'git status -a'.
+
+commit ab9dff549534c6d7b33f440bff7a841d60c1206c
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 8 18:45:44 2008 +0100
+
+    bump to 1.0.5
+
+commit 71695c4bf7ae07228605683f6cdeca0457c8495a
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 8 18:44:26 2008 +0100
+
+    remove ChangeLog from EXTRA_DIST and CLEANFILES
+
+commit 653f659fe65ae8c2a9fe5b1fdbfc78da43f2cf90
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 8 18:41:34 2008 +0100
+
+    use memcmp instead of binaryEqual
+    
+    suggested by Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+    http://lists.freedesktop.org/archives/xorg/2008-December/041222.html
+
+commit bf138553afe6eecd0e6c218dc6ae4f63065e4196
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Tue Dec 2 22:06:15 2008 +0100
+
+    Use NULL, not zero, for pointers
+    
+    From Magnus Kessler <Magnus.Kessler@gmx.net>
+    http://lists.freedesktop.org/archives/xorg/2008-October/039799.html
+    http://lists.freedesktop.org/archives/xorg/attachments/20081030/b2ea5b1c/attachment-0001.bin
+
+commit b01e82ce1deedb36c9696d4d27a3b9a5d5a52d08
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Thu Oct 30 12:01:06 2008 +0100
+
+    ANSI C
+    
+    convert all old style function declarations
+    
+    see also: Paulo Cesar Pereira de Andrade <pcpa@mandriva.com.br>
+    http://bugs.freedesktop.org/show_bug.cgi?id=14683
+    http://bugs.freedesktop.org/attachment.cgi?id=14582
+    
+    see also: Magnus Kessler <Magnus.Kessler@gmx.net>
+    http://lists.freedesktop.org/archives/xorg/2008-October/039799.html
+    http://lists.freedesktop.org/archives/xorg/attachments/20081030/b2ea5b1c/attachment-0001.bin
+
+commit 2aba1bc0583aeb3ee6e26e3bfacd123abef744d9
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 1 23:06:22 2008 +0100
+
+    towards ANSI C
+    
+    make _IceProcessCoreMessage and default error handlers static
+
+commit 69a1b4b6d34291738dfbc3aa19d0ce3f2842ec8f
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 1 22:22:12 2008 +0100
+
+    Activate CWARNFLAGS with lots of gcc warnings
+
+commit 898ed95cad1133940a83dcf428865c5d3fb2c939
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Mon Dec 1 22:18:45 2008 +0100
+
+    use xorg-macros-1.2.1
+    
+    Use XORG_CHANGELOG for rule to generate ChangeLog from git log
+    Use XORG_CWARNFLAGS for compiler warning flags, leave CFLAGS to user
+
+commit a99fbad09ab850e65ddd57e4d4488e4726295e14
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Tue Oct 7 13:21:48 2008 -0700
+
+    Constify some arguments in libICE to clear warnings in libSM
+    
+    This patch avoids the gcc (3.4.6) warnings:
+     ../../libSM-1.0.3/src/sm_client.c:104: warning: passing arg 7 of `IceRegisterForProtocolSetup' from incompatible pointer type
+     ../../libSM-1.0.3/src/sm_manager.c:168: warning: passing arg 7 of `IceRegisterForProtocolReply' from incompatible pointer type
+    when compiling libSM
+
+commit 3bceaeb3192ca75a14854d614e1621d28fb82274
+Author: Peter Breitenlohner <peb@mppmu.mpg.de>
+Date:   Tue Oct 7 11:25:42 2008 -0700
+
+    define macros to 1 in icetrans.c to avoid redefined macro warnings
+    
+    X.Org Bug #17947 <http://bugs.freedesktop.org/show_bug.cgi?id=17947>
+    Patch #19444 <http://bugs.freedesktop.org/attachment.cgi?id=19444>
+    
+    Define as 1 (one) as done by autoconf and the command line
+    option, e.g. -DICE_t, not as empty.
+    
+    This avoids the gcc (3.4.6) warnings:
+     ../../libICE-1.0.4/src/icetrans.c:29:1: warning: "ICE_t" redefined
+     ../config.h:38:1: warning: this is the location of the previous definition
+     ../../libICE-1.0.4/src/icetrans.c:30:1: warning: "TRANS_CLIENT" redefined
+     <command line>:6:1: warning: this is the location of the previous definition
+     ../../libICE-1.0.4/src/icetrans.c:31:1: warning: "TRANS_SERVER" redefined
+     <command line>:7:1: warning: this is the location of the previous definition
+
+commit b707104f4dba0963ab17c1d6a29c1e3a848ea408
+Author: Alan Hourihane <alanh@tungstengraphics.com>
+Date:   Tue Apr 29 00:41:40 2008 +0100
+
+    silence warning
+
+commit e6b525aefc05b5203391699b00053ad52243cc6b
+Author: Colin Harrison <colin.harrison-at-virgin.net>
+Date:   Tue Apr 29 00:40:48 2008 +0100
+
+    include for sleep()
+
+commit ef58f37724b841ef2246757be27111775aa86559
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Mar 9 09:02:40 2008 +0100
+
+    nuke RCS Ids
+
+commit 47d86e8343d3d0201166c4d75da2ec9c12638cc1
+Author: James Cloos <cloos@jhcloos.com>
+Date:   Thu Dec 6 15:51:13 2007 -0500
+
+    Add missing PHONY line for automatic ChangeLog generation
+
+commit f415da71dd26f128df7d550ecd7631f8888eb1d2
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Aug 20 13:21:07 2007 -0700
+
+    Version bump: 1.0.4
+
+commit 8e08d3e4b8f00151b3a8b7eb88015dc15170e154
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Mon Jun 4 15:40:22 2007 -0700
+
+    Add $(AM_CFLAGS) to lint flags to get correct Xtrans flags
+
+commit cd900e40b5676874d076c35466fd7baa6a49b1f6
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 15:05:52 2007 -0700
+
+    Replace many malloc(strlen()); strcpy() pairs with strdup()
+
+commit 27f9a9324d58c9a7472c724c62f5b7ea0e1f4681
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:43:05 2007 -0700
+
+    Provide ANSI C prototypes for more static functions
+
+commit bb639803a779ceace05d183b653da88f010ab29c
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:32:31 2007 -0700
+
+    Convert authutil.c static helpers to ANSI C prototypes to clear sparse warnings
+
+commit 2179b2d467d69e45559b8e4f161a904a21f05321
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:28:06 2007 -0700
+
+    Add hooks for checking source code with lint/sparse/etc.
+
+commit 6b361c028b5ad931b61df86fae570f3ef9f41c15
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:19:56 2007 -0700
+
+    Coverity #1086: Double free of pointer "*listenObjsRet"
+    
+    Same bug, different function.
+
+commit c9b3d016681d81aff32c74cdad75151bd538e6ab
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:07:42 2007 -0700
+
+    Coverity #1085: Double free of pointer "*listenObjsRet"
+    
+    If malloc failed in the loop in IceListenForConnections, the error path
+    would free all previous allocations, then loop around and try again, and
+    if it failed again, free the previous allocations again.   On the other
+    hand, if it succeeded on the later tries, then the memory would just be
+    leaked, since the error would be returned and not the pointer to them.
+
+commit 6039e865470af23948b0fe7d5dc0ea72da436b0e
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Apr 5 14:04:01 2007 -0700
+
+    Add *~ to .gitignore to skip emacs/patch droppings
+
+commit bed718894bed98cbd45b02bd57fb7fc6fd5089aa
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Dec 16 01:21:17 2006 +0200
+
+    bump to 1.0.3
+
+commit cac788981906186442ddfb57a41f45911eb8223b
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Wed Dec 6 18:58:09 2006 +0200
+
+    Makefile.am: make ChangeLog hook safer
+    Make ChangeLog hook as safe as possible.
+
+commit 011d632e8ef3f738b9158e66d6da6876e3b53905
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Fri Oct 13 15:49:52 2006 -0400
+
+    Bump to 1.0.2
+
+commit 445661cd714685009ee9ba2358a274351381eabf
+Author: Adam Jackson <ajax@benzedrine.nwnk.net>
+Date:   Thu Oct 12 18:37:57 2006 -0400
+
+    Fix ChangeLog hook to distcheck.
+
+commit 5cba1c763ac9f79062523227b49a29f72e6069cf
+Author: Matthieu Herrb <matthieu.herrb@laas.fr>
+Date:   Sun Jul 16 10:52:30 2006 +0200
+
+    set GIT_DIR=${srcdir}/.git for git-log
+
+commit 86e0a93714a6ccdb8555fc2c48231d958cba383d
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Thu Jul 13 14:58:44 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit c87cb98979356fc55607c05a2b23207afc9beeb1
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Jul 11 13:48:08 2006 -0700
+
+    Replace static ChangeLog with rule copied from libX11 to generate from git log
+
+commit 6066ab9b9914ec0cca3b8f36fa3f5ba323414621
+Author: Derek Wang <derek.wang@sun.com>
+Date:   Tue Nov 23 12:00:32 2004 -0800
+
+    Sun bug #6193975: kde session manager core dumps in _IceWrite()
+
+commit be25425ca38d23655a5a854c053e750e1cbd3dea
+Author: Alan Coopersmith <alan.coopersmith@sun.com>
+Date:   Tue Jul 11 13:42:07 2006 -0700
+
+    renamed: .cvsignore -> .gitignore
+
+commit 9b1bb5ab99bd386cc030cd456a576b37406da91c
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Wed Apr 26 23:57:50 2006 +0000
+
+    Bump to 1.0.1
+
+commit 96d7763487da6624ed85bee10b081e7138d2060d
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Mon Apr 10 16:44:40 2006 +0000
+
+    Coverity #664: Free memory allocated by EXTRACT_STRING in
+        _IceDefaultErrorHandler after we're done fprintf()'ing it.
+
+commit 2a30ec82f3bd2aa1f2566e97fee70403a8448de8
+Author: Kevin E Martin <kem@kem.org>
+Date:   Thu Dec 15 00:24:27 2005 +0000
+
+    Update package version number for final X11R7 release candidate.
+
+commit 881573d429c0a9ecfa2d6286d4eaece36ee50675
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Dec 3 05:49:42 2005 +0000
+
+    Update package version number for X11R7 RC3 release.
+
+commit a15b179f2e8e359161d9133bac58dde57b7e78ae
+Author: Kevin E Martin <kem@kem.org>
+Date:   Sat Nov 19 07:15:39 2005 +0000
+
+    Update pkgconfig files to separate library build-time dependencies from
+        application build-time dependencies, and update package deps to work
+        with separate build roots.
+
+commit c386a08047582240adefafd3afc062e52fccae6f
+Author: Kevin E Martin <kem@kem.org>
+Date:   Wed Nov 9 21:19:12 2005 +0000
+
+    Update package version number for X11R7 RC2 release.
+
+commit c361e3919f2de3f4742904b04e73178edc76bf95
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Sun Oct 23 20:12:19 2005 +0000
+
+    Bug #1893: Fix replies when peers use different major opcodes for the same
+        subprotocol. (016_ICE_subprotocol_reply_fix.diff from Debian, by Jochen
+        Voss)
+
+commit 0b8ff6fbd8cd7f47ab9e6ccb6d4917564a2d13ee
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat Jul 30 19:15:15 2005 +0000
+
+    Add -D flags to clear various warnings (Stefan Dirsch)
+
+commit 260d470a128c7eaa6d7484bb143aab353c4e98ec
+Author: Kevin E Martin <kem@kem.org>
+Date:   Fri Jul 29 21:22:50 2005 +0000
+
+    Various changes preparing packages for RC0:
+    - Verify and update package version numbers as needed
+    - Implement versioning scheme
+    - Change bug address to point to bugzilla bug entry form
+    - Disable loadable i18n in libX11 by default (use --enable-loadable-i18n to
+        reenable it)
+    - Fix makedepend to use pkgconfig and pass distcheck
+    - Update build script to build macros first
+    - Update modular Xorg version
+
+commit cf687b775f580a84a4a8e962814abe7bc47a3c52
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sat Jul 16 06:22:34 2005 +0000
+
+    Set soversion to 6.3.0.
+
+commit 6d1704defa0e57715bd22d30d6e789b36233dcf8
+Author: Keith Packard <keithp@keithp.com>
+Date:   Sat Jul 9 05:59:01 2005 +0000
+
+    Add .cvsignore files
+
+commit 2b6b8e40a63dd69a13f87c19dcf8dc2f477c304d
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Sun Jul 3 07:00:55 2005 +0000
+
+    Add Xtrans definitions (FONT_t, TRANS_CLIENT) to clean up warnings.
+    Add XSERV_t, TRANS_SERVER, TRANS_REOPEN to quash warnings.
+    Add #include <dix-config.h> or <xorg-config.h>, as appropriate, to all
+        source files in the xserver/xorg tree, predicated on defines of
+        HAVE_{DIX,XORG}_CONFIG_H. Change all Xfont includes to
+        <X11/fonts/foo.h>.
+
+commit 608ad35f102b188f554daf8c160a5edcf4e8031c
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Fri Jun 10 14:11:36 2005 +0000
+
+    Remove pointless include of Xlib.h.
+    Fix #include path to bigreqstr.h.
+
+commit 795460992b0dcd4aa2591be462a94942415c6028
+Author: Alexander Gottwald <alexander.gottwald@s1999.tu-chemnitz.de>
+Date:   Thu Jun 9 15:54:47 2005 +0000
+
+    Replace <X11/transport.c> with <X11/Xtrans/transport.c>
+
+commit ae7b4cca6bd5c1f4edea8cde80d7a3dfaaf2c4d3
+Author: Alexander Gottwald <alexander.gottwald@s1999.tu-chemnitz.de>
+Date:   Thu Jun 9 15:52:02 2005 +0000
+
+    Replace <X11/Xtrans.h> with <X11/Xtrans/Xtrans.h>
+    Copy Xtrans.h to exports/include/X11/Xtrans only
+
+commit a0637be926e6da5db8d131e7914f1300f484c626
+Author: Alan Coopersmith <Alan.Coopersmith@sun.com>
+Date:   Sat May 21 23:07:47 2005 +0000
+
+    xtrans:
+    Create autoconf macro XTRANS_CONNECTION_FLAGS to provide standard set of
+        --enable flags for which transports to support and common place to
+        update for required libraries for platforms that need certain libs for
+        certain transports
+    ICE:
+    Add ICE_t #define required by Xtrans headers. Replace static defines of
+        LOCALCONN & UNIXCONN with new XTRANS_CONNECTION_FLAGS macro.
+    X11:
+    Moved transport type checks to new macro XTRANS_CONNECTION_FLAGS in
+        xtrans.m4 in xtrans module so they can be shared by all modules using
+        xtrans.
+
+commit efdb2468119be0c62a379d91088a708ca8d37e1b
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:22:32 2005 +0000
+
+    revert last change, didn't do right thing at all, sorry for the noise
+
+commit ccf4efa5e204d4569b9b590f72baae807ec19903
+Author: Adam Jackson <ajax@nwnk.net>
+Date:   Thu May 19 00:10:02 2005 +0000
+
+    Require automake 1.7 in AM_INIT_AUTOMAKE
+
+commit 3458da101c943530861485c798538ce014eee6b0
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Tue May 17 21:25:15 2005 +0000
+
+    - Conditionally include config.h in xc/lib/SM
+    - Add libSM to symlink.sh
+    - Add SM build system
+
+commit cae06ca0ce523eeb9a667ce3ae5bff066cf6ecd7
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Tue May 17 20:53:58 2005 +0000
+
+    - Conditionally include config.h in the ICE source.
+    - Add ICE to symlink.sh
+
+commit 9dd90f8f8e29bb1dd6fe84b4b1d2d75ef91bc336
+Author: Søren Sandmann Pedersen <sandmann@daimi.au.dk>
+Date:   Tue May 17 20:52:35 2005 +0000
+
+    Add ICE directory + build system.
+
+commit d1cfe2a6d4a392f64b6b9d9255ec329fb2a6a39a
+Author: Daniel Stone <daniel@fooishbar.org>
+Date:   Fri Jan 28 19:15:39 2005 +0000
+
+    Move _IceGetPeerName into the ICE public API as IceGetPeerName; bump ICE
+        soversion to 6.4 accordingly. Change SM's use to the public version.
+        The old version will be retained for compatibility.
+
+commit 8f0babf8450aa8097e063e13c95b1581843b2dd8
+Author: Egbert Eich <eich@suse.de>
+Date:   Fri Apr 23 18:43:22 2004 +0000
+
+    Merging XORG-CURRENT into trunk
+
+commit 111949a4a1d5b62e26016b555e12f8862c90ae44
+Author: Egbert Eich <eich@suse.de>
+Date:   Sun Mar 14 08:31:52 2004 +0000
+
+    Importing vendor version xf86-4_4_99_1 on Sun Mar 14 00:26:39 PST 2004
+
+commit d4054eea34b2f4d345796ecadec8a96af93c4d0d
+Author: Egbert Eich <eich@suse.de>
+Date:   Wed Mar 3 12:11:10 2004 +0000
+
+    Importing vendor version xf86-4_4_0 on Wed Mar 3 04:09:24 PST 2004
+
+commit 569bf16d182b043e7ab914202d4195baf4a8413a
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 13:35:18 2004 +0000
+
+    readding XFree86's cvs IDs
+
+commit 14c9e41e551ab1b3a00807dbb8f2f215b96bcc81
+Author: Egbert Eich <eich@suse.de>
+Date:   Thu Feb 26 09:22:34 2004 +0000
+
+    Importing vendor version xf86-4_3_99_903 on Wed Feb 26 01:21:00 PST 2004
+
+commit 45b73c360dc68b023194758bbb1cc59c021742a6
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Thu Dec 4 22:02:52 2003 +0000
+
+    XFree86 4.3.99.901 (RC 1)
+
+commit c919c3d0b355ef67dfa0b511eb1da488e5786d1b
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Tue Nov 25 19:28:07 2003 +0000
+
+    XFree86 4.3.99.16 Bring the tree up to date for the Cygwin folks
+
+commit 72e353567f8927996a26e72848d86f692c3f0737
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 16:48:46 2003 +0000
+
+    XFree86 4.3.0.1
+
+commit ee452992357329f7af846eba8f5bbe61c5d27bfa
+Author: Kaleb Keithley <kaleb@freedesktop.org>
+Date:   Fri Nov 14 15:54:36 2003 +0000
+
+    R6.6 is the Xorg base-line

@@ -171,7 +171,7 @@ lock_old_archive_extraction=no
 LTCC="/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/bin/clang"
 
 # LTCC compiler flags.
-LTCFLAGS="--target=wasm32-wasip1 --sysroot=/home/nathan/secure-exec/registry/native/c/sysroot -O2 -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec/experiments/wasm-gui/toolchain/wasi-compat.h"
+LTCFLAGS="--target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h"
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe=""

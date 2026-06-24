@@ -1,0 +1,499 @@
+# English translations for openbox package.
+# Copyright (C) 2015 Dana Jansens
+# This file is distributed under the same license as the openbox package.
+# Automatically generated, 2015.
+#
+# All this catalog "translates" are quotation characters.
+# The msgids must be ASCII and therefore cannot contain real quotation
+# characters, only substitutes like grave accent (0x60), apostrophe (0x27)
+# and double quote (0x22). These substitutes look strange; see
+# http://www.cl.cam.ac.uk/~mgk25/ucs/quotes.html
+#
+# This catalog translates grave accent (0x60) and apostrophe (0x27) to
+# left single quotation mark (U+2018) and right single quotation mark (U+2019).
+# It also translates pairs of apostrophe (0x27) to
+# left single quotation mark (U+2018) and right single quotation mark (U+2019)
+# and pairs of quotation mark (0x22) to
+# left double quotation mark (U+201C) and right double quotation mark (U+201D).
+#
+# When output to an UTF-8 terminal, the quotation characters appear perfectly.
+# When output to an ISO-8859-1 terminal, the single quotation marks are
+# transliterated to apostrophes (by iconv in glibc 2.2 or newer) or to
+# grave/acute accent (by libiconv), and the double quotation marks are
+# transliterated to 0x22.
+# When output to an ASCII terminal, the single quotation marks are
+# transliterated to apostrophes, and the double quotation marks are
+# transliterated to 0x22.
+#
+# This catalog furthermore displays the text between the quotation marks in
+# bold face, assuming the VT100/XTerm escape sequences.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: openbox 3.6.1\n"
+"Report-Msgid-Bugs-To: http://bugzilla.icculus.org\n"
+"POT-Creation-Date: 2015-07-01 11:26+0200\n"
+"PO-Revision-Date: 2015-07-01 11:26+0200\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: openbox/actions.c:234
+#, c-format
+msgid "Invalid action \"%s\" requested. No such action exists."
+msgstr "Invalid action “[1m%s[0m” requested. No such action exists."
+
+#: openbox/actions/execute.c:245
+msgid "No"
+msgstr "No"
+
+#: openbox/actions/execute.c:246
+msgid "Yes"
+msgstr "Yes"
+
+#: openbox/actions/execute.c:250
+msgid "Execute"
+msgstr "Execute"
+
+#: openbox/actions/execute.c:259
+#, c-format
+msgid "Failed to convert the path \"%s\" from utf8"
+msgstr "Failed to convert the path “[1m%s[0m” from utf8"
+
+#: openbox/actions/exit.c:69 openbox/client.c:3669
+msgid "Cancel"
+msgstr "Cancel"
+
+#: openbox/actions/exit.c:70
+msgid "Exit"
+msgstr "Exit"
+
+#: openbox/actions/exit.c:74
+msgid "Are you sure you want to log out?"
+msgstr "Are you sure you want to log out?"
+
+#: openbox/actions/exit.c:75
+msgid "Log Out"
+msgstr "Log Out"
+
+#: openbox/actions/exit.c:78
+msgid "Are you sure you want to exit Openbox?"
+msgstr "Are you sure you want to exit Openbox?"
+
+#: openbox/actions/exit.c:79
+msgid "Exit Openbox"
+msgstr "Exit Openbox"
+
+#: openbox/client.c:2115
+msgid "Unnamed Window"
+msgstr "Unnamed Window"
+
+#: openbox/client.c:2129 openbox/client.c:2160
+msgid "Killing..."
+msgstr "Killing..."
+
+#: openbox/client.c:2131 openbox/client.c:2162
+msgid "Not Responding"
+msgstr "Not Responding"
+
+#: openbox/client.c:3658
+#, c-format
+msgid ""
+"The window \"%s\" does not seem to be responding.  Do you want to force it "
+"to exit by sending the %s signal?"
+msgstr ""
+"The window “[1m%s[0m” does not seem to be responding.  Do you want to force "
+"it to exit by sending the %s signal?"
+
+#: openbox/client.c:3660
+msgid "End Process"
+msgstr "End Process"
+
+#: openbox/client.c:3664
+#, c-format
+msgid ""
+"The window \"%s\" does not seem to be responding.  Do you want to disconnect "
+"it from the X server?"
+msgstr ""
+"The window “[1m%s[0m” does not seem to be responding.  Do you want to "
+"disconnect it from the X server?"
+
+#: openbox/client.c:3666
+msgid "Disconnect"
+msgstr "Disconnect"
+
+#: openbox/client_list_combined_menu.c:93 openbox/client_list_menu.c:90
+msgid "Go there..."
+msgstr "Go there..."
+
+#: openbox/client_list_combined_menu.c:100
+msgid "Manage desktops"
+msgstr "Manage desktops"
+
+#: openbox/client_list_combined_menu.c:101 openbox/client_list_menu.c:166
+msgid "_Add new desktop"
+msgstr "_Add new desktop"
+
+#: openbox/client_list_combined_menu.c:102 openbox/client_list_menu.c:167
+msgid "_Remove last desktop"
+msgstr "_Remove last desktop"
+
+#: openbox/client_list_combined_menu.c:157
+msgid "Windows"
+msgstr "Windows"
+
+#: openbox/client_list_menu.c:214
+msgid "Desktops"
+msgstr "Desktops"
+
+#: openbox/client_menu.c:259
+msgid "All desktops"
+msgstr "All desktops"
+
+#: openbox/client_menu.c:371
+msgid "_Layer"
+msgstr "_Layer"
+
+#: openbox/client_menu.c:376
+msgid "Always on _top"
+msgstr "Always on _top"
+
+#: openbox/client_menu.c:377
+msgid "_Normal"
+msgstr "_Normal"
+
+#: openbox/client_menu.c:378
+msgid "Always on _bottom"
+msgstr "Always on _bottom"
+
+#: openbox/client_menu.c:380
+msgid "_Send to desktop"
+msgstr "_Send to desktop"
+
+#: openbox/client_menu.c:384
+msgid "Client menu"
+msgstr "Client menu"
+
+#: openbox/client_menu.c:394
+msgid "R_estore"
+msgstr "R_estore"
+
+#: openbox/client_menu.c:398
+msgid "_Move"
+msgstr "_Move"
+
+#: openbox/client_menu.c:400
+msgid "Resi_ze"
+msgstr "Resi_ze"
+
+#: openbox/client_menu.c:402
+msgid "Ico_nify"
+msgstr "Ico_nify"
+
+#: openbox/client_menu.c:406
+msgid "Ma_ximize"
+msgstr "Ma_ximize"
+
+#: openbox/client_menu.c:410
+msgid "_Roll up/down"
+msgstr "_Roll up/down"
+
+#: openbox/client_menu.c:414
+msgid "Un/_Decorate"
+msgstr "Un/_Decorate"
+
+#: openbox/client_menu.c:418
+msgid "_Close"
+msgstr "_Close"
+
+#: openbox/config.c:563
+#, c-format
+msgid "Invalid context \"%s\" in mouse binding"
+msgstr "Invalid context “[1m%s[0m” in mouse binding"
+
+#: openbox/config.c:931
+#, c-format
+msgid "Invalid button \"%s\" specified in config file"
+msgstr "Invalid button “[1m%s[0m” specified in config file"
+
+#: openbox/config.c:956
+msgid ""
+"Openbox was compiled without image loading support. Icons in menus will not "
+"be loaded."
+msgstr ""
+"Openbox was compiled without image loading support. Icons in menus will not "
+"be loaded."
+
+#: openbox/debug.c:57
+#, c-format
+msgid "Unable to make directory '%s': %s"
+msgstr "Unable to make directory '%s': %s"
+
+#: openbox/debug.c:195 openbox/openbox.c:377
+msgid "Close"
+msgstr "Close"
+
+#: openbox/keyboard.c:161
+msgid "Conflict with key binding in config file"
+msgstr "Conflict with key binding in config file"
+
+#: openbox/menu.c:103 openbox/menu.c:115
+#, c-format
+msgid "Unable to find a valid menu file \"%s\""
+msgstr "Unable to find a valid menu file “[1m%s[0m”"
+
+#: openbox/menu.c:168
+#, c-format
+msgid "Failed to execute command for pipe-menu \"%s\": %s"
+msgstr "Failed to execute command for pipe-menu “[1m%s[0m”: %s"
+
+#: openbox/menu.c:182
+#, c-format
+msgid "Invalid output from pipe-menu \"%s\""
+msgstr "Invalid output from pipe-menu “[1m%s[0m”"
+
+#: openbox/menu.c:195
+#, c-format
+msgid "Attempted to access menu \"%s\" but it does not exist"
+msgstr "Attempted to access menu “[1m%s[0m” but it does not exist"
+
+#: openbox/menu.c:411 openbox/menu.c:412
+msgid "More..."
+msgstr "More..."
+
+#: openbox/mouse.c:382
+#, c-format
+msgid "Invalid button \"%s\" in mouse binding"
+msgstr "Invalid button “[1m%s[0m” in mouse binding"
+
+#: openbox/openbox.c:137
+#, c-format
+msgid "Unable to change to home directory \"%s\": %s"
+msgstr "Unable to change to home directory “[1m%s[0m”: %s"
+
+#: openbox/openbox.c:152
+msgid "Failed to open the display from the DISPLAY environment variable."
+msgstr "Failed to open the display from the DISPLAY environment variable."
+
+#: openbox/openbox.c:182
+msgid "Failed to initialize the obrender library."
+msgstr "Failed to initialize the obrender library."
+
+#: openbox/openbox.c:193
+msgid "X server does not support locale."
+msgstr "X server does not support locale."
+
+#: openbox/openbox.c:195
+msgid "Cannot set locale modifiers for the X server."
+msgstr "Cannot set locale modifiers for the X server."
+
+#: openbox/openbox.c:254
+msgid "Unable to find a valid config file, using some simple defaults"
+msgstr "Unable to find a valid config file, using some simple defaults"
+
+#: openbox/openbox.c:270
+#, c-format
+msgid ""
+"One or more XML syntax errors were found while parsing the Openbox "
+"configuration files.  See stdout for more information.  The last error seen "
+"was in file \"%s\" line %d, with message: %s"
+msgstr ""
+"One or more XML syntax errors were found while parsing the Openbox "
+"configuration files.  See stdout for more information.  The last error seen "
+"was in file “[1m%s[0m” line %d, with message: %s"
+
+#: openbox/openbox.c:295
+msgid "Unable to load a theme."
+msgstr "Unable to load a theme."
+
+#: openbox/openbox.c:376
+msgid "Openbox Syntax Error"
+msgstr "Openbox Syntax Error"
+
+#: openbox/openbox.c:442
+#, c-format
+msgid "Restart failed to execute new executable \"%s\": %s"
+msgstr "Restart failed to execute new executable “[1m%s[0m”: %s"
+
+#: openbox/openbox.c:521 openbox/openbox.c:523
+msgid "Copyright (c)"
+msgstr "Copyright (c)"
+
+#: openbox/openbox.c:532
+msgid "Syntax: openbox [options]\n"
+msgstr "Syntax: openbox [options]\n"
+
+#: openbox/openbox.c:533
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Options:\n"
+
+#: openbox/openbox.c:534
+msgid "  --help              Display this help and exit\n"
+msgstr "  --help              Display this help and exit\n"
+
+#: openbox/openbox.c:535
+msgid "  --version           Display the version and exit\n"
+msgstr "  --version           Display the version and exit\n"
+
+#: openbox/openbox.c:536
+msgid "  --replace           Replace the currently running window manager\n"
+msgstr "  --replace           Replace the currently running window manager\n"
+
+#. TRANSLATORS: if you translate "FILE" here, make sure to keep the "Specify..."
+#. aligned still, if you have to, make a new line with \n and 22 spaces. It's
+#. fine to leave it as FILE though.
+#: openbox/openbox.c:540
+msgid "  --config-file FILE  Specify the path to the config file to use\n"
+msgstr "  --config-file FILE  Specify the path to the config file to use\n"
+
+#: openbox/openbox.c:541
+msgid "  --sm-disable        Disable connection to the session manager\n"
+msgstr "  --sm-disable        Disable connection to the session manager\n"
+
+#: openbox/openbox.c:542
+msgid ""
+"\n"
+"Passing messages to a running Openbox instance:\n"
+msgstr ""
+"\n"
+"Passing messages to a running Openbox instance:\n"
+
+#: openbox/openbox.c:543
+msgid "  --reconfigure       Reload Openbox's configuration\n"
+msgstr "  --reconfigure       Reload Openbox's configuration\n"
+
+#: openbox/openbox.c:544
+msgid "  --restart           Restart Openbox\n"
+msgstr "  --restart           Restart Openbox\n"
+
+#: openbox/openbox.c:545
+msgid "  --exit              Exit Openbox\n"
+msgstr "  --exit              Exit Openbox\n"
+
+#: openbox/openbox.c:546
+msgid ""
+"\n"
+"Debugging options:\n"
+msgstr ""
+"\n"
+"Debugging options:\n"
+
+#: openbox/openbox.c:547
+msgid "  --sync              Run in synchronous mode\n"
+msgstr "  --sync              Run in synchronous mode\n"
+
+#: openbox/openbox.c:548
+msgid "  --startup CMD       Run CMD after starting\n"
+msgstr "  --startup CMD       Run CMD after starting\n"
+
+#: openbox/openbox.c:549
+msgid "  --debug             Display debugging output\n"
+msgstr "  --debug             Display debugging output\n"
+
+#: openbox/openbox.c:550
+msgid "  --debug-focus       Display debugging output for focus handling\n"
+msgstr "  --debug-focus       Display debugging output for focus handling\n"
+
+#: openbox/openbox.c:551
+msgid "  --debug-session     Display debugging output for session management\n"
+msgstr ""
+"  --debug-session     Display debugging output for session management\n"
+
+#: openbox/openbox.c:552
+msgid "  --debug-xinerama    Split the display into fake xinerama screens\n"
+msgstr "  --debug-xinerama    Split the display into fake xinerama screens\n"
+
+#: openbox/openbox.c:553
+#, c-format
+msgid ""
+"\n"
+"Please report bugs at %s\n"
+msgstr ""
+"\n"
+"Please report bugs at %s\n"
+
+#: openbox/openbox.c:636 openbox/openbox.c:670
+#, c-format
+msgid "%s requires an argument\n"
+msgstr "%s requires an argument\n"
+
+#: openbox/openbox.c:713
+#, c-format
+msgid "Invalid command line argument \"%s\"\n"
+msgstr "Invalid command line argument “[1m%s[0m”\n"
+
+#: openbox/screen.c:106 openbox/screen.c:191
+#, c-format
+msgid "A window manager is already running on screen %d"
+msgstr "A window manager is already running on screen %d"
+
+#: openbox/screen.c:127
+#, c-format
+msgid "Could not acquire window manager selection on screen %d"
+msgstr "Could not acquire window manager selection on screen %d"
+
+#: openbox/screen.c:150
+#, c-format
+msgid "The WM on screen %d is not exiting"
+msgstr "The WM on screen %d is not exiting"
+
+#. TRANSLATORS: If you need to specify a different order of the
+#. arguments, you can use %1$d for the first one and %2$d for the
+#. second one. For example,
+#. "The current session has %2$d desktops, but Openbox is configured for %1$d ..."
+#: openbox/screen.c:421
+#, c-format
+msgid ""
+"Openbox is configured for %d desktop, but the current session has %d.  "
+"Overriding the Openbox configuration."
+msgid_plural ""
+"Openbox is configured for %d desktops, but the current session has %d.  "
+"Overriding the Openbox configuration."
+msgstr[0] ""
+"Openbox is configured for %d desktop, but the current session has %d.  "
+"Overriding the Openbox configuration."
+msgstr[1] ""
+"Openbox is configured for %d desktops, but the current session has %d.  "
+"Overriding the Openbox configuration."
+
+#: openbox/screen.c:1204
+#, c-format
+msgid "desktop %i"
+msgstr "desktop %i"
+
+#: openbox/startupnotify.c:241
+#, c-format
+msgid "Running %s"
+msgstr "Running %s"
+
+#: openbox/translate.c:59
+#, c-format
+msgid "Invalid modifier key \"%s\" in key/mouse binding"
+msgstr "Invalid modifier key “[1m%s[0m” in key/mouse binding"
+
+#: openbox/translate.c:138
+#, c-format
+msgid "Invalid key code \"%s\" in key binding"
+msgstr "Invalid key code “[1m%s[0m” in key binding"
+
+#: openbox/translate.c:145
+#, c-format
+msgid "Invalid key name \"%s\" in key binding"
+msgstr "Invalid key name “[1m%s[0m” in key binding"
+
+#: openbox/translate.c:151
+#, c-format
+msgid "Requested key \"%s\" does not exist on the display"
+msgstr "Requested key “[1m%s[0m” does not exist on the display"
+
+#: openbox/prompt.c:154
+msgid "OK"
+msgstr "OK"

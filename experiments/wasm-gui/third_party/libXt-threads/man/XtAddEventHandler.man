@@ -1,0 +1,151 @@
+.\" Copyright (c) 1993, 1994  X Consortium
+.\"
+.\" Permission is hereby granted, free of charge, to any person obtaining a
+.\" copy of this software and associated documentation files (the "Software"),
+.\" to deal in the Software without restriction, including without limitation
+.\" the rights to use, copy, modify, merge, publish, distribute, sublicense,
+.\" and/or sell copies of the Software, and to permit persons to whom the
+.\" Software furnished to do so, subject to the following conditions:
+.\"
+.\" The above copyright notice and this permission notice shall be included in
+.\" all copies or substantial portions of the Software.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.\" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.\" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+.\" THE X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+.\" WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
+.\" OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.\" SOFTWARE.
+.\"
+.\" Except as contained in this notice, the name of the X Consortium shall not
+.\" be used in advertising or otherwise to promote the sale, use or other
+.\" dealing in this Software without prior written authorization from the
+.\" X Consortium.
+.\"
+.ds tk X Toolkit
+.ds xT X Toolkit Intrinsics \- C Language Interface
+.ds xI Intrinsics
+.ds xW X Toolkit Athena Widgets \- C Language Interface
+.ds xL Xlib \- C Language X Interface
+.ds xC Inter-Client Communication Conventions Manual
+.ds Rn 3
+.ds Vn 2.2
+.hw XtAdd-Event-Handler XtAdd-Raw-Event-Handler
+.hw XtRemove-Event-Handler XtRemove-Raw-Event-Handler
+.hw XtInsert-Event-Handler XtInsert-Raw-Event-Handler wid-get
+.na
+.TH XtAddEventHandler __libmansuffix__ __xorgversion__ "XT FUNCTIONS"
+.SH NAME
+XtAddEventHandler, XtAddRawEventHandler, XtRemoveEventHandler, XtRemoveRawEventHandler, XtInsertEventHandler, XtInsertRawEventHandler \- add and remove event handlers
+.SH SYNTAX
+#include <X11/Intrinsic.h>
+.HP
+void XtAddEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP, Boolean
+\fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer \fIclient_data\fP);
+.HP
+void XtAddRawEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP, Boolean
+\fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer \fIclient_data\fP);
+.HP
+void XtRemoveEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP, Boolean
+\fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer \fIclient_data\fP);
+.HP
+void XtRemoveRawEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP,
+Boolean \fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer
+\fIclient_data\fP);
+.HP
+void XtInsertEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP, Boolean
+\fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer \fIclient_data\fP,
+XtListPosition \fIposition\fP);
+.HP
+void XtInsertRawEventHandler(Widget \fIw\fP, EventMask \fIevent_mask\fP,
+Boolean \fInonmaskable\fP, XtEventHandler \fIproc\fP, XtPointer
+\fIclient_data\fP, XtListPosition \fIposition\fP);
+.HP
+typedef enum { XtListHead, XtListTail } XtListPosition;
+.SH ARGUMENTS
+.IP \fIclient_data\fP 1i
+Specifies additional data to be passed to the client's event handler.
+.IP \fIevent_mask\fP 1i
+Specifies the event mask for which to call or unregister this procedure.
+.IP \fInonmaskable\fP 1i
+Specifies a Boolean value that indicates whether this procedure should be
+called or removed on the nonmaskable events (
+.BR GraphicsExpose ,
+.BR NoExpose ,
+.BR SelectionClear ,
+.BR SelectionRequest ,
+.BR SelectionNotify ,
+.BR ClientMessage ,
+and
+.BR MappingNotify ).
+.IP \fIproc\fP 1i
+Specifies the procedure that is to be added or removed.
+.IP \fIw\fP 1i
+Specifies the widget for which this event handler is being registered.
+.IP \fIposition\fP 1i
+Specifies when the event handler is to be called relative to other
+previously registered handlers.
+.SH DESCRIPTION
+The
+.B XtAddEventHandler
+function registers a procedure with the dispatch mechanism that is
+to be called when an event that matches the mask occurs on the specified
+widget.
+If the procedure is already registered with the same client_data,
+the specified mask is ORed into the existing mask.
+If the widget is realized,
+.B XtAddEventHandler
+calls
+.BR XSelectInput ,
+if necessary.
+.LP
+The
+.B XtAddRawEventHandler
+function is similar to
+.B XtAddEventHandler
+except that it does not affect the widget's mask and never causes an
+.B XSelectInput
+for its events.
+Note that the widget might already have those mask bits set
+because of other nonraw event handlers registered on it.
+.LP
+The
+.B XtRemoveRawEventHandler
+function stops the specified procedure from receiving the specified events.
+Because the procedure is a raw event handler,
+this does not affect the widget's mask and never causes a call on
+.BR XSelectInput .
+.LP
+.B XtInsertEventHandler
+is identical to
+.B XtAddEventHandler
+with the additional \fIposition\fP argument.
+If \fIposition\fP is
+.BR XtListHead ,
+the event handler is registered to that it will be called before
+any event handlers that were previously registered for the same widget.
+If \fIposition\fP is
+.BR XtListTail ,
+the event handler is registered to be called after any previously
+registered event handlers.
+If the procedure is already registered with
+the same \fIclient_data\fP value, the specified mask augments the
+existing mask and the procedure is repositioned in the list.
+.LP
+.B XtInsertRawEventHandler
+is similar to
+.B XtInsertEventHandler
+except that it does not modify the widget's event mask and never causes an
+.B XSelectInput
+for the specified events.
+If the procedure is already registered with the
+same \fIclient_data\fP value, the specified mask augments the existing
+mask and the procedure is repositioned in the list.
+.SH "SEE ALSO"
+XtAppNextEvent(__libmansuffix__),
+XtBuildEventMask(__libmansuffix__)
+.br
+\fI\*(xT\fP
+.br
+\fI\*(xL\fP

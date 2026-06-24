@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Xmu
+Description: Xmu Library
+Version: 1.2.1
+Requires: xproto x11 xt
+Requires.private: x11 xt xext
+Cflags: -I${includedir}
+Libs: -L${libdir} -lXmu

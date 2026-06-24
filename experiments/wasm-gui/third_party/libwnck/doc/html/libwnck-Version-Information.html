@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: Version Information</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="utils.html" title="Part V. Libwnck Utilities">
+<link rel="prev" href="libwnck-Miscellaneous-Functions.html" title="Miscellaneous Functions">
+<link rel="next" href="indexes.html" title="Part VI. Index of symbols">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#libwnck-Version-Information.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#libwnck-Version-Information.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="utils.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libwnck-Miscellaneous-Functions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="indexes.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libwnck-Version-Information"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libwnck-Version-Information.top_of_page"></a>Version Information</span></h2>
+<p>Version Information — variables and functions to check the libwnck version</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libwnck-Version-Information.html#WNCK-MAJOR-VERSION:CAPS" title="WNCK_MAJOR_VERSION">WNCK_MAJOR_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libwnck-Version-Information.html#WNCK-MINOR-VERSION:CAPS" title="WNCK_MINOR_VERSION">WNCK_MINOR_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libwnck-Version-Information.html#WNCK-MICRO-VERSION:CAPS" title="WNCK_MICRO_VERSION">WNCK_MICRO_VERSION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libwnck-Version-Information.html#WNCK-CHECK-VERSION:CAPS" title="WNCK_CHECK_VERSION()">WNCK_CHECK_VERSION</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">
+</pre>
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.description"></a><h2>Description</h2>
+<p>libwnck provides version information, primarily useful in configure checks
+for builds that have a configure script, and to write code against different
+versions of libwnck that do not provide the same API.</p>
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="WNCK-MAJOR-VERSION:CAPS"></a><h3>WNCK_MAJOR_VERSION</h3>
+<pre class="programlisting">#define WNCK_MAJOR_VERSION (3)
+</pre>
+<div class="refsect3">
+<a name="id-1.6.5.8.2.4"></a><h4>Returns</h4>
+<p> the major version number of the libwnck library, from the
+headers used at application compile time, rather than from the library
+linked against at application run time.
+(e.g. in libwnck version 1.2.5 this is 1.)</p>
+<p></p>
+</div>
+<p class="since">Since 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WNCK-MINOR-VERSION:CAPS"></a><h3>WNCK_MINOR_VERSION</h3>
+<pre class="programlisting">#define WNCK_MINOR_VERSION (4)
+</pre>
+<div class="refsect3">
+<a name="id-1.6.5.8.3.4"></a><h4>Returns</h4>
+<p> the minor version number of the libwnck library, from the
+headers used at application compile time, rather than from the library
+linked against at application run time.
+(e.g. in libwnck version 1.2.5 this is 2.)</p>
+<p></p>
+</div>
+<p class="since">Since 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WNCK-MICRO-VERSION:CAPS"></a><h3>WNCK_MICRO_VERSION</h3>
+<pre class="programlisting">#define WNCK_MICRO_VERSION (8)
+</pre>
+<div class="refsect3">
+<a name="id-1.6.5.8.4.4"></a><h4>Returns</h4>
+<p> the micro version number of the libwnck library, from the
+headers used at application compile time, rather than from the library
+linked against at application run time.
+(e.g. in libwnck version 1.2.5 this is 5.)</p>
+<p></p>
+</div>
+<p class="since">Since 3.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WNCK-CHECK-VERSION:CAPS"></a><h3>WNCK_CHECK_VERSION()</h3>
+<pre class="programlisting">#define             WNCK_CHECK_VERSION(major,minor,micro)</pre>
+<div class="refsect3">
+<a name="id-1.6.5.8.5.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>major</p></td>
+<td class="parameter_description"><p>major version (e.g. 1 for version 1.2.5)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>minor</p></td>
+<td class="parameter_description"><p>minor version (e.g. 2 for version 1.2.5)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>micro</p></td>
+<td class="parameter_description"><p>micro version (e.g. 5 for version 1.2.5)</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.6.5.8.5.5"></a><h4>Returns</h4>
+<p> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the version of the libwnck header files
+is the same as or newer than the passed-in version, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+otherwise.</p>
+<p></p>
+</div>
+<p class="since">Since 3.0</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libwnck-Version-Information.other_details"></a><h2>Types and Values</h2>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

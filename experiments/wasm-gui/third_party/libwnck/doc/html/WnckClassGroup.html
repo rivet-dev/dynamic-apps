@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Libwnck Reference Manual: WnckClassGroup</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Libwnck Reference Manual">
+<link rel="up" href="core.html" title="Part III. Libwnck Core Window Management Support">
+<link rel="prev" href="WnckWindow.html" title="WnckWindow">
+<link rel="next" href="WnckApplication.html" title="WnckApplication">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#WnckClassGroup.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#WnckClassGroup.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals"> <span class="dim">|</span> 
+                  <a href="#WnckClassGroup.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="core.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="WnckWindow.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="WnckApplication.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="WnckClassGroup"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="WnckClassGroup.top_of_page"></a>WnckClassGroup</span></h2>
+<p>WnckClassGroup — an object representing a group of windows of the same
+class.</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="WnckClassGroup.stability-level"></a><h2>Stability Level</h2>
+Unstable, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="returnvalue">WnckClassGroup</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get" title="wnck_class_group_get ()">wnck_class_group_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-id" title="wnck_class_group_get_id ()">wnck_class_group_get_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-res-class" title="wnck_class_group_get_res_class ()">wnck_class_group_get_res_class</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-name" title="wnck_class_group_get_name ()">wnck_class_group_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkPixbuf</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-icon" title="wnck_class_group_get_icon ()">wnck_class_group_get_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkPixbuf</span> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-mini-icon" title="wnck_class_group_get_mini_icon ()">wnck_class_group_get_mini_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-windows" title="wnck_class_group_get_windows ()">wnck_class_group_get_windows</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table border="0">
+<colgroup>
+<col width="150px" class="signals_return">
+<col width="300px" class="signals_name">
+<col width="200px" class="signals_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckClassGroup.html#WnckClassGroup-icon-changed" title="The “icon-changed” signal">icon-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="WnckClassGroup.html#WnckClassGroup-name-changed" title="The “name-changed” signal">name-changed</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="WnckClassGroup.html#WnckClassGroup-struct" title="WnckClassGroup">WnckClassGroup</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+    <span class="lineart">╰──</span> WnckClassGroup
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;libwnck/libwnck.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.description"></a><h2>Description</h2>
+<p>The <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> is a group of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> that are all in the same
+class. It can be used to represent windows by classes, group windows by
+classes or to manipulate all windows of a particular class.</p>
+<p>The class of a window is defined by the WM_CLASS property of this window.
+More information about the WM_CLASS property is available in the <a class="ulink" href="http://tronche.com/gui/x/icccm/sec-4.html#s-4.1.2.5" target="_top">WM_CLASS Property</a>
+section (section 4.1.2.5) of the <a class="ulink" href="http://tronche.com/gui/x/icccm/" target="_top">ICCCM</a>.</p>
+<p>The <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> objects are always owned by libwnck and must not be
+referenced or unreferenced.</p>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="wnck-class-group-get"></a><h3>wnck_class_group_get ()</h3>
+<pre class="programlisting"><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="returnvalue">WnckClassGroup</span></a> *
+wnck_class_group_get (<em class="parameter"><code>const <span class="type">char</span> *id</code></em>);</pre>
+<p>Gets the <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> corresponding to <em class="parameter"><code>id</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.2.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>id</p></td>
+<td class="parameter_description"><p>identifier name of the sought resource class.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.2.6"></a><h4>Returns</h4>
+<p> the <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> corresponding to
+<em class="parameter"><code>id</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> with the specified
+<em class="parameter"><code>id</code></em>
+. The returned <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> is owned by libwnck and must not be
+referenced or unreferenced. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-id"></a><h3>wnck_class_group_get_id ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+wnck_class_group_get_id (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<p>Gets the identifier name for <em class="parameter"><code>class_group</code></em>
+. This is the resource class for
+<em class="parameter"><code>class_group</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.3.6"></a><h4>Returns</h4>
+<p> the identifier name of <em class="parameter"><code>class_group</code></em>
+, or an
+empty string if the group has no identifier name.</p>
+<p></p>
+</div>
+<p class="since">Since 3.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-res-class"></a><h3>wnck_class_group_get_res_class ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+wnck_class_group_get_res_class (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">wnck_class_group_get_res_class</code> has been deprecated since version 3.2 and should not be used in newly-written code.</p>
+<p>Use <a class="link" href="WnckClassGroup.html#wnck-class-group-get-id" title="wnck_class_group_get_id ()"><code class="function">wnck_class_group_get_id()</code></a> instead.</p>
+</div>
+<p>Gets the resource class name for <em class="parameter"><code>class_group</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.4.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.4.8"></a><h4>Returns</h4>
+<p> the resource class name of <em class="parameter"><code>class_group</code></em>
+, or an
+empty string if the group has no resource class name.</p>
+<p></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-name"></a><h3>wnck_class_group_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+wnck_class_group_get_name (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<p>Gets an human-readable name for <em class="parameter"><code>class_group</code></em>
+. Since there is no way to
+properly find this name, a suboptimal heuristic is used to find it. The name
+is the name of all <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> for each <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in <em class="parameter"><code>class_group</code></em>
+ if
+they all have the same name. If all <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> don't have the same
+name, the name is the name of all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in <em class="parameter"><code>class_group</code></em>
+ if they all
+have the same name. If all <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> don't have the same name, the
+resource class name is used.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.5.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.5.6"></a><h4>Returns</h4>
+<p> an human-readable name for <em class="parameter"><code>class_group</code></em>
+.</p>
+<p></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-icon"></a><h3>wnck_class_group_get_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkPixbuf</span> *
+wnck_class_group_get_icon (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<p>Gets the icon to be used for <em class="parameter"><code>class_group</code></em>
+. Since there is no way to
+properly find the icon, a suboptimal heuristic is used to find it. The icon
+is the first icon found by looking at all the <a class="link" href="WnckApplication.html" title="WnckApplication"><span class="type">WnckApplication</span></a> for each
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in <em class="parameter"><code>class_group</code></em>
+, then at all the <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> in <em class="parameter"><code>class_group</code></em>
+. If
+no icon was found, a fallback icon is used.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.6.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.6.6"></a><h4>Returns</h4>
+<p> the icon for <em class="parameter"><code>class_group</code></em>
+. The caller should
+reference the returned <code class="classname">GdkPixbuf</code> if it needs to keep
+the icon around. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-mini-icon"></a><h3>wnck_class_group_get_mini_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkPixbuf</span> *
+wnck_class_group_get_mini_icon (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<p>Gets the mini-icon to be used for <em class="parameter"><code>class_group</code></em>
+. Since there is no way to
+properly find the mini-icon, the same suboptimal heuristic as the one for
+<a class="link" href="WnckClassGroup.html#wnck-class-group-get-icon" title="wnck_class_group_get_icon ()"><code class="function">wnck_class_group_get_icon()</code></a> is used to find it.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.7.6"></a><h4>Returns</h4>
+<p> the mini-icon for <em class="parameter"><code>class_group</code></em>
+. The caller
+should reference the returned <code class="classname">GdkPixbuf</code> if it needs
+to keep the mini-icon around. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="wnck-class-group-get-windows"></a><h3>wnck_class_group_get_windows ()</h3>
+<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+wnck_class_group_get_windows (<em class="parameter"><code><a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group</code></em>);</pre>
+<p>Gets the list of <a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> that are grouped in <em class="parameter"><code>class_group</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.4.3.10.8.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.3.10.8.6"></a><h4>Returns</h4>
+<p> the list of
+<a class="link" href="WnckWindow.html" title="WnckWindow"><span class="type">WnckWindow</span></a> grouped in <em class="parameter"><code>class_group</code></em>
+, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the group contains no
+window. The list should not be modified nor freed, as it is owned by
+<em class="parameter"><code>class_group</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> WnckWindow][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since 2.2</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="WnckClassGroup-struct"></a><h3>WnckClassGroup</h3>
+<pre class="programlisting">typedef struct _WnckClassGroup WnckClassGroup;</pre>
+<p>The <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> struct contains only private fields and should not be
+directly accessed.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="WnckClassGroup-icon-changed"></a><h3>The <code class="literal">“icon-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)</pre>
+<p>Emitted when the icon of <em class="parameter"><code>class_group</code></em>
+ changes.</p>
+<div class="refsect3">
+<a name="id-1.4.3.12.2.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="WnckClassGroup-name-changed"></a><h3>The <code class="literal">“name-changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> *class_group,
+               <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>        user_data)</pre>
+<p>Emitted when the name of <em class="parameter"><code>class_group</code></em>
+ changes.</p>
+<div class="refsect3">
+<a name="id-1.4.3.12.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>class_group</p></td>
+<td class="parameter_description"><p>the <a class="link" href="WnckClassGroup.html" title="WnckClassGroup"><span class="type">WnckClassGroup</span></a> which emitted the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="WnckClassGroup.see-also"></a><h2>See Also</h2>
+<p>wnck_window_get_class_group()</p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

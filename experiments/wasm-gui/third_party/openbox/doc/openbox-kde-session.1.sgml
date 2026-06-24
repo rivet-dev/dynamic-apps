@@ -1,0 +1,76 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+	docbook-to-man $< > $@
+
+    
+	The docbook-to-man binary is found in the docbook-to-man package.
+	Please remember that if you create the nroff version in one of the
+	debian/rules file targets (such as build), you will need to include
+	docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhucpackage "<refentrytitle>OPENBOX</refentrytitle>">
+  <!ENTITY dhpackage   "openbox-kde-session">
+]>
+
+<refentry>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>Run a KDE session with Openbox as the window manager
+      </refpurpose>
+  </refnamediv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> runs a KDE session with
+      Openbox as the window manager.</para>
+
+    <para><command>&dhpackage;</command> does not take any command line
+      arguments.</para>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>openbox(1), openbox-gnome-session(1), openbox-session(1).
+      </para>
+
+    <para>The program's full documentation is available on the website:
+      <literal>http://openbox.org/</literal></para>
+
+    <para>Please report bugs to: <literal>http://bugzilla.icculus.org/
+      </literal></para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
+
+

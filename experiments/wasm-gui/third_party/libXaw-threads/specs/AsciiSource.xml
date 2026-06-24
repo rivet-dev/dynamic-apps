@@ -1,0 +1,368 @@
+<sect1 id="Ascii_Source_Object_and_Multi_Source_Object">
+<title>Ascii Source Object and Multi Source Object</title>
+<para>
+<!-- .LP -->
+<!-- .XS -->
+<!-- 	AsciiSrc Object -->
+<!-- .XE -->
+<indexterm significance="preferred"><primary>AsciiSrc object</primary></indexterm>
+</para>
+<para>
+<!-- .LP -->
+<literallayout class="monospaced">
+<!-- .TA 2.0i -->
+<!-- .ta 2.0i -->
+Application Header file	&lt;X11/Xaw/AsciiSrc.h&gt; or &lt;X11/Xaw/MultiSrc.h&gt;
+<indexterm><primary>AsciiSrc.h</primary></indexterm>
+Class Header file	&lt;X11/Xaw/AsciiSrcP.h&gt; or  &lt;X11/Xaw/MultiSrcP.h&gt;
+<indexterm><primary>AsciiSrcP.h</primary></indexterm>
+Class		asciiSrcObjectClass or multiSrcObjectClass
+<indexterm><primary>asciiSrcObjectClass</primary></indexterm>
+Class Name	AsciiSrc or MultiSrc
+<indexterm><primary>AsciiSrc object</primary><secondary>class name</secondary></indexterm>
+Superclass	TextSource
+</literallayout>
+</para>
+<para>
+<!-- .LP -->
+The AsciiSrc or MultiSrc object is used by a text widget to read the text from a
+file or string in memory.  Depending on its <function>international</function> resource, an
+AsciiText widget will create one or the other of these when the AsciiText
+itself is created.  Both types are nearly identical; the following discussion
+applies to both, with MultiSrc differences noted only as they occur.
+</para>
+<para>
+<!-- .LP -->
+The AsciiSrc understands all Latin1 characters plus Tab and Carriage Return.
+<emphasis remap='I'>The MultiSrc understands any set of character sets that
+the underlying X implementation's internationalization handles.</emphasis>
+</para>
+<para>
+<!-- .LP -->
+The AsciiSrc can be either of two types: <function>XawAsciiFile</function>
+or <function>XawAsciiString</function>.
+</para>
+<para>
+<!-- .LP -->
+AsciiSrc objects of type <function>XawAsciiFile</function> read the text from a file and
+store it
+into an internal buffer.  This buffer may then be modified, provided the
+text widget is in the correct edit mode, just as if it were a source of
+type <function>XawAsciiString</function>.  Unlike R3 and earlier versions of the AsciiSrc,
+it is now possible to specify an editable disk source.  The file is not
+updated, however, until a call to <xref linkend='XawAsciiSave' xrefstyle='select: title'/> is made.  When the
+source is in this mode the <function>useStringInPlace</function> resource is ignored.
+</para>
+<para>
+<!-- .LP -->
+AsciiSrc objects of type <function>XawAsciiString</function> have the text buffer
+implemented as a string.
+<emphasis remap='I'>MultiSrc objects of type <function>XawAsciiString</function>
+have the text buffer implemented as a wide character string.</emphasis>
+The string owner is responsible for allocating and managing storage for the
+string.
+</para>
+<para>
+<!-- .LP -->
+In the default case for AsciiSrc objects of type <function>XawAsciiString</function>,
+the resource <function>useStringInPlace</function> is false,
+and the widget owns the string.  The initial value of the
+string resource, and any update made by the application
+programmer to the string resource with <xref linkend='XtSetValues' xrefstyle='select: title'/>, is copied
+into memory private to the widget, and managed internally by the widget.
+The application writer
+does not need to worry about running out of buffer space
+(subject to the total memory available to the application).
+The performance does not decay linearly as the buffer grows
+large, as is necessarily the case when the text buffer is used
+in place.   The application writer must use <xref linkend='XtGetValues' xrefstyle='select: title'/> to
+determine the contents of the text buffer, which will return
+a copy of the widget's text buffer as
+it existed at the time of the <xref linkend='XtGetValues' xrefstyle='select: title'/> call.   This copy
+is not affected by subsequent updates to the text buffer, i.e.,
+it is not updated as the user types input into the text buffer.
+This copy is freed upon the next call to XtGetValues to
+retrieve the string resource; however, to conserve memory,
+there is a convenience routine, <xref linkend='XawAsciiSourceFreeString' xrefstyle='select: title'/>, allowing the
+application programmer to direct the widget to free the copy.
+</para>
+<para>
+<!-- .LP -->
+When the resource <function>useStringInPlace</function> is true and the AsciiSrc object
+is of type <function>XawAsciiString</function>, the application
+is the string owner.  The widget will take the value
+of the string resource as its own text buffer, and the <function>length</function>
+resource indicates the buffer size.   In this case
+the buffer contents change as the user types at the widget;
+it is not necessary to call <xref linkend='XtGetValues' xrefstyle='select: title'/> on the string
+resource to determine the contents of the buffer-it will
+simply return the address of the application's implementation
+of the text buffer.
+</para>
+<sect2 id='AsciiSource::Resources'>
+<title>Resources</title>
+<para>
+<!-- .LP -->
+When creating an AsciiSrc object instance, the following resources are
+retrieved from the argument list or from the resource database:
+</para>
+<para>
+<!-- .LP -->
+<indexterm><primary>AsciiSrc object</primary><secondary>resources</secondary></indexterm>
+<informaltable>
+  <tgroup cols='5' align='center'>
+  <colspec colname='c1'/>
+  <colspec colname='c2'/>
+  <colspec colname='c3'/>
+  <colspec colname='c4'/>
+  <colspec colname='c5'/>
+  <thead>
+    <row>
+      <entry>Name</entry>
+      <entry>Class</entry>
+      <entry>Type</entry>
+      <entry>Notes</entry>
+      <entry>Default Value</entry>
+    </row>
+  </thead>
+  <tbody>
+    <row>
+      <entry>callback</entry>
+      <entry>Callback</entry>
+      <entry>XtCallbackList</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>dataCompression</entry>
+      <entry>DataCompression</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>True</entry>
+    </row>
+    <row>
+      <entry>destroyCallback</entry>
+      <entry>Callback</entry>
+      <entry>Callback</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>editType</entry>
+      <entry>EditType</entry>
+      <entry>EditMode</entry>
+      <entry></entry>
+      <entry>XawtextRead</entry>
+    </row>
+    <row>
+      <entry>length</entry>
+      <entry>Length</entry>
+      <entry>Int</entry>
+      <entry>A</entry>
+      <entry>length of <function>string</function></entry>
+    </row>
+    <row>
+      <entry>pieceSize</entry>
+      <entry>PieceSize</entry>
+      <entry>Int</entry>
+      <entry></entry>
+      <entry>BUFSIZ</entry>
+    </row>
+    <row>
+      <entry>string</entry>
+      <entry>String</entry>
+      <entry>String</entry>
+      <entry></entry>
+      <entry>NULL</entry>
+    </row>
+    <row>
+      <entry>type</entry>
+      <entry>Type</entry>
+      <entry>AsciiType</entry>
+      <entry></entry>
+      <entry>XawAsciiString</entry>
+    </row>
+    <row>
+      <entry>useStringInPlace</entry>
+      <entry>UseStringInPlace</entry>
+      <entry>Boolean</entry>
+      <entry></entry>
+      <entry>False</entry>
+    </row>
+    <row>
+      <entry>_</entry>
+    </row>
+  </tbody>
+  </tgroup>
+</informaltable>
+<!-- .Oc Bold -->
+<!-- .Dc -->
+<!-- .Od Bold -->
+<!-- .Oe -->
+<!-- .Ol Bold -->
+<!-- .Op Bold -->
+<!-- .Os Bold -->
+<!-- .Ot Bold -->
+<!-- .Ou Bold -->
+</para>
+</sect2>
+<sect2 id='AsciiSource::Convenience_Routines'>
+<title>Convenience Routines</title>
+<para>
+<!-- .LP -->
+The AsciiSrc has a few convenience routines that allow the
+application programmer quicker or easier access to some of the
+commonly used functionality of the AsciiSrc.
+</para>
+<sect3 id="Conserving_Memory">
+<title>Conserving Memory</title>
+<para>
+<!-- .LP -->
+When the AsciiSrc widget is not in <function>useStringInPlace</function> mode
+space must be allocated whenever the file is saved, or the string is
+requested with a call to <xref linkend='XtGetValues' xrefstyle='select: title'/>.  This memory is allocated on the
+fly, and remains valid until the next time a string needs to be allocated.
+You may save memory by freeing this string as soon as you are done
+with it by calling <xref linkend='XawAsciiSourceFreeString' xrefstyle='select: title'/>.
+<funcsynopsis id='XawAsciiSourceFreeString'>
+<funcprototype>
+  <funcdef>void<function> XawAsciiSourceFreeString</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the AsciiSrc object.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function will free the memory that contains the string pointer returned
+by <xref linkend='XtGetValues' xrefstyle='select: title'/>.  This will normally happen automatically when
+the next call to <xref linkend='XtGetValues' xrefstyle='select: title'/> occurs, or when the widget is destroyed.
+</para>
+</sect3>
+<sect3 id="Saving_Files">
+<title>Saving Files</title>
+<para>
+<!-- .LP -->
+To save the changes made in the current text source into a file use
+<xref linkend='XawAsciiSave' xrefstyle='select: title'/>.
+<funcsynopsis id='XawAsciiSave'>
+<funcprototype>
+  <funcdef>Boolean<function> XawAsciiSave</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the AsciiSrc object.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+<xref linkend='XawAsciiSave' xrefstyle='select: title'/> returns <function>True</function> if the save was successful.
+It will update the file named in the <function>string</function> resource.
+If the buffer has not been changed, no action will be taken.  This function
+only works on an AsciiSrc of type <function>XawAsciiFile</function>.
+</para>
+<para>
+<!-- .LP -->
+<!-- .sp 1 -->
+To save the contents of the current text buffer into a named file use
+<xref linkend='XawAsciiSaveAsFile' xrefstyle='select: title'/>.
+<funcsynopsis id='XawAsciiSaveAsFile'>
+<funcprototype>
+  <funcdef>Boolean<function> XawAsciiSaveAsFile</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+  <paramdef>String<parameter> name</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the AsciiSrc object.
+      </para>
+    </listitem>
+  </varlistentry>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>name</emphasis>
+    </term>
+    <listitem>
+      <para>
+The name of the file to save the current buffer into.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function returns <function>True</function> if the save was successful.
+<xref linkend='XawAsciiSaveAsFile' xrefstyle='select: title'/> will work with a buffer of either type
+<function>XawAsciiString</function> or type <function>XawAsciiFile</function>.
+</para>
+</sect3>
+<sect3 id="Seeing_if_the_Source_has_Changed">
+<title>Seeing if the Source has Changed</title>
+<para>
+<!-- .LP -->
+To find out if the text buffer in an AsciiSrc object has changed
+since the last time it was saved with <xref linkend='XawAsciiSave' xrefstyle='select: title'/> or queried
+<indexterm><primary>XawAsciiSave</primary></indexterm>
+use <xref linkend='XawAsciiSourceChanged' xrefstyle='select: title'/>.
+<funcsynopsis id='XawAsciiSourceChanged'>
+<funcprototype>
+  <funcdef>Boolean<function> XawAsciiSourceChanged</function></funcdef>
+  <paramdef>Widget<parameter> w</parameter></paramdef>
+</funcprototype>
+</funcsynopsis>
+<!-- .FN -->
+<variablelist>
+  <varlistentry>
+    <term>
+      <emphasis remap='I'>w</emphasis>
+    </term>
+    <listitem>
+      <para>
+Specifies the AsciiSrc object.
+    </para>
+  </listitem>
+  </varlistentry>
+</variablelist>
+</para>
+<para>
+<!-- .LP -->
+This function will return <function>True</function> if the source has changed since
+the last time it was saved or queried.  The internal change flag is
+reset whenever the string is queried via <xref linkend='XtGetValues' xrefstyle='select: title'/> or the
+buffer is saved via <xref linkend='XawAsciiSave' xrefstyle='select: title'/>.
+
+</para>
+</sect3>
+</sect2>
+</sect1>

@@ -1,0 +1,66 @@
+#!/bin/sh
+
+if test -n "$1"; then
+    echo "Syntax: openbox-gnome-session"
+    echo
+    echo "See the openbox-gnome-session(1) manpage for help."
+  exit
+fi
+
+# Clean up after GDM
+xprop -root -remove _NET_NUMBER_OF_DESKTOPS \
+      -remove _NET_DESKTOP_NAMES \
+      -remove _NET_CURRENT_DESKTOP 2> /dev/null
+
+VER=$(gnome-session --version 2>/dev/null | \
+      sed -e 's/[^0-9.]*\([0-9.]\+\)/\1/')
+
+MAJOR=$(echo $VER | cut -d . -f 1)
+MINOR=$(echo $VER | cut -d . -f 2)
+
+# run GNOME with Openbox as its window manager
+
+if test $MAJOR -lt 2 || (test $MAJOR = 2 && test $MINOR -le 22); then
+  # older gnome-session was easy to work with
+  export WINDOW_MANAGER="@bindir@/openbox"
+  exec gnome-session --choose-session=openbox-session "$@"
+elif test $MAJOR -lt 3; then
+  # old gnome-session requires openbox to be set in gconf and an
+  # openbox.desktop to be installed in the applications directory
+
+  SPATH=/desktop/gnome/session
+
+  # get the current default session
+  SESSION=$(gconftool-2 -g $SPATH/default_session 2> /dev/null)
+
+  # make sure openbox is going to be run
+  if test -z "$SESSION"; then
+      # if its empty then just run openbox
+      SESSION="[openbox]"
+  elif ! echo "$SESSION" | grep -q openbox; then
+      # if openbox isn't in the session then append it
+      SESSION="${SESSION%]},openbox]"
+  fi
+
+  # get the current GNOME/Openbox session
+  OB_SESSION=$(gconftool-2 -g $SPATH/openbox_session 2> /dev/null)
+
+  # update the GNOME/Openbox session if needed
+  if test x$OB_SESSION != x$SESSION; then
+      # the default session changed or we didn't run GNOME/Openbox before
+      gconftool-2 -t list --list-type=strings -s $SPATH/openbox_session \
+        "$SESSION" 2> /dev/null
+  fi
+
+  # run GNOME/Openbox
+  exec gnome-session --default-session-key $SPATH/openbox_session "$@"
+else
+  # new gnome-session requires session file installed in
+  # /usr/share/gnome-session/sessions as well as openbox.desktop to be
+  # installed in the applications directory
+
+  exec gnome-session --session=openbox-gnome
+fi
+
+
+

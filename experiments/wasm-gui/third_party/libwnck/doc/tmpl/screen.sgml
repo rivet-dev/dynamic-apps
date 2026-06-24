@@ -1,0 +1,395 @@
+<!-- ##### SECTION Title ##### -->
+WnckScreen
+
+<!-- ##### SECTION Short_Description ##### -->
+
+
+<!-- ##### SECTION Long_Description ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION See_Also ##### -->
+<para>
+
+</para>
+
+<!-- ##### SECTION Stability_Level ##### -->
+
+
+<!-- ##### SECTION Image ##### -->
+
+
+<!-- ##### STRUCT WnckScreen ##### -->
+<para>
+
+</para>
+
+
+<!-- ##### SIGNAL WnckScreen::active-window-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::active-workspace-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::application-closed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::application-opened ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::background-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+
+<!-- ##### SIGNAL WnckScreen::class-group-closed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::class-group-opened ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::showing-desktop-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+
+<!-- ##### SIGNAL WnckScreen::viewports-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+
+<!-- ##### SIGNAL WnckScreen::window-closed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::window-manager-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+
+<!-- ##### SIGNAL WnckScreen::window-opened ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::window-stacking-changed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+
+<!-- ##### SIGNAL WnckScreen::workspace-created ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### SIGNAL WnckScreen::workspace-destroyed ##### -->
+<para>
+
+</para>
+
+@wnckscreen: the object which received the signal.
+@arg1: 
+
+<!-- ##### FUNCTION wnck_screen_get_default ##### -->
+<para>
+
+</para>
+
+@void: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get ##### -->
+<para>
+
+</para>
+
+@index: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_for_root ##### -->
+<para>
+
+</para>
+
+@root_window_id: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_number ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_width ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_height ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_force_update ##### -->
+<para>
+
+</para>
+
+@screen: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_window_manager_name ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_net_wm_supports ##### -->
+<para>
+
+</para>
+
+@screen: 
+@atom: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_active_window ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_previously_active_window ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_windows ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_windows_stacked ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_active_workspace ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_workspaces ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_workspace ##### -->
+<para>
+
+</para>
+
+@screen: 
+@workspace: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_workspace_count ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_change_workspace_count ##### -->
+<para>
+
+</para>
+
+@screen: 
+@count: 
+
+
+<!-- ##### FUNCTION wnck_screen_try_set_workspace_layout ##### -->
+<para>
+
+</para>
+
+@screen: 
+@current_token: 
+@rows: 
+@columns: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_release_workspace_layout ##### -->
+<para>
+
+</para>
+
+@screen: 
+@current_token: 
+
+
+<!-- ##### STRUCT WnckWorkspaceLayout ##### -->
+<para>
+
+</para>
+
+@rows: 
+@cols: 
+@grid: 
+@grid_area: 
+@current_row: 
+@current_col: 
+
+<!-- ##### FUNCTION wnck_screen_calc_workspace_layout ##### -->
+<para>
+
+</para>
+
+@screen: 
+@num_workspaces: 
+@space_index: 
+@layout: 
+
+
+<!-- ##### FUNCTION wnck_screen_free_workspace_layout ##### -->
+<para>
+
+</para>
+
+@layout: 
+
+
+<!-- ##### FUNCTION wnck_screen_move_viewport ##### -->
+<para>
+
+</para>
+
+@screen: 
+@x: 
+@y: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_background_pixmap ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_get_showing_desktop ##### -->
+<para>
+
+</para>
+
+@screen: 
+@Returns: 
+
+
+<!-- ##### FUNCTION wnck_screen_toggle_showing_desktop ##### -->
+<para>
+
+</para>
+
+@screen: 
+@show: 
+
+

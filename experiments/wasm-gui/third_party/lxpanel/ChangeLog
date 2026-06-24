@@ -1,0 +1,407 @@
+0.10.1
+-------------------------------------------------------------------------
+* Fixed battery alarm when measurement of current is missing.
+* Fixed spelling errors on "allow to" in plugins descriptions, and "GTK2+" to
+    more correct "GTK+".
+* Fixed battery indication when charge_full and energy_full are not available.
+* Corrected scaling of volume plugin for HiDPI monitors.
+* Fixed connection name dropdown list in netstatus plugin.
+
+0.10.0
+-------------------------------------------------------------------------
+* Fixed delayed application of font cnahges on dclock and weather plugins.
+* Allowed switching workplaces by scrolling over the pager.
+* Added new API: lxpanel_draw_label_text_with_color().
+* Fixed not-applicable font setting on thermal plugin.
+* Fixed crash on right-click task button after some task was killed using menu
+    on another task button.
+* Fixed crash after color was removed from monitor plugin configuration.
+* Aligned used memory calculation in lxpanel monitor with 'free' command line
+    utility.
+* Added possibility to use few weather providers for weather widget.
+* Disabled Yahoo! Weather because they removed free API support.
+* Added OpenWeatherMap weather provider.
+* Fixed wrong application position on taskbar in multihead configuration.
+* Fixed battery color (must be green) when battery is fully charged.
+* Fixed crash at task plugin when all windows lose focus.
+* Disambiguated keyboard layout names to follow variants.
+
+0.9.3
+-------------------------------------------------------------------------
+* Finally fixed battery calculations, it missed Power so left time was
+    always at zero.
+* Fixed task window raising on drop file on it (was broken since 0.9.0).
+
+0.9.2
+-------------------------------------------------------------------------
+* Fixed battery selection if battery detached but another is available.
+* Fixed battery percentage calculations if charge isn't available but
+    energy is, it appears broken in 0.9.0.
+* Fixed wrong state change on task button when hovered, it shouldn't
+    receive selected state until window has urgency.
+* Fixed wrong flat button appearance when hovered, it wasn't flat.
+
+0.9.1
+-------------------------------------------------------------------------
+* Fixed build failure without ALSA.
+* Added alternative mixers if build using OSS.
+* Fixed panel flicker with some window managers.
+
+0.9.0
+-------------------------------------------------------------------------
+* Added support for laptops with multiple batteries.
+* Added a way to scroll through workspaces by using the scroll wheel over
+    the deskno plugin.
+* Bunch of fixes for GTK+ 3.0 compatibility.
+* Fixed outdated lxpanel man page.
+* Fixed weather locations query (since YQL was changed recently).
+* Converted space plugin into internal PanelSpace widget in liblxpanel.
+* Converted task button into widget class to avoid ambiguous code.
+* Added support for third-party plugins localized descriptions.
+* Implemented "lxpanelctl command ..." to send message to panel plugin.
+* Added APIs for PanelIconGrid to draw focus on drop.
+* Converted launch button into widget class for more easy management.
+* Adjusted PanelIconGrid: min spacing is now 1, no_window flag is now
+    left unset by default, spacing is taken into account on overall size
+    to be consistent on chosen orientation.
+* Implemented dropping file or folder onto launch bar to create launcher.
+* Implemented dragging launchers around launchbars (between panels too).
+* Implemented dropping file or folder onto free panel space to create
+    launcher.
+* Implemented dragging launchers from launchbar to some free panel space.
+    When launcher dropped onto another place and former place's launchbar
+    becomes empty, it will not be replaced with a bootstrapping icon (as
+    it happens when last launcher is removed via configuration dialog)
+    but launchbar will be removed from the panel instead, that behavior
+    is more obvious and sensible.
+* Added stripping scheme from URI menu://applications/... when a launcher
+    is created, only menu-id itself should be used.
+* Implemented moving plugins across panel by means of middle button drag
+    and drop, i.e. middle-click it then drag, and plugin will follow the
+    mouse until middle button is released.
+* Merged 'volume' and 'volumealsa' plugins into single plugin which uses
+    the same interface but different driver, in dependency on how it was
+    built - either OSS or ALSA interface is used. Name 'volume' is used
+    for simplicity while 'volumealsa' is supported for compatibility.
+* Made default channel in 'volume' plugin definable in config. If there
+    is no config statement then plugin finds first usable one, the same
+    as before.
+* Made clicks for Toggle Mute, Show Slider and Open Mixer actions of the
+    'volume' plugin configurable. Defaults are the same: left-click shows
+    slider, middle-click toggles mute state.
+* Added support for 'PCM' and 'Headphone' channels for OSS mixer.
+* Added support for other (not default one) ALSA cards in 'volume' plugin
+    via 'CardNumber' setting.
+* Added hotkey support into 'volume' plugin to be able to use multimedia
+    keys for volume changing directly by plugin.
+* Fixed missing libkeybinder initialization (keybinding did not work).
+* Fixed check for attempt to add a binding for the same hotkey which is
+    already bound elsewhere.
+* Added a configuration dialog to the 'volume' plugin with all the new
+    settings available to choose and set, including preset of discovered
+    mixers, with ability to type own command as well.
+* Fixed crash on action on task window which was deleted while task menu
+    is still opened.
+* Fixed "dynamic" panel width allocation.
+* Fixed PanelIconGrid allocation in rigth-to-left languages, it was wrong
+    so some icons might be invisible or placed under other plugins.
+* Removed call to gtk_widget_set_style() from volume slider to fix colors
+    of current theme.
+* Changed icon size handling on task bar - it may now maintain the same
+    size as rest of icons. It may affect users who are used to have them
+    smaller, it's why this feature was made configurable, corresponding
+    config variable is UseSmallerIcons and default is 1 (old behavior).
+* Changed volume slider popup behavior - it now hides when loses focus.
+* Fixed invalid memory access in weather plugin.
+* Fixed incorrect reporting units on "Feel" value in weather plugin. YQL
+    always reports Fahrenheit degrees there.
+* Added a safeguard on menu cache returning items with empty Exec line.
+* Fixed maximizing windows using task bar, GDK functions not always work.
+* Fixed wrong bind of preferences dialog to the panel, which resulted in
+    other dialogs appear on the same workspace where preferences was.
+* Expanded launch buttons active area to launchbar borders so if clicked
+    even into desktop corner, it should activate button at that corner.
+* Fixed few memory leaks in 'batt' plugin.
+* Removed unwanted conversions with energy for charge in 'batt' plugin
+    which will mess up tooltip indications, and may make rate/percentage
+    calculations invalid.
+* Replaced Xclimsg() with Xclimsgx() to be screen aware with X11 message.
+* Added a workaround for WM like MWM which does not properly resize down
+    widgets of panel kind. It still leaves artefacts but is better now.
+* Added a workaround on GtkBox behavior which does not send allocation
+    requests to children in some cases, so resizing of launchtaskbar on
+    panel height change was broken.
+* Fixed PanelIconGrid layout on vertical panels with more than 1 column.
+
+0.8.2
+-------------------------------------------------------------------------
+* Fixed crash in taskbar plugin after number of desktops was updated.
+* Fixed incorrect panel geometry initialization.
+* Fixed crash with invalid size of icon in _NET_WM_ICON property.
+* Fixed memory leak on 'indicator' plugin destruction.
+* Replaced old commands:
+    - Use notify send instead of xmessage
+    - Use nm-connection-editor instead of network-admin
+
+0.8.1
+-------------------------------------------------------------------------
+* Improved OSS headers detection a bit.
+* Fixed expand setting on plugins with default_expand when more than one
+    is available on the same panel.
+* Fixed icon for task button that retrieved using WM_HINTS.
+* Fixed wrong PanelIconGrid arrangement in vertical panel orientation.
+* Fixed missing handlers disconnect when destroying Task structure.
+* Removed writing debug messages to file when 'indicator' plugin is in
+    use - it will write all the debug there and that changes the behavior
+    which was not intended really.
+* Corrected background for 'indicator' plugin.
+* Fixed update 'indicator' plugin on configuration changes.
+* Fixed battery status: if discharge rate is 0 then it's charged.
+* Fixed incorrect cycle in netproc_devicelist_clear() leading to crash on
+    resume (after suspend).
+* Fixed scanning for temperature sensors which failed with some kernels.
+* Changed reconfiguring panel behavior: callbacks to plugins will be sent
+    on idle, not immediately to avoid "stuck" spin button (and eventually
+    even crash was possible).
+* Fixed initial icon on 'volumealsa' to show real state instead of muted.
+* Fixed 'dclock' updating that it will show time on start, not just on
+    next second change. It would create impression it's slow otherwise.
+* Fixed wrong task button activation on not processed drag of button.
+
+0.8.0
+-------------------------------------------------------------------------
+* Added workaround for crash in gtk-run with old libmenu-cache.
+* Core functions are separated into a private library to allow reliable
+    linking of modules using -Wl,-z,defs.
+* Added macro LXPANEL_CHECK_VERSION() for third party pluguns API check.
+* Added CONF_TYPE_EXTERNAL support for lxpanel_generic_config_dlg().
+* Implemented property "aspect-width" for PanelIconGrid to allow using
+    non-square tray sockets.
+* Added support for monitors "All" to span panel over all monitors (i.e.
+    to allow pre-0.6.0 behavior).
+* Implemented monitors hotplug support.
+* Fixed popups positioning in multi-monitor environment.
+* Fixed updating panel size if appropriate monitor changed its size or
+    position.
+* Implemented disabling for "Reserve space" button if another monitor
+    lies beyond the edge so reservation will cover it. Also reservation
+    will not be applied in such cases even if set in config manually.
+* Some edge and monitors selections in panel configuration dialog may be
+    insensitive now if appropriate edge and monitor combination is not
+    available, to avoid panels stacking one over another.
+* Fixed bug with hidden panel disappearing after resolution change.
+* Add lxpanel_image_new_for_icon() API to replace another (obsolete) API
+    _gtk_image_new_from_file_scaled().
+* Added API panel_config_hotkey_button_new() to use as CONF_TYPE_EXTERNAL
+    widget to allow configure global hotkeys for plugins functions.
+* Added API lxpanel_apply_hotkey() as a convenient libkeybinder interface
+    to use in modules that also use panel_config_hotkey_button_new(). Now
+    LXPanel requires libkeybinder too.
+* Added API panel_config_click_button_new() to configure mouse gestures
+    and panel_config_click_parse() to parse its output.
+* Added "icon-size-changed" signal to LXPanel which is emitted when icons
+    size in configuration dialog was changed.
+* Improved lxpanel_image_new_for_icon() API to follow panel icons size
+    changes, not only theme changes. This way calls on lxpanel_image_*
+    APIs on theme or panel changes may be eliminated, i.e. code becomes
+    simpler.
+* Added new lxpanel_image_change_icon() API for simplification reasons so
+    other lxpanel_image_* APIs can be replaced completely.
+* APIs lxpanel_button_set_icon() lxpanel_button_update_icon() now don't
+    require setting icon size since created button already follows size
+    from panel settings. Also it doesn't require refresh after the panel
+    configuration change.
+* Disabled scaling up small icons in the taskbar: scaled up icons look
+    bad due to pixelization (patch from Anton Lobashev).
+* When adding new panel, now correctly edges of monitor where popup was
+    are tried before any other monitors.
+* Correctly open 'netstat' plugin own menu on leftclick since rightclick
+    should open panel context menu instead.
+* System critical temperature level in 'thermal' plugin now is properly
+    ignored if manual levels are active.
+* Fixed click on 'menu' plugin, only image was clickable, not whole area.
+* Added API panel_config_int_button_new() for generic plugin config spin
+    button with custom range, not just generic 0...1000.
+* Fixed wrong behavior with PanelIconGrid constrained width after child
+    was removed: size wasn't always renegotiated correctly.
+* Fixed range of space reservation in multi-monitor setup (reservation
+    might cover another monitor).
+* Numeric-only string will be saved now double-quoted to distinguish it
+    from number in config.
+* Implemented flashing on task with urgency in grouped task list menu.
+* Disabled flashing on urgency hint if window has focus, most of window
+    managers do the same on window decorations.
+* Fixed border of 'batt' plugin, it should correctly use panel settings.
+    Also 'Size' setting of it doesn't include border width.
+* Allowed default alarmCommand on 'batt' plugin be translated.
+* Implemented sorting plugins in Add plugin window in alphabetic order.
+* Fixed font in the weather plugin to use panel settings.
+* Added new API lxpanel_button_compose() for future usage by plugins.
+* Added optional volumealsa plugin volume mapping from alsamixer (patch
+    from Peter).
+* Added new API lxpanel_button_set_label() to change label of button that
+    was created using some lxpanel_button_*() API.
+* Added "panel-font-changed" signal to LXPanel to be able follow settings
+    change in font configuration of panel using lxpanel_button_*() API.
+* Fixed nasty bug with autohidden panel after unhide appeared for short
+    time somewhere at the screen.
+* Fixed calendar and configuration windows blinking on their appearance.
+* Fixed panel update when background image changed in configuration.
+* Changed to use persistent background image for panel and Cairo. This
+    way updating background should be faster, and also fixed background
+    of plugins when image is used, both placement and alpha color.
+* Urgent window is now always visible on the taskbar irrelevant of the
+    desktop number on which it appears, because urgent window requires
+    user attention (patch from Andy Balaam).
+* Moved bit of code that is used out from src/bg.c and discarded src/bg.c
+    from code used.
+* Dropped setting members of Panel structure: workarea, wa_len, bg.
+* Replaced GtkComboBoxEntry in netstatus plugin window with GtkComboBox.
+* Simplified plugins background setting - they should never use any own
+    background but either use one from panel or from theme (depending on
+    panel configuration). This should improve performance.
+* Don't update a whole panel background anymore after some plugin was
+    resized, only update the plugin itself to improve performance.
+
+0.7.2
+-------------------------------------------------------------------------
+* Fixed unhiding panel if it becomes empty and height_when_hidden is 0.
+* Fixed invalid X protocol word size: despite of stating it 32 bit, the X
+    server uses unsigned long which is 64 bit on 64-bit architectures.
+* Adapted to use libmenu-cache >= 1.0.0 - it could show empty folders in
+    the desktop menu.
+* Fixed crash in taskbar after visible task changed name then gone.
+* Ensured panel background update after some plugin was resized.
+* FileManager statement from old config should never be scanned again.
+* Fixed positioning of new created panel, the edge was not saved.
+* Eliminated hardcoded "xterm" in 'volumealsa' plugin - LibFM has enough
+    means to call terminal when needed.
+* Fixed crash if 'volumealsa' plugin initialization failed.
+
+0.7.1
+-------------------------------------------------------------------------
+* Fixed search for the gtkrc file.
+* Fixed search path for configuration - it should be not compilation time
+    path but paths using $XDG_CONFIG_DIRS.
+* Fixed incorrect flag for 'launchbar' plugin which marks him expandable.
+* Fixed dragging of task buttons.
+* Corrected using $XDG_MENU_PREFIX to work the same way as libfm does.
+* Fixed using font description, font in gtkrc file was ignored.
+* Improved search for hw sensors in /sys/class/hwmon/ hierarchy.
+* Improved check for critical temperatures in 'termal' plugin, now each
+    individual hardware setting (if available) is also taken into
+    consideration.
+* Fixed parsing alias name in 'weather' plugin settings.
+* Got rid of all individual plugins/*/Makefile - those rules more easily
+    can be contained in the plugins/Makefile.am. Adding a simple plugin
+    basically would mean to add three lines into that file instead of
+    writing whole Makefile.am.
+* Fixed invalid system config path search ("lxpanel" part was missing).
+* Fixed incorrect requirements in the lxpanel.pc file.
+* Fixed memory leak in the 'volumealsa' plugin.
+* Now 'volumealsa' checks for 'MixerCommand' setting in the configuration
+    before guessing it.
+* Fixed color saving in the configuration.
+* Fixed incomplete resources deallocation in 'volumealsa' plugin.
+* Fixed make uninstall (it left plugins installed).
+* Fixed monitor number set from GUI.
+* Fixed hang on netstatus icon in auto-hidden panel.
+* Fixed icon grid compilation with GTK+ < 2.20.
+* Fixed compilation without menu-cache.
+* Now man pages are included in the GIT and tarball, not just xml files.
+* Fixed incorrect printf arguments in 'netstatus' plugin.
+
+0.7.0
+-------------------------------------------------------------------------
+* New plugin 'launchtaskbar' with combined functionality from 'launchbar'
+    and 'taskbar'. For easy support codebase is merged instead of doing
+    duplicates but appearance is still the same in dependency from mode
+    chosen.
+* Integrated with LibFM, all launching and application selection in the
+    launchbar settings is done by LibFM now.
+* New simpler plugins API implementation, using LibFM plugins loader. In
+    new API some callbacks were simplified and some removed, see all the
+    detailed descriptions in the file plugin.h.
+* New plugins are GtkWidgets now, therefore there is no explicit destroy
+    for them or their data, all will be handled implicitly.
+* Changed config access with simple API similar to libconfig one.
+* Using icon caching from LibFM.
+* Applications properties in the menu are managed by LibFM API, no more
+    calls to lxshortcut application.
+* Setting for file manager is not handled on its own but XDG setting is
+    used now, i.e. default choice for "inode/directory" MIME type.
+* Setting for terminal is handled by LibFM, therefore it is the same as
+    in PCManFM now, no own setting anymore.
+* Replaced configure option --enable-cast-checks with --enable-debug.
+* Replaced 'pager' plugin with former 'wnckpager' one. The 'wnckpager'
+    name is still supported for compatibility but it is the same plugin.
+* Added new plugin 'weather', written by Piotr Sipika.
+* Using drag & drop handling from LibFM in launchbar. It is possible now
+    to use any kind of files as launchbuttons, and folders can receive
+    drops as well.
+* Allowed drag applications from system menu plugin so they now can be
+    dropped somewhere. The obvious example is drop on the desktop.
+* Using human readable sensor names if available (like 'Core 0', etc.).
+* Panel is allowed to hide completely (setting width when hidden to 0).
+* The IconGrid converted into GtkContainer derived class PanelIconGrid.
+* Allowed to use <USER_CONFIG_DIR>/lxpanel/<profile>/gtkrc for the panel
+    custom style setup.
+* The panel itself in not a struct now but a GtkWindow derived class so
+    no special API to destroy it is required.
+* Improved the layout of icons in panel, they will not align to the edge
+    of screen but appropriately to panel height. Some of them did that
+    already but some were aligned to the screen edge without any gap.
+* The button to configure plugin in panel plugins configuration tab is
+    renamed from 'Edit' to 'Properties'.
+* All logging is unified. The option --log is deprecated and isn't used
+    anymore. User can change logs appearance using G_MESSAGES_DEBUG and
+    G_MESSAGES_PREFIXED environment variables (see GLib docs).
+* Old APIs are in place still for backward compatibility with third party
+    plugins but will be dropped later, supposedly on next feature release
+    point. Old APIs are not present in public headers, compatibility is
+    on binary level only.
+* A whole lot of bugfixes.
+
+0.6.x
+-------------------------------------------------------------------------
+***
+
+0.5.x
+-------------------------------------------------------------------------
+***
+
+0.4.x
+-------------------------------------------------------------------------
+***
+
+0.3.x
+-------------------------------------------------------------------------
+***
+
+0.2.9.x
+-------------------------------------------------------------------------
+
+0.2.8.x
+-------------------------------------------------------------------------
+
+0.2.7.2
+-------------------------------------------------------------------------
+1. Add manapages of lxpanelctl.
+2. Supported HWAddr status in netstat plugin.
+
+0.2.7.1
+-------------------------------------------------------------------------
+1. Add manpages.
+2. reduce memory usage and delete unused functions in netstat plugin.
+
+0.2.7
+-------------------------------------------------------------------------
+1. Fixed compile errors in configure and Makefile.am.
+2. Deleted unused files.
+3. Add a new network status plugin - netstat (testing).
+4. Fixed incorrect path of icons.
+5. Changed icon size to reduce memory usage.
+6. Add LXDE-specific configuration profile for LXPanel.
+7. Use "*.directory" file for the translation of categories if available.
+   #1875624 - LXPanel does not correctly show xdg menus.
+8. Fixed tintcolor bug (Request ID 1900678).

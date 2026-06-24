@@ -768,6 +768,22 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     libfm worker threads **exit cleanly (code 0)** — so this is NOT the futex deadlock; it is the M8.5 pcmanfm
     window-render gap (frame-clock / map / paint of the file-manager window). That is the next focused step.
 
+  - **🔬 ROOT CAUSE CORRECTED (2026-06-24, loop) — the above pcmanfm-specific framing is WRONG.** WM-matrix
+    proof (framebuffer-measured): `lxpanel` and `xclock` render fine standalone / under `twm`; **openbox + ANY
+    client (even a trivial `xclock`) → one sidecar pegs 100% CPU + full black**, while **openbox-alone is fine**.
+    So the blocker is the **openbox↔client interaction**, client-agnostic — NOT pcmanfm, NOT HarfBuzz, NOT a
+    paint/frame-clock gap. `strace -f -c` on the spinning sidecar: it is the **X SERVER (Xvfb)** — 97% futex,
+    ~10k calls/4s, across `secure-exec-v8-` threads = Xvfb's OWN pthreads (one in a **pure-wasm main-dispatch
+    busy-loop**, one in the input-thread `net_poll`) ping-ponging via V8 FutexEmulation. RULED OUT, each tested:
+    HarfBuzz/shaping (no-font run still spins), fpcast/-Oz/-O0, fonts, dir-content, **guest `net_poll` throttle**
+    (deployed+verified, no effect), **poll-waiter pool** (`SECURE_EXEC_ASYNC_POLL=0` and `POLL_WAITERS=1` both
+    still 100%), **input thread** (`-dumbSched` still 100%). The main dispatch thread **busy-LOOPS in pure wasm
+    (RUNNING, not parked)** → suspect a guest spinlock whose release isn't visible under the wasm-threads memory
+    model, OR SmartSchedule preemption (`setitimer`/`SIGALRM`) not firing in wasm so the dispatch loop never
+    yields. **FIX TARGET:** `crates/v8-runtime` wasm-threads / FutexEmulation, or the X-server `setitimer`/signal
+    shim — NOT the X server source (constraint #5). Repro + full chain: memory `wasm-gui-m8.6-futex-storm-rootcause`;
+    proof PNG `~/tmp/gui-progress/2026-06-24T08/proof-m8.6-openbox-xclock-BLACK.png`.
+
   **ACCEPTANCE BAR (explicit): a black/empty framebuffer is NOT acceptance.** A decorated-but-empty
   window, a panel with no file manager, or "it would render given ~2 minutes" do NOT count. M8.6 is
   green ONLY when a single screenshot shows the FULL live LXDE desktop working together: the openbox-
