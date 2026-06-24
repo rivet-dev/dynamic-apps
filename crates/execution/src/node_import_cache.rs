@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "90";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "91";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -13353,17 +13353,33 @@ wasiImport.fd_pwrite = (fd, iovs, iovsLen, offset, nwrittenPtr) => {
       const n = bytes.length;
       const last = handle.__fbLast;
       if (n >= 65536 && last && last.length === n && handle.__fbOff === off) {
-        let lo = 0;
-        while (lo < n && last[lo] === bytes[lo]) lo++;
-        if (lo === n) {
-          return writeGuestUint32(nwrittenPtr, n); // identical frame — file already current
+        // Block-granular delta: compare in CHUNK-sized blocks and write each maximal RUN of changed
+        // blocks separately, at its own file offset. A single min..max range collapses to a full write
+        // when changes are scattered (an app window near the top AND a panel clock at the bottom span
+        // the whole frame); per-run writes keep the sync-RPC cost proportional to the changed area even
+        // then. Always correct: the file already holds every block we don't write.
+        const CHUNK = 8192;
+        let p = 0;
+        while (p < n) {
+          const blockEnd = p + CHUNK < n ? p + CHUNK : n;
+          let changed = false;
+          for (let j = p; j < blockEnd; j++) { if (last[j] !== bytes[j]) { changed = true; break; } }
+          if (!changed) { p = blockEnd; continue; }
+          const runStart = p;
+          let runEnd = blockEnd;
+          p = blockEnd;
+          while (p < n) {
+            const e2 = p + CHUNK < n ? p + CHUNK : n;
+            let c2 = false;
+            for (let j = p; j < e2; j++) { if (last[j] !== bytes[j]) { c2 = true; break; } }
+            if (!c2) break;
+            runEnd = e2; p = e2;
+          }
+          const sub = bytes.subarray(runStart, runEnd);
+          fsModule.writeSync(handle.targetFd, sub, 0, sub.length, off + runStart);
+          last.set(sub, runStart);
         }
-        let hi = n - 1;
-        while (hi > lo && last[hi] === bytes[hi]) hi--;
-        const sub = bytes.subarray(lo, hi + 1);
-        const written = fsModule.writeSync(handle.targetFd, sub, 0, sub.length, off + lo);
-        last.set(sub, lo);
-        return writeGuestUint32(nwrittenPtr, written === sub.length ? n : written);
+        return writeGuestUint32(nwrittenPtr, n);
       }
       const written = fsModule.writeSync(handle.targetFd, bytes, 0, n, off);
       if (n >= 65536) {
