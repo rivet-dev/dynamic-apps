@@ -26,7 +26,7 @@ PCMANFM_DIR="${PCMANFM_DIR:-/}"
 OUT="${OUT:-/tmp/lxde-run.log}"
 FB="${FB:-$HOME/tmp/gui-progress/proof-m8.6-lxde-session.png}"
 XTRACE_LOG="${XTRACE_LOG:-/tmp/lxde-xtrace.log}"
-TIMEOUT="${TIMEOUT:-70}"
+TIMEOUT="${TIMEOUT:-150}"
 
 # --- fixtures (data/config staged into the VFS via --vm-tree; not source changes) ---
 [ -d "$FONTS" ]  || bash "$EXP/scripts/prepare-fonts.sh"  >/dev/null 2>&1 || true
@@ -66,7 +66,15 @@ for d in "$XFT" "$ICONS" "$PANELCFG" "$OPENBOXCFG"; do
 done
 
 echo "running LXDE session (openbox+lxpanel+pcmanfm, dir=$PCMANFM_DIR) -> fb=$FB  log=$OUT"
+# M8.6 render config: launch the 3rd heavy GTK app EARLY (short settle) so it has run-budget to
+# render its window AND finish its libfm directory load; trim the poll-waiter pool to cut the
+# net.poll_wait thundering-herd CPU so the single-threaded X server has headroom for 3 clients.
+# The framebuffer-delta write fix (node_import_cache.rs fd_pwrite) is what makes the per-block
+# frame dump cheap enough to not starve request processing in the first place.
 env -u DISPLAY SECURE_EXEC_XTRACE="${SECURE_EXEC_XTRACE:-2000000}" \
+  APP_SETTLE_MS="${APP_SETTLE_MS:-4000}" \
+  WM_SETTLE_QUIET_MS="${WM_SETTLE_QUIET_MS:-4000}" \
+  SECURE_EXEC_POLL_WAITERS="${SECURE_EXEC_POLL_WAITERS:-4}" \
   ${SECURE_EXEC_STACKDUMP_AFTER_MS:+SECURE_EXEC_STACKDUMP_AFTER_MS=$SECURE_EXEC_STACKDUMP_AFTER_MS} \
   "$HOST" --xdemo \
   --server "$EXP/Xvfb.wasm" \

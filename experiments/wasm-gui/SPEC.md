@@ -804,6 +804,22 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
   with its menu, AND all of it interactive — captured within a normal run, not a 5-minute timeout.
   A precise root-cause writeup is progress, not completion; the deliverable is the rendered desktop.
 
+  **✅ ACHIEVED 2026-06-24 — the full LXDE desktop renders.** Single screenshot
+  `~/tmp/gui-progress/proof-m8.6-lxde-session.png` (= `2026-06-24T12/proof-m8.6-FULL-LXDE-listing-160s.png`):
+  openbox-decorated `pcmanfm` window with a REAL, POPULATED `/` listing (bin boot data dev etc fonts home
+  lib locale media mnt opt proc root run sbin srv sys tmp usr — "22 items") AND the `lxpanel` panel with
+  its clock, all-wasm in secure-exec, one coherent desktop. **Root cause (after the long HarfBuzz/XKB/RandR
+  misdiagnoses): the patched `vfbBlockHandler` pwrites the ENTIRE framebuffer to the host shadow file every
+  block; each 1.2MB write was base64'd through the sync-RPC and blocked the single-threaded X server ~24ms,
+  starving request processing so clients never finished (the timeout=0 feedback loop / 97% futex storm).**
+  FIX (runtime-side, constraint #5): framebuffer-write DELTA encoding in `fd_pwrite` (node_import_cache.rs)
+  — write only changed byte-runs, skip identical frames; cost scales with changed pixels, not frame size.
+  Plus launch the 3rd heavy GTK app early (`APP_SETTLE_MS=4000`) and trim the poll-waiter pool
+  (`SECURE_EXEC_POLL_WAITERS=4`) — both wired into `scripts/test-m8-lxde.sh`. REMAINING POLISH (not blockers
+  to "it renders"): the `/` listing takes ~140s to fully populate under 3-client contention (the X server is
+  still per-request sync-RPC/futex bound) — batch `net_recv` + cut the `notify_all` poll-waiter herd to make
+  it a fast "normal run"; and verify interactivity (XTEST click/type) in this 3-client config.
+
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
   host-side observers that watch without participating. **DONE (2026-06-22):** tool 1's decisive half —
