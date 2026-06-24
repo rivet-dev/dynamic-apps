@@ -758,6 +758,12 @@ async fn run_bus_roundtrip(
     let sargv: Vec<&str> = server_args.iter().map(|x| x.as_str()).collect();
     let mut denv = HashMap::new();
     denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+    // Forward DBUS_* diagnostics (e.g. DBUS_VERBOSE) from the host env to the guests.
+    for (k, v) in std::env::vars() {
+        if k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS" {
+            denv.insert(k, v);
+        }
+    }
     s.execute_env("dbusd", &server_abs, &sargv, denv).await?;
     eprintln!("secure-exec: started dbus-daemon {server_abs} {server_args:?}");
     // Give it time to bind + listen before any client connects.
@@ -776,6 +782,11 @@ async fn run_bus_roundtrip(
             "DBUS_SESSION_BUS_ADDRESS".to_string(),
             bus_address.to_string(),
         );
+        for (k, v) in std::env::vars() {
+            if k.starts_with("DBUS_") && k != "DBUS_SESSION_BUS_ADDRESS" {
+                cenv.insert(k, v);
+            }
+        }
         let id = format!("dbus-client{i}");
         s.execute_env(&id, &path, &argv, cenv).await?;
         eprintln!("secure-exec: launched {id} ({})", parts[0]);

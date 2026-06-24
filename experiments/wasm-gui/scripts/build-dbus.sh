@@ -24,6 +24,12 @@ make distclean >/dev/null 2>&1
 # systemd/selinux/apparmor/audit (no init/LSM), x11-autolaunch (daemon needs no X), launchd/kqueue
 # (not Linux), epoll (wasi has none -> generic poll() fallback, served by host_net poll).
 export CFLAGS="$CFLAGS -I$PREFIX/include"
+# Assert the SO_PEERCRED credential path at compile time (platform truth, dbus source untouched —
+# constraint #5). wasi's <sys/socket.h> hides SO_PEERCRED + struct ucred behind __wasilibc_unmodified_upstream,
+# so dbus's `#ifdef SO_PEERCRED` block (the only credential mechanism it has here) compiles out and EXTERNAL
+# auth fails with "no credentials". -DSO_PEERCRED=17 re-exposes the path; -D_GNU_SOURCE makes struct ucred
+# visible; dbus_creds.c's __wrap_getsockopt then answers SO_PEERCRED with the single sandbox identity (uid 0).
+export CFLAGS="$CFLAGS -DSO_PEERCRED=17 -D_GNU_SOURCE"
 # IMPORTANT: configure WITHOUT --allow-undefined so its link-based feature tests are ACCURATE
 # (with --allow-undefined every test passes -> false positives like Solaris getpeerucred -> <ucred.h>).
 # -lhostcompat lets the real host_net socket funcs resolve so socket features detect correctly; genuinely
@@ -31,7 +37,18 @@ export CFLAGS="$CFLAGS -I$PREFIX/include"
 export LDFLAGS="$LDFLAGS -L$PREFIX/lib -lhostcompat -lexpat"
 export EXPAT_CFLAGS="-I$PREFIX/include"
 export EXPAT_LIBS="-L$PREFIX/lib -lexpat"
-LINK_LDFLAGS="$LDFLAGS -Wl,--allow-undefined -Wl,--wrap=writev"
+# dbus_creds.o: platform recvmsg() + getsockopt(SO_PEERCRED) so dbus-daemon's EXTERNAL auth handshake
+# works on host_net AF_UNIX sockets (constraint #5). Linked explicitly (its strong recvmsg overrides the
+# weak wasi-compat stub) + -Wl,--wrap=getsockopt.
+DBUS_CREDS_O="$EXP/toolchain/threads-libs/dbus_creds.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
+  -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread \
+  -c "$REPO/registry/native/patches/wasi-libc-overrides/dbus_creds.c" -o "$DBUS_CREDS_O" || exit 1
+# Archive it: libtool refuses a raw .o in LDFLAGS when building libdbus-1.la ("non-libtool object").
+# As a -l archive the linker pulls dbus_creds.o only at the final executable link, to resolve the
+# recvmsg / __wrap_getsockopt references left undefined in libdbus.
+"$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libdbuscreds.a" "$DBUS_CREDS_O" || exit 1
+LINK_LDFLAGS="-L$PREFIX/lib -ldbuscreds $LDFLAGS -Wl,--allow-undefined -Wl,--wrap=writev -Wl,--wrap=getsockopt -Wl,--wrap=read"
 
 echo "== configuring dbus =="
 # Force-detect functions that ARE provided by libhostcompat/wasi-compat but whose autotools link-test
@@ -41,6 +58,12 @@ echo "== configuring dbus =="
 # startup with "cannot change fd limit". (constraint #5: platform truth asserted in the build, dbus
 # source untouched.)
 export ac_cv_func_getrlimit=yes ac_cv_func_setrlimit=yes ac_cv_func_socketpair=yes
+# Force HAVE_POLL: dbus's _dbus_poll falls back to select() when poll is "missing", but select() uses
+# fd_set bit arrays indexed by fd number and host_net socket fds live at 0x40000000+ (far past
+# FD_SETSIZE), so select() can never report them ready and the daemon never flushes its auth "OK"
+# or message replies. The runtime provides a host_net-aware poll(); assert it so dbus takes the poll()
+# path. (configure's link-test false-negatives poll() the same way it does socketpair/getrlimit.)
+export ac_cv_func_poll=yes
 ./configure $CROSS_CONFIGURE_ARGS \
   --enable-static --disable-shared \
   --disable-systemd --disable-selinux --disable-apparmor --disable-libaudit \
@@ -49,6 +72,7 @@ export ac_cv_func_getrlimit=yes ac_cv_func_setrlimit=yes ac_cv_func_socketpair=y
   --disable-doxygen-docs --disable-xml-docs --disable-ducktype-docs --disable-qt-help \
   --disable-launchd --disable-kqueue \
   --with-xml=expat --with-system-socket=/tmp/dbus-session \
+  --enable-verbose-mode \
   --disable-Werror \
   > /tmp/conf-dbus.log 2>&1
 RC=$?

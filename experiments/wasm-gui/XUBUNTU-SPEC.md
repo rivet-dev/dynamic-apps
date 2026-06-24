@@ -9,6 +9,9 @@ Living spec (**DRAFT v1**, 2026-06-24). Status legend: ⬜ todo · 🟡 in progr
   host blit; X11-over-socket; static-link, avoid `dlopen`/SHM; the wasm X server; the XTEST input
   path; the fixture/`--vm-tree` harness) and raises the target from minimalist LXDE to a **faithful
   default-Xubuntu desktop shell**.
+- [`MEMORY-MODEL-SPEC.md`](./MEMORY-MODEL-SPEC.md) — the `mmap`/virtual-memory model (no MMU in wasm;
+  the platform layer is the page cache). The framebuffer `MAP_SHARED` writeback + dirty-page diff it
+  describes is already done; for Xubuntu, implement more **only if a component actually breaks** (see §5 item 10).
 - [`WASM-THREADS-SPEC.md`](./WASM-THREADS-SPEC.md) — the wasi-threads runtime feature M8 depends on.
   Still the threading substrate here.
 - Research backing the desktop-target decision: see this repo's report under `~/tmp/gui-progress/`
@@ -158,6 +161,22 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
    elementary-xfke; confirm PNG loaders cover it (avoid the librsvg closure where possible).
 9. **Repay & generalize** any per-component breakage into the sysroot/runtime (constraint #5),
    continuing the libX11/libxcb/libxtrans host_net repayment already tracked in `SPEC.md`.
+10. **`mmap` / virtual-memory model — implement ONLY if absolutely necessary.** ⬜ See
+    [`MEMORY-MODEL-SPEC.md`](./MEMORY-MODEL-SPEC.md) for the full model: wasm has no MMU, so the
+    platform layer stands in for the page cache. The framebuffer's `MAP_SHARED` writeback +
+    dirty-page diff is **already done** (item 6 reuses it), and the high-volume rest (fontconfig /
+    freetype / glib `gschemas.compiled` / GResource) is `MAP_PRIVATE` **read-only pass-through** that
+    needs no new work. **Do NOT build anything more unless a component actually breaks on it.** The
+    only genuinely-hard case — coherent cross-process `MAP_SHARED` shared-memory (dconf-style change
+    notification) — is **designed out** by Xfce's xfconf-over-D-Bus (item 2), so don't pre-build it.
+    If a stray GSettings/dconf-backend app forces the issue, implement the minimum from
+    `MEMORY-MODEL-SPEC.md` §6, nothing speculative.
+    **Performance trigger (the one case where you DO take the detour proactively):** if an operation
+    is **markedly slower than it would be on a real OS** — a guest spends time the same call would not
+    cost natively — suspect the missing page-cache / MMU dirty-tracking (a full-buffer writeback
+    crossing the sandbox boundary, as in the M8.6 framebuffer spin) and **take the detour to implement
+    the targeted mmap/diff optimization**. A perf gap vs native is the signal that justifies the work;
+    correctness-only parity is not. See `MEMORY-MODEL-SPEC.md` §5–§7.
 
 ---
 
@@ -165,24 +184,34 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
 
 > Naming: **XU#** to distinguish from `SPEC.md`'s M#. Order is dependency-first.
 
-- **XU0 — D-Bus session bus.** 🟡 BUILD HALF DONE (2026-06-24). `dbus-daemon` + `dbus-send` +
-  `dbus-monitor` (dbus 1.14.10) cross-compile from UNMODIFIED upstream (`scripts/build-dbus.sh`) and run
-  as wasm guests; the daemon uses the host_net AF_UNIX socket layer. Platform fixes (constraint #5):
-  configure without `--allow-undefined` for accurate feature detection (else false Solaris
-  `getpeerucred`→`<ucred.h>`); `setgroups()` no-op stub in `wasi-compat.c`. The daemon instantiates and
-  starts. **The daemon now RUNS AS A LIVE SESSION BUS** (2026-06-24): with a minimal session.conf
-  (`scripts/prepare-dbus-fixtures.sh`) it binds `/tmp/.dbus/session`, prints its address, and stays
-  alive in its main loop. Platform fixes added (all constraint #5, dbus untouched): synthesized `/dev`
-  char devices in the wasm fs (`/dev/null`, `/dev/urandom`); `getrlimit` fills `RLIM_INFINITY`;
-  `socketpair` via a pipe emulation; `build-dbus.sh` force-detects getrlimit/setrlimit/socketpair (their
-  autotools link-tests false-negative under the no-`--allow-undefined` configure). The multi-guest
-  **round-trip harness is built** (host `--bus-test` mode + `scripts/test-xu0-dbus.sh`): it launches the
-  daemon + `dbus-monitor`/`dbus-send` sharing the kernel socket table with `DBUS_SESSION_BUS_ADDRESS`
-  injected; the daemon binds and both clients launch. **REMAINING for XU0 acceptance:** the clients hang
-  on the **D-Bus auth handshake** — EXTERNAL auth needs the daemon to read the client uid via
-  `getsockopt(SO_PEERCRED)`, not yet provided by the host_net socket layer. Next: trace with a
-  `--enable-verbose-mode` dbus, then provide `getsockopt(SO_PEERCRED)` (return uid 0) or wire ANONYMOUS
-  auth. Proof: a `dbus-send`/`dbus-monitor` round-trip log. **Gates everything else.**
+- **XU0 — D-Bus session bus.** ✅ **DONE (2026-06-24).** `dbus-daemon` + `dbus-send` + `dbus-monitor`
+  (dbus 1.14.10) cross-compile from UNMODIFIED upstream (`scripts/build-dbus.sh`) and run as wasm guests
+  over the host_net AF_UNIX socket layer. **Acceptance met:** the round-trip harness (host `--bus-test` +
+  `scripts/test-xu0-dbus.sh`) launches the daemon as a live session bus (binds `/tmp/.dbus/session` from
+  `scripts/prepare-dbus-fixtures.sh`'s session.conf), and a guest `dbus-send ListNames` gets a
+  `method_return` while a guest `dbus-monitor` observes the `NameAcquired`/`NameLost`/`NameOwnerChanged`
+  signals — all wasm. **Result: `PASS (method_return=3 signals=4)`**; proof in
+  `~/tmp/gui-progress/2026-06-24T20/xu0-dbus-roundtrip.txt`. Platform fixes (all constraint #5, dbus
+  source untouched):
+  - **Build/feature detection:** configure WITHOUT `--allow-undefined` for accurate link-tests (else
+    false Solaris `getpeerucred`→`<ucred.h>`); force-detect `getrlimit/setrlimit/socketpair/poll` (their
+    link-tests false-negative under no-`--allow-undefined`); `-DSO_PEERCRED=17 -D_GNU_SOURCE` so dbus's
+    `#ifdef SO_PEERCRED` credential path (its only EXTERNAL-auth mechanism) compiles in.
+  - **wasi-compat stubs:** `setgroups()` no-op; `getrlimit` fills `RLIM_INFINITY`; `socketpair` via pipe.
+  - **Synthesized `/dev` char devices** in the wasm fs (`/dev/null`, `/dev/urandom`, …).
+  - **`dbus_creds.c`** (`registry/native/patches/wasi-libc-overrides/`, linked into the three binaries):
+    host_net AF_UNIX has no SCM/ancillary or real SO_PEERCRED, and its fds (≥0x40000000) aren't in the
+    WASI fd table, so dbus's stock auth + message I/O stalled. It provides, for host_net fds only:
+    `recvmsg()` (1-byte credential read), `getsockopt(SO_PEERCRED)`→uid 0 (the single sandbox identity,
+    so EXTERNAL auth succeeds), `sendmsg()` (message writes via send-per-iovec), and `__wrap_read`
+    (route `read()`→`recv()`, surfacing a blocked read as `EAGAIN` so dbus doesn't treat would-block as
+    a fatal disconnect).
+  - **Runtime `net_poll` POLLOUT fix** (`node_import_cache.rs`): corrected POLLOUT from the wrong 0x002
+    to the real wasi `<poll.h>` value 0x004 (0x002 is POLLPRI), keeping 0x002 as a compat bit. dbus uses
+    `poll()` (forced `HAVE_POLL`; its `select()` fallback can't represent fd 0x40000000 in an `fd_set`)
+    and genuinely waits on write-readiness to flush its auth `OK`/replies, which the X libs never did.
+  - The X server M8 spine still passes (twm decorates a window) — no regression. **Gates everything else;
+    now unblocked.** TCB note: the daemon is an untrusted guest; no host-fd/privilege expansion.
 - **XU1 — xfconf + xfsettingsd.** ⬜ xfconf stores/serves a value over D-Bus; xfsettingsd pushes
   XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window in Greybird, not default.
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the

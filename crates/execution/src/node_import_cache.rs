@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "100";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "101";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11493,11 +11493,14 @@ const hostNetImport = {
   net_poll(fdsPtr, nfds, timeoutMs, retReadyPtr) {
     const n = Number(nfds) >>> 0;
     const base0 = Number(fdsPtr) >>> 0;
-    // The patched wasi sysroot's effective poll bits (bits/poll.h): POLLIN=POLLRDNORM=0x1,
-    // POLLOUT=POLLWRNORM=0x2 (NOT the 0x004 in legacy poll.h). Guests (X server + libxcb) use
-    // these, so net_poll must match or POLLOUT readiness is never reported and writers block.
+    // wasi sysroot <poll.h> bits: POLLIN=0x001, POLLPRI=0x002, POLLOUT=0x004. Guests compile against
+    // this header, so net_poll must use 0x004 for POLLOUT or write-readiness is never reported and a
+    // writer that waits on it (e.g. dbus-daemon flushing its auth "OK"/replies) blocks forever. The
+    // X server/libxcb tolerated the earlier wrong 0x002 only because they write optimistically and
+    // rarely park on POLLOUT; POLLOUT_COMPAT keeps that legacy bit working so they cannot regress.
     const POLLIN = 0x001;
-    const POLLOUT = 0x002;
+    const POLLOUT = 0x004;
+    const POLLOUT_COMPAT = 0x002;
     const ACCEPT_POLL_INTERVAL_MS = 50;
     const t = Number(timeoutMs) | 0;
     const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
@@ -11571,7 +11574,10 @@ const hostNetImport = {
               if (events & POLLIN && socket.readChunks && socket.readChunks.length > 0) {
                 revents |= POLLIN;
               }
-              if (events & POLLOUT) revents |= POLLOUT;
+              // Reflect back whichever write-readiness bit the caller asked for (real 0x004 and the
+              // legacy 0x002) so both stock guests and the X libs see their socket as writable.
+              const writeWant = events & (POLLOUT | POLLOUT_COMPAT);
+              if (writeWant) revents |= writeWant;
             }
           }
           view.setUint16(base + 6, revents, true);
