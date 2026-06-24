@@ -53,6 +53,12 @@ struct TraceState {
     in_flight: Mutex<Option<InFlight>>,
     procs: Mutex<HashMap<u32, ProcInfo>>,
     seq: AtomicU64,
+    /// Cumulative time the dispatch thread spent INSIDE an op (microseconds). Busy-fraction =
+    /// busy_us / wall-elapsed distinguishes throughput-saturation (≈100%) from per-round-trip latency
+    /// or idle-waiting (≪100%).
+    busy_us: AtomicU64,
+    /// Total ops completed (for mean op duration).
+    done: AtomicU64,
     /// Stall threshold; `None` = watchdog disabled.
     watchdog_ms: Option<u64>,
     dump_ms: Option<u64>,
@@ -76,6 +82,8 @@ fn state() -> &'static TraceState {
             in_flight: Mutex::new(None),
             procs: Mutex::new(HashMap::new()),
             seq: AtomicU64::new(0),
+            busy_us: AtomicU64::new(0),
+            done: AtomicU64::new(0),
             watchdog_ms,
             dump_ms,
         };
@@ -130,8 +138,13 @@ pub(crate) fn on_enter(pid: u32, method: &str) -> u64 {
 pub(crate) fn on_exit(seq: u64) {
     let st = state();
     if let Ok(mut guard) = st.in_flight.lock() {
-        if guard.as_ref().map(|f| f.seq) == Some(seq) {
-            *guard = None;
+        if let Some(f) = guard.as_ref() {
+            if f.seq == seq {
+                st.busy_us
+                    .fetch_add(f.started.elapsed().as_micros() as u64, Ordering::Relaxed);
+                st.done.fetch_add(1, Ordering::Relaxed);
+                *guard = None;
+            }
         }
     }
 }
@@ -206,7 +219,18 @@ fn dump_activity(why: &str) {
         })
         .collect();
     rows.sort_by_key(|r| r.0);
-    eprintln!("[rpc-watchdog +{ms}ms] activity ({why}): {} process(es)", rows.len());
+    let busy_us = st.busy_us.load(Ordering::Relaxed);
+    let done = st.done.load(Ordering::Relaxed).max(1);
+    let wall_us = st.base.elapsed().as_micros() as u64;
+    let busy_pct = if wall_us > 0 { busy_us * 100 / wall_us } else { 0 };
+    eprintln!(
+        "[rpc-watchdog +{ms}ms] activity ({why}): {} process(es) | DISPATCH BUSY {busy_pct}% \
+         (busy={}ms wall={}ms ops={done} mean={}us/op)",
+        rows.len(),
+        busy_us / 1000,
+        wall_us / 1000,
+        busy_us / done,
+    );
     for (pid, method, idle_ms, count) in &rows {
         eprintln!("    pid={pid:<6} last={method:<28} idle={idle_ms:>7}ms ops={count}");
     }

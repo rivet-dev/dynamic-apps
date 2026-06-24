@@ -715,18 +715,30 @@ test + manual-example screenshot in `~/tmp/gui-progress/`) before the next start
     but the MapNotify thaw does not arrive until **+116s** — openbox does not get pcmanfm's window
     mapped for ~68-80s. After the thaw the paint chain is fragile/non-deterministic (one empty
     EMIT_PAINT in one run, zero in another) and the populated listing never lands before the capture.
-  - So the interior-black is NOT a GTK bug and NOT a lock/sidecar deadlock — it is **catastrophic X
-    round-trip latency under the multi-guest single sync-RPC main thread**: pcmanfm's UI construction +
-    openbox's client_manage do tens of thousands of X request/reply round-trips, each serialized through
-    the one sidecar dispatch thread, so a window that comes up in ~milliseconds natively takes ~2 MINUTES
-    here. The non-blocking poll_wait fix removed the idle-poll blocking but the request/reply round-trips
-    still serialize.
-  **THE FIX (next, now fully justified):** parallelize sync-RPC servicing so concurrent guests' X
-  round-trips don't serialize on one thread — run the dispatch off the single main thread against a
-  thread-safe kernel/socket table (or at minimum service the X-server guest's read/reply path
-  concurrently with client writes). This is the core/TCB change the M8.2 note anticipated ("improve the
-  sidecar's concurrent-guest net.poll scheduling"); validate against the M7.5 thread suite. Until then
-  the WM-managed GTK desktop is correct but ~2-min-to-first-paint, which is why the capture lands black.
+  - **CORRECTION (2026-06-23, measured — the earlier "throughput/serialization" claim here was WRONG).**
+    Added a dispatch busy-fraction metric to the M8.1 watchdog and a CPU sampler. Findings that overturn
+    the throughput theory: the sidecar **dispatch thread is 99% IDLE** (busy ≈ 0.5%, mean 12–38 µs/op),
+    so it is NOT serialization-bound. Yet the sidecar process **pegs 100–140% CPU continuously** and
+    thread count climbs to ~114. The bring-up has multi-second windows (one was **32 s**, wall 56→88s)
+    where the dispatch op-count is frozen but CPU stays pegged. The M8.1 stackdump (#3) on a guest isolate
+    during such a gap shows a thread **`RUNNING` (JIT/wasm), NOT parked on a futex**, with a **byte-for-
+    byte identical stack across 600 ms samples** (`wasm-function[13130]+0x3d` at the bottom of a fixed
+    10-deep chain). i.e. a **guest CPU busy-SPIN / livelock**, not a sidecar throughput problem and not a
+    clean futex deadlock. (in-context `fd_pwrite`/`fd_read` file I/O is handled in the guest isolate, not
+    the dispatch thread, which is why "op count frozen" coexists with pegged CPU.) So the real bug is a
+    **busy-wait inside a guest** — almost certainly a pthread/glib sync primitive that spins instead of
+    `memory.atomic.wait`-parking (the classify would say PARKED otherwise), or a guest-level poll/retry
+    loop. THE FIX is to find that spin (symbolize `[13130]`, the M8.1 "DWARF-symbolizer for fpcast'd
+    wasm" follow-up) and make it park/yield — a platform/toolchain (threaded-libc / runtime futex) fix
+    per constraint #5, NOT a sync-RPC parallelization. (Parallelizing the dispatch was a mis-diagnosis;
+    the dispatch is idle.)
+
+  **ACCEPTANCE BAR (explicit): a black/empty framebuffer is NOT acceptance.** A decorated-but-empty
+  window, a panel with no file manager, or "it would render given ~2 minutes" do NOT count. M8.6 is
+  green ONLY when a single screenshot shows the FULL live LXDE desktop working together: the openbox-
+  decorated `pcmanfm` window showing a REAL, populated VFS directory listing, AND the `lxpanel` panel
+  with its menu, AND all of it interactive — captured within a normal run, not a 5-minute timeout.
+  A precise root-cause writeup is progress, not completion; the deliverable is the rendered desktop.
 
 - **M8.1 (original framing). 🟡 core deliverable DONE; rest build-on-demand.** The only
   guest-visible probes today are synchronous host calls that *perturb the race they measure*; build
