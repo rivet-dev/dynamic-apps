@@ -237,13 +237,17 @@ thunar_path_entry_init (ThunarPathEntry *path_entry)
   path_entry->working_directory = NULL;
 
   /* allocate a new entry completion for the given model */
+  g_printerr ("TWDBG: PE_0 path_entry_init enter; gtk_entry_completion_new...\n");
   completion = gtk_entry_completion_new ();
+  g_printerr ("TWDBG: PE_A completion_new done\n");
   gtk_entry_completion_set_popup_single_match (completion, FALSE);
   gtk_entry_completion_set_match_func (completion, thunar_path_entry_match_func, path_entry, NULL);
   g_signal_connect (G_OBJECT (completion), "match-selected", G_CALLBACK (thunar_path_entry_match_selected), path_entry);
 
   /* add the icon renderer to the entry completion */
+  g_printerr ("TWDBG: PE_B icon_renderer g_object_new...\n");
   renderer = g_object_new (THUNAR_TYPE_ICON_RENDERER, "size", 16, NULL);
+  g_printerr ("TWDBG: PE_Bd icon_renderer done\n");
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion), renderer, FALSE);
   gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion), renderer, "file", THUNAR_COLUMN_FILE);
 
@@ -253,7 +257,9 @@ thunar_path_entry_init (ThunarPathEntry *path_entry)
   gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion), renderer, "text", THUNAR_COLUMN_NAME);
 
   /* allocate a new list mode for the completion */
+  g_printerr ("TWDBG: PE_C thunar_list_model_new...\n");
   store = thunar_list_model_new ();
+  g_printerr ("TWDBG: PE_Cd list_model_new done\n");
   thunar_list_model_set_show_hidden (store, TRUE);
   thunar_list_model_set_folders_first (store, TRUE);
   gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (store), THUNAR_COLUMN_FILE_NAME, GTK_SORT_ASCENDING);

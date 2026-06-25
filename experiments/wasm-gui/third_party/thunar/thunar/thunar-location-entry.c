@@ -175,7 +175,9 @@ thunar_location_entry_init (ThunarLocationEntry *location_entry)
   gtk_box_set_spacing (GTK_BOX (location_entry), 0);
   gtk_orientable_set_orientation (GTK_ORIENTABLE (location_entry), GTK_ORIENTATION_HORIZONTAL);
 
+  g_printerr ("TWDBG: PE1 thunar_path_entry_new...\n");
   location_entry->path_entry = thunar_path_entry_new ();
+  g_printerr ("TWDBG: PE2 path_entry created\n");
   g_object_bind_property (G_OBJECT (location_entry), "current-directory",
                           G_OBJECT (location_entry->path_entry), "current-file",
                           G_BINDING_SYNC_CREATE);
