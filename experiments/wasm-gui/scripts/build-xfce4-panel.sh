@@ -67,7 +67,7 @@ make -j4 -C common LDFLAGS="$LINK0" >> /tmp/make-xfce4-panel.log 2>&1
 # TypeModule plugins, xfce_panel_module_construct for simple ones) is the SAME across plugins, so we
 # rebuild each plugin .o with a per-plugin compile-time rename (-D<entry>=<name>_module_entry) and map
 # it in the table. The panel + plugins stay UNMODIFIED upstream. Format: "name:entry_symbol".
-STATIC_PLUGINS="${STATIC_PLUGINS:-separator:xfce_panel_module_init}"
+STATIC_PLUGINS="${STATIC_PLUGINS:-separator:xfce_panel_module_init clock:xfce_panel_module_init tasklist:xfce_panel_module_init systray:xfce_panel_module_init}"
 PLUGIN_OBJS=""
 GENC="$EXP/toolchain/gmodule-plugins.gen.c"
 {

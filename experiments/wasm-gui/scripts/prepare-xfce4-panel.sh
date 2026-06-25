@@ -12,7 +12,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 OUT="${1:-/tmp/vmxfce4panel}"
-PLUGINS="${PLUGINS:-separator}"
+PLUGINS="${PLUGINS:-clock tasklist systray separator}"
 PREFIX="$EXP/third_party/wasm-prefix-threads"
 LIBDIR="$PREFIX/lib/xfce4"                 # panel LIBDIR = $(libdir)/xfce4
 SODIR="$OUT$LIBDIR/panel/plugins"          # PANEL_PLUGINS_LIB_DIR = LIBDIR/panel/plugins
