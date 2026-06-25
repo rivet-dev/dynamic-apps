@@ -325,9 +325,17 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
       render invisible, **cairo→depth-1(A1)-bitmap rendering produces EMPTY masks in the wasm cairo build**
       → every decoration window is shaped away → invisible (black root shows through). openbox/twm draw
       rectangular decorations directly and never shape, so they work.
-    - NEXT (constraint #5, platform layer): a cairo-to-A1 test client to confirm, then fix the wasm cairo
-      build's A1/depth-1 xlib-surface (pixman A1) rendering. xfwm4 stays UNMODIFIED. Proof
-      `~/tmp/gui-progress/2026-06-25T01/xu2-{diag-bgpixmap-works,diag-shape-works}.png` + `rootcause-diagnosis.txt`.
+    - **✓ CONFIRMED (2026-06-25 iter3) via the `rootcolor.c` discriminator:** painting the X root MAGENTA
+      then running the full stack, the titlebar band + left border around the managed window show **MAGENTA
+      (root) not black** → the decoration windows are **SHAPED AWAY to nothing** (empty mask), NOT painted
+      black. So cairo→depth-1(A1) rendering is a NO-OP in the wasm build (the A1 XRender format exists —
+      rfmt-probe — and core-X masks work — bgpixmap-test — so the gap is specifically the **cairo→A1 path**,
+      likely the XRender PictOpSrc-to-A1-picture that cairo emits for mask draws). (`cairomask-test.c` is
+      confounded — cairo crashes on first use in a minimal non-GTK binary — so the discriminator is authoritative.)
+    - NEXT (constraint #5, platform layer): fix the wasm cairo A1/depth-1 xlib-surface rendering OR the wasm
+      Xvfb XRender-A1 compositing path cairo emits; re-run `test-xu2-xfwm4.sh` → the Greybird titlebar should
+      appear. xfwm4 stays UNMODIFIED. Repro tools `guest-xclient/{rootcolor,bgpixmap-test,rfmt-probe}.c`. Proof
+      `~/tmp/gui-progress/2026-06-25T01/xu2-CONFIRMED-decorations-shaped-away.png` + `xu2-confirmed-rootcause.txt`.
     - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
       → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
 - **XU3 — xfce4-panel + whiskermenu.** ⬜ The panel renders with the Whisker app menu, taskbar, clock,
