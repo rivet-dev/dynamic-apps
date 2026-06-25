@@ -6214,6 +6214,179 @@ ykAheWCsAteSEWVc0w==\n\
             configure_vm_passes_resource_read_limits_to_module_access_mounts();
         }
 
+        // Regression guard for the read-side shadow-walk fix.
+        //
+        // Every read-side guest fs op (Exists/Stat/Lstat/ReadFile) reconciles the host
+        // shadow tree into the kernel VFS first. The reconciliation walks the whole tree
+        // from `vm.cwd`, but it must now SKIP files the kernel already holds an identical
+        // copy of (same size/mode/mtime) instead of unconditionally re-reading every
+        // file's bytes and re-writing them into the kernel. Without the skip a single
+        // `exists("/anything")` costs O(whole tree) and is super-linear as the shadow
+        // grows -- the session-creation/runtime latency this fixes.
+        //
+        // We prove two things:
+        //   1. A warm read op over an UNCHANGED tree is far cheaper than the first
+        //      (cold) one, i.e. unchanged files are skipped, not re-copied.
+        //   2. The skip is self-correcting: after a file's content changes, a read still
+        //      observes the new bytes (no stale skip).
+        fn read_side_ops_skip_unchanged_shadow_files_repro() {
+            use std::time::{Duration, Instant};
+
+            fn fs_payload(
+                operation: GuestFilesystemOperation,
+                path: &str,
+                content: Option<String>,
+            ) -> RequestPayload {
+                RequestPayload::GuestFilesystemCall(GuestFilesystemCallRequest {
+                    operation,
+                    path: String::from(path),
+                    destination_path: None,
+                    target: None,
+                    content,
+                    encoding: Some(RootFilesystemEntryEncoding::Utf8),
+                    recursive: true,
+                    mode: None,
+                    uid: None,
+                    gid: None,
+                    atime_ms: None,
+                    mtime_ms: None,
+                    len: None,
+                    offset: None,
+                })
+            }
+
+            fn dispatch(
+                sidecar: &mut NativeSidecar<RecordingBridge>,
+                ownership: &OwnershipScope,
+                next_id: &mut i64,
+                payload: RequestPayload,
+            ) -> ResponsePayload {
+                *next_id += 1;
+                sidecar
+                    .dispatch_blocking(request(*next_id, ownership.clone(), payload))
+                    .expect("dispatch guest fs op")
+                    .response
+                    .payload
+            }
+
+            // Seed flat files `from..to` via guest WriteFile (mirrors into the host
+            // shadow root). Write-side ops do not walk, so seeding is O(count).
+            fn seed_to(
+                sidecar: &mut NativeSidecar<RecordingBridge>,
+                ownership: &OwnershipScope,
+                next_id: &mut i64,
+                body: &str,
+                from: usize,
+                to: usize,
+            ) {
+                for i in from..to {
+                    let path = format!("/seed-{i:05}.txt");
+                    let payload = fs_payload(
+                        GuestFilesystemOperation::WriteFile,
+                        &path,
+                        Some(String::from(body)),
+                    );
+                    match dispatch(sidecar, ownership, next_id, payload) {
+                        ResponsePayload::GuestFilesystemResult(_) => {}
+                        other => panic!("seed write failed: {other:?}"),
+                    }
+                }
+            }
+
+            fn time_exists(
+                sidecar: &mut NativeSidecar<RecordingBridge>,
+                ownership: &OwnershipScope,
+                next_id: &mut i64,
+            ) -> Duration {
+                let payload = fs_payload(GuestFilesystemOperation::Exists, "/zzz-not-here", None);
+                let start = Instant::now();
+                match dispatch(sidecar, ownership, next_id, payload) {
+                    ResponsePayload::GuestFilesystemResult(r) => assert_eq!(r.exists, Some(false)),
+                    other => panic!("exists failed: {other:?}"),
+                }
+                start.elapsed()
+            }
+
+            let mut sidecar = create_test_sidecar();
+            let (connection_id, session_id) =
+                authenticate_and_open_session(&mut sidecar).expect("authenticate and open session");
+            let vm_id = create_vm(
+                &mut sidecar,
+                &connection_id,
+                &session_id,
+                PermissionsPolicy::allow_all(),
+            )
+            .expect("create vm");
+            let ownership = OwnershipScope::vm(&connection_id, &session_id, &vm_id);
+            let mut next_id: i64 = 1000;
+
+            let file_body = "a".repeat(8 * 1024);
+            const COUNT: usize = 800;
+            seed_to(&mut sidecar, &ownership, &mut next_id, &file_body, 0, COUNT);
+
+            // Cold: first read op reconciles the whole tree (reads + writes every file).
+            let cold = time_exists(&mut sidecar, &ownership, &mut next_id);
+            // Warm: tree is unchanged, so every file must be skipped.
+            let warm = time_exists(&mut sidecar, &ownership, &mut next_id);
+
+            eprintln!("[shadow-skip] cold={cold:?} warm={warm:?}");
+
+            // Symptom-1 guard: the warm walk skips unchanged files, so it is far cheaper
+            // than the cold walk that copied them all. (Lenient 4x; observed >>10x.)
+            assert!(
+                cold >= warm * 4,
+                "warm read op over an unchanged shadow tree should skip re-copying files: \
+                 cold={cold:?} warm={warm:?}"
+            );
+
+            // End-to-end smoke: overwrite a seeded file (different length) then read it
+            // back and observe the new bytes. NOTE: this is a guest WriteFile, which
+            // updates the kernel directly, so it does not exercise the host-shadow->kernel
+            // skip predicate itself -- it only guards that overwrite-then-read is coherent.
+            // A true stale-skip test (host-side rewrite that keeps size+mode+mtime) is not
+            // reachable through the public wire API and would need an in-crate unit test
+            // with direct shadow-root access; see the skip-limitation note in
+            // sync_host_directory_tree_to_kernel_inner.
+            let changed_path = "/seed-00042.txt";
+            let new_body = "b".repeat(16 * 1024);
+            match dispatch(
+                &mut sidecar,
+                &ownership,
+                &mut next_id,
+                fs_payload(
+                    GuestFilesystemOperation::WriteFile,
+                    changed_path,
+                    Some(new_body.clone()),
+                ),
+            ) {
+                ResponsePayload::GuestFilesystemResult(_) => {}
+                other => panic!("overwrite failed: {other:?}"),
+            }
+            match dispatch(
+                &mut sidecar,
+                &ownership,
+                &mut next_id,
+                fs_payload(GuestFilesystemOperation::ReadFile, changed_path, None),
+            ) {
+                ResponsePayload::GuestFilesystemResult(r) => {
+                    assert_eq!(
+                        r.content.as_deref(),
+                        Some(new_body.as_str()),
+                        "changed shadow file must not be served stale by the skip"
+                    );
+                }
+                other => panic!("read after overwrite failed: {other:?}"),
+            }
+        }
+
+        // Expensive: seeds hundreds of files and pays one cold full-tree reconciliation
+        // (seconds in debug). Gated out of the default suite; run with `--ignored`.
+        #[test]
+        #[ignore = "expensive: cold shadow-tree reconciliation; run with --ignored"]
+        fn read_side_ops_skip_unchanged_shadow_files() {
+            read_side_ops_skip_unchanged_shadow_files_repro();
+        }
+
         fn configure_vm_rejects_module_access_root_symlink_to_non_node_modules() {
             let module_access_cwd = temp_dir("secure-exec-sidecar-module-access-symlink-cwd");
             let outside_root = temp_dir("secure-exec-sidecar-module-access-outside");

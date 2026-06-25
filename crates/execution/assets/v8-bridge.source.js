@@ -10127,6 +10127,18 @@ var __bridge = (() => {
   var secureExecUndiciDispatcher = null;
   function createSecureExecUndiciDispatcher() {
     return new UndiciAgent({
+      // Bound the per-origin connection pool. With an unbounded pool, requests that
+      // overlap while the pool's clients are still connecting each find every client
+      // marked kNeedDrain and spawn a brand-new Client+socket (HTTP/2: a whole new
+      // session) instead of reusing one -- and the bridge's synchronous socket reads
+      // widen that connect window. Over a long, many-call turn (e.g. an LLM agent flow)
+      // those abandoned clients accumulate their listener sets (connect/close/drain/
+      // error/finish/readable/end/terminated) without bound, tripping
+      // MaxListenersExceededWarning and degrading the HTTP/2 path until requests abort.
+      // Capping connections makes excess requests queue on existing clients (HTTP/2
+      // multiplexes within one), so sockets/sessions/listeners stay bounded. 6 mirrors
+      // the browser per-origin connection limit; HTTP/2 multiplexes within each.
+      connections: 6,
       connect(options, callback) {
         try {
           let protocol = options?.protocol === "https:" || options?.protocol === "https" ? "https:" : "http:";
@@ -21809,6 +21821,15 @@ ${headerLines}\r
     }
     if (!(target._maxListenersWarned instanceof Set)) {
       target._maxListenersWarned = /* @__PURE__ */ new Set();
+    }
+    // An emitter can acquire `_events` without going through our constructor (e.g.
+    // a subclass that sets up its own event storage). If `_maxListeners` was never
+    // initialized, `maybeWarnEventEmitterListeners` would treat `total <= undefined`
+    // as false and fire a spurious MaxListenersExceededWarning on the *first*
+    // listener (reported count "1"). Default it to the standard limit so the
+    // threshold check is meaningful.
+    if (typeof target._maxListeners !== "number") {
+      target._maxListeners = eventsDefaultMaxListeners;
     }
   }
   function createMaxListenersExceededWarning(emitter, event, total) {

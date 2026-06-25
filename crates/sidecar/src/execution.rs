@@ -8171,6 +8171,36 @@ fn sync_host_directory_tree_to_kernel_inner(
                     )
                 });
             let desired_mode = host_shadow_mode(&metadata);
+            // Fast path: skip the expensive re-read + re-write when the kernel already
+            // holds a copy of this shadow file that matches on size, mode, and mtime.
+            //
+            // Every read-side fs op (exists/stat/readFile/...) triggers a full
+            // shadow-tree reconciliation walk. Without this skip the walk re-reads every
+            // file's bytes from the host and re-writes them into the kernel VFS on every
+            // op -- O(whole tree) per op, and super-linear as the VM's shadow grows,
+            // which is a dominant source of session-creation/runtime latency on
+            // populated VMs.
+            //
+            // This is a (size, mode, mtime) quick-check, the same heuristic rsync uses
+            // by default. It needs no separate cache to invalidate -- it compares against
+            // the kernel's own stat, so a kernel reset (e.g. a layer swap) or any host
+            // change that moves size/mode/mtime forces a resync. Limitation: mtime is
+            // compared at the millisecond granularity the kernel stores (utimes truncates
+            // to ms), so a host-side rewrite that preserves byte length AND mode AND lands
+            // in the same wall-clock millisecond can be skipped and leave stale bytes.
+            // That window is sub-millisecond same-length edits; if it ever matters here,
+            // upgrade this to a content digest (or full-precision mtime) for files whose
+            // mtime is within the last few ms of `now`.
+            if let Ok(existing) = vm.kernel.lstat(&guest_path) {
+                if !existing.is_directory
+                    && !existing.is_symbolic_link
+                    && existing.size == metadata.len()
+                    && (existing.mode & 0o7777) == (desired_mode & 0o7777)
+                    && existing.mtime_ms == mtime_ms
+                {
+                    continue;
+                }
+            }
             let bytes = read_host_shadow_file(&host_path, desired_mode).map_err(|error| {
                 SidecarError::Io(format!(
                     "failed to read host shadow file {}: {error}",
