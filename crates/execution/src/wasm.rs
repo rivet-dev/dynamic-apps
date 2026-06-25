@@ -3133,6 +3133,13 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsWasiModule =
         return {{ error: __agentOsWasiErrnoBadf }};
       }}
       const target = this._readString(pathPtr, pathLen);
+      // POSIX: an empty path is ENOENT. wasi path_* has no AT_EMPTY_PATH, so an empty relative path must
+      // NOT resolve to the directory itself. Without this guard, "" normalizes to base.guestPath (the dir),
+      // so open("")/stat("") succeed on a directory -- e.g. gtk_image_new_from_file("") -> gdk_pixbuf opens
+      // the root dir and hangs parsing it as an image (the Thunar window never builds).
+      if (target.length === 0) {{
+        return {{ error: __agentOsWasiErrnoNoent }};
+      }}
       const base = this._descriptorPathBase(entry, target);
       if (!base || typeof base.guestPath !== "string") {{
         return {{ error: __agentOsWasiErrnoBadf }};
