@@ -57,16 +57,18 @@ EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"
 # to satisfy those references (libtool rejects a raw .o; -Wl,-u,errno got mangled).
 ERRNOO="$EXP/toolchain/libc-errno.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$WSDK/share/wasi-sysroot/lib/$WASMSUB/libc.a" errno.o 2>/dev/null && mv -f errno.o "$ERRNOO" )
+rm -f "$PREFIX/lib/libwasmshims.a"   # rebuild fresh (ar rcs only updates; a stale __init_tls member breaks the link)
 "$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libwasmshims.a" "$VFSSHIM" "$EMPTYSHIM" "$ERRNOO"
 # NOTE: this errno.o force-bundle makes the link succeed, but it stops libc.a's crt from archive-pulling
-# __init_tls.o, so __wasi_init_tp stays an undefined import -> instantiation LinkError (the render blocker).
-# Bundling __init_tls.o instead duplicates it. The clean fix (next): pull errno from libc.a WITHOUT
-# suppressing the crt TLS init (a correctly-passed -u errno, or providing __wasi_init_tp in the runtime).
+# __init_tls.o -> __wasi_init_tp stays an undefined import -> instantiation LinkError (the render blocker).
+# Bundling __init_tls.o instead fails with its own TLS reloc error. Clean fix (next): drop the bundle +
+# replace -Wl,--allow-undefined with -Wl,--allow-undefined-file=<host-imports> so errno + __wasi_init_tp
+# are resolved from libc.a (pulled) rather than imported, keeping the crt TLS chain intact.
 # gtksourceview-4 + its libxml2 dep, then the GTK/X stack.
 GTKTRANS="-lwasmshims -lgtksourceview-4 -lxml2 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
 # -Wl,-u,errno force-pulls libc.a's TLS errno.o definition; otherwise --allow-undefined synthesizes
 # errno in non-TLS .bss and gtk/gtksourceview's TLS errno relocs (R_WASM_MEMORY_ADDR_TLS_SLEB) fail.
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,-u,errno -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
 echo "== building mousepad binary =="
 rm -f "$SRC/mousepad/mousepad"
 make -j4 -C mousepad LDFLAGS="$LINK" LIBS="$GTKTRANS $SETJMP" >> /tmp/make-mousepad.log 2>&1
