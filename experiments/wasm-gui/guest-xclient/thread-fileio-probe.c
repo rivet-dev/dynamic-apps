@@ -18,12 +18,27 @@ static gpointer thread_func(gpointer data) {
    * the deeper root is stat-in-worker; if it completes, the root is the content-type/getxattr path. */
   /* Bisect the query_info trap: first a RAW lstat (vs the fstat that g_file_get_contents used + worked),
    * then g_file_query_info. Whichever traps is the culprit. */
-  struct stat st;
-  g_printerr("PROBE: raw lstat(%s)...\n", path);
-  int lr = lstat(path, &st);
-  g_printerr("PROBE: ***raw lstat returned*** rc=%d size=%ld mode=%o (lstat works in this context)\n", lr, (long) st.st_size, (unsigned) st.st_mode);
-  g_printerr("PROBE: now g_file_query_info(standard::type)...\n");
+  /* Bisect inside query_info: test each building block in isolation. */
+  g_printerr("PROBE: B1 g_file_attribute_matcher_new(standard::type)...\n");
+  GFileAttributeMatcher *m = g_file_attribute_matcher_new("standard::type");
+  g_printerr("PROBE: B1 OK matcher=%p\n", (void*) m);
+  g_file_attribute_matcher_unref(m);
+  g_printerr("PROBE: B2 g_file_info_new()...\n");
+  GFileInfo *ni = g_file_info_new();
+  g_printerr("PROBE: B2 OK info=%p; set name attr...\n", (void*) ni);
+  g_file_info_set_attribute_uint32(ni, "standard::type", 1);
+  g_printerr("PROBE: B2b OK set_attribute worked\n");
+  g_object_unref(ni);
+  g_printerr("PROBE: B3a g_file_new_for_path...\n");
   GFile *f = g_file_new_for_path(path);
+  g_printerr("PROBE: B3a OK file=%p is_file=%d type=%s\n", (void*) f, G_IS_FILE(f), f ? G_OBJECT_TYPE_NAME(f) : "(null)");
+  g_printerr("PROBE: B3b g_file_get_path (GFile iface vfunc dispatch)...\n");
+  char *gp = g_file_get_path(f);
+  g_printerr("PROBE: B3b OK path=%s\n", gp ? gp : "(null)"); g_free(gp);
+  g_printerr("PROBE: B3c g_file_get_uri (another GFile iface vfunc)...\n");
+  char *uri = g_file_get_uri(f);
+  g_printerr("PROBE: B3c OK uri=%s\n", uri ? uri : "(null)"); g_free(uri);
+  g_printerr("PROBE: B4 g_file_query_info(standard::type) [the trap]...\n");
   GError *err = NULL;
   GFileInfo *info = g_file_query_info(f, "standard::type", 0, NULL, &err);
   g_printerr("PROBE: ***query_info returned*** info=%p err=%s\n", (void*) info, err ? err->message : "(none)");
