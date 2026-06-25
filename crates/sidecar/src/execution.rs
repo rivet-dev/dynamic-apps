@@ -3198,7 +3198,15 @@ where
                 (ActiveExecution::Javascript(execution), env.clone())
             }
             GuestRuntimeKind::Python => {
-                let python_file_path = python_file_entrypoint(&resolved.entrypoint);
+                // The `python` command path (marked by AGENTOS_PYTHON_ARGV) is
+                // explicit about file mode via AGENTOS_PYTHON_FILE, so a `-c` code
+                // string that happens to end in `.py` is never mistaken for a path.
+                // The low-level execute API keeps the `.py`-suffix heuristic.
+                let python_file_path = if resolved.env.contains_key("AGENTOS_PYTHON_ARGV") {
+                    resolved.env.get("AGENTOS_PYTHON_FILE").map(PathBuf::from)
+                } else {
+                    python_file_entrypoint(&resolved.entrypoint)
+                };
                 let pyodide_dist_path = self
                     .python_engine
                     .bundled_pyodide_dist_path_for_vm(&vm_id)
@@ -4664,7 +4672,10 @@ where
             | PythonVfsRpcMethod::Write
             | PythonVfsRpcMethod::Stat
             | PythonVfsRpcMethod::ReadDir
-            | PythonVfsRpcMethod::Mkdir => {
+            | PythonVfsRpcMethod::Mkdir
+            | PythonVfsRpcMethod::Unlink
+            | PythonVfsRpcMethod::Rmdir
+            | PythonVfsRpcMethod::Rename => {
                 filesystem_handle_python_vfs_rpc_request(self, vm_id, process_id, request)
             }
             PythonVfsRpcMethod::HttpRequest => {
@@ -5272,10 +5283,15 @@ where
             });
         }
 
-        if command == PYTHON_COMMAND {
-            return Err(SidecarError::InvalidState(String::from(
-                "nested python child_process execution is not supported yet",
-            )));
+        if is_python_runtime_command(&command) {
+            return resolve_python_command_execution(
+                vm,
+                &command,
+                &process_args,
+                env,
+                guest_cwd,
+                host_cwd,
+            );
         }
 
         let guest_entrypoint = resolve_guest_command_entrypoint(
@@ -5432,9 +5448,7 @@ where
             let kernel_command = match resolved.runtime {
                 GuestRuntimeKind::JavaScript => JAVASCRIPT_COMMAND,
                 GuestRuntimeKind::WebAssembly => WASM_COMMAND,
-                GuestRuntimeKind::Python => {
-                    unreachable!("python child_process execution is rejected")
-                }
+                GuestRuntimeKind::Python => PYTHON_COMMAND,
             };
             let kernel_handle = vm
                 .kernel
@@ -5551,7 +5565,75 @@ where
                     ActiveExecution::Wasm(Box::new(execution))
                 }
                 GuestRuntimeKind::Python => {
-                    unreachable!("python child_process execution is rejected")
+                    // Nested `python` child_process: set up the Pyodide context the
+                    // same way the top-level execute path does, so a guest shell or
+                    // node parent can spawn `python` exactly like `node`.
+                    let python_file_path = if execution_env.contains_key("AGENTOS_PYTHON_ARGV") {
+                        execution_env.get("AGENTOS_PYTHON_FILE").map(PathBuf::from)
+                    } else {
+                        python_file_entrypoint(&resolved.entrypoint)
+                    };
+                    let pyodide_dist_path = self
+                        .python_engine
+                        .bundled_pyodide_dist_path_for_vm(vm_id)
+                        .map_err(python_error)?;
+                    let pyodide_cache_path = pyodide_dist_path
+                        .parent()
+                        .and_then(Path::parent)
+                        .unwrap_or(pyodide_dist_path.as_path())
+                        .join("pyodide-package-cache");
+                    add_runtime_guest_path_mapping(
+                        &mut execution_env,
+                        PYTHON_PYODIDE_GUEST_ROOT,
+                        &pyodide_dist_path,
+                    );
+                    add_runtime_guest_path_mapping(
+                        &mut execution_env,
+                        PYTHON_PYODIDE_CACHE_GUEST_ROOT,
+                        &pyodide_cache_path,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_READ_PATHS",
+                        &pyodide_dist_path,
+                        true,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_READ_PATHS",
+                        &pyodide_cache_path,
+                        true,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_WRITE_PATHS",
+                        &pyodide_cache_path,
+                        false,
+                    );
+                    let context = self
+                        .python_engine
+                        .create_context(CreatePythonContextRequest {
+                            vm_id: vm_id.to_owned(),
+                            pyodide_dist_path,
+                        });
+                    let execution = self
+                        .python_engine
+                        .start_execution(StartPythonExecutionRequest {
+                            vm_id: vm_id.to_owned(),
+                            context_id: context.context_id,
+                            code: resolved.entrypoint.clone(),
+                            file_path: python_file_path,
+                            env: execution_env,
+                            cwd: resolved.host_cwd.clone(),
+                            limits: python_execution_limits(vm),
+                            guest_runtime: guest_runtime_identity(
+                                vm,
+                                Some(u64::from(kernel_pid)),
+                                Some(u64::from(parent_kernel_pid)),
+                            ),
+                        })
+                        .map_err(python_error)?;
+                    ActiveExecution::Python(execution)
                 }
             };
             let kernel_stdin_writer_fd = match javascript_child_process_stdin_mode(&request) {
@@ -5832,9 +5914,7 @@ where
             let kernel_command = match resolved.runtime {
                 GuestRuntimeKind::JavaScript => JAVASCRIPT_COMMAND,
                 GuestRuntimeKind::WebAssembly => WASM_COMMAND,
-                GuestRuntimeKind::Python => {
-                    unreachable!("python child_process execution is rejected")
-                }
+                GuestRuntimeKind::Python => PYTHON_COMMAND,
             };
             let kernel_handle = vm
                 .kernel
@@ -5950,7 +6030,75 @@ where
                     ActiveExecution::Wasm(Box::new(execution))
                 }
                 GuestRuntimeKind::Python => {
-                    unreachable!("python child_process execution is rejected")
+                    // Nested `python` child_process: set up the Pyodide context the
+                    // same way the top-level execute path does, so a guest shell or
+                    // node parent can spawn `python` exactly like `node`.
+                    let python_file_path = if execution_env.contains_key("AGENTOS_PYTHON_ARGV") {
+                        execution_env.get("AGENTOS_PYTHON_FILE").map(PathBuf::from)
+                    } else {
+                        python_file_entrypoint(&resolved.entrypoint)
+                    };
+                    let pyodide_dist_path = self
+                        .python_engine
+                        .bundled_pyodide_dist_path_for_vm(vm_id)
+                        .map_err(python_error)?;
+                    let pyodide_cache_path = pyodide_dist_path
+                        .parent()
+                        .and_then(Path::parent)
+                        .unwrap_or(pyodide_dist_path.as_path())
+                        .join("pyodide-package-cache");
+                    add_runtime_guest_path_mapping(
+                        &mut execution_env,
+                        PYTHON_PYODIDE_GUEST_ROOT,
+                        &pyodide_dist_path,
+                    );
+                    add_runtime_guest_path_mapping(
+                        &mut execution_env,
+                        PYTHON_PYODIDE_CACHE_GUEST_ROOT,
+                        &pyodide_cache_path,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_READ_PATHS",
+                        &pyodide_dist_path,
+                        true,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_READ_PATHS",
+                        &pyodide_cache_path,
+                        true,
+                    );
+                    add_runtime_host_access_path(
+                        &mut execution_env,
+                        "AGENTOS_EXTRA_FS_WRITE_PATHS",
+                        &pyodide_cache_path,
+                        false,
+                    );
+                    let context = self
+                        .python_engine
+                        .create_context(CreatePythonContextRequest {
+                            vm_id: vm_id.to_owned(),
+                            pyodide_dist_path,
+                        });
+                    let execution = self
+                        .python_engine
+                        .start_execution(StartPythonExecutionRequest {
+                            vm_id: vm_id.to_owned(),
+                            context_id: context.context_id,
+                            code: resolved.entrypoint.clone(),
+                            file_path: python_file_path,
+                            env: execution_env,
+                            cwd: resolved.host_cwd.clone(),
+                            limits: python_execution_limits(vm),
+                            guest_runtime: guest_runtime_identity(
+                                vm,
+                                Some(u64::from(kernel_pid)),
+                                Some(u64::from(parent_kernel_pid)),
+                            ),
+                        })
+                        .map_err(python_error)?;
+                    ActiveExecution::Python(execution)
                 }
             };
             let kernel_stdin_writer_fd = match javascript_child_process_stdin_mode(&request) {
@@ -6594,10 +6742,35 @@ where
                         return Ok(event);
                     }
                 }
-                ActiveExecutionEvent::PythonVfsRpcRequest(_) => {
-                    return Err(SidecarError::InvalidState(String::from(
-                        "nested Python child_process execution is not supported yet",
-                    )));
+                ActiveExecutionEvent::PythonVfsRpcRequest(request) => {
+                    // The kernel-VFS bridge is wired for top-level Python
+                    // executions; a nested Python child (spawned by a JS/Python
+                    // parent) cannot service VFS RPCs through this child-event
+                    // path. Respond with a recoverable error instead of aborting
+                    // the child, so its runner falls back to the in-isolate FS
+                    // for the nested process — top-level Python keeps the full
+                    // VFS root.
+                    let Some(vm) = self.vms.get_mut(vm_id) else {
+                        return Ok(Value::Null);
+                    };
+                    let Some(parent) =
+                        Self::descendant_parent_process_mut(vm, process_id, current_process_path)
+                    else {
+                        return Ok(Value::Null);
+                    };
+                    let Some(child) = parent.child_processes.get_mut(child_process_id) else {
+                        return Ok(Value::Null);
+                    };
+                    // Best-effort: deliver the "unavailable" error so the child's
+                    // pending VFS RPC resolves and its runner falls back to the
+                    // in-isolate FS. If delivery fails the child has already gone
+                    // away (broken pipe / no-longer-pending), so dropping the
+                    // result is correct here — there is nothing left to hang.
+                    let _ = child.execution.respond_python_vfs_rpc_error(
+                        request.id,
+                        "ERR_AGENTOS_PYTHON_VFS_UNAVAILABLE",
+                        "python VFS is not available for nested child processes",
+                    );
                 }
                 ActiveExecutionEvent::SignalState {
                     signal,
@@ -7575,6 +7748,10 @@ fn resolve_command_execution(
         });
     }
 
+    if is_python_runtime_command(command) {
+        return resolve_python_command_execution(vm, command, &args, env, guest_cwd, host_cwd);
+    }
+
     if is_node_runtime_command(command) {
         if let Some(cli) = resolve_host_node_cli_entrypoint(command) {
             env.insert(
@@ -8520,6 +8697,142 @@ fn is_node_runtime_command(command: &str) -> bool {
             .file_name()
             .and_then(|name| name.to_str())
             .is_some_and(|name| matches!(name, "node" | "npm" | "npx"))
+}
+
+fn python_command_base_name(command: &str) -> &str {
+    Path::new(command)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(command)
+}
+
+/// `python` / `python3` (and `pip` / `pip3`, which map to `python -m pip`) are
+/// served by the embedded Pyodide runtime, mirroring how `node` is served by the
+/// embedded V8 runtime.
+fn is_python_runtime_command(command: &str) -> bool {
+    matches!(
+        python_command_base_name(command),
+        "python" | "python3" | "pip" | "pip3"
+    )
+}
+
+/// Parse a `python` / `pip` command line into a Pyodide execution. Supports the
+/// CPython program selectors `-c CODE`, `-m MODULE`, a `SCRIPT` path, `-` /
+/// piped stdin programs, and a bare interpreter (interactive REPL). The chosen
+/// mode plus `sys.argv` are forwarded to the runner as `AGENTOS_PYTHON_*` control
+/// env, which the runner consumes and never exposes in the guest `os.environ`.
+fn resolve_python_command_execution(
+    vm: &VmState,
+    command: &str,
+    args: &[String],
+    mut env: BTreeMap<String, String>,
+    guest_cwd: String,
+    host_cwd: PathBuf,
+) -> Result<ResolvedChildProcessExecution, SidecarError> {
+    let base_name = python_command_base_name(command);
+    let is_pip = matches!(base_name, "pip" | "pip3");
+
+    let mut entrypoint = String::new();
+    let mut argv: Vec<String> = Vec::new();
+    let mut module: Option<String> = None;
+    let mut stdin_program = false;
+    let mut interactive = false;
+    let mut guest_entrypoint: Option<String> = None;
+
+    if is_pip {
+        module = Some(String::from("pip"));
+        argv.push(String::from("pip"));
+        argv.extend(args.iter().cloned());
+    } else {
+        // Skip the value-less interpreter flags we can safely ignore so they do
+        // not get mistaken for a script path.
+        let mut idx = 0;
+        while let Some(flag) = args.get(idx) {
+            match flag.as_str() {
+                "-B" | "-E" | "-I" | "-O" | "-OO" | "-q" | "-s" | "-S" | "-u" | "-v" | "-b"
+                | "-d" | "-x" => idx += 1,
+                _ => break,
+            }
+        }
+        let rest = &args[idx..];
+        match rest.first().map(String::as_str) {
+            Some("-c") => {
+                entrypoint = rest.get(1).cloned().ok_or_else(|| {
+                    SidecarError::InvalidState(String::from("argument expected for the -c option"))
+                })?;
+                argv.push(String::from("-c"));
+                argv.extend(rest.iter().skip(2).cloned());
+            }
+            Some("-m") => {
+                let name = rest.get(1).cloned().ok_or_else(|| {
+                    SidecarError::InvalidState(String::from("argument expected for the -m option"))
+                })?;
+                module = Some(name);
+                argv.push(String::from("-m"));
+                argv.extend(rest.iter().skip(2).cloned());
+            }
+            Some("-") => {
+                stdin_program = true;
+                argv.push(String::from("-"));
+                argv.extend(rest.iter().skip(1).cloned());
+            }
+            Some(spec) if !spec.starts_with('-') => {
+                let resolved_guest = guest_entrypoint_for_specifier(&guest_cwd, spec)
+                    .unwrap_or_else(|| spec.to_string());
+                entrypoint = resolved_guest.clone();
+                env.insert(String::from("AGENTOS_PYTHON_FILE"), resolved_guest.clone());
+                guest_entrypoint = Some(resolved_guest);
+                argv.push(spec.to_string());
+                argv.extend(rest.iter().skip(1).cloned());
+            }
+            Some(other) => {
+                return Err(SidecarError::InvalidState(format!(
+                    "unsupported python option: {other}"
+                )));
+            }
+            None => {
+                interactive = true;
+                argv.push(String::new());
+            }
+        }
+    }
+
+    env.insert(
+        String::from("AGENTOS_PYTHON_ARGV"),
+        serde_json::to_string(&argv).unwrap_or_else(|_| String::from("[]")),
+    );
+    if let Some(module) = &module {
+        env.insert(String::from("AGENTOS_PYTHON_MODULE"), module.clone());
+    }
+    if stdin_program {
+        env.insert(
+            String::from("AGENTOS_PYTHON_STDIN_PROGRAM"),
+            String::from("1"),
+        );
+    }
+    if interactive {
+        env.insert(
+            String::from("AGENTOS_PYTHON_INTERACTIVE"),
+            String::from("1"),
+        );
+    }
+
+    prepare_guest_runtime_env(vm, &mut env, &guest_cwd, &host_cwd, guest_entrypoint)?;
+
+    Ok(ResolvedChildProcessExecution {
+        command: String::from(PYTHON_COMMAND),
+        process_args: std::iter::once(command.to_owned())
+            .chain(args.iter().cloned())
+            .collect(),
+        runtime: GuestRuntimeKind::Python,
+        entrypoint,
+        execution_args: args.to_vec(),
+        env,
+        guest_cwd,
+        host_cwd,
+        wasm_permission_tier: None,
+        tool_command: false,
+    })
 }
 
 fn resolve_special_node_cli_invocation(

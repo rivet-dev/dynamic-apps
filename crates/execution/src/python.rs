@@ -50,6 +50,9 @@ pub enum PythonVfsRpcMethod {
     Stat,
     ReadDir,
     Mkdir,
+    Unlink,
+    Rmdir,
+    Rename,
     HttpRequest,
     DnsLookup,
     SubprocessRun,
@@ -63,6 +66,9 @@ impl PythonVfsRpcMethod {
             "fsStat" => Some(Self::Stat),
             "fsReaddir" => Some(Self::ReadDir),
             "fsMkdir" => Some(Self::Mkdir),
+            "fsUnlink" => Some(Self::Unlink),
+            "fsRmdir" => Some(Self::Rmdir),
+            "fsRename" => Some(Self::Rename),
             "httpRequest" => Some(Self::HttpRequest),
             "dnsLookup" => Some(Self::DnsLookup),
             "subprocessRun" => Some(Self::SubprocessRun),
@@ -76,6 +82,8 @@ pub struct PythonVfsRpcRequest {
     pub id: u64,
     pub method: PythonVfsRpcMethod,
     pub path: String,
+    /// Second path for `Rename` (the destination); `None` for other methods.
+    pub destination: Option<String>,
     pub content_base64: Option<String>,
     pub recursive: bool,
     pub url: Option<String>,
@@ -136,6 +144,8 @@ struct PythonVfsBridgeRequestWire {
     method: String,
     #[serde(default)]
     path: String,
+    #[serde(default)]
+    destination: Option<String>,
     #[serde(default)]
     content_base64: Option<String>,
     #[serde(default)]
@@ -1176,6 +1186,7 @@ fn parse_python_bridge_sync_rpc_request(
         id: request.id,
         method,
         path: wire.path,
+        destination: wire.destination,
         content_base64: wire.content_base64,
         recursive: wire.recursive,
         url: wire.url,

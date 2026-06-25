@@ -14,6 +14,10 @@ const PYODIDE_PACKAGE_CACHE_DIR_ENV = 'AGENTOS_PYODIDE_PACKAGE_CACHE_DIR';
 const PYODIDE_PACKAGE_CACHE_GUEST_ROOT = '/__agentos_pyodide_cache';
 const PYTHON_CODE_ENV = 'AGENTOS_PYTHON_CODE';
 const PYTHON_FILE_ENV = 'AGENTOS_PYTHON_FILE';
+const PYTHON_ARGV_ENV = 'AGENTOS_PYTHON_ARGV';
+const PYTHON_MODULE_ENV = 'AGENTOS_PYTHON_MODULE';
+const PYTHON_STDIN_PROGRAM_ENV = 'AGENTOS_PYTHON_STDIN_PROGRAM';
+const PYTHON_INTERACTIVE_ENV = 'AGENTOS_PYTHON_INTERACTIVE';
 const PYTHON_PREWARM_ONLY_ENV = 'AGENTOS_PYTHON_PREWARM_ONLY';
 const PYTHON_WARMUP_DEBUG_ENV = 'AGENTOS_PYTHON_WARMUP_DEBUG';
 const PYTHON_WARMUP_METRICS_PREFIX = '__AGENTOS_PYTHON_WARMUP_METRICS__:';
@@ -583,6 +587,15 @@ function createPythonBridgeRpcBridge() {
     async fsMkdir(path, options = {}) {
       this.fsMkdirSync(path, options);
     },
+    fsUnlinkSync(path) {
+      requestSync('fsUnlink', { path });
+    },
+    fsRmdirSync(path) {
+      requestSync('fsRmdir', { path });
+    },
+    fsRenameSync(path, destination) {
+      requestSync('fsRename', { path, destination });
+    },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
       try {
@@ -758,6 +771,15 @@ function createPythonFdRpcBridge() {
     },
     async fsMkdir(path, options = {}) {
       this.fsMkdirSync(path, options);
+    },
+    fsUnlinkSync(path) {
+      requestSync('fsUnlink', { path });
+    },
+    fsRmdirSync(path) {
+      requestSync('fsRmdir', { path });
+    },
+    fsRenameSync(path, destination) {
+      requestSync('fsRename', { path, destination });
     },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
@@ -1698,14 +1720,30 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       }
       return node;
     },
-    rename() {
-      throw new FS.ErrnoError(ERRNO_CODES.ENOSYS);
+    rename(oldNode, newDir, newName) {
+      const source = nodeGuestPath(oldNode);
+      const destination = joinGuestPath(nodeGuestPath(newDir), newName);
+      withFsErrors(() => bridge.fsRenameSync(source, destination));
+      // `nodeGuestPath` reads the stored path, so retarget the node before it
+      // moves in the in-memory tree; children re-derive on the next sync.
+      oldNode.agentOSGuestPath = destination;
+      memfsDirNodeOps.rename(oldNode, newDir, newName);
     },
-    unlink() {
-      throw new FS.ErrnoError(ERRNO_CODES.ENOSYS);
+    unlink(parent, name) {
+      withFsErrors(() =>
+        bridge.fsUnlinkSync(joinGuestPath(nodeGuestPath(parent), name)),
+      );
+      if (parent.contents && Object.prototype.hasOwnProperty.call(parent.contents, name)) {
+        memfsDirNodeOps.unlink(parent, name);
+      }
     },
-    rmdir() {
-      throw new FS.ErrnoError(ERRNO_CODES.ENOSYS);
+    rmdir(parent, name) {
+      withFsErrors(() =>
+        bridge.fsRmdirSync(joinGuestPath(nodeGuestPath(parent), name)),
+      );
+      if (parent.contents && Object.prototype.hasOwnProperty.call(parent.contents, name)) {
+        memfsDirNodeOps.rmdir(parent, name);
+      }
     },
     readdir(node) {
       syncDirectory(node);
@@ -1716,30 +1754,84 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     },
   };
 
-  try {
-    FS.mkdir('/workspace');
-  } catch (error) {
-    if (!(error instanceof FS.ErrnoError) || error.errno !== ERRNO_CODES.EEXIST) {
-      throw error;
+  const overlayBackend = {
+    mount(mount) {
+      const root = MEMFS.mount(mount);
+      root.agentOSGuestPath = mount.mountpoint;
+      root.agentOSDirty = false;
+      root.agentOSLoaded = true;
+      root.agentOSRemoteSize = 0;
+      root.node_ops = workspaceDirNodeOps;
+      root.stream_ops = workspaceDirStreamOps;
+      return root;
+    },
+  };
+
+  function mountVfsAt(guestPath) {
+    try {
+      FS.mkdir(guestPath);
+    } catch (error) {
+      if (!(error instanceof FS.ErrnoError) || error.errno !== ERRNO_CODES.EEXIST) {
+        throw error;
+      }
     }
+    FS.mount(overlayBackend, {}, guestPath);
   }
 
-  FS.mount(
-    {
-      mount(mount) {
-        const root = MEMFS.mount(mount);
-        root.agentOSGuestPath = mount.mountpoint;
-        root.agentOSDirty = false;
-        root.agentOSLoaded = true;
-        root.agentOSRemoteSize = 0;
-        root.node_ops = workspaceDirNodeOps;
-        root.stream_ops = workspaceDirStreamOps;
-        return root;
-      },
-    },
-    {},
-    '/workspace',
-  );
+  // Mount the kernel VFS over the VM's real top-level directories so Python sees
+  // the whole guest filesystem — `/tmp`, `/etc`, `/root`, `/usr`, … — exactly
+  // like the JS/WASM runtimes and `vm.readFile()`. Pyodide owns a handful of
+  // paths in its own in-isolate FS; keep those on MEMFS so the interpreter, its
+  // stdlib, and its devices keep working.
+  const RESERVED_ROOTS = new Set([
+    'lib',
+    'dev',
+    'proc',
+    'home',
+    '__agentos_pyodide',
+    '__agentos_pyodide_cache',
+  ]);
+  let rootEntries = [];
+  try {
+    rootEntries = bridge.fsReaddirSync('/');
+  } catch (error) {
+    // A nested Python child can't reach the kernel VFS (it gets a recoverable
+    // "unavailable" error and falls back to the in-isolate FS) — that case is
+    // expected and quiet. Any other failure means the top-level process lost the
+    // VM root, which is worth surfacing.
+    if (!/not available for nested child/.test(String(error?.message ?? error))) {
+      writeStream(
+        process.stderr,
+        `agentos: could not bridge the VM filesystem into Python (${formatError(error)}); only /workspace will be visible\n`,
+      );
+    }
+    rootEntries = [];
+  }
+  for (const name of rootEntries) {
+    if (RESERVED_ROOTS.has(name)) {
+      continue;
+    }
+    const childPath = `/${name}`;
+    let isDir = false;
+    try {
+      isDir = Boolean(bridge.fsStatSync(childPath)?.isDirectory);
+    } catch {
+      isDir = false;
+    }
+    if (!isDir) {
+      continue;
+    }
+    try {
+      mountVfsAt(childPath);
+    } catch {
+      // A path Pyodide owns or cannot shadow — skip it rather than abort boot.
+    }
+  }
+  // /workspace stays available for backward compatibility even if the VM root
+  // does not advertise it.
+  if (!rootEntries.includes('workspace')) {
+    mountVfsAt('/workspace');
+  }
 }
 
 async function readLockFileContents(indexPath, indexURL) {
@@ -1813,6 +1905,180 @@ function installPythonStdin(pyodide) {
       return readSync(STDIN_FD, buffer, 0, buffer.length, null);
     },
   });
+}
+
+function applyPythonArgv(pyodide) {
+  const argvJson = readRunnerEnv(PYTHON_ARGV_ENV);
+  if (argvJson == null) {
+    return;
+  }
+  let argv;
+  try {
+    argv = JSON.parse(argvJson);
+  } catch {
+    return;
+  }
+  if (!Array.isArray(argv)) {
+    return;
+  }
+  const normalized = argv.map((value) => String(value));
+  pyodide.globals.set('__agentos_argv', pyodide.toPy(normalized));
+  try {
+    pyodide.runPython('import sys as _agentos_sys_argv\n_agentos_sys_argv.argv = list(__agentos_argv)\ndel _agentos_sys_argv');
+  } finally {
+    pyodide.globals.delete('__agentos_argv');
+  }
+}
+
+// Drains the guest stdin stream to EOF and returns it as text. Used for
+// `python -` (and piped programs), where stdin IS the program body.
+function readProgramFromStdin() {
+  const chunks = [];
+  const CHUNK = 65536;
+  if (bridgePythonStdinRead) {
+    while (true) {
+      const response = callBridgeSync(bridgePythonStdinRead, [CHUNK, 100]);
+      if (response === PYTHON_STDIN_DONE_SENTINEL) {
+        break;
+      }
+      const dataBase64 = typeof response === 'string' ? response : '';
+      if (dataBase64.length === 0) {
+        continue;
+      }
+      chunks.push(Buffer.from(dataBase64, 'base64'));
+    }
+  } else if (bridgeKernelStdinRead) {
+    while (true) {
+      const response = callBridgeSync(bridgeKernelStdinRead, [CHUNK, 100]);
+      if (response?.done) {
+        break;
+      }
+      const dataBase64 = typeof response?.dataBase64 === 'string' ? response.dataBase64 : '';
+      if (dataBase64.length === 0) {
+        continue;
+      }
+      chunks.push(Buffer.from(dataBase64, 'base64'));
+    }
+  } else {
+    const buffer = Buffer.alloc(CHUNK);
+    while (true) {
+      let bytesRead = 0;
+      try {
+        bytesRead = readSync(STDIN_FD, buffer, 0, buffer.length, null);
+      } catch {
+        break;
+      }
+      if (bytesRead === 0) {
+        break;
+      }
+      chunks.push(Buffer.from(buffer.subarray(0, bytesRead)));
+    }
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+// A persistent, kernel-VFS-backed site-packages. The default Pyodide
+// site-packages lives in the per-process in-isolate MEMFS, so anything installed
+// there vanishes when the process exits. This directory lives on the VM
+// filesystem (via the kernel VFS), so `pip install` survives across separate
+// `python` invocations and is visible to other processes — just like a real
+// `site-packages`. It is prepended to `sys.path` on every boot.
+const PYTHON_VFS_SITE_PACKAGES = '/root/.agentos/site-packages';
+
+function installPythonVfsSitePackages(pyodide) {
+  if (typeof pyodide?.runPython !== 'function') {
+    return;
+  }
+  try {
+    pyodide.globals.set('__agentos_vfs_site', PYTHON_VFS_SITE_PACKAGES);
+    pyodide.runPython(
+      'import os as _os, sys as _sys\n' +
+        'try:\n' +
+        '    _os.makedirs(__agentos_vfs_site, exist_ok=True)\n' +
+        '    if __agentos_vfs_site not in _sys.path:\n' +
+        // Append (not prepend): the stdlib + bundled packages stay first, so
+        // hot imports resolve from the fast in-isolate FS and only genuinely
+        // pip-installed packages incur a VFS lookup, and a VFS package can't
+        // shadow the stdlib.
+        '        _sys.path.append(__agentos_vfs_site)\n' +
+        // Best-effort: if the VFS site-packages can't be created (e.g. a
+        // read-only `/root`), persistence is simply unavailable — pip still
+        // works in-process. Degrade quietly rather than spam stderr.
+        'except OSError:\n' +
+        '    pass\n' +
+        'finally:\n' +
+        '    del _os, _sys',
+    );
+  } catch (error) {
+    writeStream(process.stderr, `agentos: VFS site-packages setup failed: ${formatError(error)}\n`);
+  } finally {
+    try {
+      pyodide.globals.delete('__agentos_vfs_site');
+    } catch {}
+  }
+}
+
+// `pip` / `python -m pip`: emulate the common pip CLI via Pyodide's micropip,
+// which fetches wheels through the runner's kernel-backed fetch (so egress is
+// governed by the VM network policy, never an ambient host fetch). Installed
+// packages are copied into the persistent VFS site-packages so they survive the
+// per-process interpreter and can be imported by a later `python` invocation.
+async function runPythonPip(pyodide) {
+  pyodide.globals.set('__agentos_vfs_site', PYTHON_VFS_SITE_PACKAGES);
+  try {
+    await pyodide.runPythonAsync(`
+import os, shutil, site, sys
+_agentos_pip_args = sys.argv[1:]
+if _agentos_pip_args and _agentos_pip_args[0] == "install":
+    import micropip
+    _agentos_pip_pkgs = [a for a in _agentos_pip_args[1:] if not a.startswith("-")]
+    if not _agentos_pip_pkgs:
+        print("ERROR: You must give at least one requirement to install", file=sys.stderr)
+        sys.exit(1)
+    _agentos_sp = site.getsitepackages()[0]
+    _agentos_before = set(os.listdir(_agentos_sp)) if os.path.isdir(_agentos_sp) else set()
+    await micropip.install(_agentos_pip_pkgs)
+    # Persist whatever micropip extracted into the in-isolate site-packages into
+    # the VFS-backed site-packages so it survives this process.
+    os.makedirs(__agentos_vfs_site, exist_ok=True)
+    _agentos_after = set(os.listdir(_agentos_sp)) if os.path.isdir(_agentos_sp) else set()
+    for _agentos_name in sorted(_agentos_after - _agentos_before):
+        _agentos_src = os.path.join(_agentos_sp, _agentos_name)
+        _agentos_dst = os.path.join(__agentos_vfs_site, _agentos_name)
+        if os.path.isdir(_agentos_src):
+            shutil.copytree(_agentos_src, _agentos_dst, dirs_exist_ok=True)
+        else:
+            shutil.copy2(_agentos_src, _agentos_dst)
+    print("Successfully installed " + " ".join(_agentos_pip_pkgs))
+elif _agentos_pip_args and _agentos_pip_args[0] in ("--version", "-V", "version"):
+    print("pip (agentOS micropip shim)")
+elif _agentos_pip_args and _agentos_pip_args[0] == "list":
+    import micropip
+    for _agentos_pkg in sorted(micropip.list()):
+        print(_agentos_pkg)
+else:
+    print("usage: pip install <package> [<package> ...]", file=sys.stderr)
+    sys.exit(2)
+`);
+  } finally {
+    try {
+      pyodide.globals.delete('__agentos_vfs_site');
+    } catch {}
+  }
+}
+
+// Minimal interactive REPL backed by the kernel stdin stream (sys.stdin via
+// setStdin). Prompts use the standard PS1/PS2; EOF on stdin ends the session.
+async function runPythonRepl(pyodide) {
+  await pyodide.runPythonAsync(`
+import sys
+from code import InteractiveConsole
+if not hasattr(sys, "ps1"):
+    sys.ps1 = ">>> "
+if not hasattr(sys, "ps2"):
+    sys.ps2 = "... "
+InteractiveConsole(locals={"__name__": "__main__", "__doc__": None}).interact(banner="", exitmsg="")
+`);
 }
 
 function resolvePythonSource(pyodide) {
@@ -1909,6 +2175,7 @@ try {
 
   installPythonStdin(pyodide);
   installPythonWorkspaceFs(pyodide, pythonVfsRpcBridge);
+  installPythonVfsSitePackages(pyodide);
   installPythonGuestLoaderHooks();
   if (pyodide?._api?.config) {
     pyodide._api.config.packageBaseUrl = bundledPackageBaseUrl;
@@ -1939,7 +2206,19 @@ try {
   installPythonGuestProcessHardening();
   installPythonGuestImportBlocklist(pyodide);
   installPythonRuntimeEnv(pyodide);
-  const source = readRunnerEnv(PYTHON_FILE_ENV) != null ? 'file' : 'inline';
+  applyPythonArgv(pyodide);
+  const moduleName = readRunnerEnv(PYTHON_MODULE_ENV);
+  const stdinProgram = readRunnerEnv(PYTHON_STDIN_PROGRAM_ENV) === '1';
+  const interactive = readRunnerEnv(PYTHON_INTERACTIVE_ENV) === '1';
+  const source = moduleName
+    ? `module:${moduleName}`
+    : stdinProgram
+      ? 'stdin'
+      : interactive
+        ? 'repl'
+        : readRunnerEnv(PYTHON_FILE_ENV) != null
+          ? 'file'
+          : 'inline';
   emitPythonStartupMetrics({
     prewarmOnly: false,
     startupMs: realPerformance.now() - startupStarted,
@@ -1948,8 +2227,24 @@ try {
     packageCount: preloadPackages.length,
     source,
   });
-  const code = resolvePythonSource(pyodide);
-  await pyodide.runPythonAsync(code);
+  if (moduleName === 'pip') {
+    await runPythonPip(pyodide);
+  } else if (moduleName) {
+    pyodide.globals.set('__agentos_module', moduleName);
+    try {
+      await pyodide.runPythonAsync(
+        'import runpy\nrunpy.run_module(__agentos_module, run_name="__main__", alter_sys=True)',
+      );
+    } finally {
+      pyodide.globals.delete('__agentos_module');
+    }
+  } else if (stdinProgram) {
+    await pyodide.runPythonAsync(readProgramFromStdin());
+  } else if (interactive) {
+    await runPythonRepl(pyodide);
+  } else {
+    await pyodide.runPythonAsync(resolvePythonSource(pyodide));
+  }
   }
 } catch (error) {
   writeStream(process.stderr, formatError(error));

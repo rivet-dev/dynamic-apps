@@ -52,7 +52,11 @@ pub(crate) const EXECUTION_DRIVER_NAME: &str = "secure-exec-sidecar-execution";
 pub(crate) const JAVASCRIPT_COMMAND: &str = "node";
 pub(crate) const PYTHON_COMMAND: &str = "python";
 pub(crate) const WASM_COMMAND: &str = "wasm";
-pub(crate) const PYTHON_VFS_RPC_GUEST_ROOT: &str = "/workspace";
+// The Python runtime addresses the whole guest VFS (the kernel enforces fs
+// permissions and mount-confinement on every op, identical to what the JS/WASM
+// runtimes and `vm.readFile()` see), so the VFS-RPC root is `/`, not a single
+// workspace dir.
+pub(crate) const PYTHON_VFS_RPC_GUEST_ROOT: &str = "/";
 pub(crate) const EXECUTION_SANDBOX_ROOT_ENV: &str = "AGENTOS_SANDBOX_ROOT";
 pub(crate) const WASM_STDIO_SYNC_RPC_ENV: &str = "AGENTOS_WASI_STDIO_SYNC_RPC";
 #[cfg(test)]

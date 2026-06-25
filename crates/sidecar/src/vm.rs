@@ -104,6 +104,7 @@ const SHADOW_ROOT_BOOTSTRAP_DIRS: &[(&str, u32)] = &[
 
 pub(crate) const DEFAULT_GUEST_PATH_ENV: &str =
     "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+#[cfg(test)]
 const KERNEL_COMMAND_STUB: &[u8] = b"#!/bin/sh\n# kernel command stub\n";
 pub(crate) const MAX_VM_LAYERS: usize = 256;
 
@@ -222,6 +223,10 @@ where
         let mut execution_commands = vec![
             String::from(JAVASCRIPT_COMMAND),
             String::from(PYTHON_COMMAND),
+            // `python3` resolves to the same Pyodide runtime; register it so the
+            // guest shell can find `/bin/python3` on PATH (the command resolver
+            // already rewrites the alias to `python`).
+            String::from("python3"),
             String::from(WASM_COMMAND),
         ];
         execution_commands.extend(command_guest_paths.keys().cloned());
@@ -231,7 +236,6 @@ where
                 execution_commands,
             ))
             .map_err(kernel_error)?;
-        prune_kernel_command_stub(&mut kernel, "/bin/python")?;
         if let Some(root) = kernel.root_filesystem_mut() {
             root.finish_bootstrap();
         }
@@ -2043,6 +2047,9 @@ pub(crate) fn normalize_dns_hostname(hostname: &str) -> Result<String, SidecarEr
     Ok(normalized)
 }
 
+// Retained for the native-root command-stub test; `python` is now a real
+// command so production no longer prunes `/bin/python`.
+#[cfg(test)]
 fn prune_kernel_command_stub(
     kernel: &mut KernelVm<secure_exec_kernel::mount_table::MountTable>,
     path: &str,

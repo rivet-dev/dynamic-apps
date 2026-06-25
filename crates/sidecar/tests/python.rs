@@ -206,7 +206,9 @@ fn spawn_static_file_server(root: PathBuf) -> (u16, thread::JoinHandle<()>) {
         .expect("set nonblocking listener");
     let port = listener.local_addr().expect("listener address").port();
     let handle = thread::spawn(move || {
-        let deadline = Instant::now() + Duration::from_secs(15);
+        // Generous windows so a slow/contended Pyodide boot (and micropip's
+        // index-then-wheel fetch gap) still lands inside the server's lifetime.
+        let deadline = Instant::now() + Duration::from_secs(120);
         let mut served_any = false;
         let mut idle_since: Option<Instant> = None;
         while Instant::now() < deadline {
@@ -245,7 +247,7 @@ fn spawn_static_file_server(root: PathBuf) -> (u16, thread::JoinHandle<()>) {
                 Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                     if served_any {
                         match idle_since {
-                            Some(start) if start.elapsed() >= Duration::from_secs(5) => break,
+                            Some(start) if start.elapsed() >= Duration::from_secs(20) => break,
                             Some(_) => {}
                             None => idle_since = Some(Instant::now()),
                         }
@@ -585,6 +587,42 @@ fn guest_read_file_utf8(
     assert_eq!(response.path, path);
     assert_eq!(response.encoding, Some(RootFilesystemEntryEncoding::Utf8));
     response.content.expect("guest filesystem read content")
+}
+
+fn guest_exists(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    path: &str,
+) -> bool {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::Exists,
+            path: path.to_owned(),
+            destination_path: None,
+            target: None,
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    assert_eq!(response.operation, GuestFilesystemOperation::Exists);
+    response.exists.expect("guest filesystem exists flag")
 }
 
 fn write_process_stdin(
@@ -1156,6 +1194,148 @@ print(json.dumps({
         "/workspace/from-python.txt",
     );
     assert_eq!(python_written, "from python");
+}
+
+#[test]
+fn python_runtime_supports_file_delete_and_rename() {
+    assert_node_available();
+
+    let mut sidecar = new_sidecar("python-file-ops");
+    let cwd = temp_dir("python-file-ops-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    bootstrap_root_filesystem(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        vec![root_dir("/workspace")],
+    );
+    // Seed via the kernel so delete/rename exercise host-backed VFS entries.
+    guest_write_file_utf8(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/seed.txt",
+        "seed",
+    );
+
+    execute_inline_python(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-file-ops",
+        r#"
+import json
+import os
+
+results = {}
+
+# delete a file
+os.remove("/workspace/seed.txt")
+results["seed_exists"] = os.path.exists("/workspace/seed.txt")
+
+# create then remove a directory
+os.mkdir("/workspace/subdir")
+results["subdir_made"] = os.path.isdir("/workspace/subdir")
+os.rmdir("/workspace/subdir")
+results["subdir_exists"] = os.path.exists("/workspace/subdir")
+
+# rename a file
+with open("/workspace/old.txt", "w", encoding="utf-8") as handle:
+    handle.write("renamed body")
+os.rename("/workspace/old.txt", "/workspace/new.txt")
+results["old_exists"] = os.path.exists("/workspace/old.txt")
+with open("/workspace/new.txt", "r", encoding="utf-8") as handle:
+    results["new_body"] = handle.read()
+
+results["entries"] = sorted(os.listdir("/workspace"))
+print(json.dumps(results))
+"#,
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-file-ops",
+    );
+
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+
+    let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse file-ops JSON");
+    assert_eq!(parsed["seed_exists"], false, "seed.txt should be deleted");
+    assert_eq!(parsed["subdir_made"], true);
+    assert_eq!(parsed["subdir_exists"], false, "subdir should be removed");
+    assert_eq!(
+        parsed["old_exists"], false,
+        "old.txt should be renamed away"
+    );
+    assert_eq!(parsed["new_body"], "renamed body");
+    assert_eq!(parsed["entries"], serde_json::json!(["new.txt"]));
+
+    // Cross-check the HOST kernel VFS reflects the deletes/rename.
+    assert!(
+        !guest_exists(
+            &mut sidecar,
+            7,
+            &connection_id,
+            &session_id,
+            &vm_id,
+            "/workspace/seed.txt"
+        ),
+        "host VFS should not see deleted seed.txt"
+    );
+    assert!(
+        !guest_exists(
+            &mut sidecar,
+            8,
+            &connection_id,
+            &session_id,
+            &vm_id,
+            "/workspace/old.txt"
+        ),
+        "host VFS should not see renamed-away old.txt"
+    );
+    assert!(
+        !guest_exists(
+            &mut sidecar,
+            9,
+            &connection_id,
+            &session_id,
+            &vm_id,
+            "/workspace/subdir"
+        ),
+        "host VFS should not see removed subdir"
+    );
+    let new_body = guest_read_file_utf8(
+        &mut sidecar,
+        10,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/new.txt",
+    );
+    assert_eq!(
+        new_body, "renamed body",
+        "host VFS should see the renamed file"
+    );
 }
 
 fn workspace_files_are_shared_between_javascript_and_python_runtimes() {
@@ -2670,6 +2850,645 @@ print(json.dumps(result))
     );
 }
 
+fn execute_python_cli(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    process_id: &str,
+    command: &str,
+    args: &[&str],
+) {
+    let result = sidecar
+        .dispatch_wire_blocking(wire_request(
+            request_id,
+            wire_vm(connection_id, session_id, vm_id),
+            RequestPayload::ExecuteRequest(ExecuteRequest {
+                process_id: process_id.to_owned(),
+                command: Some(command.to_owned()),
+                runtime: None,
+                entrypoint: None,
+                args: args.iter().map(|arg| (*arg).to_string()).collect(),
+                env: HashMap::new(),
+                cwd: None,
+                wasm_permission_tier: None,
+            }),
+        ))
+        .expect("start python CLI execution through wire");
+
+    match result.response.payload {
+        ResponsePayload::ProcessStartedResponse(response) => {
+            assert_eq!(response.process_id, process_id);
+        }
+        other => panic!("unexpected wire execute response: {other:?}"),
+    }
+}
+
+fn execute_python_cli_with_env(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    process_id: &str,
+    command: &str,
+    args: &[&str],
+    env: HashMap<String, String>,
+) {
+    let result = sidecar
+        .dispatch_wire_blocking(wire_request(
+            request_id,
+            wire_vm(connection_id, session_id, vm_id),
+            RequestPayload::ExecuteRequest(ExecuteRequest {
+                process_id: process_id.to_owned(),
+                command: Some(command.to_owned()),
+                runtime: None,
+                entrypoint: None,
+                args: args.iter().map(|arg| (*arg).to_string()).collect(),
+                env,
+                cwd: None,
+                wasm_permission_tier: None,
+            }),
+        ))
+        .expect("start python CLI execution through wire");
+
+    match result.response.payload {
+        ResponsePayload::ProcessStartedResponse(response) => {
+            assert_eq!(response.process_id, process_id);
+        }
+        other => panic!("unexpected wire execute response: {other:?}"),
+    }
+}
+
+fn python_command_pip_installs_via_micropip() {
+    assert_node_available();
+
+    let (port, server) = spawn_static_file_server(pyodide_asset_dir());
+    let mut sidecar = new_sidecar("python-cli-pip");
+    let cwd = temp_dir("python-cli-pip-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let vm_id = create_vm_with_metadata_and_permissions(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+        HashMap::from([(
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
+            serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
+        )]),
+        wire_permissions_allow_all(),
+    );
+
+    execute_python_cli_with_env(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-pip",
+        "pip",
+        &[
+            "install",
+            &format!("http://127.0.0.1:{port}/click-8.3.1-py3-none-any.whl"),
+        ],
+        HashMap::from([(
+            String::from("AGENTOS_PYODIDE_PACKAGE_BASE_URL"),
+            format!("http://127.0.0.1:{port}/"),
+        )]),
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output_with_timeout(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-pip",
+        Duration::from_secs(90),
+    );
+    let _ = server.join();
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(
+        stdout.contains("Successfully installed"),
+        "stdout: {stdout}\nstderr: {stderr}"
+    );
+}
+
+fn python_command_runs_inline_code() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-inline");
+    let cwd = temp_dir("python-cli-inline-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    execute_python_cli(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-c",
+        "python",
+        &["-c", "print(1 + 1)"],
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-c",
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert_eq!(stdout, "2\n", "stderr: {stderr}");
+}
+
+fn python_command_runs_script_with_argv() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-argv");
+    let cwd = temp_dir("python-cli-argv-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let vm_id = create_vm_with_root_filesystem(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+        RootFilesystemDescriptor {
+            mode: RootFilesystemMode::Ephemeral,
+            disable_default_base_layer: false,
+            lowers: Vec::new(),
+            bootstrap_entries: vec![
+                root_dir("/workspace"),
+                root_file(
+                    "/workspace/argv.py",
+                    "import sys\nprint(\",\".join(sys.argv))\n",
+                    Some(RootFilesystemEntryEncoding::Utf8),
+                ),
+            ],
+        },
+    );
+
+    execute_python_cli(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-argv",
+        "python",
+        &["/workspace/argv.py", "alpha", "beta"],
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-argv",
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert_eq!(
+        stdout, "/workspace/argv.py,alpha,beta\n",
+        "stderr: {stderr}"
+    );
+}
+
+fn python_command_runs_module_with_dash_m() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-module");
+    let cwd = temp_dir("python-cli-module-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    execute_python_cli(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-m",
+        "python",
+        &["-m", "this"],
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-m",
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    // `python -m this` runs the stdlib `this` module as __main__, printing the Zen.
+    assert!(
+        stdout.contains("Beautiful is better than ugly"),
+        "stdout: {stdout}\nstderr: {stderr}"
+    );
+}
+
+fn python_command_reads_program_from_stdin() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-stdin");
+    let cwd = temp_dir("python-cli-stdin-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    execute_python_cli(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-stdin",
+        "python",
+        &["-"],
+    );
+    write_process_stdin(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-stdin",
+        "print('from stdin program')\n",
+    );
+    close_process_stdin(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-stdin",
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-stdin",
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert_eq!(stdout, "from stdin program\n", "stderr: {stderr}");
+}
+
+fn python_command_runs_interactive_repl() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-repl");
+    let cwd = temp_dir("python-cli-repl-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    execute_python_cli(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-repl",
+        "python",
+        &[],
+    );
+    write_process_stdin(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-repl",
+        "print(6 * 7)\n",
+    );
+    close_process_stdin(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-repl",
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-py-repl",
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(stdout.contains("42"), "stdout: {stdout}\nstderr: {stderr}");
+}
+
+fn python_command_runs_as_nested_child_process() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-cli-nested");
+    let workspace_host_dir = temp_dir("python-cli-nested-host");
+    let cwd = workspace_host_dir.clone();
+    let js_entry = workspace_host_dir.join("spawn.cjs");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python-nested");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::JavaScript,
+        &cwd,
+    );
+
+    write_fixture(
+        &js_entry,
+        r#"
+const { spawnSync } = require('node:child_process');
+const result = spawnSync('python', ['-c', 'print(2 + 3)'], { encoding: 'utf8' });
+if (result.error) {
+  process.stderr.write(String(result.error));
+}
+process.stdout.write('status=' + result.status + ';out=' + (result.stdout || '').trim());
+"#,
+    );
+
+    bootstrap_root_filesystem(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        vec![root_dir("/workspace")],
+    );
+    let configure = sidecar
+        .dispatch_wire_blocking(wire_request(
+            5,
+            wire_vm(&connection_id, &session_id, &vm_id),
+            RequestPayload::ConfigureVmRequest(ConfigureVmRequest {
+                mounts: vec![MountDescriptor {
+                    guest_path: String::from("/workspace"),
+                    read_only: false,
+                    plugin: MountPluginDescriptor {
+                        id: String::from("host_dir"),
+                        config: json!({
+                            "hostPath": workspace_host_dir.to_string_lossy().into_owned(),
+                            "readOnly": false,
+                        })
+                        .to_string(),
+                    },
+                }],
+                software: Vec::new(),
+                permissions: None,
+                module_access_cwd: None,
+                instructions: Vec::new(),
+                projected_modules: Vec::new(),
+                command_permissions: HashMap::new(),
+                loopback_exempt_ports: Vec::new(),
+            }),
+        ))
+        .expect("configure host_dir workspace mount through wire");
+    match configure.response.payload {
+        ResponsePayload::VmConfiguredResponse(response) => {
+            assert_eq!(response.applied_mounts, 1);
+        }
+        other => panic!("unexpected wire configure-vm response: {other:?}"),
+    }
+
+    let js_fs_env = HashMap::from([
+        (
+            String::from("AGENTOS_GUEST_PATH_MAPPINGS"),
+            json!([{
+                "guestPath": "/workspace",
+                "hostPath": workspace_host_dir.to_string_lossy().into_owned(),
+            }])
+            .to_string(),
+        ),
+        (
+            String::from("AGENTOS_EXTRA_FS_READ_PATHS"),
+            json!([workspace_host_dir.to_string_lossy().into_owned()]).to_string(),
+        ),
+    ]);
+
+    execute_javascript_with_env(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-js-spawn",
+        &js_entry,
+        Vec::new(),
+        js_fs_env,
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output_with_timeout(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-js-spawn",
+        Duration::from_secs(60),
+    );
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(
+        stdout.contains("status=0;out=5"),
+        "stdout: {stdout}\nstderr: {stderr}"
+    );
+}
+
+fn python_reads_and_writes_arbitrary_vm_paths() {
+    assert_node_available();
+    let mut sidecar = new_sidecar("python-rootfs-rw");
+    let cwd = temp_dir("python-rootfs-rw-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let vm_id = create_vm_with_root_filesystem(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+        RootFilesystemDescriptor {
+            mode: RootFilesystemMode::Ephemeral,
+            disable_default_base_layer: false,
+            lowers: Vec::new(),
+            bootstrap_entries: vec![root_file(
+                "/etc/agentos-test.txt",
+                "hello-from-etc\n",
+                Some(RootFilesystemEntryEncoding::Utf8),
+            )],
+        },
+    );
+
+    // Read from /etc and write to /tmp — both outside the old /workspace window.
+    execute_inline_python(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-rw",
+        "data = open('/etc/agentos-test.txt').read()\nwith open('/tmp/py-out.txt', 'w') as handle:\n    handle.write('written-by-python\\n')\nprint(data.strip())\n",
+    );
+    let (stdout, stderr, exit_code) =
+        collect_process_output(&mut sidecar, &connection_id, &session_id, &vm_id, "proc-rw");
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert_eq!(stdout, "hello-from-etc\n", "stderr: {stderr}");
+
+    // A SEPARATE Python process (fresh Pyodide FS) sees /tmp/py-out.txt — proving
+    // the write landed in the kernel VFS, not the per-process in-memory FS.
+    execute_inline_python(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-reread",
+        "print(open('/tmp/py-out.txt').read().strip())\n",
+    );
+    let (stdout2, stderr2, exit2) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-reread",
+    );
+    assert_eq!(exit2, 0, "stdout: {stdout2}\nstderr: {stderr2}");
+    assert_eq!(stdout2, "written-by-python\n", "stderr: {stderr2}");
+}
+
+fn python_pip_installs_persist_across_invocations() {
+    assert_node_available();
+    let (port, server) = spawn_static_file_server(pyodide_asset_dir());
+    let mut sidecar = new_sidecar("python-vfs-pip");
+    let cwd = temp_dir("python-vfs-pip-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let vm_id = create_vm_with_metadata_and_permissions(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+        HashMap::from([(
+            String::from("env.AGENTOS_LOOPBACK_EXEMPT_PORTS"),
+            serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
+        )]),
+        wire_permissions_allow_all(),
+    );
+
+    // Process 1: `pip install` a wheel — the shim copies it into the VFS-backed
+    // site-packages so it persists past this interpreter.
+    execute_python_cli_with_env(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-pip-install",
+        "pip",
+        &[
+            "install",
+            &format!("http://127.0.0.1:{port}/click-8.3.1-py3-none-any.whl"),
+        ],
+        HashMap::from([(
+            String::from("AGENTOS_PYODIDE_PACKAGE_BASE_URL"),
+            format!("http://127.0.0.1:{port}/"),
+        )]),
+    );
+    let (stdout1, stderr1, exit1) = collect_process_output_with_timeout(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-pip-install",
+        Duration::from_secs(90),
+    );
+    assert_eq!(exit1, 0, "stdout: {stdout1}\nstderr: {stderr1}");
+    assert!(
+        stdout1.contains("Successfully installed"),
+        "stdout: {stdout1}\nstderr: {stderr1}"
+    );
+
+    // Process 2: a FRESH Python interpreter imports the package from the VFS
+    // site-packages — proving the install persisted across invocations.
+    execute_python_cli(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-pip-import",
+        "python",
+        &["-c", "import click; print(click.__version__)"],
+    );
+    let (stdout2, stderr2, exit2) = collect_process_output_with_timeout(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-pip-import",
+        Duration::from_secs(60),
+    );
+    let _ = server.join();
+    assert_eq!(exit2, 0, "stdout: {stdout2}\nstderr: {stderr2}");
+    assert_eq!(
+        stdout2.trim(),
+        "8.3.1",
+        "stdout: {stdout2}\nstderr: {stderr2}"
+    );
+}
+
+fn python_rootfs_suite() {
+    python_reads_and_writes_arbitrary_vm_paths();
+    python_pip_installs_persist_across_invocations();
+}
+
+fn python_cli_suite() {
+    python_command_runs_inline_code();
+    python_command_runs_script_with_argv();
+    python_command_runs_module_with_dash_m();
+    python_command_reads_program_from_stdin();
+    python_command_runs_interactive_repl();
+    python_command_runs_as_nested_child_process();
+    python_command_pip_installs_via_micropip();
+}
+
 #[test]
 fn python_suite() {
     // Multiple libtest cases in this V8/Pyodide-backed integration binary
@@ -2698,4 +3517,6 @@ fn python_suite() {
     python_runtime_surfaces_network_permission_errors();
     python_runtime_runs_node_subprocesses_through_sidecar_bridge();
     python_runtime_surfaces_subprocess_permission_errors();
+    python_cli_suite();
+    python_rootfs_suite();
 }

@@ -786,6 +786,38 @@ where
                     .mkdir(&path, request.recursive)
                     .map(|()| PythonVfsRpcResponsePayload::Empty)
                     .map_err(kernel_error),
+                // Mirror the delete/rename into the host-side shadow too, the
+                // same way the wire `GuestFilesystemOperation` handlers do —
+                // otherwise a later shadow→kernel sync would resurrect the
+                // entry the guest just removed.
+                PythonVfsRpcMethod::Unlink => {
+                    match vm.kernel.remove_file(&path).map_err(kernel_error) {
+                        Ok(()) => remove_guest_shadow_path(vm, &path)
+                            .map(|()| PythonVfsRpcResponsePayload::Empty),
+                        Err(error) => Err(error),
+                    }
+                }
+                PythonVfsRpcMethod::Rmdir => {
+                    match vm.kernel.remove_dir(&path).map_err(kernel_error) {
+                        Ok(()) => remove_guest_shadow_path(vm, &path)
+                            .map(|()| PythonVfsRpcResponsePayload::Empty),
+                        Err(error) => Err(error),
+                    }
+                }
+                PythonVfsRpcMethod::Rename => {
+                    let destination = request.destination.as_deref().ok_or_else(|| {
+                        SidecarError::InvalidState(format!(
+                            "python VFS fsRename for {} requires destination",
+                            path
+                        ))
+                    })?;
+                    let destination = normalize_python_vfs_rpc_path(destination)?;
+                    match vm.kernel.rename(&path, &destination).map_err(kernel_error) {
+                        Ok(()) => rename_guest_shadow_path(vm, &path, &destination)
+                            .map(|()| PythonVfsRpcResponsePayload::Empty),
+                        Err(error) => Err(error),
+                    }
+                }
                 PythonVfsRpcMethod::HttpRequest
                 | PythonVfsRpcMethod::DnsLookup
                 | PythonVfsRpcMethod::SubprocessRun => {
@@ -860,16 +892,13 @@ pub(crate) fn normalize_python_vfs_rpc_path(path: &str) -> Result<String, Sideca
         )));
     }
 
+    // Root is `/`: Python may address the whole guest VFS. Textual `..` segments
+    // are resolved by `normalize_path`, and the kernel enforces fs permissions
+    // plus mount-confinement (openat2 RESOLVE_BENEATH refuses escaping symlinks)
+    // on every op — so confinement is the kernel's job, not a prefix check here.
     let normalized = normalize_path(path);
-    if normalized == PYTHON_VFS_RPC_GUEST_ROOT
-        || normalized.starts_with(&format!("{PYTHON_VFS_RPC_GUEST_ROOT}/"))
-    {
-        Ok(normalized)
-    } else {
-        Err(SidecarError::InvalidState(format!(
-            "python VFS RPC path {normalized} escapes guest workspace root {PYTHON_VFS_RPC_GUEST_ROOT}"
-        )))
-    }
+    debug_assert_eq!(PYTHON_VFS_RPC_GUEST_ROOT, "/");
+    Ok(normalized)
 }
 
 /// Kernel-VFS-backed reader for the module resolver. The resolution algorithm

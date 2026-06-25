@@ -67,7 +67,7 @@ type OwnershipScope = LiveOwnershipScope;
 
 type GuestRuntimeKind = Extract<
 	LiveGuestRuntimeKind,
-	"java_script" | "web_assembly"
+	"java_script" | "python" | "web_assembly"
 >;
 type WasmPermissionTier = LiveWasmPermissionTier;
 type RootFilesystemEntryEncoding = LiveRootFilesystemEntryEncoding;
