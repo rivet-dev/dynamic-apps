@@ -16548,6 +16548,18 @@ fn parse_kernel_http_fetch_response(
         )));
     } else if let Some(content_length) = content_length {
         let body_end = body_start.saturating_add(content_length);
+        // Reject a response whose declared length exceeds the hard raw-buffer cap
+        // before waiting for the whole body: such a body can never satisfy the
+        // limit, and the guest cannot stream it through the bounded kernel socket
+        // buffer before the request deadline, so the read loop would otherwise
+        // stall on an incomplete body until it times out. (A smaller-but-still-
+        // over-a-configured-limit response is delivered in full and rejected by
+        // the payload-size check, preserving that error's message.)
+        if body_end > VM_FETCH_BUFFER_LIMIT_BYTES {
+            return Err(SidecarError::Execution(format!(
+                "vm.fetch raw response buffer is {body_end} bytes, limit is {VM_FETCH_BUFFER_LIMIT_BYTES}"
+            )));
+        }
         if buffer.len() < body_end {
             return Ok(None);
         }

@@ -2046,12 +2046,27 @@ fn throw_module_error(scope: &mut v8::HandleScope, message: &str) {
 
 /// Detect if source code is likely CommonJS (not ESM).
 /// Checks for module.exports, exports.X, or require() patterns without ESM import/export.
+/// Node strips a leading shebang (`#!`) line before parsing a module. The guest
+/// loader must match, or modules shipped as executables (CLI/SDK bundles that
+/// begin with `#!/usr/bin/env node`) fail with "Invalid or unexpected token" on
+/// the `#`. The newline is preserved so line numbers in stack traces stay aligned.
+fn strip_leading_shebang(source: &str) -> &str {
+    match source.strip_prefix("#!") {
+        Some(rest) => match rest.find('\n') {
+            Some(idx) => &rest[idx..],
+            None => "",
+        },
+        None => source,
+    }
+}
+
 fn build_module_source(
     scope: &mut v8::HandleScope,
     raw_source: &str,
     resolved_path: &str,
     module_format: Option<ResolvedModuleFormat>,
 ) -> String {
+    let raw_source = strip_leading_shebang(raw_source);
     let normalized_path = resolved_path.to_ascii_lowercase();
     if normalized_path.ends_with(".json") || module_format == Some(ResolvedModuleFormat::Json) {
         return build_json_esm_shim(resolved_path);
@@ -3229,6 +3244,24 @@ mod tests {
     use std::collections::HashMap;
     use std::io::{Cursor, Write};
     use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn strip_leading_shebang_matches_node() {
+        // Shebang stripped (newline preserved so line numbers hold).
+        assert_eq!(
+            strip_leading_shebang("#!/usr/bin/env node\nexport const x = 1;\n"),
+            "\nexport const x = 1;\n"
+        );
+        // No shebang -> untouched.
+        assert_eq!(
+            strip_leading_shebang("export const x = 1;\n"),
+            "export const x = 1;\n"
+        );
+        // `#` not at byte 0 -> untouched (only a leading shebang is special).
+        assert_eq!(strip_leading_shebang("  #!nope\n"), "  #!nope\n");
+        // Whole file is just a shebang.
+        assert_eq!(strip_leading_shebang("#!/usr/bin/env node"), "");
+    }
 
     /// Shared writer that captures output for test inspection
     struct SharedWriter(Arc<Mutex<Vec<u8>>>);

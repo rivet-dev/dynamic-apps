@@ -13623,6 +13623,10 @@ ${headerLines}\r
     _rawTrailerNames = /* @__PURE__ */ new Map();
     _informational = [];
     _pendingRawInfoBuffer = "";
+    _streamSocket = null;
+    _streamRequest = null;
+    _streamedDirectly = false;
+    _streamCloseConnection = false;
     constructor() {
       this._closedPromise = new Promise((resolve) => {
         this._resolveClosed = resolve;
@@ -13841,6 +13845,28 @@ ${headerLines}\r
         chunk = chunkOrCallback;
         endCallback = typeof encodingOrCallback === "function" ? encodingOrCallback : callback;
       }
+      // Streaming fast path for socket-backed servers: a single `res.end(body)`
+      // with no prior `res.write()` flushes headers then streams the body to the
+      // connection socket in bounded slices. This avoids materializing the whole
+      // body (plus its serialize/transmit copies) at once — a multi-MB response
+      // otherwise trips the guest isolate heap-limit OOM guard before the host
+      // can apply its own response-size limit. Per-slice `socket.destroyed`
+      // checks also make the host's mid-stream rejection close graceful instead
+      // of crashing the guest.
+      if (
+        this._streamSocket &&
+        this._chunks.length === 0 &&
+        !this.writableFinished &&
+        !this._streamedDirectly
+      ) {
+        const encoding =
+          typeof encodingOrCallback === "string" ? encodingOrCallback : void 0;
+        this._streamEndBody(chunk, encoding);
+        if (typeof endCallback === "function") {
+          queueMicrotask(endCallback);
+        }
+        return this;
+      }
       if (chunk != null) {
         if (typeof chunk === "string" && typeof encodingOrCallback === "string") {
           this._appendChunk(chunk, encodingOrCallback, false);
@@ -13853,6 +13879,57 @@ ${headerLines}\r
         queueMicrotask(endCallback);
       }
       return this;
+    }
+    _streamEndBody(body, encoding) {
+      const isString = typeof body === "string";
+      const SLICE_BYTES = 256 * 1024;
+      // Compute the body byte length in bounded slices. `Buffer.byteLength` on a
+      // whole multi-MB string allocates enough that, with the isolate already
+      // near its heap cap, it trips the OOM guard before a single byte is sent.
+      let byteLength = 0;
+      if (body != null) {
+        if (isString) {
+          for (let offset = 0; offset < body.length; offset += SLICE_BYTES) {
+            byteLength += Buffer.byteLength(
+              body.slice(offset, offset + SLICE_BYTES),
+              encoding,
+            );
+          }
+        } else {
+          byteLength = body.length;
+        }
+      }
+      if (!this._headers.has("content-length") && !this._headers.has("transfer-encoding")) {
+        this._headers.set("content-length", String(byteLength));
+        this._rawHeaderNames.set("content-length", "Content-Length");
+      }
+      this.headersSent = true;
+      // Serialize headers only (no buffered chunks => empty body in the payload),
+      // then stream the real body separately in bounded slices.
+      const headerResponse = this.serialize();
+      const built = serializeLoopbackResponse(headerResponse, this._streamRequest, true);
+      this._streamCloseConnection = built.closeConnection;
+      this._streamedDirectly = true;
+      this.outputSize += byteLength;
+      if (!this._streamSocket.destroyed && built.payload.length > 0) {
+        this._streamSocket.write(built.payload);
+      }
+      if (body != null && byteLength > 0) {
+        if (isString) {
+          for (let offset = 0; offset < body.length; offset += SLICE_BYTES) {
+            if (this._streamSocket.destroyed) break;
+            this._streamSocket.write(
+              Buffer.from(body.slice(offset, offset + SLICE_BYTES), encoding),
+            );
+          }
+        } else {
+          for (let offset = 0; offset < body.length; offset += SLICE_BYTES) {
+            if (this._streamSocket.destroyed) break;
+            this._streamSocket.write(body.subarray(offset, offset + SLICE_BYTES));
+          }
+        }
+      }
+      this._finalize();
     }
     getHeaderNames() {
       return Array.from(this._headers.keys());
@@ -14603,12 +14680,18 @@ ${headerLines}\r
       server._endRequestDispatch();
     }
   }
-  async function dispatchSocketBackedServerRequest(server, requestInput) {
+  async function dispatchSocketBackedServerRequest(server, requestInput, streamSocket) {
     const request = typeof requestInput === "string" ? JSON.parse(requestInput) : requestInput;
     const incoming = new ServerIncomingMessage(request);
     const outgoing = new ServerResponseBridge();
     incoming.socket = outgoing.socket;
     incoming.connection = outgoing.socket;
+    // Enable the streaming fast path so a single large `res.end(body)` is written
+    // to the connection socket in slices instead of buffered + serialized whole.
+    if (streamSocket) {
+      outgoing._streamSocket = streamSocket;
+      outgoing._streamRequest = request;
+    }
     server._beginRequestDispatch();
     try {
       try {
@@ -14631,15 +14714,24 @@ ${headerLines}\r
       }
       await outgoing.waitForClose();
       let aborted = false;
+      const abortRequest = () => {
+        if (aborted) {
+          return;
+        }
+        aborted = true;
+        incoming._abort();
+      };
+      if (outgoing._streamedDirectly) {
+        // Response already written straight to the socket; nothing left to serialize.
+        return {
+          streamedDirectly: true,
+          closeConnection: outgoing._streamCloseConnection,
+          abortRequest
+        };
+      }
       return {
         responseJson: JSON.stringify(outgoing.serialize()),
-        abortRequest: () => {
-          if (aborted) {
-            return;
-          }
-          aborted = true;
-          incoming._abort();
-        }
+        abortRequest
       };
     } finally {
       server._endRequestDispatch();
@@ -14732,20 +14824,31 @@ ${headerLines}\r
           server._emit("upgrade", incoming, socket, parsed.upgradeHead);
           return;
         }
-        const { responseJson } = await dispatchSocketBackedServerRequest(server, parsed.request);
+        const result = await dispatchSocketBackedServerRequest(
+          server,
+          parsed.request,
+          socket,
+        );
         if (detached || socket.destroyed) {
           return;
         }
-        const response = JSON.parse(responseJson);
         // Keep-alive for socket-backed HTTP servers is intentionally deferred:
         // pipelined bytes already in `buffer` drain, then this connection closes.
         // Revisit when the bridge owns full Node-compatible request lifecycle
         // timers and per-socket request limits.
-        const serialized = serializeLoopbackResponse(response, parsed.request, true);
-        if (!closeAfterDrain && serialized.payload.length > 0) {
-          socket.write(serialized.payload);
+        let mustClose;
+        if (result.streamedDirectly) {
+          // Response was already streamed straight to the socket by res.end().
+          mustClose = result.closeConnection;
+        } else {
+          const response = JSON.parse(result.responseJson);
+          const serialized = serializeLoopbackResponse(response, parsed.request, true);
+          if (!closeAfterDrain && serialized.payload.length > 0) {
+            socket.write(serialized.payload);
+          }
+          mustClose = serialized.closeConnection;
         }
-        if (serialized.closeConnection) {
+        if (mustClose) {
           closeAfterDrain = true;
           if (buffer.length === 0) {
             finishSocket();

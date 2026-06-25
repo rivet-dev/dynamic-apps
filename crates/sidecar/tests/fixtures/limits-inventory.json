@@ -931,6 +931,19 @@
 		"rationale": "Build-time artifact sanity guard on first-party assets, not guest input."
 	},
 	{
+		"name": "MAX_V8_USERLAND_CODE_BYTES",
+		"path": "crates/v8-runtime/src/snapshot.rs",
+		"class": "invariant",
+		"rationale": "Sanity bound on the client-configured agent-SDK userland snapshot bundle; trusted-config artifact guard, not guest input."
+	},
+	{
+		"name": "DEFAULT_HEAP_LIMIT_MB",
+		"path": "crates/v8-runtime/src/isolate.rs",
+		"class": "policy",
+		"rationale": "Engine-side default for the wired V8 isolate heap limit (128 MiB, Cloudflare-matching); operator-raisable via the configured jsRuntime heap limit.",
+		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
+	},
+	{
 		"name": "TRAILING_OUTPUT_DRAIN_MAX_MS",
 		"path": "packages/core/src/kernel-proxy.ts",
 		"class": "invariant",
