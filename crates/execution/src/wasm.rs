@@ -3503,13 +3503,26 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsWasiModule =
         ) {{
           const totalLength = this._boundedIovLength(iovs, iovsLen);
           const buffer = Buffer.alloc(totalLength);
+          // A passthrough/host-backed *file* fd also has a "file" fdTable entry whose .offset is the
+          // logical stream position maintained by _fdSeek. Read POSITIONALLY from that tracked offset
+          // (and advance it), NOT from the host fd's own offset (position=null). _fdSeek only updates
+          // entry.offset and never moves the host fd, so a null-position read ignored the seek: after a
+          // sequential read hit EOF, fseek(0)+read returned 0. That broke every loader that sniffs then
+          // rewinds (gdk_pixbuf PNG "Read Error", xfwm4 XPM "Cannot read Pixmap header"). For non-file
+          // passthrough fds (e.g. host pipes) there is no numeric offset -> fall back to null (sequential).
+          const seekEntry = this.fdTable.get(descriptor);
+          const seekable = seekEntry && typeof seekEntry.offset === "number";
+          const position = seekable ? seekEntry.offset : null;
           const bytesRead = __agentOsFs().readSync(
             handle.targetFd,
             buffer,
             0,
             totalLength,
-            null,
+            position,
           );
+          if (seekable) {{
+            seekEntry.offset += bytesRead;
+          }}
           const written = this._writeToIovs(iovs, iovsLen, buffer.subarray(0, bytesRead));
           return this._writeUint32(nreadPtr, written);
         }}

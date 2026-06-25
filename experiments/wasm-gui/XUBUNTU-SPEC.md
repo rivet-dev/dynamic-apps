@@ -295,9 +295,24 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     to open display"). xfconfd stays a `--dbus-service` (pure D-Bus). gtk-hello build = `build-gtk-app.sh`
     (now fixed: links `libhostcompat.a` + the two mandatory GTK flags). M8/XU0 stay green. Proof
     `~/tmp/gui-progress/2026-06-25T00/xu1-greybird-{gtk.png,readback.txt,log}`. **XU1 COMPLETE.**
-- **XU2 — xfwm4 (the real Xfce WM).** 🟡 IN PROGRESS (2026-06-25). DoD: xfwm4 (compositing off)
-  decorates a GTK window with the Greybird theme; move/resize + workspaces via XTEST. Proof screenshot.
-  (Supersedes M8.2's openbox as the Xubuntu WM.)
+- **XU2 — xfwm4 (the real Xfce WM).** 🟢 DECORATION DONE (2026-06-25); XTEST move/resize remaining. DoD:
+  xfwm4 (compositing off) decorates a GTK window with the Greybird theme; move/resize + workspaces via
+  XTEST. Proof screenshot. (Supersedes M8.2's openbox as the Xubuntu WM.)
+  - **★★ ACHIEVED (2026-06-25 iter6): xfwm4 fully decorates a GTK window with the Greybird theme, all
+    wasm** — titlebar with the centered title, the min/max/close window buttons + the left menu button,
+    and Greybird borders, all rendering. Unblocked by the stdio `fseek` fix (below). Proof
+    `~/tmp/gui-progress/2026-06-25T02/xu2-ACHIEVED-greybird-decoration.png`. Remaining for full DoD:
+    XTEST-driven move/resize + workspace switch (interaction test).
+  - **★★ THE FIX (constraint #5, runtime — fixes XU2 AND a broad class of bugs): passthrough/host-backed
+    file `fd_read` now reads POSITIONALLY from the tracked `entry.offset` (and advances it), not from the
+    host fd's own offset (`position=null`).** `_fdSeek` only updated `entry.offset` and never moved the
+    host fd, so a `null`-position read ignored the seek: `fseek(0)+fread` returned 0 (proven by
+    `fread-probe.c`: sequential fread=315 but fseek-then-fread=0; after the fix, =16). That broke EVERY
+    loader that sniffs-then-rewinds — `gdk_pixbuf_new_from_file` → "Read Error" on all decoration PNGs,
+    xfwm4 `xpm_image_load` → "Cannot read Pixmap header" ×672 (now 0). Fix in `crates/execution/src/wasm.rs`
+    `_fdRead` passthrough branch (asset bump 106→108). M8 regression green (openbox+xclock still decorates).
+    Reusable probes `guest-xclient/{fread-probe,gtkcairo-a1,xrender-a1-test,pixman-a1-test,rfmt-probe}.c` +
+    env-gated `SECURE_EXEC_FD_TRACE`. (cairo→A1 was a red herring — it always worked; the image just never loaded.)
   - **BUILT + RUNS as a WM ✅ (2026-06-25):** built UNMODIFIED libXinerama 1.1.5 + libwnck 3.24.1 (the
     staged libwnck was an ancient 3.4.9 < the `>= 3.14` xfwm4 needs; 3.24.1 is the last autotools series,
     3.32+ is meson) + xfwm4 4.18.0 → `xfwm4.wasm` (15.9 MB), all wasm, via `scripts/build-libwnck.sh` +

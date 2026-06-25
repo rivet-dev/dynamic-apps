@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "106";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "108";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8791,6 +8791,8 @@ const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
 function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
+try { if (process.env.SECURE_EXEC_FD_TRACE === '1') globalThis.__fdtrace = true; } catch (_e) {}
+function fdTrace(msg) { if (globalThis.__fdtrace) { try { process.stderr.write('FDTRACE ' + msg + '\n'); } catch (_e) {} } }
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -13360,6 +13362,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
     return kernelPipeFdRead(numericFd, iovs, iovsLen, nreadPtr);
   }
   const handle = lookupFdHandle(numericFd);
+  fdTrace(`fd_read ENTRY fd=${numericFd} kind=${handle?.kind} pos=${handle?.position}`);
 
   if (handle?.kind === 'pipe-read') {
     try {
@@ -13410,6 +13413,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
         return total >>> 0;
       })();
       const buffer = Buffer.alloc(requestedLength);
+      const posBefore = handle.position ?? 0;
       const bytesRead = fsModule.readSync(
         handle.targetFd,
         buffer,
@@ -13419,6 +13423,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
       );
       handle.position = (handle.position ?? 0) + bytesRead;
       const written = writeBytesToGuestIovs(iovs, iovsLen, buffer.subarray(0, bytesRead));
+      fdTrace(`fd_read guest-file fd=${numericFd} targetFd=${handle.targetFd} req=${requestedLength} posBefore=${posBefore} bytesRead=${bytesRead} written=${written} posAfter=${handle.position}`);
       return writeGuestUint32(nreadPtr, written);
     } catch {
       return WASI_ERRNO_FAULT;
@@ -13622,12 +13627,14 @@ wasiImport.fd_datasync = (fd) => wasiImport.fd_sync(fd);
 
 wasiImport.fd_seek = (fd, offset, whence, newOffsetPtr) => {
   const handle = lookupFdHandle(fd);
+  fdTrace(`fd_seek fd=${Number(fd)>>>0} kind=${handle?.kind} offset=${String(offset)} whence=${Number(whence)>>>0} posBefore=${handle?.position}`);
   if (handle?.kind === 'guest-file') {
     try {
       const next = seekGuestFileHandle(handle, offset, whence);
       if (next == null) {
         return WASI_ERRNO_INVAL;
       }
+      fdTrace(`fd_seek guest-file -> next=${String(next)} posAfter=${handle.position}`);
       return writeGuestUint64(newOffsetPtr, next);
     } catch {
       return WASI_ERRNO_FAULT;
