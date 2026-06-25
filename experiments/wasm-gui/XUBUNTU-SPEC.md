@@ -395,16 +395,20 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     recipe; deps cairo/exo/garcon/garcon-gtk3/gtk3/libwnck/libxfce4ui/util all already built; no
     libxfce4windowing needed for 4.18). `--datadir=/usr/share`.
   - **★ TWO platform blockers (both new, both general to Xfce static linking):**
-    1. **libxfce4ui GResource not registered → Gtk-ERROR abort.** The panel shows a libxfce4ui dialog
-       whose UI is a GResource (`/org/xfce/libxfce4ui/libxfce4ui-dialog-ui.ui`); the register-constructor
+    1. **libxfce4ui GResource not registered → Gtk-ERROR abort. ✅ FIXED (2026-06-25).** A libxfce4ui
+       dialog's UI is a GResource (`/org/xfce/libxfce4ui/libxfce4ui-dialog-ui.ui`); its register-constructor
        lives in `libxfce4ui-resources.o` INSIDE `libxfce4ui-2.a`, but archive-pull drops it (nothing
-       references it), so the ctor never runs → "resource does not exist" → `RuntimeError: unreachable`.
-       (xfwm4/xfsettingsd link the same lib but never open a dialog, so they didn't hit it.) Fix =
-       force-link the resource .o; BLOCKED on automake link plumbing — `make LDFLAGS=` is IGNORED by the
-       panel link (it uses configure-time AM_LDFLAGS with the thread flags), and the `LIBS=`-based
-       `--undefined`/`--whole-archive` force-link produced a byte-identical binary (make treats the panel
-       as up-to-date / not relinking). NEXT: a clean manual relink step, or inject via the right per-target
-       automake var, to pull the resource .o (this also helps XU4/XU5 — they use libxfce4ui dialogs too).
+       references it), so the ctor never runs → "resource does not exist" → `unreachable`. Fix: **extract
+       `libxfce4ui_2_la-libxfce4ui-resources.o` from the archive and link it as a plain object** (always
+       included → ctor runs → bundle registered). `--undefined`/`--whole-archive` via LIBS did NOT work
+       (automake dedups the repeated `-l`); also `rm` the panel binary first (make won't relink it for a
+       LIBS-string change). Baked into `build-xfce4-panel.sh`; libxfce4ui untouched. Helps XU4/XU5 too.
+       Confirmed: the dialog renders correctly and the **panel bar renders** (empty — plugins still blocked).
+    1b. **NEW blocker — `fork()` for first-run config migration.** With no existing config the panel
+       `fork`s `xfce4-panel-migrate` → "Failed to fork (Resource temporarily unavailable)" (wasm has no
+       fork), surfaced via the now-working error dialog. NEXT: pre-stage a panel config (xfconf
+       `xfce4-panel.xml`, like the xfwm4/xsettings channels) so the panel finds a config and skips the
+       migration fork. Fixture, not a patch.
     2. **gmodule/dlopen static plugins.** All 13 panel plugins (applicationsmenu/tasklist/clock/systray/…)
        are external `.so` loaded via `g_module_open`+`g_module_symbol` (none `X-XFCE-Internal` by default);
        the sandbox has no dlopen. Unlike M8's lxpanel (built-in internal plugins registered in a static

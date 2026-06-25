@@ -46,21 +46,24 @@ if [ $RC -ne 0 ]; then echo "CONFIGURE FAILED; tail:"; tail -35 /tmp/conf-xfce4-
 
 WASMSUB="wasm32-wasip1-threads"
 SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"
-# ★ Force-link the libxfce4ui GResource: --undefined creates a ref to libxfce4ui_get_resource, then the
-# following -lxfce4ui-2 satisfies it, pulling libxfce4ui-resources.o (whose ctor registers the bundled
-# dialog UI). Must precede -lxfce4ui-2 in link order; automake ignores our LDFLAGS override but DOES use
-# LIBS (appended last), so we put both here. (libxfce4ui untouched -- pure link ordering.)
-GTKTRANS="-Wl,--undefined=libxfce4ui_get_resource -lxfce4ui-2 -lgarcon-gtk3-1 -lgarcon-1 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
-# ★ Force-link the libxfce4ui GResource object. Its register constructor lives in
-# libxfce4ui-resources.o inside libxfce4ui-2.a, but archive-pull only includes a .o that satisfies an
-# undefined symbol; nothing references it, so it's dropped and the bundled UI (libxfce4ui-dialog-ui.ui)
-# is never registered -> the first libxfce4ui dialog hits "resource does not exist" -> Gtk-ERROR abort.
-# Referencing libxfce4ui_get_resource pulls the .o so its constructor runs. (libxfce4ui untouched.)
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--undefined=libxfce4ui_get_resource -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
+# ★ Force-link the libxfce4ui GResource by EXTRACTING its object from the archive and linking it as a
+# plain object. The register-constructor lives in libxfce4ui-resources.o inside libxfce4ui-2.a, but
+# archive-pull only includes a .o that satisfies an undefined symbol; nothing references it, so it's
+# dropped and the bundled dialog UI (/org/xfce/libxfce4ui/libxfce4ui-dialog-ui.ui) is never registered ->
+# the first libxfce4ui dialog hits "resource does not exist" -> Gtk-ERROR abort. (--undefined/--whole-archive
+# via LIBS didn't pull it -- automake dedups the repeated -l. A direct object is always linked, so its
+# ctor runs.) libxfce4ui itself is UNMODIFIED -- this is pure link composition.
+RESO="$EXP/toolchain/libxfce4ui-resources.o"
+( cd /tmp && "$WSDK/bin/llvm-ar" x "$PREFIX/lib/libxfce4ui-2.a" libxfce4ui_2_la-libxfce4ui-resources.o 2>/dev/null \
+  && mv -f libxfce4ui_2_la-libxfce4ui-resources.o "$RESO" )
+GTKTRANS="$RESO -lxfce4ui-2 -lgarcon-gtk3-1 -lgarcon-1 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
 echo "== building libxfce4panel + common =="
 make -j4 -C libxfce4panel CFLAGS="$CFLAGS" LDFLAGS="$LINK" > /tmp/make-xfce4-panel.log 2>&1
 make -j4 -C common LDFLAGS="$LINK" >> /tmp/make-xfce4-panel.log 2>&1
 echo "== building panel binary =="
+# rm first: make treats an existing binary as up-to-date when only LIBS/LDFLAGS strings change.
+rm -f "$SRC/panel/xfce4-panel"
 make -j4 -C panel LDFLAGS="$LINK" LIBS="$GTKTRANS $SETJMP" >> /tmp/make-xfce4-panel.log 2>&1
 RC=$?
 echo "panel make rc=$RC"
