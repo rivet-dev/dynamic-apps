@@ -35,12 +35,15 @@ int uname(struct utsname *u) {
  * unlimited (RLIM_INFINITY) limit so callers like dbus-daemon that raise RLIMIT_NOFILE see it is
  * already unlimited and succeed (the previous stub left the struct uninitialized -> garbage limits ->
  * dbus fataled "cannot change fd limit"). setrlimit accepts any limit as a no-op. */
-int getrlimit(int r, void *l) {
+/* Signatures must match the sysroot's <sys/resource.h> (getrlimit(int, struct rlimit *)); a void*
+ * stub used to compile but newer wasi-sysroot headers declare the prototype -> "conflicting types".
+ * struct rlimit is { rlim_t rlim_cur; rlim_t rlim_max; }; treat it as two unsigned long long. */
+int getrlimit(int r, struct rlimit *l) {
     (void)r;
     if (l) { unsigned long long *p = (unsigned long long *)l; p[0] = ~0ULL; p[1] = ~0ULL; }
     return 0;
 }
-int setrlimit(int r, const void *l) { (void)r; (void)l; return 0; }
+int setrlimit(int r, const struct rlimit *l) { (void)r; (void)l; return 0; }
 /* getgroups(): supplementary group IDs. wasi has no group model; the sandbox runs as a single
  * synthetic identity, so report zero supplementary groups (Thunar references this for the file
  * owner/group column; unstubbed it's an undefined env import -> LinkError at instantiation). */
