@@ -72,7 +72,7 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟢 (XU3: panel + clock + tasklist (live window button) + systray + separator + **applicationsmenu** all render, all wasm, via the gmodule static-plugin shim; Greybird theming proven. The applicationsmenu DRAWS (2026-06-25, 23200 bar px) after task#11 was fixed: the hang was GPollFileMonitor's async query_info because wasi had no inotify; fixed by adding sys/inotify.h + no-op inotify runtime stubs so GLib's UNMODIFIED inotify backend compiles + GIO uses the no-op inotify monitor. whiskermenu (C++, the 6th plugin) now also DRAWS -- see its row) |
 | **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | 🟢 (XU3: UNMODIFIED whiskermenu 2.8.3 (C++, 24 .cpp) cross-compiled to wasm + integrated as the 6th static panel plugin; the panel bar DRAWS with whiskermenu (2026-06-25, 23200 bar px). Built via `scripts/build-whiskermenu.sh` (direct clang++ compile, no CMake cross-toolchain) + an EXTERNAL_PLUGINS path in build-xfce4-panel.sh. Loads garcon lazily so it avoids the binaryen fpcast file-view gate. The one platform fix: `toolchain/whiskermenu-register.c` (XFCE_PANEL_PLUGIN_REGISTER -> the proper xfce_panel_module_construct that DEFERS the construct to a realize handler, after the panel sets the plugin name) -- mapping the raw construct directly crashed in xfce_panel_plugin_lookup_rc_file on a garbage name) |
 | **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | 🟢 (XU4: builds + the desktop WALLPAPER + DESKTOP ICONS both render under xfwm4, all wasm. Wallpaper full-screen (Xvfb monitor key "monitorscreen"); the file-icons (Home/Filesystem/Trash special icons) render after the file-view gate fix (g_vfs_get_default -> g_vfs_get_local wrap unblocks the per-icon g_file_query_info enumeration) + the Adwaita icon theme staged + a gtk settings.ini pointing GTK at it. 0 "could not find the icon" errors. Proof 2026-06-25 xu4-xfdesktop.png. Root menu (garcon) still to wire) |
-| **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | 🟢 (XU5: UNMODIFIED Thunar 4.18.10 builds + RUNS + its WINDOW RENDERS, all wasm (2026-06-25, 56% non-black, run solo). The two platform fixes that unblocked it: the file-view GVfs-local wrap (g_vfs_get_default->g_vfs_get_local) + the wasi empty-path shim (open("")/fopen("")->ENOENT; Thunar's gtk_image_new_from_file("") hung on a dir-as-image). Window construction completes (init END). Caveat: under the full 4-guest load (xfwm4 competing) the thread-heavy GtkEntry/path-entry first-init is starved to a hang -- the M8.6 concurrent-guest scheduling ceiling, not a Thunar bug; solo it renders) |
+| **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | 🟡 (XU5: UNMODIFIED Thunar 4.18.10 builds + runs, all wasm. Two real platform fixes landed + verified: the file-view GVfs-local wrap (g_vfs_get_default->g_vfs_get_local) + the wasi empty-path shim (open("")/fopen("")->ENOENT; Thunar's gtk_image_new_from_file("") hung on a dir-as-image). BUT the window does not yet map on UNMODIFIED Thunar: the construction spawns worker threads that complete + exit, yet their completion never wakes the main thread's GMainContext poll, so the main thread waits forever (CreateWindow=0, spins=0). The earlier "56% renders" was an ARTIFACT of diagnostic g_printerr calls -- each stderr write is a host sync-RPC that incidentally wakes the main poll, letting it re-check + proceed; remove them and it hangs black. So the remaining blocker is a RUNTIME cross-thread GMainContext wakeup (worker -> main poll) -- the same GWakeup/poll-wakeup family as task#11/#13/M8.6; surfaced for sign-off as a wasm-threads runtime item) |
 | **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ✅ (XU1: GTK window themed Greybird via the XSETTINGS push) |
 | **xfconf** | settings store (D-Bus service) | https://gitlab.xfce.org/xfce/xfconf | ✅ (XU1: round-trip over GDBus) |
 
@@ -460,14 +460,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   Wallpaper renders full-screen under xfwm4 (proof: ~/tmp/gui-progress/2026-06-25T13/xu4-*.png; relinked
   against the inotify libgio, no regression). Desktop file-icons do NOT populate -- gated on the binaryen
   --fpcast-emu defect below (xfdesktop's icon view enumerates ~/Desktop eagerly via g_file_query_info).
-- **XU5 — Thunar.** 🟢 Thunar 4.18.10 builds + RUNS + its WINDOW RENDERS solo (2026-06-25, 56% non-black;
-  proof gui-progress/2026-06-25T18/xu5-thunar-alone.png). Two platform fixes unblocked it: the file-view
-  GVfs-local wrap + the wasi empty-path shim (toolchain/wasi-empty-path-shim.c). The old "no window" block
-  was a deep descent: ThunarWindow ctor -> ... -> gtk_image_new_from_file("") (empty-path hang, FIXED) ->
-  then the path-entry/GtkEntry first-init, which is thread-heavy (~4s solo) and gets STARVED to a hang under
-  the full 4-guest (xfwm4) load = the M8.6 concurrent-guest scheduling ceiling (a runtime scaling limit, NOT
-  a Thunar bug; solo, the whole ctor completes to init END and the window renders). Diagnostic TWDBG printfs
-  in thunar/*.c are temporary (revert for the clean build). Original build notes below.
+- **XU5 — Thunar.** 🟡 Thunar 4.18.10 builds + runs, all wasm; two real platform fixes landed (file-view
+  GVfs-local wrap + the wasi empty-path shim, toolchain/wasi-empty-path-shim.c). REMAINING: the window does
+  not map on UNMODIFIED Thunar. The deep descent (ThunarWindow ctor -> ... -> gtk_image_new_from_file("")
+  empty-path hang, FIXED -> then the path-entry/GtkEntry first-init) bottomed out at a RUNTIME cross-thread
+  wakeup bug, NOT a Thunar bug: the construction spawns worker threads that complete + exit (child-N exit 0),
+  but their completion never wakes the main thread's GMainContext poll, so the main thread waits forever
+  (CreateWindow=0, spins=0). **The "56% renders solo" result was an ARTIFACT of the diagnostic TWDBG g_printerr
+  calls** -- each stderr write is a host sync-RPC that incidentally wakes the main poll, letting it re-check
+  the worker condition + proceed; with the printfs reverted (clean unmodified build) Thunar hangs black
+  (4/65317 non-black). So the gating fix is the wasm-threads RUNTIME cross-thread GMainContext wakeup (a
+  worker's g_main_context_wakeup / GWakeup pipe write must wake the main thread's poll) -- same family as
+  task#11 (file-monitor async), task#13 (off-thread net.poll_wait), and the M8.6 futex-storm. Surfaced for
+  human sign-off as a runtime/threading item. Original build notes below.
   file-monitor hang (task#11 inotify fix), D-Bus session bus, clock, AND the file-view gate (the
   g_vfs_get_default->g_vfs_get_local wrap is wired into build-thunar.sh; Thunar runs with NO unreachable
   trap now). Test: scripts/test-xu5-thunar.sh (xfwm4 + thunar browsing /root). ONE remaining blocker: the

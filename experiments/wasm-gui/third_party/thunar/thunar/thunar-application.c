@@ -359,10 +359,8 @@ thunar_application_startup (GApplication *gapp)
   static const gchar *subsystems[] = { "block", "input", "usb", NULL };
 #endif
 
-  g_printerr ("TADBG: startup s0 enter\n");
   /* initialize the application */
   application->preferences = thunar_preferences_get ();
-  g_printerr ("TADBG: s1 preferences=%p\n", (void*) application->preferences);
 
 #ifdef HAVE_GUDEV
   /* establish connection with udev */
@@ -374,22 +372,17 @@ thunar_application_startup (GApplication *gapp)
                     G_CALLBACK (thunar_application_uevent), application);
 #endif
 
-  g_printerr ("TADBG: s2 dbus_init...\n");
   thunar_application_dbus_init (application);
-  g_printerr ("TADBG: s3 dbus_init done; parent startup...\n");
 
   G_APPLICATION_CLASS (thunar_application_parent_class)->startup (gapp);
-  g_printerr ("TADBG: s4 parent startup done; session_client...\n");
 
   /* connect to the session manager */
   application->session_client = thunar_session_client_new (opt_sm_client_id);
-  g_printerr ("TADBG: s5 session_client=%p; accel idle + css...\n", (void*) application->session_client);
 
   /* schedule accel map load and update windows when finished, this way empty but active accelerators are preserved */
   application->accel_map_load_id = gdk_threads_add_idle_full (G_PRIORITY_LOW, thunar_application_accel_map_load, application, NULL);
 
   thunar_application_load_css ();
-  g_printerr ("TADBG: s6 startup COMPLETE\n");
 }
 
 
@@ -505,7 +498,6 @@ thunar_application_command_line (GApplication            *gapp,
   gchar             *cwd_list[]   = { (gchar *)".", NULL };
 
   /* retrieve arguments */
-  g_printerr ("TADBG: command_line FIRED (cwd=%s)\n", cwd ? cwd : "(null)");
   g_variant_dict_lookup (options_dict, "bulk-rename", "b", &bulk_rename);
   g_variant_dict_lookup (options_dict, "quit", "b", &quit);
   g_variant_dict_lookup (options_dict, "daemon", "b", &daemon);
@@ -1457,12 +1449,10 @@ thunar_application_open_window (ThunarApplication *application,
   role = g_strdup_printf ("Thunar-%u-%u", (guint) time (NULL), (guint) g_random_int ());
 
   /* allocate the window */
-  g_printerr ("TADBG: open_window: g_object_new(THUNAR_TYPE_WINDOW)...\n");
   window = g_object_new (THUNAR_TYPE_WINDOW,
                          "role", role,
                          "screen", screen,
                          NULL);
-  g_printerr ("TADBG: open_window: ThunarWindow created=%p\n", (void*) window);
 
   /* cleanup */
   g_free (role);
@@ -1775,7 +1765,6 @@ thunar_application_process_filenames (ThunarApplication               *applicati
   _thunar_return_val_if_fail (screen == NULL || GDK_IS_SCREEN (screen), FALSE);
   _thunar_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-  g_printerr ("TADBG: process_filenames enter (wd=%s, first=%s)\n", working_directory, filenames[0]);
   /* try to process all filenames and convert them to the appropriate file objects */
   for (n = 0; filenames[n] != NULL; ++n)
     {
