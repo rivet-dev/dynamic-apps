@@ -1,0 +1,1508 @@
+4.18.6 (2024-02-29)
+======
+- Update copyright year
+- Do not use g_log_set_always_fatal()
+- launcher: Ensure default icon in empty launchers
+- build: Search for bind_textdomain_codeset in libintl too
+- Fix memory management of GTypeModules
+- pager: Avoid recursion in WnckScren signal handler
+- pager: Do not query workspace count if screen is not initialized
+- libxfce4panel: Fix custom menu items management
+- clock: Create monitor proxy asynchronously
+- Add missing G_BEGIN_DECLS
+- Translation Updates:
+  Czech, Finnish, Hungarian, Icelandic, Interlingue, Italian,
+  Portuguese (Brazil), Turkish
+
+4.18.5 (2023-09-27)
+======
+- pager: Do not adapt upper value of spin button in viewport mode
+- pager: Update workspace layout also on window manager change
+- pager: Fix aspect ratio for viewport (V2)
+- actions: Fix memory leak
+- pager: Delay GdkScreen signal handlers
+- panel: Do not scale background image when UI scale > 1
+- popup-command: Do not block autohide when popped up at pointer
+- Fix memory leaks when using gtk_css_provider_new()
+- panel: Clear item list before repopulating item dialog
+- panel: Remove autosave timer for plugins
+- wrapper: Really ensure we don't call gtk_main_quit() twice
+- panel: Block autohide when the panel has input focus
+- clock: Fix sync timeout for seconds display
+- clock: Implement ConsoleKit sleep monitor
+- Add/Sharpen icons at 48-128px
+- Adjust 32px icon margins, new separator icon
+- Sharpen icons at 16px and 32px
+- Increase margins for 24px icons
+- Make 24px icons sharper
+- icons: Fix wrong exported sizes
+- Translation Updates:
+  Basque, Catalan, Danish, Estonian, French, Italian, Kazakh, Polish,
+  Russian, Slovenian, Spanish
+
+4.18.4 (2023-05-22)
+======
+- icons: Scale at size 16x16 to 128x128 (Fixes #385)
+- icons: Fix centering of org.xfce.panel
+- icons: Rename org.xfce.panel.statustray to org.xfce.panel.systray
+- Fix memory leaks around gtk_get_current_event()
+- tasklist: Fix use-after-free on tasklist child
+- systray: Update icon also on status change
+- Translation Updates:
+  Catalan, Estonian, French, Greek, Italian, Korean, Occitan (post
+  1500), Russian, Slovenian, Turkish, Ukrainian
+
+4.18.3 (2023-03-28)
+======
+- launcher: Show action menu also when there are several items
+- Fix memory management of vala generated plugins
+- panel: Rephrase "Don't reserve space on borders" (V2)
+- panel: Make property migration generic
+- launcher: Avoid "no trigger event" warning when showing the menu
+- launcher: Guard access to the plugin menu GdkWindow
+- libxfce4panel: Unregister menu also on GtkWidget::hide
+- panel: Do not reset output name if a monitor does not have a model 
+name
+- libxfce4panel: Fix memory management of source for menu positioning
+- panel: Delay removal of ExternalPlugin to prevent use-after-free
+- systray: Cancel any async D-Bus operation in finalize()
+- tasklist: Do not try to resolve /proc/pid/exe to launch new instance
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Asturian, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Estonian, Finnish, French,
+  Galician, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian
+  Bokmål, Norwegian Nynorsk, Occitan (post 1500), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur, Vietnamese
+
+4.18.2 (2023-02-09)
+======
+- directorymenu: Add missing sanity check
+- panel: Properly handle null string as property default value
+- Revert "Use RGBA visual only if compositing is enabled (Fixes #251)" (#672)
+- Revert "systray: Do not require compositing to be enabled to use RGBA visual"
+- systray: Fix blurry icons in prefs dialog when UI scale > 1
+- launcher: Fix blurry icons in prefs and add dialogs when UI scale > 1
+- launcher: Use GIcon for the tooltip icon (#674)
+- pager: Use WnckHandle if available (#695)
+- Translation Updates:
+  Albanian, Finnish, Greek, Italian, Portuguese, Slovenian
+
+4.18.1 (2023-01-10)
+======
+- Update copyright year
+- tasklist: Fix scrolling through window buttons (Fixes #692)
+- tasklist: Fix group button visibility
+- libxfce4panel: Deprecate XfcePanelImage
+- tasklist: Do not duplicate menu item activation
+- clock: Fix sync timeout
+- docs: Fix version for xfce_panel_set_image_from_source()
+- clock: Add missing sanity check
+- windowmenu: Adapt wnck default icon size when UI scale > 1 (Fixes 
+#682)
+- tasklist: Adapt wnck default icon size when UI scale > 1 (Fixes #681)
+- tasklist: Fix window count positioning when UI scale > 1
+- tasklist: Keep icon pixbuf around and use surface also for menu items
+- clock: Do not override custom font formats
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, Georgian, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Sinhala, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur,
+  Vietnamese
+
+4.18.0 (2022-12-15)
+======
+- build: Bump requirements for Xfce 4.18
+- Translation Updates:
+  Hungarian, Lithuanian, Russian, Turkish
+
+4.17.5 (2022-11-30)
+======
+- Code Refactoring:
+  - panel: Remove dead code
+  - Define and use macros for Xfconf properties (!104)
+  - clock: Do not include `private.h` in headers
+
+- Bug Fixes:
+  - panel-desktop-handler: Add `OnlyShowIn=XFCE` key (!106)
+  - libxfce4panel: Fix menu positioning when the panel is hidden
+  - libxfce4panel: Fix menu widget positioning when the panel is hidden
+  - libxfce4panel: Strengthen sanity check for emitting "provider-signal"
+  - libxfce4panel: Make popup_penu() consistent with position_widget()
+  - panel: Remove limitation on setting struts in multi-monitor mode (#661)
+  - launcher: Fix tooltip icon invalidation on boutton update
+  - tasklist: Take window scaling into account for dnd
+
+- Translation Updates:
+  Greek, Kazakh, Korean, Portuguese (Brazil)
+
+4.17.4 (2022-10-31)
+======
+- Dependency Changes:
+  - GObject Introspection >= 1.66.0
+
+- New Features:
+  - clock: Improved time zone matching (!105)
+  - clock: [GSoC22] Merge DateTime with Clock plugin (!101)
+  - clock: Reveal calendar command in prefs dialog (Fixes #560)
+
+- Code Refactoring:
+  - systray: cleanup: Fix misleading variable name
+  - systray: cleanup: Remove dead code
+  - clock: Decrease verbosity
+  - panel: Remove duplicated PanelWindow:scale-factor property
+  - panel: Remove some duplicate build flags
+  - Ignore Libwnck 43.0 deprecations
+  - systray: Replace deprecated "GtkWidget::composited-changed" signal
+  - Replace deprecated "style-set" signal with "style-updated"
+
+- Bug Fixes:
+  - windowmenu: Take window scaling into account for icons
+  - tasklist: Take window scaling into account for icons
+  - systray: Take window scaling into account for status notifiers
+  - libxfce4panel: Add window scaling to xfce_panel_set_image_from_source()
+  - launcher: Take window scaling into account for icons from files
+  - launcher: Rebuild the menu when the panel size changes
+  - launcher: Do not overwrite button icon cache with menu item icons
+  - launcher: Fix tooltip icon management
+  - libxfce4panel: Fix a memory leak
+  - panel: Chain up to parent in constructed()
+  - tasklist: Add missing sanity check
+  - panel: Add missing sanity check
+  - panel: Fix test likeliness
+  - docs: Add libxfce4panel first
+  - clock: Fixed zone info directory (#646, !105)
+  - tasklist: Properly restore button state on GtkMenu::selection-done
+  - tasklist: Browse a copy of the window list if it is subject to change (#594)
+  - clock: Improve backward compatibility (#641)
+  - clock: Prevent visual glitch when showing calendar window (#466)
+  - Revert "clock: Prevent visual glitch when showing calendar window" (#641)
+  - tasklist: Update button visibility when sent to another workspace
+  - tasklist: Properly update fallback icon (Fixes #636)
+  - systray: Use theme colors for symbolic icons (#635)
+  - Add title to message dialogs (!102)
+  - docs: Do not track `libxfce4panel-overrides.txt`
+  - Bump GObject Introspection minim version to 1.66 (xfconf#8, !97)
+  - panel: Chain-up to parent in style_updated() (Fixes #490)
+  - clock: Fix widget visibility in prefs dialog
+  - docs: Fix "unused declarations" warning
+  - docs: Add missing link for api-index-4.18
+  - docs: Add missing "macros" section
+
+- Translation Updates:
+  , Albanian, Amharic, Arabic, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, Georgian, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Sinhala, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur,
+  Vietnamese
+
+4.17.3 (2022-08-20)
+======
+- New Features:
+  - clock: binary: Add new binary time mode (#235, !94)
+
+- Code Refactoring:
+  - cleanup: Use the same debug function everywhere
+  - clock: binary: Various refactoring and cleanups (!91, !92, !93)
+  - launcher: Replace deprecated GtkWidget::state-changed signal
+  - tasklist: Use a checkbox for button grouping
+  - cleanup: Remove dead code
+  - cleanup: Wrap some GdkScreen deprecations in one place
+  - cleanup: Wrap GtkImageMenuItem deprecations in one place
+  - cleanup: Remove deprecated GdkColor
+  - prefs-dialog: Rephrase "Don't reserve space on borders" (Fixes #217)
+  - tasklist: Simplify label text
+
+- Bug Fixes:
+  - clock: Implement sleep monitor (#58, !88)
+  - systray: Help to keep status notifiers from vanishing (#102, #243, #599)
+  - panel: Exit gracefully when display cannot be opened (Fixes #625)
+  - Urgency blinking fixes (!90)
+  - prefs-dialog: Always select another panel after removing one
+  - tasklist: Do not release button if left-click minimization is disabled
+  - tasklist: Properly exclude grouped windows from overflow menu
+  - tasklist: Keep dnd position when grouping/ungrouping windows (#323)
+  - Reposition menu for popup commands if necessary
+  - tasklist: Fix memory leak
+  - panel: Populate item dialog after setting dialog screen (Fixes #62)
+  - panel: Switch to pixels for the panel length in the prefs dialog (#99)
+  - panel: Rework enter/leave opacity management (#180)
+  - systray: Set button border width to 0 (Fixes #604)
+  - systray: Perform sanity checks also for "NewStatus" signal (Fixes #602)
+  - pager: Fix aspect ratio for viewport (Fixes #119)
+  - clock: Distinguish AM/PM hours in fuzzy clock for L10N (#77)
+  - libxfce4panel: Report a highlighted arrow button as blinking
+  - windowmenu: Update plugin icon on active window icon change (Fixes #37)
+  - pager: Synchronize workspace layout between plugin instances (#7)
+  - pager: Move some function calls to their right place
+  - pager: Properly disconnect signal handler
+  - tasklist: Guard against null workspace
+  - tasklist: Properly update active window when it changes workspace (#207)
+  - libxfce4panel: Warn about deprecated xfce_panel_plugin_position_menu()
+
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, Georgian, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Sinhala, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur,
+  Vietnamese
+
+4.17.2 (2022-07-10)
+======
+- Dependency Changes:
+  - GLib >= 2.66.0
+  - Libxfce4util >= 4.17.2
+
+- New APIs:
+  - libxfce4panel: Add new function `xfce_panel_set_image_from_source()` (!83)
+  - libxfce4panel: Add new function `xfce_panel_plugin_popup_menu()` (!80)
+
+- Deprecated APIs:
+  - libxfce4panel: Deprecate `xfce_panel_plugin_position_menu()` (!80)
+
+- Code Refactoring:
+  - cleanup: Remove useless variable
+  - cleanup: Use already defined panel scale factor
+  - cleanup: Fix old typo
+  - tasklist: Remove redundant function call
+  - refactoring: Consistency of plugin menu callbacks
+  - refactoring: Use `g_file_peek_path()` when appropriate
+  - Autohide refactoring (!77)
+  - Replace soon-to-be-deprecated exo-string functions (!79)
+
+- Bug Fixes:
+  - panel: Silence allocation warning for external plugins (V2) (#590, !89)
+  - panel: Compare monitor geometries in the right dimension (#54)
+  - panel: Do not compare monitor geometry to itself (#54)
+  - tasklist: Take window scaling into account when detecting window position (#505)
+  - panel: Be sure to save plugins before xfconf_shutdown()
+  - tasklist: Fix critical warning when starting on a disconnected device
+  - tasklist: Delay sorting if window list is in use (#594)
+  - libxfce4panel: Allow to show about dialog when prefs dialog is shown (#221)
+  - panel: Prevent compositing message from affecting dialog size (Fixes #591)
+  - libxfce4panel: Unblock autohide before removing the plugin (#592)
+  - Grab devices until the menu takes over for popup commands (#201, #585)
+  - Fix return value of "remote-event" signal handlers (#585)
+  - Avoid "no trigger event" warning for popup commands
+  - Guard against the return value of `gdk_seat_get_pointer()`
+  - panel: Ensure that handles are always grabbable (Fixes #227)
+  - Allow to set a custom icon in appmenu and dirmenu (#254, !83)
+  - Use RGBA visual only if compositing is enabled (Fixes #251)
+  - launcher: Fix wrong format specifier in config file name (Fixes #581)
+  - applicationsmenu: Add option to set "small" property (Fixes #31, #113)
+  - pager: Consistency fixes between "miniature view" and "buttons" (#74, #209, #253, #257, #274, !82)
+  - libxfce4panel: Make urgency blinking more visible (Fixes #259)
+  - tasklist: Sorting fixes (#29, #126, #323, !81)
+  - systray: Force dbus-menu update when item is invalidated (Fixes #567)
+  - libxfce4panel: Unregister menu also on "selection-done"
+  - applicationsmenu: Do post-processing on "selection-done"
+  - windowmenu: Do not popup menu item wnck menu at widget
+  - Fix plugin menu popup at pointer (#297)
+  - Add new function `xfce_panel_plugin_popup_menu()` (#147, !80)
+
+- Translation Updates:
+  Albanian, Basque, Bulgarian, Chinese (China), Chinese (Taiwan),
+  Dutch, Estonian, French, German, Greek, Italian, Japanese,
+  Lithuanian, Norwegian Bokmål, Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovenian, Spanish, Turkish, Ukrainian
+
+4.17.1 (2022-05-22)
+======
+- Dependency Changes:
+  - Garcon >= 4.17.0
+
+- New Features:
+  - tasklist: Middle click minimize window groups (!76)
+  - tasklist: Middle click close window groups (#322, !76)
+  - tasklist: Middle click opens new instance (#166, !72)
+
+- Bug Fixes:
+  - Add some autohide blockers (!78)
+  - Bump minimal required Garcon to 4.17.0 (#184, #485)
+  - libxfce4panel: Destroy plugin prefs dialog on plugin "destroy" signal
+  - Autohide fixes (#48, #116, #397, !75)
+  - systray: Hide button menu if button is hidden by its app (Fixes #391)
+  - launcher: Use same icons for item list as in prefs dialog (Fixes #415)
+  - launcher: Make add dialog consistent with panel add dialog (Fixes #416)
+  - tasklist: Fix context menu position in deskbar mode (Fixes #417)
+  - systray: Display square systray icons on multiple rows (#426)
+  - panel: Do not rely on borders to trigger autohide animation
+  - Revert "Fix autohide with bg color or image (Bug #16064)" (#435, #512)
+  - tasklist: Hide wireframe on window buttons (#543, !70)
+  - systray: Icon size and priority fixes (#571, !73)
+  - systray: Disable broken smooth scroll with Xfwm4 (#411, !74)
+  - prefs-dialog: Filter out irrelevant selection changes in "Items" tab
+  - wrapper: Ensure that provider stays alive when processing "g-signal"
+  - Revert "panel: Keep a reference on item during drag and drop"
+  - panel: Clear opaque region so compositor properly apply transparency (#378, #427)
+  - Fix `gdk_rgba_to_string()`-related memory leaks
+  - panel: Refactor background setters
+  - systray: Load icon from theme at desired size (#463)
+  - Take window scaling into account (#465, #486, !71)
+  - panel: Fix a memory leak
+  - clock: Prevent visual glitch when showing calendar window (#466)
+  - tasklist: Fix wireframe for CSD windows (v2) (#562)
+  - systray: Check that the proxy exists when invalidating item
+
+- Translation Updates:
+  Albanian, Bulgarian, Chinese (China), Chinese (Taiwan), Dutch,
+  English (United Kingdom), French, German, Greek, Hebrew, Italian,
+  Japanese, Lithuanian, Malay, Norwegian Bokmål, Panjabi (Punjabi),
+  Polish, Portuguese, Portuguese (Brazil), Serbian, Slovenian, Spanish,
+  Swedish, Turkish
+
+4.17.0 (2022-04-16)
+======
+- Dependency Changes:
+  - Garcon >= 0.8.0
+  - GLib >= 2.56.0
+  - Libxfce4ui >= 4.17.1
+
+- Code Refactoring:
+  - Remove unused project files
+  - Use GLib structured logging
+  - Remove obsolete Exo version checks
+  - Bump minimal required Garcon to 0.8.0 i.e. Xfce 4.16
+  - Remove obsolete GTK version checks
+  - Use GLIB_VERSION_MIN/MAX_REQUIRED/ALLOWED
+  - autoconf: Some updates
+  - libxfce4panel: Silence `-Wredundant-decls` warnings (#495)
+  - Revamp the documentation to modernize and uniformize accross components (!35)
+
+- Bug Fixes:
+  - panel: Fix regression "intellihide does not hide when leaving slowly" (#388)
+  - panel: Fix regression "'Span Monitor' has no effect" (#405)
+  - panel: Keep a reference on item during drag and drop
+  - panel: Fix a memory leak
+  - systray: Do not apply icon if not yet set
+  - Fix `deadcode.DeadStores` warnings from `scan-build` (!56)
+  - Fix `core.UndefinedBinaryOperatorResult` warning from `scan-build` (#142)
+  - Fix `core.NullDereference` warning from `scan-build` (!57)
+  - panel: Fix broken drag and drop between panels (#561)
+  - systray: Only activate item under mouse
+  - Use a normalized URI internally for the background image
+  - panel: Disconnect from screen signals when window is destroyed
+  - Fix ignored `*.desktop.in` in `.gitignore`
+  - systray: Do not connect to proxy signal if async method failed
+  - actions: Lay out buttons in grid for deskbar (#437, !69)
+  - wrapper: Rework widget drawing (#520, !67)
+  - windowmenu: Emit "deactivate" signal when hiding the menu (#22, !68)
+  - systray: Trust the status to update the attention icon (#392, !64)
+  - tasklist: Add a setting to control the display of tooltips (#548, !63)
+  - Fixed some window buttons not appearing in the panel (#188, !66)
+  - Remove ellipsis (#480, !65)
+  - launcher: Only activate under mouse (Fixes #519)
+  - launcher: Clear action menu when destroyed (Fixes #540, !61)
+  - actions: Block panel autohide (Fixes #431, !62)
+  - panel: Fix grabs for popup commands (Fixes #506, !60)
+  - Fix compilation warnings (#492, #493, #494, !53)
+  - launcher: Adjust menu icon size (Fixes #255, !51)
+  - Fix exit procedure when plugin insertion failed (!49)
+  - libxfce4panel: Review memory management for context menu (#452, !46)
+  - panel: Mitigate a memory leak when removing items (!46)
+  - tasklist: Silence an allocation warning (!48)
+  - launcher: Check for menu item initialization (!47)
+  - panel: Change width of default panel-2 to 1% (Fixes #454, !44)
+  - Fix some `*-CRITICAL` warnings (!43)
+  - libxfce4panel: Do not destroy context menu if popped up (#442, !45)
+  - tasklist: Auto-adjust icon size (v2) (#90, !29)
+  - pager: Allow disable switch with mouse wheel for miniature view (#253, !37)
+  - Add icons to help and about items in panel menu (#421)
+  - pager: Use gobject bindings (Fixes #376, !32)
+  - launcher: avoid double fork (#407, !25)
+  - Fix build warnings (!31)
+  - Display tooltip title of statusnotifier items as plaintext (!30)
+  - pager: Switch to new workspaces icon name
+  - statustray: Prevent crash when parsing properties (Fixes #379, !26)
+  - windowmenu: fix use-after-free in window_menu_plugin_window_item_new (!24)
+
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, Georgian, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Sinhala, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur,
+  Vietnamese
+
+4.16.0 (2020-12-23)
+======
+- panel: Fix intellihide with CSD (Fixes #368)
+- tasklist: Fix wireframe for CSD windows (Fixes #338)
+- tasklist: Auto-adjust icon size (Closes #90)
+- Revert "tasklist: Auto-adjust icon size (Closes #90)"
+- Fix GSourceFunc removal
+- Remove GSourceFunc casts
+- Remove GLIB_CHECK_VERSION IFDEFs which are obsolete after glib bump
+
+4.15.6 (2020-12-14)
+======
+- settings: Use spinbuttons for size and nrows
+- settings: Update item listview toolbar
+- Make dbusmenu-gtk3-0.4 optional, disables StatusNotifier integration
+- gobject introspection wants a capital letter for the gir file
+- Use new xfce_spawn API
+- Bump GLib (and gio, gthread, etc) minimum to 2.50.0
+- Update .gitignore
+- Add README.md to EXTRA_DIST
+- Fix compiler warnings
+- Fix memory leaks
+- Drop generated code from repo
+- Revert "launcher: Appear "checked" on click (Fixes #256)"
+- Translation Updates:
+  Chinese (China), Estonian, Norwegian Nynorsk, Russian, Serbian,
+  Slovak, Slovenian, Turkish, Vietnamese
+
+4.15.5 (2020-11-03)
+======
+- actions: Switch to new session icons (Fixes #332)
+- add-items: Drop not-so-helpful dialog subtitle
+- add-items: Bump default dialog size (Fixes #258)
+- launcher: Appear "checked" on click (Fixes #256)
+- tasklist: Limit blinking notification
+- intellihide: Check if cursor is over the panel (Fixes #311)
+- launcher: Set plugin icon as fallback (Fixes #329)
+- Add new README.md
+- Fixed icon for about dialog and added more icons for better scaling
+- Unref datetime objects
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian (Armenia), Basque, Belarusian,
+  Bengali, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian,
+  English (Australia), English (United Kingdom), Estonian, Finnish,
+  French, Galician, Georgian, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post
+  1500), Panjabi (Punjabi), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Sinhala, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian, Uyghur, Vietnamese
+
+4.15.4 (2020-08-22)
+======
+- New plugin: statustray (supports statusnotifier and systray)
+- plugins: Add new rDNS icons for all plugins
+- Use shared field codes expansion
+- tasklist: Add "Launch New Instance" item to menu (Fixes #158)
+- Translation Updates:
+  Albanian, Chinese (China), Chinese (Taiwan), Croatian, Estonian,
+  French, Hebrew, Japanese, Kazakh, Korean, Lithuanian, Norwegian
+  Bokmål, Polish, Portuguese, Portuguese (Brazil), Serbian, Swedish,
+  Turkish
+
+4.15.3 (2020-06-23)
+======
+- Add new app icon and rDNS icon name
+- Fix background of 48px app icons (Bug #16873)
+- dark-mode: Make property unique across panels
+- tasklist: Allow keyboard navigation within groups (Fixes #270)
+- applicationsmenu: Correctly block autohiding (Fixes #287)
+- action buttons: Fix combobox signal
+- action buttons: Drop 'inverted buttons' setting (#223)
+- action buttons: Add button title options (Bug #8980)
+- action buttons: Fix separator width (Bug #15558)
+- launcher: Fix launcher menu button state (Fixes #264)
+- launcher: Fix crash with actions menu (Bug #16823)
+- launcher: Fix in default panel configuration
+- Improve docs for xfce_panel_plugin_position_widget (Bug #9438)
+- Add Gio to libxfce4panel gir includes
+- Add basic GitLab pipeline
+- Fix whitespace error
+- Fix panel build with vala 0.48 (Bug #16426)
+- Fix build
+- Update gitignore (Fixes #295)
+- Drop references to Gtk2 and 4.6 panel plugins
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian (Armenia), Belarusian, Bengali,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Estonian, Finnish, French,
+  Galician, Georgian, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean, Lithuanian,
+  Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500),
+  Panjabi (Punjabi), Polish, Portuguese, Portuguese (Brazil), Romanian,
+  Russian, Sinhala, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Uighur, Ukrainian, Vietnamese
+
+4.15.2 (2020-04-06)
+======
+- panel: Improve autohide animation
+- panel: Add "popdown-speed" property to adjust autohide animation
+- panel: Fix autohide state machine
+- panel: Fix cancellation of autohide animation
+- panel: Immediately show panel in intellihide
+- panel: Don't tamper with leave_opacity value (Bug #16296)
+- launcher: Show desktop actions in context menu
+- plugin: Show custom menu items below plugin name
+- tasklist: Hide brackets for min windows by default
+- tasklist: Fix crash middle-click-closing grouped windows (Bug #16410)
+- systray: Basic support for symbolic icons
+- systray: Silence deprecation warnings
+- systray: Remove superfluous warning
+- Improve wording in "Remove plugin" dialog (Bug #9000)
+- settings: Add keywords for discoverability (Bug #10694)
+- Fix GTimeVal deprecation (Bug #16643)
+- Fix memory leak in panel plugin wrapper (Bug #16640)
+- Update docstring
+- Update libxfce4panel symbols
+- Make var names more consistent
+- Fix cast
+- Fix typo
+- Fix indentation
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Croatian, Danish, Dutch, Finnish, French, Galician,
+  Georgian, German, Hebrew, Hungarian, Italian, Japanese, Kazakh,
+  Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovenian, Spanish, Turkish, Ukrainian
+
+4.15.1 (2020-01-14)
+======
+- Enable dark-mode by default
+- tic-tac-toe: Fix XfceTitledDialog with CSD
+- add-item dialog: Fix XfceTitledDialog with CSD
+- systray: Improve app icon lookup
+- directorymenu: Add create folder/document menuitems (Bug #15639)
+- directorymenu: Add option to hide folder/terminal menuitems (Bug
+#15630)
+- plugins: Fix enter/leave opacity w/o compositing (Bug #14577)
+- clock: Drop leading zeros for days in default layout
+- clock: Add back hour:min to format presets (Bug #16035)
+- panel: Make sure "span monitors" is conditionally sensitive
+- tasklist: Fix drag&drop in deskbar mode (Bug #16298)
+- Fix autohide with bg color or image (Bug #16064)
+- Improve the marching ants animation
+- Remove extra underscore (Bug #16266)
+- Use an empty placeholder icon for launcher (Bug #15819)
+- Always provide files for vala binding in dist tarball
+- Replace GtkStock icon
+- Use symbolic window-close button image
+- Fix doc typos
+- Fix indentation
+- Translation Updates:
+  Albanian, Basque, Bulgarian, Catalan, Chinese (China), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, English (United Kingdom),
+  Finnish, French, Galician, Georgian, German, Greek, Hungarian,
+  Interlingue, Italian, Japanese, Lithuanian, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Turkish
+
+4.15.0 (2019-10-20)
+======
+ - Drop support for Gtk2 and 4.6 plugins
+ - Drop Gtk2/4.6-only references from the docs
+ - Don't show or try to load Gtk2 plugins anymore
+ - Add dark mode preference
+ - autohide: Add sliding out animation
+ - Draw panel border based on position and length
+ - appmenu: Listen to icon theme changes (Bug #15861)
+ - appmenu: Use panel's icon size
+ - clock: Validate timezone entry (Bug #16036)
+ - prefs: Plug memory leaks (Bug #16016)
+ - docs: Fix build by dropping unused refs (Bug #16031)
+ - pager: Fix scrolling in pager-buttons (Bug #15614)
+ - pager: Face-lift of settings dialog
+ - pager: Only show scroll-option with buttons
+ - pager: Add option to show workspace number
+ - systray: Drop "Show frame" option (Bug #14186)
+ - tasklist: Resize when windows get removed (Bug #14394)
+ - systray: Fix icons without compositing (Bug #14577)
+ - windowlist: Make layout consistent with xfdesktop
+ - windowlist: Replace deprecated gtk_widget_modify_font
+ - launcher: Fix visual state of arrow-button (Bug #15818)
+ - launcher: Avoid excessive left padding on popup menu (Bug #15819)
+ - Fix typos and improve code formatting
+ - Translation Updates:
+   Albanian, Arabic, Armenian (Armenia), Belarusian, Bulgarian, Chinese
+   (China), Chinese (Taiwan), Croatian, Danish, Dutch, French, Galician,
+   German, Greek, Hebrew, Hungarian, Indonesian, Italian, Japanese,
+   Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese
+   (Brazil), Russian, Serbian, Slovak, Spanish, Swedish, Thai, Turkish
+
+4.14.0 (2019-08-11)
+======
+ - tasklist: Keep panel visible on drag and drop (Bug #15703)
+ - pager: Keep panel visible on drag and drop (Bug #15703)
+ - launcher: Make dialog's context menu popup at pointer
+ - Make strings translatable
+ - Translation Updates:
+   Chinese (China), Danish, Finnish, Galician, German, Hungarian, Italian,
+   Japanese, Kazakh, Lithuanian, Norwegian Bokmål, Portuguese (Brazil)
+
+4.13.7 (2019-07-28)
+======
+ - Make vala and gobject-introspection optional
+ - clock: Add short weekday to default clock string
+ - clock: Add date to default clock layout (Bug #15456)
+ - prefs: Improve position of panel profiles button (Bug #15657)
+ - tasklist: Fix position of group indicator in vertical mode
+ - tasklist: Fix overlapping vertical window titles (Bug #14901)
+ - tasklist: Add fallback for missing window icons (Bug #15511)
+ - directory-menu: Use natural order for sorting (Bug #15413)
+ - arrow-button: Remove timeout on dispose (Bug #15696)
+ - pager: Ensure bg color is set correctly (Bug #15690)
+ - show-desktop: Toggle also when DND-ing (Bug #15654)
+ - tic-tac-toe: Add mnemonic to Close button
+ - tic-tac-toe: Avoid use-after-free/double-free (Bug #15649)
+ - Translation Updates:
+   Albanian, Armenian (Armenia), Belarusian, Bulgarian, Catalan, Chinese
+   (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch, Finnish,
+   French, Galician, German, Hungarian, Italian, Japanese, Kazakh,
+   Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese
+   (Brazil), Russian, Serbian, Spanish, Thai, Ukrainian
+
+4.13.6 (2019-07-01)
+======
+- Update default panel layout
+- Bugfixes:
+  - Retain original GDK_CORE_DEVICE_EVENTS setting for plugins (Bug
+  #15044)
+  - directorymenu: Fix plugin menu autohide behaviour
+  - prefs: Add missing mnemonic accelerators (Bug #15652)
+  - prefs: Improve window title (Bug #15653)
+  - prefs: Correct capitalization of labels (Bug #15651)
+  - arrow-button: Allow connect_after signals on draw
+  - tasklist: Draw grouped windows count indicator (Bug #10844)
+  - tasklist: Only base bg color of group indicator on Gtk theme
+  - tasklist: Avoid draw signal loop
+  - tasklist: Don't show actionsmenu in grouped windows (Bug #15622)
+  - Add more accelerators to dialog buttons (Bug #15490)
+  - AC_CONFIG_MACRO_DIR -> AC_CONFIG_MACRO_DIRS
+  - Fix typo in debug output
+- Translation updates:
+    Albanian, Bulgarian, Catalan, Chinese (China), Chinese (Taiwan),
+    Croatian, Czech, Danish, Dutch (Flemish), English (Australia), French,
+    German, Italian, Lithuanian, Polish, Portuguese, Portuguese
+    (Brazilian), Serbian, Spanish, Turkish
+
+4.13.5 (2019-05-17)
+======
+- Bugfixes:
+  - Revert "Applications menu icon sizing fixes" (Bug #14976)
+  - Make sure panel plugin icons aren't clipped (LP #1756608)
+  - actions: use a different icon for hybrid sleep when possible (Bug #15204)
+  - Fix compiler error -Wcast-function-type (GCC 8)
+  - Fix alpha-transparent background images (Bug #14850)
+  - Fix this use of "defined" may not be portable
+  - Bump glib version to 2.42.0
+  - tasklist: Activate parent windows (Bug #15307)
+  - launcher: Fix tooltip icon size (Bug #15319)
+  - Hide systray frame in default panel config
+  - separator: Use symbolic icon for more clarity (Bug #15359)
+- Translation updates: Albanian, Arabic, Asturian, Basque, Belarusian, Bengali,
+    Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Czech, Danish,
+    Dutch (Flemish), English (Australia), English (Great Britain), Estonian,
+    Finnish, Galician, German, Greek, Icelandic, Indonesian, Italian, Kazakh,
+    Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan,
+    Panjabi, Portuguese, Portuguese (Brazilian), Romanian, Russian, Serbian,
+    Slovak, Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur,
+    Vietnamese
+
+4.13.4 (2019-01-02)
+======
+- Add per-panel setting "icon-size"
+- Set minimum Gtk+3 version to 3.22
+- Bugfixes:
+  - Gtk+ deprecation fixes (all plugins)
+  - tasklist: Fix group-button states
+  - libxfce4panel: arrow button size fixes
+  - launcher: plugin sizing fixes
+  - appmenu: Add support for other menu editors (Bug #11684)
+  - tasklist: Fix urgency blinking for group buttons (Bug #6904)
+  - tasklist: Add 'group-button' styleclass
+  - Fix anchors for gtk_menu_popup_at_widget (Bug #14803)
+  - Fix struts on the bottom and right of the screen (Bug #14886)
+  - tasklist: Don't listen for monitor changes in the plugin (Bug #10725)
+  - tasklist: Use Gdk to to determine which monitor contains a window
+  - tasklist: Ensure pressed buttons with open menus
+  - tasklist: Replace exo-lucency with gtkcss
+  - tasklist: Make all-minimized group buttons translucent (Bug #10862)
+  - tasklist: Switch from wnck* icons to standard names
+  - tasklist: Keep groupbutton active after closing menu
+  - tasklist: Make sure icons in the group menu are 16px
+  - tasklist: Make grouped buttons active (Bug #9129)
+  - launcher: Rely on icon-size provided by panel
+  - Prevent crash on removing certain plugins (Bug #14418)
+  - Add "configure" button to composited infobar
+  - Make compositor info in settings dialog a GtkInfoBar
+  - directorymenu: Fix crash and drop deprecated call
+  - Fix unreadable panel items without compositing (Bug #14842)
+  - launcher: Fix arrows not being shown (Bug #14373)
+  - launcher: Fix tooltip icon size (Bug #14774)
+  - Re-introduce button images to plugin settings dialogs
+  - Make the settings dialog more HIG compliant
+  - launcher: Add 'New Link' button to properties (Bug #14855)
+  - Drop the panel's welcome dialog (Bug #14388)
+  - clock: Resolve deprecations and fix binary clock
+  - Workaround for xinput2's subpixel handling (LP #1795135)
+  - Ensure the orientation style classes are always applied
+  - Add orientation-related style classes for improved theming
+  - actions: Add support for dm-tool
+  - panel-window: set struts with monitor scaling
+-Translation updates: Albanian, Arabic, Asturian, Basque, Belarusian, Bengali,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese (Taiwan),
+  Croatian, Czech, Danish, Dutch (Flemish), English (Australia), English
+  (Great Britain), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean, Lithuanian,
+  Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan, Panjabi, Polish,
+  Portuguese, Portuguese (Brazilian), Romanian, Russian, Serbian, Slovak,
+  Slovenian, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghur,
+  Vietnamese
+
+4.13.3 (2018-05-04)
+======
+- Bugfixes:
+  - Get the actual widget state flags to avoid constant redraws (Bug #14307)
+  -	launcher: Fix empty button in remove launcher dialog (Bug #13962)
+  -	launcher: Make sure icons are not oversize
+  - launcher: Make sure the appropriate icon size is used
+  - launcher: Fix resizing of pixbuf based icons (Bug #14138)
+  - Move "Separator" to the top of the "Add New Items..." menu (Bug #14086)
+  - Make a couple of strings translatable (Bug #14338)
+  - Make former GtkStock dialog buttons translateable (Bug #14338)
+  - Make double-click add plugin in the "Add item" dialog (Bug #9784)
+  - clock: Improve discoverability of tooltip help-texts (Bug #11708)
+  - Correctly initialize return value (Bug #10873)
+  - Gtk+3 fixes:
+    Fix various warnings with Gtk3 (Bug #14135)
+    Fix Gtk+3 version in ifdef
+    Use 'gdk_screen_is_composited' with Gtk3 (Bug #14128)
+  	Try to fix menu positioning with Gtk3.22
+  - Various icon fixes:
+    Switch to GtkIconTheme (Bug #14125)
+    Fix missing icons with Adwaita icon theme (Bug #14133)
+    Fix remaining deprecated icon names
+- Translation updates: Belarusian, Bulgarian, Catalan, Chinese (China),
+   Croatian, Czech, Danish, Dutch (Flemish), English (Australia), Finnish,
+   French, Galician, German, Greek, Hebrew, Hungarian, Italian, Japanese,
+   Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese (Brazilian),
+   Russian, Serbian, Turkish, Ukrainian
+
+4.13.2 (2017-12-13)
+======
+- Add support for gobject-introspection (Vidar Haarr)
+- Bugfixes:
+  - actions: Fix GPtrArray usage (Bug #13981)
+  - actions: Show Hybrid Sleep option (Bug #12771)
+  - clock: Fix invalid datetime formats appearing in list (Bug #11527)
+  - clock: Use freedesktop.org compliant icon (Bug #13779)
+  - clock: Add a validator for digital custom formats (Bug #11527)
+  - clock: Fix format validation (Bug #11527)
+  - launcher: Fix custom images
+  - tasklist: Fix scrolling to cycle through open windows (Bug #13789)
+  - tasklist: Define cosmetic default padding for images (Bug #13865)
+  - tasklist: Fix alignment of labels when orientation is changed (Bug #13864)
+  - tasklist: Allow to hide label decorations (Bug #10546)
+  - systray: Fix crash when systray is empty (Bug #13927)
+  - systray: Don't lookup hash table for null keys (Bug #11929)
+  - systray: Add option to display icons with square sizing (Bug #12093)
+  - Pass socket id to D-Bus service to embed settings window (Bug #13854)
+  - Make "Automatic" the default selection in the panel config dialog
+  - Fix make distcheck (But #14040)
+  - Improve gtkdoc
+- Translation updates: Arabic, Asturian, Basque, Bengali, Bulgarian, Catalan,
+   Chinese (China), Chinese (Hong Kong), Chinese (Taiwan), Croatian, Czech,
+   Danish, Dutch (Flemish), English (Australia), English (Great Britain),
+   Estonian, Finnish, French, Galician, German, Greek, Hebrew, Hungarian,
+   Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean, Lithuanian, Malay,
+   Norwegian Bokmål, Norwegian Nynorsk, Occitan, Panjabi, Polish, Portuguese,
+   Portuguese (Brazilian), Romanian, Russian, Serbian, Slovak, Slovenian,
+   Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur, Vietnamese
+
+4.13.1 (2017-08-14)
+======
+- Port to GDBus (Ali)
+   This means the panel now depends on xfconf 4.13 - recommended is 4.13.3.
+- Features:
+  - systray: Allow ordering of items (Bug #11929)
+  - tasklist: Add styleclass to make life easier for themers
+- Bugfixes:
+  - Fix DND between external plugins (Bug #13687)
+  - Fix drag and drop for internal plugins (Bug #13642)
+  - Correct enter and leave opacity label positions (Bug #13594)
+  - Fix Gtk3 XfceArrowButtons not blinking (Bug #13599)
+  - Fix datarootdir declaration in .pc files (Bug #13589)
+  - Use fd.org terminal icon name (Bug #13592)
+  - Don't let the wrapper crash on unknown properties (Bug #13614)
+  - Set default panel-2 size of default settings
+  - windowmenu: Fix icon size in menu
+  - systray: Fix alignment of single non-square items (Bug #9095)
+  - clock: Make the default date and time format translatable (Bug #9637)
+- Translation updates: Arabic, Bengali, Bulgarian, Catalan, Chinese (China),
+   Chinese (Taiwan), Croatian, Czech, Danish, Dutch (Flemish), French, German,
+   Hebrew, Indonesian, Japanese, Kazakh, Korean, Lithuanian, Norwegian Bokmål,
+   Polish, Portuguese, Portuguese (Brazilian), Russian, Slovak, Spanish, Swedish,
+   Turkish, Ukrainian
+
+4.13.0 (2017-05-24)
+======
+- Port to Gtk3:
+    The port is the result of the hard work Nick, Peter, Andrzejr, Simon and
+    many others that helped with testing, patches and translations.
+- Features:
+  - Support for the "primary" monitor option in RandR
+  - Gtk2 plugins are still supported and work almost completely fine
+    (see regressions below)
+- Deprecations:
+  - xfce_panel_image is deprecated, instead plugins shall use GtkImage and
+    xfce_panel_plugin_get_icon_size which introduces defined icon size-steps
+    to avoid fuzzy icons
+- Known regressions:
+  - The panel is not visually focused by default (fixed in Xfwm4>=4.12.4)
+  - Moving panel plugins via drag and drop on the panel directly via the plugins
+    context menu action "Move" is currently broken (works fine in preferences dialog)
+  - Small regression with intelligent hiding (when opening a menu, the panel
+    hides and comes back immediately while it should just remain visible)
+  - Enter/leave opacity does not work for Gtk2 plugins
+  - Not all panel settings may be kept as the configuration is not 100% backward
+    compatible (e.g. we're using GdkRGBA instead of GdkColor for the backgorund)
+- Known todos:
+  - Fix all bugs/regressions
+  - Remove more/all Gtk+ deprecations
+    (lots of warnings when compiling currently)
+- Lots of translations updates
+
+4.12.1 (2016-10-24)
+======
+- Long overdue maintenance release.
+- Translation updates.
+- Clock: fixed compiler warnings.
+- Preferences: support for xfpanel-switch (if installed).
+- DirectoryMenu: fixed bugs #10331 and #11742
+- Tasklist: fixed background color issue.
+- ApplicationsMenu: fixed uninitialized variable.
+- make distcheck fix/workaround.
+
+4.12.0 (2015-02-28)
+======
+- Actions: Use localization for confirmation dialog titles (bug #11949)
+  (Ramon Dantas).
+- Use actual output geometry to place panels (bug #11058) (John Lindgren).
+- Tasklist: Fix grouped icons sometimes are wrongly rendered as a mini-icon
+  (bug #10846) (Mauro Giubileo).
+- Actions: Use common icon names (bug #11513).
+- Pager & tasklist: Disabled wrapping when scrolling (bug #6401).
+- Clock: Prevent recursion of symlinks.
+- Make panel hide intelligently with shaded windows (bug #11371).
+- Translation updates: he, es, sl, nb, ast, ru, pl, bg, fr, ro
+
+4.11.2 (2015-01-04)
+======
+- Added intelligent panel hiding (JPohlmann, ochosi)
+- Action buttons: only save session when requested (bug #7930)
+- Translation updates: fi, fr, ko, de, pl, cs, es, hr, ms, nl, pt_BR,
+  ja, uk, sr, it, th, is, da, pt, en_AU, kk, ru, zh, CN, ast, tr, sk,
+  he, ar, el.
+
+4.11.1 (2014-06-22)
+======
+- Action Buttons: Fix panel autohide (bug #8960) (Petr Gajdůšek).
+- Application sMenu: fixed incorrect initial icon size in some Gtk themes.
+- Window Buttons: fixed rendering of minimized window buttons.
+- Applications Menu: changed default button title to "Applications".
+- Window Buttons: wrap windows when scrolling through window list
+  (Andre Miranda).
+- libxfce4panel: preserve ArrowButton relief during blinking.
+- Window Buttons: prevent several buttons to be selected at once.
+- Action Buttons: default to a horizontal button layout in the deskbar mode.
+- Translation updates: ja, sv, hr, es, de, vi, ast, nb, it, bg, fr, nl, uk,
+  zh_CN, kk, pl, zh_TW, ru, is, nb, id, th, pt, he, en_AU, pt_BR, sr, ms
+
+4.11.0 (2014-02-16)
+======
+- Window Buttons: Improve the tasklist multimonitor handling.
+- Scroll the items list in the config dialog box (bug #10582)
+- Set EWMH client type to WNCK_CLIENT_TYPE_PAGER (bug #10508).
+- Fixed transparency issues with Gtk3 plugins.
+- Workspace Switcher: fixed aspect ratio in deskbar mode.
+- Added --enable-gtk3 configure flag. Note: it produces gtk2/gtk3 versions
+  of libxfce4panel and wrapper binary so that both gtk2 and gtk3 plugins can
+  be embedded. The panel and stock plugins are still using gtk2.
+- Applications Menu: Use new GarconGtkMenu.
+- Window Buttons: middle-click action configurable (nothing, close, minimize).
+- Drectory Menu: Pass path to argument (bug #10270).
+- Window Buttons: close a window on middle click (bug #8096).
+- Applications Menu: support for non-square icons and layout fixes.
+- Install XfcePanelPlugin properties at once.
+- Clock: added support for timezone selection.
+- Put each window in a new window group.
+- Window Buttons: Show urgent windows from other workspaces (bug #5167).
+- Clock: calendar popup.
+
+4.10.1 (2013-05-05)
+======
+- Bugfix in icon/pixbuf resizing code.
+- Fix icons not probably resizing when requested.
+- Autotools updates.
+- Ignore GVarueArray compiler warning.
+- Use G_ENABLE_DEBUG to set fatal messages.
+- Fixed DnD markers with non-square small items.
+- Actions: Fix logic of session saving (bug #8857).
+- Panel: Emit save signal for plugins.
+- Libxfce4-panel: Fix typo in the API docs.
+- Translation updates: Arabic, Bulgarian, German, Croatian, Polish,
+  Serbian, Swedish, Turkish, Uyghur.
+
+4.10.0 (2012-04-28)
+======
+- Use correct LGPL licenses in the libs.
+- Restore child properties when moving a plugin.
+- Migrate: Use correct pointer for action migrate (bug #8781).
+- Migrate: Don't try to migrate already migrated plugin (bug #8778).
+- Translation updates: German, English (United Kingdom), Spanish
+  (Castilian), French, Galician, Hungarian, Japanese, Korean, Dutch
+  (Flemish), Polish, Portuguese, Portuguese (Brazilian), Romanian,
+  Chinese (China).
+
+4.9.2 (2012-04-14)
+=====
+- Launcher: Fix desktop file monitoring on some systems.
+- Panel: Improved DnD markers.
+- Panel: Fix invalid autohide with socket dialog (bug #8617).
+- Panel: Remove duplicated function.
+- Panel: Remove duplicated function.
+- Actions: Show translated strings (bug #8660).
+- Check for sed using a macro.
+- Actions: Fix mnemonics conflict (bug #8657).
+- Clock: Fix compiler warning (bug #8648).
+- Bump version-info of libxfce4panel.
+- Translation updates: Arabic, Catalan (Valencian), Czech, Danish,
+  German, Greek, Esperanto, Spanish (Castilian), Estonian, Basque,
+  Persian, Finnish, French, Galician, Hebrew, Croatian, Hungarian,
+  Indonesian, Italian, Japanese, Kazakh, Korean, Lithuanian, Dutch
+  (Flemish), Norwegian Nynorsk, Polish, Portuguese, Portuguese
+  (Brazilian), Russian, Slovak, Telugu, Turkish, Ukrainian, Chinese
+  (China), Chinese (Taiwan).
+
+4.9.1 (2012-03-30)
+=====
+- Panel: Don't destroy window when focussed and Alt+F4 is
+  pressed (bug #7378).
+- Panel: Use new help function to redirect to docs.xfce.org.
+- Docs: Remove mallard documentation.
+- Docs: Don't install the gtkrc README.
+- Clock: Don't use sigval_t (bug #8297).
+- Panel: Add support for pluggable dialogs.
+- Panel: Save changed plugin ids if a plugin failed to load.
+- Directorymenu: Fix prefered app not working without snotify (bug #8298).
+- Launcher: Small=FALSE in deskbar mode with label visible.
+- Actions: Limit size of action buttons to row size.
+- Panel: Removed item size checks.
+- Clock: Fixing clock orientation in vertical/deskbar mode.
+- Pager: Fixing infinite loopin in the WNCK pager aspect ratio workaround.
+- Pager: Fixing plugin->size updates.
+- Pager: Fixed workspace ordering in the vertical mode.
+- Pager: Workaround for aspect ratio error in WNCK pager in deskbar mode.
+- Pager: Changing orientation depending on the panel mode.
+- Clock: Changing default value of rotate-vertically to TRUE.
+- Pager: Fixed preprocessor macro.
+- Pager: Removing broken workaround for aspect ratio in deskbar mode.
+- Pager: Making use of a fixed libwnck version (>=2.31.0).
+- Revert "Use realtime POSIX timers for the clock."
+- Revert "Clock: Don't use sigval_t (bug #8297)."
+- Launcher: Show the desktop file in the tooltip (bug #8536).
+- Panel: Make string in about translatable (bug #8545).
+- Panel: Don't ask for panel when inserting items (bug #8544).
+- Panel: Reply to the caller for plugin events (bug #7365).
+- Applicationsmenu: Fall-back to xfdesktop for
+  xfce4-popup-applicationsmenu (bug #7365).
+- Applicationsmenu: Recurse application menu selection-done gignal (bug #8541).
+- Panel: Add (un)lock option to panel menu (bug #6980).
+- Panel: Add confirmation before creating launchers from dnd (bug #6926).
+- Applicationsmenu: Allow non-squared icons in applications button (bug #7381).
+- Panel: Save plugin-ids when removing and moving items in ed.
+- Tasklist: Bringing back 4.8 max-button-size property.
+- Tasklist: Capping buttons height when button labels are visible.
+- Tasklist: Reverting "ceil" to "floor" (as in 4.8).
+- Actions: Query visibility and save as strings.
+- Translation updates: Arabic, Catalan (Valencian), Czech, Danish,
+  German, Esperanto, Spanish (Castilian), Basque, Finnish, French,
+  Hebrew, Hungarian, Indonesian, Italian, Kazakh, Korean, Lithuanian,
+  Dutch (Flemish), Norwegian Nynorsk, Polish, Portuguese, Portuguese
+  (Brazilian), Russian, Slovak, Telugu, Turkish, Ukrainian, Chinese
+  (China), Chinese (Taiwan).
+
+4.9.0 (2011-12-30)
+=====
+- Panel: Add option in preferences dialog to disable struts (bug #7202).
+- Showdesktop: Allow middle-click to shade windows (bug #7177).
+- Panel: Add style property to control size of autohide window.
+- Panel: Make compositing settings insensitive (bug #7862).
+- Tasklist: Add option to disable mouse scrolling (bug #6996).
+- Tasklist: Make the plugin shrink instead of expand (bug #7389, #7129).
+- Drop AC_PROG_LIBTOOL and AC_DISABLE_STATIC for LT_PREREQ and LT_INIT.
+- Clock: Use realtime POSIX timers for the clock.
+- Actions: Merge functionality of xfce4-session plugin.
+- Applicationmenu: Show menu on button-press-event (bug #8047).
+- Migrate: Add version based config migration.
+- Clock: Fix typo in tooltip (bug #8137).
+- General: Add deskbar mode and nrows property to plugins.
+- General: Add small property for plugins.
+- Separator: Remove new line option.
+- General: Make plugins work with deskbar mode and small property.
+- Panel: Change drop highlighting to a red line.
+- Applicationmenu: Reload menu on directory changes.
+- Panel: Make sure the panel has a position on startup (bug #8287).
+- Panel: Work with a unique id for each panel.
+- Panel: Remove autosaving on exit and with timeout.
+- Panel: Only save what is required and when needed.
+- Docs: Update to latest version.
+
+4.8.6 (2011-09-21)
+=====
+- Panel: Wait until the wm is ready on all screens (bug #7161).
+- Systray: Control the thinkness of the frame (bug #7593).
+- Launcher: Fix broken compilation (bug #7966).
+- Launcher: Don't reconstruct the items on save (bug #7952).
+- Applicationsmenu: Fix segfault with not-existing menu (bug #7895).
+- Libxfce4panel: Avoid problem if panel is not yet realized.
+- Panel: Print string in case of an invalid position.
+- Libxfce4panel: Always try to return an icon.
+- Directorymenu: Also send the target directory as arg (bug #7745).
+- Translation updates (it, tr, nl, sk, pt_BR, te, zh_CN, pt, ru, ko,
+  ja, ro, fr, kk, ms, es, id, eu).
+
+4.8.5 (2011-06-21)
+=====
+- Tasklist: Avoid unneeded dnd actions.
+- Launcher: Fix plugin size with arrow button (bug #7747).
+- Tasklist: Allow both motion activation and dnd (bug #7755).
+- Panel: Fix off-by-one error in strut sizes (bug #7739).
+- Tasklist: Fix assert in button dnd (bug #7741).
+- Panel: Make preferences dialog work in Gtk+ 2.24.5.
+- Systray: Add xfpm to known apps for a decent icon.
+- Tasklist: Drop Gtk 2.22 API.
+- Migrate: Fix 4.6 transparency migration (bug #7523).
+- Translation updates (nl, zh_CN, de, pt, ja).
+
+4.8.4 (2011-06-19)
+=====
+- Systray: Fix disappearing icons when drawing at 0,0 (bug #7057).
+- Panel: Fix panel loading in kiosk mode.
+- Common: Update online documentation help location.
+- Launcher: Fix spacing in vertical panel with arrow on the side (bug #7584).
+- Panel: Set window colormap and change autohide window type (bug #7435).
+- Migrate: Fix 4.6 migration of action buttons (bug #7543).
+- Libxfce4panel: Fix menu positioning for moved external plugins (bug #7529).
+- Panel: Improve thread-safety.
+- Libxfce4panel: Idle XfcePanelImage loading.
+- Pager: Make the pager message less scary.
+- Windowmenu: Do not update if screen is not initilized (bug #7728).
+- Libxfce4panel: Keep blinking forever (bug #7583).
+- Tasklist: Fix minimizing of active transient windows (bug #7674).
+- Tasklist: Add a sorting mode for tasklist reordering with dnd (bug #7058).
+- Translation updates (fi, sk, pt_BR, eu, nl).
+
+4.8.3 (2011-04-06)
+=====
+- Tasklist: Work around segfaulting of group buttons.
+- Tasklist: Properly initialize the monitor geometry on startup (bug #7340).
+- Use portable abicheck.sh from xfconf.
+- Panel: Avoid recursing gtk_main_quit() on signal.
+- Tasklist: Hide wireframe when window is destroyed (bug #7377).
+- Directorymenu: Remove unused varaible.
+- Pager: Fix typo in row warning.
+- Tasklist: Fix function prototype.
+- Panel: Do no inline function.
+- Tasklist: add button release event to proxy item (bug #7362).
+- Translation updates (zh_CN, tr, de).
+
+4.8.2 (2011-02-25)
+=====
+- Change packing order of buttons in pager to match wnck.
+- Initialize tasklist viewport if screen is connected (bug #7255).
+- Set some atk object names on panel buttons without label.
+- Allow installation of the helpers in a custom location.
+- Set a static role for the panels (bug #7094). Reverted the previous fix.
+- Ask to start the panel if 'xfce4-panel -r' is called without instance.
+- Respawn a child if the plugin was realized with a pid.
+- Don't crash on a wrong colormap when changing screens.
+- Don't activate windows in tasklist when dnd a button or plugin.
+- Keep reference on window to avoid crash (bug #7193).
+- Activate windows on button release events (bug #7296).
+- Use the widget snapshot as tasklist draw icon.
+- Fix test so manual is installed (bug #7274).
+- Translation updates (he, sv, id, zh_CN, da, kk, pt, uk,
+  zh_TW, ja, ru).
+
+4.8.1 (2011-01-30)
+=====
+- Make the panels sticky for some window managers (bug #7130).
+- Fix assert when storing property values in xfconf (bug #7117).
+- Migrate monitor information (bug #7135).
+- Cache launcher menu tooltip pixbuf (bug #7146).
+- Reverse menu item insert order (bug #7102).
+- Set and restore a unique role name for windows (bug #7094).
+- Don't return a critical on a NULL dbus session.
+- Allocate 1x1 requests offscreen in the systray (bug #7143 and #7057).
+- Popup window menu under cursor on window button group menus.
+- Directly start the panel on the correct screen (bug #7161).
+- Move the panel menu to the correct screen (bug #7203).
+- Fix dragging panels to another screen.
+- Open plugin dialogs on same screen as plugin.
+- Sync hidden window and panel screen.
+- Show launcher add dialog on the same screen as parent.
+- Fix autohide direction based on orientation and edge.
+- Deactivate menu button if loading menu failed.
+- Don't double expose the panel's child widget (bug #6872).
+- Remove unneeded check (bug #7149).
+- Don't disappear when wm restarts with compositing (bug #7194).
+- Properly update the plugin background when moving to other panel.
+- Unset visible event window in 4.6 plugins.
+- Various small code cleanups and improved debug messages.
+- Translation updates (eu, fr, ja, lt, sv).
+
+4.8.0 (2011-01-16)
+=====
+- Restart tray allocation if number of rows overflows (bug #7055).
+- Restart systray manager on compositing changes.
+- Add additional debugging information with filtering support.
+- Fix tasklist craches on window unmap (bug #7076).
+- Translation updates: French, German, Arabic, Russian, Portuguese,
+  Romanian, Lithuanian, Swedish, Chinese (Taiwan), Greek, Polish,
+  Croatian, Hungarian, Catalan (Valencian), Norwegian Bokmal.
+
+4.7.7 (2011-01-02)
+=====
+- Bind panel translation domain for external plugins (bug #6932).
+- Allow reordering plugins in preferences with dnd.
+- Open plugin preferences on double-click (bug #6975).
+- Change launcher dnd code for plugin moving.
+- Send drag motion event to parent widgets.
+- Do not make the itembar insensitive (bug #6818).
+- Fix some prototype variable names.
+- Fix warning when removing a panel with a 4.6 plugin.
+- Fix order of menu items based on screen position (bug #6978).
+- Drop too-new Gtk API.
+- Various improvements in the launcher dialog.
+- Don't use the session manager in action plugin.
+- Add option to filter tasklist window by monitor (bug #5199).
+- Remove plugin when dropping in items dialog (bug #6976).
+- Bump copyright to 2010 and fix licenses.
+- Also load desktop files from xfce4/panel/plugins (bug #7013).
+- Install desktop files in xfce4/plugins/actions (bug #7013).
+- Make vertical clock rotation optional (bug #7002).
+- Fix various size allocation issues in clock (bug #5219, #3960).
+- Fix plugin dnd with locked panel and outside itembar.
+- Add missing function to libxfce4panel.symbols.
+- Fix ABI check on ppc (bug #7009).
+- Fix typo in function name.
+- Add application menu in default layout.
+- Fix invalid unref.
+- Make sure launchers are properly removed and saved.
+- Fix vertical tasklist buttons in non-vertical mode.
+- Fix thinko in screen handling (bug #6830).
+- Workaround un nusable plugin when moving to other window.
+- Add xfce_panel_pixbuf_from_source().
+- Use xfce_panel_pixbuf_from_source() in XfcePanelImage.
+- Use XfcePanelImage in the launcher menu.
+- Use xfce_panel_pixbuf_from_source in launcher dialogs.
+- Optimize loading icons from absolute paths.
+- Fix some compiler warnings.
+- Move hidden name handling to plugin.
+- Use foreach to add application to store.
+- Move arrow button to plugin widget (bug #6694).
+- Only use orientation in systray box.
+- Remove unused variables in box structures.
+- Drop child structure from box and only use widgets.
+- Improve sort function a bit + other tiny changes.
+- Move composited child function to plugin.
+- Use xfce_panel_pixbuf_from_source() to load known apps.
+- Add some known tray application names.
+- Try WM_NAME(STRING) too for tray application name.
+- Redo icon positioning (bug #5565, #9650 and more).
+- Drop some unused systray code.
+- Block grabs from outside the panel.
+- 1x1 invisible icons doesn't seem to be true (bug #7044).
+- Bump copyrights to 2011.
+- Translation updates (ca, cs, da, de, en_GB, fi, gl, he, hr, hu, id,
+  it, ja, kk, nb, pl, pt, pt_BR ru, sk, sv, uk, zh_TW).
+
+4.7.6 (2010-12-05)
+=====
+- Always use applications menu for default menu.
+- Fix Exec key in desktop file handler (bug #6912).
+- Fix if statement in xfce_tasklist_button_visible().
+- Depend on garcon 0.1.4.
+
+4.7.5 (2010-12-04)
+=====
+- Don't destroy the about dialog.
+- Allow using enter in the launcher treeviews.
+- Fix crash in always group mode (bug #6792).
+- Drop the automatic grouping option from tasklist; not implemented yet.
+- Fix Gdk key macro names.
+- Fix confustion with panel opacity (bug #6827).
+- Make miniature view the default in the pager (bug #6825).
+- Fix wrong capitalization of Xfce.
+- Fix issue in systray size allocation with 1 row (bug #6809).
+- Fix 'add launcher' desktop file.
+- Improve debugging output for display changes.
+- Restore shadow of spin button in systray dialog.
+- Add function to return the Xfconf panel name.
+- Warning why # pager rows does not apply (bug #6555).
+- Gracefully handle abort signal (bug #6563).
+- Restart the panel if we receive SIGUSR1.
+- Fix format of 12-hour clock.
+- Add option to not rotate buttons in vertical panel (bug #6687).
+- Propertly handle insensitive clock colors.
+- Set correct session priority.
+- Improve support for a menu editor (alacarte) in the applications menu.
+- Don't destroy the application menu under the users' cursor on reload.
+- Add window DND to the pager in tasklist.
+- Make viewports work in the tasklist (bug #6898 and #6665).
+- Support viewports in button pager.
+- Translation updates (be, ca, da, de, eu, fi, gl, hu, id, it, ja,
+  kk, nl, pt, sk, ta, uk, zh_CN, zh_TW).
+
+4.7.4 (2010-11-03)
+=====
+- Add support for menu monitoring.
+- Allow translations of the "Xfce Panel" string.
+- Add submodule to xfce4-docs/xfce4-panel-master.
+- Fix accelerator key conflict (bug #6765).
+- Add test for docs module and depend on xdt 4.7.3.
+- Fix distributing the manual in the dist tarball.
+- Translation updates (ug, gl, zh_TW, de, sk, nl, da, kk, uk, pt,
+  de, it, ja, el, fi, sv, ca, eu, hu).
+
+4.7.3 (2010-09-05)
+=====
+- Add support to run plugins in valgrind.
+- Add lXext to tasklist libraries (bug #6471).
+- Add a pager mode with normal buttons.
+- Fix menu positioning with autohide panels.
+- Always wait for a grab if we popup menus from events.
+- Don't handle grabs on the window from menu's.
+- Register the plugin menu to block autohide.
+- Make the session warning a non-aborting error for startxfce4.
+- Allow to quit the panel if no session manager is running.
+- Improve checking if we own the dbus name.
+- Delay allocation of event table until we use it.
+- Add workspace settings option to pager submenu.
+- Libxfce4panel-1.0.pc is missing variable localedir (bug #6629).
+- Remove deprecated encoding key from desktop files.
+- Move helpers applications to $libdir.
+- Move module panel plugins in $libdir/xfce4/panel/plugins.
+- Add cast to fix a compile error in external 4.6 plugins.
+- Fix activating the panel when a plugin asks for focus.
+- Translation updates (pt_BR, da, hu, de, pt, ca, fr, kk, it,
+  zh_TW).
+
+4.7.2 (2010-07-17)
+=====
+- Fix typos in translated strings (bug #6350).
+- Fix rounding issues in panel borders.
+- Empty channel if 4.6 migration failed.
+- Load the xfce-applications.menu as default.
+- Add support for more background options (bug #1731).
+- Improved debugging support using the PANEL_DEBUG environ variable.
+- Add LIBXFCE4PANEL_VERSION.
+- Link tasklist plugin to x11 (bug #6471).
+- Fix some (possible) problems when building documentation.
+- Add support for X-XFCE-Unique=SCREEN.
+- Make sure there are not 2 active windows on ws-changes (bug #6474).
+- Make the systray takeover selection.
+- Ask to start panel when opening preferences without instance.
+- Add logout to plugin menu and drop quit and restart.
+- Add separator between help and logout in window menu.
+- Improve and cleanup code for external plugins (bug #6358).
+- Change colormap handling (bug #6358).
+- Add debug mode to run plugins in gdb (export PANEL_DEBUG=gdb,
+  logs in /tmp directory).
+- Use activate signal for launcher menu items (bug #6485).
+- Fix launching from primary clipboard (bug #6488).
+- Translation updates (pa, es, id, ru, tr, kk, ca, it, uk, ug, hr,
+  bn, fi, gl, pt_BR, de, da, eu, sk, pt, el, zh_CN, el).
+
+4.7.1 (2010-03-28)
+=====
+- Support for dragging menu items to create launchers (bug #2896).
+- Fix segfault when directory is NULL (bug #6336).
+- Restore button label binding in applications menu (bug #6277).
+- Give the wrapper a widget name for theming (bug #6268).
+- Add existing windows in the tasklist (bug #6273).
+- Store the drop highlight position (bug #6270).
+- Add option to application menu to show tooltips.
+- Use exo desktop file names in default config.
+- Set desktop type when migrating 4.6 launchers.
+- Fix icon button allocation in tasklist (bug #6269).
+- Properly handle exit status.
+- Restart external plugins on compositing changes.
+- Give panel windows good theming names (bug #6268).
+- Only return default title in applications menu is NULL.
+- Add Mallard page for theming (only reminder for now).
+- Fix handling of custom menu items.
+- Fail when compiling with --enable-gen-doc, but checks failed.
+- Make the always group functionality work.
+- Properly rebuild tasklist if a windows' workspace changed.
+- Support remote event replies from the wrapper.
+- Improve manual Makefile.
+- Restore old workspace scroll behaviour (bug #6271).
+- Handle pager orientation.
+- Improve debugging in external plugins.
+- Add some more checks in the 4.6 macro.
+- Fix expand overflow (bug #6312).
+- Add drag activate for window buttons in the tasklist.
+- Add scroll support to switch between windows in tasklist.
+- Handle window autohide blocking in application.
+- Change order of plugin signals on startup.
+- Add option to fix the length of the panel.
+- Set icon geometries for the tasklist buttons.
+- Use gtk_widget_get_ancestor() instead of custom function.
+- Translation updates (ru, kk, it, uk, el, bn, fi, si, da, eu, sk, pt).
+
+4.7.0 (2010-02-27)
+=====
+
+General
+-------
+- Almost a complete rewite of the code. Everything is now written
+  in GObjects. This makes each individual part easier to understand.
+- All plugins are ported to GObject-based plugins and use Xfconf for
+  storing their information (apart from desktop-files of launcher).
+- Interfaces are all created by GtkBuilder.
+- Ported to new Libxfce4ui (4.7.1) and Garcon (0.1.1) libraries.
+  Other dependencies include Gtk+ 2.14, Glib 2.18, Xfconf 4.7.2,
+  Exo 0.5.1, DBus-Glib 0.73 and Libwnck 2.22.
+- Documentation (will be) written in Mallard.
+- On first startup a dialog will appear to migrate old panel config,
+  start with the default setup or one empty panel.
+
+Panel
+-----
+- Panels can be dragged around the screen and snapped to every panel
+  edge. Each panel also has a setting to control the window length (%).
+- Possibility to lock panels. This will fix the position and hides the
+  handles of the window.
+- Alpha backgrounds.
+- Item (plugin) editor in the preferences dialog, so you can easily
+  add, move, delete and edit plugins that are sometimes hard to reach.
+- Using Xfconf for storing the panel settings. Panels also watches the
+  Xfconf channel for changes, except for adding and removing panels.
+- New code for monitor/screen positioning. This should work a lot
+  better with randr.
+- DND of desktop-files on the panel to create new launchers.
+- Possibility to add new plugins from the command line, including
+  startup arguments.
+- External plugins are automatically restarted if they have not
+  crashed in the last 60 seconds. If they crash more then once in
+  this time window, the user is asked what to do (restart or remove).
+- Gtk style properties for popup/popdown delay (bug #5707).
+- Hidden option to disable struts for windows on a screen edge, so
+  the space is used by the window manager for other windows.
+
+Plugin Framework
+----------------
+- Plugin API should still be the same, however the ABI changed so
+  you need to recompile plugins against this version of the panel.
+- New way to run plugins compiled as modules externally. Whether a
+  plugin runs internal or external is controlled by a boolean in the
+  desktop-file of the plugin. This does not affect the 'old' external
+  plugins that are compiled as binaries, it is however recommended to
+  port plugins to this new framework (only Makefile and macro change)
+  since it is more flexible.
+- Communication between the panel and wrapper (that embeds plugins to
+  run external) is handled through D-Bus.
+- XfcePanelPlugin is now a single object (not an interface for 2 other
+  objects). This drops a lot of code.
+- Some new API and a couple of deprecations. Some of the new
+  functionality is only available in the new plugin framework.
+- New way to build plugins as GObjects with XfcePanelPlugin as parent
+  type. This gives all advantages of GObject like type checking.
+
+Actions Plugin
+--------------
+- New settings dialog that allows one or two actions in the plugin
+  in each order you want.
+
+Applications Menu Plugin (new)
+------------------------------
+- Plugin similar what Xfdesktop provided, but using Garcon.
+- Gtk icons size property to control the menu icon size.
+- Script to popup the menu, optionally under the cursor.
+
+Clock Plugin
+------------
+- New fuzzy clock mode.
+- Improved vertical orientation.
+
+Directory Menu Plugin (new)
+---------------------------
+- Menu that provides a directory tree in a menu. It allows to quickly
+  open a Terminal or File Manager for some directory.
+- Possible to set a file filter for files that should also be
+  visible in the menu. Files are opened by the default application
+  that provides the mime-type reported by GIO.
+- Gtk icons size property to control the menu icon size.
+- Script to popup the menu, optionally under the cursor.
+
+Launcher Plugin
+---------------
+- Support to create a launcher from the command line with a number of
+  desktop files as argument.
+- New dialogs, with an application finder like interface to add new
+  applications and using the Exo item editor for modifying launchers.
+- The desktop files are stored in the .config/xfce4/panel/launcher-$id
+  folder and monitored for changes.
+- Possibility to use desktop-id in the default configuration which are
+  read from a GarconItemsPool on first startup. This is a very useful
+  feature for distributions providing a custom default config.
+- Gtk icons size property to control the menu icon size.
+- Option to show labels instead of icons.
+
+Pager Plugin
+------------
+- Button to quickly access the Xfwm4 workspace settings.
+
+Separator Plugin
+----------------
+- Same drawing modes as previous panel, but a check button for expand
+  instead of a mode.
+
+Notification Area Plugin
+------------------------
+- Support for transparent tray icons (required at least Gtk 2.16).
+
+Window Buttons (tasklist) Plugin
+--------------------------------
+- Option to only show icons. This drops the icon box plugin.
+- Complete rewrite, not entirely finished yet (group buttons are not
+  working yet + some other less noticeable features).
+- If the list becomes too crowded windows will show up in an overflow
+  menu, similar to what a menu bar does.
+- Option to set the sort mode of the tasklist.
+- Draw wireframe of the window on mouse hover, similar to the Alt+Tab
+  wireframe in Xfwm4.
+- A lot of style properties to tune the behavior of the plugin.
+- Vertically orientated buttons for vertical panels.
+
+Window Menu Plugin
+------------------
+- Gtk icons size property to control the menu icons size and minimized
+  icon translucency.

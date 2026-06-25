@@ -388,8 +388,29 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
       + `xu2-elimination-chain.txt`.
     - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
       → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
-- **XU3 — xfce4-panel + whiskermenu.** ⬜ The panel renders with the Whisker app menu, taskbar, clock,
-  systray; the menu opens and lists apps. Proof screenshot.
+- **XU3 — xfce4-panel + whiskermenu.** 🟡 IN PROGRESS (2026-06-25). DoD: the panel renders with the
+  Whisker app menu, taskbar, clock, systray; the menu opens and lists apps. Proof screenshot.
+  - **Panel core BUILT (2026-06-25):** UNMODIFIED xfce4-panel 4.18.6 → `xfce4-panel.wasm` (15.9 MB) +
+    `libxfce4panel-2.0.a` (the plugin SDK), via `scripts/build-xfce4-panel.sh` (the Xfce autotools + GTK
+    recipe; deps cairo/exo/garcon/garcon-gtk3/gtk3/libwnck/libxfce4ui/util all already built; no
+    libxfce4windowing needed for 4.18). `--datadir=/usr/share`.
+  - **★ TWO platform blockers (both new, both general to Xfce static linking):**
+    1. **libxfce4ui GResource not registered → Gtk-ERROR abort.** The panel shows a libxfce4ui dialog
+       whose UI is a GResource (`/org/xfce/libxfce4ui/libxfce4ui-dialog-ui.ui`); the register-constructor
+       lives in `libxfce4ui-resources.o` INSIDE `libxfce4ui-2.a`, but archive-pull drops it (nothing
+       references it), so the ctor never runs → "resource does not exist" → `RuntimeError: unreachable`.
+       (xfwm4/xfsettingsd link the same lib but never open a dialog, so they didn't hit it.) Fix =
+       force-link the resource .o; BLOCKED on automake link plumbing — `make LDFLAGS=` is IGNORED by the
+       panel link (it uses configure-time AM_LDFLAGS with the thread flags), and the `LIBS=`-based
+       `--undefined`/`--whole-archive` force-link produced a byte-identical binary (make treats the panel
+       as up-to-date / not relinking). NEXT: a clean manual relink step, or inject via the right per-target
+       automake var, to pull the resource .o (this also helps XU4/XU5 — they use libxfce4ui dialogs too).
+    2. **gmodule/dlopen static plugins.** All 13 panel plugins (applicationsmenu/tasklist/clock/systray/…)
+       are external `.so` loaded via `g_module_open`+`g_module_symbol` (none `X-XFCE-Internal` by default);
+       the sandbox has no dlopen. Unlike M8's lxpanel (built-in internal plugins registered in a static
+       table), xfce4-panel has no built-in registration. NEXT: a gmodule shim resolving plugin constructors
+       from statically-linked code (platform layer; the panel + whiskermenu stay unmodified), or build the
+       core plugins as `X-XFCE-Internal` linked into the panel binary.
 - **XU4 — xfdesktop.** ⬜ Wallpaper + desktop icons + right-click root menu render. Proof screenshot at
   ≥1024×768.
 - **XU5 — Thunar.** ⬜ Thunar (Xfce file manager, gvfs/tumbler off) lists a real VFS dir, decorated by

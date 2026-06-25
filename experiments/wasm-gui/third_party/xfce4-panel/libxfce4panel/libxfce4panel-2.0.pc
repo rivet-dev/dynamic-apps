@@ -1,0 +1,14 @@
+prefix=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+datarootdir=${prefix}/share
+localedir=${prefix}/share/locale
+api=2.0
+
+Name: libxfce4panel
+Description: Library for the Xfce Panel
+Requires: gtk+-3.0 gmodule-2.0 glib-2.0 libxfce4util-1.0
+Version: 4.18.6
+Libs: -L${libdir} -lxfce4panel-2.0
+Cflags: -I${includedir}/xfce4/libxfce4panel-2.0

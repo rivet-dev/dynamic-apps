@@ -1,0 +1,82 @@
+<node name="/org/xfce/Panel">
+  <!--
+    org.xfce.PanelPlugin
+
+    This interface allows external applications to commumicate
+    with the panel.
+  -->
+  <interface name="org.xfce.Panel">
+    <annotation name="org.gtk.GDBus.C.Name" value="ExportedService" />
+
+    <!--
+      DisplayPreferencesDialog (active : UINT, socket-id : UINT) : VOID
+
+      active    : The active panel number in the dialog, starting
+                  at zero.
+      socket-id : Instead of openening the dialog in a new windows, use
+                  a socket to embed the dialog content in a remote
+                  window, used for the Xfce settings manager dialog.
+    -->
+    <method name="DisplayPreferencesDialog">
+      <arg name="active" direction="in" type="u" />
+      <arg name="socket_id" direction="in" type="u" />
+    </method>
+
+    <!--
+      DisplayItemsDialog (active : UINT) : VOID
+
+      active  : The active panel number in the dialog, starting
+                at zero.
+    -->
+    <method name="DisplayItemsDialog">
+      <arg name="active" direction="in" type="u" />
+    </method>
+
+    <!--
+      Save () : VOID
+
+      Tells the panel to save its configuration, including all the plugins.
+    -->
+    <method name="Save" />
+
+    <!--
+      AddNewItem (name : STRING, args : ARRAY OF STRING) : VOID
+
+      plugin_name : The internal name of the plugin the user wants to add.
+      arguments   : Optional arguments send with the command line. This
+                    could be filenames or anything else in an array of
+                    strings.
+    -->
+    <method name="AddNewItem">
+      <arg name="plugin_name" direction="in" type="s" />
+      <arg name="arguments" direction="in" type="as" />
+    </method>
+    
+    <!--
+      PluginEvent (plugin-name : STRING, name : STRING, value : VARIANT, succeed (return) : BOOL)
+      
+      plugin-name : Name of the panel plugins to send this event to.
+      name        : Event signal name.
+      value       : GValue holding the event data.
+      succeed     : Boolean if a suitable plugin was found.
+
+      Send a plugin to a group of plugins using the remote-event
+      XfcePanelPlugin signal.
+    -->
+    <method name="PluginEvent">
+      <arg name="plugin_name" direction="in" type="s" />
+      <arg name="name" direction="in" type="s" />
+      <arg name="value" direction="in" type="v" />
+      <arg name="succeed" direction="out" type="b" />
+     </method>
+
+    <!--
+      Terminate (restart : BOOL) : VOID
+
+      restart : Whether the panel should restart after termination.
+    -->
+    <method name="Terminate">
+      <arg name="restart" direction="in" type="b" />
+    </method>
+  </interface>
+</node>

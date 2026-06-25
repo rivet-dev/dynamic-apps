@@ -1,0 +1,45 @@
+<node name="/org/xfce/Panel/Wrapper">
+  <!--
+    org.xfce.Panel.Wrapper
+  -->
+  <interface name="org.xfce.Panel.Wrapper">
+    <annotation name="org.gtk.GDBus.C.Name" value="Exported" />
+
+    <!--
+      i : unsigned integer : enum from XfcePanelPluginProviderPropType.
+      v : value            : GValue with the value for the property.
+    -->
+    <signal name="Set">
+      <arg name="values" type="a(uv)" />
+    </signal>
+
+    <!--
+      name   : name of the event.
+      value  : GValue with the value of the name.
+      handle : unique id for the RemoteEventResult method.
+    -->
+    <signal name="RemoteEvent">
+      <arg name="name" type="s" />
+      <arg name="value" type="v" />
+      <arg name="handle" type="u" />
+    </signal>
+
+    <!--
+      signal : A provider signal from XfcePanelPluginProviderSignal.
+    -->
+    <method name="ProviderSignal">
+      <annotation name="org.freedesktop.DBus.Method.NoReply" value="true" />
+      <arg name="signal" type="u" />
+    </method>
+
+    <!--
+      handle : the id send to the RemoteEvent signal.
+      result : result of the call.
+    -->
+    <method name="RemoteEventResult">
+      <annotation name="org.freedesktop.DBus.Method.NoReply" value="true" />
+      <arg name="handle" type="u" />
+      <arg name="result" type="b" />
+    </method>
+  </interface>
+</node>
