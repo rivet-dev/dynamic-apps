@@ -25,6 +25,12 @@
 		"wired": "VmLimits.js_runtime.captured_output_limit_bytes"
 	},
 	{
+		"name": "MAX_TIMER_DELAY_MS",
+		"path": "crates/execution/src/javascript.rs",
+		"class": "invariant",
+		"rationale": "Clamps a guest timer delay to the JS setTimeout ceiling (2^31-1 ms); a leak guard so a timer thread cannot outlive its session by pinning the session Arc, mirroring the standard setTimeout max rather than operator policy."
+	},
+	{
 		"name": "JAVASCRIPT_EVENT_CHANNEL_CAPACITY",
 		"path": "crates/execution/src/javascript.rs",
 		"class": "invariant",
@@ -102,6 +108,12 @@
 		"path": "crates/execution/src/wasm.rs",
 		"class": "policy-deferred",
 		"rationale": "WASM wall-clock backstop applied when no fuel budget is set; safety default to stop infinite-loop core-pinning, fold into a wasm execution-timeout field later."
+	},
+	{
+		"name": "DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB",
+		"path": "crates/execution/src/wasm.rs",
+		"class": "policy-deferred",
+		"rationale": "Wasm runner V8 heap default (2 GiB, intentionally above the 128 MiB per-guest budget so warmup stops OOMing); per-isolate near-heap guard contains it, operator-tunable via the WASM_RUNNER_HEAP_LIMIT_MB env override rather than VmLimits."
 	},
 	{
 		"name": "DEFAULT_WASM_PREWARM_TIMEOUT_MS",

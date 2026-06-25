@@ -63,7 +63,7 @@ use extension::{
     ExtensionInterruptResponse, ExtensionResponse,
 };
 use service::NativeSidecarConfig;
-use state::SidecarRequestTransport;
+use state::{EventSinkTransport, SidecarRequestTransport};
 
 #[allow(dead_code)]
 #[path = "../src/stdio.rs"]

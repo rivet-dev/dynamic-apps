@@ -2721,9 +2721,26 @@ where
         &mut self,
         response: SidecarResponseFrame,
     ) -> Result<(), SidecarError> {
-        self.pending_sidecar_responses
-            .accept_response(&response)
-            .map_err(sidecar_response_tracker_error)?;
+        match self.pending_sidecar_responses.accept_response(&response) {
+            Ok(()) => {}
+            // A response for a request that is no longer pending (its owning VM
+            // was disposed, abandoning the in-flight callback) or already
+            // completed is a benign late/stale reply on the shared sidecar — a
+            // per-VM `sidecar_request` can be answered by the host after that VM
+            // has been torn down (multiple VMs share one sidecar process). Drop
+            // it instead of failing the whole sidecar over a harmless straggler.
+            Err(
+                error @ (SidecarResponseTrackerError::UnmatchedResponse { .. }
+                | SidecarResponseTrackerError::DuplicateResponse { .. }),
+            ) => {
+                tracing::warn!(
+                    request_id = response.request_id,
+                    "dropping stale sidecar response with no matching pending request: {error}"
+                );
+                return Ok(());
+            }
+            Err(error) => return Err(sidecar_response_tracker_error(error)),
+        }
         self.pending_sidecar_responses_gauge
             .observe_depth(self.pending_sidecar_responses.pending_count());
         self.completed_sidecar_response_order
