@@ -5,7 +5,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"; REPO="$(cd ../.. && pwd)"
-HOST="$REPO/target/debug/wasm-gui-host"; SIDECAR="$REPO/target/debug/secure-exec-sidecar"
+HOST="$REPO/target/debug/wasm-gui-host"; SIDECAR="${SIDECAR:-$REPO/target/debug/secure-exec-sidecar}"
 for f in "$HOST" "$SIDECAR" "$EXP/Xvfb.wasm" "$EXP/dbus-daemon.wasm" "$EXP/xfconfd.wasm" "$EXP/xfwm4.wasm" "$EXP/xfce4-panel.wasm" "$EXP/xfdesktop.wasm" "$EXP/thunar.wasm"; do
   [ -f "$f" ] || { echo "MISSING: $f"; exit 1; }
 done
