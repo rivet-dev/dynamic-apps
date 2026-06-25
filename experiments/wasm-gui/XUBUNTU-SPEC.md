@@ -71,7 +71,7 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | **xfwm4** | window manager (compositing **OFF** → software) | https://gitlab.xfce.org/xfce/xfwm4 | ⬜ |
 | **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟡 (XU3: panel + clock + tasklist (live window button) + systray + separator render UNDER xfwm4, all wasm, via the gmodule static-plugin shim; Greybird theming proven. App menu (applicationsmenu populated) blocked on a GIO worker-context futex deadlock) |
 | **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ (C++ build pending; will share the same garcon-menu deadlock until the GIO worker-context wakeup is fixed) |
-| **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | ⬜ |
+| **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | 🟡 (XU4: builds + the desktop WALLPAPER renders full-screen under xfwm4, all wasm. NOT deadlocked -- was idle + needed a WM + the Xvfb monitor key "monitorscreen". Desktop icons (file-icons) + root menu (garcon) still to wire) |
 | **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | ⬜ (reuse pcmanfm/libfm work) |
 | **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ✅ (XU1: GTK window themed Greybird via the XSETTINGS push) |
 | **xfconf** | settings store (D-Bus service) | https://gitlab.xfce.org/xfce/xfconf | ✅ (XU1: round-trip over GDBus) |
