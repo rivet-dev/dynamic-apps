@@ -321,7 +321,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
         }
     }
 
-    cleanup_connections(&mut sidecar, &active_connections).await;
+    cleanup_connections(&mut sidecar, &active_connections, &mut active_sessions).await;
     Ok(())
 }
 
@@ -366,7 +366,26 @@ async fn handle_protocol_frame(
             .into());
         }
     }
+    // Drop any sessions the sidecar disposed while handling this frame from the
+    // active-session set so the event pump stops iterating dead sessions (M5).
+    untrack_disposed_sessions(&sidecar.take_disposed_sessions(), active_sessions);
     Ok(())
+}
+
+/// Remove every disposed session scope from the stdio transport's active-session
+/// set. Without this the set is insert-only (`track_session_state` adds on
+/// `SessionOpenedResponse` but nothing ever removed), so it grew per session for
+/// the process lifetime and the ~250us event pump iterated every dead entry (M5).
+fn untrack_disposed_sessions(
+    disposed: &[(String, String)],
+    active_sessions: &mut BTreeSet<SessionScope>,
+) {
+    for (connection_id, session_id) in disposed {
+        active_sessions.remove(&SessionScope {
+            connection_id: connection_id.clone(),
+            session_id: session_id.clone(),
+        });
+    }
 }
 
 async fn dispatch_with_prompt_interrupt(
@@ -580,10 +599,12 @@ fn interrupted_extension_dispatch(
 async fn cleanup_connections(
     sidecar: &mut NativeSidecar<LocalBridge>,
     active_connections: &BTreeSet<String>,
+    active_sessions: &mut BTreeSet<SessionScope>,
 ) {
     for connection_id in active_connections {
         let _ = sidecar.remove_connection(connection_id).await;
     }
+    untrack_disposed_sessions(&sidecar.take_disposed_sessions(), active_sessions);
 }
 
 fn track_session_state(
@@ -822,6 +843,39 @@ mod tests {
         assert_eq!(error.kind(), io::ErrorKind::BrokenPipe);
     }
 
+    // Regression (M5): the active-session set must shrink when a session is
+    // disposed. `track_session_state` is insert-only, so the transport relies on
+    // `untrack_disposed_sessions` draining the sidecar's disposed-session signal;
+    // without it a long-lived connection's set grows per session forever and the
+    // ~250us event pump iterates every dead entry.
+    #[test]
+    fn disposed_sessions_are_untracked_from_active_sessions() {
+        let mut active_sessions = BTreeSet::<SessionScope>::new();
+        let mut active_connections = BTreeSet::<String>::new();
+        track_session_state(
+            &ResponsePayload::SessionOpenedResponse(SessionOpenedResponse {
+                session_id: String::from("session-1"),
+                owner_connection_id: String::from("conn-1"),
+            }),
+            &mut active_sessions,
+            &mut active_connections,
+        );
+        assert_eq!(
+            active_sessions.len(),
+            1,
+            "opening a session should track it for the event pump"
+        );
+
+        untrack_disposed_sessions(
+            &[(String::from("conn-1"), String::from("session-1"))],
+            &mut active_sessions,
+        );
+        assert!(
+            active_sessions.is_empty(),
+            "a disposed session must be removed from the active-session set"
+        );
+    }
+
     #[test]
     fn read_frame_decodes_wire_authenticate_request() {
         let codec = WireFrameCodec::new(wire::DEFAULT_MAX_FRAME_BYTES);
@@ -1014,7 +1068,7 @@ mod tests {
 }
 
 #[derive(Debug, Clone)]
-struct LocalBridge {
+pub(crate) struct LocalBridge {
     started_at: Instant,
     next_timer_id: usize,
     snapshots: BTreeMap<String, FilesystemSnapshot>,
@@ -1428,7 +1482,7 @@ impl SidecarRequestTransport for FrameSidecarRequestTransport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct LocalBridgeError {
+pub(crate) struct LocalBridgeError {
     message: String,
 }
 

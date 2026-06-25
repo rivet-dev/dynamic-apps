@@ -726,6 +726,13 @@ pub(crate) struct LoopbackTlsTransportPairState {
 pub(crate) struct LoopbackTlsEndpoint {
     pub(crate) pair: Arc<LoopbackTlsTransportPair>,
     pub(crate) is_lower_socket: bool,
+    /// Registry key (`vm_id:lower:higher`) under which this endpoint's transport
+    /// pair is registered in the loopback-TLS transport registry. Stored so the
+    /// endpoint's `Drop` can eagerly prune its own registry entry once it is the
+    /// last owner of the pair, instead of leaking a dead `Weak` entry until the
+    /// next lazy `retain()` in `loopback_tls_endpoint()`. `None` means the
+    /// endpoint was not registered (e.g. test-constructed) and Drop skips pruning.
+    pub(crate) registry_key: Option<String>,
 }
 
 impl fmt::Debug for LoopbackTlsEndpoint {

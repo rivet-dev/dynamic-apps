@@ -466,42 +466,51 @@ where
     }
 
     pub fn dispose_vm(&mut self, vm_id: &str) -> Result<(), BrowserSidecarError> {
-        let Some(vm_state) = self.vms.get(vm_id) else {
+        // Remove the VM bookkeeping up front and take ownership of its state, so
+        // that EVERY exit path below — including a mid-dispose `?` failure while
+        // releasing executions or emitting lifecycle events — reclaims the
+        // VmState (and the BrowserKernel it owns) instead of stranding it in the
+        // `vms` map for the process lifetime.
+        let Some(vm_state) = self.vms.remove(vm_id) else {
             return Err(BrowserSidecarError::InvalidState(format!(
                 "unknown browser sidecar VM: {vm_id}"
             )));
         };
 
-        let execution_ids = vm_state
-            .active_executions
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>();
-        for execution_id in execution_ids {
-            self.release_execution(&execution_id, "browser.worker.disposed")?;
+        // Dropping per-context bookkeeping is infallible, so do it
+        // unconditionally; `contexts` can never retain an entry for a VM that
+        // has already been removed from `vms`.
+        for context_id in &vm_state.contexts {
+            self.contexts.remove(context_id);
         }
 
-        let context_ids = self
-            .vms
-            .get(vm_id)
-            .expect("VM should still exist while disposing contexts")
-            .contexts
-            .iter()
-            .cloned()
-            .collect::<Vec<_>>();
-        for context_id in context_ids {
-            self.contexts.remove(&context_id);
+        // Release every execution, attempting all of them and retaining only the
+        // first error. A single worker-termination failure must not abandon the
+        // remaining executions (their `ExecutionState`s would otherwise leak),
+        // and `release_execution` already removes each entry from `executions`
+        // before doing fallible bridge work, so the maps stay drained even when
+        // the bridge reports an error.
+        let mut first_error: Option<BrowserSidecarError> = None;
+        for execution_id in &vm_state.active_executions {
+            if let Err(error) = self.release_execution(execution_id, "browser.worker.disposed") {
+                first_error.get_or_insert(error);
+            }
         }
 
-        self.vms.remove(vm_id);
-        self.emit_lifecycle(
+        // Emit the terminal lifecycle event regardless of the outcome above; the
+        // VM is already gone from the registry either way.
+        let terminated = self.emit_lifecycle(
             vm_id,
             LifecycleState::Terminated,
             Some(String::from(
                 "browser sidecar VM disposed on the main thread",
             )),
-        )?;
-        Ok(())
+        );
+
+        match first_error {
+            Some(error) => Err(error),
+            None => terminated,
+        }
     }
 
     pub fn create_javascript_context(
@@ -1083,5 +1092,320 @@ fn execution_signal_to_kernel(signal: secure_exec_bridge::ExecutionSignal) -> i3
         secure_exec_bridge::ExecutionSignal::Terminate => 15,
         secure_exec_bridge::ExecutionSignal::Interrupt => 2,
         secure_exec_bridge::ExecutionSignal::Kill => 9,
+    }
+}
+
+#[cfg(test)]
+impl<B> BrowserSidecar<B>
+where
+    B: BrowserSidecarBridge,
+    BridgeError<B>: fmt::Debug,
+{
+    /// Test-only: number of entries still tracked in the global `contexts` map.
+    pub(crate) fn test_total_context_count(&self) -> usize {
+        self.contexts.len()
+    }
+
+    /// Test-only: number of entries still tracked in the global `executions` map.
+    pub(crate) fn test_total_execution_count(&self) -> usize {
+        self.executions.len()
+    }
+
+    /// Test-only: inject a context directly into both the global `contexts` map
+    /// and the owning VM's context set, bypassing the bridge round-trip so a
+    /// dispose-path test can exercise cleanup at the smallest seam.
+    pub(crate) fn test_insert_context(&mut self, vm_id: &str, context_id: &str) {
+        self.contexts.insert(
+            context_id.to_string(),
+            ContextState {
+                vm_id: vm_id.to_string(),
+                runtime: GuestRuntime::JavaScript,
+                entrypoint: BrowserWorkerEntrypoint::JavaScript {
+                    bootstrap_module: None,
+                },
+            },
+        );
+        if let Some(vm) = self.vms.get_mut(vm_id) {
+            vm.contexts.insert(context_id.to_string());
+        }
+    }
+
+    /// Test-only: inject an active execution directly into both the global
+    /// `executions` map and the owning VM's active-execution set.
+    pub(crate) fn test_insert_execution(&mut self, vm_id: &str, execution_id: &str) {
+        self.executions.insert(
+            execution_id.to_string(),
+            ExecutionState {
+                vm_id: vm_id.to_string(),
+                worker: BrowserWorkerHandle {
+                    worker_id: format!("worker-{execution_id}"),
+                    runtime: GuestRuntime::JavaScript,
+                },
+                kernel_pid: 0,
+                stdin_write_fd: 0,
+            },
+        );
+        if let Some(vm) = self.vms.get_mut(vm_id) {
+            vm.active_executions.insert(execution_id.to_string());
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use secure_exec_bridge::{
+        ChmodRequest, ClockRequest, CommandPermissionRequest, CreateDirRequest, DiagnosticRecord,
+        DirectoryEntry, EnvironmentPermissionRequest, ExecutionHandleRequest, FileMetadata,
+        FilesystemPermissionRequest, FilesystemSnapshot, FlushFilesystemStateRequest,
+        LoadFilesystemStateRequest, LogRecord, NetworkPermissionRequest, PathRequest,
+        PermissionDecision, RandomBytesRequest, ReadDirRequest, ReadFileRequest, RenameRequest,
+        ScheduleTimerRequest, ScheduledTimer, SymlinkRequest, TruncateRequest, WriteFileRequest,
+    };
+    use secure_exec_bridge::{
+        ClockBridge, EventBridge, ExecutionBridge, FilesystemBridge, PermissionBridge,
+        PersistenceBridge, RandomBridge,
+    };
+    use secure_exec_kernel::kernel::KernelVmConfig;
+    use std::time::SystemTime;
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct TestBridgeError(String);
+
+    /// Minimal bridge whose `terminate_worker` can be forced to fail, used to
+    /// drive a mid-dispose error through `release_execution`.
+    #[derive(Default)]
+    struct TerminateFailingBridge {
+        fail_terminate: bool,
+    }
+
+    impl BridgeTypes for TerminateFailingBridge {
+        type Error = TestBridgeError;
+    }
+
+    impl FilesystemBridge for TerminateFailingBridge {
+        fn read_file(&mut self, _request: ReadFileRequest) -> Result<Vec<u8>, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn write_file(&mut self, _request: WriteFileRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn stat(&mut self, _request: PathRequest) -> Result<FileMetadata, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn lstat(&mut self, _request: PathRequest) -> Result<FileMetadata, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn read_dir(
+            &mut self,
+            _request: ReadDirRequest,
+        ) -> Result<Vec<DirectoryEntry>, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn create_dir(&mut self, _request: CreateDirRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn remove_file(&mut self, _request: PathRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn remove_dir(&mut self, _request: PathRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn rename(&mut self, _request: RenameRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn symlink(&mut self, _request: SymlinkRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn read_link(&mut self, _request: PathRequest) -> Result<String, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn chmod(&mut self, _request: ChmodRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn truncate(&mut self, _request: TruncateRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn exists(&mut self, _request: PathRequest) -> Result<bool, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl PermissionBridge for TerminateFailingBridge {
+        fn check_filesystem_access(
+            &mut self,
+            _request: FilesystemPermissionRequest,
+        ) -> Result<PermissionDecision, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn check_network_access(
+            &mut self,
+            _request: NetworkPermissionRequest,
+        ) -> Result<PermissionDecision, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn check_command_execution(
+            &mut self,
+            _request: CommandPermissionRequest,
+        ) -> Result<PermissionDecision, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn check_environment_access(
+            &mut self,
+            _request: EnvironmentPermissionRequest,
+        ) -> Result<PermissionDecision, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl PersistenceBridge for TerminateFailingBridge {
+        fn load_filesystem_state(
+            &mut self,
+            _request: LoadFilesystemStateRequest,
+        ) -> Result<Option<FilesystemSnapshot>, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn flush_filesystem_state(
+            &mut self,
+            _request: FlushFilesystemStateRequest,
+        ) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl ClockBridge for TerminateFailingBridge {
+        fn wall_clock(&mut self, _request: ClockRequest) -> Result<SystemTime, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn monotonic_clock(&mut self, _request: ClockRequest) -> Result<Duration, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn schedule_timer(
+            &mut self,
+            _request: ScheduleTimerRequest,
+        ) -> Result<ScheduledTimer, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl RandomBridge for TerminateFailingBridge {
+        fn fill_random_bytes(
+            &mut self,
+            _request: RandomBytesRequest,
+        ) -> Result<Vec<u8>, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl EventBridge for TerminateFailingBridge {
+        fn emit_structured_event(
+            &mut self,
+            _event: StructuredEventRecord,
+        ) -> Result<(), Self::Error> {
+            Ok(())
+        }
+        fn emit_diagnostic(&mut self, _event: DiagnosticRecord) -> Result<(), Self::Error> {
+            Ok(())
+        }
+        fn emit_log(&mut self, _event: LogRecord) -> Result<(), Self::Error> {
+            Ok(())
+        }
+        fn emit_lifecycle(&mut self, _event: LifecycleEventRecord) -> Result<(), Self::Error> {
+            Ok(())
+        }
+    }
+
+    impl ExecutionBridge for TerminateFailingBridge {
+        fn create_javascript_context(
+            &mut self,
+            _request: CreateJavascriptContextRequest,
+        ) -> Result<GuestContextHandle, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn create_wasm_context(
+            &mut self,
+            _request: CreateWasmContextRequest,
+        ) -> Result<GuestContextHandle, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn start_execution(
+            &mut self,
+            _request: StartExecutionRequest,
+        ) -> Result<StartedExecution, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn write_stdin(&mut self, _request: WriteExecutionStdinRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn close_stdin(&mut self, _request: ExecutionHandleRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn kill_execution(&mut self, _request: KillExecutionRequest) -> Result<(), Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+        fn poll_execution_event(
+            &mut self,
+            _request: PollExecutionEventRequest,
+        ) -> Result<Option<ExecutionEvent>, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+    }
+
+    impl crate::BrowserWorkerBridge for TerminateFailingBridge {
+        fn create_worker(
+            &mut self,
+            _request: BrowserWorkerSpawnRequest,
+        ) -> Result<BrowserWorkerHandle, Self::Error> {
+            unimplemented!("not exercised by dispose test")
+        }
+
+        fn terminate_worker(
+            &mut self,
+            _request: BrowserWorkerHandleRequest,
+        ) -> Result<(), Self::Error> {
+            if self.fail_terminate {
+                Err(TestBridgeError(String::from("forced terminate failure")))
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    // A mid-dispose worker-termination failure must still drain the VM, context,
+    // and execution bookkeeping for that id — otherwise the VmState (holding a
+    // BrowserKernel) and ContextState leak for the process lifetime.
+    #[test]
+    fn dispose_vm_drains_maps_even_when_worker_termination_fails() {
+        let bridge = TerminateFailingBridge {
+            fail_terminate: true,
+        };
+        let mut sidecar = BrowserSidecar::new(bridge, BrowserSidecarConfig::default());
+
+        sidecar
+            .create_vm(KernelVmConfig::new("vm-leak"))
+            .expect("create vm");
+        sidecar.test_insert_context("vm-leak", "ctx-leak");
+        sidecar.test_insert_execution("vm-leak", "exec-leak");
+
+        assert_eq!(sidecar.vm_count(), 1);
+        assert_eq!(sidecar.test_total_context_count(), 1);
+        assert_eq!(sidecar.test_total_execution_count(), 1);
+
+        // The forced terminate_worker failure surfaces as an error, but the
+        // dispose must still have reclaimed every entry for `vm-leak`.
+        let result = sidecar.dispose_vm("vm-leak");
+        assert!(result.is_err(), "forced terminate failure should surface");
+
+        assert_eq!(sidecar.vm_count(), 0, "VmState leaked after failed dispose");
+        assert_eq!(
+            sidecar.test_total_context_count(),
+            0,
+            "ContextState leaked after failed dispose"
+        );
+        assert_eq!(
+            sidecar.test_total_execution_count(),
+            0,
+            "ExecutionState leaked after failed dispose"
+        );
     }
 }

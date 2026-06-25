@@ -55,6 +55,20 @@ mod vm;
 #[path = "../src/wire.rs"]
 mod wire;
 
+// The unit tests include!d from src/service.rs reference crate::stdio::LocalBridge,
+// and stdio.rs in turn uses these crate-root re-exports (mirrored from lib.rs) so it
+// compiles inside this integration-test crate too.
+use extension::{
+    Extension, ExtensionContext, ExtensionFuture, ExtensionInterruptRequest,
+    ExtensionInterruptResponse, ExtensionResponse,
+};
+use service::NativeSidecarConfig;
+use state::SidecarRequestTransport;
+
+#[allow(dead_code)]
+#[path = "../src/stdio.rs"]
+mod stdio;
+
 mod service {
     include!("../src/service.rs");
 
@@ -2970,10 +2984,12 @@ ykAheWCsAteSEWVc0w==\n\
                 crate::state::LoopbackTlsEndpoint {
                     pair: Arc::clone(&pair),
                     is_lower_socket: true,
+                    registry_key: None,
                 },
                 crate::state::LoopbackTlsEndpoint {
                     pair,
                     is_lower_socket: false,
+                    registry_key: None,
                 },
             )
         }
@@ -3143,6 +3159,7 @@ ykAheWCsAteSEWVc0w==\n\
                 let competing_reader = crate::state::LoopbackTlsEndpoint {
                     pair: Arc::clone(&reader_endpoint.pair),
                     is_lower_socket: reader_endpoint.is_lower_socket,
+                    registry_key: None,
                 };
                 let start = Arc::new(Barrier::new(3));
 

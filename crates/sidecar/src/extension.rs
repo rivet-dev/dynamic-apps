@@ -573,6 +573,18 @@ pub trait Extension: Send + Sync {
         Box::pin(async { Ok(()) })
     }
 
+    /// Per-session teardown hook. The host invokes this for every registered
+    /// extension when a session is disposed because its connection closed
+    /// (`DisposeReason::ConnectionClosed`), giving the extension the disposed
+    /// session's ownership scope so it can release the per-session state it
+    /// keyed on that session. Default is a no-op. This is the only signal an
+    /// extension receives that a client has disconnected, so it is what lets an
+    /// ACP-style extension free per-session state instead of leaking it for the
+    /// process lifetime.
+    fn on_session_disposed<'a>(&'a self, _ctx: ExtensionSnapshot) -> ExtensionFuture<'a, ()> {
+        Box::pin(async { Ok(()) })
+    }
+
     fn is_blocking_request(&self, _payload: &[u8]) -> bool {
         false
     }

@@ -874,6 +874,10 @@ pub struct NativeSidecar<B> {
     pub(crate) extension_sessions: BTreeMap<(String, String), ExtensionSessionResources>,
     pub(crate) extension_process_output_buffers:
         BTreeMap<(String, String), ExtensionBufferedProcessOutput>,
+    /// Session scopes (connection_id, session_id) disposed since the stdio
+    /// transport last drained them. Lets the transport remove dead sessions from
+    /// its active-session set instead of iterating them forever (M5).
+    pub(crate) disposed_sessions: Vec<(String, String)>,
 }
 
 #[derive(Debug)]
@@ -979,6 +983,7 @@ where
             extensions: BTreeMap::new(),
             extension_sessions: BTreeMap::new(),
             extension_process_output_buffers: BTreeMap::new(),
+            disposed_sessions: Vec::new(),
         })
     }
 
@@ -1012,6 +1017,26 @@ where
             resources.vm_ids.remove(vm_id);
             !resources.process_ids.is_empty() || !resources.vm_ids.is_empty()
         });
+    }
+
+    /// Reclaim every per-VM tracking entry owned by the sidecar for `vm_id`.
+    ///
+    /// Called unconditionally from `dispose_vm_internal` so that a fallible
+    /// teardown step (root-filesystem snapshot/flush, kernel dispose, permission
+    /// reset) erroring out with `?` can never strand these maps for the rest of
+    /// the process lifetime (H1). This also reclaims the ACP output-buffer map,
+    /// which was previously removed only on a successful handoff and leaked on VM
+    /// or session disposal (M6).
+    pub(crate) fn reclaim_vm_tracking(&mut self, session_id: &str, vm_id: &str) {
+        self.javascript_engine.dispose_vm(vm_id);
+        self.python_engine.dispose_vm(vm_id);
+        self.wasm_engine.dispose_vm(vm_id);
+        self.prune_extension_vm_resource(vm_id);
+        self.extension_process_output_buffers
+            .retain(|(buffer_vm_id, _process_id), _| buffer_vm_id != vm_id);
+        if let Some(session) = self.sessions.get_mut(session_id) {
+            session.vm_ids.remove(vm_id);
+        }
     }
 
     pub(crate) fn capture_extension_process_output_event(
@@ -1649,14 +1674,27 @@ where
             .collect::<Vec<_>>();
 
         let mut events = Vec::new();
+        let mut first_error: Option<SidecarError> = None;
         for session_id in session_ids {
-            events.extend(
-                self.dispose_session(connection_id, &session_id, DisposeReason::ConnectionClosed)
-                    .await?,
-            );
+            // Attempt EVERY session; aggregate errors instead of `?`-ing out on
+            // the first so one wedged session cannot abandon the rest (H1).
+            match self
+                .dispose_session(connection_id, &session_id, DisposeReason::ConnectionClosed)
+                .await
+            {
+                Ok(session_events) => events.extend(session_events),
+                Err(error) => {
+                    if first_error.is_none() {
+                        first_error = Some(error);
+                    }
+                }
+            }
         }
 
         self.connections.remove(connection_id);
+        if let Some(error) = first_error {
+            return Err(error);
+        }
         Ok(events)
     }
 
@@ -1793,18 +1831,90 @@ where
             .collect::<Vec<_>>();
 
         let mut events = Vec::new();
+        let mut first_error: Option<SidecarError> = None;
         for vm_id in vm_ids {
-            events.extend(
-                self.dispose_vm_internal(connection_id, session_id, &vm_id, reason.clone())
-                    .await?,
-            );
+            // Attempt EVERY VM; aggregate errors instead of `?`-ing out on the
+            // first so one stuck VM cannot strand the remaining VMs' teardown and
+            // leave the session permanently un-reclaimed (H1).
+            match self
+                .dispose_vm_internal(connection_id, session_id, &vm_id, reason.clone())
+                .await
+            {
+                Ok(vm_events) => events.extend(vm_events),
+                Err(error) => {
+                    if first_error.is_none() {
+                        first_error = Some(error);
+                    }
+                }
+            }
+        }
+
+        // On client disconnect, give every registered extension a chance to free
+        // the per-session state it tracks (H4): the host owns the only signal an
+        // extension gets that a session has gone away.
+        if matches!(reason, DisposeReason::ConnectionClosed) {
+            if let Err(error) = self
+                .dispose_extension_session_state(connection_id, session_id)
+                .await
+            {
+                if first_error.is_none() {
+                    first_error = Some(error);
+                }
+            }
         }
 
         self.sessions.remove(session_id);
         if let Some(connection) = self.connections.get_mut(connection_id) {
             connection.sessions.remove(session_id);
         }
+        // Tell the stdio transport this session is gone so it stops iterating a
+        // dead entry every event-pump tick and the set stops growing (M5).
+        self.disposed_sessions
+            .push((connection_id.to_owned(), session_id.to_owned()));
+
+        if let Some(error) = first_error {
+            return Err(error);
+        }
         Ok(events)
+    }
+
+    /// Invoke each registered extension's per-session teardown hook so it can
+    /// release the state it keyed on this host session. Errors are aggregated so
+    /// one misbehaving extension cannot prevent the others from cleaning up.
+    async fn dispose_extension_session_state(
+        &mut self,
+        connection_id: &str,
+        session_id: &str,
+    ) -> Result<(), SidecarError> {
+        let ownership = OwnershipScope::session(connection_id, session_id);
+        let extensions = self
+            .extensions
+            .values()
+            .cloned()
+            .collect::<Vec<Arc<dyn Extension>>>();
+        let mut first_error: Option<SidecarError> = None;
+        for extension in extensions {
+            let snapshot = ExtensionSnapshot::new(
+                extension.namespace().to_owned(),
+                ownership.clone(),
+                self.sidecar_requests.clone(),
+            );
+            if let Err(error) = extension.on_session_disposed(snapshot).await {
+                if first_error.is_none() {
+                    first_error = Some(error);
+                }
+            }
+        }
+        match first_error {
+            Some(error) => Err(error),
+            None => Ok(()),
+        }
+    }
+
+    /// Drain the session scopes disposed since the last call so the stdio
+    /// transport can untrack them from its active-session set (M5).
+    pub(crate) fn take_disposed_sessions(&mut self) -> Vec<(String, String)> {
+        std::mem::take(&mut self.disposed_sessions)
     }
 
     // dispose_vm_internal, terminate_vm_processes, wait_for_vm_processes_to_exit moved to crate::vm
@@ -3363,5 +3473,220 @@ mod structured_event_frame_tests {
             }
             other => panic!("expected connection ownership, got {other:?}"),
         }
+    }
+}
+
+#[cfg(test)]
+mod dispose_lifecycle_tests {
+    use super::*;
+    use crate::extension::ExtensionResponse;
+    use crate::stdio::LocalBridge;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    fn block_on<F: std::future::Future>(future: F) -> F::Output {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("dispose lifecycle test runtime")
+            .block_on(future)
+    }
+
+    fn test_sidecar() -> NativeSidecar<LocalBridge> {
+        NativeSidecar::new(LocalBridge::default()).expect("build test sidecar")
+    }
+
+    // Register a connection + session directly so the dispose paths can be
+    // exercised without spinning up a V8-backed VM.
+    fn insert_session(
+        sidecar: &mut NativeSidecar<LocalBridge>,
+        connection_id: &str,
+        session_id: &str,
+        vm_ids: BTreeSet<String>,
+    ) {
+        sidecar.connections.insert(
+            connection_id.to_string(),
+            ConnectionState {
+                auth_token: String::new(),
+                sessions: BTreeSet::from([session_id.to_string()]),
+            },
+        );
+        sidecar.sessions.insert(
+            session_id.to_string(),
+            SessionState {
+                connection_id: connection_id.to_string(),
+                placement: crate::protocol::SidecarPlacement::SidecarPlacementShared(
+                    crate::protocol::SidecarPlacementShared { pool: None },
+                ),
+                metadata: BTreeMap::new(),
+                vm_ids,
+            },
+        );
+    }
+
+    struct RecordingExtension {
+        namespace: String,
+        session_disposed: Arc<AtomicUsize>,
+    }
+
+    impl Extension for RecordingExtension {
+        fn namespace(&self) -> &str {
+            &self.namespace
+        }
+
+        fn handle_request<'a>(
+            &'a self,
+            _ctx: ExtensionContext<'a>,
+            _payload: Vec<u8>,
+        ) -> ExtensionFuture<'a, ExtensionResponse> {
+            Box::pin(async { Ok(ExtensionResponse::new(Vec::new())) })
+        }
+
+        fn on_session_disposed<'a>(&'a self, _ctx: ExtensionSnapshot) -> ExtensionFuture<'a, ()> {
+            let counter = self.session_disposed.clone();
+            Box::pin(async move {
+                counter.fetch_add(1, Ordering::SeqCst);
+                Ok(())
+            })
+        }
+    }
+
+    fn register_recording_extension(sidecar: &mut NativeSidecar<LocalBridge>) -> Arc<AtomicUsize> {
+        let counter = Arc::new(AtomicUsize::new(0));
+        sidecar
+            .register_extension(Box::new(RecordingExtension {
+                namespace: String::from("dev.test.dispose"),
+                session_disposed: counter.clone(),
+            }))
+            .expect("register recording extension");
+        counter
+    }
+
+    // H4: the extension per-session teardown hook fires on ConnectionClosed so an
+    // ACP-style extension can release per-session state on client disconnect.
+    #[test]
+    fn connection_closed_dispose_invokes_extension_session_teardown() {
+        let mut sidecar = test_sidecar();
+        let counter = register_recording_extension(&mut sidecar);
+        insert_session(&mut sidecar, "conn-1", "session-1", BTreeSet::new());
+
+        block_on(sidecar.dispose_session("conn-1", "session-1", DisposeReason::ConnectionClosed))
+            .expect("dispose session on connection close");
+
+        assert_eq!(
+            counter.load(Ordering::SeqCst),
+            1,
+            "extension session-teardown hook must fire on ConnectionClosed"
+        );
+        assert!(
+            !sidecar.sessions.contains_key("session-1"),
+            "the disposed session must be reclaimed"
+        );
+    }
+
+    // H4 (negative): a client-requested dispose is not a disconnect, so the
+    // teardown hook must not fire.
+    #[test]
+    fn requested_dispose_does_not_invoke_extension_session_teardown() {
+        let mut sidecar = test_sidecar();
+        let counter = register_recording_extension(&mut sidecar);
+        insert_session(&mut sidecar, "conn-1", "session-1", BTreeSet::new());
+
+        block_on(sidecar.dispose_session("conn-1", "session-1", DisposeReason::Requested))
+            .expect("dispose session on request");
+
+        assert_eq!(
+            counter.load(Ordering::SeqCst),
+            0,
+            "the teardown hook is reserved for client disconnect"
+        );
+    }
+
+    // M5: disposing a session records its scope for the stdio transport to drain.
+    #[test]
+    fn dispose_session_records_disposed_scope() {
+        let mut sidecar = test_sidecar();
+        insert_session(&mut sidecar, "conn-1", "session-1", BTreeSet::new());
+
+        block_on(sidecar.dispose_session("conn-1", "session-1", DisposeReason::Requested))
+            .expect("dispose session");
+
+        assert_eq!(
+            sidecar.take_disposed_sessions(),
+            vec![(String::from("conn-1"), String::from("session-1"))],
+            "dispose must publish the session scope so stdio can untrack it"
+        );
+    }
+
+    // H1 + M6: every per-VM tracking map is reclaimed for a disposed VM. The
+    // output-buffer map (M6) was previously only removed on a successful handoff,
+    // and the engine/extension maps (H1) were only reclaimed after the fallible
+    // teardown steps' `?`, so any failure stranded them.
+    #[test]
+    fn reclaim_vm_tracking_clears_every_per_vm_map() {
+        let mut sidecar = test_sidecar();
+        insert_session(
+            &mut sidecar,
+            "conn-1",
+            "session-1",
+            BTreeSet::from([String::from("vm-1")]),
+        );
+        sidecar.extension_process_output_buffers.insert(
+            (String::from("vm-1"), String::from("proc-1")),
+            ExtensionBufferedProcessOutput::default(),
+        );
+        sidecar.extension_sessions.insert(
+            (String::from("ns"), String::from("ext-sess-1")),
+            ExtensionSessionResources {
+                ownership: OwnershipScope::vm("conn-1", "session-1", "vm-1"),
+                process_ids: BTreeSet::new(),
+                vm_ids: BTreeSet::from([String::from("vm-1")]),
+            },
+        );
+
+        sidecar.reclaim_vm_tracking("session-1", "vm-1");
+
+        assert!(
+            sidecar.extension_process_output_buffers.is_empty(),
+            "M6: the output-buffer map must be reclaimed on VM disposal"
+        );
+        assert!(
+            sidecar.extension_sessions.is_empty(),
+            "H1: an extension session bound only to the VM must be reclaimed"
+        );
+        assert!(
+            !sidecar
+                .sessions
+                .get("session-1")
+                .expect("session present")
+                .vm_ids
+                .contains("vm-1"),
+            "the VM id must be removed from its session"
+        );
+    }
+
+    // H1: a failing VM dispose inside the loop must not abandon the session. With
+    // unregistered VM ids, `dispose_vm_internal` fails on `require_owned_vm`;
+    // pre-fix the loop `?`-ed out and left the session in `self.sessions`.
+    #[test]
+    fn dispose_session_reclaims_session_even_when_a_vm_dispose_fails() {
+        let mut sidecar = test_sidecar();
+        insert_session(
+            &mut sidecar,
+            "conn-1",
+            "session-1",
+            BTreeSet::from([String::from("vm-a"), String::from("vm-b")]),
+        );
+
+        let result =
+            block_on(sidecar.dispose_session("conn-1", "session-1", DisposeReason::Requested));
+
+        assert!(
+            result.is_err(),
+            "a failing VM dispose must still surface an error"
+        );
+        assert!(
+            !sidecar.sessions.contains_key("session-1"),
+            "the session must be reclaimed even though VM dispose failed"
+        );
     }
 }

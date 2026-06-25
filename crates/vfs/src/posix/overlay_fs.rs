@@ -43,6 +43,34 @@ struct OverlaySnapshotEntry {
     kind: OverlaySnapshotKind,
 }
 
+/// Records every upper-layer mutation performed while staging a rename so that a
+/// failure between staging and the (successful) upper rename can be rolled back
+/// without orphaning staged inodes / `path_index` entries. Unlike
+/// `remove_snapshot_entries` (which finalizes a *successful* move and therefore
+/// whiteouts lower-backed source paths), this captures only the entries/markers
+/// that staging itself newly created so they can be removed verbatim — never
+/// hiding a still-present lower source on the error path.
+#[derive(Debug, Default)]
+struct StagedRollback {
+    /// Upper paths newly created by staging, in creation order (a parent is
+    /// always recorded before any child created underneath it). `is_dir` mirrors
+    /// the removal split used by `remove_snapshot_entries`.
+    created_paths: Vec<(String, bool)>,
+    /// Overlay markers newly set during staging / metadata copy, recorded so the
+    /// marker files (themselves upper inodes) are cleared on rollback.
+    created_markers: Vec<(OverlayMarkerKind, String)>,
+}
+
+impl StagedRollback {
+    fn record_path(&mut self, path: &str, is_dir: bool) {
+        self.created_paths.push((String::from(path), is_dir));
+    }
+
+    fn record_marker(&mut self, kind: OverlayMarkerKind, path: &str) {
+        self.created_markers.push((kind, String::from(path)));
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 struct OverlayCopyUpUsage {
     total_bytes: u64,
@@ -892,6 +920,55 @@ impl OverlayFileSystem {
         Ok(())
     }
 
+    /// Ancestor-materialization variant used by rename staging. It mirrors
+    /// `ensure_ancestor_directories_in_upper` but records every ancestor it newly
+    /// creates into `rollback`, so a later staging failure can remove them and
+    /// avoid orphaning the freshly created directory inodes.
+    fn ensure_ancestor_directories_in_upper_recording(
+        &mut self,
+        path: &str,
+        rollback: &mut StagedRollback,
+    ) -> VfsResult<()> {
+        if Self::is_internal_metadata_path(path) {
+            return Err(VfsError::permission_denied("mkdir", path));
+        }
+        let normalized = Self::normalized(path);
+        let parts = normalized
+            .split('/')
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<_>>();
+
+        let mut current = String::new();
+        for part in parts.iter().take(parts.len().saturating_sub(1)) {
+            current.push('/');
+            current.push_str(part);
+
+            if self.exists_in_upper(&current) {
+                continue;
+            }
+
+            if let Some(index) = self.find_lower_by_exists(&current) {
+                let stat = self.lowers[index].stat(&current)?;
+                if !stat.is_directory {
+                    return Err(Self::not_directory(&current));
+                }
+
+                let upper = self.writable_upper(&current)?;
+                upper.mkdir(&current, false)?;
+                upper.chmod(&current, stat.mode)?;
+                upper.chown(&current, stat.uid, stat.gid)?;
+                rollback.record_path(&current, true);
+                continue;
+            }
+
+            let upper = self.writable_upper(&current)?;
+            upper.mkdir(&current, false)?;
+            rollback.record_path(&current, true);
+        }
+
+        Ok(())
+    }
+
     fn copy_up_path(&mut self, path: &str) -> VfsResult<()> {
         if self.has_entry_in_upper(path) {
             return Ok(());
@@ -1191,7 +1268,12 @@ impl OverlayFileSystem {
         Ok(())
     }
 
-    fn copy_subtree_metadata(&mut self, old_root: &str, new_root: &str) -> VfsResult<()> {
+    fn copy_subtree_metadata(
+        &mut self,
+        old_root: &str,
+        new_root: &str,
+        rollback: &mut StagedRollback,
+    ) -> VfsResult<()> {
         let old_normalized = Self::normalized(old_root);
         let new_normalized = Self::normalized(new_root);
 
@@ -1200,6 +1282,9 @@ impl OverlayFileSystem {
                 if Self::path_in_subtree(&marker_path, &old_normalized) {
                     let destination =
                         Self::rebase_path(&marker_path, &old_normalized, &new_normalized);
+                    if !self.marker_exists(kind, &destination) {
+                        rollback.record_marker(kind, &destination);
+                    }
                     self.set_marker(kind, &destination, true)?;
                 }
             }
@@ -1211,13 +1296,15 @@ impl OverlayFileSystem {
     fn stage_snapshot_entries_in_upper(
         &mut self,
         entries: &[OverlaySnapshotEntry],
+        rollback: &mut StagedRollback,
     ) -> VfsResult<()> {
         for entry in entries {
             match &entry.kind {
                 OverlaySnapshotKind::Directory => {
                     if !self.has_entry_in_upper(&entry.path) {
-                        self.ensure_ancestor_directories_in_upper(&entry.path)?;
+                        self.ensure_ancestor_directories_in_upper_recording(&entry.path, rollback)?;
                         self.writable_upper(&entry.path)?.create_dir(&entry.path)?;
+                        rollback.record_path(&entry.path, true);
                     }
                     self.writable_upper(&entry.path)?
                         .chmod(&entry.path, entry.stat.mode)?;
@@ -1226,15 +1313,19 @@ impl OverlayFileSystem {
                         entry.stat.uid,
                         entry.stat.gid,
                     )?;
+                    if !self.marker_exists(OverlayMarkerKind::Opaque, &entry.path) {
+                        rollback.record_marker(OverlayMarkerKind::Opaque, &entry.path);
+                    }
                     self.mark_opaque_directory(&entry.path)?;
                 }
                 OverlaySnapshotKind::File(data) => {
                     if self.has_entry_in_upper(&entry.path) {
                         continue;
                     }
-                    self.ensure_ancestor_directories_in_upper(&entry.path)?;
+                    self.ensure_ancestor_directories_in_upper_recording(&entry.path, rollback)?;
                     self.writable_upper(&entry.path)?
                         .write_file(&entry.path, data.clone())?;
+                    rollback.record_path(&entry.path, false);
                     self.writable_upper(&entry.path)?
                         .chmod(&entry.path, entry.stat.mode)?;
                     self.writable_upper(&entry.path)?.chown(
@@ -1247,14 +1338,37 @@ impl OverlayFileSystem {
                     if self.has_entry_in_upper(&entry.path) {
                         continue;
                     }
-                    self.ensure_ancestor_directories_in_upper(&entry.path)?;
+                    self.ensure_ancestor_directories_in_upper_recording(&entry.path, rollback)?;
                     self.writable_upper(&entry.path)?
                         .symlink(target, &entry.path)?;
+                    rollback.record_path(&entry.path, false);
                 }
             }
         }
 
         Ok(())
+    }
+
+    /// Best-effort undo of `stage_snapshot_entries_in_upper` /
+    /// `copy_subtree_metadata` for the error path. Removes only the upper entries
+    /// and markers that staging itself created — in reverse creation order so
+    /// children are removed before their parents — and never adds a whiteout, so
+    /// a still-present lower source remains visible after a failed rename.
+    fn rollback_staged_entries(&mut self, rollback: &StagedRollback) {
+        for (kind, marker_path) in &rollback.created_markers {
+            let _ = self.set_marker(*kind, marker_path, false);
+        }
+
+        for (path, is_dir) in rollback.created_paths.iter().rev() {
+            let Some(upper) = self.upper.as_mut() else {
+                return;
+            };
+            if *is_dir {
+                let _ = upper.remove_dir(path);
+            } else {
+                let _ = upper.remove_file(path);
+            }
+        }
     }
 }
 
@@ -1681,10 +1795,26 @@ impl VirtualFileSystem for OverlayFileSystem {
             self.clear_subtree_metadata(&resolved_new_normalized)?;
         }
 
-        self.stage_snapshot_entries_in_upper(&snapshot_entries)?;
-        self.copy_subtree_metadata(&old_normalized, &resolved_new_normalized)?;
-        self.writable_upper(&old_normalized)?
-            .rename(&old_normalized, &resolved_new_normalized)?;
+        // Stage the source subtree into the upper, copy its overlay metadata, and
+        // move it to the destination. Any failure between staging and a successful
+        // rename must not orphan the staged inodes / `path_index` entries, so the
+        // upper mutations are recorded and rolled back on the error path (the
+        // success path still finalizes via `remove_snapshot_entries`). A bare `?`
+        // here would leave the copied-up entries stranded until VM Drop.
+        let mut rollback = StagedRollback::default();
+        let staged_result = (|| -> VfsResult<()> {
+            self.stage_snapshot_entries_in_upper(&snapshot_entries, &mut rollback)?;
+            self.copy_subtree_metadata(&old_normalized, &resolved_new_normalized, &mut rollback)?;
+            self.writable_upper(&old_normalized)?
+                .rename(&old_normalized, &resolved_new_normalized)?;
+            Ok(())
+        })();
+
+        if let Err(error) = staged_result {
+            self.rollback_staged_entries(&rollback);
+            return Err(error);
+        }
+
         self.remove_snapshot_entries(&snapshot_entries)
     }
 
@@ -1861,8 +1991,70 @@ impl VirtualFileSystem for OverlayFileSystem {
 
 #[cfg(test)]
 mod tests {
-    use super::{OverlayFileSystem, OverlayMode};
+    use super::{OverlayFileSystem, OverlayMode, OVERLAY_WHITEOUT_DIR};
     use crate::posix::vfs::{MemoryFileSystem, VfsResult, VirtualFileSystem};
+
+    /// Regression: a rename that fails *after* staging the source subtree into the
+    /// upper (here, `copy_subtree_metadata` aborts on a corrupt overlay marker)
+    /// must not orphan the staged inode / `path_index` entry. Before the fix the
+    /// `?` on `copy_subtree_metadata` short-circuited past
+    /// `remove_snapshot_entries`, leaving the copied-up source stranded in the
+    /// upper; the rollback now removes it without resurrecting a whiteout.
+    #[test]
+    fn rename_rolls_back_staged_entries_when_metadata_copy_fails() {
+        let mut lower = MemoryFileSystem::new();
+        lower
+            .write_file("/src.txt", b"payload".to_vec())
+            .expect("seed lower-only source file");
+
+        let mut overlay = OverlayFileSystem::with_upper(vec![lower], MemoryFileSystem::new());
+
+        // Plant a corrupt whiteout marker directly in the upper. `marker_paths_in_upper`
+        // parses every marker file as UTF-8, so this forces `copy_subtree_metadata`
+        // (the step after staging) to fail deterministically with a `?`.
+        {
+            let upper = overlay
+                .upper
+                .as_mut()
+                .expect("ephemeral overlay has an upper");
+            upper
+                .mkdir(OVERLAY_WHITEOUT_DIR, true)
+                .expect("create whiteout marker directory");
+            upper
+                .write_file(&format!("{OVERLAY_WHITEOUT_DIR}/corrupt"), vec![0xff, 0xfe])
+                .expect("plant corrupt (non-UTF-8) marker");
+        }
+
+        // The rename must fail (corrupt marker), and staging must leave no residue.
+        let result = overlay.rename("/src.txt", "/dst.txt");
+        assert!(
+            result.is_err(),
+            "rename should fail when overlay metadata copy aborts"
+        );
+
+        // The staged copy-up of the source must have been rolled out of the upper:
+        // no orphaned inode / path_index entry remains at the source or destination.
+        let upper = overlay.upper.as_ref().expect("overlay upper");
+        assert!(
+            !upper.exists("/src.txt"),
+            "staged source copy must be removed from the upper on the error path"
+        );
+        assert!(
+            !upper.exists("/dst.txt"),
+            "no destination entry should have been staged in the upper"
+        );
+
+        // The rollback must NOT whiteout the still-present lower source: a failed
+        // rename leaves the original visible in the merged view.
+        assert!(
+            overlay.exists("/src.txt"),
+            "lower-backed source must remain visible after a failed rename"
+        );
+        assert!(
+            !overlay.exists("/dst.txt"),
+            "destination must not exist after a failed rename"
+        );
+    }
 
     #[test]
     fn symlink_into_metadata_namespace_cannot_read_or_resurrect_whiteouts() {

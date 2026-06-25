@@ -780,7 +780,7 @@ fn session_thread(
     let mut from_snapshot = false;
 
     #[cfg(not(test))]
-    let pending = bridge::PendingPromises::new();
+    let mut pending = bridge::PendingPromises::new();
 
     // Store latest InjectGlobals V8 payload for re-injection into fresh contexts
     #[cfg(not(test))]
@@ -902,6 +902,13 @@ fn session_thread(
                             *isolate_handle
                                 .lock()
                                 .expect("session isolate handle lock poisoned") = None;
+                            // Reset pending promise-resolver Globals BEFORE this
+                            // isolate is dropped. The registry is reused across
+                            // isolate rebuilds, and a prior execution that was
+                            // terminated early (Shutdown / timeout-abort) can
+                            // leave resolvers registered, so they would otherwise
+                            // outlive the isolate that created them.
+                            reset_pending_promises(&mut pending);
                             drop(_v8_context.take());
                             drop(v8_isolate.take());
                             from_snapshot = false;
@@ -1512,6 +1519,12 @@ fn session_thread(
         *isolate_handle
             .lock()
             .expect("session isolate handle lock poisoned") = None;
+        // Reset pending promise-resolver Globals BEFORE the isolate is dropped on
+        // thread teardown. run_event_loop can exit early (Shutdown / timeout-abort)
+        // with resolvers still registered, so without this the Globals would drop
+        // after their isolate — leaking across session create/destroy churn and
+        // violating the V8 lifetime contract.
+        reset_pending_promises(&mut pending);
         drop(_v8_context.take());
         drop(v8_isolate.take());
     }
@@ -1722,6 +1735,25 @@ pub(crate) const ASYNC_BRIDGE_FNS: &[&str] = &[
     "_fsTruncateAsync",
     "_fsUtimesAsync",
 ];
+
+/// Reset every pending promise-resolver `v8::Global` handle held by `pending`.
+///
+/// `v8::Global` handles MUST be reset/dropped *before* the `v8::Isolate` that
+/// created them is torn down. The session reuses a single `PendingPromises`
+/// registry across executions and across isolate rebuilds, and `run_event_loop`
+/// can exit early (Shutdown at the `SessionCommand::Shutdown` arm, or
+/// timeout-abort via the `abort_rx` branch) while resolvers are still
+/// registered. On those paths the registry can outlive an isolate. Call this
+/// immediately before every isolate drop (rebuild and thread teardown) so the
+/// `Global<PromiseResolver>` handles are dropped while their isolate is still
+/// alive — preventing both a leak across session create/destroy churn (bounded
+/// by `MAX_PENDING_PROMISES`) and a V8 lifetime-contract violation.
+#[doc(hidden)]
+pub fn reset_pending_promises(pending: &mut crate::bridge::PendingPromises) {
+    // Swap in an empty registry and drop the populated one in place. Dropping a
+    // `PendingPromises` resets all of its `Global<PromiseResolver>` handles.
+    drop(std::mem::take(pending));
+}
 
 /// Run the session event loop: dispatch incoming messages to V8.
 ///
@@ -2501,5 +2533,108 @@ mod tests {
         );
 
         mgr.destroy_session("late-bridge").expect("destroy session");
+    }
+
+    /// Regression test for the pending-promise-resolver leak / V8 lifetime-contract
+    /// violation: when `run_event_loop` exits early (Shutdown or timeout-abort) the
+    /// `PendingPromises` registry can still hold `Global<PromiseResolver>` handles,
+    /// and the session-thread teardown must reset them *before* dropping the isolate.
+    ///
+    /// This drives the real cleanup seam (`reset_pending_promises`) used on every
+    /// isolate-drop path. It populates the registry with live resolver Globals (as a
+    /// terminated execution would leave behind), runs the cleanup while the isolate
+    /// is still alive, and asserts the registry is empty (every Global dropped).
+    ///
+    /// Fast + bounded (a handful of resolvers, then the safeguard fires) — it asserts
+    /// the cleanup happens, it does not saturate `MAX_PENDING_PROMISES`.
+    #[test]
+    fn reset_pending_promises_drops_resolver_globals_before_isolate_teardown() {
+        use crate::bridge::{register_async_bridge_fns, PendingPromises, SessionBuffers};
+        use crate::host_call::BridgeCallContext;
+        use crate::isolate;
+        use std::cell::RefCell;
+        use std::process::Command;
+
+        // V8 isolates must be created in an isolated process: doing it inline in a
+        // parallel `cargo test` thread races the process-global V8 platform and
+        // segfaults. Re-exec this one test as a subprocess (matching the crate's
+        // bridge_v8_hardening_* / vm_context_registry convention).
+        const SUBPROCESS_ENV: &str = "AGENTOS_V8_RESET_PENDING_PROMISES_SUBPROCESS";
+        if std::env::var_os(SUBPROCESS_ENV).is_none() {
+            let output = Command::new(std::env::current_exe().expect("current test binary"))
+                .arg("session::tests::reset_pending_promises_drops_resolver_globals_before_isolate_teardown")
+                .arg("--exact")
+                .arg("--nocapture")
+                .env(SUBPROCESS_ENV, "1")
+                .output()
+                .expect("spawn reset-pending-promises subprocess");
+            assert!(
+                output.status.success(),
+                "reset-pending-promises subprocess failed with status {:?}\nstdout:\n{}\nstderr:\n{}",
+                output.status.code(),
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+
+        isolate::init_v8_platform();
+
+        let mut v8_isolate = isolate::create_isolate(None);
+        let context = isolate::create_context(&mut v8_isolate);
+        let scope = &mut v8::HandleScope::new(&mut v8_isolate);
+        let context = v8::Local::new(scope, &context);
+        let scope = &mut v8::ContextScope::new(scope, context);
+
+        let session_buffers = RefCell::new(SessionBuffers::new());
+        let bridge_ctx = BridgeCallContext::new(
+            Box::new(std::io::sink()),
+            Box::new(std::io::empty()),
+            String::from("reset-pending-test"),
+        );
+        let mut pending = PendingPromises::new();
+
+        // Each `_asyncFn(i)` call synchronously registers a pending promise
+        // resolver Global in `pending` and returns an unresolved Promise —
+        // exactly what remains registered when the event loop exits early on
+        // Shutdown / timeout-abort.
+        const REGISTERED: usize = 8;
+        let _async_fns = register_async_bridge_fns(
+            scope,
+            &bridge_ctx as *const BridgeCallContext,
+            &pending as *const PendingPromises,
+            &session_buffers as *const RefCell<SessionBuffers>,
+            &["_asyncFn"],
+        );
+        let source = format!("for (let i = 0; i < {REGISTERED}; i++) {{ _asyncFn(i); }}");
+        {
+            let tc = &mut v8::TryCatch::new(scope);
+            let code = v8::String::new(tc, &source).unwrap();
+            let script = v8::Script::compile(tc, code, None).unwrap();
+            assert!(
+                script.run(tc).is_some(),
+                "async bridge calls should register resolvers, not throw"
+            );
+            assert!(!tc.has_caught(), "async bridge calls should not throw");
+        }
+        assert_eq!(
+            pending.len(),
+            REGISTERED,
+            "each _asyncFn call must register a pending resolver Global"
+        );
+
+        // The cleanup invoked on every session-thread isolate-drop path. It must
+        // empty the registry (resetting every Global<PromiseResolver>) while the
+        // isolate is still alive.
+        reset_pending_promises(&mut pending);
+
+        assert_eq!(
+            pending.len(),
+            0,
+            "reset_pending_promises must drop all pending resolver Globals before isolate teardown"
+        );
+
+        // Isolate is still alive here: the Globals were reset above, so dropping
+        // the scope/isolate below honors the V8 lifetime contract.
     }
 }

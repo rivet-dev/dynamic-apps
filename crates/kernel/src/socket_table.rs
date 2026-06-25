@@ -948,25 +948,41 @@ impl SocketTable {
             .sockets
             .remove(&socket_id)
             .ok_or_else(|| SocketTableError::not_found(socket_id))?;
-        let accepted_socket_id = next_socket_id(&mut table);
-
         let result = (|| {
+            // Validate the listener and confirm backlog capacity BEFORE consuming a
+            // socket id. The id counter is monotonic (saturating_add) and never
+            // reclaims, so allocating an id before this check leaks one on every
+            // rejected connect (for example when the backlog is full).
+            {
+                let listener = table
+                    .sockets
+                    .get(&listener_socket_id)
+                    .ok_or_else(|| SocketTableError::not_found(listener_socket_id))?;
+                validate_connect_to_listener(&client, listener)?;
+
+                let listener_state = listener.listener_state.as_ref().ok_or_else(|| {
+                    SocketTableError::invalid_argument(format!(
+                        "socket {listener_socket_id} has no listener state"
+                    ))
+                })?;
+                if listener_state.pending_accepts.len() >= listener_state.backlog {
+                    return Err(SocketTableError::would_block(format!(
+                        "listener {listener_socket_id} backlog is full"
+                    )));
+                }
+            }
+
+            // Capacity confirmed: only now is it safe to consume a socket id.
+            let accepted_socket_id = next_socket_id(&mut table);
             let listener = table
                 .sockets
                 .get_mut(&listener_socket_id)
                 .ok_or_else(|| SocketTableError::not_found(listener_socket_id))?;
-            validate_connect_to_listener(&client, listener)?;
-
             let listener_state = listener.listener_state.as_mut().ok_or_else(|| {
                 SocketTableError::invalid_argument(format!(
                     "socket {listener_socket_id} has no listener state"
                 ))
             })?;
-            if listener_state.pending_accepts.len() >= listener_state.backlog {
-                return Err(SocketTableError::would_block(format!(
-                    "listener {listener_socket_id} backlog is full"
-                )));
-            }
 
             let accepted = SocketRecord {
                 id: accepted_socket_id,
@@ -1005,6 +1021,7 @@ impl SocketTable {
 
         match result {
             Ok(accepted) => {
+                let accepted_socket_id = accepted.id;
                 table.sockets.insert(socket_id, client);
                 table.sockets.insert(accepted_socket_id, accepted.clone());
                 table
@@ -1055,25 +1072,41 @@ impl SocketTable {
             .sockets
             .remove(&socket_id)
             .ok_or_else(|| SocketTableError::not_found(socket_id))?;
-        let accepted_socket_id = next_socket_id(&mut table);
-
         let result = (|| {
+            // Validate the listener and confirm backlog capacity BEFORE consuming a
+            // socket id. The id counter is monotonic (saturating_add) and never
+            // reclaims, so allocating an id before this check leaks one on every
+            // rejected connect (for example when the backlog is full).
+            {
+                let listener = table
+                    .sockets
+                    .get(&listener_socket_id)
+                    .ok_or_else(|| SocketTableError::not_found(listener_socket_id))?;
+                validate_connect_to_listener(&client, listener)?;
+
+                let listener_state = listener.listener_state.as_ref().ok_or_else(|| {
+                    SocketTableError::invalid_argument(format!(
+                        "socket {listener_socket_id} has no listener state"
+                    ))
+                })?;
+                if listener_state.pending_accepts.len() >= listener_state.backlog {
+                    return Err(SocketTableError::would_block(format!(
+                        "listener {listener_socket_id} backlog is full"
+                    )));
+                }
+            }
+
+            // Capacity confirmed: only now is it safe to consume a socket id.
+            let accepted_socket_id = next_socket_id(&mut table);
             let listener = table
                 .sockets
                 .get_mut(&listener_socket_id)
                 .ok_or_else(|| SocketTableError::not_found(listener_socket_id))?;
-            validate_connect_to_listener(&client, listener)?;
-
             let listener_state = listener.listener_state.as_mut().ok_or_else(|| {
                 SocketTableError::invalid_argument(format!(
                     "socket {listener_socket_id} has no listener state"
                 ))
             })?;
-            if listener_state.pending_accepts.len() >= listener_state.backlog {
-                return Err(SocketTableError::would_block(format!(
-                    "listener {listener_socket_id} backlog is full"
-                )));
-            }
 
             let accepted = SocketRecord {
                 id: accepted_socket_id,
@@ -1112,6 +1145,7 @@ impl SocketTable {
 
         match result {
             Ok(accepted) => {
+                let accepted_socket_id = accepted.id;
                 table.sockets.insert(socket_id, client);
                 table.sockets.insert(accepted_socket_id, accepted.clone());
                 table
@@ -1983,5 +2017,82 @@ fn lock_or_recover<'a, T>(mutex: &'a Mutex<T>) -> MutexGuard<'a, T> {
     match mutex.lock() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Reads the monotonic socket-id counter without advancing it, so a test can
+    /// observe whether a code path consumed an id.
+    fn peek_next_socket_id(table: &SocketTable) -> SocketId {
+        lock_or_recover(&table.inner.state).next_socket_id
+    }
+
+    #[test]
+    fn full_backlog_unix_connect_does_not_consume_socket_id() {
+        let table = SocketTable::new();
+        let path = "/tmp/leak-test/server.sock";
+
+        let listener = table.allocate(1, SocketSpec::unix_stream());
+        table
+            .bind_unix(listener.id, path)
+            .expect("bind unix listener");
+        table.listen(listener.id, 1).expect("listen with backlog 1");
+
+        // Fill the only backlog slot with one pending connection.
+        let first = table.allocate(2, SocketSpec::unix_stream());
+        table
+            .connect_to_bound_unix_stream(first.id, path)
+            .expect("first connect fills the backlog");
+
+        // A second connect must be rejected because the backlog is full, and it
+        // must NOT consume a socket id (the counter is monotonic and never reclaims).
+        let second = table.allocate(2, SocketSpec::unix_stream());
+        let before = peek_next_socket_id(&table);
+        let error = table
+            .connect_to_bound_unix_stream(second.id, path)
+            .expect_err("full-backlog connect must fail");
+        assert_eq!(error.code(), "EAGAIN");
+        let after = peek_next_socket_id(&table);
+
+        assert_eq!(
+            before, after,
+            "full-backlog unix connect leaked a socket id (counter advanced from {before} to {after})"
+        );
+    }
+
+    #[test]
+    fn full_backlog_inet_connect_does_not_consume_socket_id() {
+        let table = SocketTable::new();
+        let target = InetSocketAddress::new("127.0.0.1", 49222);
+
+        let listener = table.allocate(1, SocketSpec::tcp());
+        table
+            .bind_inet(listener.id, target.clone())
+            .expect("bind inet listener");
+        table.listen(listener.id, 1).expect("listen with backlog 1");
+
+        // Fill the only backlog slot with one pending connection.
+        let first = table.allocate(2, SocketSpec::tcp());
+        table
+            .connect_to_bound_inet_stream(first.id, target.clone())
+            .expect("first connect fills the backlog");
+
+        // A second connect must be rejected because the backlog is full, and it
+        // must NOT consume a socket id (the counter is monotonic and never reclaims).
+        let second = table.allocate(2, SocketSpec::tcp());
+        let before = peek_next_socket_id(&table);
+        let error = table
+            .connect_to_bound_inet_stream(second.id, target)
+            .expect_err("full-backlog connect must fail");
+        assert_eq!(error.code(), "EAGAIN");
+        let after = peek_next_socket_id(&table);
+
+        assert_eq!(
+            before, after,
+            "full-backlog inet connect leaked a socket id (counter advanced from {before} to {after})"
+        );
     }
 }

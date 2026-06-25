@@ -623,32 +623,66 @@ where
             vm_id,
             VmLifecycleState::Disposing,
         )];
-        self.terminate_vm_processes(vm_id, &mut events).await?;
+        // Process termination needs the VM live in `self.vms` (it looks up and
+        // signals the VM's active processes). Capture its result but keep tearing
+        // down: a process that refuses to die must not strand the VM's tracking
+        // entries for the process lifetime.
+        let terminate_result = self.terminate_vm_processes(vm_id, &mut events).await;
 
-        {
-            let vm = self
-                .vms
-                .get_mut(vm_id)
-                .expect("owned VM should exist before disposal");
-            shutdown_configured_mounts(
-                vm,
-                &MountPluginContext {
-                    bridge: self.bridge.clone(),
-                    connection_id: connection_id.to_owned(),
-                    session_id: session_id.to_owned(),
-                    vm_id: vm_id.to_owned(),
-                    sidecar_requests: self.sidecar_requests.clone(),
-                    max_pread_bytes: vm.kernel.resource_limits().max_pread_bytes,
-                },
-                "dispose_vm",
-                true,
-            )?;
-        }
-
+        // Detach the VM from `self.vms` BEFORE the remaining fallible teardown so
+        // no `?` below can leave the registry entry (or any per-VM map) behind.
         let mut vm = self
             .vms
             .remove(vm_id)
             .expect("owned VM should exist before disposal");
+
+        // `continue_on_error = true` => `shutdown_configured_mounts` never returns
+        // `Err` on the dispose path (it logs and presses on), so its result is
+        // intentionally discarded rather than `?`-ed.
+        let mount_context = MountPluginContext {
+            bridge: self.bridge.clone(),
+            connection_id: connection_id.to_owned(),
+            session_id: session_id.to_owned(),
+            vm_id: vm_id.to_owned(),
+            sidecar_requests: self.sidecar_requests.clone(),
+            max_pread_bytes: vm.kernel.resource_limits().max_pread_bytes,
+        };
+        let _ = shutdown_configured_mounts(&mut vm, &mount_context, "dispose_vm", true);
+
+        // Snapshot/flush/kernel-dispose/permission-reset can each fail; run them
+        // in a helper whose result is captured so cleanup below is unconditional.
+        let teardown_result = self.finish_vm_teardown(vm_id, &mut vm).await;
+
+        // Reclaim EVERY per-VM tracking entry on EVERY exit path — even when a
+        // teardown step above errored. Pre-fix these ran only after the fallible
+        // steps' `?`, so any failure stranded the engine/extension maps (H1) and
+        // the output-buffer map was never reclaimed at all (M6).
+        self.reclaim_vm_tracking(session_id, vm_id);
+        let _ = fs::remove_dir_all(&vm.cwd);
+
+        // Surface the first failure only AFTER cleanup has completed.
+        terminate_result?;
+        teardown_result?;
+
+        events.push(self.vm_lifecycle_event(
+            connection_id,
+            session_id,
+            vm_id,
+            VmLifecycleState::Disposed,
+        ));
+        Ok(events)
+    }
+
+    /// Run the fallible second half of VM disposal (root-filesystem snapshot +
+    /// flush, lifecycle event, kernel dispose, permission reset) against a VM
+    /// that has already been detached from `self.vms`. Kept separate so its
+    /// `?`-propagated errors are captured by the caller and the per-VM tracking
+    /// maps are still reclaimed afterward.
+    async fn finish_vm_teardown(
+        &mut self,
+        vm_id: &str,
+        vm: &mut VmState,
+    ) -> Result<(), SidecarError> {
         let snapshot = if vm.kernel.root_filesystem_mut().is_some() {
             Some(FilesystemSnapshot {
                 format: String::from(ROOT_FILESYSTEM_SNAPSHOT_FORMAT),
@@ -673,23 +707,7 @@ where
             })?;
         }
         self.bridge.clear_vm_permissions(vm_id)?;
-        self.javascript_engine.dispose_vm(vm_id);
-        self.python_engine.dispose_vm(vm_id);
-        self.wasm_engine.dispose_vm(vm_id);
-        self.prune_extension_vm_resource(vm_id);
-        let _ = fs::remove_dir_all(&vm.cwd);
-
-        if let Some(session) = self.sessions.get_mut(session_id) {
-            session.vm_ids.remove(vm_id);
-        }
-
-        events.push(self.vm_lifecycle_event(
-            connection_id,
-            session_id,
-            vm_id,
-            VmLifecycleState::Disposed,
-        ));
-        Ok(events)
+        Ok(())
     }
 
     pub(crate) async fn terminate_vm_processes(

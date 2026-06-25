@@ -117,6 +117,37 @@ impl InMemoryMetadataStore {
             })),
         }
     }
+
+    /// Drop a snapshot and release every block ref it pinned.
+    ///
+    /// Without this, `state.snapshots` grows forever: each snapshot pins cloned
+    /// inodes/dentries/chunks and holds an elevated `block_refs` count for every
+    /// block it references, which keeps those blocks from ever being reclaimed
+    /// by `gc()`. Removing the snapshot from the map first releases the cloned
+    /// metadata (the `Snapshot` is owned out of the map and dropped at end of
+    /// scope), and there is no fallible work after the removal, so the
+    /// per-chunk decrement always runs once the snapshot exists.
+    pub async fn delete_snapshot(&self, id: SnapshotId) -> VfsResult<Vec<BlockKey>> {
+        let mut state = self.state.lock().expect("metadata mutex poisoned");
+        let snapshot = state
+            .snapshots
+            .remove(&id)
+            .ok_or_else(|| VfsError::enoent(format!("snapshot {}", id.0)))?;
+        let mut freed = Vec::new();
+        for chunk in snapshot.chunks.values() {
+            state.dec_block_ref(&chunk.key, &mut freed);
+        }
+        Ok(freed)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn snapshot_count(&self) -> usize {
+        self.state
+            .lock()
+            .expect("metadata mutex poisoned")
+            .snapshots
+            .len()
+    }
 }
 
 impl State {
@@ -254,6 +285,23 @@ impl State {
 
     fn inc_block_ref(&mut self, key: &BlockKey) {
         *self.block_refs.entry(key.clone()).or_insert(0) += 1;
+    }
+
+    /// Recompute the *true* block refcounts from the current live inode chunks
+    /// plus every live snapshot's chunks. This is the authoritative reference
+    /// set used by `gc()`: any `block_refs` entry absent here is no longer
+    /// referenced by anything and may be reclaimed.
+    fn live_block_refs(&self) -> BTreeMap<BlockKey, u64> {
+        let mut counts: BTreeMap<BlockKey, u64> = BTreeMap::new();
+        for chunk in self.chunks.values() {
+            *counts.entry(chunk.key.clone()).or_insert(0) += 1;
+        }
+        for snapshot in self.snapshots.values() {
+            for chunk in snapshot.chunks.values() {
+                *counts.entry(chunk.key.clone()).or_insert(0) += 1;
+            }
+        }
+        counts
     }
 
     fn drop_inode_content(&mut self, ino: u64, freed: &mut Vec<BlockKey>) {
@@ -636,6 +684,101 @@ impl MetadataStore for InMemoryMetadataStore {
     }
 
     async fn gc(&self) -> VfsResult<Vec<BlockKey>> {
-        Ok(Vec::new())
+        let mut state = self.state.lock().expect("metadata mutex poisoned");
+        // Mark: recompute the authoritative reference set from live inode chunks
+        // and every live snapshot's chunks.
+        let live = state.live_block_refs();
+        // Sweep: any tracked block absent from the live set is referenced by
+        // nothing and is reclaimed; reconcile the surviving counts to truth so
+        // refcount drift cannot pin blocks indefinitely.
+        let freed: Vec<BlockKey> = state
+            .block_refs
+            .keys()
+            .filter(|key| !live.contains_key(*key))
+            .cloned()
+            .collect();
+        state.block_refs = live;
+        Ok(freed)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::types::{ChunkEdit, CreateInodeAttrs, Storage};
+
+    fn block_key(tag: &str) -> BlockKey {
+        BlockKey::from_content(tag.as_bytes())
+    }
+
+    #[tokio::test]
+    async fn delete_snapshot_releases_pinned_block_refs() {
+        let store = InMemoryMetadataStore::new();
+        let key = block_key("chunk-a");
+
+        // A chunked file under root referencing one block.
+        let file = store
+            .create(
+                InMemoryMetadataStore::ROOT_INO,
+                "f",
+                CreateInodeAttrs::file(0o644, 0, 0, Storage::Chunked { chunk_size: 4096 }),
+            )
+            .await
+            .unwrap();
+        store
+            .commit_write(
+                file.ino,
+                vec![ChunkEdit {
+                    index: 0,
+                    key: key.clone(),
+                    len: 10,
+                }],
+                10,
+            )
+            .await
+            .unwrap();
+        assert_eq!(store.refcount(&key), 1, "live inode holds one ref");
+
+        // Snapshotting pins a second ref to the same block.
+        let snap = store
+            .snapshot(InMemoryMetadataStore::ROOT_INO)
+            .await
+            .unwrap();
+        assert_eq!(store.refcount(&key), 2, "snapshot pins block");
+        assert_eq!(store.snapshot_count(), 1);
+
+        // Removing the live file leaves the block pinned by the snapshot, so the
+        // block cannot be reclaimed while the snapshot is alive.
+        store
+            .remove(InMemoryMetadataStore::ROOT_INO, "f")
+            .await
+            .unwrap();
+        assert_eq!(store.refcount(&key), 1, "snapshot still pins the block");
+
+        // Deleting the snapshot must release its pinned ref and free the block.
+        let freed = store.delete_snapshot(snap).await.unwrap();
+        assert_eq!(store.refcount(&key), 0, "snapshot ref released");
+        assert!(freed.contains(&key), "freed block reported by delete");
+        assert_eq!(store.snapshot_count(), 0, "snapshot dropped from map");
+    }
+
+    #[tokio::test]
+    async fn gc_reclaims_unreferenced_blocks() {
+        let store = InMemoryMetadataStore::new();
+        let orphan = block_key("orphan");
+
+        // A tracked block that no live inode or snapshot references (drift from a
+        // partially-applied edit). A correct gc() must reclaim it.
+        store
+            .state
+            .lock()
+            .unwrap()
+            .block_refs
+            .insert(orphan.clone(), 3);
+        assert_eq!(store.refcount(&orphan), 3);
+
+        let freed = store.gc().await.unwrap();
+        assert!(freed.contains(&orphan), "gc reclaims unreferenced block");
+        assert_eq!(store.refcount(&orphan), 0, "orphan entry removed");
     }
 }

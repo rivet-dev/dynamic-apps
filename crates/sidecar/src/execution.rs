@@ -633,6 +633,23 @@ fn loopback_tls_transport_registry(
     REGISTRY.get_or_init(|| Mutex::new(BTreeMap::new()))
 }
 
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) fn loopback_tls_registry_len() -> usize {
+    loopback_tls_transport_registry()
+        .lock()
+        .expect("loopback TLS transport registry lock poisoned")
+        .len()
+}
+
+#[cfg(test)]
+pub(crate) fn loopback_tls_registry_contains(key: &str) -> bool {
+    loopback_tls_transport_registry()
+        .lock()
+        .expect("loopback TLS transport registry lock poisoned")
+        .contains_key(key)
+}
+
 fn loopback_tls_transport_key(
     vm_id: &str,
     socket_id: SocketId,
@@ -667,12 +684,13 @@ fn loopback_tls_endpoint(
                 state: Mutex::new(crate::state::LoopbackTlsTransportPairState::default()),
                 ready: std::sync::Condvar::new(),
             });
-            transports.insert(key, Arc::downgrade(&pair));
+            transports.insert(key.clone(), Arc::downgrade(&pair));
             pair
         });
     Ok(crate::state::LoopbackTlsEndpoint {
         pair,
         is_lower_socket: socket_id <= peer_socket_id,
+        registry_key: Some(key),
     })
 }
 
@@ -785,6 +803,39 @@ fn wait_for_loopback_peer_socket_id(
 impl Drop for crate::state::LoopbackTlsEndpoint {
     fn drop(&mut self) {
         let _ = self.close_endpoint();
+
+        // Eagerly prune this endpoint's registry entry once we are the last owner
+        // of the shared transport pair. Without this, the `Weak` entry survives
+        // until the next `loopback_tls_endpoint()` call runs its lazy `retain()`,
+        // so dead entries accumulate under intermittent use. We must NOT remove
+        // the entry while a peer endpoint still shares the pair, otherwise a later
+        // connection for the same socket pair would fail to find it and build a
+        // mismatched fresh pair.
+        let Some(key) = self.registry_key.take() else {
+            return;
+        };
+        let Ok(mut transports) = loopback_tls_transport_registry().lock() else {
+            // Lock poisoned: leave the entry for the lazy `retain()` to reclaim.
+            return;
+        };
+        let should_remove = match transports.get(&key) {
+            // Only prune when the registered entry still points at *our* pair and
+            // `self` is its last strong owner. During `Drop` `self.pair` is still
+            // alive, so a strong count of 1 (after dropping the temporary upgrade)
+            // means no other endpoint references it.
+            Some(weak) => match weak.upgrade() {
+                Some(existing) => {
+                    let same_pair = Arc::ptr_eq(&existing, &self.pair);
+                    drop(existing);
+                    same_pair && Arc::strong_count(&self.pair) <= 1
+                }
+                None => true,
+            },
+            None => false,
+        };
+        if should_remove {
+            transports.remove(&key);
+        }
     }
 }
 
@@ -873,6 +924,59 @@ impl Write for crate::state::LoopbackTlsEndpoint {
 
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod loopback_tls_registry_tests {
+    use super::{
+        loopback_tls_endpoint, loopback_tls_registry_contains, loopback_tls_transport_key,
+    };
+
+    // Each test uses a unique vm_id so the process-global registry stays
+    // partitioned across concurrently running tests.
+
+    #[test]
+    fn dropping_endpoint_removes_its_registry_entry() {
+        let vm_id = "loopback-tls-drop-removes-entry";
+        let key = loopback_tls_transport_key(vm_id, 1, 2);
+
+        let endpoint = loopback_tls_endpoint(vm_id, 1, 2).expect("create endpoint");
+        assert!(
+            loopback_tls_registry_contains(&key),
+            "registry should contain the key while the endpoint is alive"
+        );
+
+        drop(endpoint);
+        assert!(
+            !loopback_tls_registry_contains(&key),
+            "registry entry must be pruned in the endpoint's Drop, not left for the lazy retain()"
+        );
+    }
+
+    #[test]
+    fn registry_entry_survives_until_last_peer_endpoint_drops() {
+        let vm_id = "loopback-tls-shared-pair";
+        let key = loopback_tls_transport_key(vm_id, 3, 4);
+
+        // Both peers of a loopback connection share the same transport pair.
+        let lower = loopback_tls_endpoint(vm_id, 3, 4).expect("create lower endpoint");
+        let higher = loopback_tls_endpoint(vm_id, 4, 3).expect("create higher endpoint");
+        assert!(loopback_tls_registry_contains(&key));
+
+        // Dropping one peer must keep the entry, since the other peer still owns
+        // the shared pair and a later connection must be able to find it.
+        drop(lower);
+        assert!(
+            loopback_tls_registry_contains(&key),
+            "entry must survive while a peer endpoint still shares the pair"
+        );
+
+        drop(higher);
+        assert!(
+            !loopback_tls_registry_contains(&key),
+            "entry must be pruned once the last peer endpoint drops"
+        );
     }
 }
 

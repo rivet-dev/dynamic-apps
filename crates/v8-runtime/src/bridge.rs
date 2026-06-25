@@ -1136,10 +1136,64 @@ fn remove_vm_context_slot(context_id: u32) {
     });
 }
 
-#[cfg(test)]
-fn clear_vm_context_registry_for_test() {
+/// Evict every `node:vm` context slot held by the current isolate thread and
+/// reset the id counter.
+///
+/// `VM_CONTEXTS` is a thread-local that lives for the lifetime of the (reused)
+/// isolate thread, not a single execution. `reserve_vm_context_slot` adds a slot
+/// for every `vm.createContext()`, but the success path
+/// (`update_vm_context_slot`) never removes it — only the sandbox-mirroring error
+/// path does. Without a teardown sweep, slots reserved by one execution survive
+/// into every later execution on the same isolate, so the registry grows
+/// monotonically until it hits the hard cap `MAX_VM_CONTEXTS` and all subsequent
+/// `createContext()` calls fail (freed only on thread exit). This sweep releases
+/// those slots at a session boundary so the registry returns to empty between
+/// executions. See `VmContextRegistryGuard`.
+fn reset_vm_context_registry() {
     VM_CONTEXTS.with(|contexts| contexts.borrow_mut().clear());
     NEXT_VM_CONTEXT_ID.with(|next_id| next_id.set(1));
+}
+
+/// RAII owner of the thread-local `node:vm` context registry for one session.
+///
+/// Mirrors the per-session ownership of [`PendingPromises`] (created fresh per
+/// session, dropped at teardown): a session holds one guard, and dropping it
+/// evicts every context slot the session reserved. Because `Drop` runs on *every*
+/// termination path of the frame that holds the guard — normal return, `?` error,
+/// early return, and panic unwinding — the slots are reclaimed unconditionally,
+/// not only on the happy path. This prevents a reused isolate thread from
+/// accumulating `vm.createContext()` slots across executions toward
+/// `MAX_VM_CONTEXTS`.
+#[must_use = "hold the guard for the session lifetime; dropping it evicts the vm context registry"]
+pub struct VmContextRegistryGuard {
+    _private: (),
+}
+
+impl VmContextRegistryGuard {
+    /// Begin a session's ownership of the vm context registry, sweeping any slots
+    /// a prior session left on this (reused) isolate thread so the new session
+    /// starts from an empty registry.
+    pub fn new() -> Self {
+        reset_vm_context_registry();
+        VmContextRegistryGuard { _private: () }
+    }
+}
+
+impl Default for VmContextRegistryGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for VmContextRegistryGuard {
+    fn drop(&mut self) {
+        reset_vm_context_registry();
+    }
+}
+
+#[cfg(test)]
+fn clear_vm_context_registry_for_test() {
+    reset_vm_context_registry();
 }
 
 #[cfg(test)]
@@ -2023,6 +2077,13 @@ pub fn replace_bridge_fns(
     sync_fns: &[&str],
     async_fns: &[&str],
 ) -> (BridgeFnStore, AsyncBridgeFnStore) {
+    // Per-session bridge installation runs once, before any user code executes in
+    // this context, so the only `node:vm` context slots present are leftovers from
+    // a prior session that reused this isolate thread. Sweep them here so a new
+    // session never inherits another session's contexts and the registry can never
+    // accumulate across executions toward `MAX_VM_CONTEXTS`. The session should
+    // also hold a `VmContextRegistryGuard` to evict its own slots at teardown.
+    reset_vm_context_registry();
     let sync_store = register_sync_bridge_fns(scope, ctx, buffers, sync_fns);
     let async_store = register_async_bridge_fns(scope, ctx, pending, buffers, async_fns);
     (sync_store, async_store)
@@ -2177,9 +2238,10 @@ mod tests {
     use super::{
         bridge_error_code, clear_vm_context_registry_for_test, deserialize_cbor_value,
         fill_vm_context_registry_for_test, register_async_bridge_fns, register_sync_bridge_fns,
-        serialize_cbor_value, vm_context_capacity_error, vm_context_registry_len_for_test,
-        PendingPromises, SessionBuffers, MAX_CBOR_BRIDGE_CONTAINER_ITEMS, MAX_CBOR_BRIDGE_DEPTH,
-        MAX_PENDING_PROMISES, MAX_VM_CONTEXTS,
+        reserve_vm_context_slot, reset_vm_context_registry, serialize_cbor_value,
+        vm_context_capacity_error, vm_context_registry_len_for_test, PendingPromises,
+        SessionBuffers, VmContextRegistryGuard, MAX_CBOR_BRIDGE_CONTAINER_ITEMS,
+        MAX_CBOR_BRIDGE_DEPTH, MAX_PENDING_PROMISES, MAX_VM_CONTEXTS,
     };
     use crate::host_call::BridgeCallContext;
     use crate::ipc_binary::{self, BinaryFrame};
@@ -2592,6 +2654,91 @@ mod tests {
         assert!(
             error.contains(&format!("limit of {MAX_VM_CONTEXTS} contexts")),
             "unexpected error: {error}"
+        );
+    }
+
+    // Regression test for the `VM_CONTEXTS` leak: `reserve_vm_context_slot` adds a
+    // slot per `vm.createContext()`, but the success path never removes it. On a
+    // reused isolate thread that made the registry grow without bound across
+    // executions until it hit `MAX_VM_CONTEXTS` and every later `createContext()`
+    // failed. With the fix, a session's `VmContextRegistryGuard` evicts the slots
+    // at teardown, so the registry returns to empty between executions and the cap
+    // is never reached. This asserts the safeguard FIRING (slots reclaimed), it
+    // does not saturate any resource, so it stays in the default suite.
+    //
+    // Runs in a subprocess to match the V8-initializing test convention in this
+    // module (one isolate per process, no cross-test V8 interference).
+    #[test]
+    fn vm_context_registry_evicts_slots_on_finalize() {
+        const SUBPROCESS_ENV: &str = "AGENTOS_V8_VM_CONTEXT_FINALIZE_SUBPROCESS";
+        if std::env::var_os(SUBPROCESS_ENV).is_none() {
+            let output = Command::new(std::env::current_exe().expect("current test binary"))
+                .arg("bridge::tests::vm_context_registry_evicts_slots_on_finalize")
+                .arg("--exact")
+                .arg("--nocapture")
+                .env(SUBPROCESS_ENV, "1")
+                .output()
+                .expect("spawn vm context finalize subprocess");
+            assert!(
+                output.status.success(),
+                "vm context finalize subprocess failed with status {:?}\nstdout:\n{}\nstderr:\n{}",
+                output.status.code(),
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            return;
+        }
+
+        isolate::init_v8_platform();
+        let mut isolate = isolate::create_isolate(None);
+        let context = isolate::create_context(&mut isolate);
+        let scope = &mut v8::HandleScope::new(&mut isolate);
+        let context = v8::Local::new(scope, &context);
+        let scope = &mut v8::ContextScope::new(scope, context);
+
+        reset_vm_context_registry();
+        assert_eq!(
+            vm_context_registry_len_for_test(),
+            0,
+            "registry starts empty"
+        );
+
+        // Simulate many executions on the same reused isolate. Each execution
+        // reserves several contexts and then finalizes (its session guard drops).
+        // Run far past the hard cap: a leaked slot per createContext would exhaust
+        // MAX_VM_CONTEXTS within the first ~341 executions and the `.expect` on the
+        // next reservation would panic.
+        const CONTEXTS_PER_EXECUTION: usize = 3;
+        let executions = MAX_VM_CONTEXTS * 4;
+        for execution in 0..executions {
+            {
+                let _guard = VmContextRegistryGuard::new();
+                for _ in 0..CONTEXTS_PER_EXECUTION {
+                    reserve_vm_context_slot(scope, context)
+                        .expect("reserve vm context slot below cap; a leak would hit the cap");
+                }
+                assert_eq!(
+                    vm_context_registry_len_for_test(),
+                    CONTEXTS_PER_EXECUTION,
+                    "slots reserved during execution {execution} must be live"
+                );
+            }
+            // Guard dropped above -> finalize. Asserting here, before the next
+            // execution's guard is constructed, proves the Drop sweep (not the
+            // start-of-session sweep) reclaimed the slots.
+            assert_eq!(
+                vm_context_registry_len_for_test(),
+                0,
+                "registry must be empty after execution {execution} finalizes"
+            );
+        }
+
+        // After 4x the cap worth of reservations, a fresh createContext still
+        // succeeds because nothing leaked across executions.
+        let _guard = VmContextRegistryGuard::new();
+        assert!(
+            reserve_vm_context_slot(scope, context).is_ok(),
+            "createContext must keep succeeding; leaked slots would have hit MAX_VM_CONTEXTS"
         );
     }
 }
