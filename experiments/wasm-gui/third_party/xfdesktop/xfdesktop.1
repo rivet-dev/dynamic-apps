@@ -1,0 +1,116 @@
+.TH XFDESKTOP 1 "July 2019"
+
+.SH NAME
+xfdesktop \- The Xfce 4 Desktop Environment's desktop manager
+
+.SH SYNOPSIS
+.B xfdesktop
+.br
+.B xfdesktop
+.I [options]
+.br
+
+.SH DESCRIPTION
+\fBxfdesktop\fP manages the desktop itself in the Xfce 4 Desktop Environment.
+This includes drawing the desktop backdrop and providing a right-click
+applications menu and middle-click window list menu, as well as drawing
+icons on the desktop.  Only one instance of xfdesktop can be running at
+a time, and should be started by running \fBxfdesktop\fP without any arguments.
+
+.SH OPTIONS
+
+.SS HELP OPTIONS:
+.TP
+.B \-h, --help
+Show help options
+.TP
+.B \--help-all
+Show all help options
+.TP
+.B \--help-gtk
+Show GTK+ Options
+.TP
+.B \--help-sm-client
+Show session management options
+
+.SS APPLICATION OPTIONS:
+.TP
+.B \-V, --version
+Display version information
+.TP
+.B \-R, --reload
+Causes an already-running instance of \fBxfdesktop\fP to reload all its
+settings and redraws the desktop background.
+.TP
+.B \-N, --next
+Causes an already-running instance of \fBxfdesktop\fP to advance to the
+next wallpaper on the current workspace.
+.TP
+.B \-M, --menu
+Causes an already-running instance of \fBxfdesktop\fP to pop up the
+applications menu at the current position of the mouse cursor.
+.TP
+.B \-W, --windowlist
+Causes an already-running instance of \fBxfdesktop\fP to pop up the window
+list menu at the current position of the mouse cursor.
+.TP
+.B \-A, --arrange
+Automatically arrange all the icons on the desktop
+.TP
+.B \-D, --disable-wm-check
+Do not wait for a window manager on startup
+.TP
+.B \-e, --enable-debug
+Enable debug messages
+.TP
+.B \-d, --disable-debug
+Disable debug messages
+.TP
+.B \-Q, --quit
+Cause \fBxfdesktop\fP to quit
+.TP
+.B \--display=[DISPLAY]
+X display to use
+
+.SH ENVIRONMENT
+\fBxfdesktop\fP's behavior is affected by the following environment variables.
+.PP
+.TP
+.B XDG_CONFIG_HOME
+Specifies the root for all user-specific configuration files.  If this
+environment variable is not present, it defaults to
+.I ~/.config
+.TP
+.B XDG_CONFIG_DIRS
+Specifies a colon-separated list of system directories in which to search
+for configuration data.
+If this environment variable is not present, it defaults to
+.I /etc/xdg
+
+.SH FILES
+\fBxfdesktop\fP searches for a menu description file in
+.IR $XDG_CONFIG_DIRS/menus/xfce-applications.menu .
+\fBxfdesktop\fP can also use a user-customized menu in
+.IR $XDG_CONFIG_HOME/menus/ .
+
+.SH BUGS
+Please report any bugs to
+.IR https://gitlab.xfce.org/xfce/xfdesktop .
+.br
+Development discussion should be conducted on the
+.IR xfce4-dev@xfce.org
+mailing list.
+.br
+Usage-related questions should be directed to the
+.IR xfce@xfce.org
+mailing list.
+
+.SH HOMEPAGE
+.I https://xfce.org/
+
+.SH AUTHOR
+Jasper Huijsmans <huysmans@users.sourceforge.net>, Benedikt Meurer
+<benny@xfce.org>, Brian Tarricone <bjt23@cornell.edu>, and Eric
+Koegel <eric@xfce.org>.
+
+This manual page was originally written by Brian Tarricone <bjt23@cornell.edu>.

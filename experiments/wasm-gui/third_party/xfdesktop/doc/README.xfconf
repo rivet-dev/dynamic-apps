@@ -1,0 +1,62 @@
+Xfdesktop now uses Xfconf to store its configuration.  Xfconf is a
+hierarchical configuration system.  The channel name that xfdesktop uses
+is 'xfce4-desktop'.  Property names below should be referred to with each
+component separated by a slash ('/') character.  The data type of each
+property is listd after the name.
+The monitor settings are referred to by name where possible so that when
+the same monitor is plugged in again those settings apply to it.
+
+<backdrop>
+  <single-workspace-mode bool>
+  <single-workspace-number int>
+  <screen0>
+    <monitor0>
+      <workspace0>
+        <backdrop-cycle-enable bool>
+        <backdrop-cycle-period int>
+        <backdrop-cycle-random-order bool>
+        <backdrop-cycle-timer int>
+        <color1 array:uint16,uint16,uint16>
+        <color2 array:uint16,uint16,uint16>
+        <color-style int>
+        <image-style int>
+        <last-image string>
+      </workspace0>
+    </monitor0>
+  </screen0>
+</backdrop>
+<windowlist-menu>
+    <show bool>
+    <show-icons bool>
+    <show-workspace-names bool>
+    <show-sticky-once bool>
+    <show-submenus bool>
+    <show-add-remove-workspaces bool>
+</windowlist-menu>
+<desktop-menu>
+    <show bool>
+    <show-icons bool>
+    <max-template-files int>
+</desktop-menu>
+<desktop-icons>
+    <style int>
+    <use-custom-font-size bool>
+    <font-size double>
+    <icon-size uint>
+    <center-text bool>
+    <primary bool>
+    <single-click bool>
+    <show-thumbnails bool>
+    <show-hidden-files bool>
+    <show-tooltips bool>
+    <tooltip-size double>
+    <file-icons>
+        <show-filesystem bool>
+        <show-home bool>
+        <show-trash bool>
+        <show-removable bool>
+        <show-device-removable bool>
+        <show-network-removable bool>
+        <show-unknown-removable bool>
+    </file-icons>
+</desktop-icons>

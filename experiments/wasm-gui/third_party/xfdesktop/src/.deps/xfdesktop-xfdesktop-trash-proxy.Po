@@ -1,0 +1,676 @@
+xfdesktop-xfdesktop-trash-proxy.o: xfdesktop-trash-proxy.c \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h \
+  ../config.h xfdesktop-trash-proxy.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giotypes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenums.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib-object.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gbinding.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/galloca.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtypes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/glib-2.0/include/glibconfig.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmacros.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_header_macro.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_ptrdiff_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_size_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_wchar_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_null.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_max_align_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_offsetof.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/limits.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/limits.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/features.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/alltypes.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timeval.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_time_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_suseconds_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timespec.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_iovec.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/limits.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_PAGESIZE.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/float.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/float.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversionmacros.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-visibility.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/time.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_time.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_tm.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/wasi/api.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/stdint.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_memcpy.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/strings.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/garray.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gasyncqueue.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gthread.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gatomic.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-typeof.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gerror.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdarg.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_header_macro.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___gnuc_va_list.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_list.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_arg.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___va_copy.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/alloca.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbacktrace.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/signal.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/signal.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/signal.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbase64.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbitlock.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbookmarkfile.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdatetime.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtimezone.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbytes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gcharset.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gchecksum.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gconvert.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdataset.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdate.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdir.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/dirent.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_dirent.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_dirent.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_ino_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_DIR.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/dirent.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/genviron.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gfileutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ggettext.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghash.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glist.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmem.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gnode.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghmac.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghook.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghostutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/giochannel.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmain.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpoll.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gslist.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstring.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gunicode.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstrfuncs.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gkeyfile.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmappedfile.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmarkup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmessages.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gvariant.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gvarianttype.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/goption.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpathbuf.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpattern.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gprimes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gqsort.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gqueue.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grand.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grcbox.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grefcount.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grefstring.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gregex.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gscanner.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gsequence.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gshell.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gslice.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gspawn.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstringchunk.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstrvbuilder.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtestutils.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/errno.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__errno.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__errno_values.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gthreadpool.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtimer.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtrashstack.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtree.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/guri.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/guuid.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversion.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gallocator.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gcache.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gcompletion.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gmain.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/grel.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gthread.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/pthread.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sched.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-autocleanups.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtype.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject-visibility.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvalue.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gparam.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gclosure.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsignal.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gmarshal.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gboxed.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/glib-types.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gbindinggroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/genums.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/glib-enumtypes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gparamspecs.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsignalgroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsourceclosure.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtypemodule.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtypeplugin.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvaluearray.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvaluetypes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject-autocleanups.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio-visibility.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gaction.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactiongroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactiongroupexporter.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactionmap.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gappinfo.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gapplication.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gapplicationcommandline.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gasyncinitable.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginitable.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gasyncresult.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbufferedinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilterinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbufferedoutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilteroutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/goutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbytesicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcancellable.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcharsetconverter.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverter.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcontenttype.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverterinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverteroutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcredentials.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/posix.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdatagrambased.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdatainputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdataoutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusactiongroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusauthobserver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbuserror.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusinterface.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusinterfaceskeleton.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusintrospection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmenumodel.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmessage.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmethodinvocation.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusnameowning.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusnamewatching.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobject.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanager.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanagerclient.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanagerserver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectproxy.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectskeleton.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusproxy.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusserver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdebugcontroller.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdebugcontrollerdbus.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdrive.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsclientconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsserverconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gemblemedicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gemblem.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfile.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileattribute.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileenumerator.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileinfo.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileiostream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giostream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioerror.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilemonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilenamecompleter.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileoutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetaddressmask.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetsocketaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenumtypes.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giomodule.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gmodule.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gmodule/gmodule-visibility.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioscheduler.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/glistmodel.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gliststore.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gloadableicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemoryinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemorymonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemoryoutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenu.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenumodel.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenuexporter.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmount.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmountoperation.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnativesocketaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnativevolumemonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvolumemonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkmonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkservice.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnotification.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpermission.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableinputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableoutputstream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpowerprofilemonitor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpropertyaction.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxy.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyaddressenumerator.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketaddressenumerator.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyresolver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gremoteactiongroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gresolver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gresource.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gseekable.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsettings.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsettingsschema.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleaction.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleactiongroup.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleasyncresult.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleiostream.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimplepermission.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleproxyresolver.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocket.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketclient.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketconnectable.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketcontrolmessage.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketlistener.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketservice.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsrvtarget.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsubprocess.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsubprocesslauncher.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtask.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtcpconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtcpwrapperconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtestdbus.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gthemedicon.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gthreadedsocketservice.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsbackend.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlscertificate.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsclientconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsdatabase.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsfiledatabase.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsinteraction.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlspassword.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsserverconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixconnection.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixcredentialsmessage.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixfdlist.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixsocketaddress.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvfs.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvolume.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gzlibcompressor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gzlibdecompressor.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio-autocleanups.h
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h:
+../config.h:
+xfdesktop-trash-proxy.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giotypes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenums.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib-object.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gbinding.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/galloca.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtypes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/glib-2.0/include/glibconfig.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmacros.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_header_macro.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_ptrdiff_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_size_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_wchar_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_null.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_max_align_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stddef_offsetof.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/limits.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/limits.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/features.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/alltypes.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timeval.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_time_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_suseconds_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timespec.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_iovec.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/limits.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_PAGESIZE.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/float.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/float.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversionmacros.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-visibility.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/time.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_time.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_tm.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/wasi/api.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdint.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdint.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/stdint.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_memcpy.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/strings.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/garray.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gasyncqueue.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gthread.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gatomic.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-typeof.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gerror.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stdarg.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_header_macro.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___gnuc_va_list.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_list.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_arg.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg___va_copy.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/alloca.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbacktrace.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/signal.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/signal.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/signal.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbase64.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbitlock.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbookmarkfile.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdatetime.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtimezone.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbytes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gcharset.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gchecksum.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gconvert.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdataset.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdate.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gdir.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/dirent.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_dirent.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_dirent.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_ino_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_DIR.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/dirent.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/genviron.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gfileutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ggettext.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghash.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glist.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmem.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gnode.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghmac.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghook.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/ghostutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/giochannel.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmain.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpoll.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gslist.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstring.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gunicode.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstrfuncs.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gkeyfile.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmappedfile.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmarkup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gmessages.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gvariant.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gvarianttype.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/goption.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpathbuf.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gpattern.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gprimes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gqsort.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gqueue.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grand.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grcbox.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grefcount.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/grefstring.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gregex.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gscanner.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gsequence.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gshell.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gslice.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gspawn.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstringchunk.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gstrvbuilder.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtestutils.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/errno.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__errno.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__errno_values.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gthreadpool.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtimer.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtrashstack.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gtree.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/guri.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/guuid.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversion.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gallocator.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gcache.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gcompletion.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gmain.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/grel.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gthread.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/pthread.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sched.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-autocleanups.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtype.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject-visibility.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvalue.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gparam.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gclosure.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsignal.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gmarshal.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gboxed.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/glib-types.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gbindinggroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/genums.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/glib-enumtypes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gparamspecs.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsignalgroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gsourceclosure.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtypemodule.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gtypeplugin.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvaluearray.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gvaluetypes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gobject/gobject-autocleanups.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio-visibility.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gaction.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactiongroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactiongroupexporter.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gactionmap.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gappinfo.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gapplication.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gapplicationcommandline.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gasyncinitable.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginitable.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gasyncresult.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbufferedinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilterinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbufferedoutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilteroutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/goutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gbytesicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcancellable.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcharsetconverter.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverter.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcontenttype.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverterinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverteroutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcredentials.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/posix.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdatagrambased.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdatainputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdataoutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusactiongroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusauthobserver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbuserror.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusinterface.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusinterfaceskeleton.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusintrospection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmenumodel.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmessage.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusmethodinvocation.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusnameowning.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusnamewatching.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobject.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanager.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanagerclient.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectmanagerserver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectproxy.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusobjectskeleton.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusproxy.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusserver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdbusutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdebugcontroller.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdebugcontrollerdbus.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdrive.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsclientconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gdtlsserverconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gemblemedicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gemblem.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfile.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileattribute.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileenumerator.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileinfo.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileiostream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giostream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioerror.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilemonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfilenamecompleter.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gfileoutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetaddressmask.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/ginetsocketaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenumtypes.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giomodule.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gmodule.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gmodule/gmodule-visibility.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioscheduler.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/glistmodel.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gliststore.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gloadableicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemoryinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemorymonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmemoryoutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenu.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenumodel.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmenuexporter.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmount.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gmountoperation.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnativesocketaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnativevolumemonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvolumemonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkmonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnetworkservice.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gnotification.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpermission.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableinputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableoutputstream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpollableutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpowerprofilemonitor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gpropertyaction.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxy.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyaddressenumerator.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketaddressenumerator.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gproxyresolver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gremoteactiongroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gresolver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gresource.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gseekable.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsettings.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsettingsschema.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleaction.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleactiongroup.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleasyncresult.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleiostream.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimplepermission.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsimpleproxyresolver.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocket.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketclient.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketconnectable.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketcontrolmessage.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketlistener.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsocketservice.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsrvtarget.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsubprocess.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gsubprocesslauncher.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtask.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtcpconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtcpwrapperconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtestdbus.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gthemedicon.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gthreadedsocketservice.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsbackend.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlscertificate.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsclientconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsdatabase.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsfiledatabase.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsinteraction.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlspassword.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gtlsserverconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixconnection.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixcredentialsmessage.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixfdlist.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gunixsocketaddress.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvfs.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gvolume.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gzlibcompressor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gzlibdecompressor.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio-autocleanups.h:
