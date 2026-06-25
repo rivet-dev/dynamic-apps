@@ -310,6 +310,23 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     defaults file" → exit 1). `scripts/prepare-xfwm4.sh` stages that defaults file + the bundled Default
     fallback theme. (2) `prepare-themes.sh` transcodes XPM-only decoration images → PNG (our gdk-pixbuf is
     PNG-only; several Greybird borders ship only `.xpm`).
+  - **★★ ACTUAL ROOT CAUSE FOUND (2026-06-25 iter5) — it is a stdio `fseek` bug, NOT cairo (this REVERSES
+    the iter1–4 cairo conclusion below).** `fseek(0,SEEK_SET)` then `fread()` returns **0** on a stdio
+    `FILE*` over a kernel-VFS (`--vm-tree`) file, while raw POSIX `open`/`lseek(0)`/`read` works (proven by
+    `guest-xclient/fread-probe.c` on a valid 315-byte PNG: sequential fread=315, but fseek-then-fread=0;
+    raw read-after-lseek=8). EVERY asset loader does sniff-then-rewind via stdio, so they all fail:
+    `gdk_pixbuf_new_from_file` on every decoration PNG → "Fatal error in PNG image file: Read Error" (RGBA
+    and LA alike), and xfwm4's `xpm_image_load` (`fread(1024)+fseek(0)+getc`) → "Cannot read Pixmap header".
+    xfwm4 therefore loads NO decoration images → blank/shaped-away decorations. **cairo→A1 is FINE** —
+    `guest-xclient/gtkcairo-a1.c` (a GTK app where cairo inits) shows cairo→depth-1(A1) solid fill AND
+    xfwm4's exact clear+fill BOTH produce correct masks (`set=1024 left=1024 right=0`); the masks were
+    empty only because the image never loaded. NEXT (constraint #5, runner / wasi-libc sysroot): instrument
+    the runner's guest-file `fd_seek`/`fd_read` (`node_import_cache.rs` ~13357/13623; the code reads from
+    `handle.position` which `fd_seek` sets to 0, so the fault is likely wasi-libc stdio's buffer/EOF
+    bookkeeping above the WASI layer), fix it → gdk_pixbuf loads → xfwm4 decorations render → XU2 closes.
+    This fseek fix also unblocks any component that seek-reads a VFS file. Probe tools
+    `guest-xclient/{fread-probe,gtkcairo-a1}.c`. Proof `~/tmp/gui-progress/2026-06-25T01/xu2-ACTUAL-rootcause-fseek.txt`.
+    *(Superseded cairo theory, kept for the record:)*
   - **★ OPEN BLOCKER — ROOT CAUSE NARROWED (2026-06-25, constraint #4 observability):** xfwm4 draws NO
     visible decoration (titlebar band black) even though it reparents + uploads real images. Proven via
     XTRACE + a new `guest-xclient/bgpixmap-test.c` repro on the bare wasm X server:
