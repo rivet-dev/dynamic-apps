@@ -410,12 +410,23 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        (`scripts/prepare-xfce4-panel.sh`; fixture, not a patch). **Result: the panel BAR renders** — a
        full-width 798×28 bar, no crash (`scripts/test-xu3-panel.sh` → "BAR renders"). Proof
        `~/tmp/gui-progress/2026-06-25T03/xu3-panel-bar-renders.png`. The bar is empty (no plugins yet).
-    2. **gmodule/dlopen static plugins.** All 13 panel plugins (applicationsmenu/tasklist/clock/systray/…)
-       are external `.so` loaded via `g_module_open`+`g_module_symbol` (none `X-XFCE-Internal` by default);
-       the sandbox has no dlopen. Unlike M8's lxpanel (built-in internal plugins registered in a static
-       table), xfce4-panel has no built-in registration. NEXT: a gmodule shim resolving plugin constructors
-       from statically-linked code (platform layer; the panel + whiskermenu stay unmodified), or build the
-       core plugins as `X-XFCE-Internal` linked into the panel binary.
+    2. **gmodule/dlopen static plugins — shim WRITTEN; per-plugin wiring is the remaining work.** All 13
+       panel plugins are external `.so` loaded via `g_module_open(<path>)`+`g_module_symbol`; the sandbox
+       has no dlopen, and they can't all be statically linked under their real names (every plugin exports
+       the same entry symbol). **Approach (constraint #5; panel+plugins UNMODIFIED — toolchain shim + a
+       compile-time `-D` rename):** `toolchain/gmodule-shim.c` (DONE, compiles, exports
+       `__wrap_g_module_open/open_full/symbol/close/make_resident/error/supported`) intercepts the panel's
+       g_module calls (link with `-Wl,--wrap=g_module_*`), parses the plugin name from the `.so` path, and
+       resolves the entry from a generated static table `panel_static_plugin_lookup(name, symbol)`. Per
+       plugin: compile its `.c` with the entry symbol renamed (`-Dxfce_panel_module_init=<name>_init` for
+       GObject/TypeModule plugins like **separator**; `-Dxfce_panel_module_construct=<name>_construct` for
+       simple plugins), link it into the panel, add `{name, symbol, fn}` to the gen table. **Remaining
+       wiring (per plugin):** (a) build the plugin objects + deps into the panel; (b) gen-table entry;
+       (c) stage a STUB `.so` at the compile-time `PANEL_PLUGINS_LIB_DIR` (the panel `g_file_test`s the
+       file exists before opening — set `--libdir=/usr/lib` or stage at the wasm-prefix path); (d) stage
+       the plugin `.desktop` with `X-XFCE-Internal=true` (→ INTERNAL mode, no wrapper fork) at the panel
+       data dir; (e) add the plugin to the xfconf config. NEXT: prove the path with one plugin
+       (separator → clock), then tasklist/systray/clock + build xfce4-whiskermenu-plugin.
 - **XU4 — xfdesktop.** ⬜ Wallpaper + desktop icons + right-click root menu render. Proof screenshot at
   ≥1024×768.
 - **XU5 — Thunar.** ⬜ Thunar (Xfce file manager, gvfs/tumbler off) lists a real VFS dir, decorated by
