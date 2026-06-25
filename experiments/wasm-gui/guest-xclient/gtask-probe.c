@@ -25,6 +25,17 @@ static void task_done(GObject *src, GAsyncResult *res, gpointer data) {
 }
 
 int main(void) {
+#ifdef PROBE_CROSS_CONTEXT
+  /* Candidate (b): create the GTask BEFORE pushing the nested context, so it captures the GLOBAL default
+   * context D, then iterate a DIFFERENT pushed context C. The completion goes to D, not C. */
+  GTask *task = g_task_new(NULL, NULL, task_done, NULL);
+  g_printerr("PROBE: [cross-ctx] task created in global-default; dispatch worker\n");
+  g_task_run_in_thread(task, task_func);
+  g_object_unref(task);
+  pushed = g_main_context_new();
+  g_main_context_push_thread_default(pushed);
+  g_printerr("PROBE: [cross-ctx] pushed a NEW context AFTER task creation; iterating it\n");
+#else
   pushed = g_main_context_new();
   g_main_context_push_thread_default(pushed);
   GMainContext *td = g_main_context_get_thread_default();
@@ -34,6 +45,7 @@ int main(void) {
   g_printerr("PROBE: g_task_run_in_thread (dispatch worker)\n");
   g_task_run_in_thread(task, task_func);
   g_object_unref(task);
+#endif
 
   g_printerr("PROBE: iterating the pushed context, waiting for completion...\n");
   int n = 0;
