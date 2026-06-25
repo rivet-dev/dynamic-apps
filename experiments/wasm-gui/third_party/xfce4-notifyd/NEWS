@@ -1,0 +1,762 @@
+0.9.6 (2024-08-14)
+=====
+- Use shared_module() for panel plugin meson build
+- Fix menu being destroyed before item activation handlers running
+- Translation Updates:
+  Albanian, Dutch, German, Lithuanian, Polish, Portuguese
+
+0.9.5 (2024-08-13)
+=====
+- Add an option to set the minimum width of notification windows
+- Fix include issue with meson build
+- Only emblem the panel plugin icon when theme lacks the 'new' variant
+- Destroy and recreate the panel menu every time it's popped up
+- Add meson build files
+- Fix uninitialized field warning
+- Move NOTIFICATIONS_SPEC_VERSION out of the build system
+- Remove redundant positioning code from Wayland path
+- Use different layer-shell anchors on Wayland
+- build: clang: Silence -Wcast-align
+- common: Explicitly depend on gio-unix-2.0
+- Fix positioning on Wayland in multi-monitor setups
+- Set output on layer-shell surface on Wayland
+- Fix active-monitor notification positioning on Wayland
+- Translation Updates:
+  Asturian, Czech, Greek, Kazakh, Swedish
+
+0.9.4 (2024-02-09)
+=====
+- Clarify why the symbolic icons don't go in symbolic/status
+- Fix icons directory names
+- Fall back to monitor 0 if no primary monitor set
+- Add a fallback for drawing the unread notification emblem
+- Remove redundant icon embleming code
+- Fix opacity on notification hover
+- Translation Updates:
+  Greek, Hungarian, Italian, Lithuanian, Occitan (post 1500)
+
+0.9.3 (2023-10-21)
+=====
+- Make the DELETE with LIMIT/OFFSET query work
+- Make the text in the 'Clear log' dialog less crowded
+- Set a transient parent on the 'Clear log' dialog if possible
+- 'Clear log' dialog's initial focus should be on the 'Cancel' button
+- Drop required xdt-autogen version to 4.18.1
+- Simplify markup sanitizing code a little
+- Re-escape text in GMarkupParser text handler
+- Sanitize instead of validating body text markup
+- Translation Updates:
+  Catalan, Portuguese (Brazil)
+
+0.9.2 (2023-09-24)
+=====
+- (Hopefully) actually fix settings migration code
+- (Hopefully) fix enum setting migration code
+
+
+0.9.1 (2023-09-19)
+=====
+- Make the XDG autostart file attempt a systemd start first
+- Only include the SystemdService= line if systemd support is enabled
+- Clean up some conditionals in configure.ac
+- Go back to installing the XDG autostart file by default
+- Allow installing systemd service file even if systemd is not installed
+
+
+0.9.0 (2023-09-18)
+=====
+- Add missing sanity check
+- I18n: Update po/LINGUAS list
+- I18n: Update po/LINGUAS list
+- I18n: Update po/LINGUAS list
+- wayland: put windows on overlay layer, not top
+- Set window theme before placing window
+- Set initial window position before realizing windows
+- Avoid storing NULL app IDs in the app ID count hashtable
+- Simplify dbus/systemd service dir logic in configure.ac
+- Fix typos in README
+- Instal D-Bus and systemd files under $prefix by default
+- Fix distcheck when run as non-root
+- Use pkg-config to find default systemd user unit directory
+- Change default systemd user path from /lib/... to /usr/lib/...
+- Change options for installing startup files
+- Add positioning options top-center and bottom-center
+- Simplify notification placement code
+- Stop using GtkCornerType; migrate setting to enum nick
+- Move log level settings from int to enum nick string
+- Move datetime format setting from int to enum nick string
+- Have a single entry point for setting migrations
+- Fix incorrect enum value for apps log level
+- Use registered enum types for config->enum mapping
+- Move enums to common, use glib-mkenums
+- Use new XDT feature macros
+- Don't log duplicate entries when updating an existing notification
+- Clean up logic in notify_notify()
+- Correctly update critical notifications while in DnD mode
+- Fix incorrect casts in GTree foreach functions
+- Remove expire/fade timeout source removal hacks
+- Missed a spot to reset fade/slide
+- Allow slideout when no fadeout
+- Only start fade timeout if no existing handle
+- Only start expiration timeout if no existing handle
+- Ensure timeout sources are removed in _window_dispose()
+- Move log dbus signal emissions to XfceNotifyDaemonLog
+- Remove expire and fade sources before emitting closed signal
+- Emit NotificationClosed when not showing notification
+- Consolidate the window movement code
+- Add option to show notifications on all monitors
+- Migrate the primary-monitor setting to a string-based enum
+- Translation Updates:
+  Albanian, Armenian (Armenia), Basque, Belarusian, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, Georgian, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Thai, Turkish, Ukrainian
+
+0.8.2 (2023-02-27)
+=====
+- Remove WM_TAKE_FOCUS from WM_PROTOCOLS for notification windows
+- Add pref to change what fields are shown in notifications
+- Fix a use-after-free with a notification's app ID
+- Fix plural forms missing from translatable strings
+- Fix weird formatting mistake in configure.ac
+- Remove support for xfce4-panel 4.12.
+- Reduce gettext requirement to 0.20.
+- Simplify notification placement code
+- Add assertion to ensure no window with new ID exists in the tree
+- Fix possible index out of bounds issue
+- Don't compare uints like char pointers
+- Support default actions
+- Add option to allow gauge notifications to ignore DnD
+- Don't move notifications on mouse-over
+- If urgency updated, start/stop expiration
+- Close all non-urgent notifications when DnD is activated
+- Add a missing $(AM_V_GEN)
+- Remove intltool in favor of plain gettext
+- Use pkg-config to find gdbus-codegen
+- Don't hide glib-genmarshal behind MAINTAINER_MODE
+- Use glib-compile-resources instead of xdt-csource
+- Don't require xdt-csource for dist tarball builds
+- Translation Updates:
+  Albanian, Armenian (Armenia), Basque, Belarusian, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), Estonian, Finnish, French,
+  Galician, Georgian, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish, Thai,
+  Turkish, Ukrainian
+
+0.8.1 (2023-02-16)
+=====
+- Set 1.5s timeouts for the log dbus proxy
+- Move log dbus server to its own object/file
+- Wrap queue item struct creation with a function
+- Improve old log migration error reporting
+- Delete old log file if it was empty
+- Clean up old log action parsing loop
+- Print a message if log db is busy or locked
+- Plug memleak when not sending log changed signal
+- Use GStrvBuilder instead of constructing one manually
+- Handle empty strings from DBus
+- Limit notification body to 2 lines in plugin menu
+- Remove old legacy support options from configure
+- Ensure gdbus-codegen doesn't generate too-new code
+- Clean up generate code and deprecate Quit method
+- Make all notification log access go through dbus
+- Drop old gtk 3.0 themes (3.20 themes are always used)
+- Clean up build system
+- Add hidden setting to restore override-redirect behavior
+- Remove ChangeLog make target
+- Markdownify and update the readme
+- Disconnect from GtkIconTheme::changed when plugin destroyed
+- Load main panel icon with _load_symbolic() variant
+- Restore log viewer's scrolled window shadow-type
+- Update icon when icon-theme changes
+- Fix incorrect signal handler connections in settings dialog
+- Translation Updates:
+  Albanian, Bulgarian, Chinese (Taiwan), Dutch, French, German,
+  Japanese, Lithuanian, Polish, Portuguese, Portuguese (Brazil),
+  Serbian, Spanish
+
+0.8.0 (2023-02-10)
+=====
+- Notification windows don't need to be override-redirect
+- Reposition notifications when workarea changes
+- Add setting to allow ignoring app-specified expire timeout
+- Add setting to never expire notifications
+- Update log viewer in settings when log changes on disk
+- Fix one more unnecessary full count of unread messages
+- Update log entry icons when marking all read
+- Remove unused var
+- Use new unread emblem for icons in log
+- Stop checking if there are unread notifications as often
+- Improve the panel icon when there are unread notifications
+- Make the log max size a little friendlier
+- Remove warning about high log size limit
+- Add ability to mark individual log entries read
+- Add emblem to icon of unread messages in log
+- Make migrating the old log file more robust
+- Remove bool returns from the log write functions
+- Improve unread handling
+- Make max-log-size option work again
+- Add missing finalize for 'delete all' sqlite statement
+- Implement progressive loading for log viewer
+- Move log viewer to its own widget/file
+- Add options for what to do when opening the plugin menu
+- Add option to only show unread notifications in plugin menu
+- Reduce some error-checking boilerplate
+- Glade-ify the plugin settings dialog
+- Queue writes to sqlite database
+- settings: don't bail if libnotify init fails
+- Fix deprecated unitless font-size in ZOMG-PONIES! theme
+- Rearrange settings dialog
+- Add ability to delete individual log entries
+- Update my copyright & email
+- Add timestamp formatting options
+- Clean up extraneous things in settings glade file
+- Add "Mark All Read" button to settings and panel plugin
+- Move notification log to sqlite
+- Set default debug based on git/not-git
+- Remove configure.ac from gitignore
+- Eliminate need for pre-processed configure.ac.in
+- Translation Updates:
+  Albanian, Armenian (Armenia), Basque, Belarusian, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), Estonian, Finnish, French,
+  Galician, Georgian, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian
+
+0.7.3 (2023-02-01)
+=====
+- Add timestamp to log entries in settings and plugin menu
+- Update description text of apps panel in settings
+- Change text of option to "Allow urgent notifications"
+- Add panel plugin setting for log icon size in menu
+- Make it easier to add things to the panel plugin settings
+- Fix possible segfault when counting apps frequency in log
+- Clean and DRY up the log population code
+- Fix panel plugin menu icon blurriness when UI scale > 1
+- Update XfceNotifyDaemon header comment
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), Estonian, Finnish,
+  French, Galician, Georgian, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Kazakh,
+  Korean, Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese,
+  Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian
+
+0.7.2 (2023-01-22)
+=====
+- Fix sound proplist memleak when notification isn't shown
+- Improve sorting in known apps list of settings
+- Add extra margin in the known app settings
+- Fix word casing in known app settings
+- Add ability to exclude specific applications from log
+- Better, non-quadratic algo for xfce_notify_count_apps_in_log()
+- Plug memleak in notify_get_from_desktop_file()
+- Redesign the known apps panel a bit
+- Remove a few more GTK_CHECK_VERSION call sites
+- Avoid use-after-free when deleting known app
+- Improve algo for finding desktop file for known app name
+- Improve icon loading for known apps list
+- Don't set invalid icon name in known apps list
+- Translation Updates:
+  Albanian, Bulgarian, Dutch, Italian, Japanese, Lithuanian, Norwegian
+  Bokmål, Polish, Portuguese, Spanish
+
+0.7.1 (2023-01-21)
+=====
+- Fix incorrect usage of XDT_CHECK_OPTIONAL_PACKAGE
+
+
+0.7.0 (2023-01-21)
+=====
+- Properly validate markup
+- Update glade file to remove use of deprecated properties
+- Support the 'action-icons' hint
+- Add support for notification sounds
+- Clean up notification ID storage
+- Revert "Remove body-hyperlinks from GetCapabilities"
+- Remove body-hyperlinks from GetCapabilities
+- Return replaces_id if provided
+- Remove xfconf prop name define duplication
+- Add ability to disallow certain apps to send critical notifications
+- Add a context menu that allows individual known application deletion
+- Fix a slide-out loop when the mouse pointer is in the way
+- Add option to hide panel button when no unread notifications
+- Remove more pre-GTK-3.22 guards
+- Bump GTK minimum to 2.22 and remove/ifdef X11-isms
+- Support Wayland
+- Don't set a nonsensical icon name
+- Clean up xfce_notify_window_set_icon_pixbuf()
+- xfce_notify_window_set_icon_pixbuf() shouldn't take ownership
+- Move urgency hint fetch inside check for correct type
+- DRY up the configuration handling
+- Add pref to show summary & body with gauge values
+- Update glade file to latest version
+- settings: Disable single click to mute apps (Fixes #5)
+- Do not treat zero expiration time as urgent
+- Add compile_flags.txt generation
+- Fix incorrect icon name for preview notification
+- Fix blurry icons when UI scale factor > 1
+- build: Let xdt-depends.m4 macros set GLib macros
+- Translation Updates:
+  Albanian, Bulgarian, Chinese (China), Dutch, French, German, Greek,
+  Hebrew, Italian, Japanese, Korean, Lithuanian, Polish, Portuguese,
+  Portuguese (Brazil), Spanish, Turkish
+
+0.6.5 (2022-12-16)
+=====
+- Fix segfault crash.
+- Translation Updates:
+  Czech, Greek, Hebrew, Kazakh, Occitan (post 1500), Portuguese
+  (Brazil)
+
+0.6.4
+======
+- settings: Improve app icon and name matching
+- settings: Sort known apps by notification count
+- settings: Show 'Unspecified app' instead of empty line
+- daemon: Improve application icon matching
+- Correctly reset position during slideout (Fixes #42)
+- panel-plugin: Remove duplicate function call (Fixes #40)
+- panel-plugin: Fix file monitor (Fixes #40)
+- Properly free the GKeyFile
+- tests: Add logging test
+- Fix compiler warnings
+- Fix tooltip grammar
+- build: Fix intltool lock file problem during make distcheck
+- Update gitignore
+- Update COPYING (#61)
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Czech, Danish, Dutch, Eastern Armenian, Estonian,
+  French, Galician, German, Greek, Hebrew, Indonesian, Italian,
+  Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål,
+  Polish, Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian
+
+0.6.3
+======
+- Fix compilation warnings
+- autoconf: Some updates
+- Update `.gitignore`
+- Remove GSourceFunc casts
+- Fix missing-prototypes
+- Bump required GLib version to 2.56
+- Implement ISO 8601 time format to avoid post-2.56 GLib functions
+- settings: Drop subtitle
+- Fix multiple memory issues (!11)
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), Estonian, Finnish,
+  French, Galician, Georgian, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Kazakh,
+  Korean, Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese,
+  Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian
+
+0.6.2
+======
+- Switch to new app icon and rDNS icon name
+- Default to session autostart instead of DBus (Fixes #27)
+- Add configurable log size limit (default: 100)
+- Make buttons on non-1st notifications work
+- panel-plugin: Add option to hide "Clear log" dialog
+- log: properly handle iso8601 timestamps
+- log: Use SHA-1 data hash in icon cache paths (bug #16825)
+- log: Improve performance of adding notifications to log file (bug #14865)
+- log: Refactor log keyfile element insertion into a separate function
+- Add basic GitLab pipeline
+- Fix GTimeVal deprecation (Bug #16805)
+- Remove unused expire_timeout variable
+- Fix memory leaks
+- settings: Switch to symbolic close icon
+- Translation Updates:
+  Bulgarian, Catalan, Chinese (China), Danish, Dutch, Eastern Armenian,
+  Estonian, Finnish, French, Galician, German, Hebrew, Indonesian,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Norwegian Bokmål,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Spanish, Turkish
+
+0.6.1
+======
+- Fix hover effect without compositing (Bug #16586)
+- Move from exo-csource to xdt-csource (Bug #16717)
+- Translation Updates:
+  Arabic, Armenian (Armenia), Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Czech, Danish, Dutch, English (Australia), Finnish,
+  French, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian,
+  Interlingue, Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian
+  Bokmål, Polish, Portuguese, Russian, Serbian, Spanish, Swedish, Thai,
+  Turkish, Ukrainian
+
+0.6.0
+======
+- Simplify drawing the notification bubble
+- Switch to new fallback style class "keycap"
+- Ensure normal font size with Adwaita and keycap class
+- Fix logging simultaneous notifications (Bug #15167)
+- Disable rounded corners w/o compositing (Bug #16586)
+- panel-plugin: Fix configure dialog
+- panel-plugin: Use new XfceTitledDialog api
+- panel-plugin: Toggle 'Do not disturb' with middle mouse click (Bug 
+  #16132)
+- Allow compilation with panel 4.15
+- panel-plugin: Remove deprecated calls
+- Replace GtkStock buttons
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Belarusian, Chinese (China),
+  Chinese (Taiwan), Croatian, Danish, Finnish, Galician, Georgian,
+  German, Greek, Icelandic, Indonesian, Italian, Norwegian Bokmål,
+  Portuguese, Portuguese (Brazil), Serbian, Slovak, Slovenian, Spanish,
+  Turkish, Ukrainian
+
+-- Switch to standard Xfce News format
+
+Version 0.4.4 (22 April 2019):
+  This is a bugfix release.
+
+  Bugs fixed:
+    * Drop reference to dbus-binding-tool (Bug #14835)
+    * Make more strings translatable (Bug #14890)
+    * panel plugin: Fix menu position
+    * panel-plugin: Fix first log entry not being shown (Bug #14920)
+    * Fix Chrome notification icons (Bug #15215)
+    * Fix output of xfce4-notifyd-config --help (Bug #14922)
+    * Get rid of gdk_error_trap* deprecations
+    * Add fallback for label alignment and older Gtk+3
+    * Fix icon-size in the log toolbar
+
+  Updated translations: Albanian, Belarusian, Bulgarian, Catalan, Croatian,
+  Czech, Danish, Dutch (Flemish), English (Australia), Finnish, French, Galician,
+  German, Hebrew, Hungarian, Icelandic, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Polish, Portuguese, Portuguese (Brazilian), Russian,
+  Spanish, Swedish, Thai, Turkish
+
+
+Version 0.4.3 (27 October 2018):
+  This is (mostly) a translation update release.
+
+  Bugs fixed:
+    * Set the correct default value for fadeout (LP #1763674)
+
+  Updated translations: Arabic, Belarusian, Croatian, Czech, Dutch (Flemish),
+  English (Australia), Finnish, French, Galician, German, Greek, Hebrew, Hungarian,
+  Indonesian, Italian, Japanese, Korean, Norwegian Bokmål, Polish, Portuguese,
+  Portuguese (Brazilian), Russian, Serbian, Swedish, Thai, Ukrainian
+
+
+Version 0.4.2 (01 March 2018):
+  This is a bugfix release.
+
+  Bugs fixed:
+    * Fix support for hyperlinks in notifications (Bug #14073)
+    * Fix crash because of double-free (Bug #14060)
+    * Improve wrapping and ellipsizing of notification bubble (Bug #12674)
+    * Ensure xfce4-notifyd.desktop.in goes into the tarball (Bug #13989)
+    * Suppress warnings about unused and uninitialized variables (Bug #14095)
+    * Fix crash when there are no known apps
+    * panel-plugin: Fix showing placeholder when there are no logs from today
+
+  Updated translations: Albanian, Bulgarian, Catalan, Chinese (China), Croatian,
+  Czech, Dutch (Flemish), Finnish, French, Galician, German, Hebrew, Kazakh,
+  Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese (Brazilian), Russian,
+  Serbian, Slovak, Spanish, Swedish, Turkish, Ukrainian
+
+
+Version 0.4.1 (09 December 2017):
+  This is a feature release.
+
+  Features:
+    * Panel plugin features
+      * Add hidden option log-icon-size
+      * Add button to clear the log (Bug #13955)
+      * Revamped layout (DND button on top for quick access)
+      * Show placeholder text in case of empty logs
+    * Improved notification window layout
+    * Add configure option to use autostart instead of dbus (Bug #13989)
+
+  Bugs fixed:
+    * Remove deprecated functions (Gtk+ 3.22)
+    * Fix warnings reported by Clang (Bug #13931)
+    * Treat icon_data only as pen-ultimate fallback option (Bug #13950)
+    * Fix warning about gdk_window_get_origin (Bug #13935)
+    * Ensure body and summary of notifications are correctly ellipsized (Bug #12674)
+    * Ensure the panel plugin icon resizes with Xfce 4.12
+
+  Updated translations: Bulgarian, Catalan, Chinese (Taiwan), Croatian,
+  Czech, Danish, Dutch (Flemish), French, German, Greek, Hebrew, Italian,
+  Japanese, Kazakh, Korean, Lithuanian, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazilian), Russian, Slovak, Spanish, Swedish,
+  Thai, Turkish, Ukrainian
+
+
+Version 0.4.0 (07 October 2017):
+  This is a feature release.
+
+  Features:
+    * Panel plugin that shows most recent notifications
+      and allows for quick access to DND mode
+    * Persistent daemon (Bug #12754)
+    * New (optional) animation: slide-out
+    * Support for all image types in the log
+    * Better application icon matching in the config dialog
+    * New logo (also in high resolution)
+
+  Bugs fixed:
+    * Bump notification spec version to 1.2 (Bug #13578)
+    * Fix empty body when markup is invalid (Bug #10027)
+    * Show warning in settings dialog if notifyd is not running (Bug #13417)
+    * log-viewer: Fix escaping of characters and add markup support
+    * Handle desktop-id as fallback in the log
+
+  Updated translations: Arabic, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch (Flemish), Finnish,
+  French, German, Greek, Hebrew, Indonesian, Italian, Japanese, Kazakh,
+  Korean, Lithuanian, Malay, Norwegian Bokmål, Polish, Portuguese,
+  Portuguese (Brazilian), Russian, Serbian, Slovak, Spanish, Swedish,
+  Thai, Turkish, Ukrainian
+
+
+Version 0.3.6 (20 March 2017):
+  This is a bugfix release. Thanks to Mattias and Igor!
+
+  Bugs fixed:
+    * Fix memory leaks in log viewer (Bug #13400)
+    * Fix a couple of memory leaks in notifyd-config (Bug #13386)
+    * Update log toolbar buttons sensitivity (Bug #13365)
+    * Fix compilation on Gtk3.14
+
+  Updated translations: Catalan, French, Greek, Hebrew, Kazakh, Lithuanian,
+  Polish, Serbian
+
+
+Version 0.3.5 (13 February 2017):
+  This is a feature release.
+
+  Features:
+    * Notification log ("persistence" according to fd.o spec)
+    * Rework settings dialog and include more options
+
+  Bugs fixed:
+    * Fix height of settings dialog when plugged
+    * Fix compilation on 3.14
+
+  Updated translations: Bulgarian, Chinese (China), Chinese (Taiwan),
+  Croatian, Czech, Danish, Dutch (Flemish), Finnish, French, German,
+  Icelandic, Italian, Korean, Lithuanian, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazilian), Russian, Serbian, Slovak, Spanish,
+  Swedish, Ukrainian
+
+
+Version 0.3.4 (09 November 2016):
+  This is a feature release.
+
+  Features:
+    * "Do not disturb" mode
+    * Notification-muting on a per application level
+
+  Bugs fixed:
+    * Add hidden option "primary-monitor" to set screen for notifications
+      (Bug #10003)
+    * Fix theming issues with Gtk 3.22
+
+  Updated translations: Bulgarian, Catalan, Chinese (China), Chinese
+  (Taiwan), Croatian, Czech, Dutch (Flemish), English (Australia), French,
+  German, Hebrew, Kazakh, Lithuanian, Malay, Polish, Portuguese, Portuguese
+  (Brazilian), Russian, Slovak, Spanish, Ukrainian
+
+
+Version 0.3.3 (02 October 2016):
+  This is a bugfix release. It also extends the tests to icons.
+
+  Bugs fixed:
+    * Fix missing Gtk+ themes path in dist_themes variable (Bug #12831)
+    * Fix theming for callback button in notifications (Bug #12841)
+    * Don't show notification buttons without text (Bug #12834)
+    * Support image-path hint of the fd.o spec (Bug #7846)
+    * Fix priorities of icon handling according to the fd.o spec
+    * Make icon-size of fallback consistent with all other notifications
+
+  Updated translations: Croatian, Lithuanian, Malay, Thai
+
+Version 0.3.2 (06 September 2016):
+  This release fixes a showstopper regression for Gtk<=3.18 users where
+  no notifications would be displayed (Bug #12823).
+
+  Features:
+    * Add support for symbolic icons
+    * Add two new themes: Bright and Retro
+    * Improvements to the existing themes
+
+  Bugs fixed:
+    * Fix client pointer with Gtk+ < 3.20 (Bug #12823)
+    * Sort the themes alphabetically in the Settings Dialog
+
+  Updated translations: Polish
+
+Version 0.3.1 (06 September 2016):
+  Bugfix release
+
+  Features:
+    * Add a help button which links to the new docs page
+
+  Bugs fixed:
+    * Fix a memory leak (Bug #12733)
+    * Add a hidden option 'do-fadeout' (Bug #11341)
+    * Correct typo in warning message.
+    * Unreference gvariants, Cleanup Gtk3.20 ifdefs, Fix uninitialized
+      pixbufs (Bug #12777)
+    * Fix including both GTK+ themes in dist (Bug #12737)
+
+  Updated translations: Chinese (China), Croatian, English (Australia),
+  Japanese, Korean, Spanish, Swedish, Ukrainian
+
+Version 0.3.0 (27 July 2016):
+  Ported to gdbus and Gtk+3 by Ali Abdallah
+  Bumped Dependencies (libxfce4ui 4.12, Gtk+3.14)
+
+  Features:
+    * Better theming capabilities
+    * Add a systemd user unit corresponding to the D-Bus session
+      service (Bug #12238)
+
+  Bugs fixed:
+    * The preview button now shows even when the dialog is plugged in
+      the xfce4-settings-manager
+    * On update reset fade as well (Bug #11858)
+
+  Updated translations: Arabic, Asturian, Bulgarian, Catalan, Chinese
+  (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch (Flemish),
+  English (Australia), Finnish, French, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean, Lithuanian,
+  Norwegian Bokmål, Polish, Portuguese, Portuguese (Brazilian), Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Turkish, Ukrainian, Uyghur
+
+Version 0.2.4 (08 May 2013):
+
+  Bugs fixed:
+    * Fix border drawing when compositing is disabled (bug #10021).
+
+  Updated translations: Bulgarian, Chinese (China), Chinese (Taiwan),
+  Flemish and Indonesian.
+
+Version 0.2.3 (21 April 2013):
+
+  libnotify is now required as a dependency to build a test suite and to
+  show improved notification previews.
+
+  Features:o
+    * Add a category to the settings dialog for Xfce4 Settings Manager.
+    * Add widget names to summary ("summary") and body ("body") widgets
+      to allow easier theming. Remove the redundant / buggy summary-bold
+      style property (bug #8431).
+      Themes will have to be updated accordingly.
+
+  Bugs fixed:
+    * Fix notifications not disappearing after clicking an action button.
+    * Handle timeout correctly when smaller than fading time (bug #8580).
+    * Avoid flickering of the notifications.
+    * Accept uri of images in icon_name parameter.
+    * Parse body with g_markup_escape_text which allows us to handle
+      span attributes misused by some clients and to parse strings with
+      "unusual" characters such as & (bug #7773, #8187).
+    * Respect border-width when drawing the notification (bug #9475).
+    * Do not kill notification daemon to apply new theme. Instead, handle
+      style updates of existing notifications.
+    * Show a button in the notification preview (bug #9982).
+    * Add an icon to the notification preview.
+
+  Updated translations: Arabic, Basque, Brazilian, Bulgarian, Castilian,
+  Chinese (China), Chinese (Taiwan), Croatian, Danish, English, Finnish,
+  Flemish, French, Greek, Hebrew, Hungarian, Italian, Japanese, Kazakh,
+  Korean, Lithuanian, Polish, Portuguese, Romanian, Russian, Serbian,
+  Swedish, Turkish, Ukrainian, Uyghur and Valencian.
+
+
+Version 0.2.2 (06 August 2011):
+
+    * New cleaner settings dialog with preview on theme change.
+    * Only initialize the close timeout when all notifications are closed
+      (bug #7467).
+    * Fix race with window becoming invalid (bug #7643).
+    * Fix typo in invalid markup escaping (bug #7773).
+    * Fix PATH_MAX beeing undefined on HURD (bug #7528).
+    * Rename dbus service file to avoid conflicts (bug #7335).
+    * Allow installation of the helpers in a custom location.
+    * Updated translations: Arabic, Basque, Brazilian, Castillan,
+      Chinese, Danish, Flemish, Galician, German, Indonesian, Italian,
+      Japanese, Romanian, Portuguese, Russian, Slovak, Spanish,
+      Swedish and Ukrainian.
+
+Version 0.2.1 (02 Feb 2011):
+
+    * Fix loading of custom icons (bug #6895).
+    * Fix crash introduced in 0.2.0 (bug #6929).
+    * Fade to transparent when screen is composited, remove the setting.
+    * Updated translations: Romanian, Turkish, Polish, Galician, Ukrainian,
+      Indonesian, English GB, German, Czech, Norwegian Bokmal and Dutch.
+
+Version 0.2.0 (27 Nov 2010):
+
+  Features:
+    * Added man page for xfce4-notifyd-config from Evgeni Golov.
+    * Support the 'reason' parameter of the NotificationChanged signal.
+      Note that if you are using libnotify 0.4.4 or older, this will
+      cause memory leaks in *applications* that use libnotify (not in
+      xfce4-notifyd).  In this case, you should compile xfce4-notifyd
+      passing the --enable-old-notification-closed-signature switch
+      to configure.
+    * Add summary-bold style property to allow themes to set the
+      summary field of the notification bold (bug 5773).
+    * Add the spec_version parameter to the GetServerInformation method.
+      This behavior can be disabled by passing the
+      --enable-old-get-server-information-signature flag to
+      configure (bug 5602).
+    * Make notifications unmovable (Jérôme Guelfucci, bug 5248).
+    * Implement support for icon-only notifications (Canonical
+      extension).
+    * Implement support for "gauge" notifications (Canonical extension).
+    * Added proper placement of notifications so they don't overlap when
+      there are multiple on the screen.  This also uses a custom workarea
+      calculation to avoid placing notifications where docked windows have
+      set struts (Jérôme Guelfucci, bug 5248).
+    * Port to libxfce4ui, drop libxfcegui4 dep (Romain Bouvier, bug 6375).
+    * Add a preview button to the preferences dialog.
+
+  Bugfixes:
+    * Use correct COPYING file (GPLv2, not GPLv3).
+    * Fix ugliness with rounded corners on windows sometimes, both with
+      compositing enabled and disabled.
+    * Check for exo-csource at configure time when needed (bug 5783).
+    * Check for dbus-binding-tool at configure time.
+
+
+Version 0.1.0 (24 Nov 2008):
+
+  Initial release.  See TODO for known issues and unfinished features.
+
+  Translations:
+    * ca: Carles Muñoz Gorriz <carlesmu@internautas.org>
+    * da: Per Kongstad <p_kongstad@op.pl>
+    * de: Christian Dywan <christian@twotoasts.de>
+    * el: Stavros Giannouris <stavrosg@hellug.gr>
+    * es: Abel Martín <abel.martin.ruiz@gmail.com>
+    * fi: Jari Rahkonen <jari.rahkonen@pp1.inet.fi>
+    * fr: Maximilian Schleiss <maximilian@xfce.org>
+    * id: Andhika Padmawan <andhika.padmawan@gmail.com>
+    * nb: Terje Uriansrud <terje@uriansrud.net>
+    * nl: Vincent Tunru <projects@vinnl.nl>
+    * pt_PT: Nuno Miguel <nunis@netcabo.pt>
+    * sq: Besnik Bleta <besnik@programeshqip.org>
+    * tr: Gökmen Görgen <gkmngrgn@gmail.com>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<node name="/org/xfce/Notifyd">
+    <interface name="org.xfce.Notifyd.Log">
+        <annotation name="org.gtk.GDBus.C.Name" value="NotifyLogGBus"/>
+
+        <!-- Fetches a single entry from the log. -->
+        <method name="Get">
+            <arg direction="in" name="id" type="s"/>
+            <!-- A single log entry.  Struct members are:
+                id
+                unix timestamp (microseconds)
+                timezone identifier
+                app id
+                app name
+                icon id
+                summary
+                body
+                array of actions (id, label)
+                expire timeout
+                is_read
+            -->
+            <arg direction="out" name="entry" type="(sxssssssa(ss)ib)"/>
+        </method>
+
+        <!-- Lists entries from the log. -->
+        <method name="List">
+            <!-- The id of the entry _before_ the first entry to be returned. -->
+            <arg direction="in" name="start_after_id" type="s"/>
+            <arg direction="in" name="count" type="u"/>
+            <!-- If TRUE, only unread entries will be returned. -->
+            <arg direction="in" name="only_unread" type="b"/>
+            <!-- See the 'Get' method for a description of this field. -->
+            <arg direction="out" name="entries" type="a(sxssssssa(ss)ib)"/>
+        </method>
+
+        <!-- Returns whether or not there are any unread entries. -->
+        <method name="HasUnread">
+            <arg direction="out" name="has_unread" type="b"/>
+        </method>
+
+        <!-- Returns a dict of the frequency of each app ID in the log. -->
+        <method name="GetAppIdCounts">
+            <!-- The dict key is the app ID, and the value is the number of
+                 log entries for that app ID. -->
+            <arg direction="out" name="app_id_counts" type="a{su}"/>
+        </method>
+
+        <!-- Marks one or more log entries as read. -->
+        <method name="MarkRead">
+            <arg direction="in" name="ids" type="as"/>
+        </method>
+
+        <!-- Marks all log entries as read. -->
+        <method name="MarkAllRead"/>
+
+        <!-- Deletes one or more log entries. -->
+        <method name="Delete">
+            <arg direction="in" name="ids" type="as"/>
+        </method>
+
+        <!-- Delets all but the most recent 'entries_to_keep' log entries. -->
+        <method name="Truncate">
+            <arg direction="in" name="entries_to_keep" type="u"/>
+        </method>
+
+        <!-- Deletes all log entries. -->
+        <method name="Clear"/>
+
+        <!-- Emitted when a new entries is added to the log.  Assuming signal
+             emissions are processed in order, the entry specified by the id
+             is the newest log entry. -->
+        <signal name="RowAdded">
+            <arg direction="out" name="id" type="s"/>
+        </signal>
+
+        <!-- Emitted when a log entry has changed (usually when it has been
+             marked read). -->
+        <signal name="RowChanged">
+            <!-- ID of the changed row.  or empty string to mean that all
+                 entries may have changed. -->
+            <arg direction="out" name="id" type="s"/>
+        </signal>
+
+        <!-- Emitted when a log entriy is deleted. -->
+        <signal name="RowDeleted">
+            <arg direction="out" name="id" type="s"/>
+        </signal>
+
+        <!-- Emitted when the older log entries have been deleted. -->
+        <signal name="Truncated">
+            <!-- The number of (most recent) log entries kept. -->
+            <arg direction="out" name="n_entries_kept" type="u"/>
+        </signal>
+
+        <!-- Emitted when all log entries have been deleted. -->
+        <signal name="Cleared"/>
+    </interface>
+</node>

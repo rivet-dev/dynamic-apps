@@ -1,0 +1,20 @@
+option('tests',
+  type: 'boolean',
+  value: true,
+  description: 'Build tests')
+option('introspection',
+  type: 'feature',
+  value: 'enabled',
+  description: 'Enable GObject introspection')
+option('man',
+  type: 'boolean',
+  value: true,
+  description: 'Enable generating the manual page (depends on xsltproc)')
+option('gtk_doc',
+  type: 'boolean',
+  value: true,
+  description: 'Enable generating the API reference (depends on gi-docgen)')
+option('docbook_docs',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build DocBook documentation (requires xmlto)')

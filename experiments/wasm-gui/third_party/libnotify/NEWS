@@ -1,0 +1,305 @@
+New in 0.8.3
+============
+
+This release contains a critical stability/minor security update which affects
+Electron applications that utilize Portal notifications (eg, through Flatpak).
+It is highly recommended that all users of libnotify 0.8.x update to this
+release.
+
+Please note that this fix has increased the minimum required version of glib to
+2.62.0.
+
+* notification: Use g_signal_connect_object (#34) [Maximiliano]
+* notification: Move disconnect to dispose [Maximiliano]
+
+Contributors:
+  Maximiliano Sandoval R
+
+New in 0.8.2
+============
+
+* Set new summary for library [Maximiliano]
+* docs: port to gi-docgen [Maximiliano]
+* docs: Fix URL to Desktop Notification Spec [Andre]
+* meson: replace deprecated meson.source_root() calls [Kai]
+* meson: bump minimum meson version to 0.58 [centaurii]
+* Introspection docs fixes [Maximiliano, Logan]
+
+Contributors:
+  Maximiliano Sandoval R, Andre Klapper, Kai Smith, centaurii, Logan Rathbone
+
+New in 0.8.1
+============
+
+* Keep version of bindings at 0.7 (#27) [Marco]
+
+Contributors:
+  Marco Trevisan
+
+New in 0.8.0
+============
+
+* Use Desktop Portal Notification when running confined (snap and flatpak)
+  Now the library acts like a wrapper in such scenario, with some limited
+  capabilities, but this will enforce security and user control over the
+  allowed notifications. [Marco]
+* notify-send: Handles SIGINT gracefully, closing waiting notification [Marco]
+* Use NotifyClosedReason enum as closed reason return value [Marco]
+* Bump dependency on GLib 2.38 [Marco]
+* Various introspection docs improvements and fixes [Marco]
+
+Contributors:
+  Marco Trevisan
+
+New in 0.7.12
+=============
+
+* docs/notify-send: Add --transient option to manpage [Marco]
+* notify-send: Move server capabilities check to a separate function [Marco]
+* notify-send: Add debug message about server not supporting persistence
+  [Marco]
+* notification: Include sender-pid hint by default if not provided [Marco]
+* Delete unused notifynotification.xml [Patrick; !25]
+* notification: Bookend calling NotifyActionCallback with temporary ref
+  [Logan; #25, !26]
+
+Contributors:
+  Marco Trevisan, Patrick Griffis, Logan Rathbone
+
+New in 0.7.11
+=============
+* Fix potential build errors with old glib version we require
+* notify-send: Add support for boolean hints
+* notify-send: Support passing any hint value, by parsing variant strings
+* notify-send: Add explicit option to create transient notifications
+
+Contributors:
+  Marco Trevisan
+
+New in 0.7.10
+=============
+* notify-send: Support commas in icon filenames [Thorsten; !15]
+* notify-send: Give failing exit code if showing notification fails [Ray, !13]
+* notify-send: Support for replacing an existing notification [Paul; !17]
+* notify-send: Add option to wait until notification has been closed [Ben; !18]
+* notify-send: Add support for notification actions and responses [Ben; !18]
+* notification: Send the application ID when possible [Corentin; !1]
+* notification: Use g_memdup2 when available [Marco; !22]
+* notification: Improve SNAP detection and confined desktop ID [Marco; !23]
+* notification: Add support for getting actions activation token [Marco; !24]
+* notify: Use application ID if any to set the fallback app name [Marco; !18]
+* Build fixes and improvements [Marco; !22]
+* Docs updates [Boris, David; !14, !20]
+
+Contributors:
+  Marco Trevisan, Boris Shtrasman, Matthias Sweertvaegher, Thorsten Wißmann,
+  Ray Strode, Maximiliano Sandoval R, David King, Corentin Noël, Paul Collins,
+  Matthias Sweertvaegher, Ben Blain
+
+New in 0.7.9
+============
+* Fixed linking in darwin [Iain, Marco; !5]
+* Added man page for notify-send [Jan; !6]
+* Dropped autotools [Jan; !11]
+
+Contributors:
+  Iain Lane, Jan Tojnar, Marco Trevisan
+
+New in 0.7.8
+============
+* Support meson build system [Marco; !3]
+* notify-send: Support full URLs as hint values [Marco; !4]
+* Mic. bug fixes [Ting-Wei, Florian; #760438, !8]
+
+Contributors:
+  Emmanuele Bassi, Abderrahim Kitouni, Ting-Wei Lan, Iain Lane, Florian Müllner,
+  Jan Tojnar, Marco Trevisan (Treviño), Marco Trevisan
+
+New in 0.7.7
+============
+
+- Introspection fixes (Evan Nemerson)
+- Allow to disable tests at build time (Quentin Glidic)
+
+New in 0.7.6
+============
+
+- Fix annotation for add_action (Giovanni Campagna)
+- Clarify documentation for set-timeout (Matthias Clasen)
+
+New in 0.7.5
+============
+
+- Build fixes (Colin Walters)
+- Documentation improvements (Javier Jardón)
+- Spec clarifications (Matthias Clasen)
+
+New in 0.7.4
+============
+
+- Improve documentation of supported image data formats (Colin Walters)
+- Honor aclocal flags (Craig Keogh)
+- Update autotools configuration (Javier Jardón)
+- Test notification removal (William Jon McCann)
+
+NEW in 0.7.3:
+==============
+
+- Add a way to change the application name for
+  individual notifications (Richard Hughes)
+
+NEW in 0.7.2:
+==============
+
+- Add a way to change the application name (William Jon McCann)
+- Mark image_path as deprecated (William Jon McCann)
+- Allow properties to be set in any order (Matthias Clasen)
+
+NEW in 0.7.1:
+==============
+
+ - Don't export private symbols (Emilio Pozuelo Monfort)
+ - Introspection support and annotations (Jonathan Matthew, Martin Pitt)
+ - Documentation cleanups and fixes (Javier Jardón)
+ - Ref the pixbuf passed to set_image_from_pixbuf (Guillaume Desmottes)
+ - Add tests for new capabilities and hints (William Jon McCann)
+ - Update spec to mention "persistence" and "action-icons" server
+   capability and "action-icons", "transient" and "resident" hints.
+   Bump spec version to 1.2  (William Jon McCann)
+
+NEW in 0.7.0:
+==============
+
+ - Remove the ability to attach notifications to widgets or positions
+ - Add a test for the persistence server capability
+ - Port to use GBus instead of dbus-glib (Christian Persch)
+ - Add a macro to get library version number
+ - Remove GTK+ dependency from library
+ - Port tests to GTK+ 3
+
+NEW in 0.6.0:
+==============
+
+The 0.5.1 release included changes that should not have been made on a
+stable branch.  It should have been a 0.6 series release.  So here it is.
+
+- Fixed #623096 Fix notify_get_server_info results
+
+
+NEW in 0.5.1:
+==============
+- Remove explicit GTK+ 2.x linking, so that libnotify can link against
+  both GTK+ 2.x or GTK+ 3.x
+
+NEW in 0.5.0:
+==============
+- Support for version 1.1 of notification spec (Aurélien Gâteau, A. Walton)
+- Fixed #608089, Applications aborted at finalizing when the dbus session is being closed. (William Jon McCann)
+- Fixed #608082, Arabic text is misplaced in bubbles (RTL) (William Jon McCann)
+- Fixed #608086, wrong return value of notify_init() (William Jon McCann)
+- Fixed #612720, Does not compile with -DGSEAL_ENABLE (William Jon McCann)
+- Fixed #613999, Use g_strcompress in notify-send to parse \n from command line (William Jon McCann)
+- Fixed #610880, lazily initialize the daemon (Martin Pitt)
+
+
+version 0.4.5 (20-November-2008):
+	* Added GObject property accessors for notification IDs. Patch by Lucas
+	  Rocha.
+	* Added support for sending the closed reason in the "closed" signal
+	  handler. (Ticket #139)
+	* Added support for sending the status icon XID to the notification
+	  daemon. This will allow better position tracking for context
+	  notifications. Patch by Colin Walters.
+	* Fixed a breakage where we were including gtkversion.h directly.
+
+version 0.4.4 (27-February-2007):
+	* Fixed a bug where a notification's ID could be reset when a different
+	  notification was closed. Patch by jylefort. (Bug #94)
+	* Fixed a crash when the D-BUS proxy was not being freed on notify_uninit,
+	  which was problematic when used in a loadable module. (Bug #92)
+	* Fixed a crash when a signal handler for the notification's closed signal
+	  caused the notification to be destroyed. (Bug #116)
+	* Fixed memory leaks when creating notifications. (Bug #112)
+	* Fixed potential memory leaks where the function passed to
+	  notify_notification_add_action to free the user data was not being
+	  called. (Bug #119)
+
+version 0.4.3 (8-October-2006):
+	* Fixed the raw image data support to send the correct array type.
+	  Patch by mderezynski. (Bug #68)
+	* Fixed configure.ac to check for the required version of glib (2.6).
+	  Patch by compnerd. (Bug #69)
+	* Fixed invalid notification IDs when notify_notification_show() is called
+	  on a notification that had already been closed or had expired. Now,
+	  the notification will receive a new ID. Patch by Ed Catmur. (Bug #78)
+	* Fixed the property change notification used when setting a GtkStatusIocn.
+	  It was emitting "attach-icon" but should have been emitted "status-icon".
+	  (Bug #81)
+	* Fixed an invalid assertion in notify_notification_new_with_status_icon.
+	  Patch by lucasr. (Bug #85)
+	* notify_uninit is no longer called automatically at exit. Applications
+	  and libraries should do this manually. Patch by berndth. (Bug #86)
+
+version 0.4.2 (17-June-2006):
+	* Add G_BEGIN_DECLS and G_END_DECLS to notify.h, so that libnotify can
+	  be used in C++ applications properly.
+
+version 0.4.1 (17-June-2006):
+	* Added support for attaching to a GtkStatusIcon. Patch by chpe. (Bug #60)
+	* Added GObject properties to NotifyNotification. Patch by chpe. (Bug #60)
+	* Added API documentation, accessible through devhelp.
+	* Fixed up libnotify.pc to support dependencies correctly. (Bug #58)
+	* Fixed notify_uninit() to properly set _initted to FALSE after being
+	  called. (Bug #56)
+
+version 0.4.0 (26-April-2006):
+	* Patch by M.S. to switch notify-send to use GOption instead of popt,
+	  to add -v, --version, -h, and --hint options, and to rename
+	  -T, --type to -c, --category. This also fixes assertions when calling
+	  notify-send "". (Bug #41)
+	* Fixed the short flag for --type to be -T in notify-send. (Bug #18)
+	* Fixed the help in notify-send to indicate that --expire-timeout
+	  requires milliseconds, not seconds. (Bug #28)
+	* Fixed some C99 usage. Patch by jensgr. (Bug #44)
+	* Fixed notify-send on PPC.
+
+version 0.3.2 (23-January-2006):
+	* Added back notify_get_server_info() and notify_get_server_caps().
+	* Fixed to work with D-BUS 0.36 and higher. However, it's best to note
+	  that due to bugs in versions of the D-BUS GLib bindings before 0.60,
+	  raw image data cannot be sent in notifications. A warning will be
+	  outputted to the console.
+	* Added assertions to all of the API functions so that invalid data passed
+	  won't crash the calling program.
+	* Added automatic notification removal for non-expiring notifications and
+	  notifications with actions when the calling application closes.
+	* Fixed issues where the header files couldn't always be included in
+	  some programs.
+	* Fixed a lot of compiler errors and warnings.
+	* Fixed C99 usage.
+	* Added the ability to set user data on action callbacks on a per-action
+	  basis.
+	* Fixed notify-send to work without crashing.
+	* Fixed the library to send messages appropriate to the D-BUS
+	  specification.
+	* Cleaned up the API a lot.
+	* Renamed NOTIFY_TIMEOUT_* to NOTIFY_EXPIRES_*.
+	* Removed notify_notification_show_and_forget().
+	* Internal changes to remove the number of DBusGProxy connections, and
+	  make sure it's initialized before using any D-BUS GValue-related code.
+	  This fixes raw image sending.
+
+version 0.3.0:
+	* First release of the new GObject based API and simpler wire protocol
+
+version 0.2.3:
+	* Fix notify-send to work with icon parameters (bug #4308)
+
+version 0.2.2 (10-August-2005):
+	* Fixed many run-time issues with PPC and AMD64 (Martin Pitt)
+
+version 0.2.1 (28-July-2005):
+	* Fixed hint support for D-BUS 0.3x.
+
+version 0.2.0 (28-July-2005):
+	* Initial public release.

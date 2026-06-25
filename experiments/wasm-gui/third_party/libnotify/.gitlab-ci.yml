@@ -1,0 +1,48 @@
+variables:
+  DEBIAN_FRONTEND: noninteractive
+
+stages:
+  - build
+  - deploy
+
+build:ubuntu:
+  stage: build
+  image: ubuntu:devel
+  before_script:
+    - apt-get update &&
+    - apt-get install -q -y --no-install-recommends
+        gobject-introspection
+        libgdk-pixbuf2.0-dev
+        libgirepository1.0-dev
+        libglib2.0-dev
+        libgtk-3-dev
+        libpopt-dev
+        xmlto
+        ninja-build
+        python3-pip
+        python3-setuptools
+        xsltproc
+        docbook-xsl-ns
+    - pip3 install meson gi-docgen
+  script:
+    - meson _build -Ddocbook_docs=enabled
+    - ninja -C _build install
+    - mv _build/docs/reference/libnotify-0 _reference
+  artifacts:
+    expose_as: "Build artifacts"
+    paths:
+      - _build/docs/notification-spec.html
+      - _reference
+      - _build/meson-logs
+
+pages:
+  stage: deploy
+  script:
+    - mkdir public
+    - mv _reference/* public/
+  artifacts:
+    when: on_success
+    paths:
+      - public
+  # https://github.com/linux-test-project/lcov/issues/58
+  allow_failure: true

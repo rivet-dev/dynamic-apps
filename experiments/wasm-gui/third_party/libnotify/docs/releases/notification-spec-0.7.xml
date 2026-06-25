@@ -1,0 +1,1250 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+
+<article id="index">
+ <articleinfo>
+  <title>Desktop Notifications Specification</title>
+  <releaseinfo>Version 0.7</releaseinfo>
+  <date>28 July 2005</date>
+  <authorgroup>
+   <author>
+    <firstname>Mike</firstname>
+    <surname>Hearn</surname>
+    <affiliation>
+     <address>
+      <email>mike@navi.cx</email>
+     </address>
+    </affiliation>
+   </author>
+   <author>
+    <firstname>Christian</firstname>
+    <surname>Hammond</surname>
+    <affiliation>
+     <address>
+      <email>chipx86@chipx86.com</email>
+     </address>
+    </affiliation>
+   </author>
+  </authorgroup>
+  <revhistory>
+   <revision>
+    <revnumber>0.7</revnumber>
+    <date>28 July 2005</date>
+    <authorinitials>cdh</authorinitials>
+    <revremark>
+     Added "x" and "y" hints. Talk about the variant type for hint values.
+    </revremark>
+   </revision>
+   <revision>
+    <revnumber>0.6</revnumber>
+    <date>1 April 2005</date>
+    <authorinitials>cdh</authorinitials>
+    <revremark>
+     Updated to work with D-BUS 0.31+.
+    </revremark>
+   </revision>
+   <revision>
+    <revnumber>0.5</revnumber>
+    <date>2 October 2004</date>
+    <authorinitials>cdh</authorinitials>
+    <revremark>
+     Added a "suppress-sound" hint. Added a "sound" capability. Renamed the
+     "soundfile" hint to sound-file".
+    </revremark>
+   </revision>
+   <revision>
+    <revnumber>0.4</revnumber>
+    <date>29 September 2004</date>
+    <authorinitials>cdh</authorinitials>
+    <revremark>
+     Added image support in markup, and made the restrictions on markup more
+     clear. Removed the High urgency. Added new notification types. Fixed
+     notification expiration.
+    </revremark>
+   </revision>
+   <revision>
+    <revnumber>0.3</revnumber>
+    <date>15 September 2004</date>
+    <authorinitials>cdh</authorinitials>
+    <revremark>Added hint and notification type sections</revremark>
+   </revision>
+   <revision>
+    <revnumber>0.2</revnumber>
+    <date>foo</date>
+    <authorinitials>mh</authorinitials>
+    <revremark>Added replaces field to protocol</revremark>
+   </revision>
+   <revision>
+    <revnumber>0.1</revnumber>
+    <date>foo</date>
+    <authorinitials>mh</authorinitials>
+    <revremark>Initial version</revremark>
+   </revision>
+  </revhistory>
+ </articleinfo>
+
+ <sect1 id="introduction">
+  <title>Introduction</title>
+  <para>
+   This is a draft standard for a desktop notifications service, through
+   which applications can generate passive popups (sometimes known as
+   "poptarts") to notify the user in an asynchronous manner of events.
+  </para>
+  <para>
+   This specification explicitly does not include other types of
+   notification presentation such as modal message boxes, window manager
+   decorations or window list annotations.
+  </para>
+  <para>
+   Example use cases include:
+  </para>
+  <itemizedlist>
+   <listitem>
+    <para>
+     Presence changes in IM programs: for instance, MSN Messenger on
+     Windows pioneered the use of passive popups to indicate presence
+     changes.
+    </para>
+   </listitem>
+   <listitem><para>Scheduled alarm</para></listitem>
+   <listitem><para>Completed file transfer</para></listitem>
+   <listitem><para>New mail notification</para></listitem>
+   <listitem><para>Low disk space/battery warnings</para></listitem>
+  </itemizedlist>
+ </sect1>
+
+ <sect1 id="basic-design">
+  <title>Basic Design</title>
+  <para>
+   In order to ensure that multiple notifications can easily be
+   displayed at once, and to provide a convenient implementation, all
+   notifications are controlled by a single session-scoped service which
+   exposes a D-BUS interface.
+  </para>
+  <para>
+   On startup, a conforming implementation should take the
+   <literal>org.freedesktop.Notifications</literal> service on
+   the session bus. This service will be referred to as the "notification
+   server" or just "the server" in this document. It can optionally be
+   activated automatically by the bus process, however this is not required
+   and notification server clients must not assume that it is available.
+  </para>
+  <para>
+   The server should implement the
+   <literal>org.freedesktop.Notifications</literal> interface on
+   an object with the path <literal>"/org/freedesktop/Notifications"</literal>.
+   This is the only interface required by this version of the specification.
+  </para>
+  <para>
+   A notification has the following components:
+  </para>
+  <table>
+   <title>Notification Components</title>
+   <tgroup cols="2">
+    <thead>
+     <row>
+      <entry>Component</entry>
+      <entry>Description</entry>
+     </row>
+    </thead>
+    <tbody valign="top">
+     <row>
+      <entry>Application Name</entry>
+      <entry>
+       This is the optional name of the application sending the notification.
+       This should be the application's formal name, rather than some sort
+       of ID. An example would be "FredApp E-Mail Client," rather than
+       "fredapp-email-client."
+      </entry>
+     </row>
+     <row>
+      <entry>Application Icon</entry>
+      <entry>
+       The application icon. This is represented either as a path or a name
+       in an icon theme.
+      </entry>
+     </row>
+     <row>
+      <entry>Replaces ID</entry>
+      <entry>
+       An optional ID of an existing notification that this
+       notification is intended to replace.
+      </entry>
+     </row>
+     <row>
+      <entry>Notification Type ID</entry>
+      <entry>
+       An optional ID representing the notification type. See
+       <xref linkend="notification-types"/>.
+      </entry>
+     </row>
+     <row>
+      <entry>Urgency Level</entry>
+      <entry>
+       The urgency of the notification. See <xref linkend="urgency-levels"/>.
+      </entry>
+     </row>
+     <row>
+      <entry>Summary</entry>
+      <entry>
+       This is a single line overview of the notification. For instance,
+       "You have mail" or "A friend has come online". It should generally
+       not be longer than 40 characters, though this is not a requirement,
+       and server implementations should word wrap if necessary. The summary
+       must be encoded using UTF-8.
+      </entry>
+     </row>
+     <row>
+      <entry>Body</entry>
+      <entry>
+       <para>
+        This is a multi-line body of text. Each line is a paragraph, server
+        implementations are free to word wrap them as they see fit.
+       </para>
+       <para>
+        The body may contain simple markup as specified in
+        <xref linkend="markup"/>. It must be encoded using UTF-8.
+       </para>
+       <para>
+        If the body is omitted, just the summary is displayed.
+       </para>
+      </entry>
+     </row>
+     <row>
+      <entry>Images</entry>
+      <entry>See <xref linkend="icons"/>.</entry>
+     </row>
+     <row>
+      <entry>Actions</entry>
+      <entry>
+       The actions send a request message back to the notification client
+       when invoked. This functionality may not be implemented by the
+       notification server, conforming clients should check if it is available
+       before using it (see the GetCapabilities message in
+       <xref linkend="protocol"/>. An implementation is free to ignore any
+       requested by the client. As an example one possible rendering of
+       actions would be as buttons in the notification popup.
+      </entry>
+     </row>
+     <row>
+      <entry>Hints</entry>
+      <entry>See <xref linkend="hints"/>.</entry>
+     </row>
+     <row>
+      <entry>Expires</entry>
+      <entry>
+       <para>
+        A boolean flag indicating whether or not this notification should
+        automatically expire.
+       </para>
+      </entry>
+     </row>
+     <row>
+      <entry>Expiration Timeout</entry>
+      <entry>
+       <para>
+        The timeout time in seconds since the display of the notification at
+        which the notification should automatically close. This is ignored
+        if the expires flag is set to false.
+       </para>
+       <para>
+        If zero, the notification's expiration time is dependent on the
+        notification server's settings, and may vary for the type of
+        notification.
+       </para>
+      </entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+  <para>
+   Each notification displayed is allocated a unique ID by the server.
+   This is unique within the session. While the notification server is
+   running, the ID will not be recycled unless the capacity of a uint32 is
+   exceeded.
+  </para>
+  <para>
+   This can be used to hide the notification before the expiration timeout
+   is reached. It can also be used to atomically replace the notification
+   with another. This allows you to (for instance) modify the contents of
+   a notification while it's on-screen.
+  </para>
+ </sect1>
+
+ <sect1 id="backwards-compat" xreflabel="Backwards Compatibility">
+  <title>Backwards Compatibility</title>
+  <para>
+   Clients should try and avoid making assumptions about the presentation and
+   abilities of the notification server. The message content is the most
+   important thing.
+  </para>
+  <para>
+   Clients can check with the server what capabilities are supported
+   using the <literal>GetCapabilities</literal> message. See
+   <xref linkend="protocol"/>.
+  </para>
+  <para>
+   If a client requires a response from a passive popup, it should be
+   coded such that a non-focus-stealing message box can be used in the
+   case that the notification server does not support this feature.
+  </para>
+ </sect1>
+
+ <sect1 id="markup" xreflabel="Markup">
+  <title>Markup</title>
+  <para>
+   Body text may contain markup. The markup is XML-based, and consists
+   of a small subset of HTML along with a few additional tags.
+  </para>
+  <para>
+   The following tags should be supported by the notification server.
+   Though it is optional, it is recommended. Notification servers that do
+   not support these tags should filter them out.
+  </para>
+  <informaltable>
+   <tgroup cols="2">
+    <tbody valign="top">
+     <row>
+      <entry>
+       <sgmltag class="starttag">b</sgmltag> ...
+       <sgmltag class="endtag">b</sgmltag>
+      </entry>
+      <entry>Bold</entry>
+     </row>
+     <row>
+      <entry>
+       <sgmltag class="starttag">i</sgmltag> ...
+       <sgmltag class="endtag">i</sgmltag>
+      </entry>
+      <entry>Italic</entry>
+     </row>
+     <row>
+      <entry>
+       <sgmltag class="starttag">u</sgmltag> ...
+       <sgmltag class="endtag">u</sgmltag>
+      </entry>
+      <entry>Underline</entry>
+     </row>
+     <row>
+      <entry>
+       <sgmltag class="starttag">a href="..."</sgmltag> ...
+       <sgmltag class="endtag">a</sgmltag>
+      </entry>
+      <entry>Hyperlink</entry>
+     </row>
+     <row>
+      <entry>
+       <sgmltag class="emptytag">img src="..." alt="..."</sgmltag>
+      </entry>
+      <entry>Image</entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </informaltable>
+  <para>
+   A full-blown HTML implementation is not required of this spec, and
+   notifications should never take advantage of tags that are not listed
+   above. As notifications are not a substitute for web browsers or complex
+   dialogs, advanced layout is not necessary, and may in fact limit the
+   number of systems that notification services can run on, due to memory
+   usage and screen space. Such examples are PDAs, certain cell phones, and
+   slow PCs or laptops with little memory.
+  </para>
+  <para>
+   For the same reason, a full XML or XHTML implementation using XSLT or
+   CSS stylesheets is not part of this specification. Information that
+   must be presented in a more complex form should use an application-specific
+   dialog, a web browser, or some other display mechanism.
+  </para>
+  <para>
+   The tags specified above mark up the content in a way that allows them
+   to be stripped out on some implementations without impacting the actual
+   content.
+  </para>
+
+  <sect2 id="hyperlinks" xreflabel="Hyperlinks">
+   <title>Hyperlinks</title>
+   <para>
+    Hyperlinks allow for linking one or more words to a URI. There is no
+    requirement to allow for images to be linked, and it is highly suggested
+    that implementations do not allow this, as there is no clean-looking,
+    standard visual indicator for a hyperlinked image.
+   </para>
+   <para>
+    Hyperlinked text should appear in the standard blue underline format.
+   </para>
+   <para>
+    Hyperlinks cannot function as a replacement for actions. They are
+    used to link to local directories or remote sites using standard URI
+    schemes.
+   </para>
+   <para>
+    Implementations are not required to support hyperlinks.
+   </para>
+  </sect2>
+
+  <sect2 id="images" xreflabel="Images">
+   <title>Images</title>
+   <para>
+    Images may be placed in the notification, but this should be done with
+    caution. The image should never exceed 200x100, but this should be thought
+    of as a maximum size. Images should always have alternative text
+    provided through the <literal>alt="..."</literal> attribute.
+   </para>
+   <para>
+    Image data cannot be embedded in the message itself. Images referenced
+    must always be local files.
+   </para>
+   <para>
+    Implementations are not required to support images.
+   </para>
+  </sect2>
+ </sect1>
+
+ <sect1 id="icons" xreflabel="Icons">
+  <title>Icons</title>
+  <para>
+   A notification can optionally include an array of images for use as an
+   icon representing the notification. The array of images specifies frames
+   in an animation, which always loop. Implementations are free to ignore the
+   images data, and implementations that support images need not support
+   animation.
+  </para>
+  <para>
+   If the image array has more than one element, a "primary frame" can
+   be specified. If not specified, it defaults to the first frame. For
+   implementations that support images but not animation, only the primary
+   frame will be used.
+  </para>
+  <para>
+   Each element of the array must have the same type as the first
+   element. Mixtures of strings and blobs are not allowed. The element
+   types can be one of the following:
+  </para>
+  <informaltable>
+   <tgroup cols="3">
+    <thead>
+     <row>
+      <entry>Element</entry>
+      <entry>Type</entry>
+      <entry>Description</entry>
+     </row>
+    </thead>
+    <tbody valign="top">
+     <row>
+      <entry>Icon Theme Name</entry>
+      <entry>String</entry>
+      <entry>
+       Any string that does not begin with the <literal>/</literal>
+       character is assumed to be an icon theme name and is looked up
+       according to the spec. The best size to fit the servers chosen
+       presentation will be used. This is the recommended way of specifying
+       images.
+      </entry>
+     </row>
+     <row>
+      <entry>Absolute Path</entry>
+      <entry>String</entry>
+      <entry>
+       Any string that begins with a <literal>/</literal> will be used as
+       an absolute file path. Implementations should support at minimum
+       files of type image/png and image/svg.
+      </entry>
+     </row>
+     <row>
+      <entry>Image Data</entry>
+      <entry>Binary Data</entry>
+      <entry>
+       A data stream may be embedded in the message. This is assumed to be
+       of type image/png.
+      </entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </informaltable>
+ </sect1>
+
+ <sect1 id="notification-types" xreflabel="Notification Types">
+  <title>Notification Types</title>
+  <para>
+   Notifications can optionally have a type indicator. Although neither
+   client or nor server must support this, some may choose to. Those servers
+   implementing notification types may use them to intelligently display
+   the notification in a certain way, or group notifications of similar
+   types.
+  </para>
+  <para>
+   Notification types are in
+   <literal><replaceable>class.specific</replaceable></literal> form.
+   <literal>class</literal> specifies the generic type of notification, and
+   <literal>specific</literal> specifies the more specific type of
+   notification.
+  </para>
+  <para>
+   If a specific type of notification does not exist for your notification,
+   but the generic kind does, a notification of type
+   <literal><replaceable>class</replaceable></literal> is acceptable.
+  </para>
+  <para>
+   Third parties, when defining their own notification types, should discuss
+   the possibility of standardizing on the hint with other parties, preferably
+   in a place such as the
+   <ulink url="http://freedesktop.org/mailman/listinfo/xdg">xdg</ulink>
+   mailing list at
+   <ulink url="http://freedesktop.org/">freedesktop.org</ulink>. If it
+   warrants a standard, it will be added to the table above. If no
+   consensus is reached, the notification type should be in the form of
+   "<literal>x-<replaceable>vendor</replaceable>.<replaceable>class</replaceable>.<replaceable>name</replaceable></literal>."
+  </para>
+  <para>
+   The following table lists standard notifications as defined by this spec.
+   More will be added in time.
+  </para>
+  <table>
+   <title>Notification Types</title>
+   <tgroup cols="2">
+    <thead>
+     <row>
+      <entry>Type</entry>
+      <entry>Description</entry>
+     </row>
+    </thead>
+    <tbody valign="top">
+     <row>
+      <entry><literal>"device"</literal></entry>
+      <entry>
+       A generic device-related notification that doesn't fit into
+       any other category.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"device.added"</literal></entry>
+      <entry>A device, such as a USB device, was added to the system.</entry>
+     </row>
+     <row>
+      <entry><literal>"device.error"</literal></entry>
+      <entry>A device had some kind of error.</entry>
+     </row>
+     <row>
+      <entry><literal>"device.removed"</literal></entry>
+      <entry>
+       A device, such as a USB device, was removed from the system.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"email"</literal></entry>
+      <entry>
+       A generic e-mail-related notification that doesn't fit into any
+       other category.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"email.arrived"</literal></entry>
+      <entry>A new e-mail notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"email.bounced"</literal></entry>
+      <entry>A notification stating that an e-mail has bounced.</entry>
+     </row>
+     <row>
+      <entry><literal>"im"</literal></entry>
+      <entry>
+       A generic instant message-related notification that doesn't fit
+       into any other category.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"im.error"</literal></entry>
+      <entry>An instant message error notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"im.received"</literal></entry>
+      <entry>A received instant message notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"network"</literal></entry>
+      <entry>
+       A generic network notification that doesn't fit into any other
+       category.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"network.connected"</literal></entry>
+      <entry>
+       A network connection notification, such as successful sign-on to a
+       network service. This should not be confused with
+       <literal>device.added</literal> for new network devices.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"network.disconnected"</literal></entry>
+      <entry>
+       A network disconnected notification. This should not be confused with
+       <literal>device.removed</literal> for disconnected network devices.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"network.error"</literal></entry>
+      <entry>
+       A network-related or connection-related error.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"presence"</literal></entry>
+      <entry>
+       A generic presence change notification that doesn't fit into
+       any other category, such as going away or idle.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"presence.offline"</literal></entry>
+      <entry>An offline presence change notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"presence.online"</literal></entry>
+      <entry>An online presence change notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"transfer"</literal></entry>
+      <entry>
+       A generic file transfer or download notification that doesn't fit
+       into any other category.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"transfer.complete"</literal></entry>
+      <entry>A file transfer or download complete notification.</entry>
+     </row>
+     <row>
+      <entry><literal>"transfer.error"</literal></entry>
+      <entry>A file transfer or download error.</entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+ </sect1>
+
+ <sect1 id="urgency-levels" xreflabel="Urgency Levels">
+  <title>Urgency Levels</title>
+  <para>
+   Notifications have an urgency level associated with them. This defines
+   the importance of the notification. For example, "Joe Bob signed on"
+   would be a low urgency. "You have new mail" or "A USB device was unplugged"
+   would be a normal urgency. "Your computer is on fire" would be a critical
+   urgency.
+  </para>
+  <para>Urgency levels are defined as follows:</para>
+  <table>
+   <title>Urgency Levels</title>
+   <tgroup cols="2">
+    <thead>
+     <row>
+      <entry>Type</entry>
+      <entry>Description</entry>
+     </row>
+    </thead>
+    <tbody valign="top">
+     <row>
+      <entry>0</entry>
+      <entry>Low</entry>
+     </row>
+     <row>
+      <entry>1</entry>
+      <entry>Normal</entry>
+     </row>
+     <row>
+      <entry>2</entry>
+      <entry>Critical</entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+  <para>
+   Developers must use their own judgement when deciding the urgency of a
+   notification. Typically, if the majority of programs are using the same
+   level for a specific type of urgency, other applications should follow
+   them.
+  </para>
+  <para>
+   For low and normal urgencies, server implementations may display the
+   notifications how they choose. They should, however, have a sane
+   expiration timeout dependent on the urgency level.
+  </para>
+  <para>
+   Critical notifications should not automatically expire, as they are
+   things that the user will most likely want to know about. They should
+   only be closed when the user dismisses them, for example, by clicking on
+   the notification.
+  </para>
+ </sect1>
+
+ <sect1 id="hints" xreflabel="Hints">
+  <title>Hints</title>
+  <para>
+   Hints are a way to provide extra data to a notification server that
+   the server may be able to make use of.
+  </para>
+  <para>
+   Neither clients nor notification servers are required to support any
+   hints. Both sides should assume that hints are not passed, and should
+   ignore any hints they do not understand.
+  </para>
+  <para>
+   Third parties, when defining their own hints, should discuss the
+   possibility of standardizing on the hint with other parties, preferably
+   in a place such as the
+   <ulink url="http://freedesktop.org/mailman/listinfo/xdg">xdg</ulink>
+   mailing list at
+   <ulink url="http://freedesktop.org/">freedesktop.org</ulink>. If it
+   warrants a standard, it will be added to the table above. If no
+   consensus is reached, the hint name should be in the form of
+   <literal>"x-<replaceable>vendor</replaceable>-<replaceable>name</replaceable>."</literal>
+  </para>
+  <para>
+   The value type for the hint dictionary in D-BUS is of the
+   <literal>DBUS_TYPE_VARIANT</literal> container type. This allows different
+   data types (string, integer, boolean, etc.) to be used for hints. When
+   adding a dictionary of hints, this type must be used, rather than putting
+   the actual hint value in as the dictionary value.
+  </para>
+  <para>
+   The following table lists the standard hints as defined by this
+   specification. Future hints may be proposed and added to this list
+   over time. Once again, implementations are not required to support these.
+  </para>
+  <table>
+   <title>Standard Hints</title>
+   <tgroup cols="2">
+    <thead>
+     <row>
+      <entry>Name</entry>
+      <entry>Value Type</entry>
+      <entry>Description</entry>
+     </row>
+    </thead>
+    <tbody valign="top">
+     <row>
+      <entry><literal>"sound-file"</literal></entry>
+      <entry>string</entry>
+      <entry>
+       The path to a sound file to play when the notification pops up.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"suppress-sound"</literal></entry>
+      <entry>boolean</entry>
+      <entry>
+       Causes the server to suppress playing any sounds, if it has that
+       ability. This is usually set when the client itself is going to
+       play its own sound.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"x"</literal></entry>
+      <entry>int</entry>
+      <entry>
+       Specifies the X location on the screen that the notification should
+       point to. The <literal>"y"</literal> hint must also be specified.
+      </entry>
+     </row>
+     <row>
+      <entry><literal>"y"</literal></entry>
+      <entry>int</entry>
+      <entry>
+       Specifies the Y location on the screen that the notification should
+       point to. The <literal>"x"</literal> hint must also be specified.
+      </entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+ </sect1>
+
+ <sect1 id="protocol" xreflabel="Protocol">
+  <title>D-BUS Protocol</title>
+  <para>
+   The following messages <emphasis>must</emphasis> be supported by all
+   implementations.
+  </para>
+
+  <sect2 id="commands">
+   <title>Message commands</title>
+
+   <sect3 id="command-get-capabilities">
+    <title><literal>org.freedesktop.Notifications.GetCapabilities</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>STRING_ARRAY
+       <function>org.freedesktop.Notifications.GetCapabilities</function>
+      </funcdef>
+      <void/>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     This message takes no parameters.
+    </para>
+    <para>
+     It returns an array of strings. Each string describes an optional
+     capability implemented by the server. The following values are
+     defined by this spec:
+    </para>
+    <table>
+     <title>Server Capabilities</title>
+     <tgroup cols="2">
+      <tbody valign="top">
+       <row>
+        <entry><literal>"actions"</literal></entry>
+        <entry>
+         The server will provide the specified actions to the user. Even if
+         this cap is missing, actions may still be specified by the client,
+         however the server is free to ignore them.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"body"</literal></entry>
+        <entry>
+         Supports body text. Some implementations may only show the
+         summary (for instance, onscreen displays, marquee/scrollers)
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"body-hyperlinks"</literal></entry>
+        <entry>
+         The server supports hyperlinks in the notifications.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"body-images"</literal></entry>
+        <entry>
+         The server supports images in the notifications.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"body-markup"</literal></entry>
+        <entry>
+         Supports markup in the body text. If marked up text is sent
+         to a server that does not give this cap, the markup will show
+         through as regular text so must be stripped clientside.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"icon-multi"</literal></entry>
+        <entry>
+         The server will render an animation of all the frames in a given
+         image array. The client may still specify multiple frames even if
+         this cap and/or <literal>"icon-static"</literal> is missing, however
+         the server is free to ignore them and use only the primary frame.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"icon-static"</literal></entry>
+        <entry>
+         Supports display of exactly 1 frame of any given image array.
+         This value is mutually exclusive with
+         <literal>"icon-multi"</literal>, it is a protocol error for the
+         server to specify both.
+        </entry>
+       </row>
+       <row>
+        <entry><literal>"sound"</literal></entry>
+        <entry>
+         The server supports sounds on notifications. If returned, the
+         server must support the <literal>"sound-file"</literal> and
+         <literal>"suppress-sound"</literal> hints.
+        </entry>
+       </row>
+      </tbody>
+     </tgroup>
+    </table>
+    <para>
+     New vendor-specific caps may be specified as long as they start with
+     <literal>"x-<replaceable>vendor</replaceable>"</literal>. For instance,
+     <literal>"x-gnome-foo-cap"</literal>. Capability names must not
+     contain spaces. They are limited to alpha-numeric characters and dashes
+     (<literal>"-"</literal>).
+    </para>
+   </sect3>
+
+   <sect3 id="command-notify">
+    <title><literal>org.freedesktop.Notifications.Notify</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>UINT32
+       <function>org.freedesktop.Notifications.Notify</function>
+      </funcdef>
+      <paramdef>STRING <parameter>app_name</parameter></paramdef>
+      <paramdef>BYTE_ARRAY_OR_STRING <parameter>app_icon</parameter></paramdef>
+      <paramdef>UINT32 <parameter>replaces_id</parameter></paramdef>
+      <paramdef>STRING <parameter>notification_type</parameter></paramdef>
+      <paramdef>BYTE <parameter>urgency_level</parameter></paramdef>
+      <paramdef>STRING <parameter>summary</parameter></paramdef>
+      <paramdef>STRING <parameter>body</parameter></paramdef>
+      <paramdef>ARRAY <parameter>images</parameter></paramdef>
+      <paramdef>DICT <parameter>actions</parameter></paramdef>
+      <paramdef>DICT <parameter>hints</parameter></paramdef>
+      <paramdef>BOOL <parameter>expires</parameter></paramdef>
+      <paramdef>UINT32 <parameter>expire_timeout</parameter></paramdef>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     Sends a notification to the notification server.
+    </para>
+    <table>
+     <title>Notify Parameters</title>
+     <tgroup cols="3">
+      <thead>
+       <row>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry>Description</entry>
+       </row>
+      </thead>
+      <tbody valign="top">
+       <row>
+        <entry><parameter>app_name</parameter></entry>
+        <entry>STRING</entry>
+        <entry>
+         The optional name of the application sending the notification.
+         Can be blank.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>app_icon</parameter></entry>
+        <entry>BYTE_ARRAY or STRING</entry>
+        <entry>
+         The optional program icon of the calling application. This is in
+         the same format as an image frame. See <xref linkend="icons"/>.
+         Can be an empty string, indicating no icon.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>replaces_id</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>
+         The optional notification ID that this notification replaces. The
+         server must atomically (ie with no flicker or other visual cues)
+         replace the given notification with this one. This allows clients to
+         effectively modify the notification while it's active. A value of
+         value of 0 means that this notification won't replace any
+         existing notifications.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>notification_type</parameter></entry>
+        <entry>STRING</entry>
+        <entry>
+         The optional notification type ID, for potential server
+         categorization and logging purposes. See
+         <xref linkend="notification-types"/>. Can be empty.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>urgency_level</parameter></entry>
+        <entry>BYTE</entry>
+        <entry>The urgency level. See <xref linkend="urgency-levels"/>.</entry>
+       </row>
+       <row>
+        <entry><parameter>summary</parameter></entry>
+        <entry>STRING</entry>
+        <entry>The summary text briefly describing the notification.</entry>
+       </row>
+       <row>
+        <entry><parameter>body</parameter></entry>
+        <entry>STRING</entry>
+        <entry>The optional detailed body text. Can be empty.</entry>
+       </row>
+       <row>
+        <entry><parameter>images</parameter></entry>
+        <entry>ARRAY</entry>
+        <entry>
+         The optional array of images. See <xref linkend="icons"/>. Can
+         be empty.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>actions</parameter></entry>
+        <entry>DICT</entry>
+        <entry>
+         A dictionary key of actions. Each key is the localized name of the
+         action, as it should appear to the user, and maps to a UINT32 value
+         containing a program-specific action code. This code will be reported
+         back to the program if the action is invoked by the user. Can be
+         empty.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>hints</parameter></entry>
+        <entry>DICT</entry>
+        <entry>
+         Optional hints that can be passed to the server from the client
+         program. Although clients and servers should never assume each other
+         supports any specific hints, they can be used to pass along
+         information, such as the process PID or window ID, that the server
+         may be able to make use of. See <xref linkend="hints"/>. Can be
+         empty.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>expires</parameter></entry>
+        <entry>BOOL</entry>
+        <entry>
+         A boolean flag indicating whether or not this notification should
+         automatically expire.
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>expire_timeout</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>
+         <para>
+          The timeout time in seconds since the display of the notification at
+          which the notification should automatically close. This is ignored
+          if the expires flag is set to false.
+         </para>
+         <para>
+          If zero, the notification's expiration time is dependent on the
+          notification server's settings, and may vary for the type of
+          notification.
+         </para>
+        </entry>
+       </row>
+      </tbody>
+     </tgroup>
+    </table>
+    <para>
+     If <parameter>replaces_id</parameter> is 0, the return value is a
+     UINT32 that represent the notification. It is unique, and will not be
+     reused unless a <constant>MAXINT</constant> number of notifications
+     have been generated. An acceptable implementation may just use an
+     incrementing counter for the ID. The returned ID is always greater than
+     zero. Servers must make sure not to return zero as an ID.
+    </para>
+    <para>
+     If <parameter>replaces_id</parameter> is not 0, the returned value
+     is the same value as <parameter>replaces_id</parameter>.
+    </para>
+   </sect3>
+
+   <sect3 id="command-close-notification">
+    <title><literal>org.freedesktop.Notifications.CloseNotification</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>void
+       <function>org.freedesktop.Notifications.CloseNotification</function>
+      </funcdef>
+      <paramdef>UINT32 id</paramdef>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     Causes a notification to be forcefully closed and removed from the user's
+     view. It can be used, for example, in the event that what the
+     notification pertains to is no longer relevant, or to cancel a
+     notification with no expiration time.
+    </para>
+    <para>
+     The <literal>NotificationClosed</literal> signal is emitted by this
+     method.
+    </para>
+    <para>
+     If the notification no longer exists, an empty D-BUS Error message is
+     sent back.
+    </para>
+   </sect3>
+
+   <sect3 id="command-get-server-information">
+    <title><literal>org.freedesktop.Notifications.GetServerInformation</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>
+       void
+       <function>org.freedesktop.Notifications.GetServerInformation</function>
+      </funcdef>
+      <paramdef>out STRING <parameter>name</parameter></paramdef>
+      <paramdef>out STRING <parameter>vendor</parameter></paramdef>
+      <paramdef>out STRING <parameter>version</parameter></paramdef>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     This message returns the information on the server. Specifically,
+     the server name, vendor, and version number.
+    </para>
+    <table>
+     <title>GetServerInformation Return Values</title>
+     <tgroup cols="2">
+      <thead>
+       <row>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry>Description</entry>
+       </row>
+      </thead>
+      <tbody valign="top">
+       <row>
+        <entry><parameter>name</parameter></entry>
+        <entry>STRING</entry>
+        <entry>The product name of the server.</entry>
+       </row>
+       <row>
+        <entry><parameter>vendor</parameter></entry>
+        <entry>STRING</entry>
+        <entry>
+         The vendor name. For example, "KDE," "GNOME,"
+         "freedesktop.org," or "Microsoft."
+        </entry>
+       </row>
+       <row>
+        <entry><parameter>version</parameter></entry>
+        <entry>STRING</entry>
+        <entry>The server's version number.</entry>
+       </row>
+      </tbody>
+     </tgroup>
+    </table>
+   </sect3>
+  </sect2>
+
+  <sect2 id="signals">
+   <title>Signals</title>
+
+   <sect3 id="signal-notification-closed">
+    <title><literal>org.freedesktop.Notifications.NotificationClosed</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>
+       <function>org.freedesktop.Notifications.NotificationClosed</function>
+      </funcdef>
+      <paramdef>UINT32 <parameter>id</parameter></paramdef>
+      <paramdef>UINT32 <parameter>reason</parameter></paramdef>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     A completed notification is one that has timed out, or has been
+     dismissed by the user.
+    </para>
+    <table>
+     <title>NotificationClosed Parameters</title>
+     <tgroup cols="2">
+      <thead>
+       <row>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry>Description</entry>
+       </row>
+      </thead>
+      <tbody valign="top">
+       <row>
+        <entry><parameter>id</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>The ID of the notification that was closed.</entry>
+       </row>
+       <row>
+        <entry><parameter>reason</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>
+         <para>The reason the notification was closed.</para>
+         <para>1 - The notification expired.</para>
+         <para>2 - The notification was dismissed by the user.</para>
+         <para>3 - The notification was closed by a call to
+               <literal>CloseNotification</literal>.</para>
+         <para>4 - Undefined/reserved reasons.</para>
+        </entry>
+       </row>
+      </tbody>
+     </tgroup>
+    </table>
+    <para>
+     The ID specified in the signal is invalidated
+     <emphasis>before</emphasis> the signal is sent and may not be used
+     in any further communications with the server.
+    </para>
+   </sect3>
+
+   <sect3 id="signal-action-invoked">
+    <title><literal>org.freedesktop.Notifications.ActionInvoked</literal></title>
+    <funcsynopsis>
+     <funcprototype>
+      <funcdef>
+       <function>org.freedesktop.Notifications.ActionInvoked</function>
+      </funcdef>
+      <paramdef>UINT32 <parameter>id</parameter></paramdef>
+<!--  <paramdef>BOOL <parameter>default_action</parameter></paramdef> -->
+      <paramdef>UINT32 <parameter>action_id</parameter></paramdef>
+     </funcprototype>
+    </funcsynopsis>
+    <para>
+     This signal is emitted when one of the following occurs:
+    </para>
+    <itemizedlist>
+     <listitem>
+      <para>
+       The user performs some global "invoking" action upon a notification.
+       For instance, clicking somewhere on the notification itself.
+      </para>
+     </listitem>
+     <listitem>
+      <para>
+       The user invokes a specific action as specified in the original
+       Notify request. For example, clicking on an action button.
+      </para>
+     </listitem>
+    </itemizedlist>
+    <table>
+     <title>ActionInvoked Parameters</title>
+     <tgroup cols="2">
+      <thead>
+       <row>
+        <entry>Name</entry>
+        <entry>Type</entry>
+        <entry>Description</entry>
+       </row>
+      </thead>
+      <tbody valign="top">
+       <row>
+        <entry><parameter>id</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>
+         The ID of the notification emitting the ActionInvoked signal.
+        </entry>
+       </row>
+<!--
+       <row>
+        <entry><parameter>default_action</parameter></entry>
+        <entry>BOOL</entry>
+        <entry>
+         <constant>TRUE</constant> if the default action was invoked.
+         The default action is often a click on the notification. If this
+         is <constant>TRUE</constant>, the <parameter>action_id</parameter>
+         parameter is ignored.
+        </entry>
+       </row>
+-->
+       <row>
+        <entry><parameter>action_id</parameter></entry>
+        <entry>UINT32</entry>
+        <entry>
+         The ID of the action invoked. A value of 0 means that the default
+         action was invoked, i.e., clicking the notification itself.
+         IDs greater than zero are the action IDs as defined by the
+         calling application.
+<!--
+         This is ignored if
+         <parameter>default_action</parameter> is <constant>TRUE</constant>.
+-->
+        </entry>
+       </row>
+      </tbody>
+     </tgroup>
+    </table>
+    <note>
+     <para>
+      Clients should not assume the server will generate this signal. Some
+      servers may not support user interaction at all, or may not support
+      the concept of being able to "invoke" a notification.
+     </para>
+    </note>
+   </sect3>
+  </sect2>
+ </sect1>
+</article>

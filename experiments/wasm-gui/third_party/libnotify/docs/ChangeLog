@@ -1,0 +1,98 @@
+Sat Aug 25 18:25:02 PDT 2007  Christian Hammond <chipx86@chipx86.com>
+
+	* notification-spec.xml:
+	  - Add a spec_version return value for GetServerInformation.
+	  - Bump to version 1.0. It's about time, and things are pretty solid now.
+
+Wed Jan 25 23:45:11 PST 2006  Christian Hammond <chipx86@chipx86.com>
+
+	* notification-spec.xml:
+	  - Fixed to actually be valid docbook.
+
+Mon Jan 23 01:18:23 PST 2006  Christian Hammond <chipx86@chipx86.com>
+
+	* notification-spec.xml:
+	  - Simplified the protocol. Moved around a lot of functions and data.
+	  - Bumped to version 0.9.
+
+Fri Apr 01 09:11:38 PST 2005  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Removed all references to NIL, and explained briefly how each
+	    parameter can be made empty.
+	  - Bumped to version 0.6.
+
+Fri Oct 01 23:44:40 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Added a "suppress-sound" hint.
+	  - Added a "sound" capability.
+	  - Renamed the "soundfile" hint to "sound-file."
+	  - Bumped to version 0.5.
+
+Wed Sep 29 22:35:16 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Version 0.4.
+
+Sat Sep 25 00:08:45 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Added <img/> tag support in the markup section.
+	  - Detailed what markup is and what it is not, and its restrictions.
+	  - Removed the High urgency level.
+	  - Gave a better categorization to notification type formats.
+	  - Added new notification types.
+	  - Fixed notification expiration so it's a timeout rather than a
+	    timestamp.
+
+Fri Sep 03 22:26:31 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Changed the app_icon parameter of Notify to take a byte array,
+	    string, or NIL, so that it's the same as loading a single frame
+	    of a set of images.
+	  - Renamed "Icons and Sounds" to just "Icons."
+	  - Changed the wording about the fallback in case the notification
+	    server can't do actions.
+
+Thu Sep 02 09:18:38 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Removed the sound information.
+	  - Fixed several typos and references to KNotify.
+	  - Removed the PID hint.
+	  - Added some D-BUS Error stuff.
+
+Thu Sep 02 01:19:07 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Wrote the section about hints.
+
+Thu Sep 02 01:05:01 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Wrote about urgency levels.
+
+Thu Sep 02 00:53:17 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - NotificationClosed now returns a reason of 3 when CloseNotification
+	    is called. 4 is now Undefined/Reserved.
+
+Wed Sep 01 01:04:45 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Marked up parameters.
+
+Wed Sep 01 00:50:51 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Moved the notification components into a table.
+
+Wed Sep 01 00:38:46 PDT 2004  Christian Hammond <chipx86@gnupdate.org>
+
+	* notification-spec.xml:
+	  - Added vertical alignment of top to the tables.
+
+
