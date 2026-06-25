@@ -329,7 +329,7 @@ conftest.c:42:6: warning: incompatible redeclaration of library function 'strerr
 conftest.c:42:6: note: 'strerror' is a builtin with type 'char *(int)'
 1 warning generated.
 wasm-ld: warning: function signature mismatch: strerror
->>> defined as () -> i32 in /tmp/conftest-46784d.o
+>>> defined as () -> i32 in /tmp/conftest-666264.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(strerror.o)
 configure:5112: $? = 0
 configure:5132: result: none required
@@ -522,20 +522,20 @@ conftest.c:44:6: warning: incompatible redeclaration of library function 'round'
 conftest.c:44:6: note: 'round' is a builtin with type 'double (double)'
 1 warning generated.
 wasm-ld: warning: function signature mismatch: round
->>> defined as () -> i32 in /tmp/conftest-31c5b3.o
+>>> defined as () -> i32 in /tmp/conftest-0ea38b.o
 >>> defined as (f64) -> f64 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(round.o)
 configure:14239: $? = 0
 configure:14259: result: none required
 configure:14272: checking for realpath
 configure:14272: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gtksourceview-4 -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: realpath
->>> defined as () -> i32 in /tmp/conftest-ff824c.o
+>>> defined as () -> i32 in /tmp/conftest-2d3b53.o
 >>> defined as (i32, i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(realpath.o)
 configure:14272: $? = 0
 configure:14272: result: yes
 configure:14278: checking for bind_textdomain_codeset
 configure:14278: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gtksourceview-4 -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-wasm-ld: error: /tmp/conftest-fb2aee.o: undefined symbol: bind_textdomain_codeset
+wasm-ld: error: /tmp/conftest-77399d.o: undefined symbol: bind_textdomain_codeset
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:14278: $? = 1
 configure: failed program was:

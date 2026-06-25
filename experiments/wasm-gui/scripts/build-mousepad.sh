@@ -65,6 +65,15 @@ ERRNOO="$EXP/toolchain/libc-errno.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$WSDK/share/wasi-sysroot/lib/$WASMSUB/libc.a" errno.o 2>/dev/null && mv -f errno.o "$ERRNOO" )
 rm -f "$PREFIX/lib/libwasmshims.a"   # rebuild fresh (ar rcs only updates)
 "$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libwasmshims.a" "$VFSSHIM" "$EMPTYSHIM" "$ERRNOO"
+# RENDER-BLOCKER (mousepad LINKS rc=0 but won't instantiate): __wasi_init_tp stays an undefined import.
+# It is a THREE-WAY wasm-ld tension that resists a pure build-layer fix: (1) --allow-undefined is REQUIRED
+# (libepoxy's GLX functions epoxy_glX* are legitimately unresolved -- software rendering, no GLX); but it
+# also imports the HIDDEN _Thread_local libc symbols (errno, __wasi_init_tp, __wasilibc_pthread_self) as
+# non-TLS. (2) Dropping it surfaces the epoxy GLX undefineds AND re-breaks errno. (3) __wasi_init_tp is
+# referenced only via wasi_thread_start (gtksourceview spawns threads; appfinder does not), and its
+# __init_tls.o is not archive-pulled here; forcing it (--undefined/bundle/2nd-libc.a) whack-a-moles into
+# errno or __wasilibc_pthread_self. CLEAN FIX = provide __wasi_init_tp in the wasm-gui-host runtime imports
+# (ONE symbol; the runtime already sets up instance TLS) -- a runtime/TCB change SURFACED for sign-off.
 # gtksourceview-4 + its libxml2 dep, then the GTK/X stack.
 GTKTRANS="-lwasmshims -lgtksourceview-4 -lxml2 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
 # -Wl,-u,errno force-pulls libc.a's TLS errno.o definition; otherwise --allow-undefined synthesizes
