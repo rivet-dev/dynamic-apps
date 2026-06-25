@@ -421,8 +421,10 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        no "no module found". Fully baked into `build-xfce4-panel.sh` (`STATIC_PLUGINS="name:entry"` list)
        + `prepare-xfce4-panel.sh` (stages a stub `.so` at the compile-time `PANEL_PLUGINS_LIB_DIR` so the
        panel's `g_file_test` passes, the plugin `.desktop` with `X-XFCE-Internal=TRUE`, and the config
-       entry). `test-xu3-panel.sh` → "BAR renders" with the separator. NEXT: add the visible plugins to
-       `STATIC_PLUGINS`/`PLUGINS` — clock, tasklist (window-buttons), systray — then build + static-link
+       entry). `test-xu3-panel.sh` → "BAR renders" with the separator. ✅ clock + separator RENDER (the panel shows the live date/time "2026-06-25 03:48" + the separator
+       line; proof gui-progress/2026-06-25T03/xu3-panel-clock-separator.png; the loop links all of a multi-
+       file plugin's objects). NEXT: add tasklist (window-buttons) + systray to
+       `STATIC_PLUGINS`/`PLUGINS`, then build + static-link
        xfce4-whiskermenu-plugin (a separate package) for the app menu = XU3 DoD. (Stub-`.so` paths are the
        absolute wasm-prefix path; a `--libdir=/usr/lib` rebuild would make them clean `/usr/lib/...`.)
     2z. **(historical) gmodule/dlopen static plugins.** All 13

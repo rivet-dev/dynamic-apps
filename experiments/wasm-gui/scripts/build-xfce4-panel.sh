@@ -81,9 +81,14 @@ for spec in $STATIC_PLUGINS; do
   # Append the rename to the plugin's existing CPPFLAGS (keep the sysroot/-include wasi-compat.h etc.).
   PCPP="$(grep -m1 '^CPPFLAGS =' "$SRC/plugins/$pname/Makefile" | sed 's/^CPPFLAGS = //')"
   make -C "$SRC/plugins/$pname" CPPFLAGS="$PCPP -D$entry=${pname}_module_entry" >> /tmp/make-xfce4-panel.log 2>&1
-  PO="$(find "$SRC/plugins/$pname" -name "*${pname}*.o" -not -name "*.lo" 2>/dev/null | head -1)"
-  cp -f "$PO" "$EXP/toolchain/plugin-$pname.o"
-  PLUGIN_OBJS="$PLUGIN_OBJS $EXP/toolchain/plugin-$pname.o"
+  # Multi-file plugins (e.g. clock has 8 .c) build several lib<name>_la-*.o -- link them ALL. The -D
+  # rename only affects the file defining the entry macro; it's harmless on the helpers.
+  pn=0
+  for PO in $(find "$SRC/plugins/$pname" -name "lib${pname}_la-*.o" 2>/dev/null); do
+    dst="$EXP/toolchain/plugin-$pname-$(basename "$PO")"
+    cp -f "$PO" "$dst"; PLUGIN_OBJS="$PLUGIN_OBJS $dst"; pn=$((pn+1))
+  done
+  echo "   ($pname: $pn object(s))"
   echo "extern void *${pname}_module_entry(void);" >> "$GENC"
 done
 {
