@@ -5,10 +5,35 @@
  * pcmanfm) are unaffected. If this stops after "run (register)" and never reaches "activated", the
  * GApplication registration is the universal blocker -- isolated in a tiny binary. */
 #include <gtk/gtk.h>
+#ifdef PROBE_XFCONF
+#include <xfconf/xfconf.h>
+#endif
 
+#include <gio/gio.h>
 static void activate(GtkApplication *app, gpointer data) {
   (void) data;
   g_printerr("GTKAPP: activated (register succeeded)\n");
+  /* Bisection step: xfdesktop's file-icon parts call g_volume_monitor_get(). With
+   * GIO_USE_VOLUME_MONITOR=null but the null monitor not resolving, GIO may fall back to the union/native
+   * monitor whose init deadlocks (the M8.5 issue). Test that here. */
+  g_printerr("GTKAPP: g_volume_monitor_get (suspect deadlock)\n");
+  GVolumeMonitor *vm = g_volume_monitor_get();
+  g_printerr("GTKAPP: volume monitor = %p (no deadlock)\n", (void *) vm);
+#ifdef PROBE_XFCONF
+  /* Bisection step: replicate xfdesktop's xfconf usage -- init + get a channel + read + WATCH it (the
+   * property-changed signal subscription, which the panel core may not do the same way). */
+  g_printerr("GTKAPP: xfconf_init (suspect deadlock)\n");
+  GError *xerr = NULL;
+  if (!xfconf_init(&xerr)) { g_printerr("GTKAPP: xfconf_init failed: %s\n", xerr ? xerr->message : "?"); }
+  else {
+    g_printerr("GTKAPP: xfconf_init ok; get channel + read\n");
+    XfconfChannel *ch = xfconf_channel_get("xfce4-desktop");
+    gchar *s = xfconf_channel_get_string(ch, "/backdrop/screen0/monitor0/workspace0/last-image", "(none)");
+    g_printerr("GTKAPP: xfconf read last-image=%s; subscribe property-changed\n", s);
+    g_signal_connect(ch, "property-changed", G_CALLBACK(g_message), NULL);
+    g_printerr("GTKAPP: xfconf done (no deadlock)\n");
+  }
+#endif
   GtkWidget *w = gtk_application_window_new(app);
   gtk_window_set_default_size(GTK_WINDOW(w), 320, 200);
   gtk_widget_show_all(w);

@@ -1110,6 +1110,7 @@ async fn run_xdemo(
                 for k in [
                     "GDK_DEBUG",
                     "G_MESSAGES_DEBUG",
+                    "G_DBUS_DEBUG",
                     "NO_AT_BRIDGE",
                     "GTK_DEBUG",
                     "GDK_BACKEND",
@@ -1185,6 +1186,7 @@ async fn run_xdemo(
                 for k in [
                     "GDK_DEBUG",
                     "G_MESSAGES_DEBUG",
+                    "G_DBUS_DEBUG",
                     "NO_AT_BRIDGE",
                     "GTK_DEBUG",
                     "GDK_BACKEND",

@@ -49,8 +49,10 @@ GLIBS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --static --libs gtk+-3.0 | 
 # so gdk reports "Unable to open display") and an 8MB stack (GTK's deep init overflows the wasm default).
 GTKFLAGS="-Wl,--wrap=writev -Wl,-z,stack-size=8388608"
 echo "== linking $NAME against the GTK stack ($WASMSUB) =="
+# EXTRA_LIBS: optional extra -l/-D flags for a probe (e.g. -lxfconf-0 -ldbuscreds + the GDBus wraps to
+# exercise xfconf). Placed before $GLIBS so its symbols resolve against the GTK/GIO archives.
 "$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $GTKFLAGS $MEMFLAG $THREAD_LINK \
-  -o "$OUT" "$EXP/guest-xclient/$NAME.c" $GLIBS $HOSTSOCK \
+  -o "$OUT" "$EXP/guest-xclient/$NAME.c" ${EXTRA_LIBS:-} $GLIBS $HOSTSOCK \
   -L"$VANILLA" -lwasi-emulated-mman -lwasi-emulated-process-clocks $THREAD_LIBS \
   "$SETJMP" "$LIBC"
 ENV_IMPORTS="$(wasm-dis "$OUT" 2>/dev/null | grep -coE '\(import "env" "')"

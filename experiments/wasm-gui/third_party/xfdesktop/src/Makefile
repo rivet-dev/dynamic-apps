@@ -99,13 +99,13 @@ bin_PROGRAMS = xfdesktop$(EXEEXT)
 #	$(GARCON_LIBS) \
 #	$(GARCON_GTK3_LIBS)
 
-am__append_3 = $(desktop_icon_sources)
-am__append_4 = $(desktop_file_icon_sources)
-am__append_5 = \
-	$(THUNARX_CFLAGS)
+#am__append_3 = $(desktop_icon_sources)
+##am__append_4 = $(desktop_file_icon_sources)
+##am__append_5 = \
+##	$(THUNARX_CFLAGS)
 
-am__append_6 = \
-	$(THUNARX_LIBS)
+##am__append_6 = \
+##	$(THUNARX_LIBS)
 
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -156,7 +156,7 @@ am__objects_3 = xfdesktop-xfdesktop-icon.$(OBJEXT) \
 	xfdesktop-xfdesktop-icon-view-manager.$(OBJEXT) \
 	xfdesktop-xfdesktop-window-icon.$(OBJEXT) \
 	xfdesktop-xfdesktop-window-icon-manager.$(OBJEXT)
-am__objects_4 = $(am__objects_3)
+#am__objects_4 = $(am__objects_3)
 am__objects_5 = xfdesktop-xfdesktop-clipboard-manager.$(OBJEXT) \
 	xfdesktop-xfdesktop-file-icon.$(OBJEXT) \
 	xfdesktop-xfdesktop-file-icon-manager.$(OBJEXT) \
@@ -164,7 +164,7 @@ am__objects_5 = xfdesktop-xfdesktop-clipboard-manager.$(OBJEXT) \
 	xfdesktop-xfdesktop-regular-file-icon.$(OBJEXT) \
 	xfdesktop-xfdesktop-special-file-icon.$(OBJEXT) \
 	xfdesktop-xfdesktop-volume-icon.$(OBJEXT)
-am__objects_6 = $(am__objects_5)
+##am__objects_6 = $(am__objects_5)
 am_xfdesktop_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	xfdesktop-main.$(OBJEXT) xfdesktop-menu.$(OBJEXT) \
 	xfdesktop-windowlist.$(OBJEXT) \
@@ -177,7 +177,7 @@ xfdesktop_OBJECTS = $(am_xfdesktop_OBJECTS)
 am__DEPENDENCIES_1 =
 #am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
 #	$(am__DEPENDENCIES_1)
-am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
+##am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 xfdesktop_DEPENDENCIES = $(top_builddir)/common/libxfdesktop.la \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \

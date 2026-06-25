@@ -33,6 +33,7 @@ echo "== configuring xfdesktop =="
   --datadir=/usr/share --sysconfdir=/etc \
   --enable-static --disable-shared \
   --disable-desktop-menu --disable-thunarx \
+  ${XFDESKTOP_EXTRA_DISABLE:-} \
   --disable-gtk-doc --disable-gtk-doc-html --disable-nls --disable-debug \
   > /tmp/conf-xfdesktop.log 2>&1
 RC=$?
