@@ -460,10 +460,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   Wallpaper renders full-screen under xfwm4 (proof: ~/tmp/gui-progress/2026-06-25T13/xu4-*.png; relinked
   against the inotify libgio, no regression). Desktop file-icons do NOT populate -- gated on the binaryen
   --fpcast-emu defect below (xfdesktop's icon view enumerates ~/Desktop eagerly via g_file_query_info).
-- **XU5 — Thunar.** ⬜ Thunar builds + runs; file-monitor hang (task#11 inotify fix) + D-Bus session bus +
-  clock all CLEARED. Two remaining blockers: (1) a Thunar-specific GtkApplication-startup block (no window
-  maps even with no folder arg; the minimal gtkapp-probe DID render, so it is Thunar's startup, not generic),
-  and (2) the file-view GIO VFS-init trap below (Thunar's folder enumerate uses g_file_query_info eagerly).
+- **XU5 — Thunar.** 🟡 Thunar 4.18.10 builds (rc=0 -> thunar.wasm 16.3MB) + runs, all wasm. CLEARED:
+  file-monitor hang (task#11 inotify fix), D-Bus session bus, clock, AND the file-view gate (the
+  g_vfs_get_default->g_vfs_get_local wrap is wired into build-thunar.sh; Thunar runs with NO unreachable
+  trap now). Test: scripts/test-xu5-thunar.sh (xfwm4 + thunar browsing /root). ONE remaining blocker: the
+  Thunar-specific GtkApplication-ACTIVATION block -- Thunar reaches GtkApplication startup (connects to the
+  session manager, the GNOME/Xfce/inhibit session proxies fail benignly) + the volume-monitor init, then
+  IDLES with no window: no "activate"/command-line -> window, spins=0 (not a busy-hang), 0 X CreateWindow.
+  The minimal gtkapp-probe DID map a window, so this is Thunar's startup specifically. Suspects: the
+  GtkApplication primary-instance DBus name acquisition (g_bus_own_name async completion) not advancing the
+  activation, or Thunar blocking on the volume monitor (last log line before the idle is the
+  GIO_USE_VOLUME_MONITOR='null' "can't find module 'null'" warning; xfdesktop emits the same but does not use
+  the volume list, Thunar's window does). Build recovery note: the shared tree lost Thunar's 24 Makefile.in
+  (untracked); restored from third_party/thunar.tar.bz2 (a dist tarball).
 - **★ THE FILE-VIEW GATE -- ✅ SOLVED 2026-06-25 (was the single blocker for XU4 icons + XU5 folders + XU6 file
   dialogs).** FIX: `toolchain/gio-vfs-local-shim.c` + `-Wl,--wrap=g_vfs_get_default` (build-gtk-app.sh
   `SECURE_EXEC_GIO_VFS_LOCAL=1`) wraps g_vfs_get_default -> g_vfs_get_local. In a module-less sandbox (no

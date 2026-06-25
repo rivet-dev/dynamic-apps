@@ -51,8 +51,13 @@ WNCKRESO="$EXP/toolchain/libwnck-resources.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$PREFIX/lib/libwnck-3.a" libwnck_3_la-wnck-resources.o 2>/dev/null \
   && mv -f libwnck_3_la-wnck-resources.o "$WNCKRESO" )
 
-GTKTRANS="$RESO $WNCKRESO -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
+# FILE-VIEW GATE fix: wrap g_vfs_get_default -> g_vfs_get_local (module-less sandbox; unblocks Thunar's
+# per-entry g_file_query_info folder enumeration). Toolchain --wrap shim; see toolchain/gio-vfs-local-shim.c.
+VFSSHIM="$EXP/toolchain/gio-vfs-local-shim.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
+  -c "$EXP/toolchain/gio-vfs-local-shim.c" -o "$VFSSHIM"
+GTKTRANS="$RESO $WNCKRESO $VFSSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,-z,stack-size=8388608"
 echo "== building thunarx (extension lib) =="
 make -j4 -C thunarx LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 echo "== building thunar binary =="
