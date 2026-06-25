@@ -332,10 +332,22 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
       rfmt-probe — and core-X masks work — bgpixmap-test — so the gap is specifically the **cairo→A1 path**,
       likely the XRender PictOpSrc-to-A1-picture that cairo emits for mask draws). (`cairomask-test.c` is
       confounded — cairo crashes on first use in a minimal non-GTK binary — so the discriminator is authoritative.)
-    - NEXT (constraint #5, platform layer): fix the wasm cairo A1/depth-1 xlib-surface rendering OR the wasm
-      Xvfb XRender-A1 compositing path cairo emits; re-run `test-xu2-xfwm4.sh` → the Greybird titlebar should
-      appear. xfwm4 stays UNMODIFIED. Repro tools `guest-xclient/{rootcolor,bgpixmap-test,rfmt-probe}.c`. Proof
-      `~/tmp/gui-progress/2026-06-25T01/xu2-CONFIRMED-decorations-shaped-away.png` + `xu2-confirmed-rootcause.txt`.
+    - **✓✓ FULLY LOCALIZED to CAIRO (2026-06-25 iter4):** every layer tested in isolation as a standalone
+      wasm guest — X-server A1 (core-X fill, `XRenderFillRectangle`, `XGetImage`+`XPutImage` round-trip),
+      bg-pixmap+tiling+SHAPE, the `PictStandardA1`/depth-1 formats, **and pixman `pixman_image_fill_boxes`
+      on a `PIXMAN_a1` image** (`set_bits=1024/2048`, exactly the left half) — ALL WORK. cairo→depth-24
+      color pixmap works (xfwm4's 18 real PutImages). ONLY cairo→depth-1(A1) is broken. So it is NOT the X
+      server, NOT pixman, NOT the XPutImage upload — it's specifically cairo's `cairo_xlib_surface_create_for_bitmap`
+      + A1-fill orchestration (cairo has every working primitive but drops the A1 result; likely a wrong
+      render/pixman-format pick for depth-1 in the wasm cairo build).
+    - NEXT (constraint #5, platform = the wasm **cairo** build): first get a cairo test harness running
+      (cairo crashes on first `cairo_xlib_surface_create` in a minimal non-GTK/non-threaded binary — a cairo
+      init/TLS issue, NOT the A1 bug; it works inside GTK apps), then reproduce cairo→A1 and inspect
+      `_cairo_xlib_surface_create_for_bitmap`'s render-format selection, or read cairo-xlib-surface.c's
+      depth-1 path for a wasm-build miswire. xfwm4 stays UNMODIFIED. Repro tools
+      `guest-xclient/{rootcolor,bgpixmap-test,rfmt-probe,xrender-a1-test,pixman-a1-test,cairomask-test}.c`. Proof
+      `~/tmp/gui-progress/2026-06-25T01/xu2-{CONFIRMED-decorations-shaped-away,A1-primitives-all-work}.png`
+      + `xu2-elimination-chain.txt`.
     - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
       → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
 - **XU3 — xfce4-panel + whiskermenu.** ⬜ The panel renders with the Whisker app menu, taskbar, clock,
