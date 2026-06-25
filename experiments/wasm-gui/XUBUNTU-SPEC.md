@@ -513,13 +513,16 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
   zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18h).
   </details>
-- **XU6 — bundled apps.** 🟡 FIRST APP RENDERS: UNMODIFIED xfce4-appfinder 4.18.0 builds (scripts/build-appfinder.sh,
-  the Thunar autotools+GTK recipe; all deps garcon/libxfce4ui/gtk/exo/xfconf already built) + its WINDOW RENDERS
-  solo, all wasm (2026-06-25, 69% non-black; proof gui-progress/2026-06-25T18/xu6-appfinder.png). The two platform
-  fixes carry over (gio-vfs-local wrap + the empty-path shim). KEY: appfinder has a search GtkEntry and renders
-  fine -> this CONFIRMS the XU5 Thunar window hang is ThunarPathEntry-SPECIFIC (its completion + ThunarListModel +
-  ThunarIconRenderer), NOT a generic GtkEntry/GTK-construction problem. Remaining XU6: xfce4-terminal (live shell
-  via PTY), mousepad, ristretto, xfce4-notifyd (a notification pops). Proof screenshots.
+- **XU6 — bundled apps.** 🟡 TWO APPS RENDER (all wasm): (1) UNMODIFIED **xfce4-appfinder** 4.18.0
+  (scripts/build-appfinder.sh) WINDOW RENDERS solo (2026-06-25, 69% non-black; gui-progress/2026-06-25T18/xu6-appfinder.png).
+  (2) UNMODIFIED **mousepad** 0.6.1 (the Xubuntu text editor) FULL editor WINDOW RENDERS (2026-06-25, 83% non-black;
+  gui-progress/2026-06-25T20/xu6-mousepad.png) -- scripts/build-mousepad.sh + build-gtksourceview.sh + stage-gschemas.sh.
+  Mousepad exercised + proved the full toolchain chain: the **errno-TLS fix** (host_socket/host_pipe_dup/expat rebuilt
+  -matomics + EAI_* netdb shim), gtksourceview-4 (built via meson), and crucially the **__wasi_init_tp / libtool fix** --
+  mousepad's libtool final link never archive-pulls libc.a __init_tls.o, so a DIRECT non-libtool clang link (like
+  appfinder's) is required to define __wasi_init_tp; plus staging the GSettings schemas so mousepad-settings.c does not
+  warn/early-exit. KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC.
+  Remaining XU6: xfce4-terminal (live shell via PTY), ristretto, xfce4-notifyd (a notification pops). Proof screenshots.
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal
