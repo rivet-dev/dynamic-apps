@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "108";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "110";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -8793,6 +8793,8 @@ try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = tru
 function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
 try { if (process.env.SECURE_EXEC_FD_TRACE === '1') globalThis.__fdtrace = true; } catch (_e) {}
 function fdTrace(msg) { if (globalThis.__fdtrace) { try { process.stderr.write('FDTRACE ' + msg + '\n'); } catch (_e) {} } }
+try { if (process.env.SECURE_EXEC_POLL_TRACE === '1') globalThis.__polltrace = true; } catch (_e) {}
+function pollTrace(msg) { if (globalThis.__polltrace) { try { process.stderr.write('POLLTRACE ' + msg + '\n'); } catch (_e) {} } }
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -11679,6 +11681,10 @@ const hostNetImport = {
         // set includes pipe fds (e.g. a GMainContext GWakeup pipe), cap the wait so we rescan the
         // pipes promptly — otherwise a cross-thread GWakeup write would not be observed until timeout.
         if (pollSetHasPipes) remain = Math.min(remain, 10);
+        if (globalThis.__polltrace) {
+          let pr = ''; pipeRevents.forEach((re, kfd) => { pr += ' kfd' + kfd + '=' + re; });
+          pollTrace('net_poll BLOCK n=' + n + ' hasPipes=' + pollSetHasPipes + ' pipeRevents{' + pr + ' } remain=' + remain);
+        }
         const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
         readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
       }
@@ -13321,6 +13327,7 @@ function kernelPipeFdWrite(fd, iovs, iovsLen, nwrittenPtr) {
     const bytes = collectGuestIovBytes(iovs, iovsLen);
     const written =
       Number(callSyncRpc('__kernel_fd_write', [kernelPipeKernelFd(fd), bytes])) >>> 0;
+    pollTrace('fd_write fd=' + (Number(fd) >>> 0) + ' kfd=' + kernelPipeKernelFd(fd) + ' len=' + bytes.length + ' written=' + written);
     return writeGuestUint32(nwrittenPtr, written);
   } catch {
     return WASI_ERRNO_FAULT;
@@ -14170,6 +14177,7 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
     } catch {
       return [];
     }
+    pollTrace('poll targets=' + JSON.stringify(pollTargets) + ' waitMs=' + (Number(waitMs) >>> 0) + ' readyFds=' + JSON.stringify(response && response.fds ? response.fds : null));
 
     const responseEntries = Array.isArray(response?.fds) ? response.fds : [];
     const ready = [];
