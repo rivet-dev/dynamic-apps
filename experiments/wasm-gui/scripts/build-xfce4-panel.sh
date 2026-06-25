@@ -56,6 +56,14 @@ SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"
 RESO="$EXP/toolchain/libxfce4ui-resources.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$PREFIX/lib/libxfce4ui-2.a" libxfce4ui_2_la-libxfce4ui-resources.o 2>/dev/null \
   && mv -f libxfce4ui_2_la-libxfce4ui-resources.o "$RESO" )
+# Same GResource force-link for libwnck: its default window icon lives in a GResource
+# (/org/gnome/libwnck/default_icon.png) whose register-ctor object is dropped by archive-pull. The
+# tasklist's libwnck default_icon_at_size() does g_assert(gdk_pixbuf_new_from_resource(...)) -> without
+# the resource registered the tasklist ABORTS (Wnck:ERROR:xutils.c:default_icon_at_size: assertion (base))
+# the moment it renders a window button with no _NET_WM_ICON. Force-link the resource .o so the ctor runs.
+WNCKRESO="$EXP/toolchain/libwnck-resources.o"
+( cd /tmp && "$WSDK/bin/llvm-ar" x "$PREFIX/lib/libwnck-3.a" libwnck_3_la-wnck-resources.o 2>/dev/null \
+  && mv -f libwnck_3_la-wnck-resources.o "$WNCKRESO" )
 echo "== building libxfce4panel + common =="
 LINK0="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
 make -j4 -C libxfce4panel CFLAGS="$CFLAGS" LDFLAGS="$LINK0" > /tmp/make-xfce4-panel.log 2>&1
@@ -107,7 +115,7 @@ done
 SHIMOBJS="$EXP/toolchain/gmodule-shim.o $EXP/toolchain/gmodule-plugins.gen.o $PLUGIN_OBJS"
 WRAP="-Wl,--wrap=g_module_open -Wl,--wrap=g_module_open_full -Wl,--wrap=g_module_symbol -Wl,--wrap=g_module_close -Wl,--wrap=g_module_make_resident -Wl,--wrap=g_module_error -Wl,--wrap=g_module_supported"
 
-GTKTRANS="$RESO $SHIMOBJS -lxfce4ui-2 -lgarcon-gtk3-1 -lgarcon-1 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+GTKTRANS="$RESO $WNCKRESO $SHIMOBJS -lxfce4ui-2 -lgarcon-gtk3-1 -lgarcon-1 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
 LINK="$LINK0 $WRAP"
 echo "== building panel binary (static plugins: $STATIC_PLUGINS) =="
 # rm first: make treats an existing binary as up-to-date when only LIBS/LDFLAGS strings change.
