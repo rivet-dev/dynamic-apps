@@ -8,13 +8,13 @@
 /* #undef DEBUG_TRACE */
 
 /* Set if desktop icon support is enabled */
-/* #undef ENABLE_DESKTOP_ICONS */
+#define ENABLE_DESKTOP_ICONS 1
 
 /* Define if we should build the desktop menu module */
 /* #undef ENABLE_DESKTOP_MENU */
 
 /* Define if file icons should be enabled */
-/* #undef ENABLE_FILE_ICONS */
+#define ENABLE_FILE_ICONS 1
 
 /* Set to the file manager to use as a fallback */
 #define FILE_MANAGER_FALLBACK "Thunar"

@@ -40,6 +40,11 @@ cat > "$CHDIR/xfwm4.xml" <<'X'
 <channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="theme" type="string" value="Greybird"/><property name="use_compositing" type="bool" value="false"/></property></channel>
 X
 
+# Icon theme: stage Adwaita (has user-home/user-trash/folder...) + point GTK at it via settings.ini
+# (no xfsettingsd in this test, so GTK would otherwise fall back to bare hicolor -> no desktop icons).
+ICONS="${VMICONS:-/tmp/vmicons}"; [ -d "$ICONS" ] || bash "$EXP/scripts/prepare-icons.sh" "$ICONS" >/dev/null 2>&1 || true
+GTKCFG="$FIX/root/.config/gtk-3.0"; mkdir -p "$GTKCFG"
+printf '[Settings]\ngtk-icon-theme-name=Adwaita\n' > "$GTKCFG/settings.ini"
 W=800; H=600
 FB="$(mktemp /tmp/xu4-fb.XXXXXX.bin)"
 PNG="${PNG:-$HOME/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/xu4-xfdesktop.png}"; mkdir -p "$(dirname "$PNG")"
@@ -49,7 +54,7 @@ timeout 180 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-
   --server "$EXP/Xvfb.wasm" --dbus "$EXP/dbus-daemon.wasm" --dbus-service "$EXP/xfconfd.wasm" \
   --client "$EXP/xfwm4.wasm" --client "$EXP/xfdesktop.wasm" \
   --fonts-dir "$FONTS" --locale-dir "$LOCALE" \
-  --vm-tree "$FIX" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" \
+  --vm-tree "$FIX" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" --vm-tree "$ICONS" \
   --fb-out "$FB" --sidecar "$SIDECAR" \
   -- :0 -screen 0 ${W}x${H}x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data > "${OUT:-/tmp/xu4.log}" 2>&1 || true
 [ -s "$FB" ] && python3 "$EXP/scripts/fb2png.py" "$FB" "$PNG" "$W" "$H" 2>&1 | tail -1
