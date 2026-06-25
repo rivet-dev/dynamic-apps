@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-js-lit" name="TypeScript JavaScript Literal Additions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Number
+
+         Numeric separators (stage 2 proposal):
+         1_000_000
+         0b1100_0011_1101_0001
+         0o123_456_700
+         0xFF_0C_00_FF
+    -->
+
+    <!-- replaces js-lit:choice-number -->
+    <context id="choice-number">
+      <include>
+
+        <define-regex id="_decimal-digits" extended="true">
+          (?&gt; [0-9] (?: [0-9]+ | (?: _ [0-9] )+ )* )
+        </define-regex> <!-- /_decimal-digits -->
+
+        <define-regex id="_decimal" extended="true">
+          (?&gt;
+            (?: [1-9] _? \%{_decimal-digits} | [0-9] ) (?: \. \%{_decimal-digits}? )? |
+            \. \%{_decimal-digits}
+          )
+          (?&gt; [eE] [+-]? \%{_decimal-digits} )?
+        </define-regex> <!-- /_decimal -->
+
+        <context id="_choice-decimal" style-ref="js:decimal" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_decimal} \%{js:number-end} )
+          </start>
+          <end>\%{_decimal}</end>
+        </context> <!-- /_choice-decimal -->
+
+        <define-regex id="_decimal-integer" extended="true">
+          (?&gt; [1-9] _? \%{_decimal-digits} | [0-9] )
+        </define-regex> <!-- /_decimal-integer -->
+
+        <context id="_choice-decimal-big-integer" style-ref="js:decimal" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_decimal-integer} n \%{js:number-end} )
+          </start>
+          <end>\%{_decimal-integer}n</end>
+        </context> <!-- /_choice-decimal-big-integer -->
+
+        <define-regex id="_binary-integer" extended="true">
+          (?&gt; 0 [bB] [01] (?: [01]+ | (?: _ [01] )+ )* )
+        </define-regex> <!-- /_binary-integer -->
+
+        <context id="_choice-binary-integer" style-ref="js:binary-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_binary-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_binary-integer}n?</end>
+        </context> <!-- /_choice-binary-integer -->
+
+        <define-regex id="_octal-integer" extended="true">
+          (?&gt; 0 [oO] [0-7] (?: [0-7]+ | (?: _ [0-7] )+ )* )
+        </define-regex> <!-- /_octal-integer -->
+
+        <context id="_choice-octal-integer" style-ref="js:octal-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_octal-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_octal-integer}n?</end>
+        </context> <!-- /_choice-octal-integer -->
+
+        <define-regex id="_hex-integer" extended="true">
+          (?&gt; 0 [xX] [0-9a-fA-F] (?: [0-9a-fA-F]+ | (?: _ [0-9a-fA-F] )+ )* )
+        </define-regex> <!-- /_hex-integer -->
+
+        <context id="_choice-hex-integer" style-ref="js:hex-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_hex-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_hex-integer}n?</end>
+        </context> <!-- /_choice-hex-integer -->
+
+        <context ref="js-lit:_choice-legacy-octal-integer"/>
+      </include>
+    </context> <!-- /choice-number -->
+
+
+    <!-- # Object literal -->
+
+    <!-- replaces js-lit:_choice-object-literal-keyword-named-property-or-method -->
+    <context id="choice-object-literal-keyword-named-property-or-method" end-parent="true">
+      <start extended="true">
+        (?: \%{js:get-keyword} | \%{js:set-keyword} )
+        (?= \%{js:optional-whitespace-or-comments} [:=&lt;(] )
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:identifier"/>
+        <context ref="js:comments"/>
+        <context ref="js-lit:_object-literal-keyword-named-property-or-method-content"/>
+      </include>
+    </context> <!-- /choice-object-literal-keyword-named-property-or-method -->
+
+  </definitions>
+</language>

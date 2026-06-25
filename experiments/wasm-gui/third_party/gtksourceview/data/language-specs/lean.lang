@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Authors: Elias Aebi
+ Copyright (C) 2021 Elias Aebi
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="lean" name="Lean" version="2.0" _section="Source">
+  <metadata>
+    <property name="mimetypes">text/x-lean</property>
+    <property name="globs">*.lean</property>
+    <property name="line-comment-start">--</property>
+    <property name="block-comment-start">/-</property>
+    <property name="block-comment-end">-/</property>
+  </metadata>
+
+  <styles>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="command" name="Command" map-to="def:preprocessor"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="character" name="Character" map-to="def:character"/>
+    <style id="escaped-character" name="Escaped Character" map-to="def:special-char"/>
+    <style id="numeric" name="Numeric" map-to="def:number"/>
+    <style id="boolean" name="Boolean" map-to="def:boolean"/>
+  </styles>
+
+  <definitions>
+    <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+      <start>--</start>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="block-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
+      <start>/-</start>
+      <end>-/</end>
+      <include>
+        <context ref="def:in-comment"/>
+        <context ref="block-comment"/>
+      </include>
+    </context>
+
+    <context id="command" style-ref="command">
+      <match extended="true">
+        ^\s*\#(
+            check(_failure)?
+          | eval
+          | print
+          | reduce
+        )
+      </match>
+    </context>
+
+    <context id="keyword" style-ref="keyword">
+      <keyword>axiom</keyword>
+      <keyword>break</keyword>
+      <keyword>class</keyword>
+      <keyword>continue</keyword>
+      <keyword>def</keyword>
+      <keyword>do</keyword>
+      <keyword>else</keyword>
+      <keyword>end</keyword>
+      <keyword>example</keyword>
+      <keyword>for</keyword>
+      <keyword>fun</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>inductive</keyword>
+      <keyword>instance</keyword>
+      <keyword>let</keyword>
+      <keyword>match</keyword>
+      <keyword>mut</keyword>
+      <keyword>namespace</keyword>
+      <keyword>open</keyword>
+      <keyword>return</keyword>
+      <keyword>section</keyword>
+      <keyword>structure</keyword>
+      <keyword>then</keyword>
+      <keyword>theorem</keyword>
+      <keyword>universe</keyword>
+      <keyword>variable</keyword>
+      <keyword>where</keyword>
+      <keyword>with</keyword>
+      <keyword>λ</keyword>
+    </context>
+
+    <define-regex id="string-escape" extended="true">
+      \\(
+          \\
+        | \"
+        | \'
+        | n
+        | t
+        | x[0-9a-fA-F]{2}
+      )
+    </define-regex>
+
+    <context id="string" style-ref="string" end-at-line-end="true" class="string" class-disabled="no-spell-check">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context style-ref="escaped-character">
+          <match>\%{string-escape}</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="character" style-ref="character" end-at-line-end="true">
+      <start>'</start>
+      <end>'</end>
+      <include>
+        <context style-ref="escaped-character">
+          <match>\%{string-escape}</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="numeric" style-ref="numeric">
+      <match extended="true">
+          0[bB][0-1]+
+        | 0[oO][0-7]+
+        | 0[xX][0-9a-fA-F]+
+        | [0-9]+
+      </match>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>true</keyword>
+      <keyword>false</keyword>
+    </context>
+
+    <context id="lean" class="no-spell-check">
+      <include>
+        <context ref="line-comment"/>
+        <context ref="block-comment"/>
+        <context ref="command"/>
+        <context ref="keyword"/>
+        <context ref="string"/>
+        <context ref="character"/>
+        <context ref="numeric"/>
+        <context ref="boolean"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

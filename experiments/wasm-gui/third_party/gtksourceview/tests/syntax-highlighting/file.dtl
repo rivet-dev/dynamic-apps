@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{# Comment #}
+
+<div class="table">
+  {% if table %}
+    Table:<br>
+    {{ table.data }}
+  {% endif %}
+
+  Filter: {{ table.date|date:"Y-m-d" }}
+  Link: <a href="{{ table.overview }}">Overview</a>
+</div>

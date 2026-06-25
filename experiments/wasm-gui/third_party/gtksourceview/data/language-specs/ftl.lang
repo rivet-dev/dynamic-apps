@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Tobias Schönberg <tobias47n9e@gmail.com>
+ Copyright (C) 2019 Tobias Schönberg <tobias47n9e@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="ftl" name="Fluent" version="2.0" _section="Other">
+  <metadata>
+    <property name="mimetypes">text/x-fluent</property>
+    <property name="globs">*.ftl</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="quoted-text" name="Text in quotes" map-to="def:string"/>
+    <style id="term" name="Term" map-to="def:keyword"/>
+    <style id="variable" name="Variable" map-to="def:identifier"/>
+    <style id="attribute" name="Attribute" map-to="def:operator"/>
+    <style id="variant-key" name="Variant key" map-to="def:identifier"/>
+    <style id="function" name="Function" map-to="def:function"/>
+  </styles>
+
+  <definitions>
+    <context id="quoted-text" style-ref="quoted-text" class="string">
+      <start>"</start>
+      <end>"</end>
+    </context>
+
+    <context id="term" style-ref="term" extend-parent="false">
+      <match>(?&lt;!\w)-[\w-]*\b</match>
+    </context>
+
+    <context id="variable" style-ref="variable" extend-parent="false">
+      <match>\$[a-zA-Z][a-zA-Z0-9_-]*\b</match>
+    </context>
+
+    <context id="attribute" style-ref="attribute" extend-parent="false">
+      <match>(?&lt;= )\.[a-zA-Z-]*\b</match>
+    </context>
+
+    <context id="variant-key" style-ref="variant-key" class="string">
+      <start>\*?\[</start>
+      <end>\]</end>
+    </context>
+
+    <context id="function" style-ref="function">
+      <keyword>DATETIME</keyword>
+      <keyword>NUMBER</keyword>
+    </context>
+
+    <context id="placeable" class="string">
+      <start>\{</start>
+      <end>\}</end>
+      <include>
+        <context ref="variant-key"/>
+        <context ref="variable"/>
+        <context ref="term"/>
+        <context ref="function"/>
+        <context ref="quoted-text"/>
+        <context ref="placeable"/>
+      </include>
+    </context>
+
+    <context id="value" class="string" class-disabled="no-spell-check">
+      <start>(?&lt;==)</start>
+      <end>^(?! )</end>
+      <include>
+        <context ref="placeable"/>
+        <context ref="attribute"/>
+      </include>
+    </context>
+
+    <context id="ftl" class="no-spell-check">
+      <include>
+        <context ref="value"/>
+        <context ref="term"/>
+        <context ref="def:shell-like-comment"/>
+      </include>
+    </context>
+  </definitions>
+</language>

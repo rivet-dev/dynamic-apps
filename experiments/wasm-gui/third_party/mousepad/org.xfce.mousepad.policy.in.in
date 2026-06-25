@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "https://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+
+  <!--
+ Policy definitions for Mousepad.
+ Copyright (c) 2018 Matthew Brush <mbrush@codebrainz.ca>
+               2018 Andre Miranda <andreldm@xfce.org>
+ -->
+
+ <vendor>Mousepad</vendor>
+ <vendor_url>https://xfce.org/</vendor_url>
+ <icon_name>org.xfce.mousepad</icon_name>
+
+
+ <action id="org.xfce.mousepad">
+ <!-- SECURITY:
+ - A normal active user can run mousepad without elevated rights. They
+   may wish to modify a file they normally do not have read/write access
+   to. This isn't a good idea, but is common on single user systems.
+ -->
+ <description>Run Mousepad as root</description>
+ <message>Authentication is required to run Mousepad as root.</message>
+ <defaults>
+ <allow_any>no</allow_any>
+ <allow_inactive>auth_admin</allow_inactive>
+ <allow_active>auth_admin</allow_active>
+ </defaults>
+ <annotate key="org.freedesktop.policykit.exec.path">@bindir@/mousepad</annotate>
+ <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+ </action>
+
+</policyconfig>

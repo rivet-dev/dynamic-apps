@@ -1,0 +1,3458 @@
+# Danish translation of gtksourceview.
+# Copyright (C) 2003-09, 2011-18 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gtksourceview package.
+#
+# Ole Laursen <olau@hardworking.dk>, 2003, 04, 05.
+# Martin Willemoes Hansen <mwh@sysrq.dk>, 2004.
+# Kenneth Nielsen <k.nielsen81@gmail.com>, 2008.
+# flemming christensen <fc@stromata.dk>, 2011.
+# Ask Hjorth Larsen <asklarsen@gmail.com>, 2007, 09, 10, 11, 12, 13, 14, 16, 17, 18.
+# scootergrisen, 2015.
+# Alan Mortensen <alanmortensen.am@gmail.com>, 2017.
+#
+# Konventioner:
+#
+# [string|text|char|integer|...] literal(s) -> [...]literal(er)
+#
+# En anden mulighed er [...]konstant(er), men det er meget misvisende da konstanter er noget andet, og folk vil misforstå en sådan oversættelse. Andre forslag er meget velkomne
+#
+# Boolean -> boolesk
+# Gutter -> sidefelt
+#
+# Husk at tilføje dig i credit-listen (besked id "translator-credits")
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtksourceview\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gtksourceview/issues\n"
+"POT-Creation-Date: 2018-08-27 07:59+0000\n"
+"PO-Revision-Date: 2018-08-30 21:08+0200\n"
+"Last-Translator: Alan Mortensen <alanmortensen.am@gmail.com>\n"
+"Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Language: da_DK\n"
+"X-Source-Language: C\n"
+"X-Generator: Poedit 1.8.7.1\n"
+
+#. (itstool) path: abnf.lang/language@_section
+#. (itstool) path: actionscript.lang/language@_section
+#. (itstool) path: ada.lang/language@_section
+#. (itstool) path: ansforth94.lang/language@_section
+#. (itstool) path: asp.lang/language@_section
+#. (itstool) path: automake.lang/language@_section
+#. (itstool) path: bennugd.lang/language@_section
+#. (itstool) path: bluespec.lang/language@_section
+#. (itstool) path: boo.lang/language@_section
+#. (itstool) path: cg.lang/language@_section
+#. (itstool) path: chdr.lang/language@_section
+#. (itstool) path: c.lang/language@_section
+#. (itstool) path: cobol.lang/language@_section
+#. (itstool) path: cpphdr.lang/language@_section
+#. (itstool) path: cpp.lang/language@_section
+#. (itstool) path: csharp.lang/language@_section
+#. (itstool) path: cuda.lang/language@_section
+#. (itstool) path: d.lang/language@_section
+#. (itstool) path: eiffel.lang/language@_section
+#. (itstool) path: erlang.lang/language@_section
+#. (itstool) path: forth.lang/language@_section
+#. (itstool) path: fortran.lang/language@_section
+#. (itstool) path: fsharp.lang/language@_section
+#. (itstool) path: genie.lang/language@_section
+#. (itstool) path: glsl.lang/language@_section
+#. (itstool) path: go.lang/language@_section
+#. (itstool) path: gradle.lang/language@_section
+#. (itstool) path: groovy.lang/language@_section
+#. (itstool) path: haskell.lang/language@_section
+#. (itstool) path: haskell-literate.lang/language@_section
+#. (itstool) path: haxe.lang/language@_section
+#. (itstool) path: idl.lang/language@_section
+#. (itstool) path: java.lang/language@_section
+#. (itstool) path: j.lang/language@_section
+#. (itstool) path: kotlin.lang/language@_section
+#. (itstool) path: lex.lang/language@_section
+#. (itstool) path: llvm.lang/language@_section
+#. (itstool) path: logtalk.lang/language@_section
+#. (itstool) path: makefile.lang/language@_section
+#. (itstool) path: meson.lang/language@_section
+#. (itstool) path: nemerle.lang/language@_section
+#. (itstool) path: netrexx.lang/language@_section
+#. (itstool) path: objc.lang/language@_section
+#. (itstool) path: objj.lang/language@_section
+#. (itstool) path: ocaml.lang/language@_section
+#. (itstool) path: ooc.lang/language@_section
+#. (itstool) path: opal.lang/language@_section
+#. (itstool) path: opencl.lang/language@_section
+#. (itstool) path: pascal.lang/language@_section
+#. (itstool) path: pig.lang/language@_section
+#. (itstool) path: prolog.lang/language@_section
+#. (itstool) path: rust.lang/language@_section
+#. (itstool) path: scala.lang/language@_section
+#. (itstool) path: scheme.lang/language@_section
+#. (itstool) path: sml.lang/language@_section
+#. (itstool) path: sparql.lang/language@_section
+#. (itstool) path: sql.lang/language@_section
+#. (itstool) path: swift.lang/language@_section
+#. (itstool) path: systemverilog.lang/language@_section
+#. (itstool) path: thrift.lang/language@_section
+#. (itstool) path: vala.lang/language@_section
+#. (itstool) path: vbnet.lang/language@_section
+#. (itstool) path: verilog.lang/language@_section
+#. (itstool) path: vhdl.lang/language@_section
+#: abnf.lang:30 actionscript.lang:24 ada.lang:25 ansforth94.lang:24 asp.lang:23
+#: automake.lang:23 bennugd.lang:22 bluespec.lang:21 boo.lang:23 cg.lang:23
+#: chdr.lang:24 c.lang:24 cobol.lang:26 cpphdr.lang:24 cpp.lang:24
+#: csharp.lang:26 cuda.lang:22 d.lang:29 eiffel.lang:23 erlang.lang:23
+#: forth.lang:23 fortran.lang:24 fsharp.lang:24 genie.lang:23 glsl.lang:30
+#: go.lang:24 gradle.lang:21 groovy.lang:24 haskell.lang:24
+#: haskell-literate.lang:23 haxe.lang:34 idl.lang:23 java.lang:24 j.lang:23
+#: kotlin.lang:24 lex.lang:24 llvm.lang:22 logtalk.lang:23 makefile.lang:22
+#: meson.lang:23 nemerle.lang:23 netrexx.lang:23 objc.lang:23 objj.lang:25
+#: ocaml.lang:26 ooc.lang:23 opal.lang:23 opencl.lang:23 pascal.lang:24
+#: pig.lang:26 prolog.lang:23 rust.lang:35 scala.lang:24 scheme.lang:23
+#: sml.lang:23 sparql.lang:23 sql.lang:23 swift.lang:24 systemverilog.lang:21
+#: thrift.lang:20 vala.lang:27 vbnet.lang:23 verilog.lang:23 vhdl.lang:23
+msgid "Source"
+msgstr "Kilde"
+
+#. (itstool) path: awk.lang/language@_section
+#. (itstool) path: dosbatch.lang/language@_section
+#. (itstool) path: javascript.lang/language@_section
+#. (itstool) path: lua.lang/language@_section
+#. (itstool) path: m4.lang/language@_section
+#. (itstool) path: perl.lang/language@_section
+#. (itstool) path: php.lang/language@_section
+#. (itstool) path: python3.lang/language@_section
+#. (itstool) path: python.lang/language@_section
+#. (itstool) path: ruby.lang/language@_section
+#. (itstool) path: sh.lang/language@_section
+#. (itstool) path: tcl.lang/language@_section
+#: awk.lang:23 dosbatch.lang:23 javascript.lang:27 lua.lang:23 m4.lang:23
+#: perl.lang:25 php.lang:28 python3.lang:23 python.lang:27 ruby.lang:26
+#: sh.lang:24 tcl.lang:23
+msgid "Script"
+msgstr "Skript"
+
+#. (itstool) path: bibtex.lang/language@_section
+#. (itstool) path: docbook.lang/language@_section
+#. (itstool) path: dtd.lang/language@_section
+#. (itstool) path: dtl.lang/language@_section
+#. (itstool) path: gtk-doc.lang/language@_section
+#. (itstool) path: haddock.lang/language@_section
+#. (itstool) path: html.lang/language@_section
+#. (itstool) path: jade.lang/language@_section
+#. (itstool) path: latex.lang/language@_section
+#. (itstool) path: mallard.lang/language@_section
+#. (itstool) path: markdown.lang/language@_section
+#. (itstool) path: mediawiki.lang/language@_section
+#. (itstool) path: mxml.lang/language@_section
+#. (itstool) path: rst.lang/language@_section
+#. (itstool) path: sweave.lang/language@_section
+#. (itstool) path: t2t.lang/language@_section
+#. (itstool) path: tera.lang/language@_section
+#. (itstool) path: texinfo.lang/language@_section
+#. (itstool) path: xml.lang/language@_section
+#. (itstool) path: xslt.lang/language@_section
+#: bibtex.lang:23 docbook.lang:23 dtd.lang:23 dtl.lang:25 gtk-doc.lang:24
+#: haddock.lang:23 html.lang:24 jade.lang:24 latex.lang:24 mallard.lang:22
+#: markdown.lang:25 mediawiki.lang:22 mxml.lang:23 rst.lang:22 sweave.lang:24
+#: t2t.lang:23 tera.lang:23 texinfo.lang:24 xml.lang:25 xslt.lang:23
+msgid "Markup"
+msgstr "Opmærkning"
+
+#. (itstool) path: cg.lang/language@_name
+#: cg.lang:23
+msgid "CG Shader Language"
+msgstr "CG-shadersprog"
+
+# undgå andet/anden-problemet
+#. (itstool) path: changelog.lang/language@_section
+#. (itstool) path: cmake.lang/language@_section
+#. (itstool) path: css.lang/language@_section
+#. (itstool) path: csv.lang/language@_section
+#. (itstool) path: desktop.lang/language@_section
+#. (itstool) path: diff.lang/language@_section
+#. (itstool) path: dot.lang/language@_section
+#. (itstool) path: dpatch.lang/language@_section
+#. (itstool) path: gdb-log.lang/language@_section
+#. (itstool) path: gtkrc.lang/language@_section
+#. (itstool) path: ini.lang/language@_section
+#. (itstool) path: json.lang/language@_section
+#. (itstool) path: less.lang/language@_section
+#. (itstool) path: libtool.lang/language@_section
+#. (itstool) path: logcat.lang/language@_section
+#. (itstool) path: nsis.lang/language@_section
+#. (itstool) path: ocl.lang/language@_section
+#. (itstool) path: pkgconfig.lang/language@_section
+#. (itstool) path: po.lang/language@_section
+#. (itstool) path: protobuf.lang/language@_section
+#. (itstool) path: puppet.lang/language@_section
+#. (itstool) path: rpmspec.lang/language@_section
+#. (itstool) path: scss.lang/language@_section
+#. (itstool) path: toml.lang/language@_section
+#. (itstool) path: yacc.lang/language@_section
+#. (itstool) path: yaml.lang/language@_section
+#: changelog.lang:24 cmake.lang:23 css.lang:26 csv.lang:23 desktop.lang:24
+#: diff.lang:23 dot.lang:23 dpatch.lang:23 gdb-log.lang:18 gtkrc.lang:24
+#: ini.lang:22 json.lang:29 less.lang:23 libtool.lang:23 logcat.lang:23
+#: nsis.lang:23 ocl.lang:32 pkgconfig.lang:23 po.lang:23 protobuf.lang:21
+#: puppet.lang:23 rpmspec.lang:24 scss.lang:23 toml.lang:23 yacc.lang:23
+#: yaml.lang:21
+msgid "Other"
+msgstr "Andre"
+
+#. (itstool) path: chdr.lang/language@_name
+#: chdr.lang:24
+msgid "C/ObjC Header"
+msgstr "C/ObjC-header"
+
+# Header-filer ved man hvad er. Vi må hellere kalde det header.
+#. (itstool) path: cpphdr.lang/language@_name
+#: cpphdr.lang:24
+msgid "C++ Header"
+msgstr "C++-header"
+
+#. (itstool) path: dosbatch.lang/language@_name
+#: dosbatch.lang:23
+msgid "DOS Batch"
+msgstr "DOS-Batch"
+
+#. (itstool) path: dtl.lang/language@_name
+#: dtl.lang:25
+msgid "Django Template"
+msgstr "Django-skabelon"
+
+#. (itstool) path: fcl.lang/language@_section
+#. (itstool) path: gap.lang/language@_section
+#. (itstool) path: idl-exelis.lang/language@_section
+#. (itstool) path: imagej.lang/language@_section
+#. (itstool) path: julia.lang/language@_section
+#. (itstool) path: matlab.lang/language@_section
+#. (itstool) path: maxima.lang/language@_section
+#. (itstool) path: modelica.lang/language@_section
+#. (itstool) path: octave.lang/language@_section
+#. (itstool) path: R.lang/language@_section
+#. (itstool) path: scilab.lang/language@_section
+#: fcl.lang:23 gap.lang:23 idl-exelis.lang:20 imagej.lang:23 julia.lang:23
+#: matlab.lang:25 maxima.lang:24 modelica.lang:25 octave.lang:25 R.lang:25
+#: scilab.lang:23
+msgid "Scientific"
+msgstr "Videnskabelig"
+
+#. (itstool) path: gdb-log.lang/language@_name
+#: gdb-log.lang:18
+msgid "GDB Log"
+msgstr "GDB-log"
+
+#. (itstool) path: glsl.lang/language@_name
+#: glsl.lang:30
+msgid "OpenGL Shading Language"
+msgstr "OpenGL Shading-sprog"
+
+#. (itstool) path: llvm.lang/language@_name
+#: llvm.lang:22
+msgid "LLVM IR"
+msgstr "LLVM IR"
+
+#. (itstool) path: po.lang/language@_name
+#: po.lang:23
+msgid "gettext translation"
+msgstr "gettext-oversættelse"
+
+# Der er noget der hedder .spec-filer til RPM
+#. (itstool) path: rpmspec.lang/language@_name
+#: rpmspec.lang:24
+msgid "RPM spec"
+msgstr "RPM-spec"
+
+#. (itstool) path: tera.lang/language@_name
+#: tera.lang:23
+msgid "Tera Template"
+msgstr "Tera-skabelon"
+
+#. (itstool) path: classic.xml/style-scheme@_name
+#: classic.xml:23
+msgid "Classic"
+msgstr "Klassisk"
+
+#. (itstool) path: style-scheme/_description
+#: classic.xml:25
+msgid "Classic color scheme"
+msgstr "Klassisk farveskema"
+
+#. (itstool) path: cobalt.xml/style-scheme@_name
+#: cobalt.xml:25
+msgid "Cobalt"
+msgstr "Cobalt"
+
+#. (itstool) path: style-scheme/_description
+#: cobalt.xml:27
+msgid "Blue based color scheme"
+msgstr "Blåligt farveskema"
+
+#. (itstool) path: style-scheme/_description
+#: kate.xml:25
+msgid "Color scheme used in the Kate text editor"
+msgstr "Farveskema som bruges i tekstredigeringsprogrammet Kate"
+
+#. (itstool) path: oblivion.xml/style-scheme@_name
+#: oblivion.xml:24
+msgid "Oblivion"
+msgstr "Oblivion"
+
+#. (itstool) path: style-scheme/_description
+#: oblivion.xml:27
+msgid "Dark color scheme using the Tango color palette"
+msgstr "Mørkt farveskema der bruger Tango-farvepaletten"
+
+#. (itstool) path: solarized-dark.xml/style-scheme@_name
+#: solarized-dark.xml:23
+msgid "Solarized Dark"
+msgstr "Solariseret mørk"
+
+#. (itstool) path: style-scheme/_description
+#: solarized-dark.xml:25
+msgid "Color scheme using Solarized dark color palette"
+msgstr "Farveskema der bruger farvepaletten solariseret mørk"
+
+#. (itstool) path: solarized-light.xml/style-scheme@_name
+#: solarized-light.xml:23
+msgid "Solarized Light"
+msgstr "Solariseret lys"
+
+#. (itstool) path: style-scheme/_description
+#: solarized-light.xml:25
+msgid "Color scheme using Solarized light color palette"
+msgstr "Farveskema der bruger farvepaletten solariseret lys"
+
+#. (itstool) path: tango.xml/style-scheme@_name
+#: tango.xml:23
+msgid "Tango"
+msgstr "Tango"
+
+#. (itstool) path: style-scheme/_description
+#: tango.xml:25
+msgid "Color scheme using Tango color palette"
+msgstr "Farveskema der bruger Tango-farvepaletten"
+
+# ???
+#: gtksourceview/completion-providers/words/gtksourcecompletionwords.c:332
+msgid "Document Words"
+msgstr "Dokumentord"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:842
+msgid "Invalid byte sequence in conversion input"
+msgstr "Ugyldig bytesekvens i konverteringsinput"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:848
+#, c-format
+msgid "Error during conversion: %s"
+msgstr "Fejl under konvertering: %s"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:929
+#, c-format
+msgid "Conversion from character set “%s” to “UTF-8” is not supported"
+msgstr "Konvertering fra tegnsæt “%s” til “UTF-8” understøttes ikke"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:935
+#, c-format
+msgid "Could not open converter from “%s” to “UTF-8”"
+msgstr "Kunne ikke åbne konvertering fra “%s” til “UTF-8”"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:995
+msgid "Invalid object, not initialized"
+msgstr "Ugyldigt objekt, ikke klargjort"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:1187
+msgid "Incomplete UTF-8 sequence in input"
+msgstr "Ufuldstændig UTF-8-sekvens i input"
+
+#. Translators: "All" is used as a label in the status bar of the
+#. popup, telling that all completion pages are shown.
+#: gtksourceview/gtksourcecompletion.c:833
+msgid "All"
+msgstr "Alle"
+
+#. Tooltip style
+#: gtksourceview/gtksourcecompletioninfo.c:262
+msgid "Completion Info"
+msgstr "Fuldførelsesinformation"
+
+#: gtksourceview/gtksourcecompletionmodel.c:494
+msgid "Provider"
+msgstr "Fuldførelsesfunktion"
+
+#: gtksourceview/gtksourcecompletion.ui:86
+msgid "Show detailed proposal information"
+msgstr "Vis detaljeret forslagsinformation"
+
+#: gtksourceview/gtksourcecompletion.ui:88
+msgid "_Details…"
+msgstr "_Detaljer …"
+
+#. regex_new could fail, for instance if there are different
+#. * named sub-patterns with the same name or if resulting regex is
+#. * too long. In this case fixing lang file helps (e.g. renaming
+#. * subpatterns, making huge keywords use bigger prefixes, etc.)
+#: gtksourceview/gtksourcecontextengine.c:3140
+#, c-format
+msgid ""
+"Cannot create a regex for all the transitions, the syntax highlighting "
+"process will be slower than usual.\n"
+"The error was: %s"
+msgstr ""
+"Kan ikke oprette et regulært udtryk for alle overgangene, syntaksmarkeringen "
+"vil derfor være langsommere end sædvanligt.\n"
+"Fejlen var: %s"
+
+#: gtksourceview/gtksourcecontextengine.c:4472
+msgid ""
+"Highlighting a single line took too much time, syntax highlighting will be "
+"disabled"
+msgstr ""
+"Syntaksfremhævning af en enkelt linje tog for lang tid, syntaksfremhævning "
+"vil blive slået fra"
+
+#: gtksourceview/gtksourcecontextengine.c:5720
+#, c-format
+msgid "context “%s” cannot contain a \\%%{...@start} command"
+msgstr "konteksten “%s” kan ikke indeholder en \\%%{…@start}-kommando"
+
+#: gtksourceview/gtksourcecontextengine.c:5883
+#: gtksourceview/gtksourcecontextengine.c:5973
+#, c-format
+msgid "duplicated context id “%s”"
+msgstr "duplikeret kontekst-id “%s”"
+
+#: gtksourceview/gtksourcecontextengine.c:6087
+#: gtksourceview/gtksourcecontextengine.c:6147
+#, c-format
+msgid ""
+"style override used with wildcard context reference in language “%s” in ref "
+"“%s”"
+msgstr ""
+"stiltilsidesættelse benyttet i forbindelse med wildcard-kontekstreference i "
+"sproget “%s” i ref “%s”"
+
+#: gtksourceview/gtksourcecontextengine.c:6161
+#, c-format
+msgid "invalid context reference “%s”"
+msgstr "ugyldig kontekstreference “%s”"
+
+#: gtksourceview/gtksourcecontextengine.c:6180
+#: gtksourceview/gtksourcecontextengine.c:6190
+#, c-format
+msgid "unknown context “%s”"
+msgstr "ukendt kontekst “%s”"
+
+#: gtksourceview/gtksourcecontextengine.c:6289
+#, c-format
+msgid "Missing main language definition (id = \"%s\".)"
+msgstr "Mangler hovedsprogsdefinition (id = “%s”.)"
+
+#: gtksourceview/gtksourceencoding.c:146 gtksourceview/gtksourceencoding.c:189
+#: gtksourceview/gtksourceencoding.c:191 gtksourceview/gtksourceencoding.c:193
+#: gtksourceview/gtksourceencoding.c:195 gtksourceview/gtksourceencoding.c:197
+#: gtksourceview/gtksourceencoding.c:199 gtksourceview/gtksourceencoding.c:201
+msgid "Unicode"
+msgstr "Unicode"
+
+#: gtksourceview/gtksourceencoding.c:160 gtksourceview/gtksourceencoding.c:184
+#: gtksourceview/gtksourceencoding.c:234 gtksourceview/gtksourceencoding.c:277
+msgid "Western"
+msgstr "Vestlig"
+
+#: gtksourceview/gtksourceencoding.c:162 gtksourceview/gtksourceencoding.c:236
+#: gtksourceview/gtksourceencoding.c:273
+msgid "Central European"
+msgstr "Centraleuropæisk"
+
+#: gtksourceview/gtksourceencoding.c:164
+msgid "South European"
+msgstr "Sydeuropæisk"
+
+#: gtksourceview/gtksourceencoding.c:166 gtksourceview/gtksourceencoding.c:180
+#: gtksourceview/gtksourceencoding.c:287
+msgid "Baltic"
+msgstr "Baltisk"
+
+#: gtksourceview/gtksourceencoding.c:168 gtksourceview/gtksourceencoding.c:238
+#: gtksourceview/gtksourceencoding.c:251 gtksourceview/gtksourceencoding.c:255
+#: gtksourceview/gtksourceencoding.c:257 gtksourceview/gtksourceencoding.c:275
+msgid "Cyrillic"
+msgstr "Kyrillisk"
+
+#: gtksourceview/gtksourceencoding.c:170 gtksourceview/gtksourceencoding.c:244
+#: gtksourceview/gtksourceencoding.c:285
+msgid "Arabic"
+msgstr "Arabisk"
+
+#: gtksourceview/gtksourceencoding.c:172 gtksourceview/gtksourceencoding.c:279
+msgid "Greek"
+msgstr "Græsk"
+
+#: gtksourceview/gtksourceencoding.c:174
+msgid "Hebrew Visual"
+msgstr "Hebræisk visuelt"
+
+#: gtksourceview/gtksourceencoding.c:176 gtksourceview/gtksourceencoding.c:240
+#: gtksourceview/gtksourceencoding.c:281
+msgid "Turkish"
+msgstr "Tyrkisk"
+
+#: gtksourceview/gtksourceencoding.c:178
+msgid "Nordic"
+msgstr "Nordisk"
+
+#: gtksourceview/gtksourceencoding.c:182
+msgid "Celtic"
+msgstr "Keltisk"
+
+#: gtksourceview/gtksourceencoding.c:186
+msgid "Romanian"
+msgstr "Rumænsk"
+
+#: gtksourceview/gtksourceencoding.c:204
+msgid "Armenian"
+msgstr "Armensk"
+
+#: gtksourceview/gtksourceencoding.c:206 gtksourceview/gtksourceencoding.c:208
+#: gtksourceview/gtksourceencoding.c:222
+msgid "Chinese Traditional"
+msgstr "Kinesisk traditionel"
+
+#: gtksourceview/gtksourceencoding.c:210
+msgid "Cyrillic/Russian"
+msgstr "Kyrillisk/russisk"
+
+#: gtksourceview/gtksourceencoding.c:213 gtksourceview/gtksourceencoding.c:215
+#: gtksourceview/gtksourceencoding.c:217 gtksourceview/gtksourceencoding.c:247
+#: gtksourceview/gtksourceencoding.c:262
+msgid "Japanese"
+msgstr "Japansk"
+
+#: gtksourceview/gtksourceencoding.c:220 gtksourceview/gtksourceencoding.c:249
+#: gtksourceview/gtksourceencoding.c:253 gtksourceview/gtksourceencoding.c:268
+msgid "Korean"
+msgstr "Koreansk"
+
+#: gtksourceview/gtksourceencoding.c:225 gtksourceview/gtksourceencoding.c:227
+#: gtksourceview/gtksourceencoding.c:229
+msgid "Chinese Simplified"
+msgstr "Kinesisk forenklet"
+
+#: gtksourceview/gtksourceencoding.c:231
+msgid "Georgian"
+msgstr "Georgisk"
+
+#: gtksourceview/gtksourceencoding.c:242 gtksourceview/gtksourceencoding.c:283
+msgid "Hebrew"
+msgstr "Hebræisk"
+
+#: gtksourceview/gtksourceencoding.c:259
+msgid "Cyrillic/Ukrainian"
+msgstr "Kyrillisk/ukrainsk"
+
+#: gtksourceview/gtksourceencoding.c:264 gtksourceview/gtksourceencoding.c:270
+#: gtksourceview/gtksourceencoding.c:289
+msgid "Vietnamese"
+msgstr "Vietnamesisk"
+
+#: gtksourceview/gtksourceencoding.c:266
+msgid "Thai"
+msgstr "Thai"
+
+#: gtksourceview/gtksourceencoding.c:500
+msgid "Unknown"
+msgstr "Ukendt"
+
+#. Translators: This is the sorted list of encodings used by
+#. * GtkSourceView for automatic detection of the file encoding. You may
+#. * want to customize it adding encodings that are common in your
+#. * country, for instance the GB18030 encoding for the Chinese
+#. * translation. You may also want to remove the ISO-8859-15 encoding
+#. * (covering English and most Western European languages) if you think
+#. * people in your country will rarely use it.  "CURRENT" is a magic
+#. * value used by GtkSourceView and it represents the encoding for the
+#. * current locale, so please don't translate the "CURRENT" term.  Only
+#. * recognized encodings are used. See
+#. * https://gitlab.gnome.org/GNOME/gtksourceview/blob/master/gtksourceview/gtksourceencoding.c#L142
+#. * for a list of supported encodings.
+#. * Keep the same format: square brackets, single quotes, commas.
+#.
+#: gtksourceview/gtksourceencoding.c:644
+msgid "['UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"
+msgstr "['UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"
+
+#: gtksourceview/gtksourcefileloader.c:522
+msgid ""
+"There was a character encoding conversion error and it was needed to use a "
+"fallback character."
+msgstr ""
+"Der opstod en fejl ved konvertering af tegnkodning, og det var nødvendigt at "
+"bruge et erstatningstegn."
+
+#: gtksourceview/gtksourcefileloader.c:629
+msgid "File too big."
+msgstr "Filen er for stor."
+
+#: gtksourceview/gtksourcefileloader.c:783
+msgid "Not a regular file."
+msgstr "Ikke en almindelig fil."
+
+#: gtksourceview/gtksourcefilesaver.c:981
+msgid "The file is externally modified."
+msgstr "Filen er ændret udefra."
+
+#: gtksourceview/gtksourcefilesaver.c:1433
+msgid "The buffer contains invalid characters."
+msgstr "Bufferen indeholder ugyldige tegn."
+
+#. *
+#. * SECTION:language
+#. * @Short_description: Represents a syntax highlighted language
+#. * @Title: GtkSourceLanguage
+#. * @See_also: #GtkSourceLanguageManager
+#. *
+#. * A #GtkSourceLanguage represents a programming or markup language, affecting
+#. * syntax highlighting and [context classes][context-classes].
+#. *
+#. * Use #GtkSourceLanguageManager to obtain a #GtkSourceLanguage instance, and
+#. * gtk_source_buffer_set_language() to apply it to a #GtkSourceBuffer.
+#.
+#: gtksourceview/gtksourcelanguage.c:56
+msgid "Others"
+msgstr "Andre"
+
+#: gtksourceview/gtksourcelanguage-parser-2.c:949
+#, c-format
+msgid "Unknown id “%s” in regex “%s”"
+msgstr "Ukendt id “%s” i det regulære udtryk “%s”"
+
+#: gtksourceview/gtksourcelanguage-parser-2.c:1179
+#, c-format
+msgid "in regex “%s”: backreferences are not supported"
+msgstr "i det regulære udtryk “%s”: bagudreferencer understøttes ikke"
+
+#: gtksourceview/gtksourceregex.c:128
+msgid "using \\C is not supported in language definitions"
+msgstr "brug af \\C er ikke understøttet i sprogdefinitionerne"
+
+#. TODO: have a ChooserDialog?
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:185
+msgid "Select a Style"
+msgstr "Vælg en stil"
+
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:189
+msgid "_Cancel"
+msgstr "_Annullér"
+
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:190
+msgid "_Select"
+msgstr "_Vælg"
+
+#. create redo menu_item.
+#: gtksourceview/gtksourceview.c:1727
+msgid "_Redo"
+msgstr "_Omgør"
+
+#. create undo menu_item.
+#: gtksourceview/gtksourceview.c:1738
+msgid "_Undo"
+msgstr "_Fortryd"
+
+#: gtksourceview/gtksourceview.c:1757
+msgid "All _Upper Case"
+msgstr "Alle med _store bogstaver"
+
+#: gtksourceview/gtksourceview.c:1767
+msgid "All _Lower Case"
+msgstr "Alle med s_må bogstaver"
+
+#: gtksourceview/gtksourceview.c:1777
+msgid "_Invert Case"
+msgstr "_Omvendte store/små bogstaver"
+
+#: gtksourceview/gtksourceview.c:1787
+msgid "_Title Case"
+msgstr "Ord _begynder med stort"
+
+#: gtksourceview/gtksourceview.c:1797
+msgid "C_hange Case"
+msgstr "_Ændr mellem store/små bogstaver"
+
+#~ msgid "Disabled"
+#~ msgstr "Slået fra"
+
+#~ msgid "Before"
+#~ msgstr "Før"
+
+#~ msgid "After"
+#~ msgstr "Efter"
+
+#~ msgid "Always"
+#~ msgstr "Altid"
+
+#~ msgid "ABNF"
+#~ msgstr "ABNF"
+
+#~ msgid "Comment"
+#~ msgstr "Kommentar"
+
+#~ msgid "Rule Name"
+#~ msgstr "Regelnavn"
+
+#~ msgid "Binary number"
+#~ msgstr "Binært tal"
+
+#~ msgid "Decimal number"
+#~ msgstr "Decimaltal"
+
+#~ msgid "Hexadecimal number"
+#~ msgstr "Hexadecimalt tal"
+
+#~ msgid "String"
+#~ msgstr "Streng"
+
+#~ msgid "ActionScript"
+#~ msgstr "ActionScript"
+
+#~ msgid "Error"
+#~ msgstr "Fejl"
+
+#~ msgid "External"
+#~ msgstr "Ekstern"
+
+#~ msgid "Declaration"
+#~ msgstr "Erklæring"
+
+# "Storage classes": Every C variable has a storage class and a scope. The storage class determines the part of memory where storage is allocated for an object and how long the storage allocation continues to exist. It also determines the scope which specifies the part of the program over which a variable name is visible, i.e. the variable is accessible by name. The are four storage classes in C are automatic, register, external, and static.
+#~ msgid "Storage Class"
+#~ msgstr "Lagringsklasse"
+
+# De folk jeg kender plejer at tale om "skop". Forslag efterlyses!
+#~ msgid "Scope Declaration"
+#~ msgstr "Skop-erklæring"
+
+#~ msgid "Keyword"
+#~ msgstr "Nøgleord"
+
+#~ msgid "Null Value"
+#~ msgstr "Null-værdi"
+
+#~ msgid "Boolean value"
+#~ msgstr "Boolesk værdi"
+
+#~ msgid "Number"
+#~ msgstr "Tal"
+
+#~ msgid "Future Reserved Keywords"
+#~ msgstr "Fremtidige reserverede ord"
+
+#~ msgid "Data Type"
+#~ msgstr "Datatype"
+
+#~ msgid "Ada"
+#~ msgstr "Ada"
+
+#~ msgid "Preprocessor"
+#~ msgstr "Præprocessor"
+
+#~ msgid "Arbitrary base number"
+#~ msgstr "Arbitrært grundtal"
+
+#~ msgid "Real number"
+#~ msgstr "Reelt tal"
+
+#~ msgid "Escaped Character"
+#~ msgstr "Undvegent tegn"
+
+#~ msgid "ANS-Forth94"
+#~ msgstr "ANS-Forth94"
+
+#~ msgid "Obsolete Keyword"
+#~ msgstr "Forældet nøgleord"
+
+#~ msgid "Alert"
+#~ msgstr "Påmindelse"
+
+#~ msgid "Character"
+#~ msgstr "Tegn"
+
+#~ msgid "Word"
+#~ msgstr "Ord"
+
+#~ msgid "Constant"
+#~ msgstr "Konstant"
+
+#~ msgid "Variable"
+#~ msgstr "Variable"
+
+#~ msgid "Local Variable"
+#~ msgstr "Lokal variabel"
+
+#~ msgid "Single Number"
+#~ msgstr "Enkeltpræcisionstal"
+
+#~ msgid "Double Number"
+#~ msgstr "Dobbeltpræcisionstal"
+
+#~ msgid "Float"
+#~ msgstr "Flydende tal"
+
+#~ msgid "ASP"
+#~ msgstr "ASP"
+
+#~ msgid "Function"
+#~ msgstr "Funktion"
+
+#~ msgid "Operator"
+#~ msgstr "Operator"
+
+#~ msgid "ASP Object"
+#~ msgstr "ASP-object"
+
+#~ msgid "VBScript and ADO constants"
+#~ msgstr "VBScript- og ADO-konstanter"
+
+# Specialtegn vil nok være misvisende, for så tror man det er µ og den slags. Der er snarere tale om "specielle" elementer i et sprogs syntaks (f.eks. er der overbygninger til C der benytter comments til at angive bestemte ting som kompilerdirektiver)
+#~ msgid "Special constant"
+#~ msgstr "Speciel konstant"
+
+#~ msgid "Automake"
+#~ msgstr "Automake"
+
+#~ msgid "Automake Variable"
+#~ msgstr "Automake-variabel"
+
+#~ msgid "Primary"
+#~ msgstr "Primær"
+
+#~ msgid "Secondary"
+#~ msgstr "Sekundær"
+
+#~ msgid "Prefix"
+#~ msgstr "Præfiks"
+
+#~ msgid "Optional Target"
+#~ msgstr "Valgfrit mål"
+
+#~ msgid "Built-in Target"
+#~ msgstr "Indbygget mål"
+
+#~ msgid "Other Keyword"
+#~ msgstr "Andet nøgleord"
+
+#~ msgid "Substitution"
+#~ msgstr "Substitution"
+
+#~ msgid "awk"
+#~ msgstr "awk"
+
+#~ msgid "Pattern"
+#~ msgstr "Mønster"
+
+#~ msgid "Builtin Function"
+#~ msgstr "Indbygget funktion"
+
+#~ msgid "BennuGD"
+#~ msgstr "BennuGD"
+
+#~ msgid "Identifier"
+#~ msgstr "Variabelnavn"
+
+#~ msgid "Floating point number"
+#~ msgstr "Flydende tal"
+
+#~ msgid "BibTeX"
+#~ msgstr "BibTeX"
+
+#~ msgid "Entries"
+#~ msgstr "Poster"
+
+#~ msgid "Field"
+#~ msgstr "Felt"
+
+#~ msgid "Bluespec SystemVerilog"
+#~ msgstr "Bluespec-SystemVerilog"
+
+#~ msgid "System Task"
+#~ msgstr "Systemopgave"
+
+#~ msgid "Annotation"
+#~ msgstr "Annotation"
+
+#~ msgid "Attribute"
+#~ msgstr "Attribut"
+
+#~ msgid "Import BVI"
+#~ msgstr "Importér BVI"
+
+#~ msgid "Type"
+#~ msgstr "Type"
+
+#~ msgid "Boo"
+#~ msgstr "Boo"
+
+#~ msgid "Multiline string"
+#~ msgstr "Flerlinje-streng"
+
+#~ msgid "Regular Expression"
+#~ msgstr "Regulært udtryk"
+
+#~ msgid "Namespace"
+#~ msgstr "Navnerum"
+
+#~ msgid "Definition"
+#~ msgstr "Definition"
+
+#~ msgid "Special Variable"
+#~ msgstr "Speciel variabel"
+
+#~ msgid "Boolean"
+#~ msgstr "Boolesk"
+
+#~ msgid "Bindings"
+#~ msgstr "Bindinger"
+
+#~ msgid "Included File"
+#~ msgstr "Inkluderet fil"
+
+#~ msgid "Octal number"
+#~ msgstr "Oktalt tal"
+
+#~ msgid "Swizzle operator"
+#~ msgstr "Swizzle-operator"
+
+#~ msgid "Builtin"
+#~ msgstr "Indbygget"
+
+#~ msgid "ChangeLog"
+#~ msgstr "ChangeLog"
+
+#~ msgid "Date"
+#~ msgstr "Dato"
+
+#~ msgid "Name"
+#~ msgstr "Navn"
+
+#~ msgid "E-mail address"
+#~ msgstr "E-mail-adresse"
+
+#~ msgid "File"
+#~ msgstr "Fil"
+
+#~ msgid "Bullet"
+#~ msgstr "Punkt"
+
+#~ msgid "Release"
+#~ msgstr "Udgave"
+
+#~ msgid "C"
+#~ msgstr "C"
+
+# De taler vel om #define statements
+#~ msgid "Common Defines"
+#~ msgstr "Fælles Define-erklæringer"
+
+#~ msgid "printf Conversion"
+#~ msgstr "printf-konvertering"
+
+#~ msgid "Standard stream"
+#~ msgstr "Standardstrøm"
+
+#~ msgid "Signal name"
+#~ msgstr "Signalnavn"
+
+#~ msgid "CMake"
+#~ msgstr "CMake"
+
+#~ msgid "Builtin Command"
+#~ msgstr "Indbygget kommando"
+
+#~ msgid "Deprecated Builtin Command"
+#~ msgstr "Forældet indbygget kommando"
+
+#~ msgid "Builtin Variable"
+#~ msgstr "Indbygget variabel"
+
+#~ msgid "Control Keyword"
+#~ msgstr "Kontrolnøgleord"
+
+#~ msgid "COBOL"
+#~ msgstr "COBOL"
+
+#~ msgid "Statement"
+#~ msgstr "Erklæring"
+
+#~ msgid "C++"
+#~ msgstr "C++"
+
+#~ msgid "C#"
+#~ msgstr "C#"
+
+#~ msgid "String Format"
+#~ msgstr "Strengformat"
+
+#~ msgid "CSS"
+#~ msgstr "CSS"
+
+#~ msgid "Others 2"
+#~ msgstr "Andre 2"
+
+#~ msgid "Color"
+#~ msgstr "Farve"
+
+#~ msgid "Others 3"
+#~ msgstr "Andre 3"
+
+#~ msgid "Decimal"
+#~ msgstr "Decimal"
+
+#~ msgid "Dimension"
+#~ msgstr "Dimension"
+
+#~ msgid "Property Value"
+#~ msgstr "Egenskabsværdi"
+
+#~ msgid "at-rules"
+#~ msgstr "at-regler"
+
+#~ msgid "ID Selector"
+#~ msgstr "ID-vælger"
+
+#~ msgid "Class Selector"
+#~ msgstr "Klassevælger"
+
+#~ msgid "Tag Name Selector"
+#~ msgstr "Mærkenavnsvælger"
+
+#~ msgid "CSV"
+#~ msgstr "CSV"
+
+#~ msgid "Escaped character"
+#~ msgstr "Undvegent tegn"
+
+#~ msgid "CUDA"
+#~ msgstr "CUDA"
+
+#~ msgid "Global Functions"
+#~ msgstr "Globale funktioner"
+
+#~ msgid "Device Functions"
+#~ msgstr "Enhedsfunktioner"
+
+#~ msgid "Global Variables"
+#~ msgstr "Globale variabler"
+
+#~ msgid "Defaults"
+#~ msgstr "Standard"
+
+#~ msgid "Shebang"
+#~ msgstr "Shebang"
+
+#~ msgid "Documentation comment"
+#~ msgstr "Dokumentationskommentar"
+
+#~ msgid "Documentation comment element"
+#~ msgstr "Element i dokumentationskommentar"
+
+#~ msgid "Special character (inside a string)"
+#~ msgstr "Specialtegn (i en streng)"
+
+#~ msgid "Base-N number"
+#~ msgstr "Heltal med grundtal N"
+
+#~ msgid "Complex number"
+#~ msgstr "Komplekst tal"
+
+#~ msgid "Built-in identifier"
+#~ msgstr "Indbygget variabelnavn"
+
+#~ msgid "Data type"
+#~ msgstr "Datatype"
+
+#~ msgid "Preprocessor directive"
+#~ msgstr "Direktiv til præprocessor"
+
+#~ msgid "Warning"
+#~ msgstr "Advarsel"
+
+#~ msgid "Reserved keyword"
+#~ msgstr "Reserveret nøgleord"
+
+#~ msgid "Note (FIXME, TODO, XXX, etc.)"
+#~ msgstr "Note (RETMIG, SKALFIXES o. lign.)"
+
+#~ msgid "Underlined"
+#~ msgstr "Understreget"
+
+#~ msgid "Heading 0"
+#~ msgstr "Overskrift 0"
+
+#~ msgid "Heading 1"
+#~ msgstr "Overskrift 1"
+
+#~ msgid "Heading 2"
+#~ msgstr "Overskrift 2"
+
+#~ msgid "Heading 3"
+#~ msgstr "Overskrift 3"
+
+#~ msgid "Heading 4"
+#~ msgstr "Overskrift 4"
+
+#~ msgid "Heading 5"
+#~ msgstr "Overskrift 5"
+
+#~ msgid "Heading 6"
+#~ msgstr "Overskrift 6"
+
+#~ msgid ".desktop"
+#~ msgstr ".desktop"
+
+#~ msgid "Group"
+#~ msgstr "Gruppe"
+
+#~ msgid "Key"
+#~ msgstr "Nøgle"
+
+#~ msgid "Translation"
+#~ msgstr "Oversættelse"
+
+#~ msgid "Exec parameter"
+#~ msgstr "Kørselsparameter"
+
+#~ msgid "Encoding"
+#~ msgstr "Kodning"
+
+#~ msgid "Main Category"
+#~ msgstr "Hovedkategori"
+
+#~ msgid "Additional Category"
+#~ msgstr "Ekstra kategori"
+
+#~ msgid "Reserved Category"
+#~ msgstr "Reserveret kategori"
+
+#~ msgid "Diff"
+#~ msgstr "Diff"
+
+#~ msgid "Added line"
+#~ msgstr "Tilføjet linje"
+
+#~ msgid "Removed line"
+#~ msgstr "Fjernet linje"
+
+#~ msgid "Changed line"
+#~ msgstr "Ændret linje"
+
+#~ msgid "Special case"
+#~ msgstr "Specialtilfælde"
+
+#~ msgid "Location"
+#~ msgstr "Placering"
+
+#~ msgid "Ignore"
+#~ msgstr "Ignorér"
+
+#~ msgid "D"
+#~ msgstr "D"
+
+# Specialtegn vil nok være misvisende, for så tror man det er µ og den slags. Der er snarere tale om "specielle" elementer i et sprogs syntaks (f.eks. er der overbygninger til C der benytter comments til at angive bestemte ting som kompilerdirektiver)
+#~ msgid "Special Token"
+#~ msgstr "Speciel streng"
+
+# Eftersom det hedder noget der ikke engang er et ord på engelsk, kan vi vel heller ikke tillade os at oversætte det
+#~ msgid "DocBook"
+#~ msgstr "DocBook"
+
+# Gad vide hvilken form for header de taler om
+#~ msgid "Header Elements"
+#~ msgstr "Filhovedelementer"
+
+#~ msgid "Formatting Elements"
+#~ msgstr "Formateringselementer"
+
+#~ msgid "GUI Elements"
+#~ msgstr "Elementer til grafisk brugergrænseflade"
+
+#~ msgid "Structural Elements"
+#~ msgstr "Strukturelle elementer"
+
+#~ msgid "Command"
+#~ msgstr "Kommando"
+
+#~ msgid "Graphviz Dot"
+#~ msgstr "Graphviz Dot"
+
+#~ msgid "Attribute name"
+#~ msgstr "Attribut-navn"
+
+#~ msgid "DPatch"
+#~ msgstr "DPatch"
+
+#~ msgid "Patch Start"
+#~ msgstr "Patch-start"
+
+#~ msgid "DTD"
+#~ msgstr "DTD"
+
+#~ msgid "entity"
+#~ msgstr "entitet"
+
+#~ msgid "decl"
+#~ msgstr "decl"
+
+#~ msgid "error"
+#~ msgstr "fejl"
+
+#~ msgid "Quoted Value"
+#~ msgstr "Værdi i citationstegn"
+
+#~ msgid "Eiffel"
+#~ msgstr "Eiffel"
+
+#~ msgid "Debug"
+#~ msgstr "Fejlfind"
+
+#~ msgid "Assertion"
+#~ msgstr "Assert-erklæring"
+
+#~ msgid "Design by Contract"
+#~ msgstr "Design efter kontrakt"
+
+#~ msgid "Exception Handling"
+#~ msgstr "Undtagelses-håndtering"
+
+#~ msgid "Predefined Variable"
+#~ msgstr "Prædefineret variabel"
+
+#~ msgid "Void Value"
+#~ msgstr "Void-værdi"
+
+#~ msgid "Boolean Value"
+#~ msgstr "Boolesk værdi"
+
+# Erlang er (også) et programmeringssprog
+#~ msgid "Erlang"
+#~ msgstr "Erlang"
+
+#~ msgid "Atom"
+#~ msgstr "Atom"
+
+#~ msgid "Base-N Integer"
+#~ msgstr "Heltal med grundtal N"
+
+#~ msgid "Compiler Directive"
+#~ msgstr "Kompilerdirektiv"
+
+#~ msgid "FCL"
+#~ msgstr "FCL"
+
+#~ msgid "Floating Point"
+#~ msgstr "Kommatal"
+
+#~ msgid "Block"
+#~ msgstr "Blok"
+
+#~ msgid "Reserved Constant"
+#~ msgstr "Reserveret konstant"
+
+# Forth er et programmeringssprog
+#~ msgid "Forth"
+#~ msgstr "Forth"
+
+#~ msgid "Debug Code"
+#~ msgstr "Fejlfind i kode"
+
+#~ msgid "Error Text"
+#~ msgstr "Fejltekst"
+
+#~ msgid "Fortran 95"
+#~ msgstr "Fortran 95"
+
+# intrinsic function ~ indbyggede funktioner såsom date_and_time(), random_seed() etc. -- se http://www.nsc.liu.se/~boein/f77to90/a5.html#section21
+#~ msgid "Intrinsic function"
+#~ msgstr "Indbygget funktion"
+
+#~ msgid "BOZ Literal"
+#~ msgstr "BOZ-literal"
+
+#~ msgid "OpenMP directives"
+#~ msgstr "OpenMP-direktiver"
+
+#~ msgid "F#"
+#~ msgstr "F#"
+
+#~ msgid "Floating Point number"
+#~ msgstr "Flydende tal"
+
+#~ msgid "Type, module or object keyword"
+#~ msgstr "Type, modul eller objekt-nøgleord"
+
+#~ msgid "Builtin-function keyword"
+#~ msgstr "Nøgleord for indbygget funktion"
+
+#~ msgid "Labeled argument"
+#~ msgstr "Navngivet argument"
+
+#~ msgid "Polymorphic Variant"
+#~ msgstr "Polymorfisk variant"
+
+#~ msgid "Variant Constructor"
+#~ msgstr "Konstruktørvariant"
+
+#~ msgid "Type Variable"
+#~ msgstr "Typevariabel"
+
+#~ msgid "Module Path"
+#~ msgstr "Modulsti"
+
+#~ msgid "GAP"
+#~ msgstr "GAP"
+
+#~ msgid "Thread Action"
+#~ msgstr "Trådhandling"
+
+# ?
+#~ msgid "Thread Header"
+#~ msgstr "Trådheader"
+
+# frame ~ noget med måden computeren eksekverer kode på, indviklet
+#~ msgid "Frame Number"
+#~ msgstr "Rammenummer"
+
+#~ msgid "Address"
+#~ msgstr "Adresse"
+
+#~ msgid "Filename"
+#~ msgstr "Filnavn"
+
+#~ msgid "Optimized Out"
+#~ msgstr "Optimeret væk"
+
+#~ msgid "Incomplete Sequence"
+#~ msgstr "Ufuldstændig sekvens"
+
+# ?
+#~ msgid "Prompt"
+#~ msgstr "Prompt"
+
+#~ msgid "Genie"
+#~ msgstr "Genie"
+
+#~ msgid "Builtin Constant"
+#~ msgstr "Indbygget konstant"
+
+#~ msgid "Reserved Keywords"
+#~ msgstr "Reserverede nøgleord"
+
+# http://en.wikipedia.org/wiki/Go_language
+#~ msgid "Go"
+#~ msgstr "Go"
+
+#~ msgid "Imaginary number"
+#~ msgstr "Imaginært tal"
+
+#~ msgid "gtk-doc"
+#~ msgstr "gtk-doc"
+
+#~ msgid "Inline Documentation Section"
+#~ msgstr "Afsnit i kodedokumentation"
+
+#~ msgid "Function Name"
+#~ msgstr "Funktionsnavn"
+
+#~ msgid "Signal Name"
+#~ msgstr "Signalnavn"
+
+#~ msgid "Property Name"
+#~ msgstr "Egenskabsnavn"
+
+#~ msgid "Parameter"
+#~ msgstr "Parameter"
+
+#~ msgid "Return"
+#~ msgstr "Retur"
+
+#~ msgid "Since"
+#~ msgstr "Siden"
+
+#~ msgid "Deprecated"
+#~ msgstr "Deprecieret"
+
+#~ msgid "GtkRC"
+#~ msgstr "GtkRC"
+
+#~ msgid "Widget State"
+#~ msgstr "Kontrol-tilstand"
+
+#~ msgid "Include directive"
+#~ msgstr "Inkluderingsdirektiv"
+
+# Wikipedia: "Haddock is a Free portable[1] command-line program documentation system for Haskell." Vi gætter på at dette er den rigtige oversættelse
+#~ msgid "Haddock"
+#~ msgstr "Haddock"
+
+#~ msgid "Inline Haddock Section"
+#~ msgstr "Integreret Haddock-afsnit"
+
+#~ msgid "Haddock Directive"
+#~ msgstr "Haddock-direktiv"
+
+#~ msgid "Hyperlinked Identifier"
+#~ msgstr "Hyperlænket variabelnavn"
+
+#~ msgid "Hyperlinked Module Name"
+#~ msgstr "Hyperlænket modulnavn"
+
+#~ msgid "Escape"
+#~ msgstr "Undvigelse"
+
+#~ msgid "Emphasis"
+#~ msgstr "Eftertryk"
+
+#~ msgid "Monospace"
+#~ msgstr "Monospatieret"
+
+#~ msgid "Code Block"
+#~ msgstr "Kodeblok"
+
+#~ msgid "Header Property"
+#~ msgstr "Header-egenskab"
+
+#~ msgid "Itemized list"
+#~ msgstr "Punktliste"
+
+#~ msgid "Enumerated list"
+#~ msgstr "Nummereret liste"
+
+#~ msgid "Definition list"
+#~ msgstr "Definitionsliste"
+
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "Anchor"
+#~ msgstr "Anker"
+
+#~ msgid "Haskell"
+#~ msgstr "Haskell"
+
+#~ msgid "Symbol"
+#~ msgstr "Symbol"
+
+#~ msgid "Octal"
+#~ msgstr "Oktal"
+
+#~ msgid "Hex"
+#~ msgstr "Hex"
+
+# Literate programming er noget med at programmere så tingene så vidt muligt er læselige for mennesker.
+#~ msgid "Literate Haskell"
+#~ msgstr "Litterær Haskell"
+
+#~ msgid "Haxe"
+#~ msgstr "Haxe"
+
+#~ msgid "Scope"
+#~ msgstr "Skop"
+
+#~ msgid "Metadata"
+#~ msgstr "Metadata"
+
+#~ msgid "Macro"
+#~ msgstr "Makro"
+
+#~ msgid "Identifier Prefix"
+#~ msgstr "Variabelnavns præfiks"
+
+#~ msgid "HTML"
+#~ msgstr "HTML"
+
+#~ msgid "Tag"
+#~ msgstr "Mærke"
+
+#~ msgid "Attribute Name"
+#~ msgstr "Attributnavn"
+
+#~ msgid "Attribute Value"
+#~ msgstr "Attributværdi"
+
+#~ msgid "Page title"
+#~ msgstr "Sideoverskrift"
+
+#~ msgid "Heading level 1"
+#~ msgstr "Overskrift, niveau 1"
+
+#~ msgid "Heading level 2"
+#~ msgstr "Overskrift, niveau 2"
+
+#~ msgid "Heading level 3"
+#~ msgstr "Overskrift, niveau 3"
+
+#~ msgid "Heading level 4"
+#~ msgstr "Overskrift, niveau 4"
+
+#~ msgid "Heading level 5"
+#~ msgstr "Overskrift, niveau 5"
+
+#~ msgid "IDL-Exelis"
+#~ msgstr "IDL-Exelis"
+
+#~ msgid "IDL"
+#~ msgstr "IDL"
+
+#~ msgid "ImageJ"
+#~ msgstr "ImageJ"
+
+#~ msgid "Commands"
+#~ msgstr "Kommandoer"
+
+#~ msgid "Storage Type"
+#~ msgstr "Lagringstype"
+
+#~ msgid ".ini"
+#~ msgstr ".ini"
+
+#~ msgid "Jade"
+#~ msgstr "Jade"
+
+#~ msgid "DOCTYPE"
+#~ msgstr "DOCTYPE"
+
+#~ msgid "Processing instruction"
+#~ msgstr "Processeringsinstruktion"
+
+#~ msgid "Element name"
+#~ msgstr "Elementnavn"
+
+#~ msgid "Attribute value"
+#~ msgstr "Attribut-værdi"
+
+#~ msgid "Tags"
+#~ msgstr "Mærker"
+
+#~ msgid "Entity"
+#~ msgstr "Entitet"
+
+#~ msgid "Java"
+#~ msgstr "Java"
+
+#~ msgid "JavaScript"
+#~ msgstr "JavaScript"
+
+#~ msgid "Undefined Value"
+#~ msgstr "Udefineret værdi"
+
+#~ msgid "Properties"
+#~ msgstr "Egenskaber"
+
+#~ msgid "Constructors"
+#~ msgstr "Konstruktører"
+
+#~ msgid "J"
+#~ msgstr "J"
+
+#~ msgid "Adverb"
+#~ msgstr "Adverbium"
+
+#~ msgid "Conjunction"
+#~ msgstr "Konjunktion"
+
+#~ msgid "Control"
+#~ msgstr "Kontrol"
+
+#~ msgid "Explicit Argument"
+#~ msgstr "Eksplicit argument"
+
+#~ msgid "Global"
+#~ msgstr "Global"
+
+# ???
+#~ msgid "Lab Text"
+#~ msgstr "Lab-tekst"
+
+#~ msgid "Local"
+#~ msgstr "Lokal"
+
+#~ msgid "Noun"
+#~ msgstr "Substantiv"
+
+#~ msgid "Explicit Noun Definition"
+#~ msgstr "Eksplicit substantivdefinition"
+
+#~ msgid "Parens"
+#~ msgstr "Parenteser"
+
+#~ msgid "Primitive"
+#~ msgstr "Primitiv"
+
+#~ msgid "Verb"
+#~ msgstr "Verbum"
+
+#~ msgid "Julia"
+#~ msgstr "Julia"
+
+#~ msgid "Math Constant"
+#~ msgstr "Matematisk konstant"
+
+# Specialtegn vil nok være misvisende, for så tror man det er µ og den slags. Der er snarere tale om "specielle" elementer i et sprogs syntaks (f.eks. er der overbygninger til C der benytter comments til at angive bestemte ting som kompilerdirektiver)
+#~ msgid "Special Constant"
+#~ msgstr "Speciel konstant"
+
+#~ msgid "External Command"
+#~ msgstr "Ekstern kommando"
+
+#~ msgid "Built-in Function"
+#~ msgstr "Indbygget funktion"
+
+#~ msgid "Module"
+#~ msgstr "Modul"
+
+#~ msgid "LaTeX"
+#~ msgstr "LaTeX"
+
+#~ msgid "Math Mode"
+#~ msgstr "Matematik-tilstand"
+
+#~ msgid "Inline Math Mode"
+#~ msgstr "Integreret matematik-tilstand"
+
+#~ msgid "Math Boundary"
+#~ msgstr "Matematik-grænse"
+
+#~ msgid "Include"
+#~ msgstr "Inkludering"
+
+#~ msgid "Verbatim"
+#~ msgstr "Verbatim"
+
+#~ msgid "Special Character"
+#~ msgstr "Specialtegn"
+
+#~ msgid "Part Heading"
+#~ msgstr "Deloverskrift"
+
+#~ msgid "Chapter Heading"
+#~ msgstr "Kapiteloverskrift"
+
+#~ msgid "Section Heading"
+#~ msgstr "Sektionsoverskrift"
+
+#~ msgid "SubSection Heading"
+#~ msgstr "Overskrift for undersektion"
+
+#~ msgid "SubSubSection Heading"
+#~ msgstr "Overskrift for under-undersektion"
+
+#~ msgid "Paragraph Heading"
+#~ msgstr "Afsnitsoverskrift"
+
+#~ msgid "SubParagraph Heading"
+#~ msgstr "Underafsnitsoverskrift"
+
+#~ msgid "Lex"
+#~ msgstr "Lex"
+
+# ?
+#~ msgid "Token"
+#~ msgstr "Symbol"
+
+#~ msgid "Expression"
+#~ msgstr "Udtryk"
+
+#~ msgid "libtool"
+#~ msgstr "libtool"
+
+#~ msgid "Constants"
+#~ msgstr "Konstanter"
+
+# Lua er navnet på et programmeringssprog, som jo ikke skal oversættes! Vi må hellere være forsigtige med hvad der oversættes, eftersom de tydeligvis ikke har tænkt over hvilke strenge der skal gennem gettext
+#~ msgid "Lua"
+#~ msgstr "Lua"
+
+#~ msgid "Reserved Identifier"
+#~ msgstr "Reserveret variabelnavn"
+
+#~ msgid "Label"
+#~ msgstr "Mærkat"
+
+#~ msgid "Nil Constant"
+#~ msgstr "Nil-konstant"
+
+#~ msgid "m4"
+#~ msgstr "m4"
+
+#~ msgid "m4 Comment"
+#~ msgstr "m4-kommentar"
+
+#~ msgid "m4 Macro"
+#~ msgstr "m4-makro"
+
+#~ msgid "Autoconf Macro"
+#~ msgstr "Autoconf-makro"
+
+#~ msgid "Obsolete Autoconf Macro"
+#~ msgstr "Forældet Autoconf-makro"
+
+#~ msgid "Makefile"
+#~ msgstr "Makefile"
+
+#~ msgid "Assignment Right Hand Side"
+#~ msgstr "Højreside af tildeling"
+
+#~ msgid "Assignment Left Hand Side"
+#~ msgstr "Venstreside af tildeling"
+
+#~ msgid "targets"
+#~ msgstr "mål"
+
+#~ msgid "prereq"
+#~ msgstr "krævet"
+
+#~ msgid "command"
+#~ msgstr "kommando"
+
+#~ msgid "Trailing Tab"
+#~ msgstr "Efterfølgende tabulatortegn"
+
+#~ msgid "function"
+#~ msgstr "funktion"
+
+#~ msgid "keyword"
+#~ msgstr "nøgleord"
+
+#~ msgid "Mallard"
+#~ msgstr "Mallard"
+
+# Gad vide hvilken form for header de taler om
+#~ msgid "Page Elements"
+#~ msgstr "Sideelementer"
+
+#~ msgid "Section Elements"
+#~ msgstr "Sektionselementer"
+
+#~ msgid "Block Elements"
+#~ msgstr "Blokelementer"
+
+#~ msgid "Inline Elements"
+#~ msgstr "Integrerede elementer"
+
+#~ msgid "Markdown"
+#~ msgstr "Markering"
+
+# Header-filer ved man hvad er. Vi må hellere kalde det header.
+#~ msgid "Header"
+#~ msgstr "Header"
+
+#~ msgid "Horizontal Rule"
+#~ msgstr "Vandret lineal"
+
+#~ msgid "List Marker"
+#~ msgstr "Listemarkør"
+
+#~ msgid "Code"
+#~ msgstr "Kode"
+
+#~ msgid "Blockquote Marker"
+#~ msgstr "Citatbloksmarkør"
+
+#~ msgid "Link Text"
+#~ msgstr "Henvisningstekst"
+
+#~ msgid "Image Marker"
+#~ msgstr "Billedmarkør"
+
+#~ msgid "Strong Emphasis"
+#~ msgstr "Stærk fremhævning"
+
+#~ msgid "Backslash Escape"
+#~ msgstr "Undvigelse med omvendt skråstreg"
+
+#~ msgid "Line Break"
+#~ msgstr "Linjeskift"
+
+#~ msgid "Matlab"
+#~ msgstr "Matlab"
+
+#~ msgid "Maxima"
+#~ msgstr "Maxima"
+
+#~ msgid "MediaWiki"
+#~ msgstr "MediaWiki"
+
+#~ msgid "Light Emphasis"
+#~ msgstr "Let eftertryk"
+
+#~ msgid "Signature"
+#~ msgstr "Underskrift"
+
+#~ msgid "Link"
+#~ msgstr "Henvisning"
+
+#~ msgid "Symbol on a Link"
+#~ msgstr "Symbol på en henvisning"
+
+#~ msgid "Line"
+#~ msgstr "Linje"
+
+#~ msgid "List"
+#~ msgstr "Liste"
+
+#~ msgid "Magic Word"
+#~ msgstr "Magisk ord"
+
+#~ msgid "Symbol of a Table"
+#~ msgstr "Symbol for en tabel"
+
+#~ msgid "Preformatted"
+#~ msgstr "Præformateret"
+
+#~ msgid "Redirect"
+#~ msgstr "Omdirigér"
+
+#~ msgid "Title"
+#~ msgstr "Titel"
+
+#~ msgid "Meson"
+#~ msgstr "Meson"
+
+#~ msgid "Modelica"
+#~ msgstr "Modelica"
+
+#~ msgid "Class type"
+#~ msgstr "Klassetype"
+
+#~ msgid "Default Attribute"
+#~ msgstr "Standardattribut"
+
+#~ msgid "MXML"
+#~ msgstr "MXML"
+
+#~ msgid "CDATA delimiter"
+#~ msgstr "CDATA-afgrænser"
+
+#~ msgid "Nemerle"
+#~ msgstr "Nemerle"
+
+#~ msgid "NetRexx"
+#~ msgstr "NetRexx"
+
+#~ msgid "Externals"
+#~ msgstr "Eksterne"
+
+#~ msgid "Options"
+#~ msgstr "Indstillinger"
+
+#~ msgid "Data Types"
+#~ msgstr "Datatyper"
+
+# Hmm, de opnåede halvdelen af deres mål i fixme
+#~ msgid "Special"
+#~ msgstr "Speciel"
+
+#~ msgid "Visibility"
+#~ msgstr "Synlighed"
+
+#~ msgid "Modifiers"
+#~ msgstr "Modifikatorer"
+
+#~ msgid "Keywords"
+#~ msgstr "Reserverede ord"
+
+#~ msgid "Sub Keywords"
+#~ msgstr "Undernøgleord"
+
+#~ msgid "NSIS"
+#~ msgstr "NSIS"
+
+#~ msgid "Objective-C"
+#~ msgstr "Objective-C"
+
+#~ msgid "Objective-J"
+#~ msgstr "Objective-J"
+
+#~ msgid "OCaml"
+#~ msgstr "OCaml"
+
+#~ msgid "Ocamldoc Comments"
+#~ msgstr "Ocamldoc-kommentarer"
+
+#~ msgid "Standard Modules"
+#~ msgstr "Standardmoduler"
+
+#~ msgid "OCL"
+#~ msgstr "OCL"
+
+#~ msgid "Type Operators"
+#~ msgstr "Typeoperatorer"
+
+# ?????
+#~ msgid "Operation operator"
+#~ msgstr "Operationsoperator"
+
+#~ msgid "Octave"
+#~ msgstr "Octave"
+
+#~ msgid "Package Manager"
+#~ msgstr "Pakkehåndtering"
+
+#~ msgid "OOC"
+#~ msgstr "OOC"
+
+#~ msgid "Opal"
+#~ msgstr "Opal"
+
+#~ msgid "Module Handler"
+#~ msgstr "Modulstyring"
+
+#~ msgid "Keysymbol"
+#~ msgstr "Nøglesymbol"
+
+#~ msgid "OpenCL"
+#~ msgstr "OpenCL"
+
+#~ msgid "Global Function"
+#~ msgstr "Global funktion"
+
+#~ msgid "Device Function"
+#~ msgstr "Enhedsfunktion"
+
+# Måske?
+#~ msgid "Device Cast"
+#~ msgstr "Enheds-cast"
+
+# Specialtegn vil nok være misvisende, for så tror man det er µ og den slags. Der er snarere tale om "specielle" elementer i et sprogs syntaks (f.eks. er der overbygninger til C der benytter comments til at angive bestemte ting som kompilerdirektiver)
+#~ msgid "OpenCL Constant"
+#~ msgstr "OpenCL-konstant"
+
+#~ msgid "Global Variable"
+#~ msgstr "Global variabel"
+
+#~ msgid "Pascal"
+#~ msgstr "Pascal"
+
+#~ msgid "Perl"
+#~ msgstr "Perl"
+
+#~ msgid "Line Directive"
+#~ msgstr "Linjedirektiv"
+
+#~ msgid "Include Statement"
+#~ msgstr "Include-erklæring"
+
+#~ msgid "Heredoc"
+#~ msgstr "Heredoc"
+
+#~ msgid "Heredoc Bound"
+#~ msgstr "Heredoc-afgrænsning"
+
+#~ msgid "System Command"
+#~ msgstr "Systemkommando"
+
+#~ msgid "File Descriptor"
+#~ msgstr "Fildeskriptor"
+
+# POD = plain old documentation
+#~ msgid "POD"
+#~ msgstr "Dokumentation"
+
+# Der er nogle hits på google der tyder på at denne oversættelse ikke er helt af vejen
+#~ msgid "POD Escape"
+#~ msgstr "POD-undvigesekvens"
+
+#~ msgid "POD keyword"
+#~ msgstr "POD-nøgleord"
+
+# ?????
+#~ msgid "POD heading"
+#~ msgstr "POD-heading"
+
+#~ msgid "PHP"
+#~ msgstr "PHP"
+
+#~ msgid "Preprocessor tags"
+#~ msgstr "Præprocessormærker"
+
+# kunne også være fælles funktion, men jeg kan ikke finde noget med google der tyder på det
+#~ msgid "Common Function"
+#~ msgstr "Almindelig funktion"
+
+#~ msgid "Pig"
+#~ msgstr "Gris"
+
+#~ msgid "Reserved Words"
+#~ msgstr "Reserverede ord"
+
+#~ msgid "Built In Functions"
+#~ msgstr "Indbyggede funktioner"
+
+#~ msgid "Boolean values"
+#~ msgstr "Booleske værdier"
+
+#~ msgid "Null"
+#~ msgstr "Nul"
+
+# Det lyder ikke som noget der bør oversættes
+#~ msgid "pkg-config"
+#~ msgstr "pkg-config"
+
+#~ msgid "Package Info"
+#~ msgstr "Pakkeinformation"
+
+# Det hedder 'uafklaret' i gettexts oversættelse, og derfor bruges samme oversættelse her
+#~ msgid "Fuzzy"
+#~ msgstr "Uafklaret"
+
+#~ msgid "Prolog"
+#~ msgstr "Prolog"
+
+# ???
+#~ msgid "Puppet"
+#~ msgstr "Puppet"
+
+#~ msgid "Resources"
+#~ msgstr "Ressourcer"
+
+#~ msgid "Parameters"
+#~ msgstr "Parametre"
+
+#~ msgid "Metaparameters"
+#~ msgstr "Metaparametre"
+
+#~ msgid "Functions"
+#~ msgstr "Funktioner"
+
+#~ msgid "Values"
+#~ msgstr "Værdier"
+
+#~ msgid "Variables"
+#~ msgstr "Variabler"
+
+#~ msgid "Class names"
+#~ msgstr "Klassenavne"
+
+#~ msgid "Python 3"
+#~ msgstr "Python 3"
+
+#~ msgid "Format"
+#~ msgstr "Format"
+
+#~ msgid "Builtin Object"
+#~ msgstr "Indbygget objekt"
+
+#~ msgid "Python"
+#~ msgstr "Python"
+
+#~ msgid "String Conversion"
+#~ msgstr "Strengkonvertering"
+
+#~ msgid "Class Name"
+#~ msgstr "Klassenavn"
+
+#~ msgid "Decorator"
+#~ msgstr "Dekorator"
+
+#~ msgid "R"
+#~ msgstr "R"
+
+#~ msgid "Reserved Class"
+#~ msgstr "Reserveret klasse"
+
+#~ msgid "Assignment Operator"
+#~ msgstr "Tildelingsoperator"
+
+#~ msgid "Delimiter"
+#~ msgstr "Afgrænser"
+
+#~ msgid "Integer Number"
+#~ msgstr "Heltal"
+
+# Velsagtens #define
+#~ msgid "Define"
+#~ msgstr "Define"
+
+#~ msgid "Section"
+#~ msgstr "Sektion"
+
+#~ msgid "Spec Macro"
+#~ msgstr "Spec-makro"
+
+# Jeg ved ikke hvad dette er, måske har nogen en bedre oversættelse
+#~ msgid "Directory Macro"
+#~ msgstr "Directory makro"
+
+#~ msgid "Command Macro"
+#~ msgstr "Kommandomakro"
+
+#~ msgid "Conditional Macro"
+#~ msgstr "Betinget makro"
+
+#~ msgid "Other Macro"
+#~ msgstr "Anden makro"
+
+#~ msgid "Flow Conditional"
+#~ msgstr "Gennemløbsbetingelse"
+
+#~ msgid "RPM Variable"
+#~ msgstr "RPM-variabel"
+
+# Man taler også om en switch på dansk
+#~ msgid "Switch"
+#~ msgstr "Switch"
+
+#~ msgid "Email"
+#~ msgstr "E-mail-adresse"
+
+#~ msgid "reStructuredText"
+#~ msgstr "reStructuredText"
+
+#~ msgid "Directive"
+#~ msgstr "Direktiv"
+
+#~ msgid "Ruby"
+#~ msgstr "Ruby"
+
+#~ msgid "Attribute Definition"
+#~ msgstr "Attributdefinition"
+
+#~ msgid "Module handler"
+#~ msgstr "Modulhåndtering"
+
+#~ msgid "Numeric literal"
+#~ msgstr "Talliteral"
+
+#~ msgid "Literal"
+#~ msgstr "Literal"
+
+#~ msgid "Rust"
+#~ msgstr "Rust"
+
+# programmeringssproget Scala
+#~ msgid "Scala"
+#~ msgstr "Scala"
+
+#~ msgid "Modifier"
+#~ msgstr "Modifikator"
+
+#~ msgid "Built In"
+#~ msgstr "Indbygget"
+
+#~ msgid "XML Tag"
+#~ msgstr "XML-mærke"
+
+#~ msgid "Scheme"
+#~ msgstr "Scheme"
+
+#~ msgid "Scilab"
+#~ msgstr "Scilab"
+
+#~ msgid "sh"
+#~ msgstr "sh"
+
+#~ msgid "Variable Definition"
+#~ msgstr "Variabeldefinition"
+
+#~ msgid "Common Commands"
+#~ msgstr "Almindelige kommandoer"
+
+#~ msgid "Subshell"
+#~ msgstr "Underskal"
+
+#~ msgid "Standard ML"
+#~ msgstr "Standard ML"
+
+#~ msgid "Module name, Variant, etc"
+#~ msgstr "Modulnavn, Variant, osv"
+
+#~ msgid "SPARQL"
+#~ msgstr "SPARQL"
+
+#~ msgid "Class"
+#~ msgstr "Klasse"
+
+#~ msgid "Individual"
+#~ msgstr "Individuel"
+
+#~ msgid "Predicate"
+#~ msgstr "Prædikat"
+
+#~ msgid "QName"
+#~ msgstr "QName"
+
+#~ msgid "IRI"
+#~ msgstr "IRI"
+
+#~ msgid "SQL"
+#~ msgstr "SQL"
+
+#~ msgid "No idea what it is"
+#~ msgstr "Ingen idé om hvad det er"
+
+# navn
+# http://en.wikipedia.org/wiki/Sweave
+#~ msgid "Sweave"
+#~ msgstr "Sweave"
+
+#~ msgid "Swift"
+#~ msgstr "Swift"
+
+#~ msgid "Builtin Value"
+#~ msgstr "Indbygget værdi"
+
+#~ msgid "Compiler Control"
+#~ msgstr "Kompilerkontrol"
+
+#~ msgid "Interpolated Expression"
+#~ msgstr "Interpoleret udtryk"
+
+#~ msgid "SystemVerilog"
+#~ msgstr "SystemVerilog"
+
+#~ msgid "txt2tags"
+#~ msgstr "txt2tags"
+
+#~ msgid "Option"
+#~ msgstr "Indstilling"
+
+#~ msgid "Option Name"
+#~ msgstr "Indstillingsnavn"
+
+#~ msgid "Section 1"
+#~ msgstr "Sektion 1"
+
+#~ msgid "Section 2"
+#~ msgstr "Sektion 2"
+
+#~ msgid "Section 3"
+#~ msgstr "Sektion 3"
+
+#~ msgid "Section 4"
+#~ msgstr "Sektion 4"
+
+#~ msgid "Section 5"
+#~ msgstr "Sektion 5"
+
+#~ msgid "Italic"
+#~ msgstr "Kursiv"
+
+#~ msgid "Bold"
+#~ msgstr "Fed"
+
+#~ msgid "Verbatim Block"
+#~ msgstr "Ordret blok"
+
+#~ msgid "Tcl"
+#~ msgstr "Tcl"
+
+#~ msgid "Texinfo"
+#~ msgstr "Texinfo"
+
+#~ msgid "Macros"
+#~ msgstr "Makroer"
+
+#~ msgid "File Attributes"
+#~ msgstr "Filattributter"
+
+#~ msgid "Generated Content"
+#~ msgstr "Genereret indhold"
+
+# Tror det er dette:
+#
+# http://en.wikipedia.org/wiki/Apache_Thrift
+#~ msgid "Thrift"
+#~ msgstr "Thrift"
+
+#~ msgid "Vala"
+#~ msgstr "Vala"
+
+#~ msgid "VB.NET"
+#~ msgstr "VB.NET"
+
+#~ msgid "Verilog"
+#~ msgstr "Verilog"
+
+#~ msgid "IEEE System Task"
+#~ msgstr "IEEE-systemopgave"
+
+#~ msgid "LRM Additional System Task"
+#~ msgstr "Ekstra LRM-systemopgave"
+
+#~ msgid "Gate"
+#~ msgstr "Port"
+
+#~ msgid "VHDL"
+#~ msgstr "VHDL"
+
+#~ msgid "XML"
+#~ msgstr "XML"
+
+#~ msgid "XSLT"
+#~ msgstr "XSLT"
+
+#~ msgid "Element"
+#~ msgstr "Element"
+
+#~ msgid "Yacc"
+#~ msgstr "Yacc"
+
+# ?
+#~ msgid "token type"
+#~ msgstr "symboltype"
+
+#~ msgid "rule"
+#~ msgstr "regel"
+
+#~ msgid "YAML"
+#~ msgstr "YAML"
+
+#~ msgid "Block literal"
+#~ msgstr "Blokliteral"
+
+#~ msgid "Alias"
+#~ msgstr "Alias"
+
+#~ msgid "Map key"
+#~ msgstr "Afbild tast"
+
+#~ msgid "Integer"
+#~ msgstr "Heltal"
+
+#~ msgid "Floating point"
+#~ msgstr "Flydende kommatal"
+
+#~ msgid "Kate"
+#~ msgstr "Kate"
+
+#~ msgid "Space"
+#~ msgstr "Mellemrum"
+
+#~ msgid "Tab"
+#~ msgstr "Tabulator"
+
+#~ msgid "Newline"
+#~ msgstr "Lineskift"
+
+#~ msgid "Non Breaking Whitespace"
+#~ msgstr "Uombrydelige blanke tegn"
+
+#~ msgid "Leading"
+#~ msgstr "Indledende"
+
+#~ msgid "Text"
+#~ msgstr "Tekst"
+
+#~ msgid "Trailing"
+#~ msgstr "Efterfølgende"
+
+#~ msgid "Escaped Characters"
+#~ msgstr "Undvigelsestegn"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Ask Hjorth Larsen\n"
+#~ "Kenneth Nielsen\n"
+#~ "\n"
+#~ "Dansk-gruppen <dansk@dansk-gruppen.dk\n"
+#~ "Mere info: http://www.dansk-gruppen.dk"
+
+#~ msgid "View"
+#~ msgstr "Vis"
+
+#~ msgid "The view this widget is mapping."
+#~ msgstr "Visningen som denne kontrol kortlægger."
+
+#~ msgid "Font Description"
+#~ msgstr "Skrifttypebeskrivelse"
+
+#~ msgid "The Pango font description to use."
+#~ msgstr "Pango-skrifttypebeskrivelse som skal anvendes."
+
+#~ msgid "GtkSourceView"
+#~ msgstr "GtkSourceView"
+
+#~ msgctxt "Object"
+#~ msgid "Name"
+#~ msgstr "Navn"
+
+# Tilsyneladende er der tale om funktioner (bemærk kildehenisning fra 'completion-providers'), der på forskellig vis tilbyder at autofuldføre strenge
+#~ msgid "The provider name"
+#~ msgstr "Navn på fuldførelsesfunktion"
+
+#~ msgid "Icon"
+#~ msgstr "Ikon"
+
+# Min fortolkning: der findes forskellige 'providers' af autofuldførelsesforslag
+#~ msgid "The provider icon"
+#~ msgstr "Ikon for fuldførelsesfunktion"
+
+# Min fortolkning baseret på denne og efterfølgende strenge: ved autofuldførelse kommer der en masse forskellige forslag, og dette er en gruppe af sådanne.
+#~ msgid "Proposals Batch Size"
+#~ msgstr "Gruppestørrelse for forslag"
+
+#~ msgid "Number of proposals added in one batch"
+#~ msgstr "Antal forslag, der føjes til én gruppe"
+
+#~ msgid "Scan Batch Size"
+#~ msgstr "Gruppestørrelse for scanning"
+
+#~ msgid "Number of lines scanned in one batch"
+#~ msgstr "Antal linjer, der scannes i en gruppe"
+
+#~ msgid "Minimum Word Size"
+#~ msgstr "Mindste ordstørrelse"
+
+#~ msgid "The minimum word size to complete"
+#~ msgstr "Mindste ordstørrelse for fuldførelse"
+
+# jf strengen under
+#~ msgid "Interactive Delay"
+#~ msgstr "Ventetid for interaktiv fuldførelse"
+
+#~ msgid "The delay before initiating interactive completion"
+#~ msgstr "Ventetiden før interaktiv fuldførelse påbegyndes"
+
+#~ msgid "Priority"
+#~ msgstr "Prioritet"
+
+#~ msgid "Provider priority"
+#~ msgstr "Prioritet for fuldførelsesfunktion"
+
+#~ msgid "Activation"
+#~ msgstr "Aktivering"
+
+#~ msgid "The type of activation"
+#~ msgstr "Typen af aktivering"
+
+#~ msgid "Highlight Syntax"
+#~ msgstr "Fremhæv syntaks"
+
+#~ msgid "Whether to highlight syntax in the buffer"
+#~ msgstr "Om syntaksen i bufferen skal fremhæves"
+
+#~ msgid "Highlight Matching Brackets"
+#~ msgstr "Fremhæv samhørende parenteser"
+
+#~ msgid "Whether to highlight matching brackets"
+#~ msgstr "Om samhørende parenteser skal fremhæves"
+
+#~ msgid "Maximum Undo Levels"
+#~ msgstr "Fortrydelsesniveauer"
+
+#~ msgid "Number of undo levels for the buffer"
+#~ msgstr "Antal fortrydelsesniveauer for bufferen"
+
+#~ msgid "Language"
+#~ msgstr "Sprog"
+
+#~ msgid "Language object to get highlighting patterns from"
+#~ msgstr "Sprogobjekt som fremhævningsmønstre skal hentes fra"
+
+#~ msgid "Can undo"
+#~ msgstr "Kan fortryde"
+
+#~ msgid "Whether Undo operation is possible"
+#~ msgstr "Om fortrydelsesoperationen er mulig"
+
+#~ msgid "Can redo"
+#~ msgstr "Kan omgøre"
+
+#~ msgid "Whether Redo operation is possible"
+#~ msgstr "Om Omgør-operationen er mulig"
+
+#~ msgid "Style scheme"
+#~ msgstr "Stilskema"
+
+#~ msgid "Undo manager"
+#~ msgstr "Fortrydelseshåndtering"
+
+#~ msgid "The buffer undo manager"
+#~ msgstr "Bufferens fortrydelseshåndtering"
+
+#~ msgid "Implicit trailing newline"
+#~ msgstr "Implicit afsluttende linjeskift"
+
+#~ msgid "The GtkSourceView bound to the completion"
+#~ msgstr "GtkSourceView'et, der er bundet til fuldførelsen"
+
+#~ msgid "Remember Info Visibility"
+#~ msgstr "Husk synlighed af info"
+
+#~ msgid "Remember the last info window visibility state"
+#~ msgstr "Husk sidste synlighedstilstand for infovinduet"
+
+#~ msgid "Select first proposal when completion is shown"
+#~ msgstr "Vælg første forslag, når fuldførelse vises"
+
+#~ msgid "Show Headers"
+#~ msgstr "Vis overskrifter"
+
+#~ msgid ""
+#~ "Show provider headers when proposals from multiple providers are available"
+#~ msgstr ""
+#~ "Vis overskrifter for fuldførelsesfunktioner, når der er tilgængelige "
+#~ "forslag fra flere fuldførelsesfunktioner"
+
+#~ msgid "Show Icons"
+#~ msgstr "Vis ikoner"
+
+#~ msgid "Show provider and proposal icons in the completion popup"
+#~ msgstr "Vis fuldførelsesfunktion og forslagsikoner i fuldførelses-pop op"
+
+#~ msgid "Accelerators"
+#~ msgstr "Genveje"
+
+#~ msgid "Number of proposal accelerators to show"
+#~ msgstr "Antal forslagsgenveje, der skal vises"
+
+#~ msgid "Auto Complete Delay"
+#~ msgstr "Ventetid for autofuldførelse"
+
+#~ msgid "Completion popup delay for interactive completion"
+#~ msgstr "Ventetid før interaktiv fuldførelses-pop op vises"
+
+#~ msgid "Provider Page Size"
+#~ msgstr "Sidestørrelse for fuldførelsesfunktion"
+
+#~ msgid "Provider scrolling page size"
+#~ msgstr "Rullesidestørrelse for fuldførelsesfunktion"
+
+#~ msgid "Proposal Page Size"
+#~ msgstr "Størrelse af forslagsside"
+
+#~ msgid "Proposal scrolling page size"
+#~ msgstr "Størrelse af rulleside med forslag"
+
+#~ msgid "The completion object to which the context belongs"
+#~ msgstr "Fuldførelsesobjektet, som konteksten tilhører"
+
+#~ msgid "Iterator"
+#~ msgstr "Iterator"
+
+#~ msgid "The GtkTextIter at which the completion was invoked"
+#~ msgstr "GtkTextIter-objektet, hvorpå fuldførelsen blev udført"
+
+#~ msgid "Label to be shown for this item"
+#~ msgstr "Etiket, der skal vises for dette element"
+
+#~ msgid "Markup to be shown for this item"
+#~ msgstr "Opmærkning, der skal vises for dette element"
+
+#~ msgid "Item text"
+#~ msgstr "Elementtekst"
+
+#~ msgid "Icon to be shown for this item"
+#~ msgstr "Ikon, der skal vises for dette element"
+
+#~ msgid "Info"
+#~ msgstr "Info"
+
+#~ msgid "Info to be shown for this item"
+#~ msgstr "Information, der skal vises for dette element"
+
+#~ msgid "Newline type"
+#~ msgstr "Type af linjeskift"
+
+#~ msgid "Compression type"
+#~ msgstr "Komprimeringstype"
+
+#~ msgid "Input stream"
+#~ msgstr "Inputstrøm"
+
+#~ msgid "Flags"
+#~ msgstr "Flag"
+
+#~ msgid "The gutters' GtkSourceView"
+#~ msgstr "Sidefeltets GtkSourceView"
+
+#~ msgid "Window Type"
+#~ msgstr "Vinduestype"
+
+#~ msgid "The gutters' text window type"
+#~ msgstr "Sidefeltets tekstvinduestype"
+
+#~ msgid "X Padding"
+#~ msgstr "X-udfyldning"
+
+#~ msgid "The x-padding"
+#~ msgstr "X-udfyldningen"
+
+#~ msgid "Y Padding"
+#~ msgstr "Y-udfyldning"
+
+#~ msgid "The y-padding"
+#~ msgstr "Y-udfyldningen"
+
+#~ msgid "Visible"
+#~ msgstr "Synlig"
+
+#~ msgid "X Alignment"
+#~ msgstr "X-justering"
+
+#~ msgid "The x-alignment"
+#~ msgstr "X-justeringen"
+
+#~ msgid "Y Alignment"
+#~ msgstr "Y-justering"
+
+#~ msgid "The y-alignment"
+#~ msgstr "Y-justeringen"
+
+#~ msgid "The View"
+#~ msgstr "Visningen"
+
+#~ msgid "The view"
+#~ msgstr "Visningen"
+
+#~ msgid "Alignment Mode"
+#~ msgstr "Justeringstilstand"
+
+#~ msgid "The alignment mode"
+#~ msgstr "Justeringstilstanden"
+
+#~ msgid "The window type"
+#~ msgstr "Vinduestypen"
+
+#~ msgid "Size"
+#~ msgstr "Størrelse"
+
+#~ msgid "The size"
+#~ msgstr "Størrelsen"
+
+#~ msgid "Pixbuf"
+#~ msgstr "Pixbuf"
+
+# fantastisk
+#~ msgid "The pixbuf"
+#~ msgstr "Pixbuffen"
+
+#~ msgid "Stock Id"
+#~ msgstr "Lager-id"
+
+#~ msgid "The stock id"
+#~ msgstr "Lager-id'et"
+
+#~ msgid "Icon Name"
+#~ msgstr "Ikonnavn"
+
+#~ msgid "The icon name"
+#~ msgstr "Ikonnavnet"
+
+#~ msgid "GIcon"
+#~ msgstr "GIcon"
+
+# Det er nogle fantastisk hjælpsomme forklaringer de her...
+#~ msgid "The gicon"
+#~ msgstr "GIcon-objektet"
+
+#~ msgid "The markup"
+#~ msgstr "Opmærkningen"
+
+#~ msgid "The text"
+#~ msgstr "Teksten"
+
+#~ msgid "Language id"
+#~ msgstr "Sprog-id"
+
+#~ msgid "Language name"
+#~ msgstr "Sprognavn"
+
+#~ msgid "Language section"
+#~ msgstr "Sprogafsnit"
+
+#~ msgid "Hidden"
+#~ msgstr "Skjult"
+
+#~ msgid "Whether the language should be hidden from the user"
+#~ msgstr "Om sproget skal skjules fra brugeren"
+
+#~ msgid "Language specification directories"
+#~ msgstr "Sprogspecifikationsmapper"
+
+#~ msgid ""
+#~ "List of directories where the language specification files (.lang) are "
+#~ "located"
+#~ msgstr "Liste af mapper hvor sprogspecifikationsfilerne (.lang) er placeret"
+
+#~ msgid "Language ids"
+#~ msgstr "Sprog-id'er"
+
+#~ msgid "List of the ids of the available languages"
+#~ msgstr "Liste af id'erne for de tilgængelige sprog"
+
+#~ msgid "Background"
+#~ msgstr "Baggrund"
+
+#~ msgid "The background"
+#~ msgstr "Baggrunden"
+
+#~ msgid "The GIcon"
+#~ msgstr "GIcon-objektet"
+
+#~ msgid "category"
+#~ msgstr "kategori"
+
+#~ msgid "The mark category"
+#~ msgstr "Opmærkningskategorien"
+
+#~ msgid "Source Buffer"
+#~ msgstr "Kildekodebuffer"
+
+#~ msgid "The GtkSourceBuffer object to print"
+#~ msgstr "GtkSourceBuffer-objekt at skrive ud"
+
+#~ msgid "Tab Width"
+#~ msgstr "Tabulatorbredde"
+
+#~ msgid "Width of a tab character expressed in spaces"
+#~ msgstr "Bredde af et tabulatortegn udtrykt i mellemrumstegn"
+
+#~ msgid "Wrap Mode"
+#~ msgstr "Ombrydnings-tilstand"
+
+#~ msgid ""
+#~ "Whether to wrap lines never, at word boundaries, or at character "
+#~ "boundaries."
+#~ msgstr ""
+#~ "Om linjer skal ombrydes aldrig, ved ordgrænser eller ved tegngrænser."
+
+#~ msgid "Whether to print the document with highlighted syntax"
+#~ msgstr "Om dokumentet skal udskrives med fremhævet syntaks"
+
+#~ msgid "Print Line Numbers"
+#~ msgstr "Udskriv linjenumre"
+
+#~ msgid "Interval of printed line numbers (0 means no numbers)"
+#~ msgstr "Interval for udskrevne linjenumre (0 betyder ingen numre)"
+
+#~ msgid "Print Header"
+#~ msgstr "Udskriv sidehoved"
+
+#~ msgid "Whether to print a header in each page"
+#~ msgstr "Om der skal udskrives et sidehoved på hver side"
+
+#~ msgid "Print Footer"
+#~ msgstr "Udskriv sidefod"
+
+#~ msgid "Whether to print a footer in each page"
+#~ msgstr "Om der skal udskrives en sidefod på hver side"
+
+#~ msgid "Body Font Name"
+#~ msgstr "Tekstkrop-skrifttype"
+
+#~ msgid "Name of the font to use for the text body (e.g. \"Monospace 10\")"
+#~ msgstr ""
+#~ "Skrifttype som skal anvendes til tekstkroppen (f.eks. “Monospace 10”)"
+
+#~ msgid "Line Numbers Font Name"
+#~ msgstr "Linjenummer-skrifttype"
+
+#~ msgid "Name of the font to use for the line numbers (e.g. \"Monospace 10\")"
+#~ msgstr "Skrifttype som skal anvendes til linjenumre (f.eks. “Monospace 10”)"
+
+#~ msgid "Header Font Name"
+#~ msgstr "Sidehoved-skrifttype"
+
+#~ msgid "Name of the font to use for the page header (e.g. \"Monospace 10\")"
+#~ msgstr ""
+#~ "Skrifttype som skal anvendes til sidehoveder (f.eks. “Monospace 10”)"
+
+#~ msgid "Footer Font Name"
+#~ msgstr "Sidefod-skrifttype"
+
+#~ msgid "Name of the font to use for the page footer (e.g. \"Monospace 10\")"
+#~ msgstr "Skrifttype som skal anvendes til sidefod (f.eks. “Monospace 10”)"
+
+#~ msgid "Number of pages"
+#~ msgstr "Antal sider"
+
+#~ msgid ""
+#~ "The number of pages in the document (-1 means the document has not been "
+#~ "completely paginated)."
+#~ msgstr ""
+#~ "Antallet af sider i dokumentet (-1 betyder at dokumentet ikke er blevet "
+#~ "fuldstændigt pagineret)."
+
+#~ msgid "Buffer"
+#~ msgstr "Buffer"
+
+#~ msgid "The associated GtkSourceBuffer"
+#~ msgstr "Den tilknyttede GtkSourceBuffer"
+
+#~ msgid "Settings"
+#~ msgstr "Indstillinger"
+
+#~ msgid "The associated GtkSourceSearchSettings"
+#~ msgstr "Den tilknyttede GtkSourceSearchSettings"
+
+#~ msgid "Highlight"
+#~ msgstr "Fremhævning"
+
+#~ msgid "Highlight search occurrences"
+#~ msgstr "Fremhæv søgeresultater"
+
+#~ msgid "Occurrences count"
+#~ msgstr "Antal resultater"
+
+#~ msgid "Total number of search occurrences"
+#~ msgstr "Det samlede antal søgeresultater"
+
+#~ msgid "Regex error"
+#~ msgstr "Regex-fejl"
+
+#~ msgid "Regular expression error"
+#~ msgstr "Fejl for regulært udtryk"
+
+# ?
+#~ msgid "Search text"
+#~ msgstr "Søgetekst"
+
+# ?
+#~ msgid "The text to search"
+#~ msgstr "Teksten til søgning"
+
+#~ msgid "Case sensitive"
+#~ msgstr "Versalfølsom"
+
+#~ msgid "At word boundaries"
+#~ msgstr "Ved ordgrænser"
+
+#~ msgid "Search at word boundaries"
+#~ msgstr "Søg ved ordgrænser"
+
+#~ msgid "Wrap around"
+#~ msgstr "Ombrydning"
+
+#~ msgid "Regex enabled"
+#~ msgstr "Regex slået til"
+
+#~ msgid "Whether to search by regular expression"
+#~ msgstr "Om der skal søges ved hjælp af regulære udtryk"
+
+#~ msgid "Line background"
+#~ msgstr "Linjebaggrund"
+
+#~ msgid "Line background color"
+#~ msgstr "Baggrundsfarve for linjer"
+
+#~ msgid "Background color"
+#~ msgstr "Baggrundsfarve"
+
+#~ msgid "Foreground"
+#~ msgstr "Forgrund"
+
+#~ msgid "Foreground color"
+#~ msgstr "Forgrundsfarve"
+
+#~ msgid "Underline"
+#~ msgstr "Understreget"
+
+#~ msgid "Strikethrough"
+#~ msgstr "Gennemstreget"
+
+#~ msgid "Scale"
+#~ msgstr "Skala"
+
+#~ msgid "Text scale factor"
+#~ msgstr "Tekstskaleringsfaktor"
+
+#~ msgid "Line background set"
+#~ msgstr "Linjebaggrund indstillet"
+
+#~ msgid "Whether line background color is set"
+#~ msgstr "Om linjebaggrundsfarven er indstillet"
+
+#~ msgid "Foreground set"
+#~ msgstr "Forgrund indstillet"
+
+#~ msgid "Whether foreground color is set"
+#~ msgstr "Om forgrundsfarven er indstillet"
+
+#~ msgid "Background set"
+#~ msgstr "Baggrund indstillet"
+
+#~ msgid "Whether background color is set"
+#~ msgstr "Om baggrundsfarven er indstillet"
+
+#~ msgid "Bold set"
+#~ msgstr "Fed indstillet"
+
+#~ msgid "Whether bold attribute is set"
+#~ msgstr "Om fed-attributten er indstillet"
+
+#~ msgid "Italic set"
+#~ msgstr "Kursiv indstillet"
+
+#~ msgid "Whether italic attribute is set"
+#~ msgstr "Om kursiv-attributten er indstillet"
+
+#~ msgid "Underline set"
+#~ msgstr "Understreg indstillet"
+
+#~ msgid "Whether underline attribute is set"
+#~ msgstr "Om understregs-attributten er indstillet"
+
+#~ msgid "Strikethrough set"
+#~ msgstr "Gennemstregning indstillet"
+
+#~ msgid "Whether strikethrough attribute is set"
+#~ msgstr "Om gennemstregnings-attributten er indstillet"
+
+#~ msgid "Scale set"
+#~ msgstr "Skala angivet"
+
+#~ msgid "Whether scale attribute is set"
+#~ msgstr "Om attributten skala er angivet"
+
+#~ msgid "Style scheme id"
+#~ msgstr "Stilskema-id"
+
+#~ msgid "Style scheme name"
+#~ msgstr "Stilskema-navn"
+
+#~ msgid "Style scheme description"
+#~ msgstr "Stilskema-beskrivelse"
+
+#~ msgid "Style scheme filename"
+#~ msgstr "Stilskema-filnavn"
+
+#~ msgid "Style scheme search path"
+#~ msgstr "Søgesti til stilskema"
+
+#~ msgid "List of directories and files where the style schemes are located"
+#~ msgstr "Liste af mapper og filer hvori stilskemaerne er placeret"
+
+#~ msgid "Scheme ids"
+#~ msgstr "Skema-id'er"
+
+#~ msgid "List of the ids of the available style schemes"
+#~ msgstr "Liste af id'erne for de tilgængelige stil-skemaer"
+
+#~ msgid "The completion object associated with the view"
+#~ msgstr "Fuldførelsesobjektet, der er tilknyttet visningen"
+
+#~ msgid "Show Line Numbers"
+#~ msgstr "Vis linjenumre"
+
+#~ msgid "Whether to display line numbers"
+#~ msgstr "Om linjenumre skal vises"
+
+#~ msgid "Show Line Marks"
+#~ msgstr "Vis linjemærker"
+
+#~ msgid "Whether to display line mark pixbufs"
+#~ msgstr "Om linjemærkebilleder skal vises"
+
+#~ msgid "Indent Width"
+#~ msgstr "Bredde af indrykning"
+
+#~ msgid "Number of spaces to use for each step of indent"
+#~ msgstr "Antal mellemrum der benyttes for hvert skridts indrykning"
+
+#~ msgid "Auto Indentation"
+#~ msgstr "Automatisk indrykning"
+
+#~ msgid "Whether to enable auto indentation"
+#~ msgstr "Om automatisk indrykning skal aktiveres"
+
+#~ msgid "Insert Spaces Instead of Tabs"
+#~ msgstr "Indsæt mellemrum i stedet for tabulatorer"
+
+#~ msgid "Whether to insert spaces instead of tabs"
+#~ msgstr "Om mellemrum skal indsættes i stedet for tabulatorer"
+
+#~ msgid "Show Right Margin"
+#~ msgstr "Vis højre margin"
+
+#~ msgid "Whether to display the right margin"
+#~ msgstr "Om højre margin skal vises"
+
+#~ msgid "Right Margin Position"
+#~ msgstr "Højre marginposition"
+
+#~ msgid "Position of the right margin"
+#~ msgstr "Position for højre margin"
+
+#~ msgid "Smart Home/End"
+#~ msgstr "Smart Home/End"
+
+#~ msgid ""
+#~ "HOME and END keys move to first/last non whitespace characters on line "
+#~ "before going to the start/end of the line"
+#~ msgstr ""
+#~ "Home-/End-tasterne går til det første/sidste ikke-blanke tegn på en linje "
+#~ "før der gåes til starten/slutningen af linjen"
+
+#~ msgid "Highlight current line"
+#~ msgstr "Fremhæv aktuel linje"
+
+#~ msgid "Whether to highlight the current line"
+#~ msgstr "Om den aktuelle linje skal fremhæves"
+
+#~ msgid "Indent on tab"
+#~ msgstr "Indryk ved tabulator"
+
+#~ msgid "Whether to indent the selected text when the tab key is pressed"
+#~ msgstr "Om den markerede tekst indrykkes idet tabulatortasten trykkes"
+
+#~ msgid "Draw Spaces"
+#~ msgstr "Tegn mellemrum"
+
+#~ msgid "Set if and how the spaces should be visualized"
+#~ msgstr "Indstil hvis og hvordan mellemrummene skal vises"
+
+#~ msgid "The text buffer to add undo support on"
+#~ msgstr "Tekstbufferen, der skal have understøttelse af fortrydelse"
+
+#~ msgid "Cobol"
+#~ msgstr "Cobol"
+
+# Math-mode er jo reserveret terminologi i latex, så vi må hellere lade det blive stående
+#~ msgid "math-bound"
+#~ msgstr "math-afgrænsning"
+
+#~ msgid "m4-comment"
+#~ msgstr "m4-kommentar"
+
+#~ msgid "string-conversion"
+#~ msgstr "strengkonvertering"
+
+#~ msgid "No extra information available"
+#~ msgstr "Ingen ekstra information tilgængelig"
+
+#~ msgid "Objective Caml"
+#~ msgstr "Objective Caml"
+
+#~ msgid "Object"
+#~ msgstr "Objekt"
+
+#~ msgid "Maximum width"
+#~ msgstr "Maksimumsbredde"
+
+#~ msgid "The maximum allowed width"
+#~ msgstr "Den maksimalt tilladte bredde"
+
+#~ msgid "Maximum height"
+#~ msgstr "Maksimumshøjde"
+
+#~ msgid "The maximum allowed height"
+#~ msgstr "Den maksimalt tilladte højde"
+
+# Jf. nedenfor
+#~ msgid "Shrink width"
+#~ msgstr "Breddeformindskning"
+
+#~ msgid "Whether the window should shrink width to fit the contents"
+#~ msgstr ""
+#~ "Hvorvidt vinduet skal formindskes, så dets bredde svarer til indholdet"
+
+#~ msgid "Shrink height"
+#~ msgstr "Højdeformindskning"
+
+#~ msgid "Whether the window should shrink height to fit the contents"
+#~ msgstr "Om vinduet skal formindskes, så dets højde svarer til indholdet"
+
+#~ msgid "MSIL"
+#~ msgstr "MSIL"
+
+#~ msgid "Inline C Code"
+#~ msgstr "Integreret C-kode"
+
+#~ msgid "grammar"
+#~ msgstr "grammatik"
+
+#~ msgid "Check Brackets"
+#~ msgstr "Match klammer"
+
+#~ msgid "Margin Line Alpha"
+#~ msgstr "Margenlinjens alfa"
+
+#~ msgid "Transparency of the margin line"
+#~ msgstr "Gennemsigtigheden af margenlinjen"
+
+#~ msgid "Margin Line Color"
+#~ msgstr "Margenlinjens farve"
+
+#~ msgid "Color to use for the right margin line"
+#~ msgstr "Den farve der skal anvendes til den højre margenlinje"
+
+#~ msgid "Margin Overlay Toggle"
+#~ msgstr "Margenoverlejring"
+
+#~ msgid "Whether to draw the right margin overlay"
+#~ msgstr "Om højre marginoverlejring skal vises"
+
+#~ msgid "Margin Overlay Alpha"
+#~ msgstr "Margenoverlejringens alfa"
+
+#~ msgid "Transparency of the margin overlay"
+#~ msgstr "Gennemsigtigheden af margenoverlejringen"
+
+#~ msgid "Margin Overlay Color"
+#~ msgstr "Margenoverlejringens farve"
+
+#~ msgid "Color to use for drawing the margin overlay"
+#~ msgstr "Den farve der skal anvendes til margenoverlejringen"
+
+#~ msgid "Escaping character for syntax patterns"
+#~ msgstr "Undvigetegn til syntaxmønstre"
+
+#~ msgid "Configuration"
+#~ msgstr "Konfiguration"
+
+#~ msgid "Configuration options for the print job"
+#~ msgstr "Konfigurationsindstillinger for udskriftsjobbet"
+
+#~ msgid "Width in equivalent space characters of tabs"
+#~ msgstr "Længde i ækvivalente mellemrumstegn af tabulatorer"
+
+#~ msgid "Word wrapping mode"
+#~ msgstr "Ordombrydningstilstand"
+
+#~ msgid "Font"
+#~ msgstr "Skrifttype"
+
+#~ msgid "GnomeFont name to use for the document text (deprecated)"
+#~ msgstr ""
+#~ "Gnome-skrifttypenavn som skal anvendes til teksten i dokument (afskrevet)"
+
+#~ msgid "GnomeFont name to use for the line numbers (deprecated)"
+#~ msgstr "Gnome-skrifttypenavn som skal anvendes til linjenumrene (afskrevet)"
+
+#~ msgid "Font description to use for the line numbers"
+#~ msgstr "Skrifttypebeskrivelse som skal anvendes til linjenumre"
+
+#~ msgid "Header and Footer Font"
+#~ msgstr "Skrifttype for sidehoved og -fod"
+
+#~ msgid "GnomeFont name to use for the header and footer (deprecated)"
+#~ msgstr ""
+#~ "Gnome-skrifttypenavn som skal anvendes til sidehoved og -fod (afskrevet)"
+
+#~ msgid "Header and Footer Font Description"
+#~ msgstr "Skrifttypebeskrivelse for sidehoved og -fod"
+
+#~ msgid "Character Constant"
+#~ msgstr "Tegnkonstant"
+
+#~ msgid "Line Comment"
+#~ msgstr "Linjekommentar"
+
+#~ msgid "Preprocessor Keyword"
+#~ msgstr "Præprocessor-reserveret ord"
+
+#~ msgid "True And False"
+#~ msgstr "Sand og falsk"
+
+#~ msgid "'#if 0' Comment"
+#~ msgstr "“#if 0”-kommentar"
+
+#~ msgid "Include/Pragma"
+#~ msgstr "Inkludering/pragma"
+
+#~ msgid "Preprocessor Definitions"
+#~ msgstr "Præprocessordefinitioner"
+
+#~ msgid "Types"
+#~ msgstr "Typer"
+
+#~ msgid "Primitives"
+#~ msgstr "Primitiver"
+
+#~ msgid "Attribute Value Delimiters"
+#~ msgstr "Afgrænsninger for attributværdier"
+
+#~ msgid "Hexadecimal Color"
+#~ msgstr "Hexadecimalfarve"
+
+#~ msgid "Importance Modifier"
+#~ msgstr "Vigtighedsændrer"
+
+#~ msgid "Punctuators"
+#~ msgstr "Skilletegn"
+
+#~ msgid "Selector Grammar"
+#~ msgstr "Vælgergrammatik"
+
+#~ msgid "Unicode Character Reference"
+#~ msgstr "Reference til unicodetegn"
+
+# Der menes noget med tegnet `. Men det har måske ikke noget rigtigt navn på dansk
+#~ msgid "Grave Literal"
+#~ msgstr "Grave-literal"
+
+#~ msgid "Nested Comment"
+#~ msgstr "Indlejret kommentar"
+
+#~ msgid "String Literal"
+#~ msgstr "Strengliteral"
+
+#~ msgid "Diff file"
+#~ msgstr "Diff-fil"
+
+#~ msgid "Closing Bracket"
+#~ msgstr "Afsluttende klamme"
+
+#~ msgid "Hexadecimal"
+#~ msgstr "Hexadecimal"
+
+#~ msgid "Structural Elements 2"
+#~ msgstr "Strukturelle elementer 2"
+
+#~ msgid "Input/Output"
+#~ msgstr "Inddata/uddata"
+
+#~ msgid "Intrinsics"
+#~ msgstr "Intrinsics"
+
+#~ msgid "Read/Write"
+#~ msgstr "Læs/skriv"
+
+#~ msgid "Double Quoted String"
+#~ msgstr "Gåseøjnestreng"
+
+#~ msgid "Single Quoted String"
+#~ msgstr "Apostrofstreng"
+
+#~ msgid "State"
+#~ msgstr "Tilstand"
+
+#~ msgid "Type or Constructor"
+#~ msgstr "Type eller konstruktør"
+
+#~ msgid "Flow"
+#~ msgstr "Flow"
+
+#~ msgid "Memory"
+#~ msgstr "Hukommelse"
+
+#~ msgid "Numeric"
+#~ msgstr "Tal"
+
+#~ msgid "Array Operators"
+#~ msgstr "Tabeloperatorer"
+
+#~ msgid "Floating-Point Number"
+#~ msgstr "Kommatal"
+
+#~ msgid "Flow Keywords"
+#~ msgstr "Gennemløbs-nøgleord"
+
+#~ msgid "Global Properties"
+#~ msgstr "Globale egenskaber"
+
+#~ msgid "Math Value Properties"
+#~ msgstr "Egenskaber for matematiskværdi"
+
+#~ msgid "Object Functions"
+#~ msgstr "Objektfunktioner"
+
+#~ msgid "Object Properties"
+#~ msgstr "Objektegenskaber"
+
+#~ msgid "Word Operators"
+#~ msgstr "Ord-operatorer"
+
+#~ msgid "Comment Environment"
+#~ msgstr "Kommentarmiljø"
+
+#~ msgid "Math"
+#~ msgstr "Matematik"
+
+#~ msgid "Line Comment 2"
+#~ msgstr "Linjekommentar 2"
+
+#~ msgid "Multiline String 2"
+#~ msgstr "Flerlinje-streng 2"
+
+#~ msgid "Backtick String"
+#~ msgstr "Omvendt apostrof-streng"
+
+#~ msgid "Variable1"
+#~ msgstr "Variabel1"
+
+#~ msgid "Variable2"
+#~ msgstr "Variabel2"
+
+#~ msgid "Keywords Defined by Macros"
+#~ msgstr "Nøgleord defineret af makroer"
+
+#~ msgid "Multiline Double Quoted String"
+#~ msgstr "Flerlinjes gåseøjnestreng"
+
+#~ msgid "Multiline Single Quoted String"
+#~ msgstr "Flerlinjes apostrofstreng"
+
+#~ msgid "Block Comment 1"
+#~ msgstr "Blokkommentar 1"
+
+#~ msgid "Block Comment 2"
+#~ msgstr "Blokkommentar 2"
+
+#~ msgid "Boolean Bitwise Operators"
+#~ msgstr "Bitvis-sandhedsoperatorer"
+
+#~ msgid "Functions and Function Modifiers"
+#~ msgstr "Funktioner og funktionsændrere"
+
+#~ msgid "General Format"
+#~ msgstr "Generelt format"
+
+#~ msgid "Method Call"
+#~ msgstr "Metodekald"
+
+#~ msgid "String2"
+#~ msgstr "Streng2"
+
+#~ msgid "String3"
+#~ msgstr "Streng3"
+
+#~ msgid "Bash Line Comment"
+#~ msgstr "Bash-linjekommentar"
+
+#~ msgid "C Block Comment"
+#~ msgstr "C-blokkommentar"
+
+#~ msgid "C++ Line Comment"
+#~ msgstr "C++-linjekommentar"
+
+#~ msgid "Case Sensitive Keyword"
+#~ msgstr "Versalfølsomt nøgleord"
+
+#~ msgid "HTML Block"
+#~ msgstr "HTML-blok"
+
+#~ msgid "Instance Variables"
+#~ msgstr "Instansvariabler"
+
+#~ msgid "Module Handlers"
+#~ msgstr "Modulhåndteringer"
+
+#~ msgid "Multiline Comment"
+#~ msgstr "Flerlinjekommentar"
+
+#~ msgid "Punctuator"
+#~ msgstr "Skilletegn"
+
+# De taler velsagtens om programmeringssproget self
+#~ msgid "Self"
+#~ msgstr "Self"
+
+#~ msgid "ANSI Datatypes"
+#~ msgstr "ANSI-datatyper"
+
+#~ msgid "Aggregate Functions"
+#~ msgstr "Aggregeringsfunktioner"
+
+#~ msgid "Character Functions Returning Character Values"
+#~ msgstr "Tegnfunktioner der returnerer tegnværdier"
+
+#~ msgid "Character Functions Returning Number Values"
+#~ msgstr "Tegnfunktioner der returnerer talværdier"
+
+#~ msgid "Conditions"
+#~ msgstr "Betingelser"
+
+#~ msgid "Data Mining Functions"
+#~ msgstr "Datamining-funktioner"
+
+#~ msgid "Encoding and Decoding Functions"
+#~ msgstr "Kodnings- og dekodningsfunktioner"
+
+#~ msgid "Environment and Identifier Functions"
+#~ msgstr "Miljø- og kaldenavnsfunktioner"
+
+#~ msgid "General Comparison Functions"
+#~ msgstr "Generelle sammenligningsfunktioner"
+
+#~ msgid "Hierarchical Function"
+#~ msgstr "Hierarkisk funktion"
+
+#~ msgid "Integer Literals"
+#~ msgstr "Heltalsliteraler"
+
+#~ msgid "Large Object Functions"
+#~ msgstr "Stort objekt-funktioner"
+
+#~ msgid "Model Functions"
+#~ msgstr "Modelfunktioner"
+
+#~ msgid "NLS Character Functions"
+#~ msgstr "NLS-tegnfunktioner"
+
+#~ msgid "NULL-Related Functions"
+#~ msgstr "NULL-relaterede funktioner"
+
+#~ msgid "Numeric Functions"
+#~ msgstr "Talfunktioner"
+
+#~ msgid "Object Reference Functions"
+#~ msgstr "Objektreferencefunktioner"
+
+#~ msgid "Oracle Built-in Datatypes"
+#~ msgstr "Oracle-indbyggede datatyper"
+
+#~ msgid "Oracle Reserved Words"
+#~ msgstr "Oracle-reserverede ord"
+
+#~ msgid "Oracle-Supplied Types"
+#~ msgstr "Oracle-indbyggede typer"
+
+#~ msgid "SQL*Plus At Sign"
+#~ msgstr "SQL*Plus-snabel a-tegn"
+
+#~ msgid "SQL*Plus Commands"
+#~ msgstr "SQL*Plus-kommandoer"
+
+#~ msgid "SQL*Plus Double At Sign"
+#~ msgstr "SQL*Plus-dobbelt snabel a-tegn"
+
+#~ msgid "SQL*Plus Slash"
+#~ msgstr "SQL*Plus-skråstreg"
+
+#~ msgid "SQL/DS and DB2 Datatypes"
+#~ msgstr "SQL/DS og DB2-datatyper"
+
+#~ msgid "Size Clause"
+#~ msgstr "Størrelsesklausul"
+
+#~ msgid "Text Literals"
+#~ msgstr "Tekstliteraler"
+
+#~ msgid "XML Functions"
+#~ msgstr "XML-funktioner"
+
+#~ msgid "Characters"
+#~ msgstr "Tegn"
+
+#~ msgid "Formatting"
+#~ msgstr "Formatering"
+
+#~ msgid "Indexing"
+#~ msgstr "Indeksering"
+
+#~ msgid "Markup (block)"
+#~ msgstr "Opmærkning (blok)"
+
+#~ msgid "Markup (inline)"
+#~ msgstr "Opmærkning (integreret)"
+
+#~ msgid "Old Style Comment"
+#~ msgstr "Gammeldags kommentar"
+
+#~ msgid "True and False"
+#~ msgstr "Sand og falsk"
+
+#~ msgid "Double Quote String"
+#~ msgstr "Gåseøjnestreng"
+
+#~ msgid "Single Quote String"
+#~ msgstr "Apostrofstreng"
+
+#~ msgid "Miscellaneous Single-Row Functions"
+#~ msgstr "Diverse enkeltrække-funktioner"

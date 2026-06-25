@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Authors: Tarn W. Burton
+ Copyright (C) 2020 Tarn W. Burton <twburton@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<language id="commonlisp" name="Common Lisp" version="2.0" _section="Source">
+
+  <metadata>
+    <property name="mimetypes">text/x-common-lisp</property>
+    <property name="globs">*.asd;*.lisp</property>
+    <property name="line-comment-start">;</property>
+    <property name="block-comment-start">#\|</property>
+    <property name="block-comment-end">\|#</property>
+  </metadata>
+
+  <styles>
+    <style id="boolean"             name="Boolean value"       map-to="def:boolean"/>
+    <style id="builtin"             name="Builtin Symbols"     map-to="def:keyword"/>
+    <style id="character"           name="Character"           map-to="def:character"/>
+    <style id="comment"             name="Comment"             map-to="def:comment"/>
+    <style id="constant"            name="Constant"            map-to="def:constant"/>
+    <style id="error"               name="Error"               map-to="def:error"/>
+    <style id="format-directive"    name="Format Directive"    map-to="def:special-char"/>
+    <style id="keyword"             name="Keyword"             map-to="def:type"/>
+    <style id="lambda-list-keyword" name="Lambda List Keyword" map-to="def:type"/>
+    <style id="number"              name="Number"              map-to="def:number"/>
+    <style id="operator"            name="Operator"            map-to="def:operator"/>
+    <style id="special"             name="Special"             map-to="def:type"/>
+    <style id="string"              name="String"              map-to="def:string"/>
+    <style id="symbol"              name="Symbol"              map-to="def:identifier"/>
+  </styles>
+
+  <default-regex-options case-sensitive="false"/>
+  <keyword-char-class>([^()"`,#\s])</keyword-char-class>
+
+  <definitions>
+
+    <!--
+      Token Patterns
+      References: http://www.lispworks.com/documentation/HyperSpec/Body/02_ad.htm
+                  http://www.lispworks.com/documentation/HyperSpec/Body/02_c.htm
+    -->
+
+    <define-regex id="token-start" extended="true">
+     	((?&lt;=[()'"`,@#\s])|^)
+    </define-regex>
+
+    <define-regex id="token" extended="true">
+     	(([^()'"`,#\s\\|]|\\\S|\|[^|]*\|)+)
+    </define-regex>
+
+    <define-regex id="package" extended="true">
+     	(([^()'"`,:#\s\\|]|\\\S|\|[^|]*\|)+)
+    </define-regex>
+
+    <define-regex id="token-end" extended="true">
+     	(?=([()';"`,#]|$|\s))
+    </define-regex>
+
+    <!--
+      Basic Numbers
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_ca.htm
+      The following patterns assume that the input radix is base 10.
+    -->
+
+    <context id="decimal-rational" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        ([+-]?[0-9]+([.]|/[0-9]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <context id="float" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        ([+-]?([0-9]*[.][0-9]+|[0-9]+([.][0-9]*)?)([defls][+-]?[0-9]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Binary Rationals
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhg.htm
+    -->
+
+    <context id="binary-rational" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        (\#b[+-]?[01]+([.]|/[01]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Octal Rationals
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhh.htm
+    -->
+
+    <context id="octal-rational" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        (\#o[+-]?[0-7]+([.]|/[0-7]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Hexadecimal Rationals
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhi.htm
+    -->
+
+    <context id="hexadecimal-rational" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        (\#x[+-]?[0-9a-f]+([.]|/[0-9a-f]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Arbitrary Radix Rationals
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhj.htm
+    -->
+
+    <context id="radix-rational" style-ref="number">
+      <match extended="true">
+        \%{token-start}
+        (\#[0-9]+r[+-]?[0-9a-z]+([.]|/[0-9a-z]+)?)
+      	\%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Semicolon Comments
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dd.htm
+    -->
+
+    <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+      <start>;</start>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <!--
+      Single Quote
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dc.htm
+    -->
+
+    <context id="single-quote" style-ref="operator">
+      <match extended="true">
+        (')
+      </match>
+    </context>
+
+    <!--
+      Format Directives
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/22_c.htm
+    -->
+
+    <context id="format-directive" style-ref="format-directive" extend-parent="false">
+      <match extended="true">
+        ~(?:/[^/]+/|$|(?:[-+]?[0-9]+|'.|[#V,])*:?@?[[\]{}()~%&amp;$_&lt;&gt;*?;\^|ABCDEFGIOPRSTWX])
+      </match>
+    </context>
+
+    <!--
+      Strings
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_de.htm
+    -->
+
+    <context id="string" style-ref="string" class="string">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="format-directive"/>
+        <context ref="def:escape"/>
+      </include>
+    </context>
+
+    <!--
+      Template Operators (backquote and comma)
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_df.htm
+    -->
+
+    <context id="template-operators" style-ref="operator">
+      <match extended="true">
+        (`|,@?)
+      </match>
+    </context>
+
+    <!--
+      Sharpsign Dispatching Macro
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
+    -->
+
+    <!--
+      Sharpsign Backlash (characters)
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dha.htm
+    -->
+
+    <context id="character" style-ref="character" class="string">
+      <match extended="true">
+        \%{token-start}
+        (\#\\\S(\%{token})?)
+        \%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Sharpsign Asterisk (bit vector)
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhd.htm
+    -->
+
+    <context id="sharpsign-asterisk" style-ref="constant">
+      <match extended="true">
+        (\#[0-9]*\*[01]*)
+      </match>
+    </context>
+
+    <!--
+      Sharpsign Colon (uninterned symbol)
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhe.htm
+    -->
+
+    <context id="sharpsign-colon" style-ref="symbol">
+      <match extended="true">
+        (\#:\%{token})
+        \%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Sharpsign Vertical-Bar (block comment)
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dhs.htm
+    -->
+
+    <context id="block-comment" style-ref="comment" class="comment" class-disabled="no-spell-check">
+      <start>#\|</start>
+      <end>\|#</end>
+      <include>
+        <context ref="block-comment"/>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <!--
+      Sharpsign Other
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
+      Undefined sharpsigns or ones that precede a Lisp expression and therefore
+      act a bit like an operator.
+    -->
+
+    <context id="sharpsign-other" style-ref="operator">
+      <match extended="true">
+        (\#[0-9]*[!"#$%&amp;'(,;=&gt;?@[\]^_`~{}+\-./ac-npqs-wyz])
+      </match>
+    </context>
+
+    <!--
+      Sharpsign Invalid
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/02_dh.htm
+    -->
+
+    <context id="sharpsign-invalid" style-ref="error">
+      <match extended="true">
+        (\#[0-9]*[\s)&lt;])
+      </match>
+    </context>
+
+    <!--
+      Keyword Like Builtins
+      The following identifiers are symbols in the Common Lisp package that
+      deal with variable assignment, symbol manipulation, flow control,
+      compilation, or declarations.
+    -->
+
+    <context id="builtin" style-ref="builtin">
+      <keyword>abort</keyword>
+      <keyword>add-method</keyword>
+      <keyword>apply</keyword>
+      <keyword>assert</keyword>
+      <keyword>block</keyword>
+      <keyword>break</keyword>
+      <keyword>call-method</keyword>
+      <keyword>call-next-method</keyword>
+      <keyword>case</keyword>
+      <keyword>catch</keyword>
+      <keyword>ccase</keyword>
+      <keyword>cerror</keyword>
+      <keyword>compile-file</keyword>
+      <keyword>compile</keyword>
+      <keyword>cond</keyword>
+      <keyword>continue</keyword>
+      <keyword>ctypecase</keyword>
+      <keyword>debug</keyword>
+      <keyword>decf</keyword>
+      <keyword>declaim</keyword>
+      <keyword>declaration</keyword>
+      <keyword>declare</keyword>
+      <keyword>defclass</keyword>
+      <keyword>defconstant</keyword>
+      <keyword>defgeneric</keyword>
+      <keyword>define-compiler-macro</keyword>
+      <keyword>define-condition</keyword>
+      <keyword>define-method-combination</keyword>
+      <keyword>define-modify-macro</keyword>
+      <keyword>define-setf-expander</keyword>
+      <keyword>define-symbol-macro</keyword>
+      <keyword>defmacro</keyword>
+      <keyword>defmethod</keyword>
+      <keyword>defpackage</keyword>
+      <keyword>defparameter</keyword>
+      <keyword>defsetf</keyword>
+      <keyword>defstruct</keyword>
+      <keyword>deftype</keyword>
+      <keyword>defun</keyword>
+      <keyword>defvar</keyword>
+      <keyword>delete-package</keyword>
+      <keyword>destructuring-bind</keyword>
+      <keyword>disassemble</keyword>
+      <keyword>do-all-symbols</keyword>
+      <keyword>do-external-symbols</keyword>
+      <keyword>do</keyword>
+      <keyword>do\*</keyword>
+      <keyword>dolist</keyword>
+      <keyword>do-symbols</keyword>
+      <keyword>dotimes</keyword>
+      <keyword>dynamic-extent</keyword>
+      <keyword>ecase</keyword>
+      <keyword>ed</keyword>
+      <keyword>error</keyword>
+      <keyword>etypecase</keyword>
+      <keyword>eval</keyword>
+      <keyword>eval-when</keyword>
+      <keyword>export</keyword>
+      <keyword>fdefinition</keyword>
+      <keyword>find-method</keyword>
+      <keyword>find-package</keyword>
+      <keyword>find-restart</keyword>
+      <keyword>find-symbol</keyword>
+      <keyword>flet</keyword>
+      <keyword>ftype</keyword>
+      <keyword>funcall</keyword>
+      <keyword>getf</keyword>
+      <keyword>get</keyword>
+      <keyword>get-macro-character</keyword>
+      <keyword>get-properties</keyword>
+      <keyword>get-setf-expansion</keyword>
+      <keyword>go</keyword>
+      <keyword>handler-bind</keyword>
+      <keyword>handler-case</keyword>
+      <keyword>if</keyword>
+      <keyword>ignorable</keyword>
+      <keyword>ignore-errors</keyword>
+      <keyword>ignore</keyword>
+      <keyword>import</keyword>
+      <keyword>incf</keyword>
+      <keyword>inline</keyword>
+      <keyword>in-package</keyword>
+      <keyword>inspect</keyword>
+      <keyword>intern</keyword>
+      <keyword>invoke-debugger</keyword>
+      <keyword>invoke-restart-interactively</keyword>
+      <keyword>invoke-restart</keyword>
+      <keyword>labels</keyword>
+      <keyword>lambda</keyword>
+      <keyword>let</keyword>
+      <keyword>let\*</keyword>
+      <keyword>list</keyword>
+      <keyword>list\*</keyword>
+      <keyword>load</keyword>
+      <keyword>locally</keyword>
+      <keyword>loop-finish</keyword>
+      <keyword>loop</keyword>
+      <keyword>macroexpand-1</keyword>
+      <keyword>macroexpand</keyword>
+      <keyword>macrolet</keyword>
+      <keyword>muffle-warning</keyword>
+      <keyword>multiple-value-bind</keyword>
+      <keyword>multiple-value-call</keyword>
+      <keyword>multiple-value-list</keyword>
+      <keyword>multiple-value-prog1</keyword>
+      <keyword>multiple-value-setq</keyword>
+      <keyword>no-next-method</keyword>
+      <keyword>notinline</keyword>
+      <keyword>optimize</keyword>
+      <keyword>otherwise</keyword>
+      <keyword>pop</keyword>
+      <keyword>prog1</keyword>
+      <keyword>prog2</keyword>
+      <keyword>prog</keyword>
+      <keyword>prog\*</keyword>
+      <keyword>progn</keyword>
+      <keyword>progv</keyword>
+      <keyword>psetf</keyword>
+      <keyword>psetq</keyword>
+      <keyword>push</keyword>
+      <keyword>pushnew</keyword>
+      <keyword>quote</keyword>
+      <keyword>remf</keyword>
+      <keyword>remove-method</keyword>
+      <keyword>require</keyword>
+      <keyword>restart-bind</keyword>
+      <keyword>restart-case</keyword>
+      <keyword>restart</keyword>
+      <keyword>return-from</keyword>
+      <keyword>return</keyword>
+      <keyword>rotatef</keyword>
+      <keyword>safety</keyword>
+      <keyword>setf</keyword>
+      <keyword>set</keyword>
+      <keyword>set-macro-character</keyword>
+      <keyword>setq</keyword>
+      <keyword>shadowing-import</keyword>
+      <keyword>shiftf</keyword>
+      <keyword>signal</keyword>
+      <keyword>special</keyword>
+      <keyword>speed</keyword>
+      <keyword>step</keyword>
+      <keyword>store-value</keyword>
+      <keyword>tagbody</keyword>
+      <keyword>throw</keyword>
+      <keyword>trace</keyword>
+      <keyword>typecase</keyword>
+      <keyword>type</keyword>
+      <keyword>unexport</keyword>
+      <keyword>unintern</keyword>
+      <keyword>unless</keyword>
+      <keyword>untrace</keyword>
+      <keyword>unuse-package</keyword>
+      <keyword>unwind-protect</keyword>
+      <keyword>use-package</keyword>
+      <keyword>use-value</keyword>
+      <keyword>warning</keyword>
+      <keyword>warn</keyword>
+      <keyword>when</keyword>
+      <keyword>with-accessors</keyword>
+      <keyword>with-compilation-unit</keyword>
+      <keyword>with-condition-restarts</keyword>
+      <keyword>with-hash-table-iterator</keyword>
+      <keyword>with-input-from-string</keyword>
+      <keyword>with-open-file</keyword>
+      <keyword>with-open-stream</keyword>
+      <keyword>with-output-to-string</keyword>
+      <keyword>with-package-iterator</keyword>
+      <keyword>with-simple-restart</keyword>
+      <keyword>with-slots</keyword>
+      <keyword>with-standard-io-syntax</keyword>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>nil</keyword>
+      <keyword>t</keyword>
+    </context>
+
+    <context id="special-variable" style-ref="special">
+      <match extended="true">
+        \%{token-start}
+        ((\%{package}::?)?\*(\%{token})*?\*)
+        \%{token-end}
+      </match>
+    </context>
+
+    <context id="constant-variable" style-ref="constant">
+      <match extended="true">
+        \%{token-start}
+        ((\%{package}::?)?\+(\%{token})*?\+)
+        \%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Keyword Symbols
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/11_abc.htm
+    -->
+
+    <context id="keyword" style-ref="keyword">
+      <match extended="true">
+        \%{token-start}
+        (:\%{token})
+        \%{token-end}
+      </match>
+    </context>
+
+    <!--
+      Lambda List Keywords
+      Reference: http://www.lispworks.com/documentation/HyperSpec/Body/03_da.htm
+      Instead of listing the specific keywords in the specification allow for
+      implementation specific ones like `sb-int:&more`.
+    -->
+
+    <context id="lambda-list-keyword" style-ref="lambda-list-keyword">
+      <match extended="true">
+        \%{token-start}
+        ((\%{package}::?)?&amp;\%{token})
+        \%{token-end}
+      </match>
+    </context>
+
+    <context id="commonlisp" class="no-spell-check">
+      <include>
+        <context ref="binary-rational"/>
+        <context ref="block-comment"/>
+        <context ref="boolean"/>
+        <context ref="builtin"/>
+        <context ref="character"/>
+        <context ref="constant-variable"/>
+        <context ref="decimal-rational"/>
+        <context ref="float"/>
+        <context ref="hexadecimal-rational"/>
+        <context ref="keyword"/>
+        <context ref="lambda-list-keyword"/>
+        <context ref="line-comment"/>
+        <context ref="octal-rational"/>
+        <context ref="radix-rational"/>
+        <context ref="sharpsign-asterisk"/>
+        <context ref="sharpsign-colon"/>
+        <context ref="sharpsign-invalid"/>
+        <context ref="sharpsign-other"/>
+        <context ref="single-quote"/>
+        <context ref="special-variable"/>
+        <context ref="string"/>
+        <context ref="template-operators"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

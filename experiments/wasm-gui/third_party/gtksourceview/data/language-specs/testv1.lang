@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language name="testv1" version="1.0" section="Other">
+
+	<escape-char>\</escape-char>
+
+	<!-- // C++ Line Comment -->
+        <line-comment name="C++ Line Comment" style="Comment">
+                <start-regex>//</start-regex>
+        </line-comment>
+
+	<!-- /* C Block Comment */ -->
+	<block-comment name="C Block Comment" style="Comment">
+		<start-regex>/\*</start-regex>
+        	<end-regex>\*/</end-regex>
+	</block-comment>
+
+	<!-- "double-quoted strings" -->
+	<string name="String" style="String" end-at-line-end="FALSE">
+		<start-regex>&quot;</start-regex>
+		<end-regex>&quot;</end-regex>
+	</string>
+
+	<!-- 'single-quoted strings' -->
+	<string name="String 2" style="String" end-at-line-end="FALSE">
+		<start-regex>&apos;</start-regex>
+		<end-regex>&apos;</end-regex>
+	</string>
+
+	<keyword-list name="Reserved Words - Group #1" style="Others" case-sensitive="TRUE">
+		<keyword>bambom</keyword>
+		<keyword>bombam</keyword>
+	</keyword-list>
+
+	<keyword-list name="Reserved Words - Group #2" style="Others 2" case-sensitive="TRUE">
+		<keyword>bumbam</keyword>
+		<keyword>bambum</keyword>
+	</keyword-list>
+
+	<keyword-list name="OpCodes" style="Keyword" case-sensitive="TRUE">
+		<keyword>kwkw</keyword>
+		<keyword>wkwk</keyword>
+	</keyword-list>
+
+        <pattern-item name = "Floats" style = "Floating Point">
+                <regex>\b([0-9]*\.[0-9]+[eE@][-+]?[0-9]+|[0-9]+[eE@][-+]?[0-9]+|[0-9]*\.[0-9]+)\b</regex>
+        </pattern-item>
+
+        <pattern-item name = "Base-N Integers" style = "Base-N Integer">
+                <regex>\b(([1-3][0-9]|[1-9])\\[0-9a-zA-Z]+|0x[0-9a-fA-F]+|0[0-7]+)\b</regex>
+        </pattern-item>
+
+        <pattern-item name = "Decimal Integers" style = "Decimal">
+                <regex>\b([1-9][0-9]*|0)\b</regex>
+        </pattern-item>
+
+</language>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Michael R. Gryk <gryk@uchc.edu>
+ Copyright (c) 2020-2021 Michael R. Gryk <gryk@uchc.edu>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+ STAR is the file format used by the Protein Data Bank (mmCIF) and BioMagResBank (NMR-STAR) among others
+ For more information, see:
+    Hall, S.R. The STAR File: A New Format for Electronic Data Transfer and Archiving. J. Chem. Inf. Comput. 31, 326-333 (1991).
+    Hall, S.R. & Spadaccini, N. The STAR File: Detailed Specifications. J. Chem. Inf. Comput. 34, 505-508 (1994).
+
+ -->
+<language id="star" name="STAR" version="2.0" _section="Scientific">
+  <metadata>
+    <property name="globs">*.str;*.cif;*.mif</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="comment"            name="Comment"                   map-to="def:comment"/>
+    <style id="data-name"          name="Data Name (key)"           map-to="def:identifier"/>
+    <style id="keyword"            name="Keyword"                   map-to="def:keyword"/>
+    <style id="framecode"          name="Frame Code"                map-to="def:type"/>
+    <style id="string"             name="String (value)"            map-to="def:string"/>
+    <style id="data-value"         name="Data Value" />
+  </styles>
+
+  <default-regex-options case-sensitive="false"/>
+
+  <definitions>
+    <define-regex id="starChars">[!-~]+</define-regex>
+
+    <context id="comment" end-at-line-end="true" style-ref="comment" class="comment">
+      <start>#</start>
+    </context>
+    <context id="data-value" class="no-spell-check">
+      <match>\%{starChars}</match>
+    </context>
+    <context id="data-name" style-ref="data-name" class="no-spell-check">
+      <match>_\%{starChars}</match>
+    </context>
+    <context id="framecode" style-ref="framecode" class="no-spell-check">
+      <match>\$\%{starChars}</match>
+    </context>
+    <context id="quote-string" style-ref="string" end-at-line-end="true" class="string">
+      <start>"</start>
+      <end>"\s</end>
+    </context>
+    <context id="apos-string" style-ref="string" end-at-line-end="true" class="string">
+      <start>'</start>
+      <end>'\s</end>
+    </context>
+    <context id="semi-string" style-ref="string" end-at-line-end="false" class="string">
+      <start>^;</start>
+      <end>^;</end>
+    </context>
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>data_\%{starChars}</keyword>
+      <keyword>save_\%{starChars}</keyword>
+      <keyword>save_</keyword>
+      <keyword>loop_</keyword>
+      <keyword>stop_</keyword>
+      <keyword>global_</keyword>
+    </context>
+
+    <context id="star">
+      <include>
+        <context ref="comment"/>
+        <context ref="data-name"/>
+        <context ref="keywords"/>
+        <context ref="framecode"/>
+        <context ref="semi-string"/>
+        <context ref="quote-string"/>
+        <context ref="apos-string"/>
+        <context ref="data-value"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

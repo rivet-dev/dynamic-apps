@@ -71,7 +71,9 @@ if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   MESON_WASI_COMPAT_O="$EXP/toolchain/wasi-compat-threads.o"
   # Compile the threaded compat object (pthread/flockfile stubs compiled out) for the final link.
   "$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$THREADS_SYSROOT" -O2 -DSECURE_EXEC_WASM_THREADS \
-    -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$MESON_WASI_COMPAT_O" 2>/dev/null || true
+    -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS \
+    -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$MESON_WASI_COMPAT_O" || \
+    echo "WARN: wasi-compat-threads.o rebuild failed (using any stale copy)" >&2
 else
   MESON_SYSROOT="$SYSROOT"
   MESON_LIBSUBDIR="wasm32-wasip1"

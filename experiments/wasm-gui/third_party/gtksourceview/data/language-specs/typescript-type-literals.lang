@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-type-lit" name="TypeScript Type Literals" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Basic type
+
+         any
+         boolean
+    -->
+
+    <define-regex id="_basic-types" extended="true">
+      \%{typescript:any-keyword} |
+      \%{typescript:bigint-keyword} |
+      \%{typescript:boolean-keyword} |
+      \%{typescript:never-keyword} |
+      \%{js:null-keyword} |
+      \%{typescript:number-keyword} |
+      \%{typescript:object-keyword} |
+      \%{typescript:string-keyword} |
+      \%{typescript:symbol-keyword} |
+      \%{typescript:undefined-keyword} |
+      \%{typescript:unknown-keyword} |
+      \%{js:void-keyword}
+    </define-regex> <!-- /_basic-types -->
+
+    <!-- <PredefinedType> -->
+    <context id="choice-basic-type" style-ref="typescript:basic-type" end-parent="true">
+      <start>(?=\%{_basic-types})</start>
+      <end>\%{_basic-types}</end>
+    </context> <!-- /choice-basic-type -->
+
+
+    <!-- # Boolean literal type
+
+         true
+         false
+    -->
+
+    <!-- <PredefinedType> -->
+    <context id="choice-boolean-type" style-ref="typescript:boolean-type" end-parent="true">
+      <start extended="true">
+        (?= \%{js:false-keyword} | \%{js:true-keyword} )
+      </start>
+      <end extended="true">
+        \%{js:false-keyword} | \%{js:true-keyword}
+      </end>
+    </context> <!-- /choice-boolean-type -->
+
+
+    <!-- # Numeric literal type
+
+         123
+         0b0101
+         0o777
+         0xfff
+    -->
+
+    <!-- does not include legacy octal integers -->
+    <context id="choice-numeric-type">
+      <include>
+        <context ref="typescript-js-lit:_choice-decimal" style-ref="typescript:decimal-type"/>
+        <context ref="typescript-js-lit:_choice-decimal-big-integer" style-ref="typescript:decimal-type"/>
+        <context ref="typescript-js-lit:_choice-binary-integer" style-ref="typescript:binary-integer-type"/>
+        <context ref="typescript-js-lit:_choice-octal-integer" style-ref="typescript:octal-integer-type"/>
+        <context ref="typescript-js-lit:_choice-hex-integer" style-ref="typescript:hex-integer-type"/>
+      </include>
+    </context> <!-- /choice-numeric-type -->
+
+
+    <!-- # This type
+
+         this
+    -->
+
+    <!-- <ThisType> -->
+    <context id="choice-this-type" style-ref="typescript:basic-type" end-parent="true">
+      <start>(?=\%{js:this-keyword})</start>
+      <end>\%{js:this-keyword}</end>
+    </context> <!-- /choice-this-type -->
+
+
+    <!-- # Tuple type literal
+
+         [string, any, boolean]
+    -->
+
+    <context id="_tuple-type-literal-type-content">
+      <include>
+        <context ref="js:ordered-rest-syntax"/>
+        <context ref="typescript-type-expr:type-expression"/>
+        <context ref="typescript:ordered-optional-modifier"/>
+      </include>
+    </context> <!-- /_tuple-type-literal-type-content -->
+
+    <!-- <TupleType> -->
+    <context id="choice-tuple-type-literal" style-ref="typescript:tuple-type-literal" end-parent="true">
+      <start>\[</start>
+      <end>]</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_tuple-type-literal-content">
+          <include>
+
+            <context id="_tuple-type-literal-first-type" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_tuple-type-literal-type-content"/>
+              </include>
+            </context> <!-- /_tuple-type-literal-first-type -->
+
+            <context id="_tuple-type-literal-types">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_tuple-type-literal-type-content"/>
+              </include>
+            </context> <!-- /_tuple-type-literal-types -->
+
+          </include>
+        </context> <!-- /_tuple-type-literal-content -->
+
+      </include>
+    </context> <!-- /choice-tuple-type-literal -->
+
+
+    <!-- # Object type
+
+         {
+           x: string,
+           y: any
+         }
+    -->
+
+    <!-- ## Mapped type modifier prefix
+
+         type MutableRequired<T> =
+           { -readonly [P in keyof T]-?: T[P] };
+    -->
+
+    <context id="_mapped-type-modifier-prefix" style-ref="typescript:mapped-type-modifier-prefix" once-only="true">
+      <match>[+-]</match>
+    </context> <!-- /_mapped-type-modifier-prefix -->
+
+    <context id="_ordered-mapped-type-modifier-prefix" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_mapped-type-modifier-prefix"/>
+      </include>
+    </context> <!-- /_ordered-mapped-type-modifier-prefix -->
+
+    <!-- ## Modifier
+
+         readonly
+    -->
+
+    <context id="_object-type-literal-modifier" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_object-type-literal-modifier-content">
+          <include>
+
+            <context id="_choice-object-type-literal-modifier-keyword" style-ref="typescript:type-keyword" end-parent="true">
+              <start>(?=\%{typescript:readonly-keyword})</start>
+              <end>\%{typescript:readonly-keyword}</end>
+            </context> <!-- /_choice-object-type-literal-modifier-keyword -->
+
+          </include>
+        </context> <!-- /_object-type-literal-modifier-content -->
+
+      </include>
+    </context> <!-- /_object-type-literal-modifier -->
+
+    <context id="_ordered-object-type-literal-modifier" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_object-type-literal-modifier"/>
+      </include>
+    </context> <!-- /_ordered-object-type-literal-modifier -->
+
+    <!-- ## Index member
+
+         [index: number]: string,
+         readonly [P in keyof T]?: T[P];
+    -->
+
+    <context id="_type-annotation-or-mapped-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-annotation-or-mapped-type-content">
+          <include>
+            <context ref="typescript:choice-type-annotation"/>
+
+            <context id="_choice-mapped-type" end-parent="true">
+              <start>\%{js:in-keyword}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+                <context ref="js:comments"/>
+
+                <context id="_mapped-type-content">
+                  <include>
+                    <context ref="typescript-type-expr:type-expression"/>
+                  </include>
+                </context> <!-- /_mapped-type-content -->
+
+              </include>
+            </context> <!-- /_choice-mapped-type -->
+
+          </include>
+        </context> <!-- /_type-annotation-or-mapped-type-content -->
+
+      </include>
+    </context> <!-- /_type-annotation-or-mapped-type -->
+
+    <context id="_ordered-type-annotation-or-mapped-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-annotation-or-mapped-type"/>
+      </include>
+    </context> <!-- /_ordered-type-annotation-or-mapped-type -->
+
+    <!-- <IndexSignature> -->
+    <context id="_index-property" once-only="true">
+      <start>\[</start>
+      <end>]</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_index-property-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+            <context ref="_ordered-type-annotation-or-mapped-type"/>
+          </include>
+        </context> <!-- /_index-property-content -->
+
+      </include>
+    </context> <!-- /_index-property -->
+
+    <context id="ordered-index-property" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_index-property"/>
+      </include>
+    </context> <!-- /ordered-index-property -->
+
+    <context id="_choice-object-type-literal-index-member" end-parent="true">
+      <start>(?=\[)</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_object-type-literal-index-member-content">
+          <include>
+            <context ref="ordered-index-property"/>
+            <context ref="_ordered-mapped-type-modifier-prefix"/>
+            <context ref="typescript:ordered-optional-modifier"/>
+            <context ref="typescript:ordered-type-annotation"/>
+          </include>
+        </context> <!-- /_object-type-literal-index-member-content -->
+
+      </include>
+    </context> <!-- /_choice-object-type-literal-index-member -->
+
+    <!-- ## Property / method member
+
+         property: string;
+         method?<T>(x),
+         new <T extends Function>(x, ...rest): void,
+    -->
+
+    <!-- <PropertyName> -->
+    <context id="_property-name" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_property-name-content">
+          <include>
+            <context ref="js-lit:choice-number"/>
+            <context ref="js-lit:choice-string"/>
+            <context ref="js:choice-identifier"/>
+          </include>
+        </context> <!-- /_property-name-content -->
+
+      </include>
+    </context> <!-- /_property-name -->
+
+    <context id="ordered-property-name" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_property-name"/>
+      </include>
+    </context> <!-- /ordered-property-name -->
+
+
+    <context id="_choice-object-type-literal-property-or-method-member" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_object-type-literal-property-or-method-member-content">
+          <include>
+            <context ref="typescript:ordered-constructor-modifier"/>
+            <context ref="ordered-property-name"/>
+            <context ref="typescript:ordered-optional-modifier"/>
+            <context ref="typescript-type-gen:ordered-type-parameters-list"/>
+            <context ref="js-fn:_ordered-function-parameters-list"/>
+            <context ref="typescript:ordered-type-annotation"/>
+          </include>
+        </context> <!-- /_object-type-literal-property-or-method-member-content -->
+
+      </include>
+    </context> <!-- /_choice-object-type-literal-property-or-method-member -->
+
+    <!-- ## Object type literal -->
+
+    <context id="_object-type-literal-member-content">
+      <include>
+        <context ref="_ordered-mapped-type-modifier-prefix"/>
+        <context ref="_ordered-object-type-literal-modifier"/>
+        <context ref="_choice-object-type-literal-index-member"/>
+        <context ref="_choice-object-type-literal-property-or-method-member"/>
+      </include>
+    </context> <!-- /_object-type-literal-member-content -->
+
+    <!-- <ObjectType> -->
+    <context id="choice-object-type-literal" style-ref="typescript:object-type-literal" end-parent="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_object-type-literal-content">
+          <include>
+
+            <context id="_object-type-literal-first-member" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_object-type-literal-member-content"/>
+              </include>
+            </context> <!-- /_object-type-literal-first-member -->
+
+            <context id="_object-type-literal-members">
+              <start>[,;]</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_object-type-literal-member-content"/>
+              </include>
+            </context> <!-- /_object-type-literal-members -->
+
+          </include>
+        </context> <!-- /_object-type-literal-content -->
+
+      </include>
+    </context> <!-- /choice-object-type-literal -->
+
+    <context id="last-object-type-literal" style-ref="typescript:object-type-literal" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="choice-object-type-literal"/>
+      </include>
+    </context> <!-- /last-object-type-literal -->
+
+  </definitions>
+</language>

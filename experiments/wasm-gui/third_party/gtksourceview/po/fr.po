@@ -1,0 +1,2311 @@
+# French translation of gtksourceview.
+# Copyright (C) 2003-2017 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gtksourceview package.
+#
+# Cédric Delfosse <cdelfosse@free.fr>, 2003.
+# Christophe Merlet <redfox@redfoxcenter.org>, 2003-2006.
+# Baptiste Mille-Mathias <bmm80@free.fr>, 2004.
+# Benoît Dejean <tazforever@dlfp.org>, 2005.
+# Jonathan Ernst <jonathan@ernstfamily.ch>, 2006-2007.
+# Robert-André Mauchin <zebob.m@pengzone.org>, 2006-2008.
+# Claude Paroz <claude@2xlibre.net>, 2007-2017.
+# Stéphane Raimbault <stephane.raimbault@gmail.com>, 2007.
+# Laurent Coudeur <laurentc@iol.ie>, 2009
+# Gérard Baylard <Geodebay@gmail.com>, 2011.
+# Charles Monzat <charles.monzat@numericable.fr>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtksourceview HEAD\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gtksourceview/issues\n"
+"POT-Creation-Date: 2019-02-28 12:40+0000\n"
+"PO-Revision-Date: 2018-11-19 09:22+0100\n"
+"Last-Translator: Charles Monzat <charles.monzat@numericable.fr>\n"
+"Language-Team: français <gnomefr@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Gtranslator 3.30.0\n"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:23
+msgid "Disabled"
+msgstr "Désactivé"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:24
+msgid "Before"
+msgstr "Avant"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:25
+msgid "After"
+msgstr "Après"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:26
+msgid "Always"
+msgstr "Toujours"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:32
+msgid "Space"
+msgstr "Espace"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:33
+msgid "Tab"
+msgstr "Tabulation"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:34
+msgid "Newline"
+msgstr "Saut de ligne"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:35
+msgid "Non Breaking Whitespace"
+msgstr "Espace insécable"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:36
+msgid "Leading"
+msgstr "En début de ligne"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:37
+msgid "Text"
+msgstr "Texte"
+
+#. (itstool) path: displayable-values/value@name
+#: gtksourceview.xml:38
+msgid "Trailing"
+msgstr "En fin de ligne"
+
+#. (itstool) path: displayable-values/value@name
+#. Translators: "All" is used as a label in the status bar of the
+#. popup, telling that all completion pages are shown.
+#: gtksourceview.xml:39 gtksourceview/gtksourcecompletion.c:833
+msgid "All"
+msgstr "Tout"
+
+#. (itstool) path: abnf.lang/language@_section
+#. (itstool) path: actionscript.lang/language@_section
+#. (itstool) path: ada.lang/language@_section
+#. (itstool) path: ansforth94.lang/language@_section
+#. (itstool) path: asp.lang/language@_section
+#. (itstool) path: automake.lang/language@_section
+#. (itstool) path: bennugd.lang/language@_section
+#. (itstool) path: bluespec.lang/language@_section
+#. (itstool) path: boo.lang/language@_section
+#. (itstool) path: cg.lang/language@_section
+#. (itstool) path: chdr.lang/language@_section
+#. (itstool) path: c.lang/language@_section
+#. (itstool) path: cobol.lang/language@_section
+#. (itstool) path: cpphdr.lang/language@_section
+#. (itstool) path: cpp.lang/language@_section
+#. (itstool) path: csharp.lang/language@_section
+#. (itstool) path: cuda.lang/language@_section
+#. (itstool) path: d.lang/language@_section
+#. (itstool) path: eiffel.lang/language@_section
+#. (itstool) path: erlang.lang/language@_section
+#. (itstool) path: forth.lang/language@_section
+#. (itstool) path: fortran.lang/language@_section
+#. (itstool) path: fsharp.lang/language@_section
+#. (itstool) path: genie.lang/language@_section
+#. (itstool) path: glsl.lang/language@_section
+#. (itstool) path: go.lang/language@_section
+#. (itstool) path: groovy.lang/language@_section
+#. (itstool) path: haskell.lang/language@_section
+#. (itstool) path: haskell-literate.lang/language@_section
+#. (itstool) path: haxe.lang/language@_section
+#. (itstool) path: idl.lang/language@_section
+#. (itstool) path: java.lang/language@_section
+#. (itstool) path: j.lang/language@_section
+#. (itstool) path: kotlin.lang/language@_section
+#. (itstool) path: lex.lang/language@_section
+#. (itstool) path: llvm.lang/language@_section
+#. (itstool) path: logtalk.lang/language@_section
+#. (itstool) path: makefile.lang/language@_section
+#. (itstool) path: meson.lang/language@_section
+#. (itstool) path: nemerle.lang/language@_section
+#. (itstool) path: netrexx.lang/language@_section
+#. (itstool) path: objc.lang/language@_section
+#. (itstool) path: objj.lang/language@_section
+#. (itstool) path: ocaml.lang/language@_section
+#. (itstool) path: ooc.lang/language@_section
+#. (itstool) path: opal.lang/language@_section
+#. (itstool) path: opencl.lang/language@_section
+#. (itstool) path: pascal.lang/language@_section
+#. (itstool) path: pig.lang/language@_section
+#. (itstool) path: prolog.lang/language@_section
+#. (itstool) path: rust.lang/language@_section
+#. (itstool) path: scala.lang/language@_section
+#. (itstool) path: scheme.lang/language@_section
+#. (itstool) path: sml.lang/language@_section
+#. (itstool) path: sparql.lang/language@_section
+#. (itstool) path: sql.lang/language@_section
+#. (itstool) path: swift.lang/language@_section
+#. (itstool) path: systemverilog.lang/language@_section
+#. (itstool) path: thrift.lang/language@_section
+#. (itstool) path: vala.lang/language@_section
+#. (itstool) path: vbnet.lang/language@_section
+#. (itstool) path: verilog.lang/language@_section
+#. (itstool) path: vhdl.lang/language@_section
+#: abnf.lang:30 actionscript.lang:24 ada.lang:25 ansforth94.lang:24 asp.lang:23
+#: automake.lang:23 bennugd.lang:22 bluespec.lang:21 boo.lang:23 cg.lang:23
+#: chdr.lang:24 c.lang:24 cobol.lang:26 cpphdr.lang:24 cpp.lang:24
+#: csharp.lang:26 cuda.lang:22 d.lang:29 eiffel.lang:23 erlang.lang:23
+#: forth.lang:23 fortran.lang:24 fsharp.lang:24 genie.lang:23 glsl.lang:30
+#: go.lang:24 groovy.lang:24 haskell.lang:24 haskell-literate.lang:23
+#: haxe.lang:34 idl.lang:23 java.lang:24 j.lang:23 kotlin.lang:24 lex.lang:24
+#: llvm.lang:22 logtalk.lang:23 makefile.lang:22 meson.lang:23 nemerle.lang:23
+#: netrexx.lang:23 objc.lang:23 objj.lang:25 ocaml.lang:26 ooc.lang:23
+#: opal.lang:23 opencl.lang:23 pascal.lang:24 pig.lang:26 prolog.lang:23
+#: rust.lang:35 scala.lang:24 scheme.lang:23 sml.lang:23 sparql.lang:23
+#: sql.lang:23 swift.lang:24 systemverilog.lang:21 thrift.lang:20 vala.lang:27
+#: vbnet.lang:23 verilog.lang:23 vhdl.lang:23
+msgid "Source"
+msgstr "Source"
+
+#. (itstool) path: awk.lang/language@_section
+#. (itstool) path: dosbatch.lang/language@_section
+#. (itstool) path: javascript.lang/language@_section
+#. (itstool) path: lua.lang/language@_section
+#. (itstool) path: m4.lang/language@_section
+#. (itstool) path: perl.lang/language@_section
+#. (itstool) path: php.lang/language@_section
+#. (itstool) path: python3.lang/language@_section
+#. (itstool) path: python.lang/language@_section
+#. (itstool) path: ruby.lang/language@_section
+#. (itstool) path: sh.lang/language@_section
+#. (itstool) path: tcl.lang/language@_section
+#: awk.lang:23 dosbatch.lang:23 javascript.lang:26 lua.lang:23 m4.lang:23
+#: perl.lang:25 php.lang:28 python3.lang:23 python.lang:27 ruby.lang:26
+#: sh.lang:24 tcl.lang:23
+msgid "Script"
+msgstr "Script"
+
+#. (itstool) path: bibtex.lang/language@_section
+#. (itstool) path: docbook.lang/language@_section
+#. (itstool) path: dtd.lang/language@_section
+#. (itstool) path: dtl.lang/language@_section
+#. (itstool) path: gtk-doc.lang/language@_section
+#. (itstool) path: haddock.lang/language@_section
+#. (itstool) path: html.lang/language@_section
+#. (itstool) path: jade.lang/language@_section
+#. (itstool) path: latex.lang/language@_section
+#. (itstool) path: mallard.lang/language@_section
+#. (itstool) path: markdown.lang/language@_section
+#. (itstool) path: mediawiki.lang/language@_section
+#. (itstool) path: mxml.lang/language@_section
+#. (itstool) path: rst.lang/language@_section
+#. (itstool) path: sweave.lang/language@_section
+#. (itstool) path: t2t.lang/language@_section
+#. (itstool) path: tera.lang/language@_section
+#. (itstool) path: texinfo.lang/language@_section
+#. (itstool) path: xml.lang/language@_section
+#. (itstool) path: xslt.lang/language@_section
+#: bibtex.lang:23 docbook.lang:23 dtd.lang:23 dtl.lang:25 gtk-doc.lang:24
+#: haddock.lang:23 html.lang:24 jade.lang:24 latex.lang:24 mallard.lang:22
+#: markdown.lang:25 mediawiki.lang:22 mxml.lang:23 rst.lang:22 sweave.lang:24
+#: t2t.lang:23 tera.lang:23 texinfo.lang:24 xml.lang:25 xslt.lang:23
+msgid "Markup"
+msgstr "Balisage"
+
+#. (itstool) path: cg.lang/language@_name
+#: cg.lang:23
+msgid "CG Shader Language"
+msgstr "Langage de shading CG"
+
+#. (itstool) path: changelog.lang/language@_section
+#. (itstool) path: cmake.lang/language@_section
+#. (itstool) path: css.lang/language@_section
+#. (itstool) path: csv.lang/language@_section
+#. (itstool) path: desktop.lang/language@_section
+#. (itstool) path: diff.lang/language@_section
+#. (itstool) path: dot.lang/language@_section
+#. (itstool) path: dpatch.lang/language@_section
+#. (itstool) path: gdb-log.lang/language@_section
+#. (itstool) path: gtkrc.lang/language@_section
+#. (itstool) path: ini.lang/language@_section
+#. (itstool) path: json.lang/language@_section
+#. (itstool) path: less.lang/language@_section
+#. (itstool) path: libtool.lang/language@_section
+#. (itstool) path: logcat.lang/language@_section
+#. (itstool) path: nsis.lang/language@_section
+#. (itstool) path: ocl.lang/language@_section
+#. (itstool) path: pkgconfig.lang/language@_section
+#. (itstool) path: po.lang/language@_section
+#. (itstool) path: protobuf.lang/language@_section
+#. (itstool) path: puppet.lang/language@_section
+#. (itstool) path: rpmspec.lang/language@_section
+#. (itstool) path: scss.lang/language@_section
+#. (itstool) path: toml.lang/language@_section
+#. (itstool) path: yacc.lang/language@_section
+#. (itstool) path: yaml.lang/language@_section
+#: changelog.lang:24 cmake.lang:23 css.lang:26 csv.lang:23 desktop.lang:24
+#: diff.lang:23 dot.lang:23 dpatch.lang:23 gdb-log.lang:18 gtkrc.lang:24
+#: ini.lang:22 json.lang:29 less.lang:23 libtool.lang:23 logcat.lang:23
+#: nsis.lang:23 ocl.lang:32 pkgconfig.lang:23 po.lang:23 protobuf.lang:21
+#: puppet.lang:23 rpmspec.lang:24 scss.lang:23 toml.lang:23 yacc.lang:23
+#: yaml.lang:21
+msgid "Other"
+msgstr "Autre"
+
+#. (itstool) path: chdr.lang/language@_name
+#: chdr.lang:24
+msgid "C/ObjC Header"
+msgstr "En-tête C/ObjC"
+
+#. (itstool) path: cpphdr.lang/language@_name
+#: cpphdr.lang:24
+msgid "C++ Header"
+msgstr "En-tête C++"
+
+#. (itstool) path: dosbatch.lang/language@_name
+#: dosbatch.lang:23
+msgid "DOS Batch"
+msgstr "Lot DOS"
+
+#. (itstool) path: dtl.lang/language@_name
+#: dtl.lang:25
+msgid "Django Template"
+msgstr "Gabarit Django"
+
+#. (itstool) path: fcl.lang/language@_section
+#. (itstool) path: gap.lang/language@_section
+#. (itstool) path: idl-exelis.lang/language@_section
+#. (itstool) path: imagej.lang/language@_section
+#. (itstool) path: julia.lang/language@_section
+#. (itstool) path: matlab.lang/language@_section
+#. (itstool) path: maxima.lang/language@_section
+#. (itstool) path: modelica.lang/language@_section
+#. (itstool) path: octave.lang/language@_section
+#. (itstool) path: R.lang/language@_section
+#. (itstool) path: scilab.lang/language@_section
+#: fcl.lang:23 gap.lang:23 idl-exelis.lang:20 imagej.lang:23 julia.lang:23
+#: matlab.lang:25 maxima.lang:24 modelica.lang:25 octave.lang:25 R.lang:25
+#: scilab.lang:23
+msgid "Scientific"
+msgstr "Scientifique"
+
+#. (itstool) path: gdb-log.lang/language@_name
+#: gdb-log.lang:18
+msgid "GDB Log"
+msgstr "Journal de GDB"
+
+# http://fr.wikipedia.org/wiki/GLSL
+#. (itstool) path: glsl.lang/language@_name
+#: glsl.lang:30
+msgid "OpenGL Shading Language"
+msgstr "Langage « OpenGL Shading »"
+
+#. (itstool) path: llvm.lang/language@_name
+#: llvm.lang:22
+msgid "LLVM IR"
+msgstr "LLVM IR"
+
+#. (itstool) path: po.lang/language@_name
+#: po.lang:23
+msgid "gettext translation"
+msgstr "Traduction via gettext"
+
+#. (itstool) path: rpmspec.lang/language@_name
+#: rpmspec.lang:24
+msgid "RPM spec"
+msgstr "Spécification RPM"
+
+#. (itstool) path: tera.lang/language@_name
+#: tera.lang:23
+msgid "Tera Template"
+msgstr "Gabarit Tera"
+
+#. (itstool) path: classic.xml/style-scheme@_name
+#: classic.xml:24
+msgid "Classic"
+msgstr "Classique"
+
+#. (itstool) path: style-scheme/_description
+#: classic.xml:26
+msgid "Classic color scheme"
+msgstr "Jeu de couleurs classique"
+
+#. (itstool) path: cobalt.xml/style-scheme@_name
+#: cobalt.xml:26
+msgid "Cobalt"
+msgstr "Cobalt"
+
+#. (itstool) path: style-scheme/_description
+#: cobalt.xml:28
+msgid "Blue based color scheme"
+msgstr "Jeu de couleurs basé sur le bleu"
+
+#. (itstool) path: kate.xml/style-scheme@_name
+#: kate.xml:24
+msgid "Kate"
+msgstr "Kate"
+
+#. (itstool) path: style-scheme/_description
+#: kate.xml:26
+msgid "Color scheme used in the Kate text editor"
+msgstr "Jeu de couleurs utilisé dans l’éditeur de texte Kate"
+
+#. (itstool) path: oblivion.xml/style-scheme@_name
+#: oblivion.xml:25
+msgid "Oblivion"
+msgstr "Oblivion"
+
+#. (itstool) path: style-scheme/_description
+#: oblivion.xml:28
+msgid "Dark color scheme using the Tango color palette"
+msgstr "Jeu de couleurs sombre utilisant la palette Tango"
+
+#. (itstool) path: solarized-dark.xml/style-scheme@_name
+#: solarized-dark.xml:24
+msgid "Solarized Dark"
+msgstr "Solarisé foncé"
+
+#. (itstool) path: style-scheme/_description
+#: solarized-dark.xml:26
+msgid "Color scheme using Solarized dark color palette"
+msgstr "Jeu de couleurs utilisant la palette solarisé foncé"
+
+#. (itstool) path: solarized-light.xml/style-scheme@_name
+#: solarized-light.xml:24
+msgid "Solarized Light"
+msgstr "Solarisé clair"
+
+#. (itstool) path: style-scheme/_description
+#: solarized-light.xml:26
+msgid "Color scheme using Solarized light color palette"
+msgstr "Jeu de couleurs utilisant la palette solarisé clair"
+
+#. (itstool) path: tango.xml/style-scheme@_name
+#: tango.xml:24
+msgid "Tango"
+msgstr "Tango"
+
+#. (itstool) path: style-scheme/_description
+#: tango.xml:26
+msgid "Color scheme using Tango color palette"
+msgstr "Jeu de couleurs utilisant la palette Tango"
+
+#: gtksourceview/completion-providers/words/gtksourcecompletionwords.c:334
+msgid "Document Words"
+msgstr "Mots du document"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:843
+msgid "Invalid byte sequence in conversion input"
+msgstr "Séquence d’octets non valide dans le flux d’entrée de conversion"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:849
+#, c-format
+msgid "Error during conversion: %s"
+msgstr "Erreur durant la conversion : %s"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:930
+#, c-format
+msgid "Conversion from character set “%s” to “UTF-8” is not supported"
+msgstr ""
+"La conversion à partir du jeu de caractères « %s » vers « UTF-8 » n’est pas "
+"prise en charge"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:936
+#, c-format
+msgid "Could not open converter from “%s” to “UTF-8”"
+msgstr "Impossible d’ouvrir le convertisseur de « %s » vers « UTF-8 »"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:996
+msgid "Invalid object, not initialized"
+msgstr "Objet non valable, non initialisé"
+
+#: gtksourceview/gtksourcebufferoutputstream.c:1188
+msgid "Incomplete UTF-8 sequence in input"
+msgstr "Séquence UTF-8 incomplète dans le flux d’entrée"
+
+#. Tooltip style
+#: gtksourceview/gtksourcecompletioninfo.c:271
+msgid "Completion Info"
+msgstr "Information de complétion"
+
+#: gtksourceview/gtksourcecompletionmodel.c:495
+msgid "Provider"
+msgstr "Fournisseur"
+
+#: gtksourceview/gtksourcecompletion.ui:87
+msgid "Show detailed proposal information"
+msgstr "Afficher des informations détaillées sur la proposition"
+
+#: gtksourceview/gtksourcecompletion.ui:89
+msgid "_Details…"
+msgstr "_Détails…"
+
+#. regex_new could fail, for instance if there are different
+#. * named sub-patterns with the same name or if resulting regex is
+#. * too long. In this case fixing lang file helps (e.g. renaming
+#. * subpatterns, making huge keywords use bigger prefixes, etc.)
+#: gtksourceview/gtksourcecontextengine.c:3141
+#, c-format
+msgid ""
+"Cannot create a regex for all the transitions, the syntax highlighting "
+"process will be slower than usual.\n"
+"The error was: %s"
+msgstr ""
+"Impossible de créer une expression régulière pour toutes les transitions, la "
+"coloration syntaxique sera plus lente que normal.\n"
+"L’erreur est : %s"
+
+#: gtksourceview/gtksourcecontextengine.c:4464
+msgid ""
+"Highlighting a single line took too much time, syntax highlighting will be "
+"disabled"
+msgstr ""
+"La mise en surbrillance d’une seule ligne a pris trop de temps, la "
+"coloration syntaxique sera désactivée"
+
+#: gtksourceview/gtksourcecontextengine.c:5712
+#, c-format
+msgid "context “%s” cannot contain a \\%%{...@start} command"
+msgstr "le contexte « %s » ne peut contenir une commande \\%%{...@start}"
+
+#: gtksourceview/gtksourcecontextengine.c:5875
+#: gtksourceview/gtksourcecontextengine.c:5965
+#, c-format
+msgid "duplicated context id “%s”"
+msgstr "id de contexte « %s » en double"
+
+#: gtksourceview/gtksourcecontextengine.c:6079
+#: gtksourceview/gtksourcecontextengine.c:6139
+#, c-format
+msgid ""
+"style override used with wildcard context reference in language “%s” in ref "
+"“%s”"
+msgstr ""
+"surcharge de style utilisée avec référence de contexte à caractères "
+"génériques dans le langage « %s » dans la référence « %s »"
+
+#: gtksourceview/gtksourcecontextengine.c:6153
+#, c-format
+msgid "invalid context reference “%s”"
+msgstr "référence de contexte « %s » non valide"
+
+#: gtksourceview/gtksourcecontextengine.c:6172
+#: gtksourceview/gtksourcecontextengine.c:6182
+#, c-format
+msgid "unknown context “%s”"
+msgstr "contexte « %s » inconnu"
+
+#: gtksourceview/gtksourcecontextengine.c:6281
+#, c-format
+msgid "Missing main language definition (id = \"%s\".)"
+msgstr "La définition principale du langage est manquante (id = « %s ».)"
+
+#: gtksourceview/gtksourceencoding.c:141 gtksourceview/gtksourceencoding.c:184
+#: gtksourceview/gtksourceencoding.c:186 gtksourceview/gtksourceencoding.c:188
+#: gtksourceview/gtksourceencoding.c:190 gtksourceview/gtksourceencoding.c:192
+#: gtksourceview/gtksourceencoding.c:194 gtksourceview/gtksourceencoding.c:196
+msgid "Unicode"
+msgstr "Unicode"
+
+#: gtksourceview/gtksourceencoding.c:155 gtksourceview/gtksourceencoding.c:179
+#: gtksourceview/gtksourceencoding.c:229 gtksourceview/gtksourceencoding.c:272
+msgid "Western"
+msgstr "Occidental"
+
+#: gtksourceview/gtksourceencoding.c:157 gtksourceview/gtksourceencoding.c:231
+#: gtksourceview/gtksourceencoding.c:268
+msgid "Central European"
+msgstr "Europe centrale"
+
+#: gtksourceview/gtksourceencoding.c:159
+msgid "South European"
+msgstr "Europe méridionale"
+
+#: gtksourceview/gtksourceencoding.c:161 gtksourceview/gtksourceencoding.c:175
+#: gtksourceview/gtksourceencoding.c:282
+msgid "Baltic"
+msgstr "Balte"
+
+#: gtksourceview/gtksourceencoding.c:163 gtksourceview/gtksourceencoding.c:233
+#: gtksourceview/gtksourceencoding.c:246 gtksourceview/gtksourceencoding.c:250
+#: gtksourceview/gtksourceencoding.c:252 gtksourceview/gtksourceencoding.c:270
+msgid "Cyrillic"
+msgstr "Cyrillique"
+
+#: gtksourceview/gtksourceencoding.c:165 gtksourceview/gtksourceencoding.c:239
+#: gtksourceview/gtksourceencoding.c:280
+msgid "Arabic"
+msgstr "Arabe"
+
+#: gtksourceview/gtksourceencoding.c:167 gtksourceview/gtksourceencoding.c:274
+msgid "Greek"
+msgstr "Grec"
+
+#: gtksourceview/gtksourceencoding.c:169
+msgid "Hebrew Visual"
+msgstr "Hébreu visuel"
+
+#: gtksourceview/gtksourceencoding.c:171 gtksourceview/gtksourceencoding.c:235
+#: gtksourceview/gtksourceencoding.c:276
+msgid "Turkish"
+msgstr "Turc"
+
+#: gtksourceview/gtksourceencoding.c:173
+msgid "Nordic"
+msgstr "Scandinave"
+
+#: gtksourceview/gtksourceencoding.c:177
+msgid "Celtic"
+msgstr "Celte"
+
+#: gtksourceview/gtksourceencoding.c:181
+msgid "Romanian"
+msgstr "Roumain"
+
+#: gtksourceview/gtksourceencoding.c:199
+msgid "Armenian"
+msgstr "Arménien"
+
+#: gtksourceview/gtksourceencoding.c:201 gtksourceview/gtksourceencoding.c:203
+#: gtksourceview/gtksourceencoding.c:217
+msgid "Chinese Traditional"
+msgstr "Chinois traditionnel"
+
+#: gtksourceview/gtksourceencoding.c:205
+msgid "Cyrillic/Russian"
+msgstr "Cyrillique/russe"
+
+#: gtksourceview/gtksourceencoding.c:208 gtksourceview/gtksourceencoding.c:210
+#: gtksourceview/gtksourceencoding.c:212 gtksourceview/gtksourceencoding.c:242
+#: gtksourceview/gtksourceencoding.c:257
+msgid "Japanese"
+msgstr "Japonais"
+
+#: gtksourceview/gtksourceencoding.c:215 gtksourceview/gtksourceencoding.c:244
+#: gtksourceview/gtksourceencoding.c:248 gtksourceview/gtksourceencoding.c:263
+msgid "Korean"
+msgstr "Coréen"
+
+#: gtksourceview/gtksourceencoding.c:220 gtksourceview/gtksourceencoding.c:222
+#: gtksourceview/gtksourceencoding.c:224
+msgid "Chinese Simplified"
+msgstr "Chinois simplifié"
+
+#: gtksourceview/gtksourceencoding.c:226
+msgid "Georgian"
+msgstr "Géorgien"
+
+#: gtksourceview/gtksourceencoding.c:237 gtksourceview/gtksourceencoding.c:278
+msgid "Hebrew"
+msgstr "Hébreu"
+
+#: gtksourceview/gtksourceencoding.c:254
+msgid "Cyrillic/Ukrainian"
+msgstr "Cyrillique/ukrainien"
+
+#: gtksourceview/gtksourceencoding.c:259 gtksourceview/gtksourceencoding.c:265
+#: gtksourceview/gtksourceencoding.c:284
+msgid "Vietnamese"
+msgstr "Vietnamien"
+
+#: gtksourceview/gtksourceencoding.c:261
+msgid "Thai"
+msgstr "Thaï"
+
+#: gtksourceview/gtksourceencoding.c:495
+msgid "Unknown"
+msgstr "Inconnu"
+
+#. Translators: This is the sorted list of encodings used by
+#. * GtkSourceView for automatic detection of the file encoding. You may
+#. * want to customize it adding encodings that are common in your
+#. * country, for instance the GB18030 encoding for the Chinese
+#. * translation. You may also want to remove the ISO-8859-15 encoding
+#. * (covering English and most Western European languages) if you think
+#. * people in your country will rarely use it.  "CURRENT" is a magic
+#. * value used by GtkSourceView and it represents the encoding for the
+#. * current locale, so please don't translate the "CURRENT" term.  Only
+#. * recognized encodings are used. See
+#. * https://git.gnome.org/browse/gtksourceview/tree/gtksourceview/gtksourceencoding.c#n147
+#. * for a list of supported encodings.
+#. * Keep the same format: square brackets, single quotes, commas.
+#.
+#: gtksourceview/gtksourceencoding.c:639
+msgid "['UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"
+msgstr "['UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"
+
+#: gtksourceview/gtksourcefileloader.c:516
+msgid ""
+"There was a character encoding conversion error and it was needed to use a "
+"fallback character."
+msgstr ""
+"Une erreur de conversion de codage de caractère s’est produite et il a fallu "
+"utiliser un caractère de remplacement."
+
+#: gtksourceview/gtksourcefileloader.c:623
+msgid "File too big."
+msgstr "Fichier trop volumineux."
+
+#: gtksourceview/gtksourcefileloader.c:777
+msgid "Not a regular file."
+msgstr "Ce n’est pas un fichier normal."
+
+#: gtksourceview/gtksourcefilesaver.c:976
+msgid "The file is externally modified."
+msgstr "Le fichier a été modifié par un programme externe."
+
+#: gtksourceview/gtksourcefilesaver.c:1428
+msgid "The buffer contains invalid characters."
+msgstr "Le tampon contient des caractères non valides."
+
+#. *
+#. * SECTION:language
+#. * @Short_description: Represents a syntax highlighted language
+#. * @Title: GtkSourceLanguage
+#. * @See_also: #GtkSourceLanguageManager
+#. *
+#. * A #GtkSourceLanguage represents a programming or markup language, affecting
+#. * syntax highlighting and [context classes][context-classes].
+#. *
+#. * Use #GtkSourceLanguageManager to obtain a #GtkSourceLanguage instance, and
+#. * gtk_source_buffer_set_language() to apply it to a #GtkSourceBuffer.
+#.
+#: gtksourceview/gtksourcelanguage.c:56
+msgid "Others"
+msgstr "Autres"
+
+#: gtksourceview/gtksourcelanguage-parser-2.c:950
+#, c-format
+msgid "Unknown id “%s” in regex “%s”"
+msgstr "Id « %s » inconnu dans l’expr. régulière « %s »"
+
+#: gtksourceview/gtksourcelanguage-parser-2.c:1180
+#, c-format
+msgid "in regex “%s”: backreferences are not supported"
+msgstr ""
+"dans l’expr. régulière « %s » : les références arrières ne sont pas prises "
+"en charge"
+
+#: gtksourceview/gtksourceregex.c:129
+msgid "using \\C is not supported in language definitions"
+msgstr ""
+"l’utilisation de \\C n’est pas prise en charge dans les définitions de "
+"langage"
+
+#. TODO: have a ChooserDialog?
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:185
+msgid "Select a Style"
+msgstr "Choisir un style"
+
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:189
+msgid "_Cancel"
+msgstr "A_nnuler"
+
+#: gtksourceview/gtksourcestyleschemechooserbutton.c:190
+msgid "_Select"
+msgstr "_Choisir"
+
+#. create redo menu_item.
+#: gtksourceview/gtksourceview.c:1781
+msgid "_Redo"
+msgstr "_Rétablir"
+
+#. create undo menu_item.
+#: gtksourceview/gtksourceview.c:1792
+msgid "_Undo"
+msgstr "Ann_uler"
+
+#: gtksourceview/gtksourceview.c:1811
+msgid "All _Upper Case"
+msgstr "Tout en _majuscules"
+
+#: gtksourceview/gtksourceview.c:1821
+msgid "All _Lower Case"
+msgstr "Tout en mi_nuscules"
+
+#: gtksourceview/gtksourceview.c:1831
+msgid "_Invert Case"
+msgstr "_Inverser la casse"
+
+#: gtksourceview/gtksourceview.c:1841
+msgid "_Title Case"
+msgstr "Ma_juscules initiales"
+
+#: gtksourceview/gtksourceview.c:1851
+msgid "C_hange Case"
+msgstr "Mo_difier la casse"
+
+#~ msgid "ABNF"
+#~ msgstr "ABNF"
+
+#~ msgid "Comment"
+#~ msgstr "Commentaire"
+
+#~ msgid "Rule Name"
+#~ msgstr "Nom de règle"
+
+#~ msgid "Binary number"
+#~ msgstr "Nombre binaire"
+
+#~ msgid "Decimal number"
+#~ msgstr "Nombre décimal"
+
+#~ msgid "Hexadecimal number"
+#~ msgstr "Nombre hexadécimal"
+
+#~ msgid "String"
+#~ msgstr "Chaîne"
+
+#~ msgid "ActionScript"
+#~ msgstr "ActionScript"
+
+#~ msgid "Error"
+#~ msgstr "Erreur"
+
+#~ msgid "External"
+#~ msgstr "Externe"
+
+#~ msgid "Declaration"
+#~ msgstr "Déclaration"
+
+#~ msgid "Storage Class"
+#~ msgstr "Classe de stockage"
+
+#~ msgid "Scope Declaration"
+#~ msgstr "Déclaration de portée"
+
+#~ msgid "Keyword"
+#~ msgstr "Mot-clé"
+
+#~ msgid "Null Value"
+#~ msgstr "Valeur nulle"
+
+#~ msgid "Boolean value"
+#~ msgstr "Valeur booléenne"
+
+#~ msgid "Number"
+#~ msgstr "Nombre"
+
+#~ msgid "Future Reserved Keywords"
+#~ msgstr "Mots-clés réservés pour le futur"
+
+#~ msgid "Data Type"
+#~ msgstr "Type de donnée"
+
+#~ msgid "Ada"
+#~ msgstr "Ada"
+
+#~ msgid "Preprocessor"
+#~ msgstr "Préprocesseur"
+
+#~ msgid "Arbitrary base number"
+#~ msgstr "Nombre à base arbitraire"
+
+#~ msgid "Real number"
+#~ msgstr "Nombre réel"
+
+#~ msgid "Escaped Character"
+#~ msgstr "Caractère échappé"
+
+#~ msgid "ANS-Forth94"
+#~ msgstr "ANS-Forth94"
+
+#~ msgid "Obsolete Keyword"
+#~ msgstr "Mot-clé obsolète"
+
+#~ msgid "Alert"
+#~ msgstr "Alerte"
+
+#~ msgid "Character"
+#~ msgstr "Caractère"
+
+#~ msgid "Word"
+#~ msgstr "Mot"
+
+#~ msgid "Constant"
+#~ msgstr "Constante"
+
+#~ msgid "Variable"
+#~ msgstr "Variable"
+
+#~ msgid "Local Variable"
+#~ msgstr "Variable locale"
+
+#~ msgid "Single Number"
+#~ msgstr "Nombre unique"
+
+#~ msgid "Double Number"
+#~ msgstr "Nombre double"
+
+#~ msgid "Float"
+#~ msgstr "Flottant"
+
+#~ msgid "ASP"
+#~ msgstr "ASP"
+
+#~ msgid "Function"
+#~ msgstr "Fonction"
+
+#~ msgid "Operator"
+#~ msgstr "Opérateur"
+
+#~ msgid "ASP Object"
+#~ msgstr "Objet ASP"
+
+#~ msgid "VBScript and ADO constants"
+#~ msgstr "Constantes VBScript et ADO"
+
+#~ msgid "Special constant"
+#~ msgstr "Constante spéciale"
+
+#~ msgid "Automake"
+#~ msgstr "Automake"
+
+#~ msgid "Automake Variable"
+#~ msgstr "Variable automake"
+
+#~ msgid "Primary"
+#~ msgstr "Principal"
+
+#~ msgid "Secondary"
+#~ msgstr "Secondaire"
+
+#~ msgid "Prefix"
+#~ msgstr "Préfixe"
+
+#~ msgid "Optional Target"
+#~ msgstr "Cible optionnelle"
+
+#~ msgid "Built-in Target"
+#~ msgstr "Cible intégrée"
+
+#~ msgid "Other Keyword"
+#~ msgstr "Autre mot-clé"
+
+#~ msgid "Substitution"
+#~ msgstr "Substitution"
+
+#~ msgid "awk"
+#~ msgstr "awk"
+
+#~ msgid "Pattern"
+#~ msgstr "Motif"
+
+#~ msgid "Builtin Function"
+#~ msgstr "Fonction intégrée"
+
+#~ msgid "BennuGD"
+#~ msgstr "BennuGD"
+
+#~ msgid "Identifier"
+#~ msgstr "Identifiant"
+
+#~ msgid "Floating point number"
+#~ msgstr "Nombre à virgule flottante"
+
+#~ msgid "BibTeX"
+#~ msgstr "BibTeX"
+
+#~ msgid "Entries"
+#~ msgstr "Entrées"
+
+#~ msgid "Field"
+#~ msgstr "Champ"
+
+#~ msgid "Bluespec SystemVerilog"
+#~ msgstr "SystemVerilog Bluespec"
+
+#~ msgid "System Task"
+#~ msgstr "Tâche système"
+
+#~ msgid "Annotation"
+#~ msgstr "Annotation"
+
+#~ msgid "Attribute"
+#~ msgstr "Attribut"
+
+#~ msgid "Import BVI"
+#~ msgstr "Import BVI"
+
+#~ msgid "Type"
+#~ msgstr "Type"
+
+#~ msgid "Boo"
+#~ msgstr "Boo"
+
+#~ msgid "Multiline string"
+#~ msgstr "Chaîne sur plusieurs lignes"
+
+#~ msgid "Regular Expression"
+#~ msgstr "Expression régulière"
+
+#~ msgid "Namespace"
+#~ msgstr "Espace de noms"
+
+#~ msgid "Definition"
+#~ msgstr "Définition"
+
+#~ msgid "Special Variable"
+#~ msgstr "Variable spéciale"
+
+#~ msgid "Boolean"
+#~ msgstr "Booléen"
+
+#~ msgid "Bindings"
+#~ msgstr "Liaisons"
+
+#~ msgid "Included File"
+#~ msgstr "Fichier inclus"
+
+#~ msgid "Octal number"
+#~ msgstr "Nombre octal"
+
+#~ msgid "Swizzle operator"
+#~ msgstr "Opérateur swizzle"
+
+#~ msgid "Builtin"
+#~ msgstr "Intégré"
+
+#~ msgid "ChangeLog"
+#~ msgstr "ChangeLog"
+
+#~ msgid "Date"
+#~ msgstr "Date"
+
+#~ msgid "Name"
+#~ msgstr "Nom"
+
+#~ msgid "E-mail address"
+#~ msgstr "Adresse électronique"
+
+#~ msgid "File"
+#~ msgstr "Fichier"
+
+#~ msgid "Bullet"
+#~ msgstr "Puce"
+
+#~ msgid "Release"
+#~ msgstr "Version"
+
+#~ msgid "C"
+#~ msgstr "C"
+
+#~ msgid "Common Defines"
+#~ msgstr "Définitions communes"
+
+#~ msgid "printf Conversion"
+#~ msgstr "Conversion printf"
+
+#~ msgid "Standard stream"
+#~ msgstr "Flux standard"
+
+#~ msgid "Signal name"
+#~ msgstr "Nom de signal"
+
+#~ msgid "CMake"
+#~ msgstr "CMake"
+
+#~ msgid "Builtin Command"
+#~ msgstr "Commande intégrée"
+
+#~ msgid "Deprecated Builtin Command"
+#~ msgstr "Commande intégrée obsolète"
+
+#~ msgid "Builtin Variable"
+#~ msgstr "Variable intégrée"
+
+#~ msgid "Control Keyword"
+#~ msgstr "Mot-clé de contrôle"
+
+#~ msgid "COBOL"
+#~ msgstr "COBOL"
+
+#~ msgid "Statement"
+#~ msgstr "Instruction"
+
+#~ msgid "C++"
+#~ msgstr "C++"
+
+#~ msgid "C#"
+#~ msgstr "C#"
+
+#~ msgid "String Format"
+#~ msgstr "Format de chaîne"
+
+#~ msgid "CSS"
+#~ msgstr "CSS"
+
+#~ msgid "Others 2"
+#~ msgstr "Autres 2"
+
+#~ msgid "Color"
+#~ msgstr "Couleur"
+
+#~ msgid "Others 3"
+#~ msgstr "Autres 3"
+
+#~ msgid "Decimal"
+#~ msgstr "Décimal"
+
+#~ msgid "Dimension"
+#~ msgstr "Dimension"
+
+#~ msgid "Property Value"
+#~ msgstr "Valeur de propriété"
+
+#~ msgid "at-rules"
+#~ msgstr "Règles @"
+
+#~ msgid "ID Selector"
+#~ msgstr "Sélecteur d'ID"
+
+#~ msgid "Class Selector"
+#~ msgstr "Sélecteur de classe"
+
+#~ msgid "Tag Name Selector"
+#~ msgstr "Sélecteur de nom de balise"
+
+#~ msgid "CSV"
+#~ msgstr "CSV"
+
+#~ msgid "Escaped character"
+#~ msgstr "Caractère échappé"
+
+#~ msgid "CUDA"
+#~ msgstr "CUDA"
+
+#~ msgid "Global Functions"
+#~ msgstr "Fonctions globales"
+
+#~ msgid "Device Functions"
+#~ msgstr "Fonctions de périphérique"
+
+#~ msgid "Global Variables"
+#~ msgstr "Variables globales"
+
+#~ msgid "Defaults"
+#~ msgstr "Valeurs par défaut"
+
+#~ msgid "Shebang"
+#~ msgstr "Shebang (#!...)"
+
+#~ msgid "Documentation comment"
+#~ msgstr "Commentaire de documentation"
+
+#~ msgid "Documentation comment element"
+#~ msgstr "Élément de commentaire de documentation"
+
+#~ msgid "Special character (inside a string)"
+#~ msgstr "Caractère spécial (à l'intérieur d'une chaîne)"
+
+#~ msgid "Base-N number"
+#~ msgstr "Nombre en base N"
+
+#~ msgid "Complex number"
+#~ msgstr "Nombre complexe"
+
+#~ msgid "Built-in identifier"
+#~ msgstr "Identifiant intégré"
+
+#~ msgid "Data type"
+#~ msgstr "Type de donnée"
+
+#~ msgid "Preprocessor directive"
+#~ msgstr "Directive du préprocesseur"
+
+#~ msgid "Warning"
+#~ msgstr "Avertissement"
+
+#~ msgid "Reserved keyword"
+#~ msgstr "Mot-clé réservé"
+
+#~ msgid "Note (FIXME, TODO, XXX, etc.)"
+#~ msgstr "Note (FIXME, TODO, XXX, etc.)"
+
+#~ msgid "Underlined"
+#~ msgstr "Souligné"
+
+#~ msgid "Heading 0"
+#~ msgstr "En-tête 0"
+
+#~ msgid "Heading 1"
+#~ msgstr "En-tête 1"
+
+#~ msgid "Heading 2"
+#~ msgstr "En-tête 2"
+
+#~ msgid "Heading 3"
+#~ msgstr "En-tête 3"
+
+#~ msgid "Heading 4"
+#~ msgstr "En-tête 4"
+
+#~ msgid "Heading 5"
+#~ msgstr "En-tête 5"
+
+#~ msgid "Heading 6"
+#~ msgstr "En-tête 6"
+
+#~ msgid ".desktop"
+#~ msgstr ".desktop"
+
+#~ msgid "Group"
+#~ msgstr "Groupe"
+
+#~ msgid "Key"
+#~ msgstr "Clé"
+
+#~ msgid "Translation"
+#~ msgstr "Traduction"
+
+#~ msgid "Exec parameter"
+#~ msgstr "Paramètre d'exécution"
+
+#~ msgid "Encoding"
+#~ msgstr "Codage"
+
+#~ msgid "Main Category"
+#~ msgstr "Catégorie principale"
+
+#~ msgid "Additional Category"
+#~ msgstr "Catégorie supplémentaire"
+
+#~ msgid "Reserved Category"
+#~ msgstr "Catégorie réservée"
+
+#~ msgid "Diff"
+#~ msgstr "Diff"
+
+#~ msgid "Added line"
+#~ msgstr "Ligne ajoutée"
+
+#~ msgid "Removed line"
+#~ msgstr "Ligne supprimée"
+
+#~ msgid "Changed line"
+#~ msgstr "Ligne modifiée"
+
+#~ msgid "Special case"
+#~ msgstr "Cas spécial"
+
+#~ msgid "Location"
+#~ msgstr "Chemin"
+
+#~ msgid "Ignore"
+#~ msgstr "À ignorer"
+
+#~ msgid "D"
+#~ msgstr "D"
+
+#~ msgid "Special Token"
+#~ msgstr "Jeton spécial"
+
+#~ msgid "DocBook"
+#~ msgstr "DocBook"
+
+#~ msgid "Header Elements"
+#~ msgstr "Éléments d'en-tête"
+
+#~ msgid "Formatting Elements"
+#~ msgstr "Éléments de formatage"
+
+#~ msgid "GUI Elements"
+#~ msgstr "Éléments de l'interface graphique"
+
+#~ msgid "Structural Elements"
+#~ msgstr "Éléments structurels"
+
+#~ msgid "Command"
+#~ msgstr "Commande"
+
+#~ msgid "Graphviz Dot"
+#~ msgstr "Graphviz Dot"
+
+#~ msgid "Attribute name"
+#~ msgstr "Nom d'attribut"
+
+#~ msgid "DPatch"
+#~ msgstr "DPatch"
+
+#~ msgid "Patch Start"
+#~ msgstr "Début de correctif"
+
+#~ msgid "DTD"
+#~ msgstr "DTD"
+
+#~ msgid "entity"
+#~ msgstr "entité"
+
+#~ msgid "decl"
+#~ msgstr "décl"
+
+#~ msgid "error"
+#~ msgstr "erreur"
+
+#~ msgid "Quoted Value"
+#~ msgstr "valeur entre guillemets"
+
+#~ msgid "Eiffel"
+#~ msgstr "Eiffel"
+
+#~ msgid "Debug"
+#~ msgstr "Débogage"
+
+#~ msgid "Assertion"
+#~ msgstr "Assertion"
+
+#~ msgid "Design by Contract"
+#~ msgstr "Conception par contrat"
+
+#~ msgid "Exception Handling"
+#~ msgstr "Gestion d'exceptions"
+
+#~ msgid "Predefined Variable"
+#~ msgstr "Variable prédéfinie"
+
+#~ msgid "Void Value"
+#~ msgstr "Valeur void"
+
+#~ msgid "Boolean Value"
+#~ msgstr "Valeur booléenne"
+
+#~ msgid "Erlang"
+#~ msgstr "Erlang"
+
+#~ msgid "Atom"
+#~ msgstr "Atom"
+
+#~ msgid "Base-N Integer"
+#~ msgstr "Entier en base N"
+
+#~ msgid "Compiler Directive"
+#~ msgstr "Directive de compilateur"
+
+#~ msgid "FCL"
+#~ msgstr "FCL"
+
+#~ msgid "Floating Point"
+#~ msgstr "Virgule flottante"
+
+#~ msgid "Block"
+#~ msgstr "Bloc"
+
+#~ msgid "Reserved Constant"
+#~ msgstr "Constante réservée"
+
+#~ msgid "Forth"
+#~ msgstr "Forth"
+
+#~ msgid "Debug Code"
+#~ msgstr "Code de débogage"
+
+#~ msgid "Error Text"
+#~ msgstr "Texte d'erreur"
+
+#~ msgid "Fortran 95"
+#~ msgstr "Fortran 95"
+
+#~ msgid "Intrinsic function"
+#~ msgstr "Fonction intrinsèque"
+
+#~ msgid "BOZ Literal"
+#~ msgstr "Constante BOZ"
+
+#~ msgid "OpenMP directives"
+#~ msgstr "Directives OpenMP"
+
+#~ msgid "F#"
+#~ msgstr "F#"
+
+#~ msgid "Floating Point number"
+#~ msgstr "Nombre à virgule flottante"
+
+#~ msgid "Type, module or object keyword"
+#~ msgstr "Mot-clé d'objet, de module ou de type"
+
+#~ msgid "Builtin-function keyword"
+#~ msgstr "Mot-clé de fonction intégrée"
+
+#~ msgid "Labeled argument"
+#~ msgstr "Argument nommé"
+
+#~ msgid "Polymorphic Variant"
+#~ msgstr "Variante polymorphe"
+
+#~ msgid "Variant Constructor"
+#~ msgstr "Constructeur de variante"
+
+#~ msgid "Type Variable"
+#~ msgstr "Variable de type"
+
+#~ msgid "Module Path"
+#~ msgstr "Chemin de module"
+
+#~ msgid "GAP"
+#~ msgstr "GAP"
+
+#~ msgid "Thread Action"
+#~ msgstr "Action du thread"
+
+#~ msgid "Thread Header"
+#~ msgstr "En-tête de thread"
+
+#~ msgid "Frame Number"
+#~ msgstr "Numéro de trame"
+
+#~ msgid "Address"
+#~ msgstr "Adresse"
+
+#~ msgid "Filename"
+#~ msgstr "Nom de fichier"
+
+#~ msgid "Optimized Out"
+#~ msgstr "Sortie optimisée"
+
+#~ msgid "Incomplete Sequence"
+#~ msgstr "Suite incomplète"
+
+#~ msgid "Prompt"
+#~ msgstr "Invite"
+
+#~ msgid "Genie"
+#~ msgstr "Genie"
+
+#~ msgid "Builtin Constant"
+#~ msgstr "Constante intégrée"
+
+#~ msgid "Reserved Keywords"
+#~ msgstr "Mots-clés réservés"
+
+#~ msgid "Go"
+#~ msgstr "Go"
+
+#~ msgid "Imaginary number"
+#~ msgstr "Nombre imaginaire pur"
+
+#~ msgid "gtk-doc"
+#~ msgstr "gtk-doc"
+
+#~ msgid "Inline Documentation Section"
+#~ msgstr "Section de documentation en ligne"
+
+#~ msgid "Function Name"
+#~ msgstr "Nom de fonction"
+
+#~ msgid "Signal Name"
+#~ msgstr "Nom de signal"
+
+#~ msgid "Property Name"
+#~ msgstr "Nom de propriété"
+
+#~ msgid "Parameter"
+#~ msgstr "Paramètre"
+
+#~ msgid "Return"
+#~ msgstr "Retour"
+
+#~ msgid "Since"
+#~ msgstr "Depuis"
+
+#~ msgid "Deprecated"
+#~ msgstr "Abandonné"
+
+#~ msgid "GtkRC"
+#~ msgstr "GtkRC"
+
+#~ msgid "Widget State"
+#~ msgstr "État de composant graphique"
+
+#~ msgid "Include directive"
+#~ msgstr "Directive d'inclusion"
+
+#~ msgid "Haddock"
+#~ msgstr "Haddock"
+
+#~ msgid "Inline Haddock Section"
+#~ msgstr "Section Haddock en ligne"
+
+#~ msgid "Haddock Directive"
+#~ msgstr "Directive Haddock"
+
+#~ msgid "Hyperlinked Identifier"
+#~ msgstr "Identifiant avec lien"
+
+#~ msgid "Hyperlinked Module Name"
+#~ msgstr "Nom de module avec lien"
+
+#~ msgid "Escape"
+#~ msgstr "Échappement"
+
+#~ msgid "Emphasis"
+#~ msgstr "Mise en évidence"
+
+#~ msgid "Monospace"
+#~ msgstr "Largeur fixe"
+
+#~ msgid "Code Block"
+#~ msgstr "Bloc de code"
+
+#~ msgid "Header Property"
+#~ msgstr "Propriété d'en-tête"
+
+#~ msgid "Itemized list"
+#~ msgstr "Liste d'éléments"
+
+#~ msgid "Enumerated list"
+#~ msgstr "Liste énumérée"
+
+#~ msgid "Definition list"
+#~ msgstr "Liste de définitions"
+
+#~ msgid "URL"
+#~ msgstr "URL"
+
+#~ msgid "Anchor"
+#~ msgstr "Ancre"
+
+#~ msgid "Haskell"
+#~ msgstr "Haskell"
+
+#~ msgid "Symbol"
+#~ msgstr "Symbole"
+
+#~ msgid "Octal"
+#~ msgstr "Octal"
+
+#~ msgid "Hex"
+#~ msgstr "Hexa"
+
+#~ msgid "Literate Haskell"
+#~ msgstr "Literate Haskell"
+
+#~ msgid "Haxe"
+#~ msgstr "Haxe"
+
+#~ msgid "Scope"
+#~ msgstr "Portée"
+
+#~ msgid "Metadata"
+#~ msgstr "Métadonnées"
+
+#~ msgid "Macro"
+#~ msgstr "Macro"
+
+#~ msgid "Identifier Prefix"
+#~ msgstr "Préfixe d'identifiant"
+
+#~ msgid "HTML"
+#~ msgstr "HTML"
+
+#~ msgid "Tag"
+#~ msgstr "Balise"
+
+#~ msgid "Attribute Name"
+#~ msgstr "Nom d'attribut"
+
+#~ msgid "Attribute Value"
+#~ msgstr "Valeur d'attribut"
+
+#~ msgid "Page title"
+#~ msgstr "Titre de page"
+
+#~ msgid "Heading level 1"
+#~ msgstr "En-tête de niveau 1"
+
+#~ msgid "Heading level 2"
+#~ msgstr "En-tête de niveau 2"
+
+#~ msgid "Heading level 3"
+#~ msgstr "En-tête de niveau 3"
+
+#~ msgid "Heading level 4"
+#~ msgstr "En-tête de niveau 4"
+
+#~ msgid "Heading level 5"
+#~ msgstr "En-tête de niveau 5"
+
+#~ msgid "IDL-Exelis"
+#~ msgstr "IDL-Exelis"
+
+#~ msgid "IDL"
+#~ msgstr "IDL"
+
+#~ msgid "ImageJ"
+#~ msgstr "ImageJ"
+
+#~ msgid "Commands"
+#~ msgstr "Commandes"
+
+#~ msgid "Storage Type"
+#~ msgstr "Type de stockage"
+
+#~ msgid ".ini"
+#~ msgstr ".ini"
+
+#~ msgid "Jade"
+#~ msgstr "Jade"
+
+#~ msgid "DOCTYPE"
+#~ msgstr "DOCTYPE"
+
+#~ msgid "Processing instruction"
+#~ msgstr "Instruction de traitement"
+
+#~ msgid "Element name"
+#~ msgstr "Nom d'élément"
+
+#~ msgid "Attribute value"
+#~ msgstr "Valeur d'attribut"
+
+#~ msgid "Tags"
+#~ msgstr "Balises"
+
+#~ msgid "Entity"
+#~ msgstr "Entité"
+
+#~ msgid "Java"
+#~ msgstr "Java"
+
+#~ msgid "JavaScript"
+#~ msgstr "JavaScript"
+
+#~ msgid "Undefined Value"
+#~ msgstr "Valeur non définie"
+
+#~ msgid "Properties"
+#~ msgstr "Propriétés"
+
+#~ msgid "Constructors"
+#~ msgstr "Constructeurs"
+
+#~ msgid "J"
+#~ msgstr "J"
+
+#~ msgid "Adverb"
+#~ msgstr "Adverbe"
+
+#~ msgid "Conjunction"
+#~ msgstr "Conjonction"
+
+#~ msgid "Control"
+#~ msgstr "Contrôle"
+
+#~ msgid "Explicit Argument"
+#~ msgstr "Paramètre explicite"
+
+#~ msgid "Global"
+#~ msgstr "Global"
+
+#~ msgid "Lab Text"
+#~ msgstr "Texte de labo"
+
+#~ msgid "Local"
+#~ msgstr "Local"
+
+#~ msgid "Noun"
+#~ msgstr "Nom"
+
+#~ msgid "Explicit Noun Definition"
+#~ msgstr "Définition de nom explicite"
+
+#~ msgid "Parens"
+#~ msgstr "Parenthèse"
+
+#~ msgid "Primitive"
+#~ msgstr "Primitive"
+
+#~ msgid "Verb"
+#~ msgstr "Verbe"
+
+#~ msgid "Julia"
+#~ msgstr "Julia"
+
+#~ msgid "Math Constant"
+#~ msgstr "Constante mathématique"
+
+#~ msgid "Special Constant"
+#~ msgstr "Constante spéciale"
+
+#~ msgid "External Command"
+#~ msgstr "Commande externe"
+
+#~ msgid "Built-in Function"
+#~ msgstr "Fonction intégrée"
+
+#~ msgid "Module"
+#~ msgstr "Module"
+
+#~ msgid "LaTeX"
+#~ msgstr "LaTeX"
+
+#~ msgid "Math Mode"
+#~ msgstr "Mode math"
+
+#~ msgid "Inline Math Mode"
+#~ msgstr "Mode math en ligne"
+
+#~ msgid "Math Boundary"
+#~ msgstr "Séparateur mathématique"
+
+#~ msgid "Include"
+#~ msgstr "Inclusion"
+
+#~ msgid "Verbatim"
+#~ msgstr "Verbatim"
+
+#~ msgid "Special Character"
+#~ msgstr "Caractère spécial"
+
+#~ msgid "Part Heading"
+#~ msgstr "En-tête de partie"
+
+#~ msgid "Chapter Heading"
+#~ msgstr "En-tête de chapitre"
+
+#~ msgid "Section Heading"
+#~ msgstr "En-tête de section"
+
+#~ msgid "SubSection Heading"
+#~ msgstr "En-tête de sous-section"
+
+#~ msgid "SubSubSection Heading"
+#~ msgstr "En-tête de sous-sous-section"
+
+#~ msgid "Paragraph Heading"
+#~ msgstr "En-tête de paragraphe"
+
+#~ msgid "SubParagraph Heading"
+#~ msgstr "En-tête de sous-paragraphe"
+
+#~ msgid "Lex"
+#~ msgstr "Lex"
+
+#~ msgid "Token"
+#~ msgstr "Jeton"
+
+#~ msgid "Expression"
+#~ msgstr "Expression"
+
+#~ msgid "libtool"
+#~ msgstr "libtool"
+
+#~ msgid "Constants"
+#~ msgstr "Constantes"
+
+#~ msgid "Lua"
+#~ msgstr "Lua"
+
+#~ msgid "Reserved Identifier"
+#~ msgstr "Identifiant réservé"
+
+#~ msgid "Label"
+#~ msgstr "Étiquette"
+
+#~ msgid "Nil Constant"
+#~ msgstr "Constante nil"
+
+#~ msgid "m4"
+#~ msgstr "m4"
+
+#~ msgid "m4 Comment"
+#~ msgstr "Commentaire m4"
+
+#~ msgid "m4 Macro"
+#~ msgstr "Macro m4"
+
+#~ msgid "Autoconf Macro"
+#~ msgstr "Macro Autoconf"
+
+#~ msgid "Obsolete Autoconf Macro"
+#~ msgstr "Macro Autoconf obsolète"
+
+#~ msgid "Makefile"
+#~ msgstr "Makefile"
+
+#~ msgid "Assignment Right Hand Side"
+#~ msgstr "Assignation à droite"
+
+#~ msgid "Assignment Left Hand Side"
+#~ msgstr "Assignation à gauche"
+
+#~ msgid "targets"
+#~ msgstr "cibles"
+
+#~ msgid "prereq"
+#~ msgstr "pré-requis"
+
+#~ msgid "command"
+#~ msgstr "commande"
+
+#~ msgid "Trailing Tab"
+#~ msgstr "Tabulation en fin de ligne"
+
+#~ msgid "function"
+#~ msgstr "fonction"
+
+#~ msgid "keyword"
+#~ msgstr "mot-clé"
+
+#~ msgid "Mallard"
+#~ msgstr "Mallard"
+
+#~ msgid "Page Elements"
+#~ msgstr "Éléments pages"
+
+#~ msgid "Section Elements"
+#~ msgstr "Éléments sections"
+
+#~ msgid "Block Elements"
+#~ msgstr "Éléments blocs"
+
+#~ msgid "Inline Elements"
+#~ msgstr "Éléments en ligne"
+
+#~ msgid "Markdown"
+#~ msgstr "Markdown"
+
+#~ msgid "Header"
+#~ msgstr "En-tête"
+
+#~ msgid "Horizontal Rule"
+#~ msgstr "Ligne horizontale"
+
+#~ msgid "List Marker"
+#~ msgstr "Marqueur de liste"
+
+#~ msgid "Code"
+#~ msgstr "Code"
+
+#~ msgid "Blockquote Marker"
+#~ msgstr "Marqueur de bloc de citation"
+
+#~ msgid "Link Text"
+#~ msgstr "Texte du lien"
+
+#~ msgid "Image Marker"
+#~ msgstr "Marqueur d'image"
+
+#~ msgid "Strong Emphasis"
+#~ msgstr "Mise en évidence forte"
+
+#~ msgid "Backslash Escape"
+#~ msgstr "Barre oblique inverse d'échappement"
+
+#~ msgid "Line Break"
+#~ msgstr "Saut de ligne"
+
+#~ msgid "Matlab"
+#~ msgstr "Matlab"
+
+#~ msgid "MediaWiki"
+#~ msgstr "MediaWiki"
+
+#~ msgid "Light Emphasis"
+#~ msgstr "Mise en évidence légère"
+
+#~ msgid "Signature"
+#~ msgstr "Signature"
+
+#~ msgid "Link"
+#~ msgstr "Lien"
+
+#~ msgid "Symbol on a Link"
+#~ msgstr "Symbole sur un lien"
+
+#~ msgid "Line"
+#~ msgstr "Ligne"
+
+#~ msgid "List"
+#~ msgstr "Liste"
+
+#~ msgid "Magic Word"
+#~ msgstr "Mot magique"
+
+#~ msgid "Symbol of a Table"
+#~ msgstr "Symbole d'un tableau"
+
+#~ msgid "Preformatted"
+#~ msgstr "Préformaté"
+
+#~ msgid "Redirect"
+#~ msgstr "Redirection"
+
+#~ msgid "Title"
+#~ msgstr "Titre"
+
+#~ msgid "Meson"
+#~ msgstr "Meson"
+
+#~ msgid "Modelica"
+#~ msgstr "Modelica"
+
+#~ msgid "Class type"
+#~ msgstr "Type de classe"
+
+#~ msgid "Default Attribute"
+#~ msgstr "Attribut par défaut"
+
+#~ msgid "MXML"
+#~ msgstr "MXML"
+
+#~ msgid "CDATA delimiter"
+#~ msgstr "Délimiteur CDATA"
+
+#~ msgid "Nemerle"
+#~ msgstr "Nemerle"
+
+#~ msgid "NetRexx"
+#~ msgstr "NetRexx"
+
+#~ msgid "Externals"
+#~ msgstr "Externes"
+
+#~ msgid "Options"
+#~ msgstr "Options"
+
+#~ msgid "Data Types"
+#~ msgstr "Types de donnée"
+
+#~ msgid "Special"
+#~ msgstr "Spécial"
+
+#~ msgid "Visibility"
+#~ msgstr "Visibilité"
+
+#~ msgid "Modifiers"
+#~ msgstr "Modificateurs"
+
+#~ msgid "Keywords"
+#~ msgstr "Mots-clés"
+
+#~ msgid "Sub Keywords"
+#~ msgstr "Sous mots-clés"
+
+#~ msgid "NSIS"
+#~ msgstr "NSIS"
+
+#~ msgid "Objective-C"
+#~ msgstr "Objective-C"
+
+#~ msgid "Objective-J"
+#~ msgstr "Objective-J"
+
+#~ msgid "OCaml"
+#~ msgstr "OCaml"
+
+#~ msgid "Ocamldoc Comments"
+#~ msgstr "Commentaires Ocamldoc"
+
+#~ msgid "Standard Modules"
+#~ msgstr "Modules standard"
+
+#~ msgid "OCL"
+#~ msgstr "OCL"
+
+#~ msgid "Type Operators"
+#~ msgstr "Opérateurs de type"
+
+#~ msgid "Operation operator"
+#~ msgstr "Opérateur d'opération"
+
+#~ msgid "Octave"
+#~ msgstr "Octave"
+
+#~ msgid "Package Manager"
+#~ msgstr "Gestionnaire de paquet"
+
+#~ msgid "OOC"
+#~ msgstr "OOC"
+
+#~ msgid "Opal"
+#~ msgstr "Opal"
+
+#~ msgid "Module Handler"
+#~ msgstr "Gestionnaire de module"
+
+#~ msgid "Keysymbol"
+#~ msgstr "Symbole de touche"
+
+#~ msgid "OpenCL"
+#~ msgstr "OpenCL"
+
+#~ msgid "Global Function"
+#~ msgstr "Fonction globale"
+
+#~ msgid "Device Function"
+#~ msgstr "Fonction de périphérique"
+
+#~ msgid "Device Cast"
+#~ msgstr "Forçage de périphérique"
+
+#~ msgid "OpenCL Constant"
+#~ msgstr "Constante OpenCL"
+
+#~ msgid "Global Variable"
+#~ msgstr "Variable globale"
+
+#~ msgid "Pascal"
+#~ msgstr "Pascal"
+
+#~ msgid "Perl"
+#~ msgstr "Perl"
+
+#~ msgid "Line Directive"
+#~ msgstr "Directive de ligne"
+
+#~ msgid "Include Statement"
+#~ msgstr "Instruction d'inclusion"
+
+#~ msgid "Heredoc"
+#~ msgstr "Document Here"
+
+#~ msgid "Heredoc Bound"
+#~ msgstr "Délimiteur de document Here"
+
+#~ msgid "System Command"
+#~ msgstr "Commande système"
+
+#~ msgid "File Descriptor"
+#~ msgstr "Descripteur de fichier"
+
+#~ msgid "POD"
+#~ msgstr "POD"
+
+#~ msgid "POD Escape"
+#~ msgstr "Échappement POD"
+
+#~ msgid "POD keyword"
+#~ msgstr "Mot-clé POD"
+
+#~ msgid "POD heading"
+#~ msgstr "En-tête POD"
+
+#~ msgid "PHP"
+#~ msgstr "PHP"
+
+#~ msgid "Preprocessor tags"
+#~ msgstr "Balises de préprocession"
+
+#~ msgid "Common Function"
+#~ msgstr "Fonction courante"
+
+#~ msgid "Pig"
+#~ msgstr "Pig"
+
+#~ msgid "Reserved Words"
+#~ msgstr "Mots réservés"
+
+#~ msgid "Built In Functions"
+#~ msgstr "Fonctions intégrées"
+
+#~ msgid "Boolean values"
+#~ msgstr "Valeurs booléennes"
+
+#~ msgid "Null"
+#~ msgstr "Nul"
+
+#~ msgid "pkg-config"
+#~ msgstr "pkg-config"
+
+#~ msgid "Package Info"
+#~ msgstr "Information de paquet"
+
+#~ msgid "Fuzzy"
+#~ msgstr "Approximé"
+
+#~ msgid "Prolog"
+#~ msgstr "Prolog"
+
+#~ msgid "Puppet"
+#~ msgstr "Puppet"
+
+#~ msgid "Resources"
+#~ msgstr "Ressources"
+
+#~ msgid "Parameters"
+#~ msgstr "Paramètres"
+
+#~ msgid "Metaparameters"
+#~ msgstr "Métaparamètres"
+
+#~ msgid "Functions"
+#~ msgstr "Fonctions"
+
+#~ msgid "Values"
+#~ msgstr "Valeurs"
+
+#~ msgid "Variables"
+#~ msgstr "Variables"
+
+#~ msgid "Class names"
+#~ msgstr "Noms de classes"
+
+#~ msgid "Python 3"
+#~ msgstr "Python 3"
+
+#~ msgid "Format"
+#~ msgstr "Format"
+
+#~ msgid "Builtin Object"
+#~ msgstr "Objet intégré"
+
+#~ msgid "Python"
+#~ msgstr "Python"
+
+#~ msgid "String Conversion"
+#~ msgstr "Conversion de chaîne"
+
+#~ msgid "Class Name"
+#~ msgstr "Nom de classe"
+
+#~ msgid "Decorator"
+#~ msgstr "Décorateur"
+
+#~ msgid "R"
+#~ msgstr "R"
+
+#~ msgid "Reserved Class"
+#~ msgstr "Classe réservée"
+
+#~ msgid "Assignment Operator"
+#~ msgstr "Opérateur d'affectation"
+
+#~ msgid "Delimiter"
+#~ msgstr "Délimiteur"
+
+#~ msgid "Integer Number"
+#~ msgstr "Nombre entier"
+
+#~ msgid "Define"
+#~ msgstr "Define"
+
+#~ msgid "Section"
+#~ msgstr "Section"
+
+#~ msgid "Spec Macro"
+#~ msgstr "Macro de spécification"
+
+#~ msgid "Directory Macro"
+#~ msgstr "Macro de répertoire"
+
+#~ msgid "Command Macro"
+#~ msgstr "Macro de commande"
+
+#~ msgid "Conditional Macro"
+#~ msgstr "Macro conditionnelle"
+
+#~ msgid "Other Macro"
+#~ msgstr "Autre macro"
+
+#~ msgid "Flow Conditional"
+#~ msgstr "Condition de flux"
+
+#~ msgid "RPM Variable"
+#~ msgstr "Variable RPM"
+
+#~ msgid "Switch"
+#~ msgstr "Commutateur"
+
+#~ msgid "Email"
+#~ msgstr "Courrier électronique"
+
+#~ msgid "reStructuredText"
+#~ msgstr "reStructuredText"
+
+#~ msgid "Directive"
+#~ msgstr "Directive"
+
+#~ msgid "Ruby"
+#~ msgstr "Ruby"
+
+#~ msgid "Attribute Definition"
+#~ msgstr "Définition d'attribut"
+
+#~ msgid "Module handler"
+#~ msgstr "Gestionnaire de module"
+
+#~ msgid "Numeric literal"
+#~ msgstr "Littéral numérique"
+
+#~ msgid "Literal"
+#~ msgstr "Valeur littérale"
+
+#~ msgid "Rust"
+#~ msgstr "Rust"
+
+#~ msgid "Scala"
+#~ msgstr "Scala"
+
+#~ msgid "Modifier"
+#~ msgstr "Modificateur"
+
+#~ msgid "Built In"
+#~ msgstr "Intégré"
+
+#~ msgid "XML Tag"
+#~ msgstr "Balise XML"
+
+#~ msgid "Scheme"
+#~ msgstr "Scheme"
+
+#~ msgid "Scilab"
+#~ msgstr "Scilab"
+
+#~ msgid "sh"
+#~ msgstr "sh"
+
+#~ msgid "Variable Definition"
+#~ msgstr "Définition de variables"
+
+#~ msgid "Common Commands"
+#~ msgstr "Commandes courantes"
+
+#~ msgid "Subshell"
+#~ msgstr "Sous-shell"
+
+#~ msgid "Standard ML"
+#~ msgstr "ML standard"
+
+#~ msgid "Module name, Variant, etc"
+#~ msgstr "Nom de module, variant, etc."
+
+#~ msgid "SPARQL"
+#~ msgstr "SPARQL"
+
+#~ msgid "Class"
+#~ msgstr "Classe"
+
+#~ msgid "Individual"
+#~ msgstr "Individuel"
+
+#~ msgid "Predicate"
+#~ msgstr "Prédicat"
+
+#~ msgid "QName"
+#~ msgstr "QName"
+
+#~ msgid "IRI"
+#~ msgstr "IRI"
+
+#~ msgid "SQL"
+#~ msgstr "SQL"
+
+#~ msgid "No idea what it is"
+#~ msgstr "Aucune idée de ce que c'est"
+
+#~ msgid "Sweave"
+#~ msgstr "Sweave"
+
+#~ msgid "SystemVerilog"
+#~ msgstr "SystemVerilog"
+
+#~ msgid "txt2tags"
+#~ msgstr "txt2tags"
+
+#~ msgid "Option"
+#~ msgstr "Option"
+
+#~ msgid "Option Name"
+#~ msgstr "Nom de l'option"
+
+#~ msgid "Section 1"
+#~ msgstr "Section 1"
+
+#~ msgid "Section 2"
+#~ msgstr "Section 2"
+
+#~ msgid "Section 3"
+#~ msgstr "Section 3"
+
+#~ msgid "Section 4"
+#~ msgstr "Section 4"
+
+#~ msgid "Section 5"
+#~ msgstr "Section 5"
+
+#~ msgid "Italic"
+#~ msgstr "Italique"
+
+#~ msgid "Bold"
+#~ msgstr "Gras"
+
+#~ msgid "Verbatim Block"
+#~ msgstr "Bloc verbatim"
+
+#~ msgid "Tcl"
+#~ msgstr "Tcl"
+
+#~ msgid "Texinfo"
+#~ msgstr "Texinfo"
+
+#~ msgid "Macros"
+#~ msgstr "Macros"
+
+#~ msgid "File Attributes"
+#~ msgstr "Attributs de fichier"
+
+#~ msgid "Generated Content"
+#~ msgstr "Contenu généré"
+
+#~ msgid "Thrift"
+#~ msgstr "Thrift"
+
+#~ msgid "Vala"
+#~ msgstr "Vala"
+
+#~ msgid "VB.NET"
+#~ msgstr "VB.NET"
+
+#~ msgid "Verilog"
+#~ msgstr "Verilog"
+
+#~ msgid "IEEE System Task"
+#~ msgstr "Tâche système IEEE"
+
+#~ msgid "LRM Additional System Task"
+#~ msgstr "Tâche système additionnelle LRM"
+
+#~ msgid "Gate"
+#~ msgstr "Porte"
+
+#~ msgid "VHDL"
+#~ msgstr "VHDL"
+
+#~ msgid "XML"
+#~ msgstr "XML"
+
+#~ msgid "XSLT"
+#~ msgstr "XSLT"
+
+#~ msgid "Element"
+#~ msgstr "Élément"
+
+#~ msgid "Yacc"
+#~ msgstr "Yacc"
+
+#~ msgid "token type"
+#~ msgstr "type de jeton"
+
+#~ msgid "rule"
+#~ msgstr "règle"
+
+#~ msgid "YAML"
+#~ msgstr "YAML"
+
+#~ msgid "Block literal"
+#~ msgstr "Bloc littéral"
+
+#~ msgid "Alias"
+#~ msgstr "Alias"
+
+#~ msgid "Map key"
+#~ msgstr "Clé de correspondance"
+
+#~ msgid "Integer"
+#~ msgstr "Entier"
+
+#~ msgid "Floating point"
+#~ msgstr "Virgule flottante"

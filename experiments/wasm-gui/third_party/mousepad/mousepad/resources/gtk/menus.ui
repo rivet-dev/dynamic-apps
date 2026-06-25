@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+  <!--
+    NB: The use of action namespaces is not fully supported, for at least two reasons:
+        * This is almost incompatible with shared menu items, sections and submenus
+          defined in './menus-common.ui'.
+        * This could be compatible with the use of GMenu in Mousepad code, but it is
+          not fully implemented (e.g. in mousepad_window_menu_set_tooltips() and
+          mousepad_window_update_toolbar_item()).
+        So always use full action names in this file.
+  -->
+
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+
+  <menu id="menubar">
+
+    <submenu id="file">
+      <attribute name="label" translatable="yes">_File</attribute>
+      <attribute name="tooltip" translatable="yes">File menu</attribute>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.file.new</attribute>
+          <attribute name="label"/>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">New _Window</attribute>
+          <attribute name="tooltip" translatable="yes">Create a new document in a new window</attribute>
+          <attribute name="action">win.file.new-window</attribute>
+        </item>
+        <submenu id="file.new-from-template">
+          <attribute name="label" translatable="yes">New From Te_mplate</attribute>
+          <attribute name="tooltip" translatable="yes">Create a new document from a template</attribute>
+          <attribute name="submenu-action">win.file.new-from-template</attribute>
+        </submenu>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.file.open</attribute>
+          <attribute name="label"/>
+        </item>
+        <submenu id="file.open-recent">
+          <attribute name="label" translatable="yes">Op_en Recent</attribute>
+          <attribute name="tooltip" translatable="yes">Open a recently used file</attribute>
+          <attribute name="submenu-action">win.file.open-recent</attribute>
+          <section id="file.open-recent.list">
+          </section>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">Clear _History</attribute>
+              <attribute name="tooltip" translatable="yes">Clear the recently used files history</attribute>
+              <attribute name="action">win.file.open-recent.clear-history</attribute>
+              <attribute name="icon">edit-clear</attribute>
+            </item>
+          </section>
+        </submenu>
+      </section>
+      <section id="file.save">
+        <item>
+          <attribute name="item-share-id">item.file.save</attribute>
+          <attribute name="label"/>
+        </item>
+        <item>
+          <attribute name="item-share-id">item.file.save-as</attribute>
+          <attribute name="label"/>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Save A_ll</attribute>
+          <attribute name="tooltip" translatable="yes">Save all document in this window</attribute>
+          <attribute name="action">win.file.save-all</attribute>
+        </item>
+        <item>
+          <attribute name="item-share-id">item.file.reload</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Print...</attribute>
+          <attribute name="tooltip" translatable="yes">Print the current document</attribute>
+          <attribute name="action">win.file.print</attribute>
+          <attribute name="icon">document-print</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.file.detach-tab</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.file.close-tab</attribute>
+          <attribute name="label"/>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Close Window</attribute>
+          <attribute name="tooltip" translatable="yes">Close this window</attribute>
+          <attribute name="action">win.file.close-window</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="tooltip" translatable="yes">Quit Mousepad</attribute>
+          <attribute name="action">app.quit</attribute>
+          <attribute name="icon">application-exit</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <submenu id="edit">
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <attribute name="tooltip" translatable="yes">Edit menu</attribute>
+      <section>
+        <attribute name="section-share-id">section.edit.undo-redo</attribute>
+      </section>
+      <section>
+        <attribute name="section-share-id">section.edit.selection</attribute>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.edit.select-all</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+      <section>
+        <attribute name="section-share-id">section.edit.format</attribute>
+      </section>
+      <section id="edit.preferences">
+        <item>
+          <attribute name="label" translatable="yes">Preferences...</attribute>
+          <attribute name="tooltip" translatable="yes">Show the preferences dialog</attribute>
+          <attribute name="action">app.preferences</attribute>
+          <attribute name="icon">preferences-system</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <submenu id="search">
+      <attribute name="label" translatable="yes">_Search</attribute>
+      <attribute name="tooltip" translatable="yes">Search menu</attribute>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.search.find</attribute>
+          <attribute name="label"/>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Find _Next</attribute>
+          <attribute name="tooltip" translatable="yes">Search forwards for the same text</attribute>
+          <attribute name="action">win.search.find-next</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Find _Previous</attribute>
+          <attribute name="tooltip" translatable="yes">Search backwards for the same text</attribute>
+          <attribute name="action">win.search.find-previous</attribute>
+        </item>
+        <item>
+          <attribute name="item-share-id">item.search.find-and-replace</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Incremental Search</attribute>
+          <attribute name="tooltip" translatable="yes">Automatically select the search result and scroll the view</attribute>
+          <attribute name="action">app.state.search.incremental</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Highlight _All</attribute>
+          <attribute name="tooltip" translatable="yes">Highlight the search matches</attribute>
+          <attribute name="action">app.state.search.highlight-all</attribute>
+          <attribute name="icon">edit-select-all-symbolic</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.search.go-to</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+    </submenu>
+
+    <submenu id="view">
+      <attribute name="label" translatable="yes">_View</attribute>
+      <attribute name="tooltip" translatable="yes">View menu</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Select F_ont...</attribute>
+          <attribute name="tooltip" translatable="yes">Change the editor font</attribute>
+          <attribute name="action">win.view.select-font</attribute>
+          <attribute name="icon">font-x-generic</attribute>
+        </item>
+      </section>
+      <section>
+        <submenu id="view.color-scheme">
+          <attribute name="label" translatable="yes">_Color Scheme</attribute>
+          <attribute name="tooltip" translatable="yes">Color scheme to use for the text view</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">None</attribute>
+              <attribute name="tooltip" translatable="yes">No style scheme</attribute>
+              <attribute name="action">app.preferences.view.color-scheme</attribute>
+              <attribute name="target" type="s">'none'</attribute>
+            </item>
+          </section>
+          <section id="view.color-scheme.list">
+          </section>
+        </submenu>
+        <item>
+          <attribute name="label" translatable="yes">Line N_umbers</attribute>
+          <attribute name="tooltip" translatable="yes">Show line numbers</attribute>
+          <attribute name="action">app.preferences.view.show-line-numbers</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Menubar</attribute>
+          <attribute name="tooltip" translatable="yes">Change the visibility of the main menubar</attribute>
+          <attribute name="action">win.preferences.window.menubar-visible</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Toolbar</attribute>
+          <attribute name="tooltip" translatable="yes">Change the visibility of the toolbar</attribute>
+          <attribute name="action">win.preferences.window.toolbar-visible</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">St_atusbar</attribute>
+          <attribute name="tooltip" translatable="yes">Change the visibility of the statusbar</attribute>
+          <attribute name="action">win.preferences.window.statusbar-visible</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="item-share-id">item.view.fullscreen</attribute>
+          <attribute name="label"/>
+        </item>
+      </section>
+    </submenu>
+
+    <submenu id="document">
+      <attribute name="label" translatable="yes">_Document</attribute>
+      <attribute name="tooltip" translatable="yes">Document menu</attribute>
+      <attribute name="submenu-action">win.document</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Word Wrap</attribute>
+          <attribute name="tooltip" translatable="yes">Toggle breaking lines in between words</attribute>
+          <attribute name="action">app.preferences.view.word-wrap</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Auto Indent</attribute>
+          <attribute name="tooltip" translatable="yes">Auto indent a new line</attribute>
+          <attribute name="action">app.preferences.view.auto-indent</attribute>
+        </item>
+        <submenu id="document.tab">
+          <attribute name="label" translatable="yes">Tab _Size</attribute>
+          <attribute name="tooltip" translatable="yes">The number of space characters for a tabulation</attribute>
+          <section id="document.tab.tab-size">
+            <item>
+              <attribute name="label">2</attribute>
+              <attribute name="tooltip" translatable="yes">Two spaces</attribute>
+              <attribute name="action">win.document.tab.tab-size</attribute>
+              <attribute name="target" type="i">2</attribute>
+            </item>
+            <item>
+              <attribute name="label">3</attribute>
+              <attribute name="tooltip" translatable="yes">Three spaces</attribute>
+              <attribute name="action">win.document.tab.tab-size</attribute>
+              <attribute name="target" type="i">3</attribute>
+            </item>
+            <item>
+              <attribute name="label">4</attribute>
+              <attribute name="tooltip" translatable="yes">Four spaces</attribute>
+              <attribute name="action">win.document.tab.tab-size</attribute>
+              <attribute name="target" type="i">4</attribute>
+            </item>
+            <item>
+              <attribute name="label">8</attribute>
+              <attribute name="tooltip" translatable="yes">Eight spaces</attribute>
+              <attribute name="action">win.document.tab.tab-size</attribute>
+              <attribute name="target" type="i">8</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Other...</attribute>
+              <attribute name="tooltip" translatable="yes">Set custom tab size</attribute>
+              <attribute name="action">win.document.tab.tab-size</attribute>
+              <attribute name="target" type="i">0</attribute>
+            </item>
+          </section>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">Insert _Spaces</attribute>
+              <attribute name="tooltip" translatable="yes">Insert spaces when the tab button is pressed</attribute>
+              <attribute name="action">app.preferences.view.insert-spaces</attribute>
+            </item>
+          </section>
+        </submenu>
+      </section>
+      <section>
+        <submenu id="document.filetype">
+          <attribute name="label" translatable="yes">_Filetype</attribute>
+          <attribute name="tooltip" translatable="yes">Language to use for syntax highlighting</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">Plain Text</attribute>
+              <attribute name="tooltip" translatable="yes">No filetype</attribute>
+              <attribute name="action">win.document.filetype</attribute>
+              <attribute name="target" type="s">'plain-text'</attribute>
+            </item>
+          </section>
+          <section id="document.filetype.list">
+          </section>
+        </submenu>
+        <submenu id="document.line-ending">
+          <attribute name="label" translatable="yes">Line E_nding</attribute>
+          <attribute name="tooltip" translatable="yes">Character(s) to use as end of line</attribute>
+          <item>
+            <attribute name="label">Unix (_LF)</attribute>
+            <attribute name="tooltip" translatable="yes">Set the line ending of the document to Unix (LF)</attribute>
+            <attribute name="action">win.document.line-ending</attribute>
+            <attribute name="target" type="i">0</attribute>
+          </item>
+          <item>
+            <attribute name="label">Mac (_CR)</attribute>
+            <attribute name="tooltip" translatable="yes">Set the line ending of the document to Mac (CR)</attribute>
+            <attribute name="action">win.document.line-ending</attribute>
+            <attribute name="target" type="i">1</attribute>
+          </item>
+          <item>
+            <attribute name="label">DOS / Windows (C_R LF)</attribute>
+            <attribute name="tooltip" translatable="yes">Set the line ending of the document to DOS / Windows (CR LF)</attribute>
+            <attribute name="action">win.document.line-ending</attribute>
+            <attribute name="target" type="i">2</attribute>
+          </item>
+        </submenu>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Write Unicode _BOM</attribute>
+          <attribute name="tooltip" translatable="yes">Store the byte-order mark in the file</attribute>
+          <attribute name="action">win.document.write-unicode-bom</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Viewer Mode</attribute>
+          <attribute name="tooltip" translatable="yes">Disallow modifications via keyboard / mouse</attribute>
+          <attribute name="action">win.document.viewer-mode</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Previous Tab</attribute>
+          <attribute name="tooltip" translatable="yes">Select the previous tab</attribute>
+          <attribute name="action">win.document.previous-tab</attribute>
+          <attribute name="icon">go-previous</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Next Tab</attribute>
+          <attribute name="tooltip" translatable="yes">Select the next tab</attribute>
+          <attribute name="action">win.document.next-tab</attribute>
+          <attribute name="icon">go-next</attribute>
+        </item>
+      </section>
+      <section id="document.go-to-tab">
+      </section>
+    </submenu>
+
+    <submenu id="help">
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <attribute name="tooltip" translatable="yes">Help menu</attribute>
+      <item>
+        <attribute name="label" translatable="yes">_Contents</attribute>
+        <attribute name="tooltip" translatable="yes">Display the Mousepad user manual</attribute>
+        <attribute name="action">win.help.contents</attribute>
+        <attribute name="icon">help-browser</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About</attribute>
+        <attribute name="tooltip" translatable="yes">About this application</attribute>
+        <attribute name="action">win.help.about</attribute>
+        <attribute name="icon">help-about</attribute>
+      </item>
+    </submenu>
+
+  </menu>
+
+
+
+  <menu id="tab-menu">
+
+    <section>
+      <item>
+        <attribute name="item-share-id">item.file.save</attribute>
+        <attribute name="label"/>
+      </item>
+      <item>
+        <attribute name="item-share-id">item.file.save-as</attribute>
+        <attribute name="label"/>
+      </item>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="item-share-id">item.file.reload</attribute>
+        <attribute name="label"/>
+      </item>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="item-share-id">item.file.detach-tab</attribute>
+        <attribute name="label"/>
+      </item>
+      <item>
+        <attribute name="item-share-id">item.file.close-tab</attribute>
+        <attribute name="label"/>
+      </item>
+    </section>
+
+  </menu>
+
+
+
+  <menu id="textview-menu">
+
+    <section>
+      <attribute name="section-share-id">section.edit.undo-redo</attribute>
+    </section>
+
+    <section>
+      <attribute name="section-share-id">section.edit.selection</attribute>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="item-share-id">item.edit.select-all</attribute>
+        <attribute name="label"/>
+      </item>
+    </section>
+
+    <section>
+      <attribute name="section-share-id">section.edit.format</attribute>
+    </section>
+
+    <section id="textview.menubar">
+      <item>
+        <attribute name="label" translatable="yes">_Menubar</attribute>
+        <attribute name="tooltip" translatable="yes">Change the visibility of the main menubar</attribute>
+        <attribute name="action">win.textview.menubar</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+    </section>
+
+  </menu>
+
+
+
+  <!--
+    This menu is supposed to be "flat": containing only items and/or unnested sections.
+    Submenus and nested sections will be treated as simple items, empty sections will be ignored.
+    If an item is updated, the corresponding GtkToolItem will be updated accordingly, but an
+    item is not supposed to be permanently removed, nor a new item added (the whole toolbar
+    should be recreated in these cases).
+    See 'mousepad_window_toolbar_new_from_model()' for details.
+  -->
+  <menu id="toolbar">
+
+    <section>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.new</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.open</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.save</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.save-as</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.reload</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.file.close-tab</attribute>
+      </item>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.edit.undo</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.edit.redo</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.edit.cut</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.edit.copy</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.edit.paste</attribute>
+      </item>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.search.find</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.search.find-and-replace</attribute>
+      </item>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.search.go-to</attribute>
+      </item>
+    </section>
+
+    <section>
+      <item>
+        <attribute name="label"/>
+        <attribute name="item-share-id">item.view.fullscreen</attribute>
+      </item>
+    </section>
+  </menu>
+
+</interface>

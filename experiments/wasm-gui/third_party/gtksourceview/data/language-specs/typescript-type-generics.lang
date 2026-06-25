@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-type-gen" name="TypeScript Type Generics" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Type parameters
+
+         <T, U extends V, V extends Function>
+         <T = string>
+    -->
+
+    <!-- <Constraint> -->
+    <context id="_type-parameter-constraint" once-only="true">
+      <start>\%{js:extends-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_type-parameter-constraint-content">
+          <include>
+            <context ref="typescript-type-expr:type-expression"/>
+          </include>
+        </context> <!-- /_type-parameter-constraint-content -->
+
+      </include>
+    </context> <!-- /_type-parameter-constraint -->
+
+    <context id="_ordered-type-parameter-constraint" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-parameter-constraint"/>
+      </include>
+    </context> <!-- /_ordered-type-parameter-constraint -->
+
+    <context id="_type-parameter-default-value" once-only="true">
+      <start>=</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-parameter-default-value-content">
+          <include>
+            <context ref="typescript-type-expr:type-expression"/>
+          </include>
+        </context> <!-- /_type-parameter-default-value-content -->
+
+      </include>
+    </context> <!-- /_type-parameter-default-value -->
+
+    <context id="_ordered-type-parameter-default-value" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-parameter-default-value"/>
+      </include>
+    </context> <!-- /_ordered-type-parameter-default-value -->
+
+    <context id="_type-parameter-content">
+      <include>
+        <context ref="js:ordered-identifier"/>
+        <context ref="_ordered-type-parameter-constraint"/>
+        <context ref="_ordered-type-parameter-default-value"/>
+      </include>
+    </context> <!-- /_type-parameter-content -->
+
+    <context id="_type-parameters">
+      <start>,</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="_type-parameter-content"/>
+      </include>
+    </context> <!-- /_type-parameters -->
+
+    <!-- ## Type parameter list -->
+
+    <context id="_type-first-parameter" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="_type-parameter-content"/>
+      </include>
+    </context> <!-- /_type-first-parameter -->
+
+    <!-- <TypeParameters> -->
+    <context id="type-parameters-list" style-ref="typescript:type-parameters-list" once-only="true">
+      <start>&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-parameters-list-content">
+          <include>
+            <context ref="_type-first-parameter"/>
+            <context ref="_type-parameters"/>
+          </include>
+        </context> <!-- /_type-parameters-list-content -->
+
+      </include>
+    </context> <!-- /type-parameters-list -->
+
+    <context id="ordered-type-parameters-list" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="type-parameters-list"/>
+      </include>
+    </context> <!-- /ordered-type-parameters-list -->
+
+    <!-- ## Type parameters list (for arrow function) / type assertion (cast)
+
+         Type parameters:
+         <T>(x: T) => x
+         <T, U>(x: T, y: U) => { return x + y; }
+         <T extends any>(x: T) => x
+
+         Type assertion:
+         <T>(x)
+         <T>((x) => x)
+    -->
+
+    <context id="const-type-assertion-keyword-end-parent" style-ref="typescript:type-keyword" end-parent="true">
+      <start>(?=\%{js:const-keyword})</start>
+      <end>\%{js:const-keyword}</end>
+    </context> <!-- /const-type-assertion-keyword-end-parent -->
+
+    <context id="_type-parameters-list-or-type-assertion-first-parameter" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-parameters-list-or-type-assertion-first-parameter-content">
+          <include>
+            <context ref="const-type-assertion-keyword-end-parent"/>
+            <context ref="typescript-type-expr:type-expression"/> <!-- should also match namespace-name-->
+            <context ref="_ordered-type-parameter-constraint"/>
+            <context ref="_ordered-type-parameter-default-value"/>
+          </include>
+        </context> <!-- /_type-parameters-list-or-type-assertion-first-parameter-content -->
+
+      </include>
+    </context> <!-- /_type-parameters-list-or-type-assertion-first-parameter -->
+
+    <!-- <TypeParameters> /
+         <ArrowFormalParameters> (Modified) /
+         <UnaryExpression> (Modified) (part of) -->
+    <context id="type-parameters-list-or-type-assertion" style-ref="typescript:type-parameters-list-or-type-assertion" once-only="true">
+      <start>&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-parameters-list-or-type-assertion-content">
+          <include>
+            <context ref="_type-parameters-list-or-type-assertion-first-parameter"/>
+            <context ref="_type-parameters"/>
+          </include>
+        </context> <!-- /_type-parameters-list-or-type-assertion-content -->
+
+      </include>
+    </context> <!-- /type-parameters-list-or-type-assertion-->
+
+
+    <!-- # Type arguments
+
+         <string>
+         <A, B>
+    -->
+
+    <context id="_type-argument-content">
+      <include>
+        <context ref="typescript-type-expr:type-expression"/>
+      </include>
+    </context> <!-- /_type-argument-content -->
+
+    <!-- <TypeArguments> -->
+    <context id="_type-arguments-list" style-ref="typescript:type-arguments-list" once-only="true">
+      <start>&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-arguments-list-content">
+          <include>
+
+            <context id="_type-first-argument" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_type-argument-content"/>
+              </include>
+            </context> <!-- /_type-first-argument -->
+
+            <context id="_type-arguments">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_type-argument-content"/>
+              </include>
+            </context> <!-- /_type-arguments -->
+
+          </include>
+        </context> <!-- /_type-arguments-list-content -->
+
+      </include>
+    </context> <!-- /_type-arguments-list -->
+
+    <context id="ordered-type-arguments-list" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-arguments-list"/>
+      </include>
+    </context> <!-- /ordered-type-arguments-list -->
+
+  </definitions>
+</language>

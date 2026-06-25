@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+ <!ENTITY % local.common.attrib "xmlns:xi CDATA #FIXED 'http://www.w3.org/2003/XInclude'">
+ <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+ %gtkdocentities;
+]>
+<book id="index">
+  <bookinfo>
+    <title>GtkSourceView @GSV_API_VERSION@ Reference Manual</title>
+    <releaseinfo>for GtkSourceView &package_version;</releaseinfo>
+  </bookinfo>
+
+  <xi:include href="intro.xml"/>
+
+  <part id="api-reference">
+    <title>API reference</title>
+
+    <chapter id="general">
+      <title>General</title>
+      <xi:include href="xml/init.xml"/>
+    </chapter>
+
+    <chapter id="main-classes">
+      <title>Main Classes</title>
+      <xi:include href="xml/buffer.xml"/>
+      <xi:include href="xml/view.xml"/>
+    </chapter>
+
+    <chapter id="syntax-highlighting">
+      <title>Syntax Highlighting</title>
+      <xi:include href="xml/language.xml"/>
+      <xi:include href="xml/languagemanager.xml"/>
+    </chapter>
+
+    <chapter id="styling">
+      <title>Styling</title>
+      <xi:include href="xml/style.xml"/>
+      <xi:include href="xml/stylescheme.xml"/>
+      <xi:include href="xml/styleschememanager.xml"/>
+      <xi:include href="xml/styleschemechooser.xml"/>
+      <xi:include href="xml/styleschemechooserbutton.xml"/>
+      <xi:include href="xml/styleschemechooserwidget.xml"/>
+    </chapter>
+
+    <chapter id="completion">
+      <title>Completion</title>
+      <xi:include href="xml/completion.xml"/>
+      <xi:include href="xml/completioncontext.xml"/>
+      <xi:include href="xml/completioninfo.xml"/>
+      <xi:include href="xml/completionitem.xml"/>
+      <xi:include href="xml/completionproposal.xml"/>
+      <xi:include href="xml/completionprovider.xml"/>
+      <xi:include href="xml/completionwords.xml"/>
+    </chapter>
+
+    <chapter id="file-loading-and-saving">
+      <title>File Loading and Saving</title>
+      <xi:include href="xml/encoding.xml"/>
+      <xi:include href="xml/file.xml"/>
+      <xi:include href="xml/fileloader.xml"/>
+      <xi:include href="xml/filesaver.xml"/>
+    </chapter>
+
+    <chapter id="gutter">
+      <title>Gutter and Marks</title>
+      <xi:include href="xml/gutter.xml"/>
+      <xi:include href="xml/gutterrenderer.xml"/>
+      <xi:include href="xml/gutterrendererpixbuf.xml"/>
+      <xi:include href="xml/gutterrenderertext.xml"/>
+      <xi:include href="xml/mark.xml"/>
+      <xi:include href="xml/markattributes.xml"/>
+    </chapter>
+
+    <chapter id="printing">
+      <title>Printing</title>
+      <xi:include href="xml/printcompositor.xml"/>
+    </chapter>
+
+    <chapter id="search-and-replace">
+      <title>Search and Replace</title>
+      <xi:include href="xml/searchcontext.xml"/>
+      <xi:include href="xml/searchsettings.xml"/>
+    </chapter>
+
+    <chapter id="misc">
+      <title>Misc</title>
+      <xi:include href="xml/map.xml"/>
+      <xi:include href="xml/region.xml"/>
+      <xi:include href="xml/spacedrawer.xml"/>
+      <xi:include href="xml/tag.xml"/>
+      <xi:include href="xml/undomanager.xml"/>
+      <xi:include href="xml/utils.xml"/>
+      <xi:include href="xml/version.xml"/>
+    </chapter>
+  </part>
+
+  <part id="syntax-highlighting-reference">
+    <title>Syntax highlighting reference</title>
+    <xi:include href="lang-tutorial.xml"/>
+    <xi:include href="lang-reference.xml"/>
+    <xi:include href="style-reference.xml"/>
+  </part>
+
+  <part id="porting-guide">
+    <title>Porting Guide</title>
+    <xi:include href="porting-guide-3-to-4.xml"/>
+  </part>
+
+  <part id="annexes">
+    <title>Annexes</title>
+
+    <chapter id="object-tree">
+      <title>Object Hierarchy</title>
+       <xi:include href="xml/tree_index.sgml"/>
+    </chapter>
+
+    <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+
+    <index id="api-index-full">
+      <title>Index of all symbols</title>
+      <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-deprecated" role="deprecated">
+      <title>Index of deprecated symbols</title>
+      <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-0" role="2.0">
+      <title>Index of new symbols in 2.0</title>
+      <xi:include href="xml/api-index-2.0.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-2" role="2.2">
+      <title>Index of new symbols in 2.2</title>
+      <xi:include href="xml/api-index-2.2.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-4" role="2.4">
+      <title>Index of new symbols in 2.4</title>
+      <xi:include href="xml/api-index-2.4.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-8" role="2.8">
+      <title>Index of new symbols in 2.8</title>
+      <xi:include href="xml/api-index-2.8.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-10" role="2.10">
+      <title>Index of new symbols in 2.10</title>
+      <xi:include href="xml/api-index-2.10.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-2-12" role="2.12">
+      <title>Index of new symbols in 2.12</title>
+      <xi:include href="xml/api-index-2.12.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-0" role="3.0">
+      <title>Index of new symbols in 3.0</title>
+      <xi:include href="xml/api-index-3.0.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-4" role="3.4">
+      <title>Index of new symbols in 3.4</title>
+      <xi:include href="xml/api-index-3.4.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-10" role="3.10">
+      <title>Index of new symbols in 3.10</title>
+      <xi:include href="xml/api-index-3.10.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-12" role="3.12">
+      <title>Index of new symbols in 3.12</title>
+      <xi:include href="xml/api-index-3.12.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-14" role="3.14">
+      <title>Index of new symbols in 3.14</title>
+      <xi:include href="xml/api-index-3.14.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-16" role="3.16">
+      <title>Index of new symbols in 3.16</title>
+      <xi:include href="xml/api-index-3.16.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-18" role="3.18">
+      <title>Index of new symbols in 3.18</title>
+      <xi:include href="xml/api-index-3.18.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-20" role="3.20">
+      <title>Index of new symbols in 3.20</title>
+      <xi:include href="xml/api-index-3.20.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-22" role="3.22">
+      <title>Index of new symbols in 3.22</title>
+      <xi:include href="xml/api-index-3.22.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-3-24" role="3.24">
+      <title>Index of new symbols in 3.24</title>
+      <xi:include href="xml/api-index-3.24.xml"><xi:fallback /></xi:include>
+    </index>
+    <index id="api-index-4-0" role="4.0">
+      <title>Index of new symbols in 4.0</title>
+      <xi:include href="xml/api-index-4.0.xml"><xi:fallback /></xi:include>
+    </index>
+  </part>
+</book>

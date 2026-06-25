@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2004 Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2005 Stef Walter (formerly Nate Nielsen) <stef@memberwebs.com>
+ Copyright (C) 2005-2007 Marco Barisione <barisione@gmail.com>
+ Copyright (C) 2005-2007 Emanuele Aina
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="js-mod" name="JavaScript Modules" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See javascript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Shared between export and import declarations -->
+
+    <!-- ## (Import) From module
+
+         from 'module'
+    -->
+
+    <context id="_from-module" once-only="true">
+      <start>\%{js:from-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_from-module-content">
+          <include>
+            <context ref="js-lit:choice-string-path"/>
+          </include>
+        </context> <!-- /_from-module-content -->
+
+      </include>
+    </context> <!-- /_from-module -->
+
+    <context id="_ordered-from-module" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_from-module"/>
+      </include>
+    </context> <!-- /_ordered-from-module -->
+
+    <!-- ## (Import) all / as namespace
+
+         * from 'module';
+         * as ns from 'module';
+    -->
+
+    <context id="_as-namespace" once-only="true">
+      <start>\%{js:as-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_as-namespace-content">
+          <include>
+            <context ref="js:identifier"/>
+          </include>
+        </context> <!-- /_as-namespace-content -->
+
+      </include>
+    </context> <!-- /_as-namespace -->
+
+    <context id="_ordered-as-namespace" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_as-namespace"/>
+      </include>
+    </context> <!-- /_ordered-as-namespace -->
+
+    <context id="_choice-all-as-namespace" end-parent="true">
+      <start>\*</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-as-namespace-content">
+          <include>
+            <context ref="_ordered-as-namespace"/>
+            <context ref="_ordered-from-module"/>
+          </include>
+        </context> <!-- /_import-as-namespace-content -->
+
+      </include>
+    </context> <!-- /_choice-all-as-namespace -->
+
+    <!-- ## Export / import name group
+
+         { x, y as b }
+         { x as default }
+         { default }
+         { default as y }
+    -->
+
+    <context id="_name-group-identifier" once-only="true">
+      <start>\%{js:identifier-container-start}</start>
+      <end>\%{def:always-match}</end>
+      <include>
+        <!-- no embedded-lang-hooks here -->
+        <!-- no comments here -->
+        <!-- do not extend the context by matching comments or
+             embedded-lang-hooks, which may lead to multiple identifiers -->
+
+        <context id="_name-group-identifier-content">
+          <include>
+
+            <context id="_name-group-keywords" style-ref="js:keyword">
+              <match>\%{js:default-keyword}</match>
+            </context> <!-- /_name-group-keywords -->
+
+            <context ref="js:identifier"/>
+          </include>
+        </context> <!-- /_name-group-identifier-content -->
+
+      </include>
+    </context> <!-- /_name-group-identifier -->
+
+    <context id="_name-group-as-identifier" once-only="true">
+      <start>\%{js:as-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_name-group-as-identifier-content">
+          <include>
+            <context ref="_name-group-identifier"/>
+          </include>
+        </context> <!-- /_name-group-as-identifier-content -->
+
+      </include>
+    </context> <!-- /_name-group-as-identifier -->
+
+    <context id="_name-group-name-content">
+      <include>
+        <context ref="_name-group-identifier"/>
+        <context ref="_name-group-as-identifier"/>
+      </include>
+    </context> <!-- /_name-group-name-content -->
+
+    <!-- <ExportClause> / <NamedImports> -->
+    <context id="_name-group" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_name-group-content">
+          <include>
+
+            <context id="_name-group-first-name" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_name-group-name-content"/>
+              </include>
+            </context> <!-- /_name-group-first-name -->
+
+            <context id="_name-group-names">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_name-group-name-content"/>
+              </include>
+            </context> <!-- /_name-group-names -->
+
+          </include>
+        </context> <!-- /_name-group-content -->
+
+      </include>
+    </context> <!-- /_name-group -->
+
+    <context id="_ordered-name-group" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_name-group"/>
+      </include>
+    </context> <!-- /_ordered-name-group -->
+
+
+    <!-- # Export declaration -->
+
+    <!-- ## Export named
+
+         export { x, y as b };
+         export { x as default };
+         export { default } from 'module';
+    -->
+
+    <context id="_choice-export-named" end-parent="true">
+      <start>(?={)</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_choice-export-named-content">
+          <include>
+            <context ref="_ordered-name-group"/>
+            <context ref="_ordered-from-module"/>
+          </include>
+        </context> <!-- /_choice-export-named-content -->
+
+      </include>
+    </context> <!-- /_choice-export-named -->
+
+    <!-- ## Export default
+
+         export default function () { ... }
+         export default class { ... }
+         export default expr;
+    -->
+
+    <context id="_choice-export-default" end-parent="true">
+      <start>\%{js:default-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_export-default-content">
+          <include>
+            <context ref="js-fn:choice-class-expression"/>
+            <context ref="js-fn:choice-function-expression"/>
+            <context ref="js-expr:choice-expression-without-comma"/>
+          </include>
+        </context> <!-- /_export-default-content -->
+
+      </include>
+    </context> <!-- /_choice-export-default -->
+
+    <!-- ## Export declaration
+
+         export { foo, bar as barry };
+         export const a = 1;
+         export default function () { ... }
+         export * from 'module';
+         export * as ns from 'module';
+    -->
+
+    <!-- <ExportDeclaration> -->
+    <context id="export-declarations" style-ref="js:export-import-declaration">
+      <start>\%{js:export-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_export-declaration-content">
+          <include>
+            <context ref="_choice-export-named"/>
+            <context ref="_choice-export-default"/>
+            <context ref="_choice-all-as-namespace"/>
+            <context ref="js-fn:choice-class-expression-required-name"/>
+            <context ref="js-fn:choice-function-expression"/>
+            <context ref="js-st:choice-variable-declaration"/>
+          </include>
+        </context> <!-- /_export-declaration-content -->
+
+      </include>
+    </context> <!-- /export-declarations -->
+
+
+    <!-- # Import declaration -->
+
+    <!-- ## Import named
+
+         import { default as y } from 'module';
+    -->
+
+    <context id="_choice-import-named" end-parent="true">
+      <start>(?={)</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_choice-import-named-content">
+          <include>
+            <context ref="_ordered-name-group"/>
+            <context ref="_ordered-from-module"/>
+          </include>
+        </context> <!-- /_choice-import-named-content -->
+
+      </include>
+    </context> <!-- /_choice-import-named -->
+
+    <!-- ## Import default
+
+         import def from 'module';
+         import def, { a, b } from 'module';
+         import def, * as ns from 'module';
+    -->
+
+    <context id="_choice-import-default-additional" end-parent="true">
+      <start>,</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-default-additional-content">
+          <include>
+            <context ref="_choice-import-named"/>
+            <context ref="_choice-all-as-namespace"/>
+          </include>
+        </context> <!-- /_import-default-additional-content -->
+
+      </include>
+    </context> <!-- /_choice-import-default-additional -->
+
+    <context id="_choice-import-default-only" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-default-only-content">
+          <include>
+            <context ref="_ordered-from-module"/>
+          </include>
+        </context> <!-- /_import-default-only-content -->
+
+      </include>
+    </context> <!-- /_choice-import-default-only -->
+
+    <context id="_choice-import-default" end-parent="true">
+      <start>\%{js:identifier-container-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-default-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+            <context ref="_choice-import-default-additional"/>
+            <context ref="_choice-import-default-only"/>
+          </include>
+        </context> <!-- /_import-default-content -->
+
+      </include>
+    </context> <!-- /_choice-import-default -->
+
+    <!-- ## Import declaration
+
+         import { foo as food, bar } from 'module';
+         import defaultFn, * as Mod from 'module';
+         import * as ns from 'module';
+         import 'module';
+    -->
+
+    <!-- <ImportDeclaration> -->
+    <!-- also matches import() and import.meta -->
+    <context id="import-declarations" style-ref="js:export-import-declaration">
+      <start>\%{js:import-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-declaration-content">
+          <include>
+            <context ref="js-expr:_choice-import-call-expression"/>
+            <context ref="js-expr:_choice-import-meta-expression"/>
+            <context ref="_choice-import-named"/>
+            <context ref="_choice-all-as-namespace"/>
+            <context ref="_choice-import-default"/>
+            <context ref="js-lit:choice-string-path"/>
+          </include>
+        </context> <!-- /_import-declaration-content -->
+
+      </include>
+    </context> <!-- /import-declarations -->
+
+  </definitions>
+</language>

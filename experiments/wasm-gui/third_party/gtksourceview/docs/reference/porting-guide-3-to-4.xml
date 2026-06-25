@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+ <!ENTITY % local.common.attrib "xmlns:xi CDATA #FIXED 'http://www.w3.org/2003/XInclude'">
+ <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+ %gtkdocentities;
+]>
+
+<chapter id="porting-guide-3-to-4">
+  <title>GtkSourceView 3 -> 4 Porting Guide</title>
+
+  <refsect1>
+    <title>GTK+ dependency</title>
+    <para>
+      Both GtkSourceView 3 and GtkSourceView 4 depend on GTK+ 3.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Preparation in GtkSourceView 3</title>
+    <para>
+      GtkSourceView 3.24 is the latest stable GtkSourceView 3 version. Before
+      continuing this porting guide, you should use the 3.24 version without
+      using any deprecated API.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>New pkg-config name</title>
+    <para>
+      For GtkSourceView 4, the pkg-config name is:
+      <code>gtksourceview-4</code>
+    </para>
+    <para>
+      To compile a program that uses GtkSourceView 4, you
+      can for example use the following command:
+    </para>
+    <para>
+      <code>$ gcc hello.c `pkg-config --cflags --libs gtksourceview-4` -o hello</code>
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.1</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          All the deprecated APIs have been removed.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Only <code>&lt;gtksourceview/gtksource.h&gt;</code> can be included
+          directly. There were already warnings about it in GtkSourceView 3. The
+          warnings have been changed to errors.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Only the version 2 of the <link linkend="lang-reference">GtkSourceView
+          language definition file format</link> is supported (for *.lang files,
+          used for syntax highlighting). The support for the version 1 has been
+          dropped.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.2</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <code>gtk_source_completion_item_new2()</code> has been renamed to
+          <link linkend="gtk-source-completion-item-new">gtk_source_completion_item_new()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <code>gtk_source_search_context_forward2()</code> has been renamed to
+          <link linkend="gtk-source-search-context-forward">gtk_source_search_context_forward()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <code>gtk_source_search_context_forward_finish2()</code> has been renamed to
+          <link linkend="gtk-source-search-context-forward-finish">gtk_source_search_context_forward_finish()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <code>gtk_source_search_context_backward2()</code> has been renamed to
+          <link linkend="gtk-source-search-context-backward">gtk_source_search_context_backward()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <code>gtk_source_search_context_backward_finish2()</code> has been renamed to
+          <link linkend="gtk-source-search-context-backward-finish">gtk_source_search_context_backward_finish()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <code>gtk_source_search_context_replace2()</code> has been renamed to
+          <link linkend="gtk-source-search-context-replace">gtk_source_search_context_replace()</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <link linkend="GtkSourceSearchContext--settings">GtkSourceSearchContext:settings</link>
+          property is now construct-only.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.3</title>
+    <para>No API changes.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.4</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The API of the
+          <link linkend="GtkSourceView-move-lines">GtkSourceView::move-lines</link>
+          keybinding signal has been simplified: the <code>copy</code> parameter
+          was deprecated and has been removed; and the <code>count</code>
+          parameter has been replaced by the <code>down</code> boolean.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.5 and 3.99.6</title>
+    <para>No API changes.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>GtkSourceView 3.99.7</title>
+    <para>
+      In order to have a better *.gir file and have less metadata to generate
+      the *.vapi for Vala, the following change has been made:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <code>gtk_source_completion_show()</code> has been renamed to
+          <link linkend="gtk-source-completion-start">gtk_source_completion_start()</link>.
+          The function conflicted with the
+          <link linkend="GtkSourceCompletion-show">GtkSourceCompletion::show</link> signal.
+          Note that in Vala this doesn't require code changes because the method
+          was already renamed to <code>start()</code> in GtkSourceView&nbsp;3.
+        </para>
+      </listitem>
+    </itemizedlist>
+
+    <para>
+      Other changes in 3.99.7:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          For i18n initialization, the
+          <link linkend="gtk-source-init">gtk_source_init()</link> function
+          now needs to be called. There is also the
+          <link linkend="gtk-source-finalize">gtk_source_finalize()</link>
+          function which is convenient when using memory debugging tools.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+</chapter>

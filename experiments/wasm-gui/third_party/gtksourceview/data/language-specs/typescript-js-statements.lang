@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-js-st" name="TypeScript JavaScript Statement Additions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Class declaration -->
+
+    <!-- <ClassExpression> / <ClassDeclaration> -->
+    <!-- replaces js-st:_class-declarations -->
+    <context id="class-declarations">
+      <start>(?=\%{typescript:class-expression-keyword})</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="js-st:_class-declaration-content"/>
+      </include>
+    </context> <!-- /class-declarations -->
+
+
+    <!-- # Variable declaration -->
+
+    <!-- replaces js-st:_variable-declaration-item-content -->
+    <context id="variable-declaration-item-content">
+      <include>
+        <context ref="js:ordered-binding"/>
+        <context ref="typescript:ordered-definite-assignment-assertion"/>
+        <context ref="typescript:ordered-type-annotation"/>
+        <context ref="js:ordered-default-value-assignment"/>
+      </include>
+    </context> <!-- /variable-declaration-item-content -->
+
+
+    <!-- # Ambient declaration
+
+         declare var a;
+         declare function fn;
+         declare function fn { ... }
+         declare class Foo { ... }
+         declare enum Foo { ... }
+         declare namespace Foo { ... }
+         declare module "foo" { ... }
+         declare module "foo";
+         declare global { ... }
+    -->
+
+    <context id="_choice-global-augmentation" style-ref="typescript:global-augmentation" end-parent="true">
+      <start>\%{typescript:global-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_global-augmentation-content">
+          <include>
+            <context ref="_last-namespace-body"/>
+          </include>
+        </context> <!-- /_global-augmentation-content -->
+
+      </include>
+    </context> <!-- /_choice-global-augmentation -->
+
+    <context id="_ambient-declaration-content">
+      <include>
+        <context ref="choice-const-declaration"/>
+        <context ref="choice-enum-declaration"/>
+        <context ref="_choice-global-augmentation"/>
+        <context ref="choice-module-declaration"/>
+        <context ref="choice-namespace-declaration"/>
+        <context ref="js-fn:choice-class-expression-required-name"/>
+        <context ref="js-fn:choice-function-expression"/>
+        <context ref="js-st:choice-variable-declaration"/>
+      </include>
+    </context> <!-- /_ambient-declaration-content -->
+
+    <!-- <AmbientDeclaration> -->
+    <context id="_ambient-declarations" style-ref="typescript:ambient-declaration">
+      <start>\%{typescript:declare-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_ambient-declaration-content"/>
+      </include>
+    </context> <!-- /_ambient-declarations -->
+
+    <!-- <AmbientDeclaration> -->
+    <context id="choice-ambient-declaration" style-ref="typescript:ambient-declaration" end-parent="true">
+      <start>\%{typescript:declare-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_ambient-declaration-content"/>
+      </include>
+    </context> <!-- /choice-ambient-declaration -->
+
+
+    <!-- # Const declaration
+
+         const a = 1;
+         const enum Foo { ... }
+
+         we need a custom const declaration to handle "const enum"
+    -->
+
+    <context id="_const-declaration-content">
+      <include>
+        <context ref="choice-enum-declaration"/>
+
+        <context id="_choice-const-declaration-variable-declaration" end-parent="true">
+          <start>\%{js:before-next-token}</start>
+          <end>\%{js:statement-end}</end>
+          <include>
+            <context ref="js:comments"/>
+            <context ref="js-st:_variable-declaration-content"/>
+          </include>
+        </context> <!-- /_choice-const-declaration-variable-declaration -->
+
+      </include>
+    </context> <!-- /_const-declaration-content -->
+
+    <context id="_const-declarations" style-ref="js:variable-declaration">
+      <start>\%{js:const-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_const-declaration-content"/>
+      </include>
+    </context> <!-- /_const-declarations -->
+
+    <context id="choice-const-declaration" style-ref="js:variable-declaration" end-parent="true">
+      <start>\%{js:const-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_const-declaration-content"/>
+      </include>
+    </context> <!-- /choice-const-declaration -->
+
+
+    <!-- # Enum declaration
+
+         enum Foo { A = 1, B, C }
+    -->
+
+    <context id="_enum-member-content">
+      <include>
+        <context ref="typescript-type-lit:ordered-property-name"/>
+        <context ref="js:ordered-default-value-assignment"/>
+      </include>
+    </context> <!-- /_enum-member-content -->
+
+    <context id="_enum-body" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_enum-body-content">
+          <include>
+
+            <context id="_enum-first-member" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_enum-member-content"/>
+              </include>
+            </context> <!-- /_enum-first-member -->
+
+            <context id="_enum-members">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+                <context ref="_enum-member-content"/>
+              </include>
+            </context> <!-- /_enum-members -->
+
+          </include>
+        </context> <!-- /_enum-body-content -->
+
+      </include>
+    </context> <!-- /_enum-body -->
+
+    <context id="_last-enum-body" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_enum-body"/>
+      </include>
+    </context> <!-- /_last-enum-body -->
+
+    <context id="_enum-declaration-content">
+      <include>
+        <context ref="js:ordered-identifier"/>
+        <context ref="_last-enum-body"/>
+      </include>
+    </context> <!-- /_enum-declaration-content -->
+
+    <!-- <EnumDeclaration> -->
+    <context id="_enum-declarations" style-ref="typescript:enum-declaration">
+      <start>\%{typescript:enum-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_enum-declaration-content"/>
+      </include>
+    </context> <!-- /_enum-declarations -->
+
+    <!-- <EnumDeclaration> -->
+    <context id="choice-enum-declaration" style-ref="typescript:enum-declaration" end-parent="true">
+      <start>\%{typescript:enum-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_enum-declaration-content"/>
+      </include>
+    </context> <!-- /choice-enum-declaration -->
+
+
+    <!-- # Interface declaration
+
+         interface MyObj { ... }
+         interface MyObj<T, U> extends AThing,
+           AnotherThing<string, number> { ... }
+    -->
+
+    <context id="_interface-extends-clause" once-only="true">
+      <start>\%{js:extends-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_interface-extends-clause-content">
+          <include>
+            <context ref="typescript:type-reference-list"/>
+          </include>
+        </context> <!-- /_interface-extends-clause-content -->
+
+      </include>
+    </context> <!-- /_interface-extends-clause -->
+
+    <context id="_ordered-interface-extends-clause" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_interface-extends-clause"/>
+      </include>
+    </context> <!-- /_ordered-interface-extends-clause -->
+
+    <context id="_interface-declaration-content">
+      <include>
+        <context ref="js:ordered-identifier"/>
+        <context ref="typescript-type-gen:ordered-type-parameters-list"/>
+        <context ref="_ordered-interface-extends-clause"/>
+        <context ref="typescript-type-lit:last-object-type-literal"/>
+      </include>
+    </context> <!-- /_interface-declaration-content -->
+
+    <!-- <InterfaceDeclaration> -->
+    <context id="_interface-declarations" style-ref="typescript:interface-declaration">
+      <start>\%{typescript:interface-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_interface-declaration-content"/>
+      </include>
+    </context> <!-- /_interface-declarations -->
+
+    <!-- <InterfaceDeclaration> -->
+    <context id="choice-interface-declaration" style-ref="typescript:interface-declaration" end-parent="true">
+      <start>\%{typescript:interface-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_interface-declaration-content"/>
+      </include>
+    </context> <!-- /choice-interface-declaration -->
+
+
+    <!-- # Module declaration
+
+         module Foo.Bar { ... } // same as namespace
+                                // ("internal module")
+         module "foo.bar" { ... } // "external module" for d.ts files
+    -->
+
+    <context id="_module-identifier-or-string" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_module-identifier-or-string-content">
+          <include>
+            <context ref="js-lit:choice-string"/>
+            <context ref="typescript:choice-namespace-name"/>
+          </include>
+        </context> <!-- /_module-identifier-or-string-content -->
+
+      </include>
+    </context> <!-- /_module-identifier-or-string -->
+
+    <context id="_ordered-module-identifier-or-string" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_module-identifier-or-string"/>
+      </include>
+    </context> <!-- /_ordered-module-identifier-or-string -->
+
+    <context id="_module-declaration-content">
+      <include>
+        <context ref="_ordered-module-identifier-or-string"/>
+        <context ref="_last-namespace-body"/>
+      </include>
+    </context> <!-- /_module-declaration-content -->
+
+    <!-- <NamespaceDeclaration> -->
+    <context id="_module-declarations" style-ref="typescript:module-declaration">
+      <start>\%{typescript:module-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_module-declaration-content"/>
+      </include>
+    </context> <!-- /_module-declarations -->
+
+    <!-- <NamespaceDeclaration> -->
+    <context id="choice-module-declaration" style-ref="typescript:module-declaration" end-parent="true">
+      <start>\%{typescript:module-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_module-declaration-content"/>
+      </include>
+    </context> <!-- /choice-module-declaration -->
+
+
+    <!-- # Namespace declaration
+
+         namespace Foo.Bar { ... }
+    -->
+
+    <context id="_namespace-body" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_namespace-body-content">
+          <include>
+            <context ref="js-mod:export-declarations"/>
+            <context ref="js-mod:import-declarations"/> <!-- for import alias declarations -->
+            <context ref="js-st:statements"/>
+          </include>
+        </context> <!-- /_namespace-body-content -->
+
+      </include>
+    </context> <!-- /_namespace-body -->
+
+    <context id="_last-namespace-body" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_namespace-body"/>
+      </include>
+    </context> <!-- /_last-namespace-body -->
+
+    <context id="_namespace-declaration-content">
+      <include>
+        <context ref="typescript:ordered-namespace-name"/>
+        <context ref="_last-namespace-body"/>
+      </include>
+    </context> <!-- /_namespace-declaration-content -->
+
+    <!-- <NamespaceDeclaration> -->
+    <context id="_namespace-declarations" style-ref="typescript:namespace-declaration">
+      <start>\%{typescript:namespace-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_namespace-declaration-content"/>
+      </include>
+    </context> <!-- /_namespace-declarations -->
+
+    <!-- <NamespaceDeclaration> -->
+    <context id="choice-namespace-declaration" style-ref="typescript:namespace-declaration" end-parent="true">
+      <start>\%{typescript:namespace-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+        <context ref="_namespace-declaration-content"/>
+      </include>
+    </context> <!-- /choice-namespace-declaration -->
+
+
+    <!-- # Type alias declaration
+
+         type Name = string;
+         type NameResolver = () => string;
+         type NameOrResolver = Name | NameResolver;
+         type Container<T> = { value: T };
+    -->
+
+    <context id="_type-alias-value" once-only="true">
+      <start>=</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-alias-value-content">
+          <include>
+            <context ref="typescript-type-expr:type-expression"/>
+          </include>
+        </context> <!-- /_type-alias-value-content -->
+
+      </include>
+    </context> <!-- /_type-alias-value -->
+
+    <context id="_ordered-type-alias-value" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-alias-value"/>
+      </include>
+    </context> <!-- /_ordered-type-alias-value -->
+
+    <!-- <TypeAliasDeclaration> -->
+    <context id="_type-alias-declarations" style-ref="typescript:type-alias-declaration">
+      <start>\%{typescript:type-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_type-alias-declaration-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+            <context ref="typescript-type-gen:ordered-type-parameters-list"/>
+            <context ref="_ordered-type-alias-value"/>
+          </include>
+        </context> <!-- /_type-alias-declaration-content -->
+
+      </include>
+    </context> <!-- /_type-alias-declarations -->
+
+
+    <!-- # Statements -->
+
+    <!-- replaces js-st:statements -->
+    <context id="statements">
+      <include>
+        <context ref="typescript:decorators"/>
+        <context ref="_ambient-declarations"/>
+        <context ref="_const-declarations"/>
+        <context ref="_enum-declarations"/>
+        <context ref="_interface-declarations"/>
+        <context ref="_module-declarations"/>
+        <context ref="_namespace-declarations"/>
+        <context ref="_type-alias-declarations"/>
+        <context ref="js-mod:import-declarations"/> <!-- for import alias declarations -->
+        <context ref="js-st:statements" original="true"/>
+      </include>
+    </context> <!-- /statements -->
+
+  </definitions>
+</language>

@@ -1,0 +1,148 @@
+How to contribute to GtkSourceView
+==================================
+
+GtkSourceView is hosted on the GNOME GitLab instance, you can fork the
+repository and then do a merge request:
+
+    https://gitlab.gnome.org/GNOME/gtksourceview
+
+Read the following wiki page to know the conventions for the commit messages:
+
+    https://wiki.gnome.org/Git/CommitMessages
+
+If you have write access to the Git repository, please don't push your commits
+directly unless you have been given the green light to commit freely to
+GtkSourceView. When in doubt assume you haven't ;-).
+
+People who can commit freely to GtkSourceView:
+* GtkSourceView maintainers (or sub-maintainers in their area of expertise),
+  with of course discussion before doing important changes.
+* GNOME "build sheriffs", to fix build issues.
+
+C code conventions
+------------------
+
+You may encounter old code that doesn't follow all the following code
+conventions, but for new code it is better to follow them, for consistency.
+
+In the scripts/ directory there is an uncrustify config file with a script to
+apply the coding style to a certain *.c file. The script has not (yet) been run
+on all the GtkSourceView source code, but it can serve as a guideline.
+
+  - Avoid trailing whitespace.
+
+  - Indent the C code with tabulations with a width of eight characters.
+
+  - All blocks should be surrounded by curly braces, even one-line blocks. The
+    curly braces must be placed on their own lines. Like this:
+
+	if (foo)
+	{
+		call_foo ();
+	}
+	else
+	{
+		call_bar ();
+	}
+
+    Rationale: it spaces out the code, to have a better readability. And when
+    modifying a block of code, if it switches between one and two lines, we
+    don't need to add/remove the curly braces all the time.
+
+  - Follow the C89 standard. In particular, no "//"-style comments.
+
+  - The files should have a modeline for the indentation style.
+
+  - Do not be cheap about blank lines, spacing the code vertically helps
+    readability. However never use two consecutive blank lines, there is really
+    no need.
+
+  - As a general rule of thumb, follow the same coding style as the surrounding
+    code.
+
+See also:
+https://developer.gnome.org/programming-guidelines/stable/
+https://wiki.gnome.org/Projects/GTK%2B/BestPractices
+https://wiki.gnome.org/Projects/GLib/CompilerRequirements
+
+Programming best-practices
+--------------------------
+
+GtkSourceView is a sizeable piece of software, developed over the years by
+different people and GNOME technologies. Some parts of the code may be a little
+old. So when editing the code, we should try to make it better, not worse.
+
+Here are some general advices:
+
+  - Simplicity: the simpler code the better. Any trick that seem smart when you
+    write it is going to bite your ass later when reading the code. In fact, a
+    code is read far more often than it is written: for fixing a bug, adding a
+    feature, or simply see how it is implemented. So making the code harder to
+    read is a net loss.
+
+  - Avoid code duplication, make an effort to refactor common code into utility
+    functions.
+
+  - Write self-documented code when possible: instead of writing comments, it
+    is often possible to make the code self-documented by choosing good names
+    for the variables, functions and types.
+
+    Please avoid lots of one-letter variable names, it makes the code hard to
+    understand. Don't be afraid to write long variable names. Also, a variable
+    should be used for only one purpose.
+
+    A good function name is one that explain clearly all what its code really
+    does. There shouldn't be hidden features. If you can not find easily a good
+    function name, you should probably split the function in smaller pieces. A
+    function should do only one thing, but do it well.
+
+  - About comments:
+
+    Do not write comments to state the obvious, for example avoid:
+    i = 0; /* assign 0 to i */
+
+    Of course, write GTK-Doc comments to document the public API, especially
+    the class descriptions. The class descriptions gives a nice overview when
+    someone discovers the library.
+
+    For a private class, it is useful to write a comment at the top describing
+    in a few lines what the class does.
+
+    Document well the data structures: the invariants (what is or should be
+    always true about certain data fields); for a list, what is the element
+    type; for a hash table, what are the key and value types; etc. It is more
+    important to document the data structures than the functions, because when
+    understanding well the data structures, the functions implementation should
+    be for the most part obvious.
+
+    When it isn't obvious, it is more important to explain *why* something is
+    implemented in this way, not the *how*. You can deduce the *how* from the
+    code, but not the *why*.
+
+    If a non-trivial feature was previously implemented in a different way,
+    it's useful to write a comment to describe in a few lines the previous
+    implementation(s), and why it has been changed (for example to fix some
+    problems). It permits to avoid repeating history, otherwise a new developer
+    might wonder why a certain feature is implemented in "this complicated way"
+    and not in "that simpler obvious way". For such things, a comment in the
+    code has more chances to be read than an old commit message (especially if
+    the code has been copied from one repository to another).
+
+  - Contribute below on the stack. Fix a problem at the right place, instead of
+    writing hacks or heuristics to work around a bug or a lack of feature in an
+    underlying library.
+
+See also:
+https://blogs.gnome.org/swilmet/2012/08/01/about-code-quality-and-maintainability/
+
+Other links
+-----------
+
+http://ometer.com/hacking.html
+
+For a shared library:
+
+http://davidz25.blogspot.be/2011/07/writing-c-library-intro-conclusion-and.html
+http://akkadia.org/drepper/ (Ulrich Drepper):
+	- How to Write Shared Libraries
+	- Good Practices in Library Design, Implementation, and Maintenance

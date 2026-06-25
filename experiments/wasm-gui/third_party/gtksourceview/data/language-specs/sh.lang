@@ -1,0 +1,974 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Silian Della Ragione <silian87@gechi.it>
+ Copyright (C) 2005 Silian Della Ragione <silian87@gechi.it>
+ Copyright (C) 2008 Steve Frécinaux <code@istique.net>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="sh" name="sh" version="2.0" _section="Script">
+  <metadata>
+    <property name="mimetypes">text/x-shellscript;application/x-shellscript;text/x-sh</property>
+    <property name="globs">*.sh;*bashrc;.profile;.bash_profile</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="comment"             name="Comment"             map-to="def:comment"/>
+    <style id="function"            name="Function"            map-to="def:function"/>
+    <style id="string"              name="String"              map-to="def:string"/>
+    <style id="keyword"             name="Keyword"             map-to="def:keyword"/>
+    <!-- FIXME: need to sort out proper styles for variables -->
+    <style id="variable"            name="Variable"            map-to="def:type"/>
+    <style id="variable-definition" name="Variable Definition" map-to="sh:variable"/>
+    <style id="others"              name="Others"              map-to="def:keyword"/>
+    <style id="common-command"      name="Common Commands"     map-to="def:keyword"/>
+    <style id="here-doc-bound"      name="Heredoc Bound"       map-to="def:keyword"/>
+    <style id="subshell"            name="Subshell"            map-to="def:preprocessor"/>
+  </styles>
+
+  <definitions>
+
+    <define-regex id="command-name">[a-zA-Z_][a-zA-Z0-9_.-]*</define-regex>
+    <define-regex id="identifier">[a-zA-Z_][a-zA-Z0-9_]*</define-regex>
+    <define-regex id="special-parameter">[*@#?$!0-9_-]</define-regex>
+    <define-regex id="argument-prefix">(?&lt;=\s|^)</define-regex>
+    <define-regex id="argument-suffix">(?=\s|[&lt;&gt;]|\\?$)</define-regex>
+    <define-regex id="parentheses-prefix">(?&lt;=\s|[)`&amp;|;]|^)</define-regex>
+    <define-regex id="command-suffix">(?=[)`&amp;|;])</define-regex>
+    <define-regex id="lb">(?&lt;=\s|[()`&amp;|;]|^)</define-regex>
+    <define-regex id="rb">(?=\s|[()`&amp;|;&lt;&gt;]|\\?$)</define-regex>
+
+    <!-- we cannot use def:shell-like-comment, because
+         m4.lang needs to replace this context -->
+    <context id="line-comment" style-ref="comment" end-at-line-end="true" class="comment" class-disabled="no-spell-check">
+      <start>\%{argument-prefix}#</start>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="double-quoted-string" style-ref="string" class="string" class-disabled="no-spell-check">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <!-- highlight escaped chars -->
+        <context style-ref="def:special-char">
+            <match>\\[$`"\\]</match>
+        </context>
+        <context ref="def:line-continue"/>
+        <context ref="variable"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="arithmetic-expansion"/>
+        <context ref="history-expansion-command"/>
+      </include>
+    </context>
+
+    <context id="single-quoted-string" style-ref="string" class="string" class-disabled="no-spell-check">
+      <start>'</start>
+      <end>'</end>
+    </context>
+
+    <context id="subshell" style-ref="subshell">
+      <start>\%{parentheses-prefix}\((?!\()</start>
+      <end>\)\%{rb}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <context id="command-substitution" style-ref="subshell" class="no-spell-check">
+      <start>\$\((?!\()</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <context id="process-substitution" style-ref="subshell">
+      <start>\%{argument-prefix}[&lt;&gt;]\((?!\()</start>
+      <end>\)\%{rb}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <context id="reference-by-name" style-ref="variable">
+      <match>\%{identifier}</match>
+    </context>
+
+    <context id="numeral-system">
+      <include>
+        <context id="base-n-integer" style-ref="def:base-n-integer">
+          <match extended="true">
+            (?&lt;![\w\.]) ([2-9]|[1-5][0-9]|6[0-4])\#[0-9a-zA-Z_@]+ (?![\w\.])
+          </match>
+        </context>
+        <context ref="def:hexadecimal"/>
+        <context ref="def:octal"/>
+        <context ref="def:decimal"/>
+      </include>
+    </context>
+
+    <context id="logical-operator" style-ref="others">
+      <match>&amp;{2}|\|{2}</match>
+    </context>
+
+    <context id="evaluation-nesting">
+      <include>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="def:line-continue"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="history-expansion"/>
+        <context ref="variable"/>
+        <context ref="reference-by-name"/>
+        <context ref="numeral-system"/>
+        <context ref="logical-operator"/>
+      </include>
+    </context>
+    
+    <!-- Defined like this, "precedence" also emulates the inclusion of
+    "arithmetic-evaluation" and "arithmetic-expansion" -->
+    <context id="evaluation-precedence">
+      <start>\$?\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="evaluation-nesting"/>
+        <context ref="evaluation-precedence"/>
+      </include>
+    </context>
+
+    <context id="arithmetic-evaluation">
+      <start>\%{parentheses-prefix}\({2}(?!\()</start>
+      <end>\){2}\%{rb}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="evaluation-nesting"/>
+        <context ref="evaluation-precedence"/>
+      </include>
+    </context>
+
+    <context id="expansion-nesting">
+      <include>
+        <context ref="def:line-continue"/>
+        <context ref="double-quoted-string"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="variable"/>
+        <context ref="history-expansion"/>
+        <context ref="reference-by-name"/>
+        <context ref="numeral-system"/>
+        <context ref="logical-operator"/>
+      </include>
+    </context>
+
+    <context id="expansion-precedence">
+      <start>\$?\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="expansion-nesting"/>
+        <context ref="expansion-precedence"/>
+      </include>
+    </context>
+
+    <context id="arithmetic-expansion" class="no-spell-check">
+      <start>\$\({2}(?!\()</start>
+      <end>\){2}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="expansion-nesting"/>
+        <context ref="expansion-precedence"/>
+      </include>
+    </context>
+
+    <!-- Exclusions above in <start>/<end> tags enable highlighting only for
+      unambiguous nesting of subshells and arithmetic evaluations/expansions.
+      This covers the remainder and array definition, with default highlighting -->
+    <context id="default-subshell">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <!-- Treated separately, not including itself nor command-like contexts
+      (see https://gitlab.gnome.org/GNOME/gtksourceview/issues/94) -->
+    <context id="backtick-subshell" style-ref="subshell" class="no-spell-check">
+      <start>`</start>
+      <end>`</end>
+      <include>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="line-comment"/>
+        <context ref="def:line-continue"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="process-substitution"/>
+        <context ref="arithmetic-evaluation"/>
+        <context ref="arithmetic-expansion"/>
+        <!-- Must be included after all other parenthesized subshells -->
+        <context ref="default-subshell"/>
+        <context ref="punctuator"/>
+        <context ref="function"/>
+        <context ref="here-doc"/>
+        <context ref="redirection"/>
+        <context ref="variable"/>
+        <context ref="stand-alone-variable-definition"/>
+        <context ref="reserved-word"/>
+        <context ref="case-command"/>
+        <context ref="for-command"/>
+        <context ref="history-expansion"/>
+        <context ref="conditional-command"/>
+      </include>
+    </context>
+
+    <context id="punctuator" style-ref="others">
+      <match>[&amp;|;/]</match>
+    </context>
+
+    <context id="function" style-ref="function">
+      <!-- Function declaration with or without function keyword.
+           For the later one, parentheses are mandatory -->
+      <match extended="true">
+        \%{lb}(?:
+          (function)\s+\%{command-name}\s*(\(\s*\))? |
+          \%{command-name}\s*\(\s*\)
+        )
+      </match>
+      <include>
+        <context sub-pattern="1" style-ref="keyword"/>
+      </include>
+    </context>
+
+    <context id="redirection" style-ref="others">
+      <prefix></prefix>
+      <suffix></suffix>
+      <!-- The order of the two following keywords matters -->
+      <keyword>[0-9]*[&lt;&gt;](&amp;)?[0-9]*-?</keyword>
+      <keyword>(&amp;|[0-9]+)?&gt;{1,2}[0-9]*-?</keyword>
+      <keyword>[0-9]*(&lt;&gt;|&gt;\|)</keyword>
+    </context>
+
+    <context id="highlighted-rest-of-line" once-only="true" end-at-line-end="true">
+      <start>(?&lt;=.)(?=.)</start>
+      <include>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <context id="here-doc">
+      <include>
+        <context id="unexpanded-here-doc">
+          <start extended="true" dupnames="true">
+            # (?&lt;!&lt;) for not matching here-word (&lt;&lt;&lt;)
+            (?&lt;!&lt;) &lt;&lt;-?\s* (
+              '(?P&lt;HDB&gt;[^']*)'    # 'EOF'
+              | "(?P&lt;HDB&gt;[^"]*)"  # "EOF"
+            )\%{rb}
+          </start>
+          <!-- "\t*" in case of "<<-" above -->
+          <end>^\t*\%{HDB@start}(?=`|$)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="here-doc-bound"/>
+            <context sub-pattern="0" where="end" style-ref="here-doc-bound"/>
+            <!-- We can have cmd<<'EOF'; something to highlight -->
+            <context ref="highlighted-rest-of-line"/>
+            <context id="unexpanded-body-text" extend-parent="false">
+              <start>^</start>
+            </context>
+          </include>
+        </context>
+        <context id="expanded-here-doc">
+          <start extended="true">
+            (?&lt;!&lt;) &lt;&lt;-?\s* (
+              (?P&lt;HDB&gt;[^\s()`&amp;|;&lt;&gt;"'\#]+) # EOF
+            )\%{rb}
+          </start>
+          <end>^\t*\%{HDB@start}(?=`|$)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="here-doc-bound"/>
+            <context sub-pattern="0" where="end" style-ref="here-doc-bound"/>
+            <context ref="highlighted-rest-of-line"/>
+            <context id="expanded-body-text" extend-parent="false">
+              <start>^</start>
+              <include>
+                <context style-ref="def:special-char">
+                  <match>\\[$`\\]</match>
+                </context>
+                <context ref="def:line-continue"/>
+                <context ref="backtick-subshell"/>
+                <context ref="command-substitution"/>
+                <context ref="arithmetic-expansion"/>
+                <context ref="variable"/>
+              </include>
+            </context>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="test-operator" style-ref="function">
+      <prefix>(?&lt;=\s|\(|^)</prefix>
+      <suffix>\%{argument-suffix}</suffix>
+      <keyword>-a</keyword>
+      <keyword>-b</keyword>
+      <keyword>-c</keyword>
+      <keyword>-d</keyword>
+      <keyword>-e</keyword>
+      <keyword>-f</keyword>
+      <keyword>-g</keyword>
+      <keyword>-h</keyword>
+      <keyword>-k</keyword>
+      <keyword>-p</keyword>
+      <keyword>-r</keyword>
+      <keyword>-s</keyword>
+      <keyword>-t</keyword>
+      <keyword>-u</keyword>
+      <keyword>-w</keyword>
+      <keyword>-x</keyword>
+      <keyword>-G</keyword>
+      <keyword>-L</keyword>
+      <keyword>-N</keyword>
+      <keyword>-O</keyword>
+      <keyword>-S</keyword>
+      <keyword>-ef</keyword>
+      <keyword>-nt</keyword>
+      <keyword>-ot</keyword>
+      <keyword>-o</keyword>
+      <keyword>-v</keyword>
+      <keyword>-R</keyword>
+      <keyword>-z</keyword>
+      <keyword>-n</keyword>
+      <keyword>==</keyword>
+      <keyword>=~</keyword>
+      <keyword>=</keyword>
+      <keyword>!=</keyword>
+      <keyword>!</keyword>
+      <keyword>&lt;</keyword>
+      <keyword>&gt;</keyword>
+      <keyword>-eq</keyword>
+      <keyword>-ne</keyword>
+      <keyword>-lt</keyword>
+      <keyword>-le</keyword>
+      <keyword>-gt</keyword>
+      <keyword>-ge</keyword>
+    </context>
+
+    <context id="conditional-command">
+      <start>\%{lb}\[{1,2}\%{argument-suffix}</start>
+      <end>\%{argument-prefix}\]{1,2}\%{rb}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context sub-pattern="0" where="end" style-ref="keyword"/>
+        <context id="brackets-nesting">
+          <include>
+            <!-- Must be included first, to ensure unescaped boundaries -->
+            <context ref="def:escape"/>
+            <context ref="def:line-continue"/>
+            <context ref="single-quoted-string"/>
+            <context ref="double-quoted-string"/>
+            <context ref="backtick-subshell"/>
+            <context ref="command-substitution"/>
+            <context ref="arithmetic-expansion"/>
+            <context ref="history-expansion"/>
+            <context ref="variable"/>
+            <context ref="test-operator"/>
+            <context ref="logical-operator"/>
+          </include>
+        </context>
+        <context id="brackets-precedence">
+          <start>\(</start>
+          <end>\)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="function"/>
+            <context sub-pattern="0" where="end" style-ref="function"/>
+            <context ref="brackets-nesting"/>
+            <context ref="brackets-precedence"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="short-parameter-expansion" style-ref="variable" class="no-spell-check">
+      <match>\$(\%{identifier}|\%{special-parameter})</match>
+    </context>
+
+    <context id="parameter-expansion" style-ref="def:statement" style-inside="true" class="no-spell-check">
+      <start>\$\{(?=[!#]?\%{identifier}|\%{special-parameter})</start>
+      <end>\}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="variable"/>
+        <context sub-pattern="0" where="end" style-ref="variable"/>
+        <context id="parameter" once-only="true">
+          <start>(?&lt;=\$\{)([!#]?)(\%{identifier}|\%{special-parameter})</start>
+          <end>\%{def:always-match}</end>
+          <include>
+            <context sub-pattern="1" where="start" style-ref="keyword"/>
+            <context sub-pattern="2" where="start" style-ref="variable"/>
+            <context id="array-part" once-only="true">
+              <start>\[</start>
+              <end>\]</end>
+              <include>
+                <context sub-pattern="0" where="start" style-ref="keyword"/>
+                <context sub-pattern="0" where="end" style-ref="keyword"/>
+                <context ref="expansion-nesting"/>
+                <context ref="expansion-precedence"/>
+              </include>
+            </context>
+          </include>
+        </context>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="def:line-continue"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="variable"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="arithmetic-expansion"/>
+        <context ref="history-expansion"/>
+      </include>
+    </context>
+
+    <context id="variable">
+      <include>
+        <context ref="short-parameter-expansion"/>
+        <context ref="parameter-expansion"/>
+      </include>
+    </context>
+
+    <context id="stand-alone-variable-definition">
+      <start>\%{lb}\%{identifier}(?=(\[.*\])?\+?=)</start>
+      <end>\+?=</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="variable-definition"/>
+        <context id="array-index" once-only="true">
+          <start>\[</start>
+          <end>\](?=\+?=)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="keyword"/>
+            <context sub-pattern="0" where="end" style-ref="keyword"/>
+            <context ref="expansion-nesting"/>
+            <context ref="expansion-precedence"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="variable-definition-command" end-at-line-end="true">
+      <start>\%{lb}(declare|local|typeset|readonly|export)\%{rb}</start>
+      <end>\%{command-suffix}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="def:line-continue"/>
+        <context ref="line-comment"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="redirection"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="arithmetic-expansion"/>
+        <!-- Must be included after all other parenthesized subshells -->
+        <context ref="default-subshell"/>
+        <context ref="history-expansion"/>
+        <context ref="variable"/>
+        <context style-ref="variable-definition">
+          <match>\%{argument-prefix}\%{identifier}</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="variable-definition">
+      <include>
+        <context ref="stand-alone-variable-definition"/>
+        <context ref="variable-definition-command"/>
+      </include>
+    </context>
+
+    <!-- To prevent conflicts, keywords below should be removed from the list
+         before being used in any container context -->
+    <context id="reserved-word" style-ref="keyword">
+      <prefix>\%{lb}</prefix>
+      <suffix>\%{rb}</suffix>
+      <keyword>\!</keyword>
+      <keyword>\{</keyword>
+      <keyword>\}</keyword>
+      <keyword>\:</keyword>
+      <keyword>do</keyword>
+      <keyword>done</keyword>
+      <keyword>elif</keyword>
+      <keyword>else</keyword>
+      <keyword>fi</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>select</keyword>
+      <keyword>then</keyword>
+      <keyword>until</keyword>
+      <keyword>while</keyword>
+    </context>
+
+    <context id="case-command">
+      <start>\%{lb}case\%{argument-suffix}</start>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <!-- Must be included before any reference context
+          (replaces <end> tag, to enforce priority) -->
+        <context style-ref="keyword" end-parent="true">
+          <prefix>\%{lb}</prefix>
+          <suffix>\%{rb}</suffix>
+          <keyword>esac</keyword>
+        </context>
+        <context ref="sh"/>
+      </include>
+    </context>
+
+    <context id="for-command" end-at-line-end="true">
+      <start>\%{lb}for\%{argument-suffix}</start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <context ref="def:line-continue"/>
+        <context style-ref="variable-definition" once-only="true">
+          <match>\%{identifier}</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="history-expansion-command" class="no-spell-check">
+      <start extended="true">
+        # Event Designator
+        ((?&lt;!\\)!) (?: (!|\#|-?[1-9][0-9]*) | (\?)[^?]+(\?|$)
+          | [^=("\s:$^*%-][^"\s:$^*%-]* )
+      </start>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context sub-pattern="2" where="start" style-ref="keyword"/>
+        <context sub-pattern="3" where="start" style-ref="keyword"/>
+        <context sub-pattern="4" where="start" style-ref="keyword"/>
+        <context id="word-designator" once-only="true" style-ref="keyword">
+          <match extended="true">
+            (:|(?=[$^*%-])) ( (\^|[0-9]+)-(\$|[0-9]+) | (\^|[0-9]+)[*-]
+              | [$^%*] | [0-9]+ | -(\$|[0-9]+) )
+          </match>
+        </context>
+        <context id="modifier" end-parent="true">
+          <start>\%{def:always-match}</start>
+          <end>\%{def:always-match}</end>
+          <include>
+            <context id="simple-modifier" style-ref="keyword">
+              <match>:([htrepqx]|[agG]?&amp;)</match>
+            </context>
+            <context id="substitution-modifier" end-at-line-end="true">
+              <start>:[agG]?s</start>
+              <include>
+                <context sub-pattern="0" where="start" style-ref="keyword"/>
+                <context id="substitution-modifier-pattern" once-only="true">
+                  <start>[[:print:]]</start>
+                  <end>((?=\%{0@start})|$)</end>
+                  <include>
+                    <context sub-pattern="0" where="start" style-ref="keyword"/>
+                    <context ref="def:escape"/>
+                  </include>
+                </context>
+                <context id="substitution-modifier-replacement" end-parent="true">
+                  <start>[[:print:]]</start>
+                  <end>(\%{0@start}|$)</end>
+                  <include>
+                    <context sub-pattern="0" where="start" style-ref="keyword"/>
+                    <context sub-pattern="0" where="end" style-ref="keyword"/>
+                    <context ref="def:escape"/>
+                  </include>
+                </context>
+              </include>
+            </context>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="history-expansion">
+      <include>
+        <context ref="history-expansion-command"/>
+        <context id="quick-substitution">
+          <match extended="true">
+            ^(\^) ([^^]|\\^)* (\^) ([^^]|\\^)* (\^|$)\%{rb}
+          </match>
+          <include>
+            <context sub-pattern="1" style-ref="keyword"/>
+            <context sub-pattern="3" style-ref="keyword"/>
+            <context sub-pattern="5" style-ref="keyword"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="let-command" end-at-line-end="true">
+      <start>\%{lb}let\%{argument-suffix}</start>
+      <end>\%{command-suffix}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <!-- Must be included first (contains def:escape) -->
+        <context ref="evaluation-nesting"/>
+        <context ref="line-comment"/>
+        <context ref="redirection"/>
+        <context ref="evaluation-precedence"/>
+      </include>
+    </context>
+
+    <context id="test-command" end-at-line-end="true">
+      <start>\%{lb}test\%{rb}</start>
+      <end>\%{command-suffix}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="keyword"/>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="line-comment"/>
+        <context ref="redirection"/>
+        <context ref="def:line-continue"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="arithmetic-expansion"/>
+        <context ref="history-expansion"/>
+        <context ref="variable"/>
+        <context ref="test-operator"/>
+      </include>
+    </context>
+
+    <context id="built-in-command">
+      <include>
+        <context ref="reserved-word"/>
+        <context ref="case-command"/>
+        <context ref="for-command"/>
+        <context ref="history-expansion"/>
+        <context ref="let-command"/>
+        <context ref="conditional-command"/>
+        <context ref="test-command"/>
+      </include>
+    </context>
+
+    <context id="generic-command" end-at-line-end="true">
+      <start>\%{lb}(?=\%{command-name}\%{rb})</start>
+      <!-- \%{command-suffix} + '(', to prevent false positives in ambiguous
+        nesting of subshells and arithmetic evaluations/expansions,
+        like (((a-(b+c)))) -->
+      <end>\%{command-suffix}|(?=\()</end>
+      <include>
+        <!-- Must be included first -->
+        <context once-only="true">
+          <start>\%{def:always-match}</start>
+          <include>
+            <context style-ref="keyword" end-parent="true">
+              <prefix></prefix>
+              <suffix>\%{rb}</suffix>
+              <keyword>\.</keyword>
+              <keyword>alias</keyword>
+              <keyword>bg</keyword>
+              <keyword>bind</keyword>
+              <keyword>break</keyword>
+              <keyword>builtin</keyword>
+              <keyword>caller</keyword>
+              <keyword>cd</keyword>
+              <keyword>command</keyword>
+              <keyword>compgen</keyword>
+              <keyword>complete</keyword>
+              <keyword>compopt</keyword>
+              <keyword>continue</keyword>
+              <keyword>dirs</keyword>
+              <keyword>disown</keyword>
+              <keyword>echo</keyword>
+              <keyword>enable</keyword>
+              <keyword>eval</keyword>
+              <keyword>exec</keyword>
+              <keyword>exit</keyword>
+              <keyword>false</keyword>
+              <keyword>fc</keyword>
+              <keyword>fg</keyword>
+              <keyword>getopts</keyword>
+              <keyword>hash</keyword>
+              <keyword>help</keyword>
+              <keyword>history</keyword>
+              <keyword>jobs</keyword>
+              <keyword>kill</keyword>
+              <keyword>logout</keyword>
+              <keyword>mapfile</keyword>
+              <keyword>popd</keyword>
+              <keyword>printf</keyword>
+              <keyword>pushd</keyword>
+              <keyword>pwd</keyword>
+              <keyword>readarray</keyword>
+              <keyword>read</keyword>
+              <keyword>return</keyword>
+              <keyword>set</keyword>
+              <keyword>shift</keyword>
+              <keyword>shopt</keyword>
+              <keyword>source</keyword>
+              <keyword>suspend</keyword>
+              <keyword>times</keyword>
+              <keyword>trap</keyword>
+              <keyword>true</keyword>
+              <keyword>type</keyword>
+              <keyword>ulimit</keyword>
+              <keyword>umask</keyword>
+              <keyword>unalias</keyword>
+              <keyword>unset</keyword>
+              <keyword>wait</keyword>
+            </context>
+            <context style-ref="common-command" end-parent="true">
+              <prefix></prefix>
+              <suffix>\%{rb}</suffix>
+              <keyword>ar</keyword>
+              <keyword>awk</keyword>
+              <keyword>basename</keyword>
+              <keyword>bash</keyword>
+              <keyword>beep</keyword>
+              <keyword>bunzip2</keyword>
+              <keyword>bzcat</keyword>
+              <keyword>bzcmp</keyword>
+              <keyword>bzdiff</keyword>
+              <keyword>bzegrep</keyword>
+              <keyword>bzfgrep</keyword>
+              <keyword>bzgrep</keyword>
+              <keyword>bzip2recover</keyword>
+              <keyword>bzip2</keyword>
+              <keyword>bzless</keyword>
+              <keyword>bzmore</keyword>
+              <keyword>cc</keyword>
+              <keyword>cat</keyword>
+              <keyword>chattr</keyword>
+              <keyword>chgrp</keyword>
+              <keyword>chmod</keyword>
+              <keyword>chown</keyword>
+              <keyword>chroot</keyword>
+              <keyword>clear</keyword>
+              <keyword>cmp</keyword>
+              <keyword>cpp</keyword>
+              <keyword>cp</keyword>
+              <keyword>cut</keyword>
+              <keyword>date</keyword>
+              <keyword>dd</keyword>
+              <keyword>df</keyword>
+              <keyword>dialog</keyword>
+              <keyword>diff3</keyword>
+              <keyword>diff</keyword>
+              <keyword>dirname</keyword>
+              <keyword>dir</keyword>
+              <keyword>du</keyword>
+              <keyword>egrep</keyword>
+              <keyword>eject</keyword>
+              <keyword>env</keyword>
+              <keyword>expr</keyword>
+              <keyword>fgrep</keyword>
+              <keyword>file</keyword>
+              <keyword>find</keyword>
+              <keyword>fmt</keyword>
+              <keyword>free</keyword>
+              <keyword>ftp</keyword>
+              <keyword>funzip</keyword>
+              <keyword>fuser</keyword>
+              <keyword>gawk</keyword>
+              <keyword>gcc</keyword>
+              <keyword>getent</keyword>
+              <keyword>getopt</keyword>
+              <keyword>grep</keyword>
+              <keyword>groups</keyword>
+              <keyword>gunzip</keyword>
+              <keyword>gzip</keyword>
+              <keyword>head</keyword>
+              <keyword>hostname</keyword>
+              <keyword>id</keyword>
+              <keyword>ifconfig</keyword>
+              <keyword>info</keyword>
+              <keyword>insmod</keyword>
+              <keyword>install</keyword>
+              <keyword>join</keyword>
+              <keyword>killall</keyword>
+              <keyword>lastb</keyword>
+              <keyword>last</keyword>
+              <keyword>ld</keyword>
+              <keyword>less</keyword>
+              <keyword>ln</keyword>
+              <keyword>locate</keyword>
+              <keyword>lockfile</keyword>
+              <keyword>login</keyword>
+              <keyword>logname</keyword>
+              <keyword>lp</keyword>
+              <keyword>lpr</keyword>
+              <keyword>lsattr</keyword>
+              <keyword>ls</keyword>
+              <keyword>lsmod</keyword>
+              <keyword>make</keyword>
+              <keyword>man</keyword>
+              <keyword>mkdir</keyword>
+              <keyword>mkfifo</keyword>
+              <keyword>mknod</keyword>
+              <keyword>mktemp</keyword>
+              <keyword>modprobe</keyword>
+              <keyword>more</keyword>
+              <keyword>mount</keyword>
+              <keyword>mv</keyword>
+              <keyword>namei</keyword>
+              <keyword>nawk</keyword>
+              <keyword>nice</keyword>
+              <keyword>nl</keyword>
+              <keyword>passwd</keyword>
+              <keyword>patch</keyword>
+              <keyword>perl</keyword>
+              <keyword>pgawk</keyword>
+              <keyword>pidof</keyword>
+              <keyword>ping</keyword>
+              <keyword>pkg-config</keyword>
+              <keyword>pr</keyword>
+              <keyword>ps</keyword>
+              <keyword>readlink</keyword>
+              <keyword>renice</keyword>
+              <keyword>rmdir</keyword>
+              <keyword>rm</keyword>
+              <keyword>scp</keyword>
+              <keyword>sed</keyword>
+              <keyword>seq</keyword>
+              <keyword>sh</keyword>
+              <keyword>sleep</keyword>
+              <keyword>sort</keyword>
+              <keyword>split</keyword>
+              <keyword>ssh-add</keyword>
+              <keyword>ssh-agent</keyword>
+              <keyword>ssh-keygen</keyword>
+              <keyword>ssh-keyscan</keyword>
+              <keyword>ssh</keyword>
+              <keyword>stat</keyword>
+              <keyword>sudo</keyword>
+              <keyword>sum</keyword>
+              <keyword>su</keyword>
+              <keyword>sync</keyword>
+              <keyword>tac</keyword>
+              <keyword>tail</keyword>
+              <keyword>tar</keyword>
+              <keyword>tee</keyword>
+              <keyword>tempfile</keyword>
+              <keyword>touch</keyword>
+              <keyword>tr</keyword>
+              <keyword>umount</keyword>
+              <keyword>uname</keyword>
+              <keyword>uniq</keyword>
+              <keyword>unlink</keyword>
+              <keyword>unzip</keyword>
+              <keyword>uptime</keyword>
+              <keyword>wall</keyword>
+              <keyword>wc</keyword>
+              <keyword>wget</keyword>
+              <keyword>whereis</keyword>
+              <keyword>which</keyword>
+              <keyword>whoami</keyword>
+              <keyword>who</keyword>
+              <keyword>write</keyword>
+              <keyword>w</keyword>
+              <keyword>xargs</keyword>
+              <keyword>xdialog</keyword>
+              <keyword>zcat</keyword>
+              <keyword>zcmp</keyword>
+              <keyword>zdiff</keyword>
+              <keyword>zegrep</keyword>
+              <keyword>zenity</keyword>
+              <keyword>zfgrep</keyword>
+              <keyword>zforce</keyword>
+              <keyword>zgrep</keyword>
+              <keyword>zip</keyword>
+              <keyword>zless</keyword>
+              <keyword>zmore</keyword>
+              <keyword>znew</keyword>
+            </context>
+            <!-- Must be included last -->
+            <context end-parent="true">
+              <match>\%{command-name}</match>
+            </context>
+          </include>
+        </context>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="def:line-continue"/>
+        <context ref="line-comment"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="backtick-subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="process-substitution"/>
+        <context ref="arithmetic-expansion"/>
+        <context ref="history-expansion"/>
+        <context ref="here-doc"/>
+        <context ref="redirection"/>
+        <context ref="variable"/>
+      </include>
+    </context>
+
+    <context id="sh" class="no-spell-check">
+      <include>
+        <!-- Must be included first, to ensure unescaped boundaries -->
+        <context ref="def:escape"/>
+        <context ref="def:shebang"/>
+        <context ref="line-comment"/>
+        <context ref="def:line-continue"/>
+        <context ref="single-quoted-string"/>
+        <context ref="double-quoted-string"/>
+        <context ref="backtick-subshell"/>
+        <context ref="subshell"/>
+        <context ref="command-substitution"/>
+        <context ref="process-substitution"/>
+        <context ref="arithmetic-evaluation"/>
+        <context ref="arithmetic-expansion"/>
+        <!-- Must be included after all other parenthesized subshells -->
+        <context ref="default-subshell"/>
+        <context ref="punctuator"/>
+        <context ref="function"/>
+        <context ref="here-doc"/>
+        <context ref="redirection"/>
+        <context ref="variable"/>
+        <context ref="variable-definition"/>
+        <context ref="built-in-command"/>
+        <!-- Must be included last -->
+        <context ref="generic-command"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

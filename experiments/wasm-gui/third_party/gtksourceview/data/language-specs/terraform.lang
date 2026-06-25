@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Othmane El Warrak <othmane.el.warrak@gmail.com>
+ Copyright (C) 2021 Othmane El Warrak <othmane.el.warrak@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="terraform" name="Terraform" version="2.0" _section="Other">
+  <metadata>
+    <property name="globs">*.tf;*.tfvars;*.hcl</property>
+    <property name="line-comment-start">#</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+
+  <styles>
+    <style id="comment"               name="Comment"                   map-to="def:comment"/>
+    <style id="escaped-character"     name="Escaped Character"         map-to="def:special-char"/>
+    <style id="interpolation"         name="Interpolation Syntax"      map-to="def:special-char"/>
+    <style id="interpolated"          name="Interpolated Expression"   map-to="def:identifier"/>
+    <style id="string"                name="String"                    map-to="def:string"/>
+    <style id="number"                name="Number"                    map-to="def:number"/>
+    <style id="boolean"               name="Boolean value"             map-to="def:boolean"/>
+    <style id="null"                  name="Null Value"                map-to="def:constant"/>
+    <style id="data-type"             name="Data Type"                 map-to="def:type"/>
+    <style id="keyword"               name="Keyword"                   map-to="def:keyword"/>
+    <style id="identifier"            name="Identifier Label"          map-to="def:special-char"/>
+    <style id="reference"             name="Reference"                 map-to="def:special-constant"/>
+    <style id="block-type"            name="Block Type"                map-to="def:strong-emphasis"/>
+    <style id="block-title"           name="Block Title"               map-to="def:identifier"/>
+    <style id="block-label"           name="Block Label"               map-to="def:string"/>
+    <style id="builtin-function"      name="Built-in Function"         map-to="def:function"/>
+    <style id="error"                 name="Error"                     map-to="def:error"/>
+    <style id="statement"             name="Statment"                  map-to="def:statement"/>
+  </styles>
+
+  <definitions>
+    <define-regex id="identifier">\b(?!null|false|true)[[:alpha:]][[:alnum:]_-]*\b</define-regex>
+    <define-regex id="block-head">(^\s*(?P&lt;title&gt;\%{identifier})\s+)?(?P&lt;label&gt;(\"?\%{identifier}\"?\s*)*)\{</define-regex>
+    <define-regex id="escaped-character" extended="true">
+      \\(
+        [nrtbf"'\\$%] |w
+        u[0-9A-Fa-f]{4} |
+        [0-3] ([0-7] [0-7]?)? | [4-7] [0-7]?
+      )
+    </define-regex>
+
+    <context id="terraform" class="no-spell-check">
+      <include>
+        <context ref="comment"/>
+        <context ref="block-type"/>
+        <context ref="block"/>
+        <context ref="argument"/>
+        <context ref="expression"/>
+      </include>
+    </context>
+
+    <context id="comment">
+      <include>
+        <context ref="def:shell-like-comment" style-ref="comment"/>
+        <context ref="def:c-like-comment" style-ref="comment"/>
+        <context ref="def:c-like-comment-multiline" style-ref="comment"/>
+      </include>
+    </context>
+
+    <context id="block-type" style-ref="block-type">
+      <keyword>resource</keyword>
+      <keyword>provider</keyword>
+      <keyword>variable</keyword>
+      <keyword>output</keyword>
+      <keyword>locals</keyword>
+      <keyword>module</keyword>
+      <keyword>data</keyword>
+      <keyword>terraform</keyword>
+    </context>
+
+    <context id="block" end-at-line-end="false">
+      <start>\%{block-head}</start>
+      <end>\}</end>
+      <include>
+        <context sub-pattern="title" where="start" style-ref="block-title"/>
+        <context sub-pattern="label" where="start" style-ref="block-label"/>
+        <context ref="comment"/>
+        <context ref="argument"/>
+        <context ref="block"/>
+      </include>
+    </context>
+
+    <context id="argument" end-at-line-end="true">
+      <start>^\s*(\%{identifier})\s*(=(?!=|\>))\s*</start>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="identifier"/>
+        <context ref="comment"/>
+        <context ref="expression"/>
+      </include>
+    </context>
+
+    <context id="expression">
+      <include>
+        <context ref="data-type"/>
+        <context ref="attribute"/>
+        <context ref="tuple"/>
+        <context ref="object"/>
+        <context ref="named-value-reference"/>
+        <context ref="function"/>
+      </include>
+    </context>
+
+    <context id="attribute">
+      <match>\.(\%{identifier})\s*(\[(?P&lt;index&gt;[0-9]+|\*)\])?</match>
+      <include>
+        <context style-ref="identifier" sub-pattern="1"/>
+        <context style-ref="number" sub-pattern="index"/>
+      </include>
+    </context>
+
+    <context id="data-type">
+      <include>
+        <context ref="boolean"/>
+        <context ref="null"/>
+        <context ref="number"/>
+        <context ref="string"/>
+        <context ref="primitive-type"/>
+        <context ref="collection-type"/>
+        <context ref="structural-type"/>
+      </include>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>false</keyword>
+      <keyword>true</keyword>
+    </context>
+
+    <context id="null" style-ref="null">
+      <keyword>null</keyword>
+    </context>
+
+    <context id="number">
+      <include>
+        <context ref="def:decimal" style-ref="number"/>
+        <context ref="def:octal" style-ref="number"/>
+        <context ref="def:hexadecimal" style-ref="number"/>
+        <context ref="def:float" style-ref="number"/>
+      </include>
+    </context>
+
+    <context id="primitive-type" style-ref="data-type">
+      <keyword>any</keyword>
+      <keyword>string</keyword>
+      <keyword>number</keyword>
+      <keyword>bool</keyword>
+    </context>
+
+    <context id="collection-type">
+      <start>(list|map|set)\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context ref="primitive-type"/>
+        <context ref="collection-type"/>
+        <context ref="structural-type"/>
+      </include>
+    </context>
+
+    <context id="structural-type">
+      <start>(object|tuple)\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="keyword"/>
+        <context ref="tuple"/>
+        <context ref="object"/>
+      </include>
+    </context>
+
+    <context id="tuple">
+      <start>\[</start>
+      <end>\]</end>
+      <include>
+        <context ref="comment"/>
+        <context ref="for-body"/>
+        <context ref="expression"/>
+      </include>
+    </context>
+
+    <context id="object">
+      <start>\{</start>
+      <end>\}</end>
+      <include>
+        <context ref="comment"/>
+        <context ref="for-body"/>
+        <context ref="argument"/>
+        <context ref="expression"/>
+      </include>
+    </context>
+
+    <context id="for-body" extend-parent="false">
+      <start>(?&lt;=\{|\[)\s*for</start>
+      <include>
+        <context style-ref="statement" sub-pattern="0" where="start"/>
+        <context style-ref="statement">
+          <keyword>in</keyword>
+          <keyword>if</keyword>
+        </context>
+        <context ref="expression"/>
+        <context ref="comment"/>
+        <context style-ref="identifier"><match>\%{identifier}</match></context>
+      </include>
+    </context>
+
+    <context id="named-value-reference" style-ref="reference">
+      <keyword>var</keyword>
+      <keyword>local</keyword>
+      <keyword>module</keyword>
+      <keyword>data</keyword>
+      <keyword>path</keyword>
+      <keyword>terraform</keyword>
+      <keyword>each</keyword>
+      <keyword>count</keyword>
+    </context>
+
+    <context id="string">
+      <include>
+        <context end-at-line-end="true" class="string" class-disabled="no-spell-check" style-ref="string">
+          <start>"</start>
+          <end>"</end>
+          <include>
+            <context ref="extra-escaped-character"/>
+            <context ref="escaped-character"/>
+            <context ref="placeholder"/>
+          </include>
+        </context>
+        <context class="string" class-disabled="no-spell-check" style-ref="string">
+          <start>&lt;&lt;-?(\S+)\s*$</start>
+          <end>^\s*\%{1@start}\s*$</end>
+          <include>
+            <context ref="extra-escaped-character"/>
+            <context ref="placeholder"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="placeholder">
+      <include>
+        <context style-ref="interpolated">
+          <start>[\$%]\{</start>
+          <end>\}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="interpolation"/>
+            <context sub-pattern="0" where="end" style-ref="interpolation"/>
+            <context style-ref="keyword">
+              <keyword>if</keyword>
+              <keyword>else</keyword>
+              <keyword>endif</keyword>
+              <keyword>for</keyword>
+              <keyword>in</keyword>
+              <keyword>endfor</keyword>
+            </context>
+            <context ref="expression"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="escaped-character">
+      <include>
+        <context style-ref="escaped-character">
+          <match>\%{escaped-character}</match>
+        </context>
+        <context ref="def:line-continue"/>
+        <context style-ref="error">
+          <!-- backslashes not part of a valid escape sequence are erroneous -->
+          <match>\\</match>
+        </context>
+      </include>
+    </context>
+
+    <context id="extra-escaped-character">
+      <include>
+        <context style-ref="escaped-character">
+          <match>(\$\$\{|%%\{)</match>
+        </context>
+        <context ref="def:line-continue"/>
+      </include>
+    </context>
+
+    <context id="function">
+      <include>
+        <context ref="numeric-functions" style-ref="builtin-function"/>
+        <context ref="string-functions" style-ref="builtin-function"/>
+        <context ref="collection-functions" style-ref="builtin-function"/>
+        <context ref="encoding-functions" style-ref="builtin-function"/>
+        <context ref="filesystem-functions" style-ref="builtin-function"/>
+        <context ref="date-time-functions" style-ref="builtin-function"/>
+        <context ref="hash-crypto-functions" style-ref="builtin-function"/>
+        <context ref="ip-network-functions" style-ref="builtin-function"/>
+        <context ref="type-conversion-functions" style-ref="builtin-function"/>
+      </include>
+    </context>
+
+    <context id="numeric-functions">
+      <keyword>abs</keyword>
+      <keyword>ceil</keyword>
+      <keyword>floor</keyword>
+      <keyword>log</keyword>
+      <keyword>max</keyword>
+      <keyword>min</keyword>
+      <keyword>parseint</keyword>
+      <keyword>pow</keyword>
+      <keyword>signum</keyword>
+    </context>
+
+    <context id="string-functions">
+      <keyword>chomp</keyword>
+      <keyword>format</keyword>
+      <keyword>formatlist</keyword>
+      <keyword>indent</keyword>
+      <keyword>join</keyword>
+      <keyword>lower</keyword>
+      <keyword>regex</keyword>
+      <keyword>regexall</keyword>
+      <keyword>replace</keyword>
+      <keyword>split</keyword>
+      <keyword>strrev</keyword>
+      <keyword>substr</keyword>
+      <keyword>title</keyword>
+      <keyword>trim</keyword>
+      <keyword>trimprefix</keyword>
+      <keyword>trimsuffix</keyword>
+      <keyword>trimspace</keyword>
+      <keyword>upper</keyword>
+    </context>
+
+    <context id="collection-functions">
+      <keyword>alltrue</keyword>
+      <keyword>anytrue</keyword>
+      <keyword>chunklist</keyword>
+      <keyword>coalesce</keyword>
+      <keyword>coalescelist</keyword>
+      <keyword>compact</keyword>
+      <keyword>concat</keyword>
+      <keyword>contains</keyword>
+      <keyword>distinct</keyword>
+      <keyword>element</keyword>
+      <keyword>flatten</keyword>
+      <keyword>index</keyword>
+      <keyword>keys</keyword>
+      <keyword>length</keyword>
+      <keyword>list</keyword>
+      <keyword>lookup</keyword>
+      <keyword>map</keyword>
+      <keyword>matchkeys</keyword>
+      <keyword>merge</keyword>
+      <keyword>range</keyword>
+      <keyword>reverse</keyword>
+      <keyword>setintersection</keyword>
+      <keyword>setproduct</keyword>
+      <keyword>setsubtract</keyword>
+      <keyword>setunion</keyword>
+      <keyword>slice</keyword>
+      <keyword>sort</keyword>
+      <keyword>sum</keyword>
+      <keyword>transpose</keyword>
+      <keyword>values</keyword>
+      <keyword>zipmap</keyword>
+    </context>
+
+    <context id="encoding-functions">
+      <keyword>base64decode</keyword>
+      <keyword>base64encode</keyword>
+      <keyword>base64gzip</keyword>
+      <keyword>csvdecode</keyword>
+      <keyword>jsondecode</keyword>
+      <keyword>jsonencode</keyword>
+      <keyword>textdecodebase64</keyword>
+      <keyword>textencodebase64</keyword>
+      <keyword>urlencode</keyword>
+      <keyword>yamldecode</keyword>
+      <keyword>yamlencode</keyword>
+    </context>
+
+    <context id="filesystem-functions">
+      <keyword>abspath</keyword>
+      <keyword>dirname</keyword>
+      <keyword>pathexpand</keyword>
+      <keyword>basename</keyword>
+      <keyword>file</keyword>
+      <keyword>fileexists</keyword>
+      <keyword>fileset</keyword>
+      <keyword>filebase64</keyword>
+      <keyword>templatefile</keyword>
+    </context>
+
+    <context id="date-time-functions">
+      <keyword>formatdate</keyword>
+      <keyword>timeadd</keyword>
+      <keyword>timestamp</keyword>
+    </context>
+
+    <context id="hash-crypto-functions">
+      <keyword>base64sha256</keyword>
+      <keyword>base64sha512</keyword>
+      <keyword>bcrypt</keyword>
+      <keyword>filebase64sha256</keyword>
+      <keyword>filebase64sha512</keyword>
+      <keyword>filemd5</keyword>
+      <keyword>filesha1</keyword>
+      <keyword>filesha256</keyword>
+      <keyword>filesha512</keyword>
+      <keyword>md5</keyword>
+      <keyword>rsadecrypt</keyword>
+      <keyword>sha1</keyword>
+      <keyword>sha256</keyword>
+      <keyword>sha512</keyword>
+      <keyword>uuid</keyword>
+      <keyword>uuidv5</keyword>
+    </context>
+
+    <context id="ip-network-functions">
+      <keyword>cidrhost</keyword>
+      <keyword>cidrnetmask</keyword>
+      <keyword>cidrsubnet</keyword>
+      <keyword>cidrsubnets</keyword>
+    </context>
+
+    <context id="type-conversion-functions">
+      <keyword>can</keyword>
+      <keyword>defaults</keyword>
+      <keyword>tobool</keyword>
+      <keyword>tolist</keyword>
+      <keyword>tomap</keyword>
+      <keyword>tonumber</keyword>
+      <keyword>toset</keyword>
+      <keyword>tostring</keyword>
+      <keyword>try</keyword>
+    </context>
+  </definitions>
+</language>

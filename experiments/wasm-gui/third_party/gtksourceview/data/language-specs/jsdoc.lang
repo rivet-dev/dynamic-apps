@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="jsdoc" name="JSDoc" version="2.0" _section="Markup" hidden="true">
+
+  <styles>
+    <style id="inline-tag"  name="Inline tag" map-to="def:doc-comment-element"/>
+    <style id="type"        name="Type"       map-to="def:doc-comment-element"/>
+    <style id="block-tag"   name="Block tag"  map-to="def:doc-comment-element"/>
+    <style id="note"        name="Note"       map-to="def:note"/>
+    <style id="argument"    name="Argument"   map-to="def:doc-comment-element"/>
+    <style id="event"       name="Event"      map-to="jsdoc:argument"/>
+    <style id="keyword"     name="Keyword"    map-to="jsdoc:argument"/>
+    <style id="namepath"    name="Namepath"   map-to="jsdoc:argument"/>
+    <style id="escape"      name="Escape"/>
+  </styles>
+
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         Based on:
+         * JSDoc 3
+           https://jsdoc.app/
+         * Google Closure Compiler
+           https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler
+         * TSDoc
+           https://github.com/microsoft/tsdoc
+           https://api-extractor.com/pages/tsdoc/doc_comment_syntax/
+    -->
+
+    <context id="embedded-lang-hooks"/>
+
+    <context id="escape" style-ref="escape">
+      <match>\\[@{}]</match>
+    </context>
+
+    <context id="inline-tag" style-ref="inline-tag" end-at-line-end="true">
+      <start>{@</start>
+      <end>}</end>
+      <include>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="escape"/>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="type" style-ref="type" end-at-line-end="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="escape"/>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+
+    <!-- Block tags -->
+
+    <define-regex id="argument">[^\s@{*][^\s*]*</define-regex>
+
+    <context id="argument" style-ref="argument" end-parent="true">
+      <start>\%{argument}</start>
+      <end>\%{def:always-match}</end>
+    </context>
+
+    <context id="argument-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @
+        (?:
+          default |
+          tutorial |
+          variation
+        )
+        \%{js:keyword-end}
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="argument"/>
+      </include>
+    </context>
+
+    <context id="event-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @
+        (?:
+          emits |
+          event |
+          fires |
+          listens
+        )
+        \%{js:keyword-end}
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="argument" style-ref="event"/>
+      </include>
+    </context>
+
+    <context id="keyword-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @
+        (?:
+          access |
+          kind
+        )
+        \%{js:keyword-end}
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="argument" style-ref="keyword"/>
+      </include>
+    </context>
+
+    <context id="namepath-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @
+        (?:
+          memberof! |
+          (?:
+            alias |
+            augments |
+            callback |
+            constructs |
+            exports |
+            extends |
+            external |
+            function |
+            func |
+            host |
+            interface |
+            lends |
+            memberof |
+            method |
+            mixes |
+            mixin |
+            name |
+            requires |
+            template |   # closure compiler
+            typeParam |  # tsdoc
+            this
+          )
+          \%{js:keyword-end}
+        )
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="argument" style-ref="namepath"/>
+      </include>
+    </context>
+
+    <context id="type-namepath-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @
+        (?:
+          argument |
+          arg |
+          class |
+          constant |
+          constructor |
+          const |
+          member |
+          module |
+          namespace |
+          param |
+          property |
+          prop |
+          typedef |
+          var
+        )
+        \%{js:keyword-end}
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+        <context ref="type"/>
+        <context ref="argument" style-ref="namepath"/>
+      </include>
+    </context>
+
+    <context id="borrows-block-tag" end-at-line-end="true">
+      <start extended="true">
+        @borrows \%{js:keyword-end}
+      </start>
+      <end>(?=\S)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="block-tag"/>
+        <context ref="embedded-lang-hooks"/>
+
+        <context style-ref="namepath" once-only="true">
+          <match>\%{argument}</match>
+        </context>
+
+        <context end-parent="true">
+          <start extended="true">
+            \%{js:keyword-start} as \%{js:keyword-end}
+          </start>
+          <end>(?=\S)</end>
+          <include>
+            <context ref="argument" style-ref="namepath"/>
+          </include>
+        </context>
+
+      </include>
+    </context>
+
+    <context id="note-block-tag" style-ref="block-tag">
+      <match extended="true">
+        @todo \%{js:keyword-end}
+      </match>
+      <include>
+        <context sub-pattern="0" style-ref="note"/>
+      </include>
+    </context>
+
+    <context id="block-tag" style-ref="block-tag">
+      <match>@\%{js:identifier}</match>
+    </context>
+
+
+    <!-- Main context -->
+
+    <context id="jsdoc">
+      <include>
+        <context ref="escape"/>
+        <context ref="inline-tag"/>
+        <context ref="type"/>
+        <context ref="argument-block-tag"/>
+        <context ref="event-block-tag"/>
+        <context ref="keyword-block-tag"/>
+        <context ref="namepath-block-tag"/>
+        <context ref="type-namepath-block-tag"/>
+        <context ref="borrows-block-tag"/>
+        <context ref="note-block-tag"/>
+        <context ref="block-tag"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

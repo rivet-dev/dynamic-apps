@@ -1,0 +1,867 @@
+/*
+ * css extensions
+ */
+
+div {
+    color: #00ff00;
+
+    // nested rules
+    #inner.element {
+        color: #000000;
+    }
+
+    // parent selector
+    &:hover {
+        text-decoration: underline;
+    }
+    body.firefox & {
+        font-weight: normal;
+    }
+    &__element, // compound selector
+    &--modifier {
+        border: 1px;
+    }
+
+    // nested properties
+    font: {
+        family: fantasy;
+        size: 30em;
+        weight: bold;
+    }
+    font: 20px/24px fantasy {
+        weight: bold;
+    }
+}
+
+
+/*
+ * variables, data types
+ */
+
+// assignment
+$number:                5em;
+$double-quoted-string:  "foo";
+$single-quoted-string:  'bar';
+$not-quoted-string:     baz;
+$true:                  true;
+$false:                 false;
+$null:                  null;
+$parens-spaces-list:    (left top);
+$parens-commas-list:    (1px, 2px, 3px, 4px);
+$no-parens-spaces-list: 1px 2px 3px 4px;
+$no-parens-commas-list: arial, some-other-arial, sans-serif;
+$trailing-comma:        (1 2 3,); // a comma-separated list containing a space-separated list
+$bracketed-list:        [5rem 6rem 7rem]; // comma or space separated
+$map:                   (medium: 640, 'large': 960, "x-large": 1280, (xx-large,): 1600); // must have parentheses, be comma separated
+$color:                 #fe57a1;
+$function-reference:    get-function($function-name);
+
+// assign if not already assigned to
+$var: 1 !default;
+
+#main {
+    // global variable defined in block
+    $width: 5em !global;
+
+    // list of parent selectors
+    $selectors: &;
+
+    // property value
+    width: $width;
+}
+
+// media feature test
+@import "foo" ($orientation: $landscape);
+@media ($orientation-landscape) {
+    width: 700px;
+}
+
+// font feature value
+@font-feature-values Font One {
+    @styleset {
+        nice-style: $value;
+    }
+}
+
+// @supports test
+@supports ($animation-name: $test) {
+    body {
+        animation-name: test;
+    }
+}
+@supports ($animation-name-test) {
+    body {
+        animation-name: test;
+    }
+}
+
+// @at-root query
+@at-root ($type: $value) {
+    .top-level {
+        background: pink;
+    }
+}
+@at-root ($query) {
+    .top-level {
+        background: pink;
+    }
+}
+
+
+/*
+ * operations
+ */
+
+body {
+    // arithmetic operators
+    width: (1px + (2em - 3rem)) * (4 / 5vh) % 6cm;
+
+    // plain css
+    font: 10px/8px;
+    font: (italic bold 10px/8px);
+    font: #{$font-size}/#{$line-height};
+
+    // division
+    width: $width/2;
+    width: round(1.5)/2;
+    width: (500px/2);
+    width: 5px + 8px/2px;
+
+    // minus sign
+    animation-name: a-1; // identifier
+    margin: (5px - 3px) 5px-3px 3-2 (1 -$var); // subtraction
+    margin: 1 -3em; // negative number
+    margin: -$var -(1); // unary negation
+
+    // string concatenation
+    content: "Foo " + Bar; // "Foo Bar"
+    font-family: sans- + "serif"; // sans-serif
+}
+
+// string concatenation in string-only context
+@keyframes ('foo' + bar) {}
+@keyframes (foo + "bar") {}
+
+// comparison operators, logical operators
+$a: (1 < 2 and 1 > 2) or (1 <= 2) and 1 >= 2;
+$b: not (1 == 2) and 1 != 2;
+
+
+/*
+ * interpolation
+ */
+
+// selector
+#{'#id'},
+#i#{'d'},
+#{'.whole-class'},
+.part-#{'class'}-fragment,
+#{'div'},
+d#{'i'}v,
+[#{'attr'}=#{'value'}],
+[#{'attr="value"'}],
+#{'[attr="value"]'},
+#{'::selection'},
+::se#{'lect'}ion,
+#{':hover'},
+:ho#{'v'}er,
+#{':lang(fr)'},
+:la#{'ng(f'}r),
+:lang(#{'fr'}),
+:nth-child(#{'2n+1'}),
+:not(#{'div'}),
+#{'%placeholder'},
+%pla#{'ceho'}lder {
+
+    // property name
+    #{'font'}: serif;
+    background-#{'image'}: none;
+    border-#{'bottom'}-width: 0;
+
+    // property value
+    font-size: #{$font-size};
+    font-family: #{'arial, sans'}-serif;
+    width: #{5 * (3 - 1)}px;
+
+    // function name
+    background: #{'url'}('image.png');
+    background: u#{'r'}l('image.png');
+
+    // !important (exclamation mark needs to be inside)
+    width: 0 #{'!important'};
+    width: 0 #{'!import'}ant;
+
+    // inside strings
+    content: "#{$var}";
+    content: '#{$var}';
+
+    // inside comments
+    /* multi-line: #{$yes} */
+    // single line: #{$no}
+}
+
+// media type, feature test
+@import "foo" #{'screen'} and (#{'orientation'}: #{'landscape'});
+@media #{'screen'} and (#{'orientation: landscape'}) {
+    width: 700px;
+}
+
+// font name, font feature custom name, font feature value
+@font-feature-values #{'Font One'} {
+    @styleset { // interpolation not accepted here?
+        #{'nice-style'}: #{12};
+    }
+}
+
+// inside @import url()
+@import url("http://fonts.googleapis.com/css?family=#{$family}");
+
+// @keyframes name, selector
+@keyframes #{'myanim'} {
+    #{'from'} { width: 0; }
+    #{'to'}   { width: 100%; }
+}
+
+// @namespace name
+@namespace #{'svg'} url('http://www.w3.org/2000/svg');
+
+// @page custom name, pseudo-page
+@page #{'toc'}, #{':first'} {
+    margin: 0;
+
+    @left-top { // interpolation not accepted here?
+        content: '';
+    }
+}
+
+// @supports test
+@supports (#{'animation-name'}: #{'test'}) {
+    body {
+        animation-name: test;
+    }
+}
+@supports (#{'animation-name: test'}) {
+    body {
+        animation-name: test;
+    }
+}
+
+// @at-root query
+@at-root (#{'without'}: #{'media'}) {
+    .top-level {
+        background: pink;
+    }
+}
+@at-root (#{'without: media'}) {
+    .top-level {
+        background: pink;
+    }
+}
+
+
+/*
+ * functions
+ */
+
+body {
+    // single line comments not parsed inside url()
+    background: url(http://example.com/styles.css);
+
+    // keyword arguments
+    color: hsl($hue: 0, $saturation: 100%, $lightness: 50%);
+}
+
+
+/*
+ * at-rules
+ */
+
+// @import
+@import "rounded-corners", "text-shadow"; // multiple files
+#main { // nested @import
+    @import "example"; // but not inside mixins or control directives
+}
+
+// nested @media
+@media screen {
+    .sidebar {
+        @media (orientation: landscape) {
+            width: 500px;
+        }
+    }
+}
+
+// @extend
+#main {
+    @extend #hello;
+
+    // no error if not found
+    @extend .from[the="other-side"] !optional;
+
+    // placeholder selector
+    @extend div%placeholder;
+}
+
+// @at-root
+#main {
+    @at-root .child {
+        color: red;
+    }
+}
+@media screen {
+    @supports (font-variant-alternates: styleset(nice-style)) {
+        @at-root (without: media supports) { // with query
+            .absolutely-top-level {
+                background: pink;
+            }
+        }
+    }
+}
+
+// @if/@else if/@else, @debug/@warn/@error
+@if $num-errors == 0 {
+    @debug "$num-errors is 0";
+} @else if $num-errors > 0 {
+    @warn "oops there are #{$num-errors} errors";
+} @else {
+    @error "negative errors?!?";
+}
+
+// @for
+@for $i from 1 through 3 {
+    .item-#{$i} {
+        width: 2em * $i;
+    }
+}
+
+// @each
+@each $animal in puma, sea-slug, egret, salamander {
+    .#{$animal}-icon {
+        background-image: url('/images/#{$animal}.png');
+    }
+}
+@each $header, $size in (h1: 2em, h2: 1.5em, h3: 1.2em) {
+    #{$header} {
+        font-size: $size;
+    }
+}
+
+// @while
+$i: 6;
+@while $i > 0 {
+    .item-#{$i} {
+        width: 2em * $i;
+    }
+    $i: $i - 2;
+}
+
+// @mixin
+@mixin large-text {
+    font-size: 128px;
+}
+@mixin sexy-border($color, $width: 1in) { // with arguments, default value
+    border: {
+        color: $color;
+        width: $width;
+    }
+}
+@mixin box-shadow($shadows...) { // variable arguments
+    box-shadow: $shadows;
+}
+@mixin apply-to-ie6-only { // accepts content block
+    * html {
+        @content;
+    }
+}
+
+// @include
+.page-title {
+    @include large-text;
+}
+p {
+    @include sexy-border(blue); // with arguments
+}
+div {
+    @include sexy-border($color: blue, $width: 10cm); // keyword arguments
+}
+.primary {
+    @include box-shadow($shadows...); // expand list into arguments
+}
+@include apply-to-ie6-only { // passing content block
+    display: block;
+
+    #main {
+        background: black;
+    }
+}
+
+// @function
+@function grid-width($n) {
+    @return $n * $grid-width + ($n - 1) * $gutter-width;
+}
+#sidebar {
+    width: grid-width(5);
+}
+
+
+/*
+ * test cases
+ */
+
+.declarations-or-selectors {
+    // declarations
+
+    display:block;
+    font-family:arial;
+
+    font: {
+        family: fantasy;
+        weight: bold;
+    }
+    font: fantasy {
+        size: 20px;
+        style: italic;
+    }
+
+    #{$property}:block;
+    #{$property}: {
+        color: red;
+    }
+
+    color:#000;
+    width:#{$width};
+
+    background-image:url( \( \) \{ {      );
+    background-image:url( url( { )        );
+    background-image:url( #{ \) ')' '{' } );
+    background-image:url( /* ) { */       );
+    background-image:url( " ) { "         );
+    background-image:url( ' ) { '         );
+
+    margin:#{ \#\{ \} \{ '{' } 10px;
+    margin:#{ url( } { )     } 10px;
+    margin:#{ #{ '{' }       } 10px;
+    margin:#{ /* } { */      } 10px;
+    margin:#{ " } { "        } 10px;
+    margin:#{ ' } { '        } 10px;
+
+    display:/* {             */block;
+    display:/* #{ \*\/ '{' } */block;
+
+    font-family:" \" \{ {        ", serif;
+    font-family:" #{ \" "" '{' } ", serif;
+
+    font-family:' \' \{ {        ', serif;
+    font-family:' #{ \' '' '{' } ', serif;
+
+    // incorrectly highlighted declarations
+    display:block
+    ;
+    display:block // {
+    ;
+
+    // selectors
+    input:focus { opacity: 0.5; }
+    div:nth-child(2n+1) { background-color: gray; }
+    div:-moz-full-screen { display: block; }
+
+    #{$selector}:focus { color: blue; }
+
+    a:#{$state} { color: blue; }
+
+    a:focus[id=\]\;           ] { color: blue; }
+    a:focus[id=#{ \] "]" ";" }] { color: blue; }
+    a:focus[id=/* ] ; */      ] { color: blue; }
+    a:focus[id=" ] ; "        ] { color: blue; }
+    a:focus[id=' ] ; '        ] { color: blue; }
+
+    a:#{ \#\{ \} \; ';' } { color: blue; }
+    a:#{ url( } ; )     } { color: blue; }
+    a:#{ #{ ';' }       } { color: blue; }
+    a:#{ /* } ; */      } { color: blue; }
+    a:#{ " } ; "        } { color: blue; }
+    a:#{ ' } ; '        } { color: blue; }
+
+    a:/* ;             */focus { color: blue; }
+    a:/* #{ \*\/ ';' } */focus { color: blue; }
+
+    a:focus[id=" ] \" \; ;      "] { color: blue; }
+    a:focus[id=" #{ \" "" ';' } "] { color: blue; }
+
+    a:focus[id=' ] \' \; ;      '] { color: blue; }
+    a:focus[id=' #{ \' '' ';' } '] { color: blue; }
+
+    a:focus // ;
+    { color: blue; }
+}
+
+
+// from file.css
+
+//@charset "UTF-8";
+// Sass follows the CSS spec when reading stylesheets,
+// so any @charset rule must be at the top of the document
+
+/*
+ * general
+ */
+
+/* whitespace */
+#main
+{
+    color:aqua;
+    float: left!important;
+    margin  :  0  ;
+    width
+        :
+        100%
+        !
+        important
+        ;
+}
+
+/* case insensitivity */
+Body {
+    FONT: 12Px/16pX iTaLiC sans-SERIF;
+}
+
+
+/*
+ * selectors
+ */
+
+/* simple selectors */
+#testID,       /* id */
+.someclass,    /* class */
+div,           /* type */
+*,             /* universal */
+[lang|="zh"], /* attribute */
+[ /* comment */ lang /* comment */ |= /* comment */ "zh" /* comment */ ] {
+    color: black;
+}
+
+/* combinators */
+header + main, /* adjacent sibling */
+li ~ li,       /* general sibling */
+ul > li,       /* child */
+ul ul {        /* descendant */
+    color: blue;
+}
+
+/* pseudo-elements */
+:after,
+::/* comment */after,
+::placeholder,
+::/* comment */selection {
+    color: green;
+}
+
+/* pseudo-classes */
+:hover,
+:/* comment */required,
+:lang(fr),
+:/* comment */not(div#sidebar.fancy),
+:nth-child(n+1),
+:/* comment */nth-last-child(-2n /* comment */ - /* comment */ 30),
+:nth-of-type(5),
+:/* comment */nth-last-of-type(even) {
+    color: yellow;
+}
+
+/* pseudo-classes with invalid arguments */
+:not(div:before),         /* pseudo-element */
+:not(input::placeholder), /* pseudo-element */
+:not(p:not(:lang(en))),   /* nested :not */
+:nth-child(1.2n),         /* non-integer */
+:nth-child(.5),           /* non-integer */
+:nth-child(n+-1) {        /* number sign */
+    color: red;
+}
+
+/* namespace qualified */
+a,           /* type in default namespace */
+svg|a,       /* type in specified namespace */
+|a,          /* type in no namespace */
+*|a,         /* type in all namespaces (including no namespace) */
+svg|*,       /* universal */
+svg|[fill] { /* attribute */
+    color: white;
+}
+
+
+/*
+ * basic data types
+ */
+
+#main {
+    /* angle */
+    transform: rotate(+33.333e+3deg);
+
+    /* color */
+    color: #f00;
+    color: #f00f; /* #rgba */
+    color: #ff0000;
+    color: #ff0000ff; /* #rrggbbaa */
+    color: red;
+    color: lightgoldenrodyellow;
+    color: rebeccapurple;
+    color: currentColor;
+
+    /* freqency (not currently used for any property) */
+    content: 44.1kHz;
+
+    /* integer */
+    z-index: +255;
+    z-index: -1;
+
+    /* length */
+    width: 10px;
+    width: 10.5rem;
+    width: -10e-2vw;
+
+    /* number */
+    opacity: .5;
+    opacity: 0.3333;
+    opacity: 1;
+    opacity: 2e-34;
+
+    /* percentage */
+    width: 100%;
+
+    /* string */
+    content: "double quoted";
+    content: 'single quoted';
+
+    /* time */
+    transition-duration: .4s;
+    transition-duration: 400ms;
+
+    /* unicode range */
+    unicode-range: U+0025-00FF;
+    unicode-range: U+4??; /* wildcard range */
+}
+
+/* ratio */
+@media (min-aspect-ratio: 16/9) {}
+@media (min-aspect-ratio: 16 /* comment */ / /* comment */ 9) {}
+
+/* resolution */
+@media (min-resolution: +2.54dpcm) {}
+
+
+/*
+ * identifiers
+ */
+
+/* leading hyphens */
+#-here.-there,
+#-- .--everywhere { /* two hyphens: https://stackoverflow.com/a/30822662 */
+    color: blue;
+}
+
+/* non-ASCII */
+#español,
+#你好,
+.❤♫ {
+    color: green;
+}
+
+/* invalid identifiers */
+#1id,      /* starts with digit */
+.-2class { /* starts with hyphen digit */
+    color: maroon;
+}
+
+
+/*
+ * escaping
+ */
+
+/* selectors */
+#\..\+\ space\@\>,                            /* special character escape */
+#\E9 dition .\0000E9dition .motion_\e9motion, /* Unicode character escape */
+.\e33 div,                                    /* trailing space terminates Unicode character escape */
+.\e33  div,                                   /* extra space to denote separate tokens */
+.\31 23 {                                     /* escape leading digit of identifier */
+
+    /* property value */
+    content: "\E9 dition \
+              \"\0000E9dition\" \
+              \e9motion";
+    font-family: \E9 dition, \"\0000E9dition\", \e9motion;
+
+    /* function name */
+    background: \u\72\l(image.png);
+}
+
+
+/*
+ * functions
+ */
+
+#main {
+    /* url */
+    background: url("image.svg");
+
+    /* function argument keywords */
+    background-image: linear-gradient(to left top, #fff, blue);
+    grid-template-columns: repeat(2, minmax(max-content, 300px) 1fr) 100px;
+}
+
+
+/*
+ * style properties
+ */
+
+#main {
+    /* svg */
+    fill: url(#pattern);
+    text-rendering: optimizeLegibility;
+
+    /* css3 */
+    font-variant-east-asian: jis04;
+    size: letter;
+    transition-timing-function: ease-in;
+
+    /* animatable */
+    transition-property: height, font-size, visibility;
+
+    /* custom properties */
+    --my-custom-color: #fff;
+    color: var(--my-custom-color);
+    background-color: var(--my-custom-color, white);
+}
+
+/*
+ * modifiers
+ */
+body {
+    background: pink !important;
+}
+
+
+/*
+ * media queries
+ */
+
+@media screen, (orientation: portrait) {}
+@media not (print and (min-monochrome: 16) and (color)) {}
+@media only screen {} @media not print {}
+
+
+/*
+ * at-rules
+ */
+
+/* @font-face */
+@font-face {
+    font-family: MyHelvetica;
+    src: local("Helvetica Neue"),
+         local("HelveticaNeue"),
+         url(MgOpenModerna.ttf);
+}
+
+/* @font-feature-values */
+@font-feature-values Font One {
+    @styleset {
+        nice-style: 12;
+    }
+}
+.nice-look {
+    font-variant-alternates: styleset(nice-style);
+}
+
+/* @import */
+@import URL("fineprint.css");
+@import 'custom.css';
+@import url('landscape.css') screen and (orientation: landscape), print;
+
+/* @keyframes */
+@keyframes myanim {
+    from { opacity: 0.0; }
+    50%  { opacity: 0.5; }
+    to   { opacity: 1.0; }
+}
+
+/* @media */
+@media all {
+    body {
+        background: gray;
+    }
+    @media screen, (orientation: portrait) {
+        body {
+            background: grey;
+        }
+    }
+}
+
+/* @namespace */
+@namespace "http://www.w3.org/1999/xhtml";
+@namespace svg url(http://www.w3.org/2000/svg);
+
+/* @page */
+@page {
+    bleed: 1cm;
+}
+@page toc, :blank {
+    margin: 2cm;
+    marks: crop cross;
+}
+@page index:/*comment*/left {
+    size: A4;
+
+    @top-right {
+        content: "Page " counter(page);
+    }
+}
+
+/* @supports */
+@supports (animation-name: test) {
+    @keyframes 'my-complicated-animation' {
+        0%   { width: 0; }
+        100% { width: 100%; }
+    }
+}
+
+
+/*
+ * vendor-specific extensions
+ */
+
+/* pseudo-elements */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::/* comment */-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* pseudo-classes */
+#page:-moz-full-screen,
+#page:/* comment */-ms-fullscreen,
+#page:-webkit-full-screen {
+    background: silver;
+}
+
+/* functions */
+.footer {
+    background-image: -webkit-linear-gradient(to left top, #fff, blue);
+}
+
+/* style properties */
+#sidebar {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+@supports not ((text-align-last: justify) or (-moz-text-align-last: justify)) {
+    body {
+        text-align: justify;
+    }
+}
+
+/* at-rules */
+@-webkit-keyframes myanim {
+    from { opacity: 0.0; }
+    50%  { opacity: 0.5; }
+    to   { opacity: 1.0; }
+}

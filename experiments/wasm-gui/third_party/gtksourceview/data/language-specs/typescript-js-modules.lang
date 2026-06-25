@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-js-mod" name="TypeScript JavaScript Module Additions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Export declaration -->
+
+    <!-- ## Export as namespace (UMD module definition)
+
+         export as namespace myModule;
+    -->
+
+    <context id="_export-as-namespace-keyword" style-ref="js:keyword" once-only="true">
+      <match>\%{typescript:namespace-keyword}</match>
+    </context> <!-- /_export-as-namespace-keyword -->
+
+    <context id="_ordered-export-as-namespace-keyword" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_export-as-namespace-keyword"/>
+      </include>
+    </context> <!-- /_ordered-export-as-namespace-keyword -->
+
+    <context id="_choice-export-as-namespace" end-parent="true">
+      <start>\%{js:as-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_export-as-namespace-content">
+          <include>
+            <context ref="_ordered-export-as-namespace-keyword"/>
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_export-as-namespace-content -->
+
+      </include>
+    </context> <!-- /_choice-export-as-namespace -->
+
+    <!-- ## Export assignment
+
+         export = obj;
+    -->
+
+    <!-- <ExportAssignment> -->
+    <context id="_choice-export-assignment" end-parent="true">
+      <start>=</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_export-assignment-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_export-assignment-content -->
+
+      </include>
+    </context> <!-- /_choice-export-assignment -->
+
+    <!-- ## Type-only export or export type alias declaration
+
+         type-only export:
+         export type { T };
+         export type { T } from './mod';
+
+         export type alias declaration:
+         export type Name = string;
+    -->
+
+    <context id="_choice-export-type-alias-declaration" style-ref="typescript:type-alias-declaration" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="typescript-js-st:_type-alias-declaration-content"/>
+      </include>
+    </context> <!-- /_choice-export-type-alias-declaration -->
+
+    <context id="_choice-export-type-only-or-type-alias-declaration" end-parent="true">
+      <start>\%{typescript:type-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_export-type-only-or-type-alias-declaration-content">
+          <include>
+            <context ref="js-mod:_choice-export-named"/>
+            <context ref="_choice-export-type-alias-declaration"/>
+          </include>
+        </context> <!-- /_export-type-only-or-type-alias-declaration-content -->
+
+      </include>
+    </context> <!-- /_choice-export-type-only-or-type-alias-declaration -->
+
+    <!-- ## Export declaration -->
+
+    <!-- replaces js-mod:_export-declaration-content -->
+    <context id="export-declaration-content">
+      <include>
+        <context ref="_choice-export-as-namespace"/>
+        <context ref="_choice-export-assignment"/>
+        <context ref="typescript-js-st:choice-ambient-declaration"/>
+        <context ref="typescript-js-st:choice-const-declaration"/>
+        <context ref="typescript-js-st:choice-enum-declaration"/>
+        <context ref="_choice-import-default-declaration"/> <!-- for import alias declaration -->
+        <context ref="typescript-js-st:choice-interface-declaration"/>
+        <context ref="typescript-js-st:choice-namespace-declaration"/>
+        <context ref="_choice-export-type-only-or-type-alias-declaration"/>
+        <context ref="js-mod:_export-declaration-content" original="true"/>
+      </include>
+    </context> <!-- /export-declaration-content -->
+
+
+    <!-- # Import declaration -->
+
+    <!-- ## Import alias / import require
+
+         import shortname = Long.Namespace.Name;
+         import mod = require("module");
+
+         even though these are not variations of import default,
+         we add these to import default because it matches an
+         identifier after the import keyword
+    -->
+
+    <context id="_choice-import-require" end-parent="true">
+      <start>\%{typescript:require-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-require-content">
+          <include>
+
+            <context id="_import-require-parameters-list" once-only="true">
+              <start>\(</start>
+              <end>\)</end>
+              <include>
+                <context ref="js:comments"/>
+
+                <context id="_import-require-parameters-list-content">
+                  <include>
+                    <context ref="typescript:js-ordered-string"/>
+                  </include>
+                </context> <!-- /_import-require-parameters-list-content -->
+
+              </include>
+            </context> <!-- /_import-require-parameters-list -->
+
+          </include>
+        </context> <!-- /_import-require-content -->
+
+      </include>
+    </context> <!-- /_choice-import-require -->
+
+    <context id="_choice-import-alias" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_import-alias-content">
+          <include>
+            <context ref="typescript:ordered-namespace-name"/>
+          </include>
+        </context> <!-- /_import-alias-content -->
+
+      </include>
+    </context> <!-- /_choice-import-alias -->
+
+    <context id="_choice-import-alias-or-require" end-parent="true">
+      <start>=</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_import-alias-or-require-content">
+          <include>
+            <context ref="_choice-import-require"/>
+            <context ref="_choice-import-alias"/>
+          </include>
+        </context> <!-- /_import-alias-or-require-content -->
+
+      </include>
+    </context> <!-- /_choice-import-alias-or-require -->
+
+    <!-- ## Type-only import
+
+         import type T from './mod';
+         import type { A, B } from './mod';
+         import type * as Types from './mod';
+    -->
+
+    <context id="_choice-import-type-only" end-parent="true">
+      <start>\%{typescript:type-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-type-only-content">
+          <include>
+            <context ref="js-mod:_choice-import-named"/>
+            <context ref="js-mod:_choice-all-as-namespace"/>
+            <context ref="js-mod:_choice-import-default"/>
+          </include>
+        </context> <!-- _import-type-only-content -->
+
+      </include>
+    </context> <!-- /_choice-import-type-only -->
+
+    <!-- ## Import default -->
+
+    <!-- replaces js-mod:_import-default-content -->
+    <context id="import-default-content">
+      <include>
+        <context ref="js:ordered-identifier"/>
+        <context ref="_choice-import-alias-or-require"/>
+        <context ref="js-mod:_choice-import-default-additional"/>
+        <context ref="js-mod:_choice-import-default-only"/>
+      </include>
+    </context> <!-- /import-default-content -->
+
+    <!-- this is like js-mod:import-declarations but only matches import
+         default (for import alias) -->
+    <context id="_choice-import-default-declaration" style-ref="js:export-import-declaration" end-parent="true">
+      <start>\%{js:import-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-default-declaration-content">
+          <include>
+            <context ref="js-mod:_choice-import-default"/>
+          </include>
+        </context> <!-- /_import-default-declaration-content -->
+
+      </include>
+    </context> <!-- /_choice-import-default-declaration -->
+
+    <!-- replaces js-mod:_import-declaration-content -->
+    <context id="import-declaration-content">
+      <include>
+        <context ref="_choice-import-type-only"/>
+        <context ref="js-mod:_import-declaration-content" original="true"/>
+      </include>
+    </context> <!-- /import-declaration-content -->
+
+  </definitions>
+</language>

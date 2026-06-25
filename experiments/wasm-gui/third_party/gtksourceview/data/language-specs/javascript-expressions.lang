@@ -1,0 +1,902 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2004 Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2005 Stef Walter (formerly Nate Nielsen) <stef@memberwebs.com>
+ Copyright (C) 2005-2007 Marco Barisione <barisione@gmail.com>
+ Copyright (C) 2005-2007 Emanuele Aina
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="js-expr" name="JavaScript Expressions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See javascript.lang for general notes, naming conventions, etc.
+    -->
+
+    <!--
+         Expression / context structure:
+
+         left-hand side (lhs) expression:  Array ()
+                                           ===== ==
+                                            /      \
+                                     primary        post-primary
+                                 expression          expression
+
+         expression: - obj.count + 1
+                     = ========= ===
+                    /      |       \
+             pre-lhs      lhs       post-lhs
+         expression    expression    expression
+    -->
+
+
+    <!-- # "import" expression
+
+         import("module")
+         import.meta
+    -->
+
+    <!-- a consequence of this is that "import" by itself (when used as
+         a primary expression) will not be highlighted as an error -->
+
+    <!-- ES2020 -->
+    <!-- <ImportCall> (part of) -->
+    <context id="_choice-import-call-expression" end-parent="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-call-expression-content">
+          <include>
+            <context ref="expression-without-comma"/>
+          </include>
+        </context> <!-- /_import-call-expression-content -->
+      </include>
+    </context> <!-- /_choice-import-call-expression -->
+
+    <!-- ES2020 -->
+    <!-- <ImportMeta> (part of) -->
+    <context id="_choice-import-meta-expression" end-parent="true">
+      <start>\.</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-meta-expression-content">
+          <include>
+
+            <context id="_import-meta-expression-keyword" style-ref="js:keyword" once-only="true">
+              <match>\%{js:meta-keyword}</match>
+            </context> <!-- /_import-meta-expression-keyword -->
+
+          </include>
+        </context> <!-- /_import-meta-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-import-meta-expression -->
+
+    <context id="_choice-import-expression" end-parent="true">
+      <start>\%{js:import-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_import-expression-content">
+          <include>
+            <context ref="_choice-import-call-expression"/>
+            <context ref="_choice-import-meta-expression"/>
+          </include>
+        </context> <!-- /_import-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-import-expression -->
+
+
+    <!-- # "new" expression
+
+         new Array()
+         new.target
+    -->
+
+    <!-- <NewTarget> (part of) -->
+    <context id="_choice-new-target-expression" end-parent="true">
+      <start>\.</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_new-target-expression-content">
+          <include>
+
+            <context id="_new-target-expression-keyword" style-ref="js:keyword" once-only="true">
+              <match>\%{js:target-keyword}</match>
+            </context> <!-- /_new-target-expression-keyword -->
+
+          </include>
+        </context> <!-- /_new-target-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-new-target-expression -->
+
+    <context id="_choice-new-object-expression" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_new-object-expression-content">
+          <include>
+            <context ref="_primary-expression"/>
+          </include>
+        </context> <!-- /_new-object-expression-content -->
+      </include>
+    </context> <!-- /_choice-new-object-expression -->
+
+    <context id="_choice-new-expression" end-parent="true">
+      <start>\%{js:new-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_new-expression-content">
+          <include>
+            <context ref="_choice-new-target-expression"/>
+            <context ref="_choice-new-object-expression"/>
+          </include>
+        </context> <!-- /_new-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-new-expression -->
+
+
+    <!-- # Grouping / arrow function parameters
+
+         (2 + 3) * 4
+         (x, y) => x + y
+         (x, ...rest) => { return rest; }
+    -->
+
+    <!-- doing it this way, instead of using expression-with-comma,
+         will make later augmentation easier -->
+
+    <context id="_grouping-item-content">
+      <include>
+        <context ref="js:ordered-rest-syntax"/>
+        <context ref="expression-without-comma"/>
+      </include>
+    </context> <!-- /_grouping-item-content -->
+
+    <!-- <CoverParenthesizedExpressionAndArrowParameterList> -->
+    <context id="_choice-grouping" style-ref="js:grouping" end-parent="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:grouping-operator"/>
+        <context sub-pattern="0" where="end" style-ref="js:grouping-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_grouping-content">
+          <include>
+
+            <context id="_grouping-first-item" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_grouping-item-content"/>
+              </include>
+            </context> <!-- /_grouping-first-item -->
+
+            <context id="_grouping-items">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_grouping-item-content"/>
+              </include>
+            </context> <!-- /_grouping-items -->
+
+          </include>
+        </context> <!-- /_grouping-content -->
+
+      </include>
+    </context> <!-- /_choice-grouping -->
+
+
+    <!-- # Primary expression
+
+         this
+         Array
+         'string'
+         100
+         ( ... )
+         [ 1, 2, 3 ]
+         function () { ... }
+         /regex/
+         `template`
+    -->
+
+    <!-- <PrimaryExpression> -->
+    <context id="_primary-expression" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_primary-expression-content">
+          <include>
+            <context ref="js-lit:choice-array-literal"/>
+            <context ref="js-lit:choice-object-literal"/>
+            <context ref="js-lit:choice-regular-expression-literal"/>
+            <context ref="js-lit:choice-template-literal"/>
+            <context ref="js-fn:choice-function-expression"/>
+            <context ref="js-fn:choice-class-expression"/>
+            <context ref="_choice-import-expression"/>
+            <context ref="_choice-new-expression"/>
+            <context ref="_choice-grouping"/>
+            <context ref="js-lit:choice-number"/>
+            <context ref="js-lit:choice-string"/>
+
+            <context id="_choice-primary-expression-identifier" end-parent="true">
+              <start>\%{js:identifier-container-start}</start>
+              <end>\%{def:always-match}</end>
+              <include>
+                <!-- no embedded-lang-hooks here -->
+                <!-- no comments here -->
+                <!-- do not extend the context by matching comments or
+                     embedded-lang-hooks, which may lead to multiple
+                     identifiers -->
+
+                <context id="_primary-expression-identifier-content">
+                  <include>
+                    <!-- technically these would be choices, but it
+                         would be very difficult to turn large keyword
+                         contexts into container contexts with
+                         end-parent="true" -->
+                    <context ref="js-lit:null-value"/>
+                    <context ref="js-lit:boolean"/>
+                    <context ref="js-val:global-values"/>
+                    <context ref="js:identifier"/>
+                  </include>
+                </context> <!-- /_primary-expression-identifier-content -->
+
+              </include>
+            </context> <!-- /_choice-primary-expression-identifier -->
+
+          </include>
+        </context> <!-- /_primary-expression-content -->
+
+      </include>
+    </context> <!-- /_primary-expression -->
+
+    <context id="_ordered-primary-expression" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_primary-expression"/>
+      </include>
+    </context> <!-- /_ordered-primary-expression -->
+
+
+    <!-- # Function call
+         (in an expression, function arguments list after primary
+         value)
+
+         fn()
+         fn(a, b, ...list)
+    -->
+
+    <context id="_function-arguments-content">
+      <include>
+        <context ref="js:ordered-spread-syntax"/>
+        <context ref="expression-without-comma"/>
+      </include>
+    </context> <!-- /_function-arguments-content -->
+
+    <!-- <Arguments> -->
+    <context id="_function-arguments-lists">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_function-arguments-list-content">
+          <include>
+
+            <context id="_function-first-argument" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_function-arguments-content"/>
+              </include>
+            </context> <!-- /_function-first-argument -->
+
+            <context id="_function-arguments">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_function-arguments-content"/>
+              </include>
+            </context> <!-- /_function-arguments -->
+
+          </include>
+        </context> <!-- /_function-arguments-list-content -->
+
+      </include>
+    </context> <!-- /_function-arguments-lists -->
+
+
+    <!-- # Post-primary expression
+
+         obj.property
+         obj['property']
+         fn()
+         tag`template`
+         obj?.property
+         obj?.[expr]
+         func?.()
+    -->
+
+    <context id="_choice-property-identifier" end-parent="true">
+      <start>\%{js:identifier-container-start}</start>
+      <end>\%{def:always-match}</end>
+      <include>
+        <!-- no embedded-lang-hooks here -->
+        <!-- no comments here -->
+        <!-- do not extend the context by matching comments or
+             embedded-lang-hooks, which may lead to multiple
+             identifiers -->
+
+        <context id="_property-identifier-content">
+          <include>
+            <!-- technically these would be choices, but it would be
+                 very difficult to turn large keyword contexts into
+                 container contexts with end-parent="true" -->
+            <context ref="js-val:properties-methods"/>
+            <context ref="js:identifier-name"/>
+          </include>
+        </context> <!-- /_property-identifier-content -->
+
+      </include>
+    </context> <!-- /_choice-property-identifier -->
+
+    <context id="_post-primary-expression">
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <!-- <MemberExpression> (part of) -->
+        <context id="_dot-property-accessors">
+          <start>\.(?!\.)</start> <!-- avoid matching rest/spread syntax -->
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_dot-property-accessor-content">
+              <include>
+                <context ref="_choice-property-identifier"/>
+              </include>
+            </context> <!-- /_dot-property-accessor-content -->
+
+          </include>
+        </context> <!-- /_dot-property-accessors -->
+
+        <!-- <MemberExpression> (part of) -->
+        <context id="_bracket-property-accessors">
+          <start>\[</start>
+          <end>]</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_bracket-property-accessor-content">
+              <include>
+                <context ref="expression-with-comma"/>
+              </include>
+            </context> <!-- /_bracket-property-accessor-content -->
+
+          </include>
+        </context> <!-- /_bracket-property-accessors -->
+
+        <!-- ES2020 -->
+        <!-- <OptionalChain> (part of) -->
+        <context id="_optional-chains">
+          <start>\?\.(?![0-9])</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_optional-chain-content">
+              <include>
+                <!-- only match dot-property accessor content here
+                     this context will end early for other cases
+                -->
+                <context ref="_choice-property-identifier"/>
+              </include>
+            </context> <!-- /_optional-chain-content -->
+
+          </include>
+        </context> <!-- /_optional-chains -->
+
+        <context ref="_function-arguments-lists"/>
+        <context ref="js-lit:template-literals"/>
+      </include>
+    </context> <!-- /_post-primary-expression -->
+
+    <context id="_ordered-post-primary-expression" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_post-primary-expression"/>
+      </include>
+    </context> <!-- /_ordered-post-primary-expression -->
+
+
+    <!-- # Increment / decrement operators -->
+
+    <!-- shared between pre- and post-lhs expressions -->
+    <context id="_increment-decrement-operators" style-ref="js:increment-decrement-operator">
+      <match>\+\+|--</match>
+    </context> <!-- /_increment-decrement-operators -->
+
+
+    <!-- # Pre-LHS expression -->
+
+    <context id="_pre-lhs-expression">
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="_increment-decrement-operators"/>
+
+        <!-- ES2017, cannot be followed by line terminator -->
+        <context id="_async-keywords" style-ref="js:keyword">
+          <match extended="true">
+            \%{js:async-keyword}
+            # preceeds arrow function
+            (?=
+              \%{js:optional-whitespace-or-comments}
+              (?:
+                \%{js:identifier} \%{js:optional-whitespace-or-comments} =&gt; |
+                \(  # can this be better?
+              )
+            )
+            # does not preceed "function" (leave to function expression)
+            (?! \%{js:optional-whitespace-or-comments} \%{js:function-keyword} )
+          </match>
+        </context> <!-- /_async-keywords -->
+
+        <!-- await: ES2017 -->
+        <context id="_keyword-unary-operators" style-ref="js:keyword">
+          <match extended="true">
+            \%{js:await-keyword} |
+            \%{js:delete-keyword} |
+            \%{js:typeof-keyword} |
+            \%{js:void-keyword} |
+            \%{js:yield-keyword}
+          </match>
+        </context> <!-- /_keyword-unary-operators -->
+
+        <context ref="js:generator-modifier"/> <!-- for yield* -->
+
+        <context id="_unary-operators" style-ref="js:unary-operator">
+          <match extended="true">
+            \+ |  # unary plus
+            - |   # unary negation
+            ~ |   # bitwise not
+            !     # logical not
+          </match>
+        </context> <!-- /_unary-operators -->
+
+      </include>
+    </context> <!-- /_pre-lhs-expression -->
+
+    <context id="_ordered-pre-lhs-expression" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_pre-lhs-expression"/>
+      </include>
+    </context> <!-- /_ordered-pre-lhs-expression -->
+
+
+    <!-- # Left-hand side expression
+
+         this
+         new Array
+         'string'.length
+         fn.apply()
+         list[1]
+         tag`template`
+    -->
+
+    <define-regex id="_expression-start" extended="true">
+      (?= \%{js:not-whitespace} )
+      (?= [^:;\])}] )
+      (?! /[/*] )
+    </define-regex> <!-- /_expression-start -->
+
+    <!-- <LeftHandSideExpression> -->
+    <context id="lhs-expression" style-ref="js:expression" once-only="true">
+      <start>\%{_expression-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_lhs-expression-content">
+          <include>
+            <context ref="_ordered-primary-expression"/>
+            <context ref="_ordered-post-primary-expression"/>
+          </include>
+        </context> <!-- /_lhs-expression-content -->
+
+      </include>
+    </context> <!-- /lhs-expression -->
+
+
+    <!-- # Ternary operator -->
+
+    <context id="_choice-ternary-operator-missing-true-expression" end-parent="true">
+      <start>(?=:)</start>
+      <end>\%{def:always-match}</end>
+    </context> <!-- /_choice-ternary-operator-missing-true-expression -->
+
+    <!-- ## Without comma -->
+
+    <context id="_ternary-operator-without-comma-false-expression" once-only="true">
+      <start>:</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:ternary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-without-comma-false-expression-content">
+          <include>
+            <context ref="expression-without-comma"/>
+          </include>
+        </context> <!-- /_ternary-operator-without-comma-false-expression-content -->
+
+      </include>
+    </context> <!-- /_ternary-operator-without-comma-false-expression -->
+
+    <context id="_choice-ternary-operator-without-comma-true-expression" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-without-comma-true-expression-content">
+          <include>
+            <context ref="expression-without-comma"/>
+            <context ref="_ternary-operator-without-comma-false-expression"/>
+          </include>
+        </context> <!-- /_ternary-operator-without-comma-true-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-ternary-operator-without-comma-true-expression -->
+
+    <context id="_ternary-operators-without-comma">
+      <start>\?</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:ternary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-without-comma-content">
+          <include>
+            <context ref="_choice-ternary-operator-missing-true-expression"/>
+            <context ref="_choice-ternary-operator-without-comma-true-expression"/>
+          </include>
+        </context> <!-- /_ternary-operator-without-comma-content -->
+
+      </include>
+    </context> <!-- /_ternary-operators-without-comma -->
+
+    <!-- ## With comma -->
+
+    <context id="_ternary-operator-with-comma-false-expression" once-only="true">
+      <start>:</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:ternary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-with-comma-false-expression-content">
+          <include>
+            <context ref="expression-with-comma"/>
+          </include>
+        </context> <!-- /_ternary-operator-with-comma-false-expression-content -->
+
+      </include>
+    </context> <!-- /_ternary-operator-with-comma-false-expression -->
+
+    <context id="_choice-ternary-operator-with-comma-true-expression" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-with-comma-true-expression-content">
+          <include>
+            <context ref="expression-without-comma"/> <!-- comma not allowed -->
+            <context ref="_ternary-operator-with-comma-false-expression"/>
+          </include>
+        </context> <!-- /_ternary-operator-with-comma-true-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-ternary-operator-with-comma-true-expression -->
+
+    <context id="_ternary-operators-with-comma">
+      <start>\?</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:ternary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_ternary-operator-with-comma-content">
+          <include>
+            <context ref="_choice-ternary-operator-missing-true-expression"/>
+            <context ref="_choice-ternary-operator-with-comma-true-expression"/>
+          </include>
+        </context> <!-- /_ternary-operator-with-comma-content -->
+
+      </include>
+    </context> <!-- /_ternary-operators-with-comma -->
+
+
+    <!-- # Binary operators -->
+
+    <define-regex id="_keyword-binary-operator" extended="true">
+      \%{js:instanceof-keyword} | \%{js:in-keyword}
+    </define-regex> <!-- /_keyword-binary-operator -->
+
+    <!-- excluding comma operator -->
+    <define-regex id="_binary-operator" extended="true">
+      \*\* =? |                            # exponentiation (assignment) (ES2016)
+      [+/*%-] =? |                         # arithmetic (assignment)
+      [!=]==? |                            # equality
+      &amp;&amp; | \|\| |                  # logical
+      \?\? |                               # nullish coalescing (ES2020)
+      [&amp;|^] =? |                       # bitwise logical (assignment)
+      (?: &lt;&lt; | &gt;&gt;&gt;? ) =? |  # bitwise shift (assignment)
+      [&lt;&gt;]=? |                       # relational
+      =                                    # assignment
+    </define-regex> <!-- /_binary-operator -->
+
+    <!-- ## Without comma -->
+
+    <context id="_keyword-binary-operators-without-comma">
+      <start>\%{_keyword-binary-operator}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_keyword-binary-operator-without-comma-content">
+          <include>
+            <context ref="expression-without-comma"/>
+          </include>
+        </context> <!-- /_keyword-binary-operator-without-comma-content -->
+
+      </include>
+    </context> <!-- /_keyword-binary-operators-without-comma -->
+
+    <context id="_binary-operators-without-comma">
+      <start>\%{_binary-operator}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:binary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_binary-operator-without-comma-content">
+          <include>
+            <context ref="expression-without-comma"/>
+          </include>
+        </context> <!-- /_binary-operator-without-comma-content -->
+
+      </include>
+    </context> <!-- /_binary-operators-without-comma -->
+
+    <!-- ## With comma -->
+
+    <context id="_keyword-binary-operators-with-comma">
+      <start>\%{_keyword-binary-operator}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_keyword-binary-operator-with-comma-content">
+          <include>
+            <context ref="expression-with-comma"/>
+          </include>
+        </context> <!-- /_keyword-binary-operator-with-comma-content -->
+
+      </include>
+    </context> <!-- /_keyword-binary-operators-with-comma -->
+
+    <context id="_binary-operators-with-comma">
+      <start>\%{_binary-operator}|,</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:binary-operator"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_binary-operator-with-comma-content">
+          <include>
+            <context ref="expression-with-comma"/>
+          </include>
+        </context> <!-- /_binary-operator-with-comma-content -->
+      </include>
+    </context> <!-- /_binary-operators-with-comma -->
+
+
+    <!-- # Post-LHS expression -->
+
+    <!-- ## Without comma -->
+
+    <context id="_post-lhs-expression-without-comma">
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="_increment-decrement-operators"/>
+        <context ref="js-fn:arrow-functions"/>
+        <context ref="_keyword-binary-operators-without-comma"/>
+        <context ref="_binary-operators-without-comma"/>
+        <context ref="_ternary-operators-without-comma"/>
+      </include>
+    </context> <!-- /_post-lhs-expression-without-comma -->
+
+    <context id="_ordered-post-lhs-expression-without-comma" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_post-lhs-expression-without-comma"/>
+      </include>
+    </context> <!-- /_ordered-post-lhs-expression-without-comma -->
+
+    <!-- ## With comma -->
+
+    <context id="_post-lhs-expression-with-comma">
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="_increment-decrement-operators"/>
+        <context ref="js-fn:arrow-functions"/>
+        <context ref="_keyword-binary-operators-with-comma"/>
+        <context ref="_binary-operators-with-comma"/>
+        <context ref="_ternary-operators-with-comma"/>
+      </include>
+    </context> <!-- /_post-lhs-expression-with-comma -->
+
+    <context id="_ordered-post-lhs-expression-with-comma" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_post-lhs-expression-with-comma"/>
+      </include>
+    </context> <!-- /_ordered-post-lhs-expression-with-comma -->
+
+
+    <!-- # Expression
+
+         2 + 3 - 1
+         true ? doThis() : doThat()
+    -->
+
+    <!-- ## Without comma -->
+
+    <context id="_expression-without-comma-content">
+      <include>
+        <context ref="_ordered-pre-lhs-expression"/>
+        <context ref="_lhs-expression-content"/>
+        <context ref="_ordered-post-lhs-expression-without-comma"/>
+      </include>
+    </context> <!-- /_expression-without-comma-content -->
+
+    <!-- <AssignmentExpression> -->
+    <context id="expression-without-comma" style-ref="js:expression" once-only="true">
+      <start>\%{_expression-start}(?!,)</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_expression-without-comma-content"/>
+      </include>
+    </context> <!-- /expression-without-comma -->
+
+    <!-- <AssignmentExpression> -->
+    <context id="choice-expression-without-comma" style-ref="js:expression" end-parent="true">
+      <start>\%{_expression-start}(?!,)</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_expression-without-comma-content"/>
+      </include>
+    </context> <!-- /choice-expression-without-comma -->
+
+    <!-- ## With comma -->
+
+    <context id="_expression-with-comma-content">
+      <include>
+        <context ref="_ordered-pre-lhs-expression"/>
+        <context ref="_lhs-expression-content"/>
+        <context ref="_ordered-post-lhs-expression-with-comma"/>
+      </include>
+    </context> <!-- /_expression-with-comma-content -->
+
+    <!-- <Expression> -->
+    <context id="expression-with-comma" style-ref="js:expression" once-only="true">
+      <start>\%{_expression-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_expression-with-comma-content"/>
+      </include>
+    </context> <!-- /expression-with-comma -->
+
+    <!-- <Expression> -->
+    <context id="choice-expression-with-comma" style-ref="js:expression" end-parent="true">
+      <start>\%{_expression-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_expression-with-comma-content"/>
+      </include>
+    </context> <!-- /choice-expression-with-comma -->
+
+  </definitions>
+</language>

@@ -1,0 +1,15 @@
+<!-- FIXME: the "name" attribute can be "_name" to be marked for translation -->
+<!ENTITY % itemattrs
+ "name  CDATA #REQUIRED
+  style CDATA #REQUIRED">
+<!ELEMENT language (escape-char?,(line-comment|block-comment|string|syntax-item|pattern-item|keyword-list)+)>
+<!-- FIXME: the "name" and "section" attributes can be prefixed with
+     "_" to be marked for translation -->
+<!ELEMENT keyword-list (keyword+)>
+<!ATTLIST keyword-list
+  %itemattrs;
+  case-sensitive                  (true|false) "true"
+  match-empty-string-at-beginning (true|false) "false"
+  match-empty-string-at-end       (true|false) "false"
+  beginning-regex                 CDATA        #IMPLIED
+  end-regex                       CDATA        #IMPLIED>

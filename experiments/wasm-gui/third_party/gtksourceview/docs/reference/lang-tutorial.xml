@@ -1,0 +1,737 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+ <!ENTITY % local.common.attrib "xmlns:xi CDATA #FIXED 'http://www.w3.org/2003/XInclude'">
+ <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+ %gtkdocentities;
+]>
+<refentry id="lang-tutorial">
+<refmeta>
+<refentrytitle>Language Definition v2.0 Tutorial</refentrytitle>
+</refmeta>
+
+<refnamediv>
+<refname>Language Definition v2.0 Tutorial</refname>
+<refpurpose>
+Guide to the GtkSourceView language definition file format
+</refpurpose>
+</refnamediv>
+
+<refsect1 id="tutorial">
+<title>A language definition for the C language</title>
+
+<note>
+  <para>
+    The version 2 here refers to the language definition file format,
+    not to the version of GtkSourceView. This tutorial is suitable
+    for GtkSourceView 2, 3 and 4.
+  </para>
+</note>
+
+<para>
+To describe the syntax of a language GtkSourceView uses an XML format which
+defines nested context to be highlighted. Each context roughly corresponds
+to a portion of the syntax which has to be highlighted (e.g. keywords,
+strings, comments), and can contain nested contexts (e.g. escaped
+characters.)
+</para>
+
+<para>
+In this tutorial we will analyze a simple example to highlight a subset of
+C, based on the full C language definition.
+</para>
+
+<para>
+Like every well formed XML document, the language description starts with a
+XML declaration:
+</para>
+
+<programlisting>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+</programlisting>
+
+<para>
+After the usual preamble, the main tag is the <code>&lt;language&gt;</code> element:
+</para>
+
+<programlisting>
+&lt;language id="c" name="C" version="2.0" _section="Source"&gt;
+</programlisting>
+
+<para>
+The attribute <code>id</code> is used in external references and defines a standard
+way to refer to this language definition, while the <code>name</code> attribute is
+the name presented to the user.
+</para>
+
+<para>
+The attribute <code>section</code> (it is translatable using gettext prepending
+a <code>_</code>), tells the category where this language should be grouped when
+it is presented to the user. Currently available categories in GtkSourceView are
+"Source", "Script", "Markup", "Scientific" and "Other".
+</para>
+
+<para>
+The attribute <code>version</code> specifies the version of the xml syntax
+used in your language definition file, so it should always be <code>2.0</code>.
+</para>
+
+<para>
+The <code>&lt;language&gt;</code> element contains three sections:
+<code>&lt;metadata&gt;</code>, <code>&lt;styles&gt;</code> and
+<code>&lt;definitions&gt;</code>
+</para>
+
+<programlisting>
+&lt;metadata&gt;
+</programlisting>
+
+<para>
+The <code>&lt;metadata&gt;</code> element is optional and provides a collection
+of properties which specify arbitrary information about the language definition
+file itself. It is particularly important to specify the conventional
+<code>mimetypes</code> and <code>globs</code> properties that
+GtkSourceView uses to automatically detect which syntax highlighting to use
+for a given file. They respectively contain a semi-colon separated list of
+mimetypes and filename extensions.
+</para>
+
+<programlisting>
+&lt;metadata&gt;
+  &lt;property name="mimetypes"&gt;text/x-c;text/x-csrc&lt;/property&gt;
+  &lt;property name="globs"&gt;*.c&lt;/property&gt;
+&lt;/metadata&gt;
+</programlisting>
+
+<programlisting>
+&lt;styles&gt;
+</programlisting>
+
+<para>
+This element contains every association between the styles used in the
+description and the defaults stored internally in GtkSourceView.
+For each style there is a <code>&lt;style&gt;</code> element:
+</para>
+
+<programlisting>
+&lt;style id="comment" name="Comment" map-to="def:comment"/&gt;
+</programlisting>
+
+<para>
+This defines a <code>comment</code> style, which inherits the font
+properties from the defaults style <code>def:comment</code>.
+The <code>name</code> attribute is the name to show to the user (that string
+could for example be used by a GUI tool to edit or create style schemes).
+</para>
+
+<para>
+For each style used in the language definition there is a corresponding
+<code>&lt;style&gt;</code> element; every style can be used in different
+contexts, so they will share the same appearance.
+</para>
+
+<programlisting>
+&lt;style id="string" name="String" map-to="def:string"/&gt;
+&lt;style id="escaped-character" name="Escaped Character" map-to="def:special-char"/&gt;
+&lt;style id="preprocessor" name="Preprocessor" map-to="def:preprocessor"/&gt;
+&lt;style id="included-file" name="Included File" map-to="def:string"/&gt;
+&lt;style id="char" name="Character" map-to="def:character"/&gt;
+&lt;style id="keyword" name="Keyword" map-to="def:keyword"/&gt;
+&lt;style id="type" name="Data Type" map-to="def:type"/&gt;
+</programlisting>
+
+<para>
+Following the <code>&lt;styles&gt;</code> element there is the
+<code>&lt;definitions&gt;</code> element, which contains the
+description proper of the syntax:
+</para>
+
+<programlisting>
+&lt;definitions&gt;
+</programlisting>
+
+<para>
+Here we should define a main context, the one we enter at the beginning of
+the file: to do so we use the <code>&lt;context&gt;</code> tag, with an
+<code>id</code> equal to the <code>id</code> of the
+<code>&lt;language&gt;</code> element:
+</para>
+
+<programlisting>
+&lt;context id="c"&gt;
+</programlisting>
+
+<para>
+The element <code>&lt;include&gt;</code> contains the list of sub-contexts
+for the current context: as we are in the main context we should put here
+the top level contexts for the C language:
+</para>
+
+<programlisting>
+&lt;include&gt;
+</programlisting>
+
+<para>
+The first context defined is the one for single-line C style comments: they
+start with a double slash <code>//</code> and end at the end of the line:
+</para>
+
+<programlisting>
+&lt;context id="comment" style-ref="comment"&gt;
+  &lt;start&gt;\/\/&lt;/start&gt;
+  &lt;end&gt;$&lt;/end&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+The <code>&lt;start&gt;</code> element contains the regular expression telling
+the highlighting engine to enter in the defined context, until the terminating
+regular expression contained in the <code>&lt;end&gt;</code> element is found.
+</para>
+
+<para>
+Those regular expressions are PCRE regular expressions in the form
+<code>/regex/options</code> (see the documentation of PCRE for details.) If
+there are no options to be specified and you don't need to match the spaces at
+the start and at the end of the regular expression, you can omit the slashes,
+putting here only <code>regex</code>.
+</para>
+
+<para>
+The possible options are:
+</para>
+
+<itemizedlist>
+<listitem><para>
+    <code>i</code>: case insensitive;
+</para></listitem>
+
+<listitem><para>
+    <code>x</code>: extended (spaces are ignored and it is possible to put comments
+    starting with <code>#</code> and ending at the end of the line);
+</para></listitem>
+
+<listitem><para>
+    <code>s</code>: the metacharacter <code>.</code> matches the <code>\n</code>.
+</para></listitem>
+</itemizedlist>
+
+<para>
+You can set the default options using the <code>&lt;default-regex-options</code> tag
+before the <code>&lt;definitions&gt;</code> element. To disable a group of options,
+instead, you have to preced them with a hyphen (<code>-</code>).
+[FIXME: add an example]
+</para>
+
+<para>
+In GtkSourceView are available also some extensions to the standard perl
+style regular expressions:
+</para>
+
+<itemizedlist>
+<listitem><para>
+    <code>\%[</code> and <code>\%]</code> are custom word boundaries, which can
+    be redefined with the <code>&lt;keyword-char-class&gt;</code> tag (in
+    contrast with <code>\b</code>);
+</para></listitem>
+
+<listitem><para>
+    <code>\%{id}</code> will include the regular expression defined in the
+    <code>&lt;define-regex&gt;</code> tag with the same id, useful if you have
+    common portions of regular expressions used in different contexts;
+</para></listitem>
+
+<listitem><para>
+    <code>\%{subpattern@start}</code> can be used only inside the
+    <code>&lt;end&gt;</code> tag and will be substituted with the
+    string matched in the corresponding
+    sub-pattern (can be a number or a name if named sub-patterns are
+    used) in the preceding <code>&lt;start&gt;</code> element. For an example
+    see the implementation of here-documents in the <filename>sh.lang</filename>
+    language description distribuited with GtkSourceView.
+</para></listitem>
+</itemizedlist>
+
+<para>
+The next context is for C-style strings. They start and end with a double
+quote but they can contain escaped double quotes, so we sould make sure
+we don't end the string prematurely:
+</para>
+
+<programlisting>
+&lt;context id="string" end-at-line-end="true" style-ref="string"&gt;
+</programlisting>
+
+<para>
+The <code>end-at-line-end</code> attribute tells the engine that the current context
+should be forced to terminate at the end of the line, even if the ending
+regular expression is not found, and that an error should be displayed.
+</para>
+
+<programlisting>
+&lt;start&gt;"&lt;/start&gt;
+&lt;end&gt;"&lt;/end&gt;
+&lt;include&gt;
+</programlisting>
+
+<para>
+To implement the escape handling we include a <code>escape</code> context:
+</para>
+
+<programlisting>
+  &lt;context id="escape" style-ref="escaped-character"&gt;
+    &lt;match&gt;\\.&lt;/match&gt;
+  &lt;/context&gt;
+</programlisting>
+
+<para>
+This is a simple context matching a single regular expression, contained in
+the <code>&lt;match&gt;</code> element. This context will extend its parent, causing the
+ending regular expression of the <code>"string"</code> context to not match the escaped
+double quote.
+</para>
+
+<programlisting>
+&lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Multiline C-style comment can span over multiple lines and cannot be
+escaped, but to make things more interesting we want to highlight every
+internet address contained:
+</para>
+
+<programlisting>
+&lt;context id="comment-multiline" style-ref="comment"&gt;
+  &lt;start&gt;\/\*&lt;/start&gt;
+  &lt;end&gt;\*\/&lt;/end&gt;
+  &lt;include&gt;
+    &lt;context id="net-address" style-ref="net-address" extend-parent="false"&gt;
+</programlisting>
+
+<para>
+In this case, the child should be terminated if the end of the parent is
+found, so we use <code>false</code> in the <code>extend-parent</code> attribute.
+</para>
+
+<programlisting>
+      &lt;match&gt;http:\/\/[^\s]*&lt;/match&gt;
+    &lt;/context&gt;
+  &lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+For instance in the following comment the string <code>http://www.gnome.org*/</code>
+matches the <code>net-address</code> context but it contains the end of the parent
+context (<code>*/</code>.) As <code>extend-parent</code> is false,
+only <code>http://www.gnome.org</code> is
+highlighted as an address and <code>*/</code> is correctly recognized as the end of
+the comment.
+</para>
+
+<programlisting>
+/* This is a comment http://www.gnome.org */
+</programlisting>
+
+<para>
+Character constants in C are delimited by single quotes (<code>'</code>) and can
+contain escaped characters:
+</para>
+
+<programlisting>
+&lt;context id="char" end-at-line-end="true" style-ref="string"&gt;
+  &lt;start&gt;'&lt;/start&gt;
+  &lt;end&gt;'&lt;/end&gt;
+  &lt;include&gt;
+    &lt;context ref="escape"/&gt;
+</programlisting>
+
+<para>
+The <code>ref</code> attribute is used when we want to reuse a previously defined
+context. Here we reuse the <code>escape</code> context defined in the <code>string</code>
+context, without repeating its definition.
+</para>
+
+<programlisting>
+  &lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Using <code>ref</code> it is also possible to refer to contexts defined in other
+languages, preceding the id of the context with the id of the containing
+language, separating them with a colon:
+</para>
+
+<programlisting>
+&lt;context ref="def:decimal"/&gt;
+&lt;context ref="def:float"/&gt;
+</programlisting>
+
+<para>
+The definitions for decimal and float constants are in a external file,
+with id <code>def</code>, which is not associated with any language but contains
+reusable contexts wich every language definition can import.
+</para>
+
+<para>
+The <code>def</code> language file contains an <code>in-comment</code> context that can contain
+addresses and tags such as FIXME and TODO, so we can write a new version of
+our <code>comment-multiline</code> context that uses the definitions from <code>def.lang</code>.
+</para>
+
+<programlisting>
+&lt;context id="comment-multiline" style-ref="comment"&gt;
+  &lt;start&gt;\/\*&lt;/start&gt;
+  &lt;end&gt;\*\/&lt;/end&gt;
+  &lt;include&gt;
+    &lt;context ref="def:in-comment"/&gt;
+</programlisting>
+
+<programlisting>
+  &lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Keywords can be grouped in a context using a list of <code>&lt;keyword&gt;</code>
+elements:
+</para>
+
+<programlisting>
+&lt;context id="keywords" style-ref="keyword"&gt;
+  &lt;keyword&gt;if&lt;/keyword&gt;
+  &lt;keyword&gt;else&lt;/keyword&gt;
+  &lt;keyword&gt;for&lt;/keyword&gt;
+  &lt;keyword&gt;while&lt;/keyword&gt;
+  &lt;keyword&gt;return&lt;/keyword&gt;
+  &lt;keyword&gt;break&lt;/keyword&gt;
+  &lt;keyword&gt;switch&lt;/keyword&gt;
+  &lt;keyword&gt;case&lt;/keyword&gt;
+  &lt;keyword&gt;default&lt;/keyword&gt;
+  &lt;keyword&gt;do&lt;/keyword&gt;
+  &lt;keyword&gt;continue&lt;/keyword&gt;
+  &lt;keyword&gt;goto&lt;/keyword&gt;
+  &lt;keyword&gt;sizeof&lt;/keyword&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Keywords with different meaning can be grouped in different context, making
+possible to highlight them differently:
+</para>
+
+<programlisting>
+&lt;context id="types" style-ref="type"&gt;
+  &lt;keyword&gt;char&lt;/keyword&gt;
+  &lt;keyword&gt;const&lt;/keyword&gt;
+  &lt;keyword&gt;double&lt;/keyword&gt;
+  &lt;keyword&gt;enum&lt;/keyword&gt;
+  &lt;keyword&gt;float&lt;/keyword&gt;
+  &lt;keyword&gt;int&lt;/keyword&gt;
+  &lt;keyword&gt;long&lt;/keyword&gt;
+  &lt;keyword&gt;short&lt;/keyword&gt;
+  &lt;keyword&gt;signed&lt;/keyword&gt;
+  &lt;keyword&gt;static&lt;/keyword&gt;
+  &lt;keyword&gt;struct&lt;/keyword&gt;
+  &lt;keyword&gt;typedef&lt;/keyword&gt;
+  &lt;keyword&gt;union&lt;/keyword&gt;
+  &lt;keyword&gt;unsigned&lt;/keyword&gt;
+  &lt;keyword&gt;void&lt;/keyword&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+You can also set a prefix (or a suffix) common to every keyword using the
+<code>&lt;prefix&gt;</code> and <code>&lt;suffix&gt;</code> tags:
+</para>
+
+<programlisting>
+&lt;context id="preprocessor" style-ref="preprocessor"&gt;
+  &lt;prefix&gt;^#&lt;/prefix&gt;
+</programlisting>
+
+<para>
+If not specified, <code>&lt;prefix&gt;</code> and <code>&lt;suffix&gt;</code>
+are set to, respectively, <code>\%[</code> and
+<code>\%]</code>.
+</para>
+
+<programlisting>
+  &lt;keyword&gt;define&lt;/keyword&gt;
+  &lt;keyword&gt;undef&lt;/keyword&gt;
+</programlisting>
+
+<para>
+Keep in mind that every keyword is a regular expression:
+</para>
+
+<programlisting>
+  &lt;keyword&gt;if(n?def)?&lt;/keyword&gt;
+  &lt;keyword&gt;else&lt;/keyword&gt;
+  &lt;keyword&gt;elif&lt;/keyword&gt;
+  &lt;keyword&gt;endif&lt;/keyword&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+In C, there is a common pratice to use <code>#if 0</code> to express multi-line
+nesting comments. To make things easier to the user, we want to highlight
+these pseudo-comments as comments:
+</para>
+
+<programlisting>
+&lt;context id="if0-comment" style-ref="comment"&gt;
+  &lt;start&gt;^#if 0\b&lt;/start&gt;
+  &lt;end&gt;^#(endif|else|elif)\b&lt;/end&gt;
+  &lt;include&gt;
+</programlisting>
+
+<para>
+As <code>#if 0</code> comments are nesting, we should consider that inside a comment
+we can find other <code>#if</code>s with the corresponding <code>#endif</code>s, avoiding
+the termination of the comment on the wrong <code>#endif</code>. To do so we use a
+nested context, that will extend the parent on every nested
+<code>#if</code>/<code>#endif</code>:
+</para>
+
+<programlisting>
+  &lt;context id="if-in-if0"&gt;
+    &lt;start&gt;^#if(n?def)?\b&lt;/start&gt;
+    &lt;end&gt;^#endif\b&lt;/end&gt;
+    &lt;include&gt;
+</programlisting>
+
+<para>
+Nested contexts can be recursive:
+</para>
+
+<programlisting>
+      &lt;context ref="if-in-if0"/&gt;
+    &lt;/include&gt;
+  &lt;/context&gt;
+  &lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Because contexts defined before have higher priority, <code>if0-comment</code> will
+never be matched. To make things work we should move it before the
+<code>preprocessor</code> context, thus giving <code>if0-comment</code> a higher priority.
+</para>
+
+<para>
+For the <code>#include</code> preprocessor directive it could be useful to highlight
+differently the included file:
+</para>
+
+<programlisting>
+&lt;context id="include" style-ref="preprocessor"&gt;
+  &lt;match&gt;^#include (".*"|&amp;lt;.*&amp;gt;)&lt;/match&gt;
+  &lt;include&gt;
+</programlisting>
+
+<para>
+To do this we use grouping sub-patterns in the regular expression,
+associating them with a context with the <code>sub-pattern</code> attribute:
+</para>
+
+<programlisting>
+    &lt;context id="included-file" sub-pattern="1"
+             style-ref="included-file"/&gt;
+</programlisting>
+
+<para>
+In the <code>sub-pattern</code> attribute we could use:
+</para>
+
+<itemizedlist>
+<listitem><para>
+    0: the whole regular expression;
+</para></listitem>
+
+<listitem><para>
+    1: the first sub-pattern (a sub-espression enclosed in
+    parenthesis);
+</para></listitem>
+
+<listitem><para>
+    2: the second;
+</para></listitem>
+
+<listitem><para>
+    ...
+</para></listitem>
+
+<listitem><para>
+    <code>name</code>: a named sub-pattern with name <code>name</code> (see the PCRE
+    documentation.)
+</para></listitem>
+</itemizedlist>
+
+<para>
+We could also use a <code>where</code> attribute with value
+<code>start</code> or <code>end</code> to
+specify the regular expression the context is referring, when we have both
+the <code>&lt;start&gt;</code> and <code>&lt;end&gt;</code> element.
+</para>
+
+<programlisting>
+  &lt;/include&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+Having defined a good subset of the C syntax we close every tag still open:
+</para>
+
+<programlisting>
+&lt;/include&gt;
+&lt;/context&gt;
+&lt;/definitions&gt;
+&lt;/language&gt;
+</programlisting>
+
+</refsect1>
+
+<refsect1>
+<title>The full language definition</title>
+<para>
+This is the full language definition for the subset of C taken in consideration
+for this tutorial:
+</para>
+
+<programlisting>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;language id="c" name="C" version="2.0" _section="Source"&gt;
+  &lt;metadata&gt;
+    &lt;property name="mimetypes"&gt;text/x-c;text/x-csrc&lt;/property&gt;
+    &lt;property name="globs"&gt;*.c&lt;/property&gt;
+  &lt;/metadata&gt;
+  &lt;styles&gt;
+    &lt;style id="comment" name="Comment" map-to="def:comment"/&gt;
+    &lt;style id="string" name="String" map-to="def:string"/&gt;
+    &lt;style id="escaped-character" name="Escaped Character" map-to="def:special-char"/&gt;
+    &lt;style id="preprocessor" name="Preprocessor" map-to="def:preprocessor"/&gt;
+    &lt;style id="included-file" name="Included File" map-to="def:string"/&gt;
+    &lt;style id="char" name="Character" map-to="def:character"/&gt;
+    &lt;style id="keyword" name="Keyword" map-to="def:keyword"/&gt;
+    &lt;style id="type" name="Data Type" map-to="def:type"/&gt;
+  &lt;/styles&gt;
+  &lt;definitions&gt;
+    &lt;context id="c"&gt;
+      &lt;include&gt;
+
+        &lt;context id="comment" style-ref="comment"&gt;
+          &lt;start&gt;\/\/&lt;/start&gt;
+          &lt;end&gt;$&lt;/end&gt;
+        &lt;/context&gt;
+
+        &lt;context id="string" end-at-line-end="true" style-ref="string"&gt;
+          &lt;start&gt;"&lt;/start&gt;
+          &lt;end&gt;"&lt;/end&gt;
+          &lt;include&gt;
+            &lt;context id="escape" style-ref="escaped-character"&gt;
+              &lt;match&gt;\\.&lt;/match&gt;
+            &lt;/context&gt;
+          &lt;/include&gt;
+        &lt;/context&gt;
+
+        &lt;context id="comment-multiline" style-ref="comment"&gt;
+          &lt;start&gt;\/\*&lt;/start&gt;
+          &lt;end&gt;\*\/&lt;/end&gt;
+          &lt;include&gt;
+            &lt;context ref="def:in-comment"/&gt;
+          &lt;/include&gt;
+        &lt;/context&gt;
+
+        &lt;context id="char" end-at-line-end="true" style-ref="string"&gt;
+          &lt;start&gt;'&lt;/start&gt;
+          &lt;end&gt;'&lt;/end&gt;
+          &lt;include&gt;
+            &lt;context ref="escape"/&gt;
+          &lt;/include&gt;
+        &lt;/context&gt;
+
+        &lt;context ref="def:decimal"/&gt;
+        &lt;context ref="def:float"/&gt;
+
+        &lt;context id="keywords" style-ref="keyword"&gt;
+          &lt;keyword&gt;if&lt;/keyword&gt;
+          &lt;keyword&gt;else&lt;/keyword&gt;
+          &lt;keyword&gt;for&lt;/keyword&gt;
+          &lt;keyword&gt;while&lt;/keyword&gt;
+          &lt;keyword&gt;return&lt;/keyword&gt;
+          &lt;keyword&gt;break&lt;/keyword&gt;
+          &lt;keyword&gt;switch&lt;/keyword&gt;
+          &lt;keyword&gt;case&lt;/keyword&gt;
+          &lt;keyword&gt;default&lt;/keyword&gt;
+          &lt;keyword&gt;do&lt;/keyword&gt;
+          &lt;keyword&gt;continue&lt;/keyword&gt;
+          &lt;keyword&gt;goto&lt;/keyword&gt;
+          &lt;keyword&gt;sizeof&lt;/keyword&gt;
+        &lt;/context&gt;
+
+        &lt;context id="types" style-ref="type"&gt;
+          &lt;keyword&gt;char&lt;/keyword&gt;
+          &lt;keyword&gt;const&lt;/keyword&gt;
+          &lt;keyword&gt;double&lt;/keyword&gt;
+          &lt;keyword&gt;enum&lt;/keyword&gt;
+          &lt;keyword&gt;float&lt;/keyword&gt;
+          &lt;keyword&gt;int&lt;/keyword&gt;
+          &lt;keyword&gt;long&lt;/keyword&gt;
+          &lt;keyword&gt;short&lt;/keyword&gt;
+          &lt;keyword&gt;signed&lt;/keyword&gt;
+          &lt;keyword&gt;static&lt;/keyword&gt;
+          &lt;keyword&gt;struct&lt;/keyword&gt;
+          &lt;keyword&gt;typedef&lt;/keyword&gt;
+          &lt;keyword&gt;union&lt;/keyword&gt;
+          &lt;keyword&gt;unsigned&lt;/keyword&gt;
+          &lt;keyword&gt;void&lt;/keyword&gt;
+        &lt;/context&gt;
+
+        &lt;context id="if0-comment" style-ref="comment"&gt;
+          &lt;start&gt;^#if 0\b&lt;/start&gt;
+          &lt;end&gt;^#(endif|else|elif)\b&lt;/end&gt;
+          &lt;include&gt;
+            &lt;context id="if-in-if0"&gt;
+              &lt;start&gt;^#if(n?def)?\b&lt;/start&gt;
+              &lt;end&gt;^#endif\b&lt;/end&gt;
+              &lt;include&gt;
+                &lt;context ref="if-in-if0"/&gt;
+              &lt;/include&gt;
+            &lt;/context&gt;
+          &lt;/include&gt;
+        &lt;/context&gt;
+
+        &lt;context id="preprocessor" style-ref="preprocessor"&gt;
+          &lt;prefix&gt;^#&lt;/prefix&gt;
+          &lt;keyword&gt;define&lt;/keyword&gt;
+          &lt;keyword&gt;undef&lt;/keyword&gt;
+          &lt;keyword&gt;if(n?def)?&lt;/keyword&gt;
+          &lt;keyword&gt;else&lt;/keyword&gt;
+          &lt;keyword&gt;elif&lt;/keyword&gt;
+          &lt;keyword&gt;endif&lt;/keyword&gt;
+        &lt;/context&gt;
+
+        &lt;context id="include" style-ref="preprocessor"&gt;
+          &lt;match&gt;^#include (".*"|&amp;lt;.*&amp;gt;)&lt;/match&gt;
+          &lt;include&gt;
+            &lt;context id="included-file"
+                     sub-pattern="1"
+                     style-ref="included-file"/&gt;
+          &lt;/include&gt;
+        &lt;/context&gt;
+
+      &lt;/include&gt;
+    &lt;/context&gt;
+  &lt;/definitions&gt;
+&lt;/language&gt;
+</programlisting>
+
+</refsect1>
+
+</refentry>

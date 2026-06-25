@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2004 Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2005 Stef Walter (formerly Nate Nielsen) <stef@memberwebs.com>
+ Copyright (C) 2005-2007 Marco Barisione <barisione@gmail.com>
+ Copyright (C) 2005-2007 Emanuele Aina
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="js-st" name="JavaScript Statements" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See javascript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Use strict directive -->
+
+    <!-- apparently, back references are not supported within the same
+         regex -->
+    <context id="_use-strict-directives" style-ref="js:directive">
+      <start>"use strict"|'use strict'</start>
+      <end>\%{js:statement-end}</end>
+    </context> <!-- /_use-strict-directives -->
+
+
+    <!-- # Directives -->
+
+    <!-- directives are valid at the start of scripts, modules, and
+         function bodies (but not block statements)
+    -->
+    <context id="directives">
+      <include>
+        <context ref="_use-strict-directives"/>
+      </include>
+    </context> <!-- /directives -->
+
+
+    <!-- # Test condition for if / switch / while / etc. -->
+
+    <context id="_condition" once-only="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments" />
+
+        <context id="_condition-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_condition-content -->
+
+      </include>
+    </context> <!-- /_condition -->
+
+    <context id="_ordered-condition" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_condition"/>
+      </include>
+    </context> <!-- /_ordered-condition -->
+
+
+    <!-- # Block statement
+
+         {
+           ...
+         }
+    -->
+
+    <!-- <BlockStatement> -->
+    <context id="_block-statements" style-ref="js:block-statement">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_block-statement-content">
+          <include>
+            <context ref="statements"/>
+          </include>
+        </context> <!-- /_block-statement-content -->
+
+      </include>
+    </context> <!-- /_block-statements -->
+
+
+    <!-- # Break statement
+
+         break;
+         break outerLoop;
+    -->
+
+    <!-- <BreakStatement> -->
+    <context id="_break-statements" style-ref="js:break-statement">
+      <start>\%{js:break-keyword}</start>
+      <end>\%{js:statement-end-or-end-of-line}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments-no-extend-parent"/>
+
+        <context id="_break-statement-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_break-statement-content -->
+
+      </include>
+    </context> <!-- /_break-statements -->
+
+
+    <!-- # Class declaration
+
+         class Foo extends Bar { ... }
+    -->
+
+    <!-- <ClassExpression> / <ClassDeclaration> -->
+    <context id="_class-declarations">
+      <start>(?=\%{js:class-keyword})</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_class-declaration-content">
+          <include>
+            <context ref="js-fn:choice-class-expression-required-name"/>
+          </include>
+        </context> <!-- /_class-declaration-content -->
+
+      </include>
+    </context> <!-- /_class-declarations -->
+
+
+    <!-- # Continue statement
+
+         continue;
+         continue outerLoop;
+    -->
+
+    <!-- <ContinueStatement> -->
+    <context id="_continue-statements" style-ref="js:continue-statement">
+      <start>\%{js:continue-keyword}</start>
+      <end>\%{js:statement-end-or-end-of-line}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments-no-extend-parent"/>
+
+        <context id="_continue-statement-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_continue-statement-content -->
+
+      </include>
+    </context> <!-- /_continue-statements -->
+
+
+    <!-- # Debugger statement
+
+         debugger;
+    -->
+
+    <!-- <DebuggerStatement> -->
+    <context id="_debugger-statements" style-ref="js:debugger-statement">
+      <start>\%{js:debugger-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_debugger-statement-content"/>
+
+      </include>
+    </context> <!-- /_debugger-statements -->
+
+
+    <!-- # Expression statement
+
+         a = 1;
+         main();
+         i++;
+    -->
+
+    <!-- <ExpressionStatement> -->
+    <context id="_expression-statements" style-ref="js:expression-statement">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_expression-statement-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_expression-statement-content -->
+
+      </include>
+    </context> <!-- /_expression-statements -->
+
+
+    <!-- # For statement
+
+         for (var i = 0; i < length; i++) loop();
+         for (prop in obj) { ... }
+         for (value of iterator) { ... }
+    -->
+
+    <context id="_for-statement-modifier" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_for-statement-modifier-content">
+          <include>
+
+            <!-- await: ES2018 -->
+            <context id="_choice-for-statement-modifier-keyword" style-ref="js:keyword" end-parent="true">
+              <start>(?=\%{js:await-keyword})</start>
+              <end>\%{js:await-keyword}</end>
+            </context> <!-- /_choice-for-statement-modifier-keyword -->
+
+          </include>
+        </context> <!-- /_for-statement-modifier-content -->
+
+      </include>
+    </context> <!-- /_for-statement-modifier -->
+
+    <context id="_ordered-for-statement-modifier" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_for-statement-modifier"/>
+      </include>
+    </context> <!-- /_ordered-for-statement-modifier -->
+
+    <context id="_for-statement-test">
+      <include>
+
+        <context id="_for-statement-test-initial-expression" once-only="true">
+          <start>\%{js:before-next-token}</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_for-statement-test-initial-expression-content">
+              <include>
+                <context ref="_choice-variable-declaration-without-semicolon"/>
+                <context ref="js-expr:choice-expression-with-comma"/>
+              </include>
+            </context> <!-- /_for-statement-test-initial-expression-content -->
+
+          </include>
+        </context> <!-- /_for-statement-test-initial-expression -->
+
+        <context id="_for-statement-test-condition" once-only="true">
+          <start>;</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_for-statement-test-condition-content">
+              <include>
+                <context ref="js-expr:expression-with-comma"/>
+              </include>
+            </context> <!-- /_for-statement-test-condition-content -->
+
+          </include>
+        </context> <!-- /_for-statement-test-condition -->
+
+        <context id="_for-statement-test-increment-expression" once-only="true">
+          <start>;</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_for-statement-test-increment-expression-content">
+              <include>
+                <context ref="js-expr:expression-with-comma"/>
+              </include>
+            </context> <!-- /_for-statement-test-increment-expression-content -->
+
+          </include>
+        </context> <!-- /_for-statement-test-increment-expression -->
+
+      </include>
+    </context> <!-- /_for-statement-test -->
+
+    <context id="_for-statement-in" once-only="true">
+      <start>\%{js:in-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_for-statement-in-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_for-statement-in-content -->
+
+      </include>
+    </context> <!-- /_for-statement-in -->
+
+    <context id="_for-statement-of" once-only="true">
+      <start>\%{js:of-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_for-statement-of-content">
+          <include>
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_for-statement-of-content -->
+
+      </include>
+    </context> <!-- /_for-statement-of -->
+
+    <context id="_for-statement-condition" once-only="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_for-statement-condition-content">
+          <include>
+            <context ref="_for-statement-test"/>
+            <context ref="_for-statement-in"/>
+            <context ref="_for-statement-of"/>
+          </include>
+        </context> <!-- /_for-statement-condition-content -->
+
+      </include>
+    </context> <!-- /_for-statement-condition -->
+
+    <context id="_ordered-for-statement-condition" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_for-statement-condition"/>
+      </include>
+    </context> <!-- /_ordered-for-statement-condition -->
+
+    <!-- <IterationStatement> (part of) -->
+    <context id="_for-statements" style-ref="js:for-statement">
+      <start>\%{js:for-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_for-statement-content">
+          <include>
+            <context ref="_ordered-for-statement-modifier"/>
+            <context ref="_ordered-for-statement-condition"/>
+          </include>
+        </context> <!-- /_for-statement-content -->
+
+      </include>
+    </context> <!-- /_for-statements -->
+
+
+    <!-- # Function declaration
+
+         function fn() { ... }
+    -->
+
+    <!-- <FunctionExpression> / <FunctionDeclaration> -->
+    <context id="_function-declarations">
+      <start>(?=\%{js:function-expression-keyword})</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_function-declaration-content">
+          <include>
+            <context ref="js-fn:choice-function-expression"/>
+          </include>
+        </context> <!-- /_function-declaration-content -->
+
+      </include>
+    </context> <!-- /_function-declarations -->
+
+
+    <!-- # If...else statement
+
+         if (done) return;
+         if (i > 0) { ... } else if (i < 0) { ... } else { ... }
+    -->
+
+    <!-- <IfStatement> (part of) -->
+    <context id="_if-statements" style-ref="js:if-statement">
+      <start>\%{js:if-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_if-statement-content">
+          <include>
+            <context ref="_ordered-condition"/>
+          </include>
+        </context> <!-- /_if-statement-content -->
+
+      </include>
+    </context> <!-- /_if-statements -->
+
+    <!-- <IfStatement> (part of) -->
+    <context id="_else-statements" style-ref="js:else-statement">
+      <start>\%{js:else-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_else-statement-content"/>
+
+      </include>
+    </context> <!-- /_else-statements -->
+
+
+    <!-- # Label statement
+
+         loop: for (...) {...}
+    -->
+
+    <!-- <LabelledStatement> -->
+    <!-- technically, only statements (and function declarations in
+         non-strict mode) are allowed to follow a label identifier, but
+         let's just end the label statement after the colon
+    -->
+    <context id="_label-statements" style-ref="js:label-statement">
+      <start extended="true">
+        (?&lt;! \%{js:identifier-char} )
+        (?=
+          \%{js:identifier}
+          \%{js:optional-whitespace-or-comments}
+          :
+        )
+      </start>
+      <end>:</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_label-statement-content">
+          <include>
+            <!-- technically, yield and await are valid label identifiers
+                 in non-strict mode and non-module code, respectively
+                 but let's not allow it (and have them highlighted as
+                 reserved words)
+            -->
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_label-statement-content -->
+
+      </include>
+    </context> <!-- /_label-statements -->
+
+
+    <!-- # Return statement
+
+         return;
+         return value;
+    -->
+
+    <!-- <ReturnStatement> -->
+    <context id="_return-statements" style-ref="js:return-statement">
+      <start>\%{js:return-keyword}</start>
+      <end>\%{js:statement-end-or-end-of-line}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments-no-extend-parent"/>
+
+        <context id="_return-statement-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_return-statement-content -->
+
+      </include>
+    </context> <!-- /_return-statements -->
+
+
+    <!-- # Switch statement
+
+         switch (a) {
+         case 1: ... ; break;
+         case 2: ... ; break;
+         default: ...
+         }
+    -->
+
+    <context id="_case-clauses">
+      <start>\%{js:case-keyword}</start>
+      <end>:</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_case-clause-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_case-clause-content -->
+
+      </include>
+    </context> <!-- /_case-clauses -->
+
+    <context id="_default-clauses">
+      <start>\%{js:default-keyword}</start>
+      <end>:</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_default-clause-content"/>
+
+      </include>
+    </context> <!-- /_default-clauses -->
+
+    <context id="_switch-body" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_switch-body-content">
+          <include>
+            <context ref="_case-clauses"/>
+            <context ref="_default-clauses"/>
+            <context ref="statements"/>
+          </include>
+        </context> <!-- /_switch-body-content -->
+
+      </include>
+    </context> <!-- /_switch-body -->
+
+    <context id="_last-switch-body" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_switch-body"/>
+      </include>
+    </context> <!-- /_last-switch-body -->
+
+    <!-- <SwitchStatement> -->
+    <context id="_switch-statements" style-ref="js:switch-statement">
+      <start>\%{js:switch-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_switch-statement-content">
+          <include>
+            <context ref="_ordered-condition"/>
+            <context ref="_last-switch-body"/>
+          </include>
+        </context> <!-- /_switch-statement-content -->
+
+      </include>
+    </context> <!-- /_switch-statements -->
+
+
+    <!-- # Throw statement
+
+         throw new Error();
+    -->
+
+    <!-- <ThrowStatement> -->
+    <context id="_throw-statements" style-ref="js:throw-statement">
+      <start>\%{js:throw-keyword}</start>
+      <end>\%{js:statement-end-or-end-of-line}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments-no-extend-parent"/>
+
+        <context id="_throw-statement-content">
+          <include>
+            <context ref="js-expr:expression-with-comma"/>
+          </include>
+        </context> <!-- /_throw-statement-content -->
+
+      </include>
+    </context> <!-- /_throw-statements -->
+
+
+    <!-- # Try...catch statement
+
+         try { ... } catch (e) { ... } finally { ... }
+    -->
+
+    <context id="_try-body" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_try-body-content">
+          <include>
+            <context ref="statements"/>
+          </include>
+        </context> <!-- /_try-body-content -->
+
+      </include>
+    </context> <!-- /_try-body -->
+
+    <context id="_last-try-body" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_try-body"/>
+      </include>
+    </context> <!-- /_last-try-body -->
+
+    <!-- <TryStatement> -->
+    <context id="_try-statements" style-ref="js:try-catch-statement">
+      <start>\%{js:try-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_try-statement-content">
+          <include>
+            <context ref="_last-try-body"/>
+          </include>
+        </context> <!-- /_try-statement-content -->
+
+      </include>
+    </context> <!-- /_try-statements -->
+
+    <!-- <CatchParameter> -->
+    <context id="_catch-statement-parameter" once-only="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_catch-statement-parameter-content">
+          <include>
+            <context ref="js:ordered-binding"/>
+          </include>
+        </context> <!-- /_catch-statement-parameter-content -->
+
+      </include>
+    </context> <!-- /_catch-statement-parameter -->
+
+    <context id="_ordered-catch-statement-parameter" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_catch-statement-parameter"/>
+      </include>
+    </context> <!-- /_ordered-catch-statement-parameter -->
+
+    <!-- <Catch> -->
+    <context id="_catch-statements" style-ref="js:try-catch-statement">
+      <start>\%{js:catch-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_catch-statement-content">
+          <include>
+            <context ref="_ordered-catch-statement-parameter"/>
+            <context ref="_last-try-body"/>
+          </include>
+        </context> <!-- /_catch-statement-content -->
+
+      </include>
+    </context> <!-- /_catch-statements -->
+
+    <!-- <Finally> -->
+    <context id="_finally-statements" style-ref="js:try-catch-statement">
+      <start>\%{js:finally-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_finally-statement-content">
+          <include>
+            <context ref="_last-try-body"/>
+          </include>
+        </context> <!-- /_finally-statement-content -->
+
+      </include>
+    </context> <!-- /_finally-statements -->
+
+
+    <!-- # Variable declaration
+
+         var a, b = 2;
+         let [a, b] = [1, 2];
+         const { a, y: b = 4, c = 5 } = { a: 1, y: 2 };
+    -->
+
+    <define-regex id="_variable-declaration-keyword" extended="true">
+      \%{js:const-keyword} | \%{js:let-keyword} | \%{js:var-keyword}
+    </define-regex> <!-- /_variable-declaration-keyword -->
+
+    <context id="_variable-declaration-item-content">
+      <include>
+        <context ref="js:ordered-binding"/>
+        <context ref="js:ordered-default-value-assignment"/>
+      </include>
+    </context> <!-- /_variable-declaration-item-content -->
+
+    <context id="_variable-declaration-content">
+      <include>
+
+        <context id="_variable-declaration-first-item" once-only="true">
+          <start>\%{js:before-next-token}</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+            <context ref="_variable-declaration-item-content"/>
+          </include>
+        </context> <!-- /_variable-declaration-first-item -->
+
+        <context id="_variable-declaration-items">
+          <start>,</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+            <context ref="_variable-declaration-item-content"/>
+          </include>
+        </context> <!-- /_variable-declaration-items -->
+
+      </include>
+    </context> <!-- /_variable-declaration-content -->
+
+    <!-- <VariableStatement> / <LexicalDeclaration> -->
+    <context id="_variable-declarations" style-ref="js:variable-declaration">
+      <start>\%{_variable-declaration-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_variable-declaration-content"/>
+      </include>
+    </context> <!-- /_variable-declarations -->
+
+    <!-- <VariableStatement> / <LexicalDeclaration> -->
+    <context id="choice-variable-declaration" style-ref="js:variable-declaration" end-parent="true">
+      <start>\%{_variable-declaration-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_variable-declaration-content"/>
+      </include>
+    </context> <!-- /choice-variable-declaration -->
+
+    <!-- <VariableStatement> / <LexicalDeclaration> -->
+    <context id="_choice-variable-declaration-without-semicolon" style-ref="js:variable-declaration" end-parent="true">
+      <start>\%{_variable-declaration-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context ref="_variable-declaration-content"/>
+      </include>
+    </context> <!-- /_choice-variable-declaration-without-semicolon -->
+
+
+    <!-- # While / do...while statement
+
+         while (true) loop();
+         do { ... } while (a > 0);
+    -->
+
+    <!-- <IterationStatement> (part of) -->
+    <context id="_while-statements" style-ref="js:while-statement">
+      <start>\%{js:while-keyword}</start>
+      <end>\%{js:statement-end}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_while-statement-content">
+          <include>
+            <context ref="_ordered-condition"/>
+          </include>
+        </context> <!-- /_while-statement-content -->
+
+      </include>
+    </context> <!-- /_while-statements -->
+
+    <!-- <IterationStatement> (part of) -->
+    <context id="_do-statements" style-ref="js:while-statement">
+      <start>\%{js:do-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_do-statement-content"/>
+
+      </include>
+    </context> <!-- /_do-statements -->
+
+
+    <!-- # With statement
+
+         with (o) doIt();
+         with (obj) { ... }
+    -->
+
+    <!-- <WithStatement> -->
+    <context id="_with-statements" style-ref="js:with-statement">
+      <start>\%{js:with-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_with-statement-content">
+          <include>
+            <context ref="_ordered-condition"/>
+          </include>
+        </context> <!-- /_with-statement-content -->
+
+      </include>
+    </context> <!-- /_with-statements -->
+
+
+    <!-- # Statements -->
+
+    <!-- <StatementList> -->
+    <!-- statements and declarations that are valid in "scripts" (as
+         opposed to modules) and in block statements -->
+    <context id="statements">
+      <include>
+        <context ref="_block-statements"/>
+        <context ref="_break-statements"/>
+        <context ref="_class-declarations"/>
+        <context ref="_continue-statements"/>
+        <context ref="_debugger-statements"/>
+        <context ref="_for-statements"/>
+        <context ref="_function-declarations"/>
+        <context ref="_if-statements"/>
+        <context ref="_else-statements"/>
+        <context ref="_label-statements"/>
+        <context ref="_return-statements"/>
+        <context ref="_switch-statements"/>
+        <context ref="_throw-statements"/>
+        <context ref="_try-statements"/>
+        <context ref="_catch-statements"/>
+        <context ref="_finally-statements"/>
+        <context ref="_variable-declarations"/>
+        <context ref="_while-statements"/>
+        <context ref="_do-statements"/>
+        <context ref="_with-statements"/>
+        <context ref="_expression-statements"/> <!-- catch-all -->
+      </include>
+    </context> <!-- /statements -->
+
+  </definitions>
+</language>

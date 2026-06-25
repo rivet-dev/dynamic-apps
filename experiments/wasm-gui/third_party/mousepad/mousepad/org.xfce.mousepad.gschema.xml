@@ -1,0 +1,645 @@
+<schemalist gettext-domain="mousepad">
+
+  <!-- Enums and flags -->
+  <enum id="org.xfce.mousepad.SessionRestore">
+    <value nick="never" value="0"/>
+    <value nick="after-a-crash" value="1"/>
+    <value nick="unsaved-documents" value="2"/>
+    <value nick="saved-documents" value="3"/>
+    <value nick="always" value="4"/>
+  </enum>
+
+  <enum id="org.xfce.mousepad.SmartHomeEnd">
+    <value nick="disabled" value="0"/>
+    <value nick="before" value="1"/>
+    <value nick="after" value="2"/>
+    <value nick="always" value="3"/>
+  </enum>
+
+  <enum id="org.xfce.mousepad.ToolbarStyle">
+    <value nick="icons" value="0"/>
+    <value nick="text" value="1"/>
+    <value nick="both" value="2"/>
+    <value nick="both-horiz" value="3"/>
+  </enum>
+
+  <enum id="org.xfce.mousepad.IconSize">
+    <value nick="menu" value="1"/>
+    <value nick="small-toolbar" value="2"/>
+    <value nick="large-toolbar" value="3"/>
+    <value nick="button" value="4"/>
+    <value nick="dnd" value="5"/>
+    <value nick="dialog" value="6"/>
+  </enum>
+
+  <enum id="org.xfce.mousepad.OpeningMode">
+    <value nick="tab" value="0"/>
+    <value nick="window" value="1"/>
+    <value nick="mixed" value="2"/>
+  </enum>
+
+  <enum id="org.xfce.mousepad.ShowInFullscreen">
+    <value nick="auto" value="0"/>
+    <value nick="no" value="1"/>
+    <value nick="yes" value="2"/>
+  </enum>
+
+  <!-- generic schemas -->
+  <schema id="org.xfce.mousepad" path="/org/xfce/mousepad/">
+    <child name="preferences" schema="org.xfce.mousepad.preferences"/>
+    <child name="state" schema="org.xfce.mousepad.state"/>
+  </schema>
+
+  <schema id="org.xfce.mousepad.preferences" path="/org/xfce/mousepad/preferences/">
+    <child name="file" schema="org.xfce.mousepad.preferences.file"/>
+    <child name="view" schema="org.xfce.mousepad.preferences.view"/>
+    <child name="window" schema="org.xfce.mousepad.preferences.window"/>
+  </schema>
+
+  <schema id="org.xfce.mousepad.state" path="/org/xfce/mousepad/state/">
+    <child name="application" schema="org.xfce.mousepad.state.application"/>
+    <child name="search" schema="org.xfce.mousepad.state.search"/>
+    <child name="window" schema="org.xfce.mousepad.state.window"/>
+  </schema>
+
+  <!-- File preferences -->
+  <schema id="org.xfce.mousepad.preferences.file" path="/org/xfce/mousepad/preferences/file/">
+    <key name="default-encoding" type="s">
+      <default>'UTF-8'</default>
+      <summary>Default encoding to be used to open and save files</summary>
+      <description>
+        Default encoding to be used to open and save files, overrided by those
+        provided via the command line option or the "Open" and "Save As" dialogs, if any.
+      </description>
+    </key>
+    <key name="add-last-end-of-line" type="b">
+      <default>false</default>
+      <summary>Add an end-of-line character at end of file on saving</summary>
+      <description>
+        When true, if not present, an end-of-line character is added at the end of
+        the file when saving, to conform to the POSIX definition of a text file.
+      </description>
+    </key>
+    <key name="make-backup" type="b">
+      <default>false</default>
+      <summary>Create a backup file on saving</summary>
+      <description>
+        When true a backup file will be created on saving, by appending a '~'
+        at the end of the original filename.
+      </description>
+    </key>
+    <key name="monitor-changes" type="b">
+      <default>true</default>
+      <summary>File monitoring</summary>
+      <description>
+        When true Mousepad continuously watches opened files for changes, to inform
+        the user in case of external modification of contents or status.
+      </description>
+    </key>
+    <key name="monitor-disabling-timer" type="u">
+      <range min="0" max="10000"/>
+      <default>500</default>
+      <summary>Millisecond timer to ignore own changes when saving</summary>
+      <description>
+        File monitoring must be disabled when saving, to not consider own changes
+        as external modifications. Increase this duration if Mousepad makes this
+        error, probably because you are working with slow backup media. Otherwise,
+        you should leave it alone.
+      </description>
+    </key>
+    <key name="auto-reload" type="b">
+      <default>false</default>
+      <summary>Automatic reloading</summary>
+      <description>
+        When true Mousepad automatically reloads open and unmodified files in case
+        of external modification.
+      </description>
+    </key>
+    <key name="session-restore" enum="org.xfce.mousepad.SessionRestore">
+      <default>'after-a-crash'</default>
+      <summary>Session restore</summary>
+      <description>
+        When enabled Mousepad regularly saves the session state, i.e a list of open
+        tabs and windows (see the 'session' key in the 'state.application' schema),
+        and restores this state on next session according to the value set.
+      </description>
+    </key>
+    <key name="autosave-timer" type="u">
+      <range min="0" max="600"/>
+      <default>30</default>
+      <summary>Seconds timer to automatically save changes in an auxiliary file</summary>
+      <description>
+        If this value is greater than zero, Mousepad regularly saves modified
+        documents in auxiliary files, to restore them on next session if session
+        restore is enabled.
+      </description>
+    </key>
+  </schema>
+
+  <!-- Textview preferences -->
+  <schema id="org.xfce.mousepad.preferences.view" path="/org/xfce/mousepad/preferences/view/">
+    <child name="show-whitespace" schema="org.xfce.mousepad.preferences.view.show-whitespace"/>
+    <key name="auto-indent" type="b">
+      <default>false</default>
+      <summary>Auto-indentation</summary>
+      <description>
+        When true auto-indentation is enabled, when false it is not.
+      </description>
+    </key>
+    <!-- Should be "font" or "font-desc" but left at "font-name" for backward compatibility -->
+    <key name="font-name" type="s">
+      <default>'Monospace 10'</default>
+      <summary>Font</summary>
+      <description>
+        The font to use in the textviews. Can contain Pango
+        font description syntax for greater control.
+      </description>
+    </key>
+    <key name="use-default-monospace-font" type="b">
+      <default>true</default>
+      <summary>Use default monospace font</summary>
+      <description>
+        When enabled, rather than using the font specified in the 'font-name'
+        setting, the default fixed-width font will be used.
+      </description>
+    </key>
+    <key name="show-whitespace" type="b">
+      <default>false</default>
+      <summary>Show whitespace</summary>
+      <description>
+        When true whitespace will be visualized in the view.
+        See also 'view.show-line-endings' and the space location keys 'show-whitespace.*'.
+      </description>
+    </key>
+    <key name="show-line-endings" type="b">
+      <default>false</default>
+      <summary>Show line endings</summary>
+      <description>
+        When true newlines will be visualized in the view.
+        See also 'view.show-whitespace'.
+      </description>
+    </key>
+    <key name="highlight-current-line" type="b">
+      <default>false</default>
+      <summary>Highlight current line</summary>
+      <description>
+        When true visually indicate the line with the caret on it, when false
+        provide no such indication.
+      </description>
+    </key>
+    <key name="indent-on-tab" type="b">
+      <default>true</default>
+      <summary>Indent on tab</summary>
+      <description>
+        When true indent selected text when tab key is pressed, when false,
+        don't indent on tab.
+      </description>
+    </key>
+    <key name="indent-width" type="i">
+      <range min="-1" max="32"/>
+      <default>-1</default>
+      <summary>Indentation width</summary>
+      <description>
+        Width of an indentation step expressed in number of spaces.
+        If width is -1, the value of the "tab-width" key will be used.
+      </description>
+    </key>
+    <key name="insert-spaces" type="b">
+      <default>false</default>
+      <summary>Insert spaces instead of tabs</summary>
+      <description>
+        When true spaces will be insert when the Tab key is pressed instead
+        of tab characters, when false tab characters will be inserted.
+      </description>
+    </key>
+    <key name="right-margin-position" type="u">
+      <range min="1" max="1000"/>
+      <default>80</default>
+      <summary>Right margin position</summary>
+      <description>
+        Position of the right margin (line drawn vertically down right side
+        of the view).
+      </description>
+    </key>
+    <key name="show-line-marks" type="b">
+      <default>false</default>
+      <summary>Show line marks</summary>
+      <description>Whether to display line mark pixbufs.</description>
+    </key>
+    <key name="show-line-numbers" type="b">
+      <default>false</default>
+      <summary>Show line numbers</summary>
+      <description>
+        When true the line numbers gutter/margin will be visible, when false
+        it will not be visible.
+      </description>
+    </key>
+    <key name="show-right-margin" type="b">
+      <default>false</default>
+      <summary>Show right margin</summary>
+      <description>
+        When true the right margin is displayed at the column specified in
+        'view-right-margin-position', when false it is not drawn.
+      </description>
+    </key>
+    <key name="smart-backspace" type="b">
+      <default>false</default>
+      <summary>Smart backspace</summary>
+      <description>
+        When true, pressing the Backspace key will try to delete spaces up to
+        the previous tab stop.
+      </description>
+    </key>
+    <key name="smart-home-end" enum="org.xfce.mousepad.SmartHomeEnd">
+      <default>'disabled'</default>
+      <summary>Smart home end type</summary>
+      <description>Sets the behaviour of the HOME and END keys.</description>
+    </key>
+    <key name="tab-width" type="u">
+      <range min="1" max="32"/>
+      <default>8</default>
+      <summary>Tab width</summary>
+      <description>
+        The number of characters wide that a tab character appears as.
+      </description>
+    </key>
+    <key name="word-wrap" type="b">
+      <default>false</default>
+      <summary>Word wrapping</summary>
+      <description>
+        When true long lines will be virtually wrapped in order to fit within
+        the text view, when false long lines will extend out of view.
+      </description>
+    </key>
+    <key name="match-braces" type="b">
+      <default>false</default>
+      <summary>Match braces</summary>
+      <description>
+        When true highlight matching braces, brackets, parents, etc, when
+        false don't highlight them.
+      </description>
+    </key>
+    <key name="color-scheme" type="s">
+      <default>'none'</default>
+      <summary>Color scheme</summary>
+      <description>
+        Name of the color scheme to use to highlight syntax or 'none' for
+        no syntax highlighting.
+      </description>
+    </key>
+  </schema>
+
+  <schema id="org.xfce.mousepad.preferences.view.show-whitespace" path="/org/xfce/mousepad/preferences/view/show-whitespace/">
+    <key name="leading" type="b">
+      <default>true</default>
+      <summary>Show leading white spaces</summary>
+      <description>
+        When true, show leading white spaces. When false, hide them.
+      </description>
+    </key>
+    <key name="inside" type="b">
+      <default>true</default>
+      <summary>Show white spaces inside a line of text</summary>
+      <description>
+        When true, show white spaces inside a line of text. When false, hide them.
+      </description>
+    </key>
+    <key name="trailing" type="b">
+      <default>true</default>
+      <summary>Show trailing white spaces</summary>
+      <description>
+        When true, show trailing white spaces. When false, hide them.
+      </description>
+    </key>
+  </schema>
+
+  <!-- window preferences -->
+  <schema id="org.xfce.mousepad.preferences.window" path="/org/xfce/mousepad/preferences/window/">
+    <key name="toolbar-style" enum="org.xfce.mousepad.ToolbarStyle">
+      <default>'icons'</default>
+      <summary>Toolbar style</summary>
+      <description>
+        Controls how the toolbar items will be drawn with respect to text
+        labels and icons (if visible).
+      </description>
+    </key>
+    <key name="toolbar-icon-size" enum="org.xfce.mousepad.IconSize">
+      <default>'small-toolbar'</default>
+      <summary>Toolbar icon size</summary>
+      <description>
+        Controls the size of the toolbar icons (if visible).
+      </description>
+    </key>
+    <key name="always-show-tabs" type="b">
+      <default>false</default>
+      <summary>Always show tabs</summary>
+      <description>
+        When true the main document notebook will always show its tabs, when
+        false the tabs will be hidden when there is only one document open.
+      </description>
+    </key>
+    <key name="expand-tabs" type="b">
+      <default>true</default>
+      <summary>Expand tabs to fill available space</summary>
+      <description>
+        When true tabs fill the whole window width all the time.
+      </description>
+    </key>
+    <key name="cycle-tabs" type="b">
+      <default>false</default>
+      <summary>Cycle tabs</summary>
+      <description>
+        When true and cycling through tabs, wrap around once the last tab is
+        reached, when false do nothing at the last tab.
+      </description>
+    </key>
+    <key name="opening-mode" enum="org.xfce.mousepad.OpeningMode">
+      <default>'tab'</default>
+      <summary>File opening mode</summary>
+      <description>
+        File opening mode: "tab", "window" or "mixed" (open tabs in a new window),
+        overrided by the one provided via the command line option, if any.
+      </description>
+    </key>
+    <key name="default-tab-sizes" type="s">
+      <default>'2,3,4,8'</default>
+      <summary>Default tab sizes</summary>
+      <description>
+        A comma-separated string listing the tab sizes that are show in the
+        user-interface for selecting tab width.
+      </description>
+    </key>
+    <key name="path-in-title" type="b">
+      <default>true</default>
+      <summary>Show path in window title</summary>
+      <description>
+        When true the active document's full path will be shown in the window's
+        titlebar, when false only the basename will be shown.
+      </description>
+    </key>
+    <key name="recent-menu-items" type="u">
+      <range min="0" max="100"/>
+      <default>10</default>
+      <summary>Number of recent documents</summary>
+      <description>
+        The number of recent documents to track and show in the user interface.
+        If set to 0 then Mousepad clears the recent documents history and
+        doesn't add any new documents to the history.
+      </description>
+    </key>
+    <key name="remember-size" type="b">
+      <default>true</default>
+      <summary>Remember window size</summary>
+      <description>
+        When true the size of the window will be saved and restored.
+      </description>
+    </key>
+    <key name="remember-position" type="b">
+      <default>false</default>
+      <summary>Remember window position</summary>
+      <description>
+        When true will attempt to save and restore the position of the window
+        when false it won't. Note that window placement is supposed to be the
+        job of the Window Manager and that there's no guarantee the restored
+        window position will be respected, accurate, or even visible on any
+        screen.
+      </description>
+    </key>
+    <key name="remember-state" type="b">
+      <default>true</default>
+      <summary>Remember window state</summary>
+      <description>
+        When true will attempt to save and restore the windows state (ex.
+        normal, maximized, fullscreen, etc, when false it will not. Your
+        Window Manager may very well not report when retrieving or not respect
+        it when setting.
+      </description>
+    </key>
+    <key name="menubar-visible" type="b">
+      <default>true</default>
+      <summary>Menubar visible</summary>
+      <description>
+        When true the main menubar is visible, when false it is not visible.
+      </description>
+    </key>
+    <key name="toolbar-visible" type="b">
+      <default>false</default>
+      <summary>Toolbar visible</summary>
+      <description>
+        When true the toolbar is visible, when false it is not visible.
+      </description>
+    </key>
+    <key name="statusbar-visible" type="b">
+      <default>false</default>
+      <summary>Statusbar visible</summary>
+      <description>
+        When true the statusbar is visible, when false it is not visible.
+      </description>
+    </key>
+    <key name="menubar-visible-in-fullscreen" enum="org.xfce.mousepad.ShowInFullscreen">
+      <default>'auto'</default>
+      <summary>Menubar visible in fullscreen mode</summary>
+      <description>
+        A value of 'auto' means follow the main menubar-visible setting, 'no'
+        means the menubar is not visible in fullscreen, and 'yes' means that
+        it is always visible in fullscreen.
+      </description>
+    </key>
+    <key name="toolbar-visible-in-fullscreen" enum="org.xfce.mousepad.ShowInFullscreen">
+      <default>'auto'</default>
+      <summary>Toolbar visible in fullscreen mode</summary>
+      <description>
+        A value of 'auto' means follow the main toolbar-visible setting, 'no'
+        means the toolbar is not visible in fullscreen, and 'yes' means that
+        it is always visible in fullscreen.
+      </description>
+    </key>
+    <key name="statusbar-visible-in-fullscreen" enum="org.xfce.mousepad.ShowInFullscreen">
+      <default>'auto'</default>
+      <summary>Statusbar visible in fullscreen mode</summary>
+      <description>
+        A value of 'auto' means follow the main statusbar-visible setting, 'no'
+        means the statusbar is not visible in fullscreen, and 'yes' means that
+        it is always visible in fullscreen.
+      </description>
+    </key>
+    <key name="old-style-menu" type="b">
+      <default>true</default>
+      <summary>Old style menu</summary>
+      <description>
+        When true, icons are aligned with the checkmarks for radio and check menuitems,
+        instead of being aligned with the labels. Restart Mousepad for this to take effect.
+      </description>
+    </key>
+    <key name="client-side-decorations" type="b">
+      <default>false</default>
+      <summary>Client-side decorations</summary>
+      <description>
+        When true, Mousepad draws its own window decorations, instead of the window manager.
+        Restart Mousepad for this to take effect.
+      </description>
+    </key>
+  </schema>
+
+  <!-- application state -->
+  <schema id="org.xfce.mousepad.state.application" path="/org/xfce/mousepad/state/application/">
+    <key name="enabled-plugins" type="as">
+      <default>[]</default>
+      <summary>Enabled plugins</summary>
+      <description>
+        List of enabled plugins, among those found in the plugin directory.
+      </description>
+    </key>
+    <key name="session" type="as">
+      <default>[]</default>
+      <summary>Session</summary>
+      <description>
+        List of tabs per window for a session, in the form 'n;uri1;[+]uri2' where 'n'
+        is an integer uniquely identifying a window, 'uri1' the autosave uri for a tab
+        (see the 'autosave' key in the 'preferences.file' schema), the optional '+'
+        identifies the active tab in a window, and 'uri2' is the normal uri for a tab.
+        At least one of these two uris should be present for the file to be restored.
+      </description>
+    </key>
+  </schema>
+
+  <!-- search state -->
+  <schema id="org.xfce.mousepad.state.search" path="/org/xfce/mousepad/state/search/">
+    <key name="direction" type="u">
+      <range min="0" max="1"/>
+      <default>1</default>
+      <summary>search direction</summary>
+      <description>
+        When 0 the search direction is backwards/upwards, when 1 the search
+        direction is forwards/downwards.
+      </description>
+    </key>
+    <key name="wrap-around" type="b">
+      <default>true</default>
+      <summary>Wrap around</summary>
+      <description>
+        When true searches will wrap around, when false they will not.
+      </description>
+    </key>
+    <key name="match-case" type="b">
+      <default>false</default>
+      <summary>Match case</summary>
+      <description>
+        When true searches will be case-sensitive, when false they will
+        be case-insensitive.
+      </description>
+    </key>
+    <key name="enable-regex" type="b">
+      <default>false</default>
+      <summary>Enable regular expressions</summary>
+      <description>
+        When true regular expression search will be enabled, when false it will
+        be disabled.
+      </description>
+    </key>
+    <key name="match-whole-word" type="b">
+      <default>false</default>
+      <summary>Match whole word</summary>
+      <description>
+        When true searches must match an entire word (using default word
+        boundary characters), when false matches can occur anywhere, even
+        within a larger word.
+      </description>
+    </key>
+    <key name="replace-all" type="b">
+      <default>false</default>
+      <summary>Replace all</summary>
+      <description>
+        When true the Replace search dialog is in "replace-all" mode, when
+        false the dialog is in "replace-one-at-a-time" mode.
+      </description>
+    </key>
+    <key name="replace-all-location" type="u">
+      <range min="0" max="2"/>
+      <default>1</default>
+      <summary>Replace-all location</summary>
+      <description>
+        When 0 the replace-all is performed within the current selection, when
+        1 the replace-all is performed in the current document, and when 2
+        the replace-all is performed in all currently open documents in the active window.
+      </description>
+    </key>
+    <key name="highlight-all" type="b">
+      <default>false</default>
+      <summary>Highlight all</summary>
+      <description>
+        When true search results are highlighted, otherwise they aren't.
+      </description>
+    </key>
+    <key name="incremental" type="b">
+      <default>false</default>
+      <summary>Incremental search</summary>
+      <description>
+        When true, the closest search result is automatically selected and the view
+        automatically scrolls as the search field is modified. When false, the search
+        context is only silently updated.
+      </description>
+    </key>
+    <key name="history-size" type="u">
+      <range min="0" max="100"/>
+      <default>20</default>
+      <summary>Number of entries in the search history</summary>
+      <description>
+        The number of entries in the search history, as well as in the replace history.
+        If set to 0 then Mousepad clears the search history and doesn't add any new entry.
+      </description>
+    </key>
+    <key name="search-history" type="as">
+      <default>[]</default>
+      <summary>Search history</summary>
+      <description>
+        The search history of the patterns that have been explicitly searched (by
+        pressing the enter key or clicking on a search button).
+      </description>
+    </key>
+    <key name="replace-history" type="as">
+      <default>[]</default>
+      <summary>Replace history</summary>
+      <description>
+        The replace history of the patterns actually used for a replacement.
+      </description>
+    </key>
+  </schema>
+
+  <!-- window state -->
+  <schema id="org.xfce.mousepad.state.window" path="/org/xfce/mousepad/state/window/">
+    <key name="height" type="u">
+      <default>480</default>
+      <summary>Window height</summary>
+      <description>The height of window in pixels.</description>
+    </key>
+    <key name="width" type="u">
+      <default>640</default>
+      <summary>Window width</summary>
+      <description>The width of windows in pixels.</description>
+    </key>
+    <key name="top" type="u">
+      <default>0</default>
+      <summary>Window top</summary>
+      <description>The Y coordinate of the window's position.</description>
+    </key>
+    <key name="left" type="u">
+      <default>0</default>
+      <summary>Window left</summary>
+      <description>The X coordinate of the window's position.</description>
+    </key>
+    <key name="maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized</summary>
+      <description>Whether the window is maximized or not.</description>
+    </key>
+    <key name="fullscreen" type="b">
+      <default>false</default>
+      <summary>Window fullscreen</summary>
+      <description>
+        When true the window will be fullscreen, when false it won't be.
+      </description>
+    </key>
+  </schema>
+
+</schemalist>

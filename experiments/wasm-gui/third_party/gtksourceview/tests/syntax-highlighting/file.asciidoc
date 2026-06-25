@@ -1,0 +1,576 @@
+[id="a-title"]
+= A title
+
+This is a regular paragraph. It contains *bold*, _italic_, and `monospace` text. Parts of words can use markup using "unconstrained quotes": abc**d**efg__h__ijk.
+
+.List title
+* This is
+* An unordered list
+
+.List title
+. This is
+. An ordered list
+
+.A labeled list
+Item 1:: A description.
+Item 2::
+Another description.
+
+A command to display the `file.asciidoc` file using `cat`:
+
+----
+$ cat file.asciidoc
+----
+
+NOTE: This is a note.
+
+[WARNING]
+====
+A longer note-like block.
+
+This one is a warning.
+====
+
+link:https://gitlab.gnome.org/[A hypertext link]
+
+// A single-line comment
+
+////
+A multi-line
+comment
+block
+////
+
+:an-attribute: the content of an attribute (a variable), defined here
+
+This paragraph includes {an-attribute}.
+
+
+
+// from https://powerman.name/doc/asciidoc
+
+// Document header
+
+Main Header
+===========
+Optional Author Name <optional@author.email>
+Optional version, optional date
+:Author:    AlternativeWayToSetOptional Author Name
+:Email:     <AlternativeWayToSetOptional@author.email>
+:Date:      AlternativeWayToSetOptional date
+:Revision:  AlternativeWayToSetOptional version
+
+
+// Attributes
+
+Author is {author}
+
+Version is {revision}
+
+:My name: Alex Efros
+My name is {myname}
+
+Line
+with bad attribute {qwe} will be
+deleted
+
+Escaped: \{qwe} and +++{qwe}+++
+
+
+// Headers
+
+Level 1
+-------
+Text.
+
+Level 2
+~~~~~~~
+Text.
+
+Level 3
+^^^^^^^
+Text.
+
+Level 4
++++++++
+Text.
+
+== Level 1
+Text.
+
+=== Level 2
+Text.
+
+==== Level 3
+Text.
+
+===== Level 4
+Text.
+
+
+// Paragraphs
+
+.Optional Title
+
+Usual
+paragraph.
+
+.Optional Title
+
+ Literal paragraph.
+  Must be indented.
+
+.Optional Title
+
+[source,perl]
+die 'connect: '.$dbh->errstr;
+
+Not a code in next paragraph.
+
+.Optional Title
+NOTE: This is an example
+      single-paragraph note.
+
+.Optional Title
+[NOTE]
+This is an example
+single-paragraph note.
+
+TIP: Tip.
+
+IMPORTANT: Important.
+
+WARNING: Warning.
+
+CAUTION: Caution.
+
+
+// Blocks
+
+.Optional Title
+----
+*Listing* Block
+
+Use: code or file listings
+----
+
+.Optional Title
+[source,perl]
+----
+# *Source* block
+# Use: highlight code listings
+# (require `source-highlight` or `pygmentize`)
+use DBI;
+my $dbh = DBI->connect('...',$u,$p)
+    or die "connect: $dbh->errstr";
+----
+
+.Optional Title
+****
+*Sidebar* Block
+
+Use: sidebar notes :)
+****
+
+.Optional Title
+==========================
+*Example* Block
+
+Use: examples :)
+
+Default caption "Example:"
+can be changed using
+
+ [caption="Custom: "]
+
+before example block.
+==========================
+
+.Optional Title
+[NOTE]
+===============================
+*NOTE* Block
+
+Use: multi-paragraph notes.
+===============================
+
+////
+*Comment* block
+
+Use: hide comments
+////
+
+++++
+*Passthrough* Block
+<p>
+Use: backend-specific markup like
+<table border="1">
+<tr><td>1<td>2
+</table>
+++++
+
+ .Optional Title
+ ....
+ *Literal* Block
+
+ Use: workaround when literal
+ paragraph (indented) like
+   1. First.
+   2. Second.
+ incorrectly processed as list.
+ ....
+
+.Optional Title
+[quote, cite author, cite source]
+____
+*Quote* Block
+
+Use: cite somebody
+____
+
+
+// Text
+
+forced +
+line break
+
+normal, _italic_, *bold*, +mono+.
+
+``double quoted'', `single quoted'.
+
+normal, ^super^, ~sub~.
+
+Command: `ls -al`
+
++mono *bold*+
+
+`passthru *bold*`
+
+Path: '/some/filez.txt', '.b'
+
+[red]#red text# [yellow-background]#on yellow#
+[big]#large# [red yellow-background big]*all bold*
+
+Chars: n__i__**b**++m++[red]##r##
+
+// Comment
+
+(C) (R) (TM) -- ... -> <- => <= &#182;
+
+''''
+
+Escaped:
+\_italic_, +++_italic_+++,
+t\__e\__st, +++t__e__st+++,
++++<b>bold</b>+++, $$<b>normal</b>$$
+\&#182;
+\`not single quoted'
+\`\`not double quoted''
+
+
+// Macros: links, images & include
+
+[[anchor-1]]
+Paragraph or block 1.
+
+anchor:anchor-2[]
+Paragraph or block 2.
+
+<<anchor-1>>,
+<<anchor-1,First anchor>>,
+xref:anchor-2[],
+xref:anchor-2[Second anchor].
+
+link:asciidoc[This document]
+link:asciidoc.html[]
+link:/index.html[This site root]
+
+http://google.com
+http://google.com[Google Search]
+mailto:root@localhost[email admin]
+
+First home
+image:images/icons/home.png[]
+, second home
+image:images/icons/home.png[Alt text]
+.
+
+.Block image
+image::images/icons/home.png[]
+image::images/icons/home.png[Alt text]
+
+.Thumbnail linked to full image
+image:/images/font/640-screen2.gif[
+"My screenshot",width=128,
+link="/images/font/640-screen2.gif"]
+
+This is example how files
+can be included.
+It's commented because
+there no such files. :)
+
+// include::footer.txt[]
+
+// [source,perl]
+// ----
+// include::script.pl[]
+// ----
+
+
+// Lists
+
+.Bulleted
+* bullet
+* bullet
+  - bullet
+  - bullet
+* bullet
+** bullet
+** bullet
+*** bullet
+*** bullet
+**** bullet
+**** bullet
+***** bullet
+***** bullet
+**** bullet
+*** bullet
+** bullet
+* bullet
+
+.Bulleted 2
+- bullet
+  * bullet
+
+.Ordered
+. number
+. number
+  .. letter
+  .. letter
+. number
+.. loweralpha
+.. loweralpha
+... lowerroman
+... lowerroman
+.... upperalpha
+.... upperalpha
+..... upperroman
+..... upperroman
+.... upperalpha
+... lowerroman
+.. loweralpha
+. number
+
+.Ordered 2
+a. letter
+b. letter
+   .. letter2
+   .. letter2
+       .  number
+       .  number
+           1. number2
+           2. number2
+           3. number2
+           4. number2
+       .  number
+   .. letter2
+c. letter
+
+.Labeled
+Term 1::
+    Definition 1
+Term 2::
+    Definition 2
+    Term 2.1;;
+        Definition 2.1
+    Term 2.2;;
+        Definition 2.2
+Term 3::
+    Definition 3
+Term 4:: Definition 4
+Term 4.1::: Definition 4.1
+Term 4.2::: Definition 4.2
+Term 4.2.1:::: Definition 4.2.1
+Term 4.2.2:::: Definition 4.2.2
+Term 4.3::: Definition 4.3
+Term 5:: Definition 5
+
+.Labeled 2
+Term 1;;
+    Definition 1
+    Term 1.1::
+        Definition 1.1
+
+[horizontal]
+.Labeled horizontal
+Term 1:: Definition 1
+Term 2:: Definition 2
+[horizontal]
+    Term 2.1;;
+        Definition 2.1
+    Term 2.2;;
+        Definition 2.2
+Term 3::
+    Definition 3
+Term 4:: Definition 4
+[horizontal]
+Term 4.1::: Definition 4.1
+Term 4.2::: Definition 4.2
+[horizontal]
+Term 4.2.1:::: Definition 4.2.1
+Term 4.2.2:::: Definition 4.2.2
+Term 4.3::: Definition 4.3
+Term 5:: Definition 5
+
+[qanda]
+.Q&A
+Question 1::
+    Answer 1
+Question 2:: Answer 2
+
+.Indent is optional
+- bullet
+    * another bullet
+        1. number
+        .  again number
+            a. letter
+            .. again letter
+
+.. letter
+. number
+
+* bullet
+- bullet
+
+.Break two lists
+. number
+. number
+
+Independent paragraph break list.
+
+. number
+
+.Header break list too
+. number
+
+--
+. List block define list boundary too
+. number
+. number
+--
+
+--
+. number
+. number
+--
+
+.Continuation
+- bullet
+continuation
+. number
+  continuation
+* bullet
+
+  literal continuation
+
+.. letter
++
+Non-literal continuation.
++
+----
+any block can be
+
+included in list
+----
++
+Last continuation.
+
+.List block allow sublist inclusion
+- bullet
+  * bullet
++
+--
+    - bullet
+      * bullet
+--
+  * bullet
+- bullet
+  . number
+    .. letter
++
+--
+      . number
+        .. letter
+--
+    .. letter
+  . number
+
+
+// Tables
+
+.An example table
+[options="header,footer"]
+|=======================
+|Col 1|Col 2      |Col 3
+|1    |Item 1     |a
+|2    |Item 2     |b
+|3    |Item 3     |c
+|6    |Three items|d
+|=======================
+
+.CSV data, 15% each column
+[format="csv",width="60%",cols="4"]
+[frame="topbot",grid="none"]
+|======
+1,2,3,4
+a,b,c,d
+A,B,C,D
+|======
+
+[grid="rows",format="csv"]
+[options="header",cols="^,<,<s,<,>m"]
+|===========================
+ID,FName,LName,Address,Phone
+1,Vasya,Pupkin,London,+123
+2,X,Y,"A,B",45678
+|===========================
+
+.Multiline cells, row/col span
+|====
+|Date |Duration |Avg HR |Notes
+
+|22-Aug-08 .2+^.^|10:24 | 157 |
+Worked out MSHR (max sustainable
+heart rate) by going hard
+for this interval.
+
+|22-Aug-08 | 152 |
+Back-to-back with previous interval.
+
+|24-Aug-08 3+^|none
+
+|====
+
+
+// System macros
+
+include::chapter1.txt[tabsize=4]
+
+ifdef::revnumber[Version number 42]
+
+ifdef::revnumber[]
+Version number 42
+endif::revnumber[]
+
+ifeval::[{rs458}==2]
+:
+endif::[]
+
+sys::[ls -l *.txt]
+
+template::[admonitionblock]
+
+
+// Page break
+
+<<<

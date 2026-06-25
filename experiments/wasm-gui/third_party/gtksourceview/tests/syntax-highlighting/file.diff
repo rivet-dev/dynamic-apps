@@ -1,0 +1,12 @@
+diff -r 231ed68760a0 moo/moofileview/moofileview.c
+--- a/moo/moofileview/moofileview.c     Wed Dec 20 21:08:14 2006 -0600
++++ b/moo/moofileview/moofileview.c     Wed Dec 20 20:33:06 2006 -0600
+@@ -1407,7 +1413,7 @@ create_toolbar (MooFileView *fileview)
+
+     gtk_toolbar_set_tooltips (toolbar, TRUE);
+     gtk_toolbar_set_style (toolbar, GTK_TOOLBAR_ICONS);
+-    gtk_toolbar_set_icon_size (toolbar, GTK_ICON_SIZE_MENU);
++    gtk_toolbar_set_icon_size (toolbar, TOOLBAR_ICON_SIZE);
+
+     _moo_file_view_setup_button_drag_dest (fileview, "MooFileView/Toolbar/GoUp", "go-up");
+     _moo_file_view_setup_button_drag_dest (fileview, "MooFileView/Toolbar/GoBack", "go-back");

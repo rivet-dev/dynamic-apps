@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-js-expr" name="TypeScript JavaScript Expression Additions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Grouping / arrow function parameters -->
+
+    <!-- function parameter list allows for accessibility modifiers,
+         but these are not allowed in arrow function parameters
+
+         in a case like:
+         (x: number = 1) => x
+         the type annotation (: number) ends the expression (x),
+         so we add the default value assignment (= 1) back
+    -->
+
+    <!-- replaces js-expr:_grouping-item-content -->
+    <context id="grouping-item-content">
+      <include>
+        <context ref="js-expr:_grouping-item-content" original="true"/>
+        <!-- the ternary operator will match for the optional
+             modifier (?), which should end early as there is no true
+             value -->
+        <context ref="typescript:ordered-type-annotation"/>
+        <context ref="js:ordered-default-value-assignment"/>
+      </include>
+    </context> <!-- /grouping-item-content -->
+
+    <context id="_grouping" style-ref="js:grouping" once-only="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:grouping-operator"/>
+        <context sub-pattern="0" where="end" style-ref="js:grouping-operator"/>
+        <context ref="js:comments"/>
+        <context ref="js-expr:_grouping-content"/>
+      </include>
+    </context> <!-- /_grouping -->
+
+    <context id="_ordered-grouping" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_grouping"/>
+      </include>
+    </context> <!-- /_ordered-grouping -->
+
+    <!-- replaces js-expr:_choice-grouping -->
+    <context id="choice-grouping-and-type-annotation" end-parent="true">
+      <start>(?=\()</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_grouping-and-type-annotation-content">
+          <include>
+            <context ref="_ordered-grouping"/>
+            <context ref="typescript:ordered-type-annotation"/>
+          </include>
+        </context> <!-- /_grouping-and-type-annotation-content -->
+
+      </include>
+    </context> <!-- /choice-grouping-and-type-annotation -->
+
+
+    <!-- # Non-null assertion (post-fix !)
+
+         a!.method();
+    -->
+
+    <context id="_non-null-assertion-operators" style-ref="typescript:non-null-assertion-operator">
+      <match>!(?!=)</match>
+    </context> <!-- /_non-null-assertion-operators -->
+
+
+    <!-- # Function call type arguments
+
+         fn<string, number>()
+    -->
+
+    <context id="_function-call-type-arguments-lists">
+      <start extended="true">
+        (?(DEFINE)
+          (?&lt;arguments&gt;  # recursive subpattern to find matching brackets
+            &lt;
+            (?:
+              (?&gt; [^&lt;&gt;]+ ) |
+              (?&amp;arguments)
+            )*
+            &gt;
+          )
+        )
+        (?=
+          (?&amp;arguments)
+          \%{js:optional-whitespace-or-comments}
+          (?: \( | ` )  # function call or tagged template
+        )
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_function-call-type-arguments-list-content">
+          <include>
+            <context ref="typescript-type-gen:ordered-type-arguments-list"/>
+          </include>
+        </context> <!-- /_function-call-type-arguments-list-content -->
+
+      </include>
+    </context> <!-- /_function-call-type-arguments-lists -->
+
+
+    <!-- # Post-primary expression -->
+
+    <!-- replaces js-expr:_dot-property-accessor-content -->
+    <context id="dot-property-accessor-content">
+      <include>
+        <context ref="typescript:choice-private-identifier"/>
+        <context ref="js-expr:_dot-property-accessor-content" original="true"/>
+      </include>
+    </context> <!-- /dot-property-accessor-content -->
+
+    <!-- replaces js-expr:_optional-chain-content -->
+    <context id="optional-chain-content">
+      <include>
+        <context ref="typescript:choice-private-identifier"/>
+        <context ref="js-expr:_optional-chain-content" original="true"/>
+      </include>
+    </context> <!-- /optional-chain-content -->
+
+    <!-- replaces js-expr:_post-primary-expression -->
+    <context id="post-primary-expression">
+      <include>
+        <context ref="_non-null-assertion-operators"/>
+        <context ref="_function-call-type-arguments-lists"/>
+        <context ref="js-expr:_post-primary-expression" original="true"/>
+      </include>
+    </context> <!-- /post-primary-expression -->
+
+
+    <!-- # Pre-LHS expression -->
+
+    <!-- replaces js-expr:_pre-lhs-expression -->
+    <context id="pre-lhs-expression">
+      <include>
+        <context ref="typescript-type-gen:type-parameters-list-or-type-assertion"/>
+        <context ref="js-expr:_pre-lhs-expression" original="true"/>
+      </include>
+    </context> <!-- /pre-lhs-expression -->
+
+
+    <!-- # as operator (type assertion / cast)
+
+         a = obj as string;
+    -->
+
+    <context id="_as-operators">
+      <start>\%{js:as-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_as-operator-content">
+          <include>
+            <context ref="typescript-type-gen:const-type-assertion-keyword-end-parent"/>
+            <context ref="typescript-type-expr:type-expression"/>
+          </include>
+        </context> <!-- /_as-operator-content -->
+
+      </include>
+    </context> <!-- /_as-operators -->
+
+
+    <!-- # Post-LHS expression -->
+
+    <!-- ## Without comma -->
+
+    <!-- replaces js-expr:_post-lhs-expression-without-comma -->
+    <context id="post-lhs-expression-without-comma">
+      <include>
+        <context ref="js-expr:_post-lhs-expression-without-comma" original="true"/>
+        <context ref="_as-operators"/>
+      </include>
+    </context> <!-- /post-lhs-expression-without-comma -->
+
+    <!-- ## With comma -->
+
+    <!-- replaces js-expr:_post-lhs-expression-with-comma -->
+    <context id="post-lhs-expression-with-comma">
+      <include>
+        <context ref="js-expr:_post-lhs-expression-with-comma" original="true"/>
+        <context ref="_as-operators"/>
+      </include>
+    </context> <!-- /post-lhs-expression-with-comma -->
+
+  </definitions>
+</language>

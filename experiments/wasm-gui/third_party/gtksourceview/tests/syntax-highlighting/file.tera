@@ -1,0 +1,15 @@
+{% extends "master" %}
+
+{% set_global number = 1.2 + 4 %}
+
+<html>
+  {% import "macros.tera" as macros %}
+  {# Comment #}
+  {{ macros::input(label="Name", type="text") }}
+
+  {% set result = call_function() %}
+
+  {{ type|first }}
+
+  <h1 class="{{ type|slugify }}">{{ value|join(sep=",") }}</h1>
+</html>

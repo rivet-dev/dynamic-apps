@@ -1,0 +1,17 @@
+<%
+# this is a comment withing a processed Ruby block
+day_of_week = Time.now.wday
+%>
+
+The is a plain text file with ERB tags embedded within it
+
+Today is day <%= day_of_week %> of the week
+
+<% if false %>
+This text will not be shown because it has been disabled in the Ruby condition
+<% end %>
+
+<%# This block will be ignored %>
+
+<%% puts "This entire ruby block will be shown and not preprocessed" %>
+

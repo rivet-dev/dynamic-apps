@@ -1,0 +1,47 @@
+# comment
+
+[table]
+key = "value  - #"          # " comment "
+lines = '''
+multi
+lines
+'''
+
+[tabel] #comment
+date = 1979-05-27T00:32:00.999999-07:00 #date
+int = 1_000
+float = 6.626e-34
+
+hex = 0xDEADBEEF
+oct = 0o012345
+bin = 0b11010110
+inf = inf  # positive infinity
+
+    [[more.complex."array#"]]
+        "key" = "text"
+        multi_line_array = [
+            "]",
+            # ] commmet
+            ]
+
+
+="no key name"   #not allowed
+[...fasd...]     # INVALID
+[a.]   # INVALID
+[a..b] # INVALID
+[.b]   # INVALID
+[.]    # INVALID
+
+
+[error] if you didn't catch this, your parser is broken
+key = # INVALID
+
+string = "after value error" like this
+
+array = [
+         "This might most likely happen in multiline arrays",
+         Like here,
+         "or here,
+         and here"
+         ]     End of array comment, forgot the #
+number = 3.14 pi <--again forgot the #

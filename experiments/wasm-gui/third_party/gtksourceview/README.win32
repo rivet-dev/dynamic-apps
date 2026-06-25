@@ -1,0 +1,70 @@
+Building GtkSourceView for Windows with Meson using Visual Studio
+=========
+
+Meson is now the supported method of building GtkSourceView with Visual Studio, where the process
+of doing so is described in the following section:
+
+Prior to building, you will need the following:
+-Python 3.5.x or later
+-Meson 0.49.0 (or later) at this time of writing
+-A version of Visual Studio 2008 to 2019.
+-Ninja build tool (unless --backend=vs is
+ specified in the Meson configure command line for
+ Visual Studio 2010, 2015, 2017, 2019)
+-The pkg-config utility (or a compatible one), either in
+ your PATH or found by setting PKG_CONFIG to point to
+ such a tool.
+
+-GLib 2.48.0 (or later) at this time of writing
+-GTK 3.20.0 (or later) at this time of writing
+-LibXML2 2.6 (or later) at this time of writing
+-libgladeui 3.9 (or later) at this time of writing [optional]
+-GObject-Introspection 1.42.0 (or later) at this time of writing [optional]
+
+For the depedent packages, you will need to ensure that their pkg-config (.pc) files
+could be found by the pkg-config utility, either directly or by setting PKG_CONFIG_PATH
+to point to the path(s) where the .pc files could be found.  For libxml2, if .pc files
+are not available, ensure that its headers and import library can be found by ensuring
+your INCLUDE and LIB environment variables include these repective paths.  For the
+introspection to complete successfully, you will also need to ensure that the DLLs can be
+found in the bindir entries of your .pc files or in your PATH.
+
+To build GtkSourceView, do the following:
+
+-Open a Visual Studio command prompt.
+-In the command prompt, create an empty build directory that is on the same drive
+ as the GtkSourceView sources.
+-Run the command in the command prompt in your build directory:
+   meson <path_to_GtkSourceView_sources> --buildtype=... --prefix=... -Dvapi=false
+ 
+ Where:
+  -buildtype can be debug, release,plain or debugoptmized (default),
+   please see the Meson documentation for more details
+  -prefix is where the built files are copied to upon 'install'
+  -Dvapi=false is the build to not check for Vala, which is normally not present
+   on Visual Studio builds.
+
+ You may want to specify the following as well:
+  --backend=vs: Generate Visual Studio projects for building on Visual Studio 2010, 2015
+                2017, 2019.  This will remove the need for Ninja.  Please note that the
+                generated project files are only valid on the machine they are generated.
+  -Dgir=false: Disable introspection builds.
+
+-If the previous command completed successfully, carry out the build by running 'ninja' or
+ by opening and building the projects with the generated Visual Studio projects, if using
+ --backend=vs.  If desired, run the test using 'ninja test' or building the 'test' project
+ in the Visual Studio projects.
+
+-Install the build results using 'ninja install' or building the 'install' project in the
+ Visual Studio projects.
+
+Some additional notes on building with Visual Studio 2008:
+===
+The builds generate the SxS manifest files that need to be manually embedded into the built
+DLL and EXE files, which can be done by after running 'ninja install' using the Visual Studio
+command prompt from within the build directory:
+
+ for /r %f in (*.dll.manifest) do if exist <install_prefix>\bin\%~nf mt /manifest %f /outputresource:<install_prefix>\bin\%~nf;2
+ for /r %f in (*.exe.manifest) do if exist <install_prefix>\bin\%~nf mt /manifest %f /outputresource:<install_prefix>\bin\%~nf;1
+
+This is to ensure that the built binaries can be run.

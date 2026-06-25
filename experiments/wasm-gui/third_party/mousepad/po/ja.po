@@ -1,0 +1,1878 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Xfce
+# This file is distributed under the same license as the xfce-apps.mousepad package.
+# 
+# Translators:
+# Daichi Kawahata <daichi@xfce.org>, 2005
+# Masato HASHIMOTO <cabezon.hashimoto@gmail.com>, 2012
+# Masato HASHIMOTO <cabezon.hashimoto@gmail.com>, 2012
+# Nobuhiro Iwamatsu <iwamatsu@nigauri.org>, 2008,2018-2023
+# Tarot Osuji <tarot@sdf.lonestar.org>, 2004
+# UTUMI Hirosi <utuhiro78@yahoo.co.jp>, 2019-2023
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfce Apps\n"
+"Report-Msgid-Bugs-To: https://gitlab.xfce.org/\n"
+"POT-Creation-Date: 2023-05-05 10:52+0200\n"
+"PO-Revision-Date: 2013-07-03 18:24+0000\n"
+"Last-Translator: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>, 2008,2018-2023\n"
+"Language-Team: Japanese (http://app.transifex.com/xfce/xfce-apps/language/ja/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ja\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: mousepad/mousepad-application.c:136
+msgid ""
+"Encoding to be used to open files (leave empty to open files in the encoding"
+" dialog)"
+msgstr "ファイルを開くときに使用するエンコーディング（エンコーディングダイアログでファイルを開く場合は空のままにする）"
+
+#: mousepad/mousepad-application.c:137
+msgid "ENCODING"
+msgstr "エンコーディング"
+
+#: mousepad/mousepad-application.c:142
+msgid "Display a list of possible encodings to open files"
+msgstr "ファイルを開く際に可能性のあるエンコーディングリストを表示する"
+
+#: mousepad/mousepad-application.c:147
+msgid ""
+"Line number the cursor to position to (LINE > 0 from top, LINE < 0 from "
+"bottom)"
+msgstr "カーソル位置の行番号（0より大きい場合は上からの位置、0より小さい場合は下からの位置）"
+
+#: mousepad/mousepad-application.c:148
+msgid "LINE"
+msgstr "行"
+
+#: mousepad/mousepad-application.c:153
+msgid ""
+"Column number the cursor to position to (COLUMN >= 0 from start, COLUMN < 0 "
+"from end)"
+msgstr "カーソル位置の列番号（0以上の場合は先頭からの位置、0未満の場合は末尾からの位置）"
+
+#: mousepad/mousepad-application.c:154
+msgid "COLUMN"
+msgstr "カラム"
+
+#: mousepad/mousepad-application.c:159
+msgid "Open the preferences dialog"
+msgstr "設定ダイアログを開きます"
+
+#: mousepad/mousepad-application.c:164
+msgid "Do not register with the D-BUS session message bus"
+msgstr "D-BUS セッションメッセージバスに登録しない"
+
+#: mousepad/mousepad-application.c:169
+msgid "Quit a running Mousepad primary instance"
+msgstr "実行中の Mousepad プライマリインスタンスを終了する"
+
+#: mousepad/mousepad-application.c:174
+msgid "Print version information and exit"
+msgstr "バージョン情報を表示して終了する"
+
+#: mousepad/mousepad-application.c:179
+msgid "[FILES...]"
+msgstr "[ファイル...]"
+
+#. default application name
+#: mousepad/mousepad-application.c:382 org.xfce.mousepad.desktop.in.in:4
+#: org.xfce.mousepad.appdata.xml.in:7
+msgid "Mousepad"
+msgstr "Mousepad"
+
+#: mousepad/mousepad-application.c:391
+#, c-format
+msgid "File opening mode: \"%s\", \"%s\" or \"%s\" (open tabs in a new window)"
+msgstr "ファイルを開くモード: \"%s\"、 \"%s\"、または  \"%s\"（新しいウィンドウでタブを開く）"
+
+#: mousepad/mousepad-application.c:394
+msgid "MODE"
+msgstr "モード"
+
+#: mousepad/mousepad-application.c:452
+msgid "The Mousepad developers. All rights reserved."
+msgstr "The Mousepad developers. All rights reserved."
+
+#: mousepad/mousepad-application.c:453
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "バグの報告は <%s> までお願いします。"
+
+#: mousepad/mousepad-application.c:1534
+#, c-format
+msgid "%s | Authors: %s | Filename: %s"
+msgstr "%s | 作者: %s | ファイル名: %s"
+
+#: mousepad/mousepad-dialogs.c:70 org.xfce.mousepad.appdata.xml.in:8
+msgid "Mousepad is a simple text editor for the Xfce desktop environment"
+msgstr "Mousepad は Xfce デスクトップ環境向けのシンプルなテキストエディターです。"
+
+#: mousepad/mousepad-dialogs.c:77
+msgid "translator-credits"
+msgstr "Tarot Osuji <tarot@sdf.lonestar.org>, 2004.\nDaichi Kawahata <daichi@xfce.org>, 2005.\nNobuhiro Iwamatsu <iwamatsu@nigauri.org>, 2008.\nMasato Hashimoto <hashimo@xfce.org>, 2012, 2014."
+
+#. display an error message to the user
+#: mousepad/mousepad-dialogs.c:124
+msgid "Failed to open the documentation browser"
+msgstr "ドキュメントブラウザーを開くことに失敗しました"
+
+#. build dialog
+#: mousepad/mousepad-dialogs.c:140
+msgid "Select Tab Size"
+msgstr "タブサイズの選択"
+
+#. build the dialog
+#: mousepad/mousepad-dialogs.c:232
+msgid "Go To"
+msgstr "移動"
+
+#. add button
+#: mousepad/mousepad-dialogs.c:240
+msgid "_Jump to"
+msgstr "次へ移動(_J)"
+
+#: mousepad/mousepad-dialogs.c:260
+msgid "_Line number:"
+msgstr "行番号(_L):"
+
+#: mousepad/mousepad-dialogs.c:280
+msgid "C_olumn number:"
+msgstr "列番号(_O):"
+
+#: mousepad/mousepad-dialogs.c:340
+msgid "Remove all entries from the documents history?"
+msgstr "ドキュメント履歴からすべてのアイテムを削除しますか?"
+
+#. setup CSD titlebar
+#: mousepad/mousepad-dialogs.c:344
+msgid "Clear Documents History"
+msgstr "ドキュメント履歴のクリア"
+
+#: mousepad/mousepad-dialogs.c:349
+msgid ""
+"Clearing the documents history will permanently remove all currently listed "
+"entries."
+msgstr "ドキュメント履歴をクリアすると、現在表示されているすべてのアイテムを完全に削除します。"
+
+#: mousepad/mousepad-dialogs.c:356
+msgid "Clea_r"
+msgstr "クリア(_R)"
+
+#: mousepad/mousepad-dialogs.c:382
+msgid "Do you want to save the changes before closing?"
+msgstr "閉じる前に変更を保存しますか?"
+
+#: mousepad/mousepad-dialogs.c:384
+msgid "The document is read-only, do you want to save it as another file?"
+msgstr "ドキュメントは読み込み専用です。他のファイルとして保存しますか?"
+
+#. setup CSD titlebar
+#: mousepad/mousepad-dialogs.c:392 mousepad/mousepad-dialogs.c:532
+msgid "Save Changes"
+msgstr "変更の保存"
+
+#: mousepad/mousepad-dialogs.c:402
+msgid "_Don't Save"
+msgstr "保存しない(_D)"
+
+#: mousepad/mousepad-dialogs.c:408
+msgid ""
+"If you don't save this read-only document as another file, all the changes "
+"will be lost."
+msgstr "この読み込み専用ドキュメントを他のファイルとして保存しない場合、すべての変更箇所は失われます。"
+
+#: mousepad/mousepad-dialogs.c:415
+msgid "If you don't save the document, all the changes will be lost."
+msgstr "保存しない場合、すべての変更箇所は失われます。"
+
+#: mousepad/mousepad-dialogs.c:456
+msgid ""
+"The document has been externally modified. Do you want to continue saving?"
+msgstr "この文書は外部から変更されています。このまま保存しますか?"
+
+#: mousepad/mousepad-dialogs.c:457
+msgid "If you save the document, all of the external changes will be lost."
+msgstr "保存すると、すべての外部からの変更箇所は失われます。"
+
+#: mousepad/mousepad-dialogs.c:464
+msgid ""
+"The document has been externally modified. Do you want to reload it from "
+"disk?"
+msgstr "この文書は外部から変更されています。ディスクから再読込しますか?"
+
+#: mousepad/mousepad-dialogs.c:469
+msgid "You have unsaved changes. If you revert the file, they will be lost."
+msgstr "保存されていない変更があります。ファイルを元に戻すと、保存されていない変更は失われます。"
+
+#. setup CSD titlebar
+#: mousepad/mousepad-dialogs.c:487
+msgid "Externally Modified"
+msgstr "外部からの変更"
+
+#: mousepad/mousepad-dialogs.c:528
+msgid "Do you want to save your changes before reloading?"
+msgstr "再読み込み前に変更を保存しますか?"
+
+#: mousepad/mousepad-dialogs.c:537
+msgid "If you revert the file, all unsaved changes will be lost."
+msgstr "ファイルを復帰すると、保存されていないすべての変更箇所は失われます。"
+
+#: mousepad/mousepad-dialogs.c:575
+#, c-format
+msgid ""
+"The file seems to be encoded in %s, but you have chosen %s encoding. Do you "
+"confirm this choice?"
+msgstr "ファイルは %s でエンコードされているようですが、%s エンコーディングを選択しました。この選択でよろしいですか？"
+
+#: mousepad/mousepad-dialogs.c:585
+msgid "If not, the guessed encoding will be used."
+msgstr "そうでない場合は、推測されたエンコーディングを使用します。"
+
+#: mousepad/mousepad-dialogs.c:640
+msgid ""
+"It seems that the previous session did not end normally. Do you want to "
+"restore the available data?"
+msgstr "前のセッションは正常に終了しなかったようです。 利用可能なデータを復元しますか？ "
+
+#: mousepad/mousepad-dialogs.c:658
+msgid "If not, all this data will be lost."
+msgstr "しない場合、このデータはすべて失われます。"
+
+#: mousepad/mousepad-dialogs.c:861
+msgid "Please select a file"
+msgstr "ファイルを選択してください"
+
+#: mousepad/mousepad-dialogs.c:893
+msgid "Failed to prepare the temporary file for encoding tests"
+msgstr "エンコーディングテスト用の一時ファイルの準備に失敗しました"
+
+#: mousepad/mousepad-dialogs.c:956 mousepad/mousepad-dialogs.c:1029
+msgid "Open encoding dialog"
+msgstr "エンコーディングダイアログを開く"
+
+#: mousepad/mousepad-dialogs.c:958
+msgid "Go back to shorten list"
+msgstr "短縮リストに戻る"
+
+#. combo box label
+#: mousepad/mousepad-dialogs.c:1022
+msgid "_Encoding:"
+msgstr "エンコーディング(_E)"
+
+#: mousepad/mousepad-dialogs.c:1057
+msgid "Current"
+msgstr "現在"
+
+#: mousepad/mousepad-dialogs.c:1075
+msgid "Show all encodings"
+msgstr "すべてのエンコーディングを表示"
+
+#: mousepad/mousepad-dialogs.c:1113
+msgid "Text Files"
+msgstr "テキストファイル"
+
+#: mousepad/mousepad-dialogs.c:1119
+msgid "All Files"
+msgstr "すべてのファイル"
+
+#. create the dialog
+#: mousepad/mousepad-dialogs.c:1138
+msgid "Save As"
+msgstr "名前を付けて保存"
+
+#. create new file chooser dialog
+#: mousepad/mousepad-dialogs.c:1201
+msgid "Open File"
+msgstr "ファイルを開く"
+
+#. add button
+#: mousepad/mousepad-dialogs.c:1209
+msgid "_Open"
+msgstr "開く(_O)"
+
+#. create new font chooser dialog
+#: mousepad/mousepad-dialogs.c:1263
+msgid "Choose Mousepad Font"
+msgstr "Mousepad のフォントを選択する"
+
+#. error dialog messages
+#: mousepad/mousepad-dialogs.h:28
+msgid "Failed to open the document"
+msgstr "文書を開くことに失敗しました"
+
+#: mousepad/mousepad-dialogs.h:29
+msgid "Failed to save the document"
+msgstr "文書の保存に失敗しました"
+
+#: mousepad/mousepad-dialogs.h:30
+msgid "Unsupported character set"
+msgstr "サポートされていない文字セット"
+
+#. button labels
+#: mousepad/mousepad-dialogs.h:33
+msgid "_Cancel"
+msgstr "キャンセル(_C)"
+
+#: mousepad/mousepad-dialogs.h:34
+msgid "_OK"
+msgstr "OK(_O)"
+
+#: mousepad/mousepad-dialogs.h:35 mousepad/resources/gtk/menus-common.ui:54
+msgid "_Save"
+msgstr "保存(_S)"
+
+#: mousepad/mousepad-dialogs.h:36
+msgid "Save _As"
+msgstr "名前を付けて保存(_A)"
+
+#: mousepad/mousepad-dialogs.h:37
+msgid "Re_vert"
+msgstr "復帰(_V)"
+
+#: mousepad/mousepad-dialogs.h:38 mousepad/resources/gtk/menus-common.ui:72
+msgid "Re_load"
+msgstr "リロード(_L)"
+
+#. pack button, add signal and tooltip
+#: mousepad/mousepad-document.c:556
+msgid "Close this tab"
+msgstr "このタブを閉じます"
+
+#. create an unique untitled document name
+#: mousepad/mousepad-document.c:586
+msgid "Untitled"
+msgstr "無題"
+
+#: mousepad/mousepad-encoding-dialog.c:158
+msgid "Other:"
+msgstr "その他:"
+
+#: mousepad/mousepad-encoding-dialog.c:183
+msgid "Checking encodings..."
+msgstr "エンコーディングをチェックしています..."
+
+#: mousepad/mousepad-encoding-dialog.c:287
+#, c-format
+msgid "%s (%s, failed)"
+msgstr "%s (%s, 失敗)"
+
+#: mousepad/mousepad-encoding-dialog.c:289
+#: mousepad/mousepad-encoding-dialog.c:344
+#, c-format
+msgid "%s (%s, partial)"
+msgstr "%s (%s, 部分的)"
+
+#: mousepad/mousepad-encoding-dialog.c:418
+msgid "Other (partial):"
+msgstr "その他 (部分的):"
+
+#: mousepad/mousepad-encoding-dialog.c:429
+msgid "Other valid encodings were found, please choose below."
+msgstr "他の有効なエンコーディングが見つかりました。以下から選択してください。"
+
+#: mousepad/mousepad-encoding-dialog.c:431
+msgid "Other partially valid encodings were found, please choose below."
+msgstr "他の部分的に有効なエンコーディングが見つかりました。以下から選択してください。"
+
+#: mousepad/mousepad-encoding-dialog.c:467
+msgid "No other valid encoding was found."
+msgstr "他の有効なエンコーディングは見つかりませんでした。"
+
+#. dialog title
+#: mousepad/mousepad-encoding-dialog.c:674
+#, c-format
+msgid "The document is %s valid."
+msgstr "このドキュメントは %s が有効です。"
+
+#: mousepad/mousepad-encoding-dialog.c:675
+#, c-format
+msgid "The document is not %s valid."
+msgstr "このドキュメントは %s が無効です。"
+
+#. west european
+#: mousepad/mousepad-encoding.c:39
+msgid "Celtic"
+msgstr "ケルト語"
+
+#: mousepad/mousepad-encoding.c:40 mousepad/mousepad-encoding.c:41
+msgid "Greek"
+msgstr "ギリシャ語"
+
+#: mousepad/mousepad-encoding.c:42
+msgid "Nordic"
+msgstr "北欧"
+
+#: mousepad/mousepad-encoding.c:43
+msgid "South European"
+msgstr "南欧"
+
+#: mousepad/mousepad-encoding.c:44 mousepad/mousepad-encoding.c:45
+#: mousepad/mousepad-encoding.c:46 mousepad/mousepad-encoding.c:47
+msgid "Western"
+msgstr "西欧"
+
+#. east european
+#: mousepad/mousepad-encoding.c:50 mousepad/mousepad-encoding.c:51
+#: mousepad/mousepad-encoding.c:52
+msgid "Baltic"
+msgstr "バルト語"
+
+#: mousepad/mousepad-encoding.c:53 mousepad/mousepad-encoding.c:54
+#: mousepad/mousepad-encoding.c:55
+msgid "Central European"
+msgstr "中欧"
+
+#: mousepad/mousepad-encoding.c:56 mousepad/mousepad-encoding.c:57
+#: mousepad/mousepad-encoding.c:58 mousepad/mousepad-encoding.c:59
+#: mousepad/mousepad-encoding.c:60
+msgid "Cyrillic"
+msgstr "キリル文字"
+
+#: mousepad/mousepad-encoding.c:61
+msgid "Cyrillic/Russian"
+msgstr "キリル文字/ロシア語"
+
+#: mousepad/mousepad-encoding.c:62
+msgid "Cyrillic/Ukrainian"
+msgstr "キリル文字/ウクライナ語"
+
+#: mousepad/mousepad-encoding.c:63
+msgid "Romanian"
+msgstr "ルーマニア語"
+
+#. middle eastern
+#: mousepad/mousepad-encoding.c:66 mousepad/mousepad-encoding.c:67
+#: mousepad/mousepad-encoding.c:68
+msgid "Arabic"
+msgstr "アラビア語"
+
+#: mousepad/mousepad-encoding.c:69 mousepad/mousepad-encoding.c:70
+#: mousepad/mousepad-encoding.c:71
+msgid "Hebrew"
+msgstr "ヘブライ語"
+
+#: mousepad/mousepad-encoding.c:72
+msgid "Hebrew Visual"
+msgstr "ヘブライ語 (論理表記)"
+
+#. asian
+#: mousepad/mousepad-encoding.c:75
+msgid "Armenian"
+msgstr "アルメニア語"
+
+#: mousepad/mousepad-encoding.c:76
+msgid "Georgian"
+msgstr "グルジア語"
+
+#: mousepad/mousepad-encoding.c:77
+msgid "Thai"
+msgstr "タイ語"
+
+#: mousepad/mousepad-encoding.c:78 mousepad/mousepad-encoding.c:79
+#: mousepad/mousepad-encoding.c:80
+msgid "Turkish"
+msgstr "トルコ語"
+
+#: mousepad/mousepad-encoding.c:81 mousepad/mousepad-encoding.c:82
+#: mousepad/mousepad-encoding.c:83
+msgid "Vietnamese"
+msgstr "ベトナム語"
+
+#. unicode
+#: mousepad/mousepad-encoding.c:86 mousepad/mousepad-encoding.c:87
+#: mousepad/mousepad-encoding.c:88 mousepad/mousepad-encoding.c:89
+#: mousepad/mousepad-encoding.c:90 mousepad/mousepad-encoding.c:91
+#: mousepad/mousepad-encoding.c:92 mousepad/mousepad-encoding.c:93
+msgid "Unicode"
+msgstr "Unicode"
+
+#. east asian
+#: mousepad/mousepad-encoding.c:96 mousepad/mousepad-encoding.c:97
+#: mousepad/mousepad-encoding.c:98 mousepad/mousepad-encoding.c:99
+msgid "Chinese Simplified"
+msgstr "中国語簡体字"
+
+#: mousepad/mousepad-encoding.c:100 mousepad/mousepad-encoding.c:101
+#: mousepad/mousepad-encoding.c:102
+msgid "Chinese Traditional"
+msgstr "中国語繁体字"
+
+#: mousepad/mousepad-encoding.c:103 mousepad/mousepad-encoding.c:104
+#: mousepad/mousepad-encoding.c:105
+msgid "Japanese"
+msgstr "日本語"
+
+#: mousepad/mousepad-encoding.c:106 mousepad/mousepad-encoding.c:107
+#: mousepad/mousepad-encoding.c:108 mousepad/mousepad-encoding.c:109
+msgid "Korean"
+msgstr "韓国語"
+
+#. button labels
+#: mousepad/mousepad-encoding.h:23
+msgid "Default"
+msgstr "デフォルト"
+
+#: mousepad/mousepad-encoding.h:24
+msgid "System"
+msgstr "システム"
+
+#: mousepad/mousepad-encoding.h:25
+msgid "History"
+msgstr "履歴"
+
+#: mousepad/mousepad-file.c:962
+msgid "Invalid byte sequence in conversion input"
+msgstr "変換入力内に不正なバイト列があります"
+
+#: mousepad/mousepad-history.c:327
+msgid "Failed to clear the recent history"
+msgstr "ドキュメント履歴のクリアに失敗しました"
+
+#. setup the window properties
+#: mousepad/mousepad-prefs-dialog.c:640 org.xfce.mousepad.desktop.in.in:17
+msgid "Mousepad Preferences"
+msgstr "Mousepad 設定"
+
+#. set a custom tab label
+#: mousepad/mousepad-print.c:108
+msgid "Document Settings"
+msgstr "文書の設定"
+
+#: mousepad/mousepad-print.c:561
+msgid "Appearance"
+msgstr "外観"
+
+#: mousepad/mousepad-print.c:576
+msgid "Print page _headers"
+msgstr "ページヘッダーを印刷する(_H)"
+
+#: mousepad/mousepad-print.c:584
+msgid "Print _line numbers"
+msgstr "行番号を印刷する(_L)"
+
+#: mousepad/mousepad-print.c:601
+msgid "Numbering interval:"
+msgstr "出力する行番号の間隔:"
+
+#: mousepad/mousepad-print.c:610
+msgid ""
+"The interval at which to print line numbers. For example a value of 1 will "
+"print a line number on each line, a value of 2 will print a line number on "
+"every other line, and so on."
+msgstr "印刷するときに出力する行番号の間隔です。例えば 1 を指定すると行ごとに番号を印刷し、2 を指定すると 1 行おきに印刷します。"
+
+#: mousepad/mousepad-print.c:622
+msgid "Enable text _wrapping"
+msgstr "文字の折り返しを有効にする(_W)"
+
+#: mousepad/mousepad-print.c:631
+msgid "Enable _syntax highlighting"
+msgstr "シンタックスハイライトを有効にする(_S)"
+
+#: mousepad/mousepad-print.c:643
+msgid "Fonts"
+msgstr "フォント"
+
+#: mousepad/mousepad-print.c:659
+msgid "Header:"
+msgstr "ヘッダー:"
+
+#: mousepad/mousepad-print.c:673
+msgid "Body:"
+msgstr "本文:"
+
+#: mousepad/mousepad-print.c:687
+msgid "Line numbers:"
+msgstr "行番号:"
+
+#: mousepad/mousepad-replace-dialog.c:165
+msgid "_Replace All"
+msgstr "すべて置換(_R)"
+
+#: mousepad/mousepad-replace-dialog.c:165
+#: mousepad/mousepad-replace-dialog.c:265
+msgid "_Replace"
+msgstr "置換(_R)"
+
+#. set dialog properties
+#: mousepad/mousepad-replace-dialog.c:254
+msgid "Find and Replace"
+msgstr "検索と置換"
+
+#. dialog buttons
+#: mousepad/mousepad-replace-dialog.c:260
+#: mousepad/resources/gtk/menus-common.ui:156
+msgid "_Find"
+msgstr "検索(_F)"
+
+#: mousepad/mousepad-replace-dialog.c:269
+msgid "_Close"
+msgstr "閉じる(_C)"
+
+#: mousepad/mousepad-replace-dialog.c:287
+msgid "_Search for:"
+msgstr "検索文字列(_S):"
+
+#: mousepad/mousepad-replace-dialog.c:321
+msgid "Replace _with:"
+msgstr "置換文字列(_W):"
+
+#: mousepad/mousepad-replace-dialog.c:343
+msgid "Search _direction:"
+msgstr "検索方向(_D):"
+
+#: mousepad/mousepad-replace-dialog.c:352
+msgid "Up"
+msgstr "上"
+
+#: mousepad/mousepad-replace-dialog.c:353
+msgid "Down"
+msgstr "下"
+
+#. wrap around
+#: mousepad/mousepad-replace-dialog.c:362
+msgid "_Wrap around"
+msgstr "循環する(_W)"
+
+#. case sensitive
+#. check button for case sensitive, including the proxy menu item
+#: mousepad/mousepad-replace-dialog.c:369 mousepad/mousepad-search-bar.c:284
+#: mousepad/mousepad-search-bar.c:292
+msgid "Match _case"
+msgstr "大文字/小文字を区別する(_C)"
+
+#. match whole word
+#. check button for matching whole words, including the proxy menu item
+#: mousepad/mousepad-replace-dialog.c:378 mousepad/mousepad-search-bar.c:298
+#: mousepad/mousepad-search-bar.c:306
+msgid "_Match whole word"
+msgstr "完全一致(_M)"
+
+#. enable regex search
+#. check button for enabling regex, including the proxy menu item
+#: mousepad/mousepad-replace-dialog.c:387 mousepad/mousepad-search-bar.c:312
+#: mousepad/mousepad-search-bar.c:320
+msgid "Regular e_xpression"
+msgstr "正規表現(_X)"
+
+#: mousepad/mousepad-replace-dialog.c:401
+msgid "Replace _all in:"
+msgstr "一括置換(_A):"
+
+#: mousepad/mousepad-replace-dialog.c:406
+msgid "Selection"
+msgstr "選択範囲"
+
+#: mousepad/mousepad-replace-dialog.c:407
+msgid "Document"
+msgstr "文書"
+
+#: mousepad/mousepad-replace-dialog.c:408
+msgid "All Documents"
+msgstr "全文書"
+
+#: mousepad/mousepad-replace-dialog.c:614 mousepad/mousepad-search-bar.c:468
+#, c-format
+msgid "%d of %d match"
+msgid_plural "%d of %d matches"
+msgstr[0] "%d 件一致 (%d 件中)"
+
+#: mousepad/mousepad-replace-dialog.c:617 mousepad/mousepad-search-bar.c:471
+#, c-format
+msgid "%d match"
+msgid_plural "%d matches"
+msgstr[0] "%d 件一致"
+
+#: mousepad/mousepad-statusbar.c:121
+msgid "Choose a filetype"
+msgstr "ファイルタイプを選択します"
+
+#. language/filetype
+#: mousepad/mousepad-statusbar.c:127 mousepad/mousepad-statusbar.c:275
+msgid "Filetype: None"
+msgstr "ファイルタイプ: なし"
+
+#: mousepad/mousepad-statusbar.c:160
+msgid "Toggle the overwrite mode"
+msgstr "上書きモードと挿入モードを切り替えます"
+
+#. overwrite label
+#: mousepad/mousepad-statusbar.c:166
+msgid "OVR"
+msgstr "上書"
+
+#: mousepad/mousepad-statusbar.c:241
+#, c-format
+msgid "Line: %d Column: %d Selection: %d"
+msgstr "行: %d 列: %d 選択範囲: %d"
+
+#: mousepad/mousepad-statusbar.c:244
+#, c-format
+msgid "Line: %d Column: %d"
+msgstr "行: %d 列: %d"
+
+#: mousepad/mousepad-statusbar.c:278
+#, c-format
+msgid "Filetype: %s"
+msgstr "ファイルタイプ: %s"
+
+#. add the label with the root warning
+#: mousepad/mousepad-window.c:1072
+msgid "Warning: you are using the root account. You may harm your system."
+msgstr "警告: あなたは root アカウントを使用しています。システムに悪影響を与えるかもしれません。"
+
+#: mousepad/mousepad-window.c:2327
+msgid "Read Only"
+msgstr "読込専用"
+
+#: mousepad/mousepad-window.c:2331
+msgid "Viewer Mode"
+msgstr "ビュアーモード"
+
+#: mousepad/mousepad-window.c:3389
+#, c-format
+msgid "Use '%s' as template"
+msgstr "'%s' をテンプレートとして使用する"
+
+#: mousepad/mousepad-window.c:3415
+#, c-format
+msgid ""
+"No template files found in\n"
+"'%s'"
+msgstr "テンプレートファイルが '%s' 内に\nありません"
+
+#: mousepad/mousepad-window.c:3480
+#, c-format
+msgid ""
+"Missing Templates directory\n"
+"'%s'"
+msgstr "テンプレートディレクトリがありません\n'%s'"
+
+#. create suitable text label for the "Other" menu
+#: mousepad/mousepad-window.c:3532
+#, c-format
+msgid "Ot_her (%d)..."
+msgstr "その他 (%d)(_H)..."
+
+#: mousepad/mousepad-window.c:3542
+msgid "Ot_her..."
+msgstr "その他(_H)..."
+
+#: mousepad/mousepad-window.c:3641
+msgid "Revert to the saved version of the file"
+msgstr "保存されているファイルに戻します"
+
+#: mousepad/mousepad-window.c:3647 mousepad/resources/gtk/menus-common.ui:73
+msgid "Reload file from disk"
+msgstr "ディスクからファイルをリロードする"
+
+#: mousepad/mousepad-window.c:3653
+msgid "Leave fullscreen mode"
+msgstr "全画面モードから復帰します"
+
+#: mousepad/mousepad-window.c:3658 mousepad/resources/gtk/menus-common.ui:186
+msgid "Make the window fullscreen"
+msgstr "ウィンドウを全画面化します"
+
+#: mousepad/mousepad-window.c:3896
+#, c-format
+msgid "Open '%s'"
+msgstr "'%s' を開きます"
+
+#: mousepad/mousepad-window.c:3927
+msgid "No items found"
+msgstr "アイテムが見つかりません"
+
+#: mousepad/mousepad-window.c:3927
+msgid "History disabled"
+msgstr "履歴が無効になっています"
+
+#. create an item to inform the user
+#: mousepad/mousepad-window.c:4403
+msgid "No clipboard data"
+msgstr "クリップボードにデータがありません"
+
+#. set error message
+#: mousepad/mousepad-window.c:4512
+#, c-format
+msgid "Templates should be %s valid"
+msgstr "テンプレートは %s が有効である必要があります"
+
+#. set error message
+#: mousepad/mousepad-window.c:4518
+msgid "Reading the template failed"
+msgstr "テンプレートの読み込みに失敗しました"
+
+#. set error message
+#: mousepad/mousepad-window.c:4523
+msgid "Loading the template failed"
+msgstr "テンプレートの読み込みに失敗しました"
+
+#. show the error
+#: mousepad/mousepad-window.c:4968
+msgid "Failed to reload the document"
+msgstr "文書の再読み込みに失敗しました"
+
+#. show the error
+#: mousepad/mousepad-window.c:5003
+msgid "Failed to print the document"
+msgstr "文書の印刷に失敗しました"
+
+#: mousepad/resources/gtk/menus.ui:19
+msgid "_File"
+msgstr "ファイル(_F)"
+
+#: mousepad/resources/gtk/menus.ui:20
+msgid "File menu"
+msgstr "ファイルメニュー"
+
+#: mousepad/resources/gtk/menus.ui:27
+msgid "New _Window"
+msgstr "新しいウィンドウ(_W)"
+
+#: mousepad/resources/gtk/menus.ui:28
+msgid "Create a new document in a new window"
+msgstr "新しい文書を新しいウィンドウで作成します"
+
+#: mousepad/resources/gtk/menus.ui:32
+msgid "New From Te_mplate"
+msgstr "テンプレートから新規作成(_M)"
+
+#: mousepad/resources/gtk/menus.ui:33
+msgid "Create a new document from a template"
+msgstr "テンプレートから新しいドキュメントを作成する"
+
+#: mousepad/resources/gtk/menus.ui:43
+msgid "Op_en Recent"
+msgstr "最近開いたファイル(_E)"
+
+#: mousepad/resources/gtk/menus.ui:44
+msgid "Open a recently used file"
+msgstr "最近使用したファイルを開く"
+
+#: mousepad/resources/gtk/menus.ui:50
+msgid "Clear _History"
+msgstr "履歴のクリア(_H)"
+
+#: mousepad/resources/gtk/menus.ui:51
+msgid "Clear the recently used files history"
+msgstr "最近使ったファイルの履歴をクリアします"
+
+#: mousepad/resources/gtk/menus.ui:68
+msgid "Save A_ll"
+msgstr "すべて保存(_L)"
+
+#: mousepad/resources/gtk/menus.ui:69
+msgid "Save all document in this window"
+msgstr "このウィンドウのすべての文書を保存します"
+
+#: mousepad/resources/gtk/menus.ui:79
+msgid "_Print..."
+msgstr "印刷(_P)..."
+
+#: mousepad/resources/gtk/menus.ui:80
+msgid "Print the current document"
+msgstr "現在の文書を印刷します"
+
+#: mousepad/resources/gtk/menus.ui:97
+msgid "_Close Window"
+msgstr "ウィンドウを閉じる(_C)"
+
+#: mousepad/resources/gtk/menus.ui:98
+msgid "Close this window"
+msgstr "このウィンドウを閉じます"
+
+#: mousepad/resources/gtk/menus.ui:102
+msgid "_Quit"
+msgstr "終了(_Q)"
+
+#: mousepad/resources/gtk/menus.ui:103
+msgid "Quit Mousepad"
+msgstr "Mousepad を終了する"
+
+#: mousepad/resources/gtk/menus.ui:111
+msgid "_Edit"
+msgstr "編集(_E)"
+
+#: mousepad/resources/gtk/menus.ui:112
+msgid "Edit menu"
+msgstr "編集メニュー"
+
+#: mousepad/resources/gtk/menus.ui:130
+msgid "Preferences..."
+msgstr "設定..."
+
+#: mousepad/resources/gtk/menus.ui:131
+msgid "Show the preferences dialog"
+msgstr "設定ダイアログを表示します"
+
+#: mousepad/resources/gtk/menus.ui:139
+msgid "_Search"
+msgstr "検索(_S)"
+
+#: mousepad/resources/gtk/menus.ui:140
+msgid "Search menu"
+msgstr "検索メニュー"
+
+#: mousepad/resources/gtk/menus.ui:147
+msgid "Find _Next"
+msgstr "次を検索(_N)"
+
+#: mousepad/resources/gtk/menus.ui:148
+msgid "Search forwards for the same text"
+msgstr "前方に同じ文字列を検索します"
+
+#: mousepad/resources/gtk/menus.ui:152
+msgid "Find _Previous"
+msgstr "前を検索(_P)"
+
+#: mousepad/resources/gtk/menus.ui:153
+msgid "Search backwards for the same text"
+msgstr "後方に同じ文字列を検索します"
+
+#: mousepad/resources/gtk/menus.ui:163
+msgid "_Incremental Search"
+msgstr "逐次検索(_I)"
+
+#: mousepad/resources/gtk/menus.ui:164
+msgid "Automatically select the search result and scroll the view"
+msgstr "検索結果を自動で選択し、ビューをスクロールする"
+
+#: mousepad/resources/gtk/menus.ui:168
+msgid "Highlight _All"
+msgstr "すべて強調表示(_A)"
+
+#: mousepad/resources/gtk/menus.ui:169
+msgid "Highlight the search matches"
+msgstr "検索結果をハイライトする"
+
+#: mousepad/resources/gtk/menus.ui:183
+msgid "_View"
+msgstr "表示(_V)"
+
+#: mousepad/resources/gtk/menus.ui:184
+msgid "View menu"
+msgstr "表示メニュー"
+
+#: mousepad/resources/gtk/menus.ui:187
+msgid "Select F_ont..."
+msgstr "フォントを選択(_O)..."
+
+#: mousepad/resources/gtk/menus.ui:188
+msgid "Change the editor font"
+msgstr "エディターフォントを変更します"
+
+#: mousepad/resources/gtk/menus.ui:195
+msgid "_Color Scheme"
+msgstr "カラースキーム(_C)"
+
+#: mousepad/resources/gtk/menus.ui:196
+msgid "Color scheme to use for the text view"
+msgstr "テキスト表示に使用する配色"
+
+#: mousepad/resources/gtk/menus.ui:199
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:120
+msgid "None"
+msgstr "無し"
+
+#: mousepad/resources/gtk/menus.ui:200
+msgid "No style scheme"
+msgstr "スタイルスキームを使用していません"
+
+#: mousepad/resources/gtk/menus.ui:209
+msgid "Line N_umbers"
+msgstr "行番号(_U)"
+
+#: mousepad/resources/gtk/menus.ui:210
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:248
+msgid "Show line numbers"
+msgstr "行番号を表示する"
+
+#: mousepad/resources/gtk/menus.ui:216 mousepad/resources/gtk/menus.ui:445
+msgid "_Menubar"
+msgstr "メニューバー(_M)"
+
+#: mousepad/resources/gtk/menus.ui:217 mousepad/resources/gtk/menus.ui:446
+msgid "Change the visibility of the main menubar"
+msgstr "メインメニューバーの表示/非表示を切り替えます"
+
+#: mousepad/resources/gtk/menus.ui:221
+msgid "_Toolbar"
+msgstr "ツールバー(_T)"
+
+#: mousepad/resources/gtk/menus.ui:222
+msgid "Change the visibility of the toolbar"
+msgstr "ツールバーの表示/非表示を切り替えます"
+
+#: mousepad/resources/gtk/menus.ui:226
+msgid "St_atusbar"
+msgstr "ステータスバー(_A)"
+
+#: mousepad/resources/gtk/menus.ui:227
+msgid "Change the visibility of the statusbar"
+msgstr "ステータスバーの表示/非表示を切り替えます"
+
+#: mousepad/resources/gtk/menus.ui:240
+msgid "_Document"
+msgstr "文書(_D)"
+
+#: mousepad/resources/gtk/menus.ui:241
+msgid "Document menu"
+msgstr "文書メニュー"
+
+#: mousepad/resources/gtk/menus.ui:245
+msgid "_Word Wrap"
+msgstr "行を折り返す(_W)"
+
+#: mousepad/resources/gtk/menus.ui:246
+msgid "Toggle breaking lines in between words"
+msgstr "単語間での行の折り返しを切り替えます"
+
+#: mousepad/resources/gtk/menus.ui:250
+msgid "_Auto Indent"
+msgstr "自動インデント(_A)"
+
+#: mousepad/resources/gtk/menus.ui:251
+msgid "Auto indent a new line"
+msgstr "新しい行で自動的にインデントします"
+
+#: mousepad/resources/gtk/menus.ui:255
+msgid "Tab _Size"
+msgstr "タブのサイズ(_S)"
+
+#: mousepad/resources/gtk/menus.ui:256
+msgid "The number of space characters for a tabulation"
+msgstr "タブに使用するスペースの数"
+
+#: mousepad/resources/gtk/menus.ui:260
+msgid "Two spaces"
+msgstr "2個のスペース"
+
+#: mousepad/resources/gtk/menus.ui:266
+msgid "Three spaces"
+msgstr "3個のスペース"
+
+#: mousepad/resources/gtk/menus.ui:272
+msgid "Four spaces"
+msgstr "4個のスペース"
+
+#: mousepad/resources/gtk/menus.ui:278
+msgid "Eight spaces"
+msgstr "8個のスペース"
+
+#: mousepad/resources/gtk/menus.ui:283
+msgid "Other..."
+msgstr "その他"
+
+#: mousepad/resources/gtk/menus.ui:284
+msgid "Set custom tab size"
+msgstr "カスタムタブサイズを設定します"
+
+#: mousepad/resources/gtk/menus.ui:291
+msgid "Insert _Spaces"
+msgstr "スペースを挿入(_S)"
+
+#: mousepad/resources/gtk/menus.ui:292
+msgid "Insert spaces when the tab button is pressed"
+msgstr "Tab キーが押されたときにスペースを挿入します"
+
+#: mousepad/resources/gtk/menus.ui:300
+msgid "_Filetype"
+msgstr "ファイルタイプ(_F)"
+
+#: mousepad/resources/gtk/menus.ui:301
+msgid "Language to use for syntax highlighting"
+msgstr "構文の強調表示に使用する言語"
+
+#: mousepad/resources/gtk/menus.ui:304
+msgid "Plain Text"
+msgstr "プレーンテキスト"
+
+#: mousepad/resources/gtk/menus.ui:305
+msgid "No filetype"
+msgstr "ファイルタイプなし"
+
+#: mousepad/resources/gtk/menus.ui:314
+msgid "Line E_nding"
+msgstr "改行コード(_N)"
+
+#: mousepad/resources/gtk/menus.ui:315
+msgid "Character(s) to use as end of line"
+msgstr "行末として使用する文字"
+
+#: mousepad/resources/gtk/menus.ui:318
+msgid "Set the line ending of the document to Unix (LF)"
+msgstr "文書の改行コードを Unix 形式 (LF のみ) に設定します"
+
+#: mousepad/resources/gtk/menus.ui:324
+msgid "Set the line ending of the document to Mac (CR)"
+msgstr "文書の改行コードを Mac 形式 (CR のみ) に設定します"
+
+#: mousepad/resources/gtk/menus.ui:330
+msgid "Set the line ending of the document to DOS / Windows (CR LF)"
+msgstr "文書の改行コードを DOS/Windows 形式 (CR LF) に設定します"
+
+#: mousepad/resources/gtk/menus.ui:338
+msgid "Write Unicode _BOM"
+msgstr "Unicode BOM の書き出し(_B)"
+
+#: mousepad/resources/gtk/menus.ui:339
+msgid "Store the byte-order mark in the file"
+msgstr "バイトオーダーマークをファイルに格納します"
+
+#: mousepad/resources/gtk/menus.ui:343
+msgid "_Viewer Mode"
+msgstr "ビュアーモード(_V)"
+
+#: mousepad/resources/gtk/menus.ui:344
+msgid "Disallow modifications via keyboard / mouse"
+msgstr "キーボードまたはマウスによる変更を禁止する"
+
+#: mousepad/resources/gtk/menus.ui:350
+msgid "_Previous Tab"
+msgstr "前のタブ(_P)"
+
+#: mousepad/resources/gtk/menus.ui:351
+msgid "Select the previous tab"
+msgstr "前のタブを選択します"
+
+#: mousepad/resources/gtk/menus.ui:356
+msgid "_Next Tab"
+msgstr "次のタブ(_N)"
+
+#: mousepad/resources/gtk/menus.ui:357
+msgid "Select the next tab"
+msgstr "次のタブを選択します"
+
+#: mousepad/resources/gtk/menus.ui:367
+msgid "_Help"
+msgstr "ヘルプ(_H)"
+
+#: mousepad/resources/gtk/menus.ui:368
+msgid "Help menu"
+msgstr "ヘルプメニュー"
+
+#: mousepad/resources/gtk/menus.ui:370
+msgid "_Contents"
+msgstr "目次(_C)"
+
+#: mousepad/resources/gtk/menus.ui:371
+msgid "Display the Mousepad user manual"
+msgstr "Mousepad ユーザーマニュアルを表示します"
+
+#: mousepad/resources/gtk/menus.ui:376
+msgid "_About"
+msgstr "このアプリケーションについて(_A)"
+
+#: mousepad/resources/gtk/menus.ui:377
+msgid "About this application"
+msgstr "Mousepad についての情報を表示します"
+
+#: mousepad/resources/gtk/menus-common.ui:36
+msgid "_New"
+msgstr "新規作成(_N)"
+
+#: mousepad/resources/gtk/menus-common.ui:37
+msgid "Create a new document"
+msgstr "新しい文書を作成します"
+
+#: mousepad/resources/gtk/menus-common.ui:45
+msgid "_Open..."
+msgstr "開く(_O)..."
+
+#: mousepad/resources/gtk/menus-common.ui:46
+msgid "Open a file"
+msgstr "ファイルを開きます"
+
+#: mousepad/resources/gtk/menus-common.ui:55
+msgid "Save the current document"
+msgstr "現在の文書を保存します"
+
+#: mousepad/resources/gtk/menus-common.ui:63
+msgid "Save _As..."
+msgstr "名前を付けて保存(_A)..."
+
+#: mousepad/resources/gtk/menus-common.ui:64
+msgid "Save current document as another file"
+msgstr "現在の文書を別のファイルとして保存します"
+
+#: mousepad/resources/gtk/menus-common.ui:81
+msgid "_Detach Tab"
+msgstr "タブを切り離す(_D)"
+
+#: mousepad/resources/gtk/menus-common.ui:82
+msgid "Move the current document to a new window"
+msgstr "現在の文書を新しいウィンドウに移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:89
+msgid "Close _Tab"
+msgstr "タブを閉じる(_T)"
+
+#: mousepad/resources/gtk/menus-common.ui:90
+msgid "Close the current document"
+msgstr "現在の文書を閉じます"
+
+#: mousepad/resources/gtk/menus-common.ui:100
+msgid "_Undo"
+msgstr "元に戻す(_U)"
+
+#: mousepad/resources/gtk/menus-common.ui:101
+msgid "Undo the last action"
+msgstr "最後に行った操作を元に戻します"
+
+#: mousepad/resources/gtk/menus-common.ui:109
+msgid "_Redo"
+msgstr "やり直す(_R)"
+
+#: mousepad/resources/gtk/menus-common.ui:110
+msgid "Redo the last undone action"
+msgstr "最後に元に戻した操作をやり直します"
+
+#: mousepad/resources/gtk/menus-common.ui:118
+msgid "Cu_t"
+msgstr "切り取り(_T)"
+
+#: mousepad/resources/gtk/menus-common.ui:119
+msgid "Cut the selection"
+msgstr "選択範囲を切り抜きます"
+
+#: mousepad/resources/gtk/menus-common.ui:127
+msgid "_Copy"
+msgstr "コピー(_C)"
+
+#: mousepad/resources/gtk/menus-common.ui:128
+msgid "Copy the selection"
+msgstr "選択範囲をコピーします"
+
+#: mousepad/resources/gtk/menus-common.ui:136
+msgid "_Paste"
+msgstr "貼り付け(_P)"
+
+#: mousepad/resources/gtk/menus-common.ui:137
+msgid "Paste the clipboard"
+msgstr "クリップボードから貼り付けます"
+
+#: mousepad/resources/gtk/menus-common.ui:145
+msgid "Select _All"
+msgstr "すべて選択(_A)"
+
+#: mousepad/resources/gtk/menus-common.ui:146
+msgid "Select the text in the entire document"
+msgstr "文書全体の文字を選択します"
+
+#: mousepad/resources/gtk/menus-common.ui:157
+msgid "Search for text"
+msgstr "文字列を検索します"
+
+#: mousepad/resources/gtk/menus-common.ui:165
+msgid "Find and Rep_lace..."
+msgstr "検索と置換(_L)..."
+
+#: mousepad/resources/gtk/menus-common.ui:166
+msgid "Search for and replace text"
+msgstr "文字列を検索および置換します"
+
+#: mousepad/resources/gtk/menus-common.ui:174
+msgid "_Go to..."
+msgstr "移動(_G)..."
+
+#: mousepad/resources/gtk/menus-common.ui:175
+msgid "Go to a specific location in the document"
+msgstr "文書内の指定場所に移動します"
+
+#: mousepad/resources/gtk/menus-common.ui:185
+msgid "_Fullscreen"
+msgstr "全画面化(_F)"
+
+#: mousepad/resources/gtk/menus-common.ui:234
+msgid "Paste _Special"
+msgstr "特殊な貼り付け(_S)"
+
+#: mousepad/resources/gtk/menus-common.ui:235
+msgid "Paste the clipboard in a special way"
+msgstr "クリップボードを特別な方法で貼り付ける"
+
+#: mousepad/resources/gtk/menus-common.ui:237
+msgid "Paste from _History"
+msgstr "履歴から貼り付け(_H)"
+
+#: mousepad/resources/gtk/menus-common.ui:238
+msgid "Paste from the clipboard history"
+msgstr "クリップボード履歴から貼り付けます"
+
+#: mousepad/resources/gtk/menus-common.ui:242
+msgid "Paste as _Column"
+msgstr "列として貼り付け(_C)"
+
+#: mousepad/resources/gtk/menus-common.ui:243
+msgid "Paste the clipboard text into a column"
+msgstr "クリップボードの文字列を列に貼り付けます"
+
+#: mousepad/resources/gtk/menus-common.ui:248
+msgid "_Delete Selection"
+msgstr "選択範囲を削除(_D)"
+
+#: mousepad/resources/gtk/menus-common.ui:249
+msgid "Delete the current selection"
+msgstr "現在の選択範囲を削除します"
+
+#: mousepad/resources/gtk/menus-common.ui:254
+msgid "Delete _Line"
+msgstr "行を削除(_L)"
+
+#: mousepad/resources/gtk/menus-common.ui:255
+msgid "Delete the current line"
+msgstr "現在の行を削除します"
+
+#: mousepad/resources/gtk/menus-common.ui:262
+msgid "Conve_rt"
+msgstr "変換(_R)"
+
+#: mousepad/resources/gtk/menus-common.ui:263
+msgid "Convert text in different ways"
+msgstr "さまざまな方法でテキストを変換する"
+
+#: mousepad/resources/gtk/menus-common.ui:266
+msgid "To _Lowercase"
+msgstr "小文字化(_L)"
+
+#: mousepad/resources/gtk/menus-common.ui:267
+msgid "Change the case of the selection to lowercase"
+msgstr "選択範囲の文字列を小文字に変換します"
+
+#: mousepad/resources/gtk/menus-common.ui:271
+msgid "To _Uppercase"
+msgstr "大文字化(_U)"
+
+#: mousepad/resources/gtk/menus-common.ui:272
+msgid "Change the case of the selection to uppercase"
+msgstr "選択範囲の文字列を大文字に変換します"
+
+#: mousepad/resources/gtk/menus-common.ui:276
+msgid "To _Title Case"
+msgstr "頭文字のみ大文字化(_T)"
+
+#: mousepad/resources/gtk/menus-common.ui:277
+msgid "Change the case of the selection to title case"
+msgstr "選択範囲の単語の頭文字を大文字に、その他を小文字に変換します"
+
+#: mousepad/resources/gtk/menus-common.ui:281
+msgid "To _Opposite Case"
+msgstr "大文字小文字の入れ替え(_O)"
+
+#: mousepad/resources/gtk/menus-common.ui:282
+msgid "Change the case of the selection opposite case"
+msgstr "選択範囲の文字列の大文字小文字を反転します"
+
+#: mousepad/resources/gtk/menus-common.ui:288
+msgid "_Tabs to Spaces"
+msgstr "タブをスペースに(_T)"
+
+#: mousepad/resources/gtk/menus-common.ui:289
+msgid "Convert all tabs to spaces in the selection or document"
+msgstr "選択範囲または文書内のすべてのタブをスペースに変換します"
+
+#: mousepad/resources/gtk/menus-common.ui:293
+msgid "_Leading Spaces to Tabs"
+msgstr "行頭のタブをスペースに(_L)"
+
+#: mousepad/resources/gtk/menus-common.ui:294
+msgid ""
+"Convert all the leading spaces to tabs in the selected line(s) or document"
+msgstr "選択範囲または文書内の行頭のスペースをタブに変換します"
+
+#: mousepad/resources/gtk/menus-common.ui:300
+msgid "St_rip Trailing Spaces"
+msgstr "行末のスペースを除去(_R)"
+
+#: mousepad/resources/gtk/menus-common.ui:301
+msgid "Remove all the trailing spaces from the selected line(s) or document"
+msgstr "選択範囲または文書内の行末のスペースを除去する"
+
+#: mousepad/resources/gtk/menus-common.ui:307
+msgid "_Transpose"
+msgstr "転置(_T)"
+
+#: mousepad/resources/gtk/menus-common.ui:308
+msgid "Reverse the order of something"
+msgstr "何らかの順序を反転します"
+
+#: mousepad/resources/gtk/menus-common.ui:314
+msgid "_Move"
+msgstr "移動(_M)"
+
+#: mousepad/resources/gtk/menus-common.ui:315
+msgid "Move content in different ways"
+msgstr "様々な方法でコンテンツを移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:317
+msgid "One Line _Up"
+msgstr "1行上へ(_U)"
+
+#: mousepad/resources/gtk/menus-common.ui:318
+msgid "Move lines one line up"
+msgstr "1行上に移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:322
+msgid "One Line _Down"
+msgstr "1行下へ(_D)"
+
+#: mousepad/resources/gtk/menus-common.ui:323
+msgid "Move lines one line down"
+msgstr "1行下に移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:327
+msgid "One Word _Left"
+msgstr "1語左へ(_L)"
+
+#: mousepad/resources/gtk/menus-common.ui:328
+msgid "Move words one word left"
+msgstr "1単語分、単語を左に移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:332
+msgid "One Word _Right"
+msgstr "1語右へ(_R)"
+
+#: mousepad/resources/gtk/menus-common.ui:333
+msgid "Move words one word right"
+msgstr "1単語分、単語を右に移動する"
+
+#: mousepad/resources/gtk/menus-common.ui:338
+msgid "Dup_licate Line / Selection"
+msgstr "行/選択範囲の複製(_L)"
+
+#: mousepad/resources/gtk/menus-common.ui:339
+msgid "Duplicate the current line or selection"
+msgstr "現在の行または選択範囲を複製します"
+
+#: mousepad/resources/gtk/menus-common.ui:343
+msgid "_Increase Indent"
+msgstr "インデントを増やす(_I)"
+
+#: mousepad/resources/gtk/menus-common.ui:344
+msgid "Increase the indentation of the selection or current line"
+msgstr "選択範囲または現在の行のインデントを増やします"
+
+#: mousepad/resources/gtk/menus-common.ui:349
+msgid "_Decrease Indent"
+msgstr "インデントを減らす(_D)"
+
+#: mousepad/resources/gtk/menus-common.ui:350
+msgid "Decrease the indentation of the selection or current line"
+msgstr "選択範囲または現在の行のインデントを減らします"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:13
+msgid "Insert Tabs"
+msgstr "タブを挿入"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:16
+msgid "Insert Spaces"
+msgstr "スペースを挿入"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:39
+msgid "Never"
+msgstr "しない"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:43
+msgid "First key press"
+msgstr "最初のキー入力"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:47
+msgid "Second key press"
+msgstr "2番目のキー入力"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:51
+msgid "Always"
+msgstr "常に"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:89
+msgid "never"
+msgstr "しない"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:93
+msgid "after a crash"
+msgstr "クラッシュ後"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:97
+msgid "unsaved documents"
+msgstr "保存されていないドキュメント"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:101
+msgid "saved documents"
+msgstr "保存されたドキュメント"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:105
+msgid "always"
+msgstr "常に"
+
+#. Preceded by: "Open files in:"
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:141
+msgid "new tabs"
+msgstr "新しいタブ"
+
+#. Preceded by: "Open files in:"
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:145
+msgid "new windows"
+msgstr "新しいウィンドウ"
+
+#. Preceded by: "Open files in:"
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:149
+msgid "new tabs in a new window"
+msgstr "新しいウィンドウで新しいタブ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:164
+msgid "Menu"
+msgstr "メニュー"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:168
+msgid "Small Toolbar"
+msgstr "小さいツールバー"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:172
+msgid "Large Toolbar"
+msgstr "大きいツールバー"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:176
+msgid "Button"
+msgstr "ボタン"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:180
+msgid "Drag & Drop"
+msgstr "ドラッグアンドドロップ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:184
+msgid "Dialog"
+msgstr "ダイアログ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:199
+msgid "Icons Only"
+msgstr "アイコンのみ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:203
+msgid "Text Only"
+msgstr "文字のみ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:207
+msgid "Text Below Icons"
+msgstr "アイコンの下に文字"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:211
+msgid "Text Beside Icons"
+msgstr "アイコンの横に文字"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:263
+msgid "Display whitespace"
+msgstr "空白文字を表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:278
+msgid "Display line endings"
+msgstr "行末を表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:298
+msgid "Long line margin at column:"
+msgstr "行の右マージンを表示する  桁数:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:351
+msgid "Highlight current line"
+msgstr "現在の行を強調表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:366
+msgid "Highlight matching brackets"
+msgstr "対応するカッコを強調表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:381
+msgid "Wrap long lines"
+msgstr "行を折り返す"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:400
+msgid "<b>Display</b>"
+msgstr "<b>表示</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:430
+msgid "Use system monospace font"
+msgstr "システムの固定幅フォントを使用する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:461
+msgid "<b>Font</b>"
+msgstr "<b>フォント</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:512
+msgid "<b>Color Scheme</b>"
+msgstr "<b>カラースキーム</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:529
+msgid "View"
+msgstr "表示"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:565
+msgid "Tab width:"
+msgstr "タブの幅:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:577
+msgid "Tab mode:"
+msgstr "タブモード:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:620
+msgid "Enable automatic indentation"
+msgstr "自動インデントを有効にする"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:639
+msgid "<b>Indentation</b>"
+msgstr "<b>インデント</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:668
+msgid "Tab: Indent selection (Shift+Tab: Unindent)"
+msgstr "タブ: インデントの選択 (シフト + タブ: インデント解除)"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:672
+msgid "Indent/unindent the currently selected text or the current line"
+msgstr "実際に選択されたテキスト、または現在の行をインデント/インデンド解除する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:693
+msgid "Backspace: Delete indent spaces as tabs"
+msgstr "バックスペース: インデントスペースをタブとして削除する "
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:709
+msgid "Home/End: Detect leading/trailing whitespace:"
+msgstr "ホーム/エンド: 先頭/末尾のスペースを検出する:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:754
+msgid "<b>Smart Keys</b>"
+msgstr "<b>スマートキー</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:774
+#: plugins/gspell-plugin/mousepad-plugin-gspell.c:50
+msgid "Editor"
+msgstr "エディター"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:808
+msgid "Client-side decorations (restart required)"
+msgstr "クライアント側の装飾（要再起動）"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:823
+msgid "Show full filename in title bar"
+msgstr "タイトルバーにファイル名をフルパスで表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:838
+msgid "Remember window size"
+msgstr "ウィンドウサイズを記憶する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:853
+msgid "Remember window position"
+msgstr "ウィンドウの位置を記憶する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:868
+msgid "Remember window state"
+msgstr "ウィンドウの状態を記憶する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:887
+msgid "<b>General</b>"
+msgstr "<b>全般</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:917
+msgid "Show toolbar"
+msgstr "ツールバーを表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:935
+msgid "Style:"
+msgstr "表示方式:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:948
+msgid "Icon Size:"
+msgstr "アイコンのサイズ:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1000
+msgid "<b>Toolbar</b>"
+msgstr "<b>ツールバー</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1029
+msgid "Always show tabs even with one file"
+msgstr "常にタブを表示する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1044
+msgid "Expand tabs to fill available space"
+msgstr "タブを展開してスペースを埋める"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1059
+msgid "Cycled notebook tab switching"
+msgstr "タブの切り替えでノートブックを循環する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1082
+msgid "Open files in:"
+msgstr "次の場所でファイルを開く:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1128
+msgid "<b>Notebook Tabs</b>"
+msgstr "<b>ノートブックタブ</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1148
+msgid "Window"
+msgstr "ウィンドウ"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1182
+msgid "Ensure new line at file end"
+msgstr "ファイルの最後に改行があるか確認する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1197
+msgid "Make a copy with '~' suffix"
+msgstr "「~」接頭辞を付けてコピーを作成する"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1216
+msgid "<b>File Saving</b>"
+msgstr "<b>ファイル保存</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1253
+msgid "Session restore:"
+msgstr "セッション復元:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1266
+msgid ""
+"When \"unsaved documents\" or \"always\" is selected, Mousepad won't ask for"
+" saving modified documents when quitting"
+msgstr "\"保存されていないドキュメント\" や \"常に\" を選択したとき、終了時にMousepad は変更されたドキュメントの保存を訊ねません"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1301
+msgid "Recent file menu length:"
+msgstr "最近のファイルのメニューの長さ: "
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1313
+msgid "'0' disables and wipes recent history"
+msgstr "「0」は最近の履歴を無効にし、消去します "
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1329
+msgid "Search history size:"
+msgstr "検索履歴のサイズ:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1365
+msgid "<b>History</b>"
+msgstr "<b>履歴</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1416
+msgid "File monitoring"
+msgstr "ファイル監視"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1426
+msgid "Automatic reloading"
+msgstr "自動再読込"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1456
+msgid "Default encoding:"
+msgstr "デフォルトのエンコーディング:"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1497
+msgid "<b>Miscellaneous</b>"
+msgstr "<b>その他</b>"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1517
+msgid "File"
+msgstr "ファイル"
+
+#: mousepad/resources/ui/mousepad-prefs-dialog.ui:1547
+msgid "Plugins"
+msgstr "プラグイン"
+
+#: plugins/gspell-plugin/mousepad-plugin-gspell.c:45
+msgid "Spell Checking"
+msgstr "スペルチェック"
+
+#: plugins/gspell-plugin/mousepad-plugin-gspell.c:47
+msgid ""
+"The default language for new documents is set here. It can then be changed "
+"per document via the context menu, where there are also spelling correction "
+"suggestions for underlined words."
+msgstr "新しいドキュメントのデフォルト言語をここで設定します。コンテキストメニューからドキュメントごとに変更できます。下線が引かれた単語へのスペル修正の提案もあります。"
+
+#. combo box label
+#: plugins/gspell-plugin/gspell-plugin.c:156
+msgid "Default language:"
+msgstr "デフォルトの言語:"
+
+#: plugins/shortcuts-plugin/mousepad-plugin-shortcuts.c:45
+msgid "Shortcuts Editor"
+msgstr "ショートカットエディター"
+
+#: plugins/shortcuts-plugin/mousepad-plugin-shortcuts.c:47
+msgid ""
+"The shortcuts editor is available here as a popover or as a dialog below the"
+" preferences in the menu bar."
+msgstr "ショートカットエディターはポップオーバーから、またはメニューバーの設定の下にあるダイアログから利用できます。"
+
+#: plugins/shortcuts-plugin/mousepad-plugin-shortcuts.c:49
+msgid "Application"
+msgstr "アプリケーション"
+
+#. pack frames
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:253
+msgid "Menubar"
+msgstr "メニューバー"
+
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:254
+msgid "Preferences Dialog"
+msgstr "設定ダイアログ"
+
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:255
+msgid "Miscellaneous"
+msgstr "その他"
+
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:583
+msgid "Mousepad Shortcuts"
+msgstr "Mousepad のショートカット"
+
+#. add the shortcuts menu entry
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:632
+msgid "Shortcuts..."
+msgstr "ショートカット..."
+
+#: plugins/shortcuts-plugin/shortcuts-plugin.c:636
+msgid "Show the shortcuts dialog"
+msgstr "ショートカットダイアログを表示"
+
+#: org.xfce.mousepad.desktop.in.in:5
+msgid "Simple Text Editor"
+msgstr "シンプルなテキストエディターです"
+
+#: org.xfce.mousepad.desktop.in.in:6
+msgid "Text Editor"
+msgstr "テキストエディター"
+
+#: org.xfce.mousepad-settings.desktop.in.in:4
+msgid "Text Editor Settings"
+msgstr "テキストエディター設定"
+
+#: org.xfce.mousepad-settings.desktop.in.in:5
+msgid "Configure the Mousepad text editor"
+msgstr "Mousepad テキストエディターを設定します"
+
+#: org.xfce.mousepad.appdata.xml.in:11
+msgid ""
+"Mousepad aims to be an easy-to-use and fast editor. Our target is an editor "
+"for quickly editing text files, not a development environment or an editor "
+"with a huge bunch of plugins."
+msgstr "Mousepad は、使いやすく高速なエディターを目指しています。私たちのターゲットは開発環境や膨大な数のプラグインを持つエディターではなく、テキストファイルをすばやく編集するためのエディターです。"
+
+#: org.xfce.mousepad.appdata.xml.in:15
+msgid ""
+"On the other hand we try to use the latest GTK features available, which "
+"means that if GTK adds something new in a major release that is useful for "
+"the editor, we will likely bump the GTK dependency and integrate this new "
+"feature in Mousepad."
+msgstr "その一方で、私たちは利用可能な最新の GTK の機能を使うようにしているため、GTK がメジャーリリースでエディターにとって有用な何か新しい機能を追加した場合、私たちはGTKの依存関係を更新し、Mousepad にこの新機能を組み込む可能性があります。"
+
+#: org.xfce.mousepad.appdata.xml.in:36
+msgid "The Mousepad developers"
+msgstr "Mousepad 開発者"
+
+#. SECURITY:
+#. - A normal active user can run mousepad without elevated rights. They
+#. may wish to modify a file they normally do not have read/write access
+#. to. This isn't a good idea, but is common on single user systems.
+#: org.xfce.mousepad.policy.in.in:24
+msgid "Run Mousepad as root"
+msgstr "root として Mousepad を実行"
+
+#: org.xfce.mousepad.policy.in.in:25
+msgid "Authentication is required to run Mousepad as root."
+msgstr "Mousepad を root として実行するには、認証を必要とします。"

@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+        <%= stylesheet_link_tag 'application.css' %>
+        <script>
+            document.addEventListener('load', function(event) {
+                document.body.classList.add('has-js') ;
+            }) ;
+        </script>
+    </head>
+
+    <body>
+        <% if @current_user %>
+            <h1>Welcome back <%= @current_user.name %></h1>
+        <% else %>
+            <%# User not logged in so we can't show their name %>
+            <h1>Welcome!</h1>
+        <% end %>
+    </body>
+</html>

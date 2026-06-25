@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Wes Hurd <13hurdw@gmail.com>
+ Copyright (C) 2017, 2020
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+
+<language id="yara" name="YARA" version="2.0" _section="Other">
+  <metadata>
+    <property name="mimetypes">text/yara;text/x-yara</property>
+    <property name="globs">*.yara;*.yar</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="comment"           name="Comment"               map-to="def:comment"/>
+    <style id="include"           name="Include"               map-to="def:preprocessor"/>
+    <style id="keyword"           name="Keyword"               map-to="def:keyword"/>
+    <style id="rule"              name="Rule"                  map-to="def:function"/>
+    <style id="string"            name="String"                map-to="def:string"/>
+    <style id="escaped-character" name="Escaped Character"     map-to="def:special-char"/>
+    <style id="decimal"           name="Decimal number"        map-to="def:decimal"/>
+    <style id="hexadecimal"       name="Hexadecimal number"    map-to="def:base-n-integer"/>
+    <style id="boolean"           name="Boolean value"         map-to="def:boolean"/>
+
+    <style id="error"             name="Error"                 map-to="def:error"/>
+  </styles>
+
+  <definitions>
+
+    <context id="include" style-ref="include">
+      <keyword>include</keyword>
+      <!-- 'import' is currently in keywords-->
+    </context>
+
+    <define-regex id="escaped-character" extended="true">
+      \\(                   # leading backslash
+      [\\\"nt] |   # escaped character
+      x[0-9A-Fa-f]{2}         # hex char
+      )
+    </define-regex>
+
+    <context id="string" style-ref="string" end-at-line-end="true" class="string" class-disabled="no-spell-check">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context id="escaped-character" style-ref="escaped-character">
+          <match>\%{escaped-character}</match>
+        </context>
+        <context ref="def:line-continue"/>
+      </include>
+    </context>
+
+    <!-- Match on YARA hex string chars -->
+    <context id="hex-string" style-ref="hexadecimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        ([a-fA-F0-9?]{2})+
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="hexadecimal" style-ref="hexadecimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        0[xX][a-fA-F0-9]+
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="invalid-hexadecimal" style-ref="error">
+      <match extended="true">
+        (?&lt;![\w\.])
+        0[xX][a-fA-F0-9]*[g-zG-Z][a-zA-Z0-9]*
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="decimal" style-ref="decimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        (0|[1-9][0-9]*)
+        (?![\w\.])
+      </match>
+    </context>
+
+    <!-- 'rule' is also present in the 'keywords' context, but has a lower
+         priority, so 'rule' is highlighted even if the rule name doesn't match. -->
+    <context id="rule">
+      <match extended="true">
+        (rule)
+        \s+
+        ([a-zA-Z_]\w{0,127})
+      </match>
+      <include>
+        <context sub-pattern="1" style-ref="keyword"/>
+        <context sub-pattern="2" style-ref="rule"/>
+      </include>
+    </context>
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>all</keyword>
+      <keyword>and</keyword>
+      <keyword>any</keyword>
+      <keyword>ascii</keyword>
+      <keyword>at</keyword>
+      <keyword>base64</keyword>
+      <keyword>base64wide</keyword>
+      <keyword>condition</keyword>
+      <keyword>contains</keyword>
+      <keyword>endswith</keyword>
+      <keyword>entrypoint</keyword> <!-- being deprecated-->
+      <keyword>filesize</keyword>
+      <keyword>for</keyword>
+      <keyword>fullword</keyword>
+      <keyword>global</keyword>
+      <keyword>icontains</keyword>
+      <keyword>iendswith</keyword>
+      <keyword>iequals</keyword>
+      <keyword>istartswith</keyword>
+      <keyword>import</keyword>
+      <keyword>in</keyword>
+      <keyword>int8</keyword>
+      <keyword>int16</keyword>
+      <keyword>int32</keyword>
+      <keyword>int8be</keyword>
+      <keyword>int16be</keyword>
+      <keyword>int32be</keyword>
+      <keyword>matches</keyword>
+      <keyword>meta</keyword>
+      <keyword>nocase</keyword>
+      <keyword>none</keyword>
+      <keyword>not</keyword>
+      <keyword>or</keyword>
+      <keyword>of</keyword>
+      <keyword>private</keyword>
+      <keyword>rule</keyword>
+      <keyword>startswith</keyword>
+      <keyword>strings</keyword>
+      <keyword>them</keyword>
+      <keyword>uint8</keyword>
+      <keyword>uint16</keyword>
+      <keyword>uint32</keyword>
+      <keyword>uint8be</keyword>
+      <keyword>uint16be</keyword>
+      <keyword>uint32be</keyword>
+      <keyword>wide</keyword>
+      <keyword>xor</keyword>
+    </context>
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>true</keyword>
+      <keyword>false</keyword>
+    </context>
+
+    <!--Main context-->
+    <context id="yara" class="no-spell-check">
+      <include>
+        <context ref="def:c-like-comment" style-ref="comment"/>
+        <context ref="def:c-like-comment-multiline" style-ref="comment"/>
+        <context ref="def:c-like-close-comment-outside-comment" style-ref="comment"/>
+        <context ref="include"/>
+        <context ref="string"/>
+        <context ref="hex-string"/>
+        <context ref="hexadecimal"/>
+        <context ref="invalid-hexadecimal"/>
+        <context ref="decimal"/>
+        <context ref="rule"/>
+        <context ref="keywords"/>
+        <context ref="boolean"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

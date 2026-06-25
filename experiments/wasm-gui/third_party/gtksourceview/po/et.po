@@ -1,0 +1,1930 @@
+# gtksourceview'i eesti keele tõlge.
+# Estonian translation of gtksourceview.
+#
+# Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+# Copyright (C) 2007–2011 The GNOME Project.
+# This file is distributed under the same license as the gtksourceview package.
+#
+# Tõivo Leedjärv <toivo linux ee>, 2003.
+# Priit Laes <amd store20 com>, 2005.
+# Ivar Smolin <okul linux ee>, 2005–2011.
+# Rene Pärts <rene87 hot ee>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtksourceview MASTER\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gtksourceview&component=general\n"
+"POT-Creation-Date: 2011-01-02 23:03+0000\n"
+"PO-Revision-Date: 2011-01-08 11:00+0200\n"
+"Last-Translator: Ivar Smolin <okul@linux.ee>\n"
+"Language-Team: Estonian <gnome-et@linux.ee>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: et\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "After"
+msgstr ""
+
+#. Translators: "All" is used as a label in thestatus bar of the
+#. popup, telling that all completion pages are shown
+msgid "All"
+msgstr "Kõik"
+
+msgid "Always"
+msgstr "Alati"
+
+msgid "Before"
+msgstr "Enne"
+
+msgid "Disabled"
+msgstr "Keelatud"
+
+msgid "GtkSourceView"
+msgstr "GtkSourceView"
+
+msgid "Leading"
+msgstr ""
+
+msgid "Newline"
+msgstr ""
+
+msgid "Non Breaking Whitespace"
+msgstr "Murdumatu tühik"
+
+msgid "Space"
+msgstr "Tühik"
+
+msgid "Tab"
+msgstr "Tabulaator"
+
+msgid "Text"
+msgstr "Tekst"
+
+msgid "Trailing"
+msgstr ""
+
+msgid "Ada"
+msgstr "Ada"
+
+msgid "Arbitrary base number"
+msgstr ""
+
+#. A boolean constant: TRUE, false
+msgid "Boolean value"
+msgstr "Tõeväärtus"
+
+#. Any comment
+msgid "Comment"
+msgstr "Kommentaar"
+
+#. map-to="def:others"
+msgid "Data Type"
+msgstr "Andmetüüp"
+
+#. A decimal number: 1234
+msgid "Decimal number"
+msgstr "Kümnendarv"
+
+#. map to nothing
+msgid "Escaped Character"
+msgstr ""
+
+#. keywords: "if", "for", "while", etc.
+msgid "Keyword"
+msgstr "Võtmesõna"
+
+msgid "Preprocessor"
+msgstr "Eelprotsessor"
+
+msgid "Real number"
+msgstr "Reaalarv"
+
+msgid "Sources"
+msgstr "Lähtekoodid"
+
+msgid "Storage Class"
+msgstr ""
+
+#. A string constant: "this is a string"
+msgid "String"
+msgstr "String"
+
+msgid "ASP"
+msgstr "ASP"
+
+msgid "ASP Object"
+msgstr "ASP-i objekt"
+
+#. A function name (also: methods for classes)
+msgid "Function"
+msgstr "Funktsioon"
+
+#. A generic number constant
+msgid "Number"
+msgstr "Arv"
+
+#. Operators: "+", "*", etc.
+msgid "Operator"
+msgstr "Operaator"
+
+#. A special constant like NULL in C or null in Java
+msgid "Special constant"
+msgstr "Erikonstant"
+
+msgid "VBScript and ADO constants"
+msgstr "VBScripti ja ADO konstandid"
+
+msgid "Builtin Function"
+msgstr "Sisseehitatud funktsioon"
+
+msgid "Pattern"
+msgstr "Muster"
+
+msgid "Scripts"
+msgstr "Skriptid"
+
+msgid "Variable"
+msgstr "Muutuja"
+
+msgid "awk"
+msgstr "awk"
+
+msgid "BennuGD"
+msgstr ""
+
+#. A character constant: 'c'
+msgid "Character"
+msgstr "Märk"
+
+#. Any erroneous construct
+msgid "Error"
+msgstr "Viga"
+
+#. A floating point constant: 2.3e10
+msgid "Floating point number"
+msgstr "Ujukomaarv"
+
+msgid "Hexadecimal number"
+msgstr "Kuueteistkümnendarv"
+
+#. Any variable name
+msgid "Identifier"
+msgstr "Identifikaator"
+
+msgid "BibTeX"
+msgstr "BibTeX"
+
+msgid "Entries"
+msgstr ""
+
+msgid "Field"
+msgstr "Väli"
+
+msgid "Markup"
+msgstr "Märgistus"
+
+msgid "Boo"
+msgstr "Boo"
+
+msgid "Boolean"
+msgstr "Tõeväärtus"
+
+msgid "Definition"
+msgstr "Definitsoon"
+
+msgid "Multiline string"
+msgstr "Mitmerealine string"
+
+msgid "Namespace"
+msgstr "Nimeruum"
+
+msgid "Null Value"
+msgstr "Nullväärtus"
+
+msgid "Regular Expression"
+msgstr "Regulaaravaldis"
+
+msgid "Special Variable"
+msgstr "Erimuutuja"
+
+msgid "Bullet"
+msgstr "Alampunkt"
+
+msgid "ChangeLog"
+msgstr "MuutusteLogi"
+
+msgid "Date"
+msgstr "Kuupäev"
+
+msgid "E-mail address"
+msgstr "E-posti aadress"
+
+msgid "File"
+msgstr "Fail"
+
+msgid "Name"
+msgstr "Nimi"
+
+#. *
+#. * SECTION:language
+#. * @Short_description: Object representing a syntax highlighted language
+#. * @Title: GtkSourceLanguage
+#. * @See_also: #GtkSourceLanguageManager
+#. *
+#. * #GtkSourceLanguage encapsulates syntax and highlighting styles for a
+#. * particular language. Use #GtkSourceLanguageManager to obtain a
+#. * #GtkSourceLanguage instance, and gtk_source_buffer_set_language() to apply it
+#. * to a #GtkSourceBuffer.
+#.
+msgid "Others"
+msgstr "Muud"
+
+msgid "Release"
+msgstr "Redaktsioon"
+
+msgid "C/C++/ObjC Header"
+msgstr "C/C++/ObjC päis"
+
+msgid "C"
+msgstr "C"
+
+msgid "Common Defines"
+msgstr ""
+
+msgid "Included File"
+msgstr "Kaasatud fail"
+
+msgid "Octal number"
+msgstr "Kaheksandarv"
+
+msgid "Signal name"
+msgstr "Signaali nimi"
+
+msgid "Standard stream"
+msgstr ""
+
+msgid "printf Conversion"
+msgstr "printf teisendus"
+
+msgid "Bindings"
+msgstr "Seosed"
+
+msgid "Builtin"
+msgstr "Sisseehitatud"
+
+msgid "CG Shader Language"
+msgstr "CG renderdamiskeel"
+
+msgid "Swizzle operator"
+msgstr ""
+
+msgid "Builtin Command"
+msgstr "Sisseehitatud käsk"
+
+msgid "Builtin Variable"
+msgstr "Sisseehitatud muutuja"
+
+msgid "CMake"
+msgstr "CMake"
+
+#. Any constant
+msgid "Constant"
+msgstr "Konstant"
+
+msgid "Control Keyword"
+msgstr ""
+
+msgid "Cobol"
+msgstr ""
+
+#. Any statement
+msgid "Statement"
+msgstr "Lause"
+
+msgid "C++"
+msgstr "C++"
+
+msgid "C#"
+msgstr "C#"
+
+msgid "String Format"
+msgstr "Stringi vorming"
+
+msgid "CSS"
+msgstr "CSS"
+
+msgid "Color"
+msgstr "Värvus"
+
+msgid "Decimal"
+msgstr "Kümnendarv"
+
+msgid "Dimension"
+msgstr "Mõõde"
+
+msgid "Known Property Value"
+msgstr ""
+
+msgid "Others 2"
+msgstr "Teised 2"
+
+msgid "Others 3"
+msgstr "Teised 3"
+
+msgid "at-rules"
+msgstr "@-reeglid"
+
+msgid "CUDA"
+msgstr "CUDA"
+
+msgid "Device Functions"
+msgstr "Seadmefunktsioonid"
+
+msgid "Global Functions"
+msgstr "Globaalsed funktsioonid"
+
+msgid "Global Variables"
+msgstr "Globaalmuutujad"
+
+#. A base-N number: 0xFFFF
+msgid "Base-N number"
+msgstr ""
+
+#. A builtin name: like __import__, abs in Python
+#. (see http://docs.python.org/lib/built-in-funcs.html)
+msgid "Built-in identifier"
+msgstr "Sisseehitatud identifikaator"
+
+#. A complex number
+msgid "Complex number"
+msgstr "Kompleksarv"
+
+#. A primitive data type: int, long, char, etc.
+msgid "Data type"
+msgstr "Andmetüüp"
+
+msgid "Defaults"
+msgstr "Vaikeväärtused"
+
+#. A special comment containing documentation like in javadoc or
+#. gtk-doc
+msgid "Documentation comment"
+msgstr "Dokumenteerimiskommentaar"
+
+#. This style doesn't map to anything since it must be used as an additional
+#. style for text which is already styled as a "doc-comment"
+msgid "Documentation comment element"
+msgstr "Dokumenteerimiskommentaari kirje"
+
+#. Anything that needs extra attention; mostly the keywords TODO, FIXME and XXX
+msgid "Note (FIXME, TODO, XXX, etc.)"
+msgstr "Märkus (FIXME, TODO, XXX, jms.)"
+
+#. This one is for '#include <foo.h>' and "#pragma blah", or 'use foobar', etc..
+msgid "Preprocessor directive"
+msgstr "Eelprotsessori direktiiv"
+
+#. Reserved keywords: like "const" and "goto" in Java
+msgid "Reserved keyword"
+msgstr "Reserveeritud võtmesõna"
+
+#. A shebang: #!/bin/sh
+msgid "Shebang"
+msgstr ""
+
+#. This style doesn't map to anything since it must be used as an additional
+#. style for text which is already styled as a "string"
+msgid "Special character (inside a string)"
+msgstr "Erimärk (stringis)"
+
+#. Text that stands out, HTML links, e-mail addresses, etc.
+msgid "Underlined"
+msgstr "Allajoonitud"
+
+msgid ".desktop"
+msgstr ".desktop"
+
+msgid "Additional Category"
+msgstr "Täiendav kategooria"
+
+msgid "Encoding"
+msgstr "Kodeering"
+
+msgid "Exec parameter"
+msgstr "Käivitusparameeter"
+
+msgid "Group"
+msgstr "Grupp"
+
+#. Translators: "Key" here means key value, that is the left hand
+#. side in a myoption=something line in a .desktop file
+msgid "Key"
+msgstr "Võti"
+
+msgid "Main Category"
+msgstr "Põhikategooria"
+
+msgid "Reserved Category"
+msgstr "Reserveeritud kategooria"
+
+msgid "Translation"
+msgstr "Tõlge"
+
+msgid "Added line"
+msgstr "Lisatud rida"
+
+#. Others 3
+msgid "Changed line"
+msgstr "Muudetud rida"
+
+msgid "Diff"
+msgstr "Diff"
+
+#. Keyword
+msgid "Ignore"
+msgstr "Eira"
+
+#. String
+msgid "Location"
+msgstr "Asukoht"
+
+#. Others 2
+msgid "Removed line"
+msgstr "Eemaldatud rida"
+
+#. Preprocessor
+msgid "Special case"
+msgstr "Erijuht"
+
+msgid "Binary number"
+msgstr "Kahendarv"
+
+msgid "D"
+msgstr "D"
+
+msgid "Special Token"
+msgstr ""
+
+msgid "Docbook"
+msgstr "Docbook"
+
+msgid "Formatting Elements"
+msgstr "Vorminduselemendid"
+
+msgid "GUI Elements"
+msgstr "Kasutajaliidese elemendid"
+
+msgid "Header Elements"
+msgstr "Päiseelemendid"
+
+msgid "Structural Elements"
+msgstr "Struktuurielemendid"
+
+msgid "Command"
+msgstr "Käsk"
+
+msgid "Dos Batch"
+msgstr "Dos-i käsufail"
+
+msgid "Attribute name"
+msgstr "Rekvisiidi nimi"
+
+msgid "Graphviz Dot"
+msgstr "Graphviz Dot"
+
+msgid "DPatch"
+msgstr "DPatch"
+
+msgid "patch-start"
+msgstr ""
+
+msgid "DTD"
+msgstr "DTD"
+
+msgid "decl"
+msgstr ""
+
+msgid "entity"
+msgstr "olem"
+
+msgid "error"
+msgstr "viga"
+
+msgid "quoted-value"
+msgstr ""
+
+msgid "Assertion"
+msgstr ""
+
+msgid "Boolean Value"
+msgstr "Tõeväärtus"
+
+msgid "Debug"
+msgstr "Silumine"
+
+msgid "Design by Contract"
+msgstr ""
+
+msgid "Eiffel"
+msgstr "Eiffel"
+
+msgid "Exception Handling"
+msgstr "Eranditöötlus"
+
+msgid "Predefined Variable"
+msgstr "Eelkirjeldatud muutuja"
+
+msgid "Void Value"
+msgstr "Tühiväärtus"
+
+msgid "Atom"
+msgstr ""
+
+msgid "Base-N Integer"
+msgstr ""
+
+msgid "Compiler Directive"
+msgstr "Kompilaatori direktiiv"
+
+msgid "Erlang"
+msgstr "Erlang"
+
+msgid "Block"
+msgstr "Blokk"
+
+msgid "FCL"
+msgstr "FCL"
+
+msgid "Floating Point"
+msgstr "Ujukomaarv"
+
+msgid "Reserved Constant"
+msgstr "Reserveeritud konstant"
+
+msgid "Scientific"
+msgstr "Teaduslik"
+
+msgid "Debug Code"
+msgstr "Silumiskood"
+
+msgid "Error Text"
+msgstr "Vea tekst"
+
+msgid "Forth"
+msgstr "Forth"
+
+msgid "BOZ Literal"
+msgstr ""
+
+msgid "Fortran 95"
+msgstr "Fortran 95"
+
+msgid "Intrinsic function"
+msgstr ""
+
+msgid "Builtin-function keyword"
+msgstr "Sisseehitatud funktsiooni võtmesõna"
+
+msgid "F#"
+msgstr "F#"
+
+msgid "Floating Point number"
+msgstr "Ujukomarv"
+
+msgid "Labeled argument"
+msgstr ""
+
+msgid "Module Path"
+msgstr "Mooduli rada"
+
+msgid "Polymorphic Variant"
+msgstr ""
+
+msgid "Type Variable"
+msgstr ""
+
+msgid "Type, module or object keyword"
+msgstr "Tüübi, mooduli või objekti võtmesõnad"
+
+msgid "Variant Constructor"
+msgstr ""
+
+msgid "GAP"
+msgstr "GAP"
+
+msgid "Address"
+msgstr ""
+
+msgid "Filename"
+msgstr "Failinimi"
+
+msgid "Frame Number"
+msgstr ""
+
+msgid "GDB Log"
+msgstr "GDB logi"
+
+msgid "Incomplete Sequence"
+msgstr ""
+
+msgid "Optimized Out"
+msgstr ""
+
+msgid "Prompt"
+msgstr ""
+
+msgid "Thread Action"
+msgstr ""
+
+msgid "Thread Header"
+msgstr ""
+
+msgid "Builtin Constant"
+msgstr "Sisseehitatud konstant"
+
+msgid "OpenGL Shading Language"
+msgstr ""
+
+msgid "Reserved Keywords"
+msgstr "Reserveeritud võtmesõnad"
+
+msgid "Go"
+msgstr ""
+
+msgid "Deprecated"
+msgstr "Iganenud"
+
+msgid "Function Name"
+msgstr "Funktsiooni nimi"
+
+msgid "Inline Documentation Section"
+msgstr "Sisese dokumentatsiooni sektsioon"
+
+msgid "Parameter"
+msgstr "Parameeter"
+
+msgid "Property Name"
+msgstr "Omaduse nimi"
+
+msgid "Return"
+msgstr ""
+
+msgid "Signal Name"
+msgstr "Signaali nimi"
+
+msgid "Since"
+msgstr "Alates"
+
+msgid "Type"
+msgstr "Tüübid"
+
+msgid "gtk-doc"
+msgstr "gtk-doc"
+
+msgid "GtkRC"
+msgstr "GtkRC"
+
+msgid "Include directive"
+msgstr ""
+
+msgid "Widget State"
+msgstr "Vidina olek"
+
+msgid "Anchor"
+msgstr "Ankur"
+
+msgid "Code Block"
+msgstr "Koodiblokk"
+
+msgid "Definition list"
+msgstr "Definitsoonide nimekiri"
+
+msgid "Emphasis"
+msgstr "Emfaas"
+
+msgid "Enumerated list"
+msgstr "Nummerdatud loetelu"
+
+msgid "Escape"
+msgstr ""
+
+msgid "Haddock"
+msgstr "Haddock"
+
+msgid "Haddock Directive"
+msgstr "Haddocki direktiiv"
+
+msgid "Header Property"
+msgstr "Päise omadus"
+
+msgid "Hyperlinked Identifier"
+msgstr ""
+
+msgid "Hyperlinked Module Name"
+msgstr ""
+
+msgid "Inline Haddock Section"
+msgstr ""
+
+msgid "Itemized list"
+msgstr "Nummerdamata loetelu"
+
+msgid "Monospace"
+msgstr ""
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Float"
+msgstr "Ujukoma"
+
+msgid "Haskell"
+msgstr "Haskell"
+
+msgid "Hex"
+msgstr "Kuueteistkümnendarv"
+
+msgid "Octal"
+msgstr "Kaheksandarv"
+
+msgid "Symbol"
+msgstr "Sümbol"
+
+msgid "Literate Haskell"
+msgstr ""
+
+msgid "Attribute Name"
+msgstr "Rekvisiidi nimi"
+
+msgid "Attribute Value"
+msgstr "Rekvisiidi väärtus"
+
+msgid "HTML"
+msgstr "HTML"
+
+msgid "Tag"
+msgstr "Silt"
+
+msgid "IDL"
+msgstr "IDL"
+
+msgid ".ini"
+msgstr ".ini"
+
+msgid "Declaration"
+msgstr "Deklaratsioon"
+
+msgid "External"
+msgstr "Väline"
+
+msgid "Future Reserved Keywords"
+msgstr "Tuleviku jaoks reserveeritud sõnad"
+
+msgid "Java"
+msgstr "Java"
+
+msgid "Scope Declaration"
+msgstr ""
+
+msgid "Constructors"
+msgstr "Konstruktorid"
+
+msgid "JavaScript"
+msgstr "JavaScript"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "Properties"
+msgstr "Omadused"
+
+msgid "Undefined Value"
+msgstr "Kirjeldamata väärtus"
+
+msgid "Include"
+msgstr ""
+
+msgid "Inline Math Mode"
+msgstr ""
+
+msgid "LaTeX"
+msgstr "LaTex"
+
+msgid "Math Mode"
+msgstr ""
+
+msgid "Verbatim"
+msgstr ""
+
+msgid "math-bound"
+msgstr ""
+
+msgid "libtool"
+msgstr "libtool"
+
+msgid "Lua"
+msgstr "Lua"
+
+msgid "Nil Constant"
+msgstr ""
+
+msgid "Reserved Identifier"
+msgstr "Reserveeritud identifikaator"
+
+msgid "Autoconf Macro"
+msgstr "Autoconfi makro"
+
+msgid "Obsolete Autoconf Macro"
+msgstr "Autoconfi aegunud makro"
+
+msgid "m4"
+msgstr "m4"
+
+msgid "m4 Macro"
+msgstr "m4 makro"
+
+msgid "m4-comment"
+msgstr "m4 kommentaar"
+
+msgid "Assignment Left Hand Side"
+msgstr ""
+
+msgid "Assignment Right Hand Side"
+msgstr ""
+
+msgid "Makefile"
+msgstr "Makefile"
+
+#. Translators: Trailing Tabs refers to tabulation characters present at
+#. the end of the line
+msgid "Trailing Tab"
+msgstr ""
+
+msgid "command"
+msgstr "käsk"
+
+msgid "function"
+msgstr "funktsioon"
+
+#. FIXME make it better names, and make them translatable
+msgid "keyword"
+msgstr "võtmesõna"
+
+msgid "prereq"
+msgstr ""
+
+msgid "targets"
+msgstr "sihid"
+
+msgid "Block Elements"
+msgstr ""
+
+msgid "Inline Elements"
+msgstr ""
+
+msgid "Mallard"
+msgstr "Mallard"
+
+msgid "Page Elements"
+msgstr ""
+
+msgid "Section Elements"
+msgstr ""
+
+msgid "Nemerle"
+msgstr "Nemerle"
+
+msgid "NSIS"
+msgstr "NSIS"
+
+msgid "Objective-C"
+msgstr "Objective-C"
+
+msgid "Objective Caml"
+msgstr "Objective Caml"
+
+msgid "Ocamldoc Comments"
+msgstr "Ocamldoc'i kommentaarid"
+
+msgid "Standart Modules"
+msgstr ""
+
+msgid "OCL"
+msgstr "OCL"
+
+msgid "Operation operator"
+msgstr ""
+
+msgid "Type Operators"
+msgstr ""
+
+msgid "Octave"
+msgstr "Octave"
+
+msgid "OOC"
+msgstr "OOC"
+
+msgid "Keysymbol"
+msgstr ""
+
+msgid "Module Handler"
+msgstr "Moodulikäsitleja"
+
+msgid "Opal"
+msgstr "Opal"
+
+msgid "Pascal"
+msgstr "Pascal"
+
+msgid "Control"
+msgstr ""
+
+msgid "File Descriptor"
+msgstr "Failideskriptor"
+
+msgid "Heredoc"
+msgstr "Heredoc"
+
+msgid "Heredoc Bound"
+msgstr ""
+
+msgid "Include Statement"
+msgstr "Include-lause"
+
+msgid "Line Directive"
+msgstr ""
+
+msgid "POD"
+msgstr ""
+
+msgid "POD Escape"
+msgstr ""
+
+msgid "POD heading"
+msgstr ""
+
+msgid "POD keyword"
+msgstr ""
+
+msgid "Perl"
+msgstr "Perl"
+
+msgid "System Command"
+msgstr "Süsteemne käsk"
+
+msgid "PHP"
+msgstr "PHP"
+
+msgid "Package Info"
+msgstr "Paki andmed"
+
+msgid "pkg-config"
+msgstr "pkg-config"
+
+msgid "Fuzzy"
+msgstr "Hägune"
+
+#. FIXME make it some nice name and mark it translatable
+msgid "Special"
+msgstr "Spetsiaalne"
+
+msgid "gettext translation"
+msgstr "gettext tõlge"
+
+msgid "Prolog"
+msgstr "Prolog"
+
+msgid "Builtin Object"
+msgstr "Sisseehitatud objekt"
+
+msgid "Format"
+msgstr "Vorming"
+
+msgid "Python"
+msgstr "Python"
+
+msgid "string-conversion"
+msgstr "stringiteisendus"
+
+msgid "Assignment Operator"
+msgstr "Omistamisoperaator"
+
+msgid "Delimiter"
+msgstr "Eraldaja"
+
+msgid "Integer Number"
+msgstr "Täisarv"
+
+msgid "R"
+msgstr "R"
+
+msgid "Reserved Class"
+msgstr "Reserveeritud klass"
+
+msgid "Special Constant"
+msgstr "Erikonstant"
+
+msgid "Command Macro"
+msgstr "Käsumakro"
+
+msgid "Conditional Macro"
+msgstr "Tingimuslik makro"
+
+msgid "Define"
+msgstr "Definitsioon"
+
+msgid "Directory Macro"
+msgstr "Kataloogimakro"
+
+msgid "Email"
+msgstr "E-post"
+
+msgid "Flow Conditional"
+msgstr "Vootingimused"
+
+msgid "Header"
+msgstr "Päis"
+
+msgid "Other Macro"
+msgstr "Muu makro"
+
+msgid "RPM Variable"
+msgstr "RPM-muutuja"
+
+msgid "RPM spec"
+msgstr "RPM-spetsifikatsioon"
+
+msgid "Section"
+msgstr "Sektsioon"
+
+msgid "Spec Macro"
+msgstr "Spetsifikatsioonimakro"
+
+msgid "Switch"
+msgstr ""
+
+msgid "Attribute Definition"
+msgstr "Rekvisiidi definitsioon"
+
+msgid "Module handler"
+msgstr "Moodulikäsitleja"
+
+msgid "Numeric literal"
+msgstr ""
+
+msgid "Ruby"
+msgstr "Ruby"
+
+msgid "Scheme"
+msgstr "Scheme"
+
+msgid "Scilab"
+msgstr ""
+
+msgid "Common Commands"
+msgstr "Üldised käsud"
+
+msgid "Subshell"
+msgstr "Alamkest"
+
+#. FIXME: need to sort out proper styles for variables
+msgid "Variable Definition"
+msgstr "Muutuja definitsioon"
+
+msgid "sh"
+msgstr "sh"
+
+msgid "Class"
+msgstr "Klass"
+
+msgid "IRI"
+msgstr ""
+
+msgid "Individual"
+msgstr ""
+
+msgid "Literal"
+msgstr "Literaal"
+
+msgid "Predicate"
+msgstr "Predikaat"
+
+msgid "QName"
+msgstr ""
+
+msgid "SPARQL"
+msgstr ""
+
+msgid "No idea what it is"
+msgstr "Pole aimugi, mis see on"
+
+msgid "SQL"
+msgstr "SQL"
+
+msgid "System Task"
+msgstr "Süsteemne tegum"
+
+msgid "SystemVerilog"
+msgstr "SystemVerilog"
+
+msgid "Bold"
+msgstr "Rasvane"
+
+msgid "Italic"
+msgstr "Kursiiv"
+
+msgid "Option"
+msgstr "Valik"
+
+msgid "Option Name"
+msgstr "Valiku nimi"
+
+msgid "Section 1"
+msgstr "Sektsioon 1"
+
+msgid "Section 2"
+msgstr "Sektsioon 2"
+
+msgid "Section 3"
+msgstr "Sektsioon 3"
+
+msgid "Section 4"
+msgstr "Sektsioon 4"
+
+msgid "Section 5"
+msgstr "Sektsioon 5"
+
+msgid "Text2Tags"
+msgstr ""
+
+msgid "Verbatim Block"
+msgstr ""
+
+msgid "Tcl"
+msgstr "Tcl"
+
+msgid "File Attributes"
+msgstr "Faili atribuudid"
+
+msgid "Generated Content"
+msgstr "Genereeritud sisu"
+
+msgid "Macros"
+msgstr "Makrod"
+
+msgid "Texinfo"
+msgstr "Texinfo"
+
+msgid "Vala"
+msgstr "Vala"
+
+msgid "VB.NET"
+msgstr "VB.NET"
+
+msgid "Gate"
+msgstr ""
+
+msgid "IEEE System Task"
+msgstr ""
+
+msgid "LRM Additional System Task"
+msgstr ""
+
+msgid "Verilog"
+msgstr "Verilog"
+
+msgid "VHDL"
+msgstr "VHDL"
+
+msgid "Attribute value"
+msgstr "Rekvisiidi väärtus"
+
+msgid "CDATA delimiter"
+msgstr "CDATA eraldaja"
+
+msgid "DOCTYPE"
+msgstr "DOCTYPE"
+
+msgid "Element name"
+msgstr "Elemendi nimi"
+
+msgid "Entity"
+msgstr "Olem"
+
+msgid "Processing instruction"
+msgstr "Töötlemisinstruktsioon"
+
+msgid "XML"
+msgstr "XML"
+
+msgid "Element"
+msgstr "Element"
+
+msgid "XSLT"
+msgstr "XSLT"
+
+msgid "Yacc"
+msgstr "Yacc"
+
+msgid "rule"
+msgstr "reegel"
+
+msgid "token-type"
+msgstr ""
+
+msgid "Classic"
+msgstr "Klassikaline"
+
+msgid "Classic color scheme"
+msgstr "Klassikaline värviskeem"
+
+msgid "Blue based color scheme"
+msgstr "Sinisel põhinev värviskeem"
+
+msgid "Cobalt"
+msgstr "Cobalt"
+
+msgid "Color scheme used in the Kate text editor"
+msgstr "Kate'i tekstiredaktori poolt kasutatav värviskeem"
+
+msgid "Kate"
+msgstr "Kate"
+
+msgid "Dark color scheme using the Tango color palette"
+msgstr "Tango värvipaletti kasutav tume värviskeem"
+
+msgid "Oblivion"
+msgstr "Unustus"
+
+msgid "Color scheme using Tango color palette"
+msgstr "Tango värvipaletti kasutav värviskeem"
+
+msgid "Tango"
+msgstr "Tango"
+
+msgid "Document Words"
+msgstr ""
+
+msgid "The provider name"
+msgstr "Teenusepakkuja nimi"
+
+msgid "Icon"
+msgstr "Ikoon"
+
+msgid "The provider icon"
+msgstr "Teenusepakkuja ikoon"
+
+msgid "Proposals Batch Size"
+msgstr ""
+
+msgid "Number of proposals added in one batch"
+msgstr ""
+
+msgid "Scan Batch Size"
+msgstr ""
+
+msgid "Number of lines scanned in one batch"
+msgstr ""
+
+msgid "Minimum Word Size"
+msgstr "Väikseim sõna suurus"
+
+msgid "The minimum word size to complete"
+msgstr ""
+
+msgid "Interactive Delay"
+msgstr ""
+
+msgid "The delay before initiating interactive completion"
+msgstr ""
+
+msgid "Priority"
+msgstr "Tähtsus"
+
+msgid "Provider priority"
+msgstr "Teenusepakkuja tähtsus"
+
+msgid "Highlight Syntax"
+msgstr "Süntaksi esiletõstmine"
+
+msgid "Whether to highlight syntax in the buffer"
+msgstr "Kas puhvrisolevat süntaksit tõstetakse esile"
+
+msgid "Highlight Matching Brackets"
+msgstr "Suluvastavuste esiletõstmine"
+
+msgid "Whether to highlight matching brackets"
+msgstr "Kas vastavuses olevaid sulge tuleb esile tõsta või mitte"
+
+msgid "Maximum Undo Levels"
+msgstr "Suurim unustatavate toimingute arv"
+
+msgid "Number of undo levels for the buffer"
+msgstr "Puhvri unustamistasemete arv"
+
+#. Translators: throughout GtkSourceView "language" stands
+#. * for "programming language", not "spoken language"
+msgid "Language"
+msgstr "Keel"
+
+msgid "Language object to get highlighting patterns from"
+msgstr "Keeleobjekt, mille järgi esiletõstmist teostatakse"
+
+msgid "Can undo"
+msgstr "Unustamise võimalus"
+
+msgid "Whether Undo operation is possible"
+msgstr "Kas tegevuse unustamine on võimalik või mitte"
+
+msgid "Can redo"
+msgstr "Taastamise võimalus"
+
+msgid "Whether Redo operation is possible"
+msgstr "Kas unustatud tegevuse taastamine on võimalik või mitte"
+
+msgid "Style scheme"
+msgstr "Laadi skeem"
+
+msgid "Undo manager"
+msgstr "Tühistamispuhvri haldur"
+
+msgid "The buffer undo manager"
+msgstr "Tühistamispuhvri haldur"
+
+msgid "No extra information available"
+msgstr "Täiendavaid andmeid pole saadaval"
+
+msgid "View"
+msgstr "Vaade"
+
+msgid "The GtkSourceView bound to the completion"
+msgstr ""
+
+msgid "Remember Info Visibility"
+msgstr ""
+
+msgid "Remember the last info window visibility state"
+msgstr ""
+
+msgid "Select on Show"
+msgstr ""
+
+msgid "Select first proposal when completion is shown"
+msgstr ""
+
+msgid "Show Headers"
+msgstr "Päiste näitamine"
+
+msgid ""
+"Show provider headers when proposals from multiple providers are available"
+msgstr ""
+
+msgid "Show Icons"
+msgstr "Ikoonide näitamine"
+
+msgid "Show provider and proposal icons in the completion popup"
+msgstr ""
+
+msgid "Accelerators"
+msgstr "Kiirklahvid"
+
+msgid "Number of proposal accelerators to show"
+msgstr ""
+
+msgid "Auto Complete Delay"
+msgstr "Automaatlõpetuse viivitus"
+
+msgid "Completion popup delay for interactive completion"
+msgstr ""
+
+msgid "Provider Page Size"
+msgstr ""
+
+msgid "Provider scrolling page size"
+msgstr ""
+
+msgid "Proposal Page Size"
+msgstr ""
+
+msgid "Proposal scrolling page size"
+msgstr ""
+
+msgid "Provider"
+msgstr "Teenusepakkuja"
+
+msgid "Completion"
+msgstr ""
+
+msgid "The completion object to which the context belongs"
+msgstr ""
+
+#. Translators: The GtkTextIter at which the completion was invoked
+msgid "Iterator"
+msgstr ""
+
+msgid "The GtkTextIter at which the completion was invoked"
+msgstr ""
+
+msgid "Activation"
+msgstr "Aktiveerimine"
+
+msgid "The type of activation"
+msgstr "Aktiveerimise liik"
+
+#. Tooltip style
+msgid "Completion Info"
+msgstr ""
+
+msgid "Label"
+msgstr "Silt"
+
+msgid "Label to be shown for this item"
+msgstr "Sellel kirjel näidatav silt"
+
+msgid "Markup to be shown for this item"
+msgstr "Sellel kirjel näidatav märgistus"
+
+msgid "Item text"
+msgstr "Kirje tekst"
+
+msgid "Icon to be shown for this item"
+msgstr "Sellel kirjel näidatav ikoon"
+
+msgid "Info"
+msgstr "Teave"
+
+msgid "Info to be shown for this item"
+msgstr "Selle kirje kohta näidatav teave"
+
+msgid "using \\C is not supported in language definitions"
+msgstr "\\C kasutamine keelekirjeldustes pole toetatud"
+
+#. regex_new could fail, for instance if there are different
+#. * named sub-patterns with the same name or if resulting regex is
+#. * too long. In this case fixing lang file helps (e.g. renaming
+#. * subpatterns, making huge keywords use bigger prefixes, etc.)
+#, c-format
+msgid ""
+"Cannot create a regex for all the transitions, the syntax highlighting "
+"process will be slower than usual.\n"
+"The error was: %s"
+msgstr ""
+"Kõigi üleminekute kohta pole võimalik regulaaravaldist luua, seetõttu on "
+"süntaksti esiletõstmine tavalisest aeglasem.\n"
+"Vea kirjeldus: %s"
+
+msgid ""
+"Highlighting a single line took too much time, syntax highlighting will be "
+"disabled"
+msgstr ""
+"Ühe rea esiletõstmine võttis liiga kaua aega, seetõttu keelati süntaksi "
+"esiletõstmine"
+
+#, c-format
+msgid "context '%s' cannot contain a \\%%{...@start} command"
+msgstr "kontekst '%s' ei tohi sisaldada käsku \\%%{...@start}"
+
+#, c-format
+msgid "duplicated context id '%s'"
+msgstr "dubleeritud konteksti id '%s'"
+
+#, c-format
+msgid ""
+"style override used with wildcard context reference in language '%s' in ref "
+"'%s'"
+msgstr ""
+
+#, c-format
+msgid "invalid context reference '%s'"
+msgstr "vigane kontekstiviide '%s'"
+
+#, c-format
+msgid "unknown context '%s'"
+msgstr "tundmatu kontekst '%s'"
+
+#, c-format
+msgid "Missing main language definition (id = \"%s\".)"
+msgstr "Puudub peamise keele definitsioon (id = \"%s\".)"
+
+msgid "The gutters' GtkSourceView"
+msgstr "Gutteri GtkSourceView"
+
+msgid "Window Type"
+msgstr "Akna liik"
+
+msgid "The gutters text window type"
+msgstr "Gutteri tekstiakna liik"
+
+msgid "X Padding"
+msgstr "X-polsterdus"
+
+msgid "The x-padding"
+msgstr "X-polsterdus"
+
+msgid "Y Padding"
+msgstr "Y-polsterdus"
+
+msgid "The y-padding"
+msgstr "Y-polsterdus"
+
+msgid "Visible"
+msgstr "Nähtav"
+
+msgid "X Alignment"
+msgstr "X-joondus"
+
+msgid "The x-alignment"
+msgstr "X-joondus"
+
+msgid "Y Alignment"
+msgstr "Y-joondus"
+
+msgid "The y-alignment"
+msgstr "Y-joondus"
+
+msgid "The View"
+msgstr "Vaade"
+
+msgid "The view"
+msgstr "Vaade"
+
+msgid "Alignment Mode"
+msgstr "Joondusrežiim"
+
+msgid "The alignment mode"
+msgstr "Joondusrežiim"
+
+msgid "The window type"
+msgstr "Akna liik"
+
+msgid "Size"
+msgstr "Suurus"
+
+msgid "The size"
+msgstr "Suurus"
+
+msgid "Pixbuf"
+msgstr ""
+
+msgid "The pixbuf"
+msgstr ""
+
+msgid "Stock Id"
+msgstr ""
+
+msgid "The stock id"
+msgstr ""
+
+msgid "Icon Name"
+msgstr "Ikooni nimi"
+
+msgid "The icon name"
+msgstr "Ikooni nimi"
+
+msgid "GIcon"
+msgstr "GIcon"
+
+msgid "The gicon"
+msgstr "GIcon"
+
+msgid "The markup"
+msgstr "Märgistus"
+
+msgid "The text"
+msgstr "Tekst"
+
+msgid "Language id"
+msgstr "Keele ID"
+
+msgid "Language name"
+msgstr "Keele nimi"
+
+msgid "Language section"
+msgstr "Keele sektsioon"
+
+msgid "Hidden"
+msgstr "Peidetud"
+
+msgid "Whether the language should be hidden from the user"
+msgstr "Kas keel peab kasutaja eest olema peidetud või mitte"
+
+msgid "Language specification directories"
+msgstr "Keelekirjelduste kataloogid"
+
+msgid ""
+"List of directories where the language specification files (.lang) are "
+"located"
+msgstr "Kataloogide loend, kus keelekirjelduste failid (.lang) asuvad"
+
+msgid "Language ids"
+msgstr "Keele ID-d"
+
+msgid "List of the ids of the available languages"
+msgstr "Saadaolevate keelte ID-de nimekiri"
+
+#, c-format
+msgid "Unknown id '%s' in regex '%s'"
+msgstr "Tundmatu id '%s' regulaaravaldises '%s'"
+
+#, c-format
+msgid "in regex '%s': backreferences are not supported"
+msgstr "regulaaravaldis '%s': tagasiviited pole toetatud"
+
+msgid "category"
+msgstr "kategooria"
+
+msgid "The mark category"
+msgstr ""
+
+msgid "Id"
+msgstr "Id"
+
+msgid "The id"
+msgstr "Id"
+
+msgid "Background"
+msgstr "Taust"
+
+msgid "The background"
+msgstr "Taust"
+
+msgid "The priority"
+msgstr "Tähtsus"
+
+msgid "The GIcon"
+msgstr "GIcon"
+
+msgid "Source Buffer"
+msgstr "Lähtepuhver"
+
+msgid "The GtkSourceBuffer object to print"
+msgstr "Prinditav GtkSourceBuffer objekt"
+
+msgid "Tab Width"
+msgstr "Tabulaatori laius"
+
+msgid "Width of a tab character expressed in spaces"
+msgstr "Tabulaatori laius tühikutes"
+
+msgid "Wrap Mode"
+msgstr "Murdmisrežiim"
+
+msgid ""
+"Whether to wrap lines never, at word boundaries, or at character boundaries."
+msgstr "Kas ridu ei murta või siis murtakse sõnade või hoopis märkide vahelt."
+
+msgid "Whether to print the document with highlighted syntax"
+msgstr "Kas dokument prinditakse esiletõstetud süntaksiga"
+
+msgid "Print Line Numbers"
+msgstr "Reanumbrite printimine"
+
+msgid "Interval of printed line numbers (0 means no numbers)"
+msgstr "Prinditavate reanumbrite vahemik (0 tähendab, et numbreid ei prindita)"
+
+msgid "Print Header"
+msgstr "Päise printimine"
+
+msgid "Whether to print a header in each page"
+msgstr "Kas päis prinditakse igale lehele"
+
+msgid "Print Footer"
+msgstr "Jaluse printimine"
+
+msgid "Whether to print a footer in each page"
+msgstr "Kas jalus prinditakse igale lehele"
+
+msgid "Body Font Name"
+msgstr "Dokumendi sisu kirjatüübi nimi"
+
+msgid "Name of the font to use for the text body (e.g. \"Monospace 10\")"
+msgstr "Dokumendi sisus kasutatava kirjatüübi nimi (näiteks \"Monospace 10\")"
+
+msgid "Line Numbers Font Name"
+msgstr "Reanumbrite kirjatüübi nimi"
+
+msgid "Name of the font to use for the line numbers (e.g. \"Monospace 10\")"
+msgstr "Reanumbrites kasutatava kirjatüübi nimi (näiteks \"Monospace 10\")"
+
+msgid "Header Font Name"
+msgstr "Päise kirjatüübi nimi"
+
+msgid "Name of the font to use for the page header (e.g. \"Monospace 10\")"
+msgstr "Lehekülje päises kasutatava kirjatüübi nimi (näiteks \"Monospace 10\")"
+
+msgid "Footer Font Name"
+msgstr "Jaluse kirjatüübi nimi"
+
+msgid "Name of the font to use for the page footer (e.g. \"Monospace 10\")"
+msgstr ""
+"Lehekülje jaluses kasutatava kirjatüübi nimi (näiteks \"Monospace 10\")"
+
+msgid "Number of pages"
+msgstr "Lehekülgede arv"
+
+msgid ""
+"The number of pages in the document (-1 means the document has not been "
+"completely paginated)."
+msgstr ""
+"Dokumendis olevate lehekülgede arv (-1 tähendab, et dokumendi jaotamine "
+"lehekülgedeks pole veel lõppenud)."
+
+msgid "Line background"
+msgstr "Rea taust"
+
+msgid "Line background color"
+msgstr "Rea taustavärvus"
+
+msgid "Background color"
+msgstr "Taustavärvus"
+
+msgid "Foreground"
+msgstr "Esiplaan"
+
+msgid "Foreground color"
+msgstr "Esiplaani värvus"
+
+msgid "Underline"
+msgstr "Allajoonitud"
+
+msgid "Strikethrough"
+msgstr "Läbijoonitud"
+
+msgid "Line background set"
+msgstr "Rea tausta värvus seatud"
+
+msgid "Whether line background color is set"
+msgstr "Kas rea tausta värvus on seatud või mitte"
+
+msgid "Foreground set"
+msgstr "Teksti värvus seatud"
+
+msgid "Whether foreground color is set"
+msgstr "Kas rea teksti värvus on seatud või mitte"
+
+msgid "Background set"
+msgstr "Tausta värvus seatud"
+
+msgid "Whether background color is set"
+msgstr "Kas tausta värvus on seatud või mitte"
+
+msgid "Bold set"
+msgstr "Rasvane laad seatud"
+
+msgid "Whether bold attribute is set"
+msgstr "Kas rasvane laad on seatud või mitte"
+
+msgid "Italic set"
+msgstr "Kursiivne laad seatud"
+
+msgid "Whether italic attribute is set"
+msgstr "Kas kursiivne laad on seatud või mitte"
+
+msgid "Underline set"
+msgstr "Allajoonimise laad seatud"
+
+msgid "Whether underline attribute is set"
+msgstr "Kas allajoonimise laad on seatud või mitte"
+
+msgid "Strikethrough set"
+msgstr "Läbijoonimise laad seatud"
+
+msgid "Whether strikethrough attribute is set"
+msgstr "Kas läbijoonimise laad on seatud või mitte"
+
+msgid "Style scheme id"
+msgstr "Laadi skeemi ID"
+
+msgid "Style scheme name"
+msgstr "Laadi skeemi nimi"
+
+msgid "Style scheme description"
+msgstr "Laadi skeemi kirjeldus"
+
+msgid "Style scheme filename"
+msgstr "Laadi skeemi failinimi"
+
+msgid "Style scheme search path"
+msgstr "Laadiskeemi otsingurada"
+
+msgid "List of directories and files where the style schemes are located"
+msgstr "Laadiskeemi sisaldavate kataloogide ja failide nimekiri"
+
+msgid "Scheme ids"
+msgstr "Skeemi ID-d"
+
+msgid "List of the ids of the available style schemes"
+msgstr "Saadaolevate laadiskeemide ID-de nimekiri"
+
+msgid "Buffer"
+msgstr "Puhver"
+
+msgid "The text buffer to add undo support on"
+msgstr ""
+
+msgid "The completion object associated with the view"
+msgstr ""
+
+msgid "Show Line Numbers"
+msgstr "Reanumbrite näitamine"
+
+msgid "Whether to display line numbers"
+msgstr "Kas näidata reanumbreid või mitte"
+
+msgid "Show Line Marks"
+msgstr "Reamarkerite näitamine"
+
+msgid "Whether to display line mark pixbufs"
+msgstr "Kas reanumbrimarkeri pildipuhvrit näidatakse või mitte"
+
+msgid "Indent Width"
+msgstr "Joonduse laius"
+
+msgid "Number of spaces to use for each step of indent"
+msgstr "Joonduse iga sammu jaoks määratud tühikite arv"
+
+msgid "Auto Indentation"
+msgstr "Automaatne taandamine"
+
+msgid "Whether to enable auto indentation"
+msgstr "Kas lubada automaatne taandamine"
+
+msgid "Insert Spaces Instead of Tabs"
+msgstr "Kasuta tabulaatorite asemel tühikuid"
+
+msgid "Whether to insert spaces instead of tabs"
+msgstr "Kas sisestada tabulaatorite asemele tühikud"
+
+msgid "Show Right Margin"
+msgstr "Paremveerise näitamine"
+
+msgid "Whether to display the right margin"
+msgstr "Kas paremveeris on nähtaval või mitte"
+
+msgid "Right Margin Position"
+msgstr "Paremveerise asukoht"
+
+msgid "Position of the right margin"
+msgstr "Paremveerise asukoht"
+
+msgid "Smart Home/End"
+msgstr "Targad Home/End klahvid"
+
+msgid ""
+"HOME and END keys move to first/last non whitespace characters on line "
+"before going to the start/end of the line"
+msgstr ""
+"HOME ja END klahvid liiguvad enne rea algusesse/lõppu minekut rea esimesele/"
+"viimasele tühemikule"
+
+msgid "Highlight current line"
+msgstr "Käesoleva rea esiletõstmine"
+
+msgid "Whether to highlight the current line"
+msgstr "Kas käesolevat rida tõstetakse esile"
+
+msgid "Indent on tab"
+msgstr "Tab-klahviga joondamine"
+
+msgid "Whether to indent the selected text when the tab key is pressed"
+msgstr "Kas valitud tekst joondatakse tab klahvi vajutamise peale või mitte"
+
+msgid "Draw Spaces"
+msgstr ""
+
+msgid "Set if and how the spaces should be visualized"
+msgstr ""
+
+msgid "translator-credits"
+msgstr ""
+"Tõivo Leedjärv <toivo linux ee>, 2003.\n"
+"Priit Laes <amd store20 com>, 2005.\n"
+"Ivar Smolin <okul linux ee>, 2005–2011.\n"
+"Rene Pärts <rene87 hot ee>, 2010."
+
+#~ msgid "Maximum width"
+#~ msgstr "Suurim laius"
+
+#~ msgid "The maximum allowed width"
+#~ msgstr "Suurim lubatud laius"
+
+#~ msgid "Maximum height"
+#~ msgstr "Suurim kõrgus"
+
+#~ msgid "The maximum allowed height"
+#~ msgstr "Suurim lubatud kõrgus"
+
+#~ msgid "Shrink width"
+#~ msgstr "Laiuse vähendamine"
+
+#~ msgid "Whether the window should shrink width to fit the contents"
+#~ msgstr "Kas akna laiust vähendatakse sisuga ühtivaks või mitte"
+
+#~ msgid "Shrink height"
+#~ msgstr "Kõrguse vähendamine"
+
+#~ msgid "Whether the window should shrink height to fit the contents"
+#~ msgstr "Kas akna kõrgust vähendatakse sisuga ühtivaks või mitte"

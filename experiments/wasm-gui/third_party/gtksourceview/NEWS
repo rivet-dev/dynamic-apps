@@ -1,0 +1,1714 @@
+News in 4.8.4, 2022-11-03
+-------------------------
+* Style updates to kate, classic, tango
+* Language updates to vala, python3, c, cuda, latex
+* Add unit tests for language specs
+* Translation updates
+
+News in 4.8.3, 2022-03-18
+-------------------------
+
+* Adds support for more Pango font-variants
+* Style updates to solarized-dark, solarized-light
+* Language updates to lean, rst, c, gtk-doc, javascript, and json
+* Translation updates
+
+News in 4.8.2, 2021-09-03
+-------------------------
+* New syntax highlighting definition file for: STAR
+* Improved syntax highlighting definition file for: YARA, LLVM
+* GtkSourceMap now avoids animation while scrolling in response
+  to clicks. This should help prevent some hysteresis.
+* GObject Introspection fixes
+* Fixed decrement of negative numbers in GtkSourceView
+* Improvements to style schemes: kate
+* Fixed build-time macros for version checking in some scenarios
+* Translation updates
+
+News in 4.8.1, 2021-03-02
+-------------------------
+* Fix highlighting in presence of byte-order-marks (BOM)
+* meson.lang: Update keywords to 0.55.3 syntax
+* cmake.lang: Update keywords to 3.18.2 syntax
+* go.lang: make "0i" syntax highlight as integer
+* Translation updates
+
+News in 4.8.0, 2020-09-12
+-------------------------
+* Translation updates
+
+News in 4.7.90, 2020-08-07
+--------------------------
+* Bump GTK requirement to 3.24 for gdk_window_move_to_rect()
+* Use gdk_window_move_to_rect() to more reliably position completion windows
+* erb.lang: initial support for ERB
+* javascript.lang, typescript.lang: various correctness and performance
+  improvements.
+* Translation updates
+
+News in 4.6.1, 2020-06-26
+-------------------------
+* Fix various G-I annotations
+* Improve draw-spaces coloring in solarized-light
+* javascript.lang: Performance improvements
+* c.lang: Fixes for #include preprocessor
+* sql.lang: Language completeness improvements
+* latex.lang: additional keywords
+* sh.lang: improved parameter expansion
+* yara.lang: initial support for YARA
+* Translation updates
+
+News in 4.6.0, 2020-03-06
+-------------------------
+* cpp.lang: add C++20 keywords
+* commonlisp.lang: add format directives
+* Translation updates
+
+News in 4.5.91, 2020-02-14
+--------------------------
+* GObject Introspection fixes
+* Removed use of g_assert() in favor of alternatives in unit tests so
+  distribution unit testing is more reliable
+* Robustness improvements in internal GtkTextIter movements
+* Style scheme improvements for recent GTK 3 theme styling changes
+* Build system improvements to support -Bsymbolic, -Wl,-z,relro,
+  -Wl,-z,now and -Wl,-z,defs
+* Build improvements for Windows, FreeBSD, and macOS
+* cmake.lang: track CMake 3.13 changes
+* kotlin.lang: register *.kts glob extension
+* gradle.lang: register *.grandle glob extension
+* php.lang: Large redesigned PHP lang including support for
+  unicode and improved heredoc
+* sh.lang: Many improvements including various GNU bash extensions
+* meson.lang: Support for string escape sequences
+* javascript.lang: Redesign of JavaScript language spec to be more flexible
+  and reusable from other languages which support JS.
+* jsx.lang: Initial support for JSX
+* jsdoc.lang: Initial support for JSDoc
+* objj.lang: Improvements using javascript improvements
+* asciidoc.lang: Improvements to use more generic markup styling
+* t2t.lang: Improvements to use more generic markup styling
+* css.lang: Redesign to be more flexible, support reuse and embedding, and
+  add various new CSS features
+* scss.lang: Improve integration with css.lang
+* less.lang: Improve integration with css.lang
+* ruby.lang: Improvements for string and escape string handling
+* html.lang: Improvements using embedded languages
+* go.lang: Improvements for escape sequences
+* commonlisp.lang: Initial support for Common Lisp
+* ftl.lang: Initial support for Mozilla's Fluent ftl
+* Translation updates
+
+I'd like to personally thank Jeffery To for the overwhelming amount of work
+they have put into reviewing and improving both language specs and style
+schemes this cycle. The number of improvements you see above are largely an
+example of their quality reviews and improvements!
+
+News in 4.4.0, 2019-09-09
+-------------------------
+* Set NO_AT_BRIDGE=1 when running automated tests
+* Speed up GtkSourceView rendering when space drawer is unused
+
+News in 4.3.92, 2019-09-04
+--------------------------
+* RC release for 4.4 scheduled for next week.
+* New syntax highlighting definition file for: ASCII Doc, Dockerfile
+* Improvements to the syntax highlighting of: CSS, Gradle, HTML, C, PHP,
+  YAML, and Grovvy.
+* Performance improvements in line number drawing.
+* GtkSourceView now requires GTK 3.22 or newer.
+* GtkSourceView no longer uses many deprecated APIs from GTK.
+* GtkSourceView now uses fribidi directly to determine bidriectional
+  direction for cursors.
+* GtkSourceView now relies on GObject for correct marsharllers as well
+  as va_marshallers or provides its own. This improves profiling with
+  kernel stack unwinders such as Linux's perf.
+* Visual column detection is improved to use the tab-width instead of
+  the indent-width.
+* Support for DnD from GIMPs color palette has been improved.
+* A performance optimization has been added to avoid painting mark
+  backgrounds if no GtkSourceMarks have been registered.
+* Translation updates.
+
+News in 4.3.1, 2019-04-23
+-------------------------
+* Ported to meson build system, autotools will be phased out by next release.
+* First release using `meson dist` instead of `make dist`. Distributions
+  choosing to use autotools for this release will need to use autogen.sh.
+* GtkSourceGutterRendererLines has gained an interger-to-string optimization
+  to reduce the overhead of g_snprintf() in the vast majority of cases.
+* Workaround a stack overflow in libpcre (via GRegex) in yaml.lang
+* Improvements to the syntax highlighting of: fish, julia, and C++
+* Translation updates.
+
+News in 4.2.0, 2019-03-15
+-------------------------
+* New syntax highlighting definition file for: Fish, GDScript, Solidity,
+  Dart, and Powershell.
+* Improvements to the syntax highlighting of: reStructuredText, C++,
+  GAP, CSS, HTML, JavaScript, Groovy, Meson, Python3, and Logtalk.
+* Fix testsuite for changes in GLib hashtable ordering.
+* Avoid double entry of languages based on globs.
+* MSVC build improvements.
+* Fix usage of GRegex for offset in text, which fixes a Valgrind warning.
+* Ensure CSS is inherted from parent style schemes.
+* Avoid storing GtkTextIter across main-loop boundaries.
+* Fix incorrect transfer annoation for gtk_source_buffer_create_source_mark().
+* Various memory leak fixes.
+* Translation updates.
+
+News in 4.0.3, 2018-09-05
+-------------------------
+* New syntax highlighting definition file for: Gradle and Logtalk.
+* Improvements to the syntax highlighting of: JavaScript, LaTeX, Haskell, C++,
+  GLSL, and Markdown.
+* Performance improvements to space drawing.
+* Various memory leak fixes.
+* Translation updates.
+
+News in 4.0.2, 2018-06-17
+-------------------------
+* GtkSourceView has moved to the GNOME GitLab instance. The bugzilla tickets
+  have not yet been migrated to the GitLab issues, so before filing a new issue
+  on GitLab, please search the bugzilla first. All links are available as usual
+  on:
+  https://wiki.gnome.org/Projects/GtkSourceView
+
+* Fix new compilation warnings (-Wcast-function-type).
+* New syntax highlighting definition file for: SCSS and Less.
+* Improvements to the syntax highlighting of: CSS and Rust.
+
+News in 4.0.1, 2018-05-05
+-------------------------
+* New syntax highlighting definition file for: TOML.
+* Improvements to the syntax highlighting of: CSS and XML.
+* Translation updates.
+
+News in 4.0.0, 2018-03-10
+-------------------------
+* GtkSourceView class: respect the GtkTextView:accepts-tab property.
+* New syntax highlighting definition file for: Groovy and Tera templates.
+* Improvements to the syntax highlighting of: Erlang and Fortran.
+* Provide an Uncrustify configuration file for the GtkSourceView C coding style.
+* Various other improvements and small fixes.
+* Translation updates.
+
+News in 3.99.7, 2017-12-09
+--------------------------
+* Rename gtk_source_completion_show() to gtk_source_completion_start().
+* Drop gconstructor.h, add gtk_source_init() and gtk_source_finalize().
+* Improve documentation.
+* New syntax highlighting definition file for: logcat.
+* Improvements to the syntax highlighting of: Python, reStructuredText and
+  CMake.
+* Improvements to the Visual Studio builds.
+* Translation updates.
+
+News in 3.99.6, 2017-10-15
+--------------------------
+* Reduce a lot the number of translatable strings (especially in *.lang files),
+  to translate only what makes sense. 630 -> 93 translatable strings!
+* Build: remove ENABLE_NLS option, always support gettext translation, to
+  simplify the code.
+* Fix bug in gtk_source_view_indent_lines().
+* Fix bug to read GtkSourceView 4 *.lang and style scheme files, not those from
+  GtkSourceView 3.
+* Code refactorings to prepare for the namespace change.
+* Improvements to the syntax highlighting of: Vala.
+* Improvements to the Visual Studio builds.
+* Various other small improvements.
+* Translation updates.
+
+News in 3.99.5, 2017-09-06
+--------------------------
+* Avoid type redefinitions.
+* Fix bug when GtkSourceView:indent-width and :tab-width are equal.
+* New syntax highlighting definition file for: Swift, Maxima and Kotlin.
+* Improvements to the syntax highlighting of: sparql, CSS, bibtex and LaTeX.
+* jade.lang: add *.pug to globs.
+* Various other small improvements.
+* Translation updates.
+
+News in 3.99.4
+--------------
+* The API of the GtkSourceView::move-lines keybinding signal has been
+  simplified: the copy parameter has been removed; and the count parameter has
+  been replaced by the down boolean.
+* Force visual word movements for RTL text with Ctrl+left/right.
+* Improvements to the Visual Studio builds and add support for Visual Studio
+  2017.
+* Improvements to the syntax highlighting of: Rust and LaTeX.
+* Add mimetype to python3.lang.
+* Misc bug fixes.
+* Various other small improvements.
+* Translation updates.
+
+News in 3.99.3
+--------------
+
+This is an intermediate version towards GtkSourceView 4.0. GtkSourceView 4.0
+will still depend on GTK+ 3, but the release date is not yet determined. See
+the roadmap for more details:
+https://wiki.gnome.org/Projects/GtkSourceView/RoadMap
+
+* Bug fix in GtkSourceGutterRendererPixbuf.
+* Fixes for bugs found by Coverity.
+* Build fixes on MS Windows.
+* New syntax highlighting definition files for: ABNF, HAXE and Django template.
+* Improvements to the syntax highlighting of: Meson, CSS, ini, Rust and
+  JavaScript.
+* Improvements to the build system.
+* Translation updates.
+
+News in 3.99.2
+--------------
+
+This is an intermediate version towards GtkSourceView 4.0. GtkSourceView 4.0
+will still depend on GTK+ 3, but the release date is not yet determined.
+
+* gtk_source_completion_item_new2() has been renamed to
+  gtk_source_completion_item_new().
+* gtk_source_search_context_forward2() has been renamed to
+  gtk_source_search_context_forward().
+* gtk_source_search_context_forward_finish2() has been renamed to
+  gtk_source_search_context_forward_finish().
+* gtk_source_search_context_backward2() has been renamed to
+  gtk_source_search_context_backward().
+* gtk_source_search_context_backward_finish2() has been renamed to
+  gtk_source_search_context_backward_finish().
+* gtk_source_search_context_replace2() has been renamed to
+  gtk_source_search_context_replace().
+* The GtkSourceSearchContext:settings property is now construct-only.
+
+News in 3.99.1
+--------------
+
+This is an intermediate version towards GtkSourceView 4.0. GtkSourceView 4.0
+will still depend on GTK+ 3, but the release date is not yet determined.
+
+* All the deprecated APIs have been removed.
+* Only <gtksourceview/gtksource.h> can be included directly. There were already
+  warnings about it in GtkSourceView 3. The warnings have been changed to
+  errors.
+* Only the version 2 of the GtkSourceView language definition file format is
+  supported (for *.lang files, used for syntax highlighting). The support for
+  the version 1 has been dropped.
+* Add padding for future expansion in the Class structures.
+* Docs: add an intro with the pkg-config name.
+* Docs: write the first steps of the GtkSourceView 3 -> 4 porting guide.
+* Build fixes on Windows.
+* Improvements to the syntax highlighting of: JavaScript and PHP
+* Translation updates
+
+News in 3.24.1
+--------------
+* Deprecate the 'copy' parameter of the GtkSourceView::move-lines signal.
+* Force visual word movements for RTL text with Ctrl+left/right.
+* Misc bug fixes.
+* Translation update.
+
+News in 3.24.0
+--------------
+* Translation update
+
+News in 3.23.91
+---------------
+* Improvements to the Visual Studio builds and add support for Visual Studio
+  2017.
+* Bug fix in Rust syntax highlighting
+* Add mimetype to python3.lang
+* Translation updates
+
+News in 3.23.90
+---------------
+* Bug fix in GtkSourceGutterRendererPixbuf
+* Fixes for bugs found by Coverity
+* New syntax highlighting definition file for: Django template
+* Improvements to the syntax highlighting of: CSS and JavaScript
+* Translation updates
+
+News in 3.23.2
+--------------
+
+This version still uses GTK+ 3. A GtkSourceView 3.24 version is planned (still
+depending on GTK+ 3), which will be released at the same time as GNOME 3.24 in
+March 2017.
+
+* Docs: add an introduction with the pkg-config name and which GTK+ version is
+  used.
+* Build fixes on MS Windows.
+* New syntax highlighting definition files for: ABNF and HAXE.
+* Improvements to the syntax highlighting of: JavaScript, PHP, Meson, CSS, ini
+  and Rust.
+* Translation updates.
+
+News in 3.23.1
+--------------
+
+This version still uses GTK+ 3. A GtkSourceView 3.24 version is planned (still
+depending on GTK+ 3), but the release date is not yet determined.
+
+* New class: GtkSourceSpaceDrawer with a matrix property to combine space types
+  vs locations. The old white space drawing API has been deprecated.
+* gtk_source_search_context_set_settings() has been deprecated, the "settings"
+  property will become construct-only.
+* GtkSourceCompletionItem: add a new API and deprecate the old constructors.
+* GtkSourceGutter: add get_view() and get_window_type() public functions.
+* Build system: do not hardcode the API version (currently 3.0) at as many
+  places as possible (use a variable instead).
+* Bug fixes
+* Documentation improvements
+* Translation updates
+
+News in 3.22.0
+--------------
+* Translation updates
+
+News in 3.21.6
+--------------
+* Improvements to the syntax highlighting of: CSS and Rust
+* Translation updates
+
+News in 3.21.5
+--------------
+* Fix an infinite loop in whitespace drawing
+* Translation updates
+
+News in 3.21.4
+--------------
+* GtkSourceRegion: add functions to add/subtract/intersect two GtkSourceRegions
+* GtkSourceRegion: rename functions to add/subtract/intersect a subregion
+* GtkSourceRegion: real unit tests
+* Whitespace drawing: draw a final newline if the
+  GtkSourceBuffer:implicit-trailing-newline property is TRUE.
+* Whitespace drawing: refactor the code, move the code to a private SpaceDrawer
+  class.
+* Use gconstructor.h to have a DSO constructor that inits i18n, and a
+  destructor to unref the singletons.
+* Use the AX_VALGRIND_CHECK Autotools macro
+* SearchContext: send a private signal to the views so that the views can ask
+  the SearchContext to highlight in priority the visible areas of the buffer
+  (works only for normal search, not regex search).
+* Improvements to the syntax highlighting of: LaTeX
+* Various other code improvements
+* Translation updates
+
+News in 3.21.3
+--------------
+* Warn when a secondary public header is #included in external code.
+  Only <gtksourceview/gtksource.h> should be #included directly.
+* Remove the --disable-completion-providers configure option, to always build
+  the completion providers. There is currently only one completion provider:
+  GtkSourceCompletionWords, which is not a lot of code and doesn't pull up
+  additional dependencies.
+* Add back the gtksourceview-typebuiltins.h public header, for backward
+  compatibility.
+* Fixes/improvements to the Visual Studio builds
+* Improvements to the syntax highlighting of: rpmspec
+* Fix a bug in GtkSourceSearchContext
+* Various small code and documentation improvements
+* Translation updates
+
+News in 3.21.2
+--------------
+* Make gtk_source_style_apply() public
+* GtkSourceSearchContext: add "version 2" of some functions to improve the API,
+  and deprecate the v1's.
+* Fix a critical message when showing a completion window
+* Fix a drawing issue with syntax highlighting
+* Improvements to the syntax highlighting of: Meson, JavaScript
+* Various code improvements and bug fixes
+* Documentation improvements
+* Build fixes on ARM
+
+News in 3.21.1
+--------------
+* Export SourceRegion in the public API
+* Translation updates
+
+News in 3.20.2
+--------------
+* Drawing optimizations
+* Translation updates
+
+News in 3.20.1
+--------------
+* Improvements to style schemes
+* Export missing public methods
+* Translation updates
+
+News in 3.20.0
+--------------
+* Improvements to the syntax highlighting of: CSS, JavaScript, protobuf, Vala,
+  imagej, Python 3 and BibTeX
+* Adapt code to use GTK_TEXT_VIEW_LAYER_BELOW_TEXT and
+  GTK_TEXT_VIEW_LAYER_ABOVE_TEXT
+* Add a "sourceview" CSS class to all GtkSourceView's
+* Fixes to the MSVC build system
+* Various other small fixes and improvements
+* Translation updates
+
+News in 3.19.4
+--------------
+* CSS fixes to track GTK+ changes
+* Fix completion popup on Wayland
+* MSVC build projects
+* Misc bug fixes
+* Translation updates
+
+News in 3.19.3
+--------------
+* Many fixes to track GTK+ changes
+* Rework symbol visibility handling
+* Other small improvements
+* Translation updates
+
+News in 3.19.2
+--------------
+* Some CSS adjustments to track GTK+ changes
+* Add API to get the GtkSourceView version
+* Other small improvements
+* Translation update
+
+News in 3.19.1
+--------------
+* New class: GtkSourceTag with a draw-spaces property
+* Drop build dependency on intltool, use upstream gettext and ITS Tool instead
+* Completion windows: don't add space for scrollbars
+* Do not show undo/redo in context menu if undo/redo is disabled
+* Bracket matching: several bug fixes, unit tests written, code simplified
+* Other small code improvements
+* Translation updates
+
+News in 3.18.1
+--------------
+* Misc bug fixes
+* Translation updates
+
+News in 3.18.0
+--------------
+* Minor improvement to the CSS syntax highlighting
+* Translation updates
+
+News in 3.17.7
+--------------
+* Handle creating pixbufs for HiDPI resolutions
+* Improvements to the Octave and Matlab syntax highlighting
+* Other various code improvements
+* Translation updates
+
+News in 3.17.6
+--------------
+* Search and replace: fix bug with regular expressions containing look-ahead
+  assertions.
+* Add some missing GI annotations
+* A few adjustments to the build system
+* Translation updates
+
+News in 3.17.5
+--------------
+* Support symbolic icons in the completion API
+* New lang or improved lang files: Rust, Meson, C, protobuf
+* Revamped build system (drop gnome-common dependency)
+* Misc bug fixes
+* Translation updates
+
+News in 3.17.4
+--------------
+* Add .rej files as another version of diff file
+* Improvements to lang files: Apache Pig, rpmspec
+* Misc bug fixes
+* Translation updates
+
+News in 3.17.3
+--------------
+* Add a few more functions to GtkSourceFile
+* Add the "smart-backspace" property
+* Misc bug fixes
+* Translation updates
+
+News in 3.17.2
+--------------
+* New widget: GtkSourceMap
+* Set a GtkTextTag name for context classes (no-spell-check, etc)
+* Add gtk_source_buffer_sort_lines()
+* Style schemes:
+	* Support "single", "double" etc for the underline attribute
+	* Support underline-color
+* Improvements to lang files: Ocaml, C++ header and Shell
+* Translation updates
+
+News in 3.17.1
+--------------
+* New public function: gtk_source_encoding_get_default_candidates()
+* Add g_autoptr autocleanup support
+* Add lang files for (basic) CSV and jade template
+* Improvements to lang files: C, CMake, GDB log, JavaScript, C#, F#,
+  VB.net and CSS
+* Translation updates
+
+News in 3.16.1
+--------------
+* Update CMake language spec
+* Add a "path" class for contexts with a file name
+* Performance improvements for groups of text insertions/deletions
+* Fix bug with symbolic icons and dark GTK+ theme
+* Translation updates
+
+News in 3.16.0
+--------------
+* A few bug fixes and various other improvements
+* Translation updates
+
+News in 3.15.91
+---------------
+* Fix a crash when destroying the widget during a search
+* Add some signals to bind keyboard actions
+* Various other improvements
+* Translation updates
+
+News in 3.15.90
+---------------
+* Provide a way to draw background patterns (a grid)
+* Support incrementing and decrementing numbers
+* Various other improvements
+
+News in 3.15.3
+--------------
+* Better word boundaries for word selection (double-click) and word movements
+  (ctrl+arrow, shift+ctrl+arrow, ctrl+backspace, etc).
+* Add style scheme chooser widgets: GtkSourceStyleSchemeChooser (interface),
+  GtkSourceStyleSchemeChooserButton and GtkSourceStyleSchemeChooserWidget.
+* Add gtk_source_view_indent_lines() and gtk_source_view_unindent_lines().
+* Add the GtkSourceView::move-to-matching-bracket action signal.
+* Add gtk_source_buffer_join_lines().
+* Gutter: use current line background color for current line.
+* Add syntax highlighting support for Apache Thrift.
+* Various other improvements and bug fixes
+* Translation updates
+
+News in 3.15.2
+--------------
+* Undo/Redo: restore selection
+* Documentation improvements
+* Some GtkSourceGutter code refactoring
+* Syntax highlighting for Apache Pig 0.12
+
+News in 3.15.1
+--------------
+* Search: allow caller to choose a style for text matches
+* gtk_source_completion_context_get_iter() now returns a gboolean to tell if
+  the GtkTextIter is correctly set. For a more robust code, it is recommended
+  to use the return value.
+* Improvements to the Lua and Yacc syntax highlighting
+* Translation updates
+
+News in 3.14.1
+--------------
+* Fix UndoManager with a new implementation
+* Various other improvements
+* Translation updates
+
+News in 3.14.0
+--------------
+* Translation updates
+
+News in 3.13.91
+---------------
+* Improved Mac OS X support
+* Gutter improvements
+* Various other improvements and code clean-up
+* Translation updates
+
+News in 3.13.90
+---------------
+* Adjustments to the file loading and saving API:
+  - Make gtk_source_encoding_get_default_candidates() private
+  - Replace gtk_source_encoding_foreach() by gtk_source_encoding_get_all()
+  The file loading and saving API can be considered stable now.
+
+* Add Vala bindings
+* Various other improvements
+* Translation updates
+
+News in 3.13.3
+--------------
+* Extend the api to obtain candidate encodings
+* Rework drawing of spaces and margins (requires new Gtk+)
+* Various other improvements and bugfixes
+* Translation updates
+
+News in 3.13.2
+--------------
+* New feature: file loading and saving
+* Split testfiles.sh to tests/syntax-highlighting/
+* GtkSourceView is now fully relicensed to LGPL
+* Various other improvements and bugfixes
+* Translation updates
+
+News in 3.13.1
+--------------
+* Improvements to the words completion provider
+* Completion window sizing fixes
+* Improvements to some lang files 
+* Various other improvements and bugfixes
+* Updated translations
+
+News in 3.12.1
+--------------
+* Renovate test-widget
+* Various improvements and bugfixes
+* Updated translations
+
+News in 3.12.0
+--------------
+* Small improvements to the documentation
+* Updated translations
+
+News in 3.11.91
+---------------
+* Updated translations
+
+News in 3.11.90
+---------------
+* Add syntax highlighting for LLVM IR and Sweave
+* Improvements to some lang files
+* Updated translations
+
+News in 3.11.4
+--------------
+* Add the popular Solarized style schemes
+* Improvements to some lang files and a new lang file for lex
+* Optimize the draw-spaces code
+* Various fixes to the completion framework
+* Misc bugfixes
+* Updated translations
+
+News in 3.11.3
+--------------
+* Font scaling support for headings/titles in LaTeX and HTML
+* Add Change Case submenu to the right click context menu
+* Add ANS Forth 94 syntax highlighting
+* Misc bugfixes
+* Updated translations
+
+News in 3.11.2
+--------------
+* Add API to change text case
+* Add reStructuredText and yaml syntax highlighting
+* Improve LaTeX, m4 and D syntax highlighting
+* Documentation improvements (including best practices for language definition files)
+* Installed tests
+* Misc bugfixes
+* Updated translations
+
+News in 3.11.1
+--------------
+* Deprecate the Gutter:xpad and Gutter:ypad properties
+* Deprecate gtk_source_gutter_get_window()
+* Better implementation of GtkSourceMarks (private class GtkSourceMarksSequence)
+* Style schemes: more visible right margin
+* Documentation improvements
+* Misc bugfixes
+* Updated translations
+
+News in 3.10.0
+--------------
+* Small bugfix
+* Updated translations
+
+News in 3.9.92
+--------------
+* SearchSettings: change default value of wrap-around to FALSE
+* Misc bugfixes
+* Updated translations
+
+News in 3.9.91
+--------------
+* Improvements to the completion
+* API break for the search and replace
+* Deprecate the GtkSourceMarkAttributes:stock-id property
+* Misc bugfixes
+* Updated translations
+
+News in 3.9.90
+--------------
+* Modify the search and replace API: SearchContext and SearchSettings classes
+* Regular expression search
+* Misc bugfixes
+* Updated translations
+
+News in 3.9.4
+-------------
+* Warning: the search and replace API is unstable
+* Misc bugfixes
+* Updated translations
+
+News in 3.9.3
+-------------
+* Add a higher-level asynchronous search and replace API
+* Deprecate gtk_source_completion_item_new_from_stock()
+* Deprecate the GtkSourceGutterRendererPixbuf:stock-id property
+* Updated translations
+
+News in 3.9.2
+-------------
+* Add syntax highlighting for the Julia, mediawiki and Scala languages
+* Improvements to the word completion provider
+* Add the GtkSourceCompletionWords:activation property
+* More compact completion popup window
+* Misc bugfixes
+* Updated translations
+
+News in 3.9.1
+-------------
+* Deprecate the GtkSourceCompletionInfo::before-show signal
+* Hide CompletionInfo when focus-out-event on the attached-to widget
+* Improvements to the main completion window
+* Some code improvements to the words completion provider
+* Improvements to the C++ and Perl language specs
+* Documentation improvements
+* Misc bugfixes
+* Updated translations
+
+News in 3.8.1
+-------------
+* Improvements to the LaTeX and Perl language specs
+* Update to gtk-mac-integration 2.0 API
+* More unit tests
+* Misc bugfixes
+* Updated translations
+
+News in 3.8.0
+-------------
+* Add Libtool versioning. There was an ABI break during this development
+  cycle, because some private functions were accidentally exported. So
+  the Libtool's -version-info is bumped from 0:0:0 to 1:0:0. On
+  GNU/Linux, this results in a version bump of the soname.
+* Updated translations
+
+News in 3.7.92
+--------------
+* New style id for warnings
+* Improvements to the completion code and documentation
+* Misc bugfixes
+* Updated translations
+
+News in 3.7.91
+--------------
+* Simplify code for the completion
+* Improvements of the Perl, R and Ruby language specs
+* Misc bugfixes
+* Updated translations
+
+News in 3.7.90
+--------------
+* Improvements in completion
+* Add Modelica language spec
+* Misc bugfixes
+* Updated translations
+
+News in 3.7.3
+-------------
+* Deprecate gtk_source_completion_move_window()
+* Deprecate gtk_source_completion_info_get_widget()
+* Deprecate gtk_source_completion_info_set_widget()
+* CompletionInfo: always a natural size
+* Simplify internal code for the completion (new CompletionModel)
+* Fixes for the style schemes and GtkSourceMark
+* Other misc bugfixes
+* Updated translations
+
+News in 3.7.2
+-------------
+* Improved unit tests and code coverage support
+* Misc bugfixes
+* Updated translations
+
+News in 3.7.1
+-------------
+* Add Bluespec SystemVerilog syntax highlighter
+* Improvements in completion
+* Add language spec for IDL
+* Lots of fixes in gtk doc
+* Misc bugfixes
+* Updated translations
+
+News in 3.6.0
+-------------
+* Updated translations
+
+News in 3.5.4
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 3.5.3
+-------------
+* New ActionScript, mxml and J languages
+* Misc bugfixes
+* Updated translations
+
+News in 3.5.2
+-------------
+* Misc bugfixes
+
+News in 3.5.1
+-------------
+* New Puppet language
+* Improvements in Go Language
+* Misc bugfixes
+* Updated translations
+
+News in 3.4.2
+-------------
+* Improvements to completion code
+* Misc bugfixes
+* Updated translations
+
+News in 3.4.1
+-------------
+* Fix problems with the completion popup when headers are hidden
+* Misc bugfixes
+* Updated translations
+
+News in 3.4.0
+-------------
+* Updated translations
+
+News in 3.3.5
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 3.3.4
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 3.3.3
+-------------
+* Python3 lang file
+* Win32 build fixes
+* Misc bugfixes
+* Updated translations
+
+News in 3.3.2
+-------------
+* Introduce gtk_source_language_get_style_fallback
+* Refactoring and clenaup
+* Misc bugfixes
+* Updated translations
+
+News in 3.3.1
+-------------
+* Change IgeMacIntegration to GtkOSXApplication
+* Allow for multiple GDK backends
+* Sort schemes alphabetically
+* Sort the languages alphabetically
+* Misc bugfixes
+* Updated translations
+
+News in 3.2.2
+-------------
+* Misc bugfixes
+
+News in 3.2.1
+-------------
+* New JavaScript Object Notation lang file
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 3.2.0
+-------------
+* Updated translations
+
+News in 3.1.6
+-------------
+* New Automake lang file
+* New protobuf lang file
+* Misc bugfixes
+* Updated translations
+
+News in 3.1.5
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 3.1.4
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 3.1.3
+-------------
+* New Markdown lang file
+* New Standard ML lang file
+* Misc bugfixes
+* Updated translations
+
+News in 3.1.2
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 3.1.1
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 3.0.2
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 3.0.1
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 3.0.0
+-------------
+* Updated translations
+
+News in 2.91.9
+-------------
+* Use the GTK_SOURCE_ prefix also for all the macros
+* Updated translations
+
+News in 2.91.8
+-------------
+* Misc bugfixes
+
+News in 2.91.7
+-------------
+* Misc bugfixes
+
+News in 2.91.6
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.5
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.4
+-------------
+* Highlight C standard streams and signals
+* GtkSourceView is not a factory of categories now
+* Fix style problems
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.3
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.2
+-------------
+* Improved Gutter support
+* New languages: Cobol, GO, Scilab
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.1
+-------------
+* Removed SourceIter, caseless search is now in gtk
+* Adapt to latest gtk changes
+* Misc bugfixes
+* Updated translations
+
+News in 2.91.0
+-------------
+* Added SystemVerilog language
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.90.4
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.90.3
+-------------
+* Bump version to 2.90: we are now targeting gtk3.
+  This release is parallel installable with GtkSourveView 2
+* Misc bugfixes
+* Updated translations
+
+News in 2.11.2
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.11.1
+-------------
+* Added introspection support
+* Misc bugfixes
+* Updated translations
+
+News in 2.10.1
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.10.0
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.9
+-------------
+* Distribute a catalog for glade3
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.8
+-------------
+* Bugfixes in the "words" completion provider
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.7
+-------------
+* Remove a leftover in the UndoManager API
+
+News in 2.9.6
+-------------
+* Changes to the completion API to allow better language bindings
+* Add API to set a custom UndoManager on the buffer
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.5
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.4
+-------------
+* Implement context classes and use them to mark strings,
+  comments, keywords and regions where spell-check is disabled
+* More work on completion
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.3
+-------------
+* Crasher bugfixes in word completion provider
+* Misc bugfixes for win32
+* Smarter autoindentation
+* New language: SPARQL
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.2
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.9.1
+-------------
+* Added draw spaces for leading, text and trailing spaces
+* Merged GtkSourceCompletion branch
+* Updated translations
+
+News in 2.8.1
+-------------
+* Misc bugfixes in gutter tooltip rendering
+* Updated translations
+
+News in 2.8.0
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.7.5
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.7.4
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.7.3
+-------------
+* Misc bugfixes
+
+News in 2.7.2
+-------------
+* Add GtkSourceGutter api to customize gutter drawing
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.7.1
+-------------
+* Add tooltips to GtkSourceMarks
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.6.2
+-------------
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.6.1
+-------------
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.6.0
+-------------
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.5.6
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.5.5
+-------------
+* New "cobalt" style scheme
+* Misc bugfixes
+* Updated translations
+
+News in 2.5.4
+-------------
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.5.3
+-------------
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.5.2
+-------------
+* Misc bugfixes
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.5.1
+-------------
+* Misc bugfixes
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.4.1
+-------------
+* Fix a crash when inserting images in the buffer
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.4.0
+-------------
+* Updated translations
+
+News in 2.3.3
+-------------
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.3.2
+-------------
+* Misc bugfixes
+* Improvements to some of the lang files
+* Updated translations
+
+News in 2.3.1
+-------------
+* Misc bugfixes
+* Updated translations
+
+News in 2.3.0
+-------------
+* Add function to guess the language for a given filename and mime type
+  (bump glib dependency to 2.14 that includes gio, remove gnome-vfs dep)
+* Allow to set background color of paragraphs with marks
+* Support drawing white spaces
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.2.2
+-------------
+
+* Improvements to some of the lang files
+* Misc bugfixes
+* Updated translations
+
+News in 2.2.1
+-------------
+
+* Improve keybindings
+* Misc bugfixes
+* Updated translations
+
+News in 2.2.0
+-------------
+
+* Misc bugfixes
+* Updated translations
+
+News in 2.1.3
+-------------
+
+* Misc bugfixes
+* Updated translations
+
+News in 2.1.2
+-------------
+
+* Fix a GtkSourceMark API issue
+* Updated translations
+
+News in 2.1.1
+-------------
+
+* Misc bugfixes
+* Updated translations
+
+News in 2.1.0
+-------------
+
+* New gtk-print based printing API
+* New GtkTextMark-based GtkSourceMark API
+* Misc bugfixes
+* Updated translations
+
+News in 2.0.0
+-------------
+
+* Updated translations
+
+News in 1.90.4
+--------------
+
+* Many improvements to all the lang files
+* Many minor API tweaks
+* Misc bugfixes
+* Updated translations
+
+News in 1.90.3
+--------------
+
+* New default set of styles used to define a style scheme
+* Many improvements to all the lang files, ruby and perl lang
+  files in particular.
+* Some API tweaks
+* Misc bugfixes
+
+News in 1.90.2
+--------------
+
+* Library is now LGPL (some lang files aren't yet)
+* Support replacing contexts
+* Support symbolic colors in schemes
+* Add tango style scheme
+* Some API tweaks
+* Many lang file updates
+* Misc bugfixes
+
+News in 1.90.1
+--------------
+
+* GtkSourceStyle is now a gobject
+* Be more careful about Language and LanguageManager lifecycles: add
+  gtk_source_[language|style_scheme]_manager_get_default to obtain
+  managers object owned by gtksourceview
+* Most of the files are now officially licensed under LGPL, still
+  waiting for a few approval before completely switching the license.
+* Port to GRegex
+* Misc lang file updates
+* Misc bugfixes
+
+News in 1.90.0
+--------------
+
+This marks the road to GtkSourceView 2.0, and breaks the API. It is still
+considererd API-unstable.
+
+* API update/break
+* New highlighting and theming engines (Yevgen Muntyan, Marco Barisione)
+* GnomePrint-based print API removal
+
+News in 1.8.6
+-------------
+
+* Mark Undo/Redo insensitive when the view is not editable (Carlos Garnacho)
+* Fix current line highlightging drawing artifacts (Yevgen Muntyan)
+* Updated translations
+
+News in 1.8.5
+-------------
+
+* Updated translations
+
+News in 1.8.4
+-------------
+
+* RPM highlighting (Konstantin Ryabitsev)
+* Fix a problem with search in accented words (Yevgen Muntyan)
+* Misc lang file fixes
+* Updated translations
+
+News in 1.8.3
+-------------
+
+* Added docbook lang file (Joachim Noreiko)
+* Added OCaml lang file (Eric Cooper)
+* Cleanup some mime types in lang files (Paolo Maggi)
+* Updated translations
+
+News in 1.8.2
+-------------
+
+* Fixed bug #360495 – Errors in Java/Verilog syntax files (Jeff Walden)
+* Fixed bug #380996 – language.dtd needs more comments (Leonardo Ferreira 
+  Fontenelle and Paolo Maggi)
+* Added a RNG schema for the .lang file format (Paolo Maggi)
+* Fixes bug #375515 – allow fullstop in xml tag highlighting (Carey O'Shea)
+* Updated translations
+
+News in 1.8.1
+-------------
+
+* Fixed #357447 – Missing break in gtk_source_tag_set_property() (Kouhei Sutou)
+* Fixed #357746 – "Insert spaces instead of tabs" doesn't work (Paolo Borelli)
+* Updated translations
+
+News in 1.8.0
+-------------
+
+* Added text/x-gettext-translation-template to the list of 
+  mime-types in po.lang
+* Updated translations
+
+News in 1.7.2
+-------------
+
+* add an 'indent-on-tab' property to indent the selected text
+  using the tab key
+* highlight fortran operators
+* Updated translations
+
+News in 1.7.1
+-------------
+
+* New Lang files (D, boo)
+* Updated translations
+
+News in 1.6.1
+-------------
+
+* Updated Lang files (php, ruby, perl, xml, .desktop)
+* Consume all button press events on the line numbers margin
+* Updated translations
+
+News in 1.6.0
+-------------
+
+* Updated translations
+
+News in 1.5.7
+-------------
+
+* Updated translations
+
+News in 1.5.6
+-------------
+
+* fix .lang files lookup from xdg directories.
+
+News in 1.5.5
+-------------
+
+* Requires gtk+ 2.8.x
+* Fixed bug #309663 – gcc 4.01 compiler treats pointer target
+  warnings as errors (Marco Barisione)
+* Added scheme.lang (Paolo Borelli)
+* Allow to specify both 'u' and 'r' modifiers to python strings at 
+  the same time (Steve Frécinaux)
+* Add iterators to text region and use them (Paolo Borelli and Paolo Maggi)
+* Use cairo to draw the right margin (Jeroen Zwartepoorte)
+* Fixed bug #321252 - Clicking gedit line numbers should jump to line (Paolo 
+  Borelli and Paolo Maggi)
+* Fixed bug 312241 – .lang files in homedir take priority over $prefix (Guillaume
+  Desmottes and Paolo Borelli)
+* Fixed bug #318577 – win32 port (Tor Lillqvist, Paolo Borelli and Paolo Maggi) 
+* Updated translations
+
+News in 1.5.4
+-------------
+
+* Fixed bug #170604 – syntax for GNU Octave
+
+News in 1.5.3
+-------------
+
+* Fixed bug #321898 - fix for division by zero bug (not checking 
+  g_timer_elapsed() return value)
+* Fixed bug #323999 - perl inline pod not properly highlighted
+* Fixed bug #323750 - CSS highlighting missing "font" property
+* Fixed bug #316612 - Ruby coloration problems
+* Fixed bug #316587 - PHP syntax file should be in the "Scripting" section 
+  instead of "Sources")
+* Fixed bug #316330 - Ada Syntax highlighting is incorrect
+* Fixed bug #168090 - Recognise fortran line comments better
+* Added a --disable-gnomeprint configuration option
+* Fixed i18n problem introduced in 1.5.2
+* Added changelog.lang
+* Updated translations
+
+News in 1.5.2
+-------------
+
+* Fix an off by one error in Lang directory lookup
+
+News in 1.5.1
+-------------
+
+* Lang files are now loaded from the locations specified in XDG_DATA_DIRS
+* Bug Fixes
+* New and updated translations.
+
+News in 1.4.2
+-------------
+
+* New and updated translations.
+
+News in 1.4.1
+-------------
+
+* Include the html documentation in the tarball.
+* Updated translations.
+
+News in 1.4.0
+-------------
+
+* Bug fixes (Paolo Maggi and Paolo Borelli)
+* New and updated translations.
+
+News in 1.3.93
+--------------
+
+* Bug fixes (Paolo Maggi and Paolo Borelli)
+* New and updated translations.
+
+News in 1.3.92
+--------------
+
+* New and updated translations.
+
+News in 1.3.91
+--------------
+
+* use G_NORMALIZE_NFD in caseless search, part of bug #303239 (Paolo Maggi)
+* allow GtkSourceView derivatives to override the key press (Paolo Borelli)
+* Makefile.lang (Ricardo Lenz, Paolo Borelli)
+* Updates to SQL, C#, javascript and XML language specifications.
+* New and updated translations.
+
+News in 1.2.1
+-------------
+
+* Plug small memory leaks (Yevgen Muntyan)
+* Fix unitialized variable (Marco Barisione)
+* Use the proper mime type for ruby files (Paolo Maggi)
+* Small improvements to sql.lang and fortran.lang
+* New and updated translations.
+
+News in 1.2.0
+-------------
+
+* Updated translations.
+
+News in 1.1.93
+--------------
+
+* Partially fixed bug bug #168247 (wrong selection of characters when 
+  searching for single characters)
+* Fixed	bug #164066 (Highlight Current Line Bug with Pixmap Based Themes)
+* Fixed bug #168229 (disconnect tag table signal handlers in destructor)
+* Rewritten idl.lang
+* Added some missing items to php.lang
+* Updated translations.
+
+News in 1.1.92
+--------------
+
+* Bug fixes and update translations.
+
+News in 1.1.91
+--------------
+
+* Undoing/Redoing to a non-modified state unset the modified flag.
+* Added some missing documentation and improved existing one.
+* Bug fixes and update translations.
+
+News in 1.1.90
+--------------
+
+* Current line highlighting
+* New languages specs for TCL, Nemerle, VHDL, sh, .ini, gtkrc.
+* Support for Undo key in Sun keyboards
+* Bug fixes and updated translations.
+
+News in 1.1.1
+-------------
+
+* New languages specs for fortran, css, javascript and pascal.
+* Bug fixes and updated translations.
+
+News in 1.1.0
+-------------
+
+* Use Pango for printing.
+* New languages specs for Ruby, LUA, Perl's POD, VB.NET, Haskell and
+  Texinfo.
+* Bug fixes and updated translations.
+
+News in 1.0.0
+-------------
+
+* Bug fixes and updated translations.
+
+News in 0.9.2
+-------------
+
+* Bug fixes and updated translations.
+
+News in 0.9.1
+-------------
+
+* Bug fixes.
+* XML and HTML .lang files now highlight strings using simple patterns.
+* Beginning of line and end of line are now correctly matched, even if
+  the slice of text doesn't include the newlines.
+* "Others" style is now deprecated.
+
+News in 0.9.0
+-------------
+
+* Miscellaneous Bugfixes
+
+News in 0.8.0
+-------------
+
+* Highlighting spec files for PHP, Verilog, MSIL, C# and SQL.
+* Migrated test application to Gtk 2.3 (UI and file selector).
+
+News in 0.7.0
+-------------
+
+* A bunch of small bugfixes
+* Replaced deprecated calls for glib 2.3
+* Multiline backward search works now
+* <keyword-item> patterns are now limited to 250 elements (more cause 
+  trouble with GNU regex)
+
+News 0.4.0 -> 0.5.0
+-------------------
+
+* Removed hack for bug #81893 since it's now fixed in Gtk+
+* Added "style_changed" signal to GtkSourceStyleScheme to signal the
+  buffer that a style has changed
+
+News 0.3.0 -> 0.4.0
+-------------------
+
+* Added get_style_names method to the GtkSourceStyleScheme interface
+* New method gtk_source_language_get_id
+* Added the id arg to all constructors of gtksourcetag.[ch]
+* Added ID and tag_style properties to GtkSourceTag
+* Fixed the .pc.in file
+* Fixes to the printing code
+
+News 0.2.1 -> 0.3.0
+-------------------
+
+* Printing support
+* Caseless search functions gtk_source_iter_search_forward/backward
+* API reference documentation building infrastructure
+* Added support for translation of user visible strings in language
+  spec files
+* gtk_source_buffer_find_bracket_match has been renamed to
+  gtk_source_iter_find_matching_bracket
+
+News 0.2.0 -> 0.2.1
+-------------------
+
+* Dropped strict libgnome dependency (some Gnome libraries are still needed to
+  build the tests, but those are now optional)
+* Regular expression syntax changed to Extended POSIX + GNU operators
+* Generate enums and flags for introspection and language bindings
+* Copy of GNU regular expression library included for platforms which aren't
+  based on the GNU C library (bug #112517)
+* grab_focus no longer scrolls the widget to the cursor (workaround Gtk+ 
+  bug #81893)
+
+News 0.1.0 -> 0.2.0
+-------------------
+
+* src directory renamed to gtksourceview for proper header
+  namespacing
+
+News 0.0.3 -> 0.1.0
+-------------------
+
+* API has been completely revised
+* New language and manager objects to set regular expressions for
+  syntax highlighting from XML files
+* New improved highlighting engine
+* Rewritten test application which demonstrates most important features
+* Markers API have been redesigned
+* Text style schemes for highlighted elements
+* The view can draw a vertical line indicating a right margin
+* Smart HOME/END keys move to the first/last character in the line
+  before moving to the real begin/end
+* Auto indentation
+
+News 0.0.2 -> 0.0.3
+----------------
+
+* Undo support using begin/end_user_action in GtkTextBuffer.
+* Implemented gtk_source_buffer_convert_to_html the name says what it does :-)
+* more auto indent support/bugfixes: On an keypress it will automatic inserting whitespaces before/after on operator characters like [=<>!], comma [,]  and begin parantes[(]. This is hardcoded values and will probadly only work correcly on C/C++/Java/python or similar programing languages syntax
+* bugfixes.
+
+News 0.0.1 -> 0.0.2
+----------------
+
+* Auto indent support
+* bugfixes
+
+News 0.0.1
+--------
+
+* Syntax/Pattern highlighting
+* Bracket matching support
+* Show line numbers in margin

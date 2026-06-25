@@ -1,0 +1,149 @@
+* Z:\home\user\Desktop\swcad\_models\_ALL_STARS\All_stars.asc
+
+..params a1=2 c3 = f( a1 )
+,func _1#quant( x, y, z) { x+ y	-		1/z  }
+,param number 1  
+.params   other   2
+
+A1 {0 *2} 2 3 4 5 y x 0 AND td=1n
+A51 + - 0 s1 0 y x 0 AND vt=0
+A2 1 {a<= b} 0 0 0 y x 0 BUF td=1n
+A#3 a {if(a,1,0)} { b/ 2 } N001 3 0 x 0 BUF vhigh=1 vlow=0 td=1n ref=0 trise=1n tfall=0 rout=1 cout=1
+A4 D 0 clk pre clr y x 0 DFLOP td=1n
+A5 + - 0 s1 0 y x 0  SCHMITT vt=0
+A6 + - 0 0 0 0 x 0 9 SCHMITT
+A7 + - 0 0 0 y	0 0 {9} SCHMITT vt=0 vh=0
+A8 1 0 0 0 0 x 0 0 BUF td=1n
+A9 1 2 3 4 5 y x 0 OR td=1n
+A10 { if( b, 2, 0 ) } 2 0 0 0 0 x 0 PHASEDET td=1n
+A11 1 0 0 0 0 y x 0 SCHMITT td=1n vt=0 vh=1
+A12) 1 0 0 0 0 0 x 0 SCHMITT td=1n ref=0
+A13 1 0 0 0 0 y 0 0 SCHMITT vh=0 vt=1
+A14 s r 0 0 0 y x 0 SRFLOP td=1n
+A15 1 2 3 4 5 y x 0 XOR td=1n
+A16 { if( {a}==f(b), 1, {a*b}) } am 0 0 0 0 x 0 MODULATOR mark=1 space=0
+A17 fm am 0 0 0 y x 0 MODULATOR mark=1 space=0
+A18 + - clk sh 0 0 x 0 SAMPLEHOLD td=1n
+A19<  1 2 3 3 3  3 4 3 VARISTOR rclamp=1
+
+B   {if( a, {a*b}, 2)} {a <=b } V=f(time) tripdt=1 tripdv = 1
+B 1 {if( a, 1, 2)} 3 V=f(time) tripdv = 1 tripdt=1
+B2~,.   0 1 ic = 2 I=f(time)*{a} rpar=1
+B2!  0 1= V = f(time*{a/{b}}) *{a} rpar=1
+B2~,.   0 1 I=f(time)*{a}
+B21 1  2 rpar=1 I= a+ ( tripdt=  =1) tripdt={tripdt} tripdv=1
+B23 1 2    rpar=1 I =  a+   tripdt tripdv=1 tripdt=1u ic=1
+B_#3 1 2 2
+B2!  0 1 Laplace = s *{a} rpar=1 ic=0
+B21 1  2 window=1 nfft=1 Laplace= 1/s ic =1
+B51{ 0 1 i=1 rpar = 1
+
+Cerr 1 {if ( a, 1, 2)}   4 1.2
+C1 {if ( a, 1, 2)}  1 1
+C2 1 {if ( a, 1, 2)}    1.
+C3	1 {if ( a, 1, 2)}  1.44
+C4  {a<{b } } {if ( a, 1, 2)}  .44
+C3	1 {if ( a, 1, 2)}  1.44e-12
+C1 {if ( a, 1, 2)}  1 13u ic = 1
+C5 1 {if ( a, 1, 2)}    {1.2}
+C2	1 {if ( a, 1, 2)}  {3.} Lser=1 _ = 2
+C4 1 {if ( a, 1, 2)}  1.44 rpar>=1
+C2	{a> = {b} } {if ( a, 1, 2)}  {3.} Lser=1
+C2  {a >= {b} } 	{if ( a, 1, 2)}  {3.}
+C2	{ a= = {b} } {if ( a, 1, 2)}  .1nF
+C55 2 { _a== b } Q = x* { pi + ( m = =1) }
+C5 2 1 Q	= x* {pi} m= 3 rpar=1
+C6   2 1 2 m= 3 ic=1
+C8	1  {2}  { a } Rpar =1 Cpar	= 1 ic	=	0
+C#@^% 2 1 Q = x* { pi + ( m ==1) } m= 3 ic =1
+
+D1 s1 2 D
+D2 1 2  1N4148 m=1 n=2
+
+E1 2 {a * 1} table {v(a)} (1,1 2,2)
+E_1 2 {a * 1} b { a-{b }} table (1,1 1)
+;E11 { a } { b } tbl{ 0, 0, 1, 1}
+E2 1 2 value = { 1 }
+E3 3	4   nfft  = 2048 Laplace = (s^2+1)/(s^2+2*s +{ a }) window=1024
+Eee 13 13 13 13 laplace { 1/(s+1)}
+E1 2 0 1 0 1
+F1 1 0 V1 1
+L1 1 2 1
+G1 0 2 1 0 1
+G_1 2 {a * 1} freq {v(b)} (1,1 1) (2,2,2)
+G@543	1 {1 * 2 } poly(2) {v(1),v(2)} 1 2 3 4 5
+G_x 0 1 2 3 Laplace (s)
+G_y 2 3 {s} {laplace} laplace = s^2+1
+H1 1 0 V1 1
+W1 1 2 V1 CSW off
+I1 1 0 22222
+L2 1 2 { g ( 1, 2*3, 5) = = 1 }
+Q1 3 1 2 0 NPN
+J1 3 1 2 PJF
+M1 3 1 2 2 PMOS
+Q2 3 1 2 0 PNP
+R1 1 0 R=time
+R2 0 1 {11}
+S1 2 0 0 1 SW
+T1 1 0 2 0 Td=50n Z0=50
+V1 1 0 1
+O1 1 0 2 0 LTRA
+XU1 dut+ dut- bias resistance capacitance capometer current=1m freq=3Meg C=.5µ Q=.25
+.param a=1 b = a c = f(1) and=1 inv=1 ;nihil
++ x = 2 y= x *3 z =f( x** y ) ;abracadabra inv dflop
++dflop =1 _1= pi  value=f(1)
++f(x,y)=2
+.func f(x)=x**2
+.func table( x, y, z) = table(x,y,1,z,2)
+.model D D
+.lib Z:\opt\Progs\LTspiceIV\lib\cmp\standard.dio
+.model NPN NPN
+.model PNP PNP
+.lib Z:\opt\Progs\LTspiceIV\lib\cmp\standard.bjt
+.model NJF NJF
+.model PJF PJF
+.lib Z:\opt\Progs\LTspiceIV\lib\cmp\standard.jft
+.model NMOS NMOS
+.model PMOS PMOS
+.lib Z:\opt\Progs\LTspiceIV\lib\cmp\standard.mos
+.tran 0 1 0 1m steady startup nodiscard uic
+.model d d
+.model csw csw
+.model sw sw
+.model ltra ltra len=1 r=1 l=1 c=1
+.op
+.four 1k 25 v(1)
+.ferret
+.global 1 999
+.ic v(2)=2
+.inc capometer.sub
+.lib ltc.lib
+.loadbias .\load.bias
+.savebias .\save.bias
+*** state machine ; line comment
+.mach    ; both are
+.machine ; highlighted
+.state s0 1
+,state s1 0 ; comma instead of dot
+.rule s0 s1 nothing ; there are no checks for correctnes ...
+.output (node) state ; ... or nodenames & co -- it's up to the user
+.endmachine ; both are
+,endmach    ; highlighted
+*** end state machine
+.meas xxx param x
+.net v(1) v(2)
+.nodeset v(4)=1
+.options numdgt=16
+.opt gshunt=1p
+.opts reltol=1m
+.option cshunt=1p
+.save v(2)
+.step param b 1 10 2
+.subckt @1xxx s[1] _1 2 a x1 x2   params: a=2
+r1 1 2 {a}
+r2 2 0 2k
+,ends @1xxx
+.temp 10 20
+.wave .\snd.wav 16 48k v(1) v(2)
+.backanno
+.end

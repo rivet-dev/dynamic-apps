@@ -1,0 +1,639 @@
+0.6.1 (2023-05-13)
+=====
+- I18n: Update po/LINGUAS list
+- I18n: Update po/LINGUAS list
+- build: Optionally require polkit
+- build: Use m4_defined min versions and cleanup
+- build: Use XDT_VERSION_INIT and get rid of configure.ac.in
+- build: Switch from intltool to gettext
+- menubar: Improve some strings
+- search: Use consistent naming
+- history: Properly restore multi-window session
+- Restore opening mode only when it was overridden from the command line
+- Add "X of Y matches" to search bar and replace dialog (Closes #174)
+- Add application/x-zerosize to supported mime types (Fixes #194)
+- Apply opening mode also to the open dialog (Fixes #181)
+- Properly reconnect signal handler when auto-reload is enabled
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+0.6.0 (2023-02-09)
+=====
+- Dependency Changes:
+  - GLib >= 2.56.2
+
+- New Features:
+  - Keep saved state in memory to track actual modification state
+
+- Appearance Changes / Minor Improvements:
+  - Add "match whole word" toggle to search toolbar (#180, !124)
+
+- Code Refactoring:
+  - cleanup: prefs: Reduce the diff from what Glade 3.40.0 would do
+  - cleanup: Use G_DECLARE_FINAL_TYPE
+  - cleanup: Remove dead code
+  - cleanup: Use consistent naming and avoid duplicated code
+  - build: Let xdt-depends.m4 macros set GLib macros
+  - flatpak: Updates from Flathub
+
+- Bug Fixes:
+  - Clear undo action list in case of unbuffered modification
+  - Set file properties only for actual changes
+  - Emit "encoding-changed" after setting BOM if needed
+  - Update action states on reload
+  - Mark document as modified if line ending actually changes (Fixes #187)
+  - Do not show the menubar on Alt key release if focus is lost (#185)
+  - plugins: Do not resize unnecessarily the prefs dialog on Wayland
+  - Initialize static variable only once
+  - prefs-dialog: Improve history widget alignment (Fixes #173)
+
+- Translation Updates:
+  Czech, Dutch, German, Greek, Hungarian, Kazakh, Korean, Lithuanian,
+  Occitan (post 1500), Persian (Iran), Polish, Portuguese (Brazil),
+  Ukrainian
+
+0.5.10 (2022-07-09)
+======
+- New Features:
+  - Consider unnamed files unchanged when empty (#170, !123)
+
+- Bug Fixes:
+  - session-restore: Manage autosave ids through a GList (#165)
+  - Honor global "gtk-menu-images" setting for icon visibility
+  - search: Do not select first combo box entry when list does not change
+  - Fix encoding conversion when saving
+  - Fix encoding conversion when opening (#172)
+  - Update charset when a byte order mark is detected (#172)
+  - tests: Add plugin settings to the list
+  - build: Fix intltool lock file problem during make distcheck
+  - Fix a memory leak in menu item realignment (#164)
+
+- Translation Updates:
+  Finnish, Greek, Hebrew, Hungarian, Russian, Serbian, Swedish,
+  Turkish, Ukrainian
+
+0.5.9 (2022-04-01)
+=====
+- New Features:
+  - Add shortcuts plugin (#70, !121)
+    Depends on Libxfce4ui 4.17.5 which is a dev version, so will be excluded
+    at configure time on most systems until Xfce 4.18 is released.
+  - Add search history (!119)
+  - File monitoring: Add an automatic reloading option
+
+- Appearance Changes / Minor Improvements:
+  - Move the document modification mark to the close button (#63, !122)
+  - Add mousepad styleclass for easier theming (#33)
+  - Hide search bar by pressing Esc key even when not focused
+  - Search: Escape selection when regex search is enabled
+
+- Code Refactoring:
+  - Plugins: Add a skeleton plugin to ease writing of new plugins
+
+- Bug Fixes:
+  - Test plugin: Sanitize memory management of sources
+  - Honor GTK_CSD
+  - Filter entries from `accels.scm` on non-detailed action name
+  - i18n: Check for `bind_textdomain_codeset()`
+  - Update Copying (#160, !120)
+  - Session history: Never clear session array on exit (#162)
+  - Fix broken feature "Show menubar temporarily when hidden"
+  - Force encoding when reloading
+  - Force encoding when it has been explicitly set by the user
+  - Do not consider encoding as always user-set in the "Open" dialog
+  - Fix antonym of the word "indent" in preferences dialog (!118)
+  - File monitoring: Try to filter out fake deletions
+  - Add ellipsis to preferences menu entry (!117)
+  - Switch all labels to title case in prefs dialog (!116)
+  - Correctly restore font size after zooming when using system font (#158)
+  - Printing: Enable line wrapping by default (#156)
+  - Fix a warning from GCC static analyzer
+  - Search: Do not delay the search when the text changes
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian, Uyghur
+
+0.5.8 (2021-11-26)
+=====
+- Bug Fixes:
+  - Revert "Chain-up to parent in `mousepad_window_scroll_event()`" (#150)
+  - Search: Fix a memory leak
+  - Search: Remove obsolete workaround for the document finalization
+  - Drop restrictions on URI scheme
+  - Update `POTFILES.in`
+  - Printing: Remove the "Page Setup" dialog (#148)
+  - Flatpak: Complete scripts
+  - Flatpak: Access remote locations with GVfs
+  - Search: Fix the history cleanup
+  - Search: Prevent GTask warnings when replacing text
+  - Search: Ensure settings synchronization before searching
+  - Fix translation domain in Appdata file
+  - flatpak: Update README
+  - flatpak: Add generic manifest and basic scripts
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian, Uyghur
+
+0.5.7 (2021-09-23)
+=====
+- Bug Fixes:
+  - Update Appdata file and use the same description everywhere
+  - Prevent warning when saving a deleted file via a symlink (#135)
+  - Conform to Freedesktop.org standard for file naming
+  - Properly disconnect signal handlers
+  - Be sure not to disable highlighting when disabling regex search
+  - Check for realpath()
+  - Check for `errno.h` required by CI
+  - Fix a nasty memory leak
+  - Fix "Save As" procedure when it recurses
+  - Allow drag and drop on selections in the textview
+  - Code cleanup: Remove a useless dnd signal forwarding
+  - Code cleanup: Simplify `mousepad_file_save()`
+  - Fix a small memory leak
+  - Improve trash can management
+  - Update read-only status on file location change/validation
+  - Monitor also the target of broken links
+  - Fix monitoring of files opened through a symlink
+  - Allow drag and drop of broken links
+  - Follow symlinks if necessary when checking if a file exists
+  - Replace `g_realloc()` with `g_renew()`
+  - Replace `g_malloc*()` with `g_new*()` (!113)
+  - Make sure that `gtk_selection_data_get_uris()` returned non-NULL (!113)
+  - Initialize `contents` and use it to guard `g_file_replace_contents` (!113)
+  - Fix an unlikely memory leak
+  - Make CSD consistent with other Xfce windows (#145)
+
+- Translation Updates:
+  Estonian, Greek, Kazakh, Polish, Serbian, Slovenian, Swedish,
+  Ukrainian
+
+0.5.6 (2021-07-31)
+=====
+- New Features:
+  - Add session backup and restore
+    - Remember windows and tabs (#21, !108)
+    - Handle unsaved documents (#32, !109)
+    - DE session support (#3, !110)
+  - Extend the use of recent history (!107)
+  - Add use of `GtkSourceView:smart-backspace` (!101)
+  - Add a "Move Words" action (!100)
+
+- Appearance Changes:
+  - Add a setting to control tab expansion (#100)
+  - Prefs dialog: Substitute CSD for status bar visibility
+  - Add a "File" tab to the prefs dialog (!108)
+  - Make search input fields less flickery (!104)
+  - Allow saving non-existent, empty but named file (#120, !103)
+  - Enable "Save" action for read-only documents (#126, !103)
+  - Make "Find as you type" an option (!102)
+  - Reveal hidden setting "indent-on-tab" (!101)
+
+- Code Refactoring:
+  - A review of duplicated view-related actions (#127)
+
+- Tests:
+  - Add a test plugin to monitor application state (!105)
+  - Add a test script for Mousepad (!99)
+
+- Bug Fixes:
+  - Filter notebook click events also on y-coordinate (#144)
+  - Allow to open files from the trash can (#141, !112)
+  - Monitor file deletion (#140, !111)
+  - Printing: Create config file if it does not exist
+  - Check all windows for the file to be opened
+  - Fix wrong externally modified document in some situations
+  - Plugin support: Properly handle plugin settings (#136)
+  - Direct monitoring of symlink targets
+  - Set the state of submenu actions
+  - print-dialog: Fix some memory leaks
+  - Fix a type inconsistency in the "encoding-changed" signal
+  - Always check if the user has explicitly set a filetype
+  - Fix monitoring events to listen to
+  - Ensure statefull actions exist until their state is recovered
+  - Fix GVariant-related memory leaks
+  - Do not warn if the plugin directory does not exist
+  - Add a sanity check on the window for "Externally Modified"
+  - Do not set the style scheme id as translatable
+  - Properly update recent menu in case of file deletion
+  - CSD: Set the decoration layout for all windows
+  - Add a sanity check on file location for monitoring
+  - Add "preferences" action to `mousepad.desktop` (#130)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian, Uyghur
+
+0.5.5 (2021-05-12)
+=====
+- New Features:
+  - Add a `.desktop` file to make Mousepad appear in Xfce settings (!94)
+  - Add a command line option to open the prefs dialog (!94)
+  - Plugin support (!92)
+  - Add gspell plugin (#1, !92)
+  - Disable and wipe recent history if recent-menu-items is set to 0 (#112, !89)
+  - Support -ve line and column values for "Go to" location (#113, !84)
+
+- Appearance Changes:
+  - Switch to client-side decorations (!97)
+
+- Code Refactoring:
+  - Remove Xfconf dependency (#60, #122, !98)
+  - A general review of sanity checks
+  - A review of window lifetime management
+  - A review of document lifetime management
+  - Automate and sanitize memory management of sources
+  - A small review of GSettings use
+  - Do not use `== (TRUE|FALSE)` for boolean conditions
+
+- Bug Fixes:
+  - Fix actions to show/hide bars in fullscreen mode (#129)
+  - Fix broken "Revert" action
+  - Fix and extend "Move Lines" action (#87, #116, !96)
+  - Support for drag and drop of tabs when search is active
+  - Do a silent search when changing tabs with the search bar enabled
+  - Use get/set_real_line_offset () functions for "Paste as Column" (#114, !91)
+  - Restore cursor position after transpose (#115, !88)
+  - Fix "Delete Line" action (#117, !86)
+  - Fix recent_sort function (!90)
+  - Reset line and column number if not given on command line (#121, !87)
+  - menu: "Spaces to Tabs" converter converts leading spaces (#118, !85)
+  - Make window require attention when opening new tabs (2) (#119)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian, Uyghur
+
+0.5.4 (2021-04-02)
+=====
+- New Features:
+  - Add --line/-l and --column/-c number (#107, !83)
+  - Port to GtkSourceView 4 (#55, #80, !10)
+
+- Bug Fixes:
+  - Delay request to scroll to cursor for the correct active view
+  - Monitor hardlinks with glib 2.56.2 (#110, !82)
+  - Transfer encoding from remote to primary instance (#109)
+  - Prevent a crash when no language is found
+  - Make window require attention when opening new tabs (#106, #93, !81)
+  - Fix BOM array (!80)
+  - Correctly initialize toolbar style combo box (#103)
+  - Allow checking parent sources when looking up schema (#101)
+  - Fix missing parameter to "select-all" signal (!79)
+
+- Translation Updates:
+  Hebrew, Indonesian, Spanish, Swedish
+
+0.5.3 (2021-02-28)
+=====
+- Appearance Changes:
+  - Use old style menu alignment (#97, !77)
+
+- Bug Fixes:
+  - Add a keybinding to reset font size
+  - Fix inverted return value of scroll event handler
+  - Various small improvements regarding accels
+  - Block the right signal handler for tooltip updates
+  - A clarification about action groups
+
+- Translation Updates:
+  Basque, French, Galician, Portuguese (Brazil), Russian, Slovenian,
+  Swedish
+
+0.5.2 (2021-01-31)
+=====
+- New Features:
+  - Add a "Viewer Mode" toggle (#50, !72)
+  - Improve `--quit` option: close all windows interactively (!71)
+  - Improve encoding management (#42, !69)
+    - Display the current encoding in the status bar
+    - Make the default encoding configurable via GSettings
+    - Allow to choose encoding in the "Open" and "Save As" dialogs (#42)
+    - Add a command line option to choose encoding
+  - Add a "Delete Line" action (#13, !66)
+  - Make automatic addition of the last EOL character configurable (#53, !65)
+  - Switch to GFile for I/O operations (#4, #27, #75, !64)
+    - Add file monitoring (#75)
+    - Add a setting to create a tilde-backup file when saving (#27)
+    - Make saving atomic (#4)
+
+- Appearance Changes:
+  - Filter files on mime type in the "Open" and "Save As" dialogs (#2, #35, !67)
+
+- Code Refactoring:
+  - Improve encoding management (#42, !69)
+    - Make encoding dialog more generic and self-contained
+    - Encodings definition review
+    - Clarify encoding management when opening files
+    - Improve unicode BOM management
+  - Switch to GFile for I/O operations (#4, #27, #75, !64)
+    - Set the save action sensitivity more precisely
+    - Let GFile APIs check for file existence when reading
+    - Let GFile APIs check for external modifications when saving
+    - Basic switch to GFile for I/O operations
+
+- Bug Fixes:
+  - Make "replace" and "replace all" behaviors consistent (#94)
+  - Ensure that the page setup is properly applied when printing (#90)
+  - Avoid character escape issues in menu item action names (#91)
+  - Properly initialize document search properties
+  - Avoid illegal memory access when searching with tab changes (!73)
+  - Revert to "Wrap Around" always true for the search bar (#83)
+  - Prevent too late accesses to the buffer in selection mode
+  - Direct call to keybinding signals for "Delete" and "Select All" (#83)
+  - Improve editing keybindings consistency (#83)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.5.1 (2020-12-23)
+=====
+- Dependency Changes:
+  - GLib >= 2.52.0
+  - GTK >= 3.22.0
+
+- New Features:
+  - Allow to change the font size from keyboard/mouse (#46, #54, !60)
+  - Switch to asynchronous search (!58)
+  - Give more choice for whitespace display (#44, !46)
+
+- Appearance Changes:
+  - Improve the look of the search bar
+  - Add a spinner to the search widgets
+  - Make the occurrences count appear in the search bar
+  - Reformulate "Home/End Keys" setting description
+
+- Code Refactoring:
+  - Code refactoring around MousepadView properties (!60)
+  - Code refactoring around GMenuModel-bindings (!50)
+
+- Bug Fixes:
+  - Decrease reference count of anchored documents
+  - Filter document signals on the active document
+  - Fix a memory leak in the templates menu
+  - Fix wrong conversion from uri to filename (#81)
+  - Warn when using GLib functions newer than requirements
+    (Mousepad 0.5.0 actually required GLib 2.60 due to such an oversight)
+
+- Translation Updates:
+  Catalan, Chinese (Taiwan), French, German, Italian, Japanese,
+  Lithuanian, Norwegian Bokmål, Portuguese, Portuguese (Brazil),
+  Russian, Serbian, Spanish, Swedish, Turkish
+
+0.5.0 (2020-11-30)
+=====
+- Bump required GTK+ in `mousepad-prefs-dialog.ui` (#78)
+- Fix an oversight in updating actions state (#76)
+- Remove TODO file (#74)
+- Ensure that opening modes are excluded from translation
+- Translation Updates:
+  Albanian, Bulgarian, Chinese (China), Dutch, French, German, Greek,
+  Hebrew, Indonesian, Italian, Norwegian Bokmål, Portuguese,
+  Portuguese (Brazil), Slovenian, Spanish, Japanese
+
+0.4.90 (2020-11-20)
+======
+Release candidate for upcoming stable version 0.5.
+
+- Dependency Changes:
+  - GLib >= 2.45.8
+  - GTK+ >= 3.20
+  - GtkSourceView >= 3.24
+  - GTK+ 2 support has been removed
+  - GtkSourceView 2 support has been removed
+
+- New Features:
+  - Add keybindings to show the menubar temporarily when hidden
+  - Add command line option and setting for file opening mode
+  - Improve encoding dialog
+  - Add regex search
+
+- Discontinued Features
+  - multi-select (GTK+ 2)
+
+- Appearance Changes
+  - Replace `$HOME` with a tilde in displayed filename
+  - Add new default keybindings and reveal some hidden ones
+  - Search bar tweaks
+  - Make tabs expanded for consistency with other Xfce programs
+  - Add copyright and license info to About dialog
+  - Improve label texts of "Find and Replace" dialog and search bar
+  - Make the statusbar smaller
+  - Add new app icon and switch to reverse DNS name
+  - Save the state of the "highlight all" button in the search bar
+  - Update window title of Find and Replace dialog
+  - Add "Wrap around" check box to Find and Replace dialog (Bug #11290)
+  - Infer filetype from shebang line (Bug #10514)
+  - Show info when Templates directory does not exist (Bug #10486)
+
+- Code Refactoring
+  - Restore the use of the file `accels.scm`
+  - Code refactoring around saving and restoring window geometry
+  - Improve save-related actions
+  - Fully switch to GtkApplication
+  - Avoid deprecation warnings 5: CSS related
+  - Avoid deprecation warnings 4: GtkUIManager and GtkAction
+  - GtkStock
+  - Avoid deprecation warnings 2: miscellaneous
+  - Avoid deprecation warnings 1: alignment and padding
+  - Avoid compilation warnings other than deprecation
+  - Remove support for GTK+2
+  - Switch to README.md and foreign automake mode
+  - Add basic GitLab pipeline
+
+- Bug Fixes:
+  - Remove README.md from DISTCLEANFILES, it's not generated
+  - Fix crash when dragging tab to GSV widget
+  - Change GtkTextView wrap mode to GTK_WRAP_WORD_CHAR
+  - Initialize the recent manager if needed at startup
+  - Prevent search bar from overlapping the document
+  - Properly disconnect signal handlers
+  - Fix make distcheck
+  - Fix color modifications in search entries
+  - Do not open an empty document when encoding failed
+  - Do not search for previously selected text
+  - Update search field with selected text
+  - Bug #16717: Move from exo-csource to xdt-csource
+  - Remember last save location (Bug #14165)
+  - Use g_get_user_dir to get Templates directory (Bug #11048)
+  - Sync remaining menu actions to their settings (Bug #11046)
+  - Install appstream in metainfo folder (Bug #11200)
+  - Add appdata file (Bug #11200)
+  - Fix building with `--enable-dbus --disable-gtk3`
+  - Change visibility of fullscreen bars after small delay (Bug #9735)
+  - Fix return type of fullscreen settings (Bug #9735)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian
+  Nynorsk, Occitan (post 1500), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+0.4.2 (2019-07-28)
+=====
+- Port to GDBus (Bug #14337)
+- Show full path in window title by default (Bug #2896)
+- Reset modification time when new filename is set (Bug #10498)
+- Do not overwrite view settings when opening encoding dialog (Bug #12298)
+- Make dialog windows modal only for parent window (Bug #10488)
+- Add string to translation (Bug #11049)
+- Selecting a font via menu now disables system font (Bug #12773)
+- Check for exo-csource in maintainer mode (Bug #12719)
+- New line can't be printed in status bar (Bug #11050)
+- Do not move text cursor when searching backwards (Bug #14942)
+- Fix gravity of selection end mark (Bug #10986)
+- Missing line in dbus.h, found typo in window.h (Bug #10583)
+- Append a newline char at EOF when saving (Bug #4824)
+- Do not core dump on silly errors, just exit (Bug #12413)
+- Fix gtksourceview warnings/errors (Bug 11663)
+- Only set template filetype when detected (Bug #15314)
+- Replace deprecated style properties in MousepadCloseButton (Bug #13114)
+- Fix Tab mode and Home/End Keys in preferences dialog (Bug #15075)
+- Fix language guess function (Bug #15141)
+- Read system font from xfconf property (Bug #12485)
+- Add pkexec policy (Bug #11088)
+- Fix g_type_class_add_private is deprecated
+- Set intltool minimum version
+- Bump minimal required glib
+- Translation Updates: Albanian, Arabic, Asturian, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech,
+  Danish, Dutch (Flemish), English (Australia), English (Great Britain),
+  Finnish, French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Italian, Japanese, Kazakh, Korean, Lithuanian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan, Polish, Portuguese,
+  Portuguese (Brazilian), Romanian, Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+0.4.1 (2018-06-01)
+=====
+- Fix crash when dragging tab to root window (Bug #13336)
+- Fix the signal definition of user-set-language (Bug #13630)
+- Prevent a weird cycle in GSettings use (Bug #12134)
+  - Properly fixed later by Alistair Buxton
+- Fix some warnings about using NULL (Bug #11663)
+- Limit prefs dialog tab width to range allowed by schema (Bug #12055)
+- Don't show hidden GSV languages (Bug #12043)
+- Encode filenames passed to DBus as UTF-8
+- Translation updates: Albanian, Arabic, Asturian, Basque, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  English (Australia), English (United Kingdom), Finnish, French, Galician,
+  German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk,
+  Occitan, Polish, Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian,
+  Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghu
+
+0.4.0 (2015-02-28)
+=====
+- Use GSettings to improve preference handling
+- A new preferences dialog exposing all preferences in the GUI
+- Implement config and GUI preferences for various GtkSourceView properties
+  such as:
+    * Highlighting the current line
+    * Match braces
+    * Indentation width control
+    * Right margin (long-line margin) column
+    * Showing/hiding of line numbers
+    * Smart home and end keys
+- Improved GUI configurability and state persistence, including:
+    * A toolbar for commonly used items
+    * Fullscreen support
+    * Main menu re-organization
+    * Improved editor context menu
+    * Improved single-instance multi-window support
+    * Remember and synchronize size, position, and state, across windows
+      and instances
+- Support for building against GTK+ 3
+- Various other improvements and bugs fixed
+
+0.3.0 (2012-12-30)
+=====
+Highlights:
+    - A complete rewrite of Mousepad. The code is now written in GOjects
+      where possible so we have a solid base for further development.
+    - Run multiple windows in one instance. We also invoke a running
+      instance with DBus (optional), this is needed for tab DND between
+      windows.
+    - Drag and Drop support for text inside a document, between tabs and
+      between windows.  Also supports opening a file by dragging it into
+      the window.
+    - Support for multiple tabs in one window which are both reorderable
+      and detachable.
+    - Load multiple files at once from both the open dialog and the command
+      line.
+    - Type-ahead find and highlight feature like Firefox.
+    - Support for editable menu accelerators.
+    - Reimplemented recent file support. You can cleanup the Mousepad history
+      and a file is removed from the history when Mousepad was unable to open
+      it.
+    - Syntax highlighting of many filetypes (including printing).
+    - Various hidden settings.
+    - Statusbar with filetype, cursor location and whether overwrite is
+      actived.
+    - Mousepad depends on GTK+ 2.20.
+
+Bug fixes:
+    - Save button is now default response in the dialog (Bug #2941).
+    - No font is set as long the user has not defined any (Bug #2720).
+    - No compiler warnings (Bug #1697).
+    - Windows geometry is now properly saved (Bug #2945).
+    - Hidden option to show the full path in the window title (Bug #2896).
+    - Basic command line options (Bug #2397).
+    - The MousepadPreferences object uses XfceRc for saving the
+      settings (Bug #2786).
+    - No segfault when there is no rc file (Bug #2784).
+    - Support syntax highlighting using GtkSourceView (Bug #3228 & #5803).
+    - Proper Drag and Drop support (Bug #2055).
+    - Fix recent files support (Bug #5635, #3850 & #7890).
+    - Use GTK+ printing (Bug #4477).
+    - Settings saved in Find (and Replace) dialogs (Bug #7246).
+    - No deprecated dependencies (Bug #7259).

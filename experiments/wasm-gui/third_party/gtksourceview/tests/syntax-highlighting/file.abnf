@@ -1,0 +1,19 @@
+; An ABNF file. Here’s a whole-line comment.
+
+rule1 = rule2 /
+        %b1010 /    ; mid-rule comment
+        %d100
+rule1 =/ %x20-25 /
+         %x30.31
+
+rule2 = "some-string" / "a"  ; here’s a comment at the end of a rule
+
+rule3=rule1 rule2
+
+rule4 = (rule3 rule1) / (rule1 *rule2)
+
+rule5 = 1*rule1 /
+        *2rule2 /
+        1*3rule3 /
+        2rule1 /
+        *1( rule4 rule3 )

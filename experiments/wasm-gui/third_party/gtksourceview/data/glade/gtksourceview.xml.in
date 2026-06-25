@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glade-catalog version="4.0"
+               supports="gtkbuilder"
+               name="gtksourceview"
+               library="gtksourceview-@GSV_API_VERSION@"
+               depends="gtk+"
+               book="gtksourceview-@GSV_API_VERSION@">
+  <glade-widget-classes>
+    <glade-widget-class name="GtkSourceView" title="GtkSourceView" generic-name="gtksourceview">
+      <properties>
+        <property id="auto-indent" default="False" />
+        <property id="highlight-current-line" default="False" />
+        <property id="indent-on-tab" default="True" />
+        <property id="insert-spaces-instead-of-tabs" default="False" />
+        <property id="right-margin-position" default="80" />
+        <property id="show-line-marks" default="False" />
+        <property id="show-line-numbers" default="False" />
+        <property id="show-right-margin" default="False" />
+        <property id="smart-home-end" default="Disabled">
+          <displayable-values>
+            <value id="GTK_SOURCE_SMART_HOME_END_DISABLED" name="Disabled" />
+            <value id="GTK_SOURCE_SMART_HOME_END_BEFORE" name="Before" />
+            <value id="GTK_SOURCE_SMART_HOME_END_AFTER" name="After" />
+            <value id="GTK_SOURCE_SMART_HOME_END_ALWAYS" name="Always" />
+          </displayable-values>
+        </property>
+        <property id="tab-width" default="8" />
+      </properties>
+    </glade-widget-class>
+    <glade-widget-class name="GtkSourceMap" title="GtkSourceMap" generic-name="gtksourcemap">
+    </glade-widget-class>
+    <glade-widget-class name="GtkSourceStyleSchemeChooserWidget" title="GtkSourceStyleSchemeChooserWidget" generic-name="gtksourcestyleschemechooserwidget">
+    </glade-widget-class>
+    <glade-widget-class name="GtkSourceStyleSchemeChooserButton" title="GtkSourceStyleSchemeChooserButton" generic-name="gtksourcestyleschemechooserbutton">
+    </glade-widget-class>
+  </glade-widget-classes>
+
+  <glade-widget-group name="GtkSourceView" title="GtkSourceView">
+    <glade-widget-class-ref name="GtkSourceView" />
+    <glade-widget-class-ref name="GtkSourceMap" />
+    <glade-widget-class-ref name="GtkSourceStyleSchemeChooserWidget" />
+    <glade-widget-class-ref name="GtkSourceStyleSchemeChooserButton" />
+  </glade-widget-group>
+</glade-catalog>

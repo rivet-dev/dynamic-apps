@@ -1,0 +1,11 @@
+* name="(.+)/Source\\1"
+utils_* name="utils_(.+)" parent="Gtk.SourceUtils"
+GtkSource name="Gtk" cprefix="Gtk" lower_case_cprefix="gtk_"
+CompletionProvider
+        .*#virtual_method virtual
+CompletionProposal
+        .equal#virtual_method virtual
+        .get_icon#virtual_method virtual
+        .hash#virtual_method virtual
+SearchContext
+        .regex_error type="GLib.Error?"

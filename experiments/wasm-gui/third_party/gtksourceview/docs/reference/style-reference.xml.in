@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+ <!ENTITY % local.common.attrib "xmlns:xi CDATA #FIXED 'http://www.w3.org/2003/XInclude'">
+ <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+ %gtkdocentities;
+]>
+<refentry id="style-reference">
+<refmeta>
+<refentrytitle>Style Scheme Definition Reference</refentrytitle>
+</refmeta>
+
+<refnamediv>
+<refname>Style Scheme Definition Reference</refname>
+<refpurpose>
+Reference to the GtkSourceView style scheme definition file format
+</refpurpose>
+</refnamediv>
+
+<refsect1>
+<title>Overview</title>
+<para>
+This is an overview of the Style Scheme Definition XML format, describing the
+meaning and usage of every element and attribute.  The formal definition is
+stored in the RelaxNG schema file <filename>style.rng</filename> which
+should be installed on your system in the directory
+<filename>${PREFIX}/share/gtksourceview-@GSV_API_VERSION@/</filename> (where
+<filename>${PREFIX}</filename> can be <filename>/usr/</filename> or
+<filename>/usr/local/</filename> if you have installed from source).
+</para>
+</refsect1>
+
+
+<para>
+The toplevel tag in a style scheme file is <code>&lt;style-scheme&gt;</code>.
+It has the following attributes:
+<variablelist>
+<varlistentry>
+<term><code>id</code> (mandatory)</term>
+<listitem><para>
+Identifier for the style scheme. This is must be unique among style schemes.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>name</code> (mandatory)</term>
+<listitem><para>
+Name of the style scheme. This is the name of the scheme to display to user, e.g.
+in a preferences dialog.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>_name</code></term>
+<listitem><para>
+This is the same as <code>name</code> attribute, except it will be translated.
+<code>name</code> and <code>_name</code> may not be used simultaneously.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>parent-scheme</code> (optional)</term>
+<listitem><para>
+Style schemes may have <emphasis>parent</emphasis> schemes: all styles but those specified
+in the scheme will be taken from the parent scheme. In this way a scheme may
+be customized without copying all its content.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>version</code> (mandatory)</term>
+<listitem><para>
+Style scheme format identifier. At the moment it must be "1.0".
+</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<para>
+<code>style-scheme</code> tag may contain the following tags:
+<variablelist>
+<varlistentry>
+<term><code>author</code></term>
+<listitem><para>
+Name of the style scheme author.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>description</code></term>
+<listitem><para>
+Description of the style scheme.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>_description</code></term>
+<listitem><para>
+Same as <code>description</code> except it will be localized.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>color</code> tags</term>
+<listitem><para>
+These define color names to be used in <code>style</code> tags.
+It has two attributes: <code>name</code> and <code>value</code>.
+<code>value</code> is the hexadecimal color specification like
+"#000000" or named color understood by Gdk prefixed with "#",
+e.g. "#beige".
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>style</code> tags</term>
+<listitem><para>
+See below for their format description.
+</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<para>
+Each <code>style</code> tag describes a single element of style scheme (it corresponds
+to #GtkSourceStyle object). It has the following attributes:
+<variablelist>
+<varlistentry>
+<term><code>name</code> (mandatory)</term>
+<listitem><para>
+Name of the style. It can be anything, syntax highlighting uses <emphasis>lang-id:style-id</emphasis>,
+and there are few special styles which are used to control general appearance
+of the text. Style scheme may contain other names to be used in an application. For instance,
+it may define color to highlight compilation errors in a build log or a color for
+bookmarks.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>foreground</code></term>
+<listitem><para>
+Foreground color. It may be name defined in one of <code>color</code> tags, or value in
+hexadecimal format, e.g. "#000000", or symbolic name understood
+by Gdk, prefixed with "#", e.g. "#magenta" or "#darkred".
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>background</code></term>
+<listitem><para>
+Background color.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>italic</code></term>
+<listitem><para>"true" or "false"</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>bold</code></term>
+<listitem><para>"true" or "false"</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>underline</code></term>
+<listitem><para>
+Accepts the values supported by PangoUnderline ("none", "single",
+"double", "low", "error"). GtkSourceView versions &lt;= 3.16 only
+supported "true" or "false" and such value are still accepted
+for backward compatibility.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>underline-color</code></term>
+<listitem><para>
+Underline color.
+</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>strikethrough</code></term>
+<listitem><para>"true" or "false"</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>scale</code></term>
+<listitem><para>
+Scale the matched text block. Possible values are a float number as factor
+(e.g. <code>"1.75"</code>) or one of the values <code>"xx-small"</code>,
+<code>"x-small"</code>, <code>"small"</code>, <code>"medium"</code>,
+<code>"large"</code>,<code>"x-large"</code>,<code>"xx-large"</code>.
+</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<para>
+The following are names of styles which control GtkSourceView appearance:
+<variablelist>
+<varlistentry>
+<term><code>text</code></term>
+<listitem><para>Default style of text.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>selection</code></term>
+<listitem><para>Style of selected text.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>selection-unfocused</code></term>
+<listitem><para>Style of selected text when the widget doesn't have input focus.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>cursor</code></term>
+<listitem><para>Text cursor style. Only the <code>foreground</code> attribute is used
+for this style.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>secondary-cursor</code></term>
+<listitem><para>Secondary cursor style (used in bidirectional text). Only the
+<code>foreground</code> attribute is used for this style. If this is not set
+while "cursor" is, then a color between text background and cursor colors is
+chosen, so it is enough to use "cursor" style only.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>current-line</code></term>
+<listitem><para>Current line style. Only the <code>background</code> attribute
+is used.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>line-numbers</code></term>
+<listitem><para>Text and background colors for the left margin, on which line
+numbers are drawn.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>current-line-number</code></term>
+<listitem><para>Current line style for the left margin, on which the current
+line number is drawn. Only the <code>background</code> attribute is used.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>bracket-match</code></term>
+<listitem><para>Style to use for matching brackets.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>bracket-mismatch</code></term>
+<listitem><para>Style to use for mismatching brackets.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>right-margin</code></term>
+<listitem><para>Style to use for the right margin. The <code>foreground</code> attribute is used for
+drawing the vertical line. And the <code>background</code> attribute is used for the background on
+the right side of the margin. An alpha channel is applied to the two colors. For a light style
+scheme, a good color for both attributes is black. For a dark style scheme, white is a good
+choice.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>draw-spaces</code></term>
+<listitem><para>Style to use for drawing spaces (special symbols for a space, a tabulation, etc).
+Only the <code>foreground</code> attribute is used.</para></listitem>
+</varlistentry>
+<varlistentry>
+<term><code>background-pattern</code></term>
+<listitem><para>Style to use for drawing a background pattern, for example a
+grid. Only the <code>background</code> attribute is used.</para></listitem>
+</varlistentry>
+</variablelist>
+</para>
+
+<refsect1>
+<title>Default style schemes</title>
+<para>
+The GtkSourceView team prefers to just keep a small number of style schemes
+distributed with the library. To add a new style scheme in GtkSourceView
+itself, the style scheme must be very popular, and ideally a
+GtkSourceView-based application must use it by default.
+</para>
+</refsect1>
+
+</refentry>

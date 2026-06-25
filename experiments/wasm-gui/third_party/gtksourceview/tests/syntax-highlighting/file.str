@@ -1,0 +1,23 @@
+#File level comment
+data_blockname	
+  _key1  value1 #key-value pair
+  _key2
+  value2#notacomment
+
+  save_frame
+
+    loop_ # tabular data
+
+      _col1
+      _col2
+
+      value1	"valu"e2"  'O'Connor' 	#string rules
+;
+multi-line strings need semi-colon delimiters
+;
+    stop_  # This is NMR-STAR syntax
+
+  save_
+
+global_
+  _key1 valueGlobal

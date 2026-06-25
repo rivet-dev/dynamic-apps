@@ -1,0 +1,374 @@
+@charset "UTF-8";
+/* @charset must:
+   * be on the first line of the file
+   * appear at the start of the line
+   * be lowercase
+   * followed by one space
+   * have a double quoted encoding name (encoding is case insensitive)
+   * be terminated by semicolon, with no preceding space
+*/
+
+
+/*
+ * general
+ */
+
+/* whitespace */
+#main
+{
+    color:aqua;
+    float: left!important;
+    margin  :  0  ;
+    width
+        :
+        100%
+        !
+        important
+        ;
+}
+
+/* case insensitivity */
+Body {
+    FONT: 12Px/16pX iTaLiC sans-SERIF;
+}
+
+
+/*
+ * selectors
+ */
+
+/* simple selectors */
+#testID,       /* id */
+.someclass,    /* class */
+div,           /* type */
+*,             /* universal */
+[lang|="zh"], /* attribute */
+[ /* comment */ lang /* comment */ |= /* comment */ "zh" /* comment */ ] {
+    color: black;
+}
+
+/* combinators */
+header + main, /* adjacent sibling */
+li ~ li,       /* general sibling */
+ul > li,       /* child */
+ul ul {        /* descendant */
+    color: blue;
+}
+
+/* pseudo-elements */
+:after,
+::/* comment */after,
+::placeholder,
+::/* comment */selection {
+    color: green;
+}
+
+/* pseudo-classes */
+:hover,
+:/* comment */required,
+:lang(fr),
+:/* comment */not(div#sidebar.fancy),
+:nth-child(n+1),
+:/* comment */nth-last-child(-2n /* comment */ - /* comment */ 30),
+:nth-of-type(5),
+:/* comment */nth-last-of-type(even) {
+    color: yellow;
+}
+
+/* pseudo-classes with invalid arguments */
+:not(div:before),         /* pseudo-element */
+:not(input::placeholder), /* pseudo-element */
+:not(p:not(:lang(en))),   /* nested :not */
+:nth-child(1.2n),         /* non-integer */
+:nth-child(.5),           /* non-integer */
+:nth-child(n+-1) {        /* number sign */
+    color: red;
+}
+
+/* namespace qualified */
+a,           /* type in default namespace */
+svg|a,       /* type in specified namespace */
+|a,          /* type in no namespace */
+*|a,         /* type in all namespaces (including no namespace) */
+svg|*,       /* universal */
+svg|[fill] { /* attribute */
+    color: white;
+}
+
+
+/*
+ * basic data types
+ */
+
+#main {
+    /* angle */
+    transform: rotate(+33.333e+3deg);
+
+    /* color */
+    color: #f00;
+    color: #f00f; /* #rgba */
+    color: #ff0000;
+    color: #ff0000ff; /* #rrggbbaa */
+    color: red;
+    color: lightgoldenrodyellow;
+    color: rebeccapurple;
+    color: currentColor;
+
+    /* freqency (not currently used for any property) */
+    content: 44.1kHz;
+
+    /* integer */
+    z-index: +255;
+    z-index: -1;
+
+    /* length */
+    width: 10px;
+    width: 10.5rem;
+    width: -10e-2vw;
+
+    /* number */
+    opacity: .5;
+    opacity: 0.3333;
+    opacity: 1;
+    opacity: 2e-34;
+
+    /* percentage */
+    width: 100%;
+
+    /* string */
+    content: "double quoted";
+    content: 'single quoted';
+
+    /* time */
+    transition-duration: .4s;
+    transition-duration: 400ms;
+
+    /* unicode range */
+    unicode-range: U+0025-00FF;
+    unicode-range: U+4??; /* wildcard range */
+}
+
+/* ratio */
+@media (min-aspect-ratio: 16/9) {}
+@media (min-aspect-ratio: 16 /* comment */ / /* comment */ 9) {}
+
+/* resolution */
+@media (min-resolution: +2.54dpcm) {}
+
+
+/*
+ * identifiers
+ */
+
+/* leading hyphens */
+#-here.-there,
+#-- .--everywhere { /* two hyphens: https://stackoverflow.com/a/30822662 */
+    color: blue;
+}
+
+/* non-ASCII */
+#español,
+#你好,
+.❤♫ {
+    color: green;
+}
+
+/* invalid identifiers */
+#1id,      /* starts with digit */
+.-2class { /* starts with hyphen digit */
+    color: maroon;
+}
+
+
+/*
+ * escaping
+ */
+
+/* selectors */
+#\..\+\ space\@\>,                            /* special character escape */
+#\E9 dition .\0000E9dition .motion_\e9motion, /* Unicode character escape */
+.\e33 div,                                    /* trailing space terminates Unicode character escape */
+.\e33  div,                                   /* extra space to denote separate tokens */
+.\31 23 {                                     /* escape leading digit of identifier */
+
+    /* property value */
+    content: "\E9 dition \
+              \"\0000E9dition\" \
+              \e9motion";
+    font-family: \E9 dition, \"\0000E9dition\", \e9motion;
+
+    /* function name */
+    background: \u\72\l(image.png);
+}
+
+
+/*
+ * functions
+ */
+
+#main {
+    /* url */
+    background: url("image.svg");
+
+    /* function argument keywords */
+    background-image: linear-gradient(to left top, #fff, blue);
+    grid-template-columns: repeat(2, minmax(max-content, 300px) 1fr) 100px;
+}
+
+
+/*
+ * style properties
+ */
+
+#main {
+    /* svg */
+    fill: url(#pattern);
+    text-rendering: optimizeLegibility;
+
+    /* css3 */
+    font-variant-east-asian: jis04;
+    size: letter;
+    transition-timing-function: ease-in;
+
+    /* animatable */
+    transition-property: height, font-size, visibility;
+
+    /* custom properties */
+    --my-custom-color: #fff;
+    color: var(--my-custom-color);
+    background-color: var(--my-custom-color, white);
+}
+
+/*
+ * modifiers
+ */
+body {
+    background: pink !important;
+}
+
+
+/*
+ * media queries
+ */
+
+@media screen, (orientation: portrait) {}
+@media not (print and (min-monochrome: 16) and (color)) {}
+@media only screen {} @media not print {}
+
+
+/*
+ * at-rules
+ */
+
+/* @font-face */
+@font-face {
+    font-family: MyHelvetica;
+    src: local("Helvetica Neue"),
+         local("HelveticaNeue"),
+         url(MgOpenModerna.ttf);
+}
+
+/* @font-feature-values */
+@font-feature-values Font One {
+    @styleset {
+        nice-style: 12;
+    }
+}
+.nice-look {
+    font-variant-alternates: styleset(nice-style);
+}
+
+/* @import */
+@import URL("fineprint.css");
+@import 'custom.css';
+@import url('landscape.css') screen and (orientation: landscape), print;
+
+/* @keyframes */
+@keyframes myanim {
+    from { opacity: 0.0; }
+    50%  { opacity: 0.5; }
+    to   { opacity: 1.0; }
+}
+
+/* @media */
+@media all {
+    body {
+        background: gray;
+    }
+    @media screen, (orientation: portrait) {
+        body {
+            background: grey;
+        }
+    }
+}
+
+/* @namespace */
+@namespace "http://www.w3.org/1999/xhtml";
+@namespace svg url(http://www.w3.org/2000/svg);
+
+/* @page */
+@page {
+    bleed: 1cm;
+}
+@page toc, :blank {
+    margin: 2cm;
+    marks: crop cross;
+}
+@page index:/*comment*/left {
+    size: A4;
+
+    @top-right {
+        content: "Page " counter(page);
+    }
+}
+
+/* @supports */
+@supports (animation-name: test) {
+    @keyframes 'my-complicated-animation' {
+        0%   { width: 0; }
+        100% { width: 100%; }
+    }
+}
+
+
+/*
+ * vendor-specific extensions
+ */
+
+/* pseudo-elements */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::/* comment */-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* pseudo-classes */
+#page:-moz-full-screen,
+#page:/* comment */-ms-fullscreen,
+#page:-webkit-full-screen {
+    background: silver;
+}
+
+/* functions */
+.footer {
+    background-image: -webkit-linear-gradient(to left top, #fff, blue);
+}
+
+/* style properties */
+#sidebar {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+@supports not ((text-align-last: justify) or (-moz-text-align-last: justify)) {
+    body {
+        text-align: justify;
+    }
+}
+
+/* at-rules */
+@-webkit-keyframes myanim {
+    from { opacity: 0.0; }
+    50%  { opacity: 0.5; }
+    to   { opacity: 1.0; }
+}

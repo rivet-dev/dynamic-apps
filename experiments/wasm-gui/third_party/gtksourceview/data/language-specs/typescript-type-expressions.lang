@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-type-expr" name="TypeScript Type Expressions" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Infer declaration (in conditional types)
+
+         T extends (infer U)[] ? U : any
+         T extends (...args: any[]) => infer U ? U : any
+         T extends Promise<infer U> ? U : any
+
+         introduces a type variable instead of referencing a type
+    -->
+
+    <context id="_choice-infer-declaration" end-parent="true">
+      <start>\%{typescript:infer-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="infer-declaration-content">
+          <include>
+            <context ref="js:ordered-identifier"/>
+          </include>
+        </context> <!-- /_infer-declaration-content -->
+
+      </include>
+    </context> <!-- /_choice-infer-declaration -->
+
+
+    <!-- # Pre-primary type
+
+         new () => object
+         asserts param
+         keyof T
+         readonly string[]
+         unique symbol
+    -->
+
+    <context id="_pre-primary-type">
+      <include>
+        <context ref="typescript:constructor-modifier"/>
+        <context ref="typescript-type-gen:type-parameters-list"/>
+
+        <context id="_asserts-type-predicate" style-ref="typescript:type-keyword" once-only="true">
+          <match>\%{typescript:asserts-keyword}</match>
+        </context> <!-- /_asserts-type-predicate -->
+
+        <context id="_indexed-type-query" style-ref="typescript:type-keyword" once-only="true">
+          <match>\%{typescript:keyof-keyword}</match>
+        </context> <!-- /_indexed-type-query -->
+
+        <context id="_readonly-type-modifier" style-ref="typescript:type-keyword" once-only="true">
+          <match>\%{typescript:readonly-keyword}</match>
+        </context> <!-- /_readonly-type-modifier -->
+
+        <!-- for unique symbol subtype, can contain newlines between
+             "unique" and "symbol" -->
+        <context id="_unique-symbol-subtype" style-ref="typescript:basic-type" once-only="true">
+          <match>\%{typescript:unique-keyword}</match>
+        </context> <!-- /_unique-symbol-subtype -->
+
+      </include>
+    </context> <!-- /_pre-primary-type -->
+
+    <context id="_ordered-pre-primary-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_pre-primary-type"/>
+      </include>
+    </context> <!-- /_ordered-pre-primary-type -->
+
+
+    <!-- # Parenthesized type / function/constructor type
+
+         (string)
+         ({ a: number, b: string })
+         (x, y: number) => void
+         ({ a: x, b: y }, [a, b]) => boolean
+         (x: string, y?: number, ...rest: number[]) => void
+    -->
+
+    <!-- ## Type "grouping" -->
+
+    <!-- this will only catch simple cases :-( -->
+    <context id="_choice-type-grouping-this-parameter-or-binding" end-parent="true">
+      <start extended="true">
+        (?&lt;= \%{js:rest-syntax} )
+        (?= \%{js:identifier} ) |  # adding js:optional-whitespace-or-comments in between doesn't work
+        (?&lt;! \%{js:identifier-char} )
+        (?= \%{js:identifier} \%{js:optional-whitespace-or-comments} [?:,] )
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_type-grouping-this-parameter-or-binding-content">
+          <include>
+            <context ref="typescript:ordered-this-parameter-or-binding"/>
+          </include>
+        </context> <!-- /_type-grouping-this-parameter-or-binding-content -->
+
+      </include>
+    </context> <!-- /__choice-type-grouping-this-parameter-or-binding -->
+
+    <context id="_type-grouping-type-expression-or-this-parameter-or-binding" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <!-- no comments here -->
+
+        <context id="_type-grouping-type-expression-or-this-parameter-or-binding-content">
+          <include>
+            <context ref="_choice-type-grouping-this-parameter-or-binding"/>
+            <context ref="choice-type-expression"/>
+          </include>
+        </context> <!-- /_type-grouping-type-expression-or-this-parameter-or-binding-content -->
+
+      </include>
+    </context> <!-- /_type-grouping-type-expression-or-this-parameter-or-binding -->
+
+    <!-- function parameter list allows for accessibility modifiers and
+         default value assignment, but these are not allowed in a
+         function type definition -->
+
+    <context id="_type-grouping" once-only="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:parenthesized-type-or-function-type-operator"/>
+        <context sub-pattern="0" where="end" style-ref="typescript:parenthesized-type-or-function-type-operator"/>
+        <context ref="js:comments"/>
+
+        <context id="_type-grouping-content">
+          <include>
+
+            <context id="_type-grouping-first-item" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+
+                <context id="_type-grouping-first-item-content">
+                  <include>
+                    <context ref="js:ordered-rest-syntax"/>
+                    <context ref="_type-grouping-type-expression-or-this-parameter-or-binding"/>
+                    <context ref="typescript:ordered-optional-modifier"/>
+                    <context ref="typescript:ordered-type-annotation"/>
+                  </include>
+                </context> <!-- /_type-grouping-first-item-content -->
+
+              </include>
+            </context> <!-- /_type-grouping-first-item -->
+
+            <context id="_type-grouping-items">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:comments"/>
+
+                <context id="_type-grouping-item-content">
+                  <include>
+                    <context ref="js:ordered-rest-syntax"/>
+                    <context ref="js:ordered-binding"/>
+                    <context ref="typescript:ordered-optional-modifier"/>
+                    <context ref="typescript:ordered-type-annotation"/>
+                  </include>
+                </context> <!-- /_type-grouping-item-content -->
+
+              </include>
+            </context> <!-- /_type-grouping-items -->
+
+          </include>
+        </context> <!-- /_type-grouping-content -->
+
+      </include>
+    </context> <!-- /_type-grouping -->
+
+    <context id="_ordered-type-grouping" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_type-grouping"/>
+      </include>
+    </context> <!-- /_ordered-type-grouping -->
+
+    <!-- ## Function / constructor type -->
+
+    <!-- <FunctionType> / <ConstructorType> -->
+    <!-- function parameter list matched by grouping context -->
+    <context id="_function-type" once-only="true">
+      <start>=&gt;</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:parenthesized-type-or-function-type-operator"/>
+        <context ref="js:comments"/>
+
+        <context id="_function-type-content">
+          <include>
+            <context ref="type-expression"/>
+          </include>
+        </context> <!-- /_function-type-content -->
+
+      </include>
+    </context> <!-- /_function-type -->
+
+    <context id="_ordered-function-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_function-type"/>
+      </include>
+    </context> <!-- /_ordered-function-type -->
+
+    <!-- ## Parenthesized type / function type -->
+
+    <!-- <ParenthesizedType> / <ParameterList> -->
+    <context id="_choice-parenthesized-type-or-function-type" style-ref="typescript:parenthesized-type-or-function-type" end-parent="true">
+      <start>(?=\()</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_parenthesized-type-or-function-type-content">
+          <include>
+            <context ref="_ordered-type-grouping"/>
+            <context ref="_ordered-function-type"/>
+          </include>
+        </context> <!-- /_parenthesized-type-or-function-type-content -->
+
+      </include>
+    </context> <!-- /_choice-parenthesized-type-or-function-type -->
+
+
+    <!-- # Primary type -->
+
+    <!-- <PrimaryType> -->
+    <context id="_primary-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_primary-type-content">
+          <include>
+            <context ref="_choice-parenthesized-type-or-function-type"/>
+            <context ref="typescript-type-lit:choice-tuple-type-literal"/>
+            <context ref="typescript-type-lit:choice-object-type-literal"/>
+            <context ref="typescript-type-lit:choice-numeric-type"/>
+            <context ref="js-lit:choice-string" style-ref="typescript:string-type"/>
+
+            <!-- <TypeQuery> -->
+            <context id="_choice-type-query" style-ref="typescript:type-query" end-parent="true">
+              <start>\%{js:typeof-keyword}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+                <context ref="js:comments"/>
+
+                <context id="_type-query-content">
+                  <include>
+                    <context ref="typescript:ordered-namespace-name"/>
+                  </include>
+                </context> <!-- /_type-query-content -->
+
+              </include>
+            </context> <!-- /_choice-type-query -->
+
+            <context ref="typescript-type-lit:choice-basic-type"/>
+            <context ref="typescript-type-lit:choice-boolean-type"/>
+            <context ref="typescript-type-lit:choice-this-type"/>
+            <context ref="typescript:choice-type-reference"/>
+          </include>
+        </context> <!-- /_primary-type-content -->
+
+      </include>
+    </context> <!-- /_primary-type -->
+
+    <context id="_ordered-primary-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_primary-type"/>
+      </include>
+    </context> <!-- /_ordered-primary-type -->
+
+
+    <!-- # Conditional type
+
+         T extends U ? X : Y
+    -->
+
+    <context id="_choice-conditional-type-operator-missing-super-type" end-parent="true">
+      <start>(?=[?:])</start>
+      <end>\%{def:always-match}</end>
+    </context> <!-- /_choice-conditional-type-operator-missing-super-type -->
+
+    <context id="_choice-conditional-type-operator-missing-true-type" end-parent="true">
+      <start>(?=:)</start>
+      <end>\%{def:always-match}</end>
+    </context> <!-- /_choice-conditional-type-operator-missing-true-type -->
+
+    <context id="_conditional-type-operator-false-type" once-only="true">
+      <start>:</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:conditional-type-operator"/>
+        <context ref="js:comments"/>
+
+        <context id="_conditional-type-operator-false-type-content">
+          <include>
+            <context ref="type-expression"/>
+          </include>
+        </context> <!-- /_conditional-type-operator-false-type-content -->
+
+      </include>
+    </context> <!-- /_conditional-type-operator-false-type -->
+
+    <context id="_choice-conditional-type-operator-true-type" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_conditional-type-operator-true-type-content">
+          <include>
+            <context ref="type-expression"/>
+            <context ref="_conditional-type-operator-false-type"/>
+          </include>
+        </context> <!-- /_conditional-type-operator-true-type-content -->
+
+      </include>
+    </context> <!-- /_choice-conditional-type-operator-true-type -->
+
+    <context id="_conditional-type-operator-true-clause" once-only="true">
+      <start>\?</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:conditional-type-operator"/>
+        <context ref="js:comments"/>
+
+        <context id="_conditional-type-operator-true-clause-content">
+          <include>
+            <context ref="_choice-conditional-type-operator-missing-true-type"/>
+            <context ref="_choice-conditional-type-operator-true-type"/>
+          </include>
+        </context> <!-- /_conditional-type-operator-true-clause-content -->
+
+      </include>
+    </context> <!-- /_conditional-type-operator-true-clause -->
+
+    <context id="_choice-conditional-type-operator-super-type" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_conditional-type-operator-super-type-content">
+          <include>
+            <context ref="type-expression"/>
+            <context ref="_conditional-type-operator-true-clause"/>
+          </include>
+        </context> <!-- /_conditional-type-operator-super-type-content -->
+
+      </include>
+    </context> <!-- /_choice-conditional-type-operator-super-type -->
+
+    <context id="_conditional-type-operators">
+      <start>\%{js:extends-keyword}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+        <context ref="js:comments"/>
+
+        <context id="_conditional-type-operator-content">
+          <include>
+            <context ref="_choice-conditional-type-operator-missing-super-type"/>
+            <context ref="_choice-conditional-type-operator-super-type"/>
+          </include>
+        </context> <!-- /_conditional-type-operator-content -->
+
+      </include>
+    </context> <!-- /_conditional-type-operators -->
+
+
+    <!-- # Post-primary type
+
+         string[]
+         MyClass["property"]
+         string[][0]
+         string | void
+         T & U
+         pet is Fish
+         T extends U ? X : Y
+    -->
+
+    <context id="_post-primary-type">
+      <include>
+
+        <!-- <ArrayType> -->
+        <context id="_bracket-type-operators">
+          <start>\[</start>
+          <end>]</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="typescript:bracket-type-operator"/>
+            <context sub-pattern="0" where="end" style-ref="typescript:bracket-type-operator"/>
+            <context ref="js:comments"/>
+
+            <context id="_bracket-type-operator-content">
+              <include>
+                <context ref="type-expression"/>
+              </include>
+            </context> <!-- /_bracket-type-operator-content -->
+
+          </include>
+        </context> <!-- /_bracket-type-operators -->
+
+        <!-- <UnionType> / <IntersectionType> -->
+        <context id="_union-intersection-type-operators">
+          <start>[|&amp;]</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="typescript:union-intersection-type-operator"/>
+            <context ref="js:comments"/>
+
+            <context id="_union-intersection-type-operator-content">
+              <include>
+                <context ref="type-expression"/>
+              </include>
+            </context> <!-- /_union-intersection-type-operator-content -->
+
+          </include>
+        </context> <!-- /_union-intersection-type-operators -->
+
+        <context id="_type-predicate-operators">
+          <start>\%{typescript:is-keyword}</start>
+          <end>\%{js:before-next-token}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="typescript:type-keyword"/>
+            <context ref="js:comments"/>
+
+            <context id="_type-predicate-operator-content">
+              <include>
+                <context ref="type-expression"/>
+              </include>
+            </context> <!-- /_type-predicate-operator-content -->
+
+          </include>
+        </context> <!-- /_type-predicate-operators -->
+
+        <context ref="_conditional-type-operators"/>
+      </include>
+    </context> <!-- /_post-primary-type -->
+
+    <context id="_ordered-post-primary-type" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_post-primary-type"/>
+      </include>
+    </context> <!-- /_ordered-post-primary-type -->
+
+
+    <!-- # Type expression -->
+
+    <context id="_choice-actual-type" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_actual-type-content">
+          <include>
+            <context ref="_ordered-pre-primary-type"/>
+            <context ref="_ordered-primary-type"/>
+            <context ref="_ordered-post-primary-type"/>
+          </include>
+        </context> <!-- /_actual-type-content -->
+
+      </include>
+    </context> <!-- /_choice-actual-type -->
+
+    <context id="_type-expression-content">
+      <include>
+        <context ref="_choice-infer-declaration"/>
+        <context ref="_choice-actual-type"/>
+      </include>
+    </context> <!-- /_type-expression-content -->
+
+    <context id="type-expression" style-ref="typescript:type-expression" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="_type-expression-content"/>
+      </include>
+    </context> <!-- /type-expression -->
+
+    <context id="choice-type-expression" style-ref="typescript:type-expression" end-parent="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+        <context ref="_type-expression-content"/>
+      </include>
+    </context> <!-- /choice-type-expression -->
+
+  </definitions>
+</language>

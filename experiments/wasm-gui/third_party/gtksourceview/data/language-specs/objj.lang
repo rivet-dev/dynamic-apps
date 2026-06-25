@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Yevgen Muntyan <muntyan@math.tamu.edu>
+ Author: Patryk Zawadzki <patrys@pld-linux.org>
+ Copyright (C) 2007 Yevgen Muntyan <muntyan@math.tamu.edu>
+ Copyright (C) 2010 Patryk Zawadzki <patrys@pld-linux.org>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="objj" name="Objective-J" version="2.0" _section="Source">
+  <metadata>
+    <property name="mimetypes">text/x-objective-j</property>
+    <property name="globs">*.j</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="type"  name="Data type"  map-to="def:type"/>
+  </styles>
+
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!-- Based on:
+         * The Cappuccino documentation, in particular the "Learning
+           Objective-J" page
+           (https://www.cappuccino.dev/learn/objective-j.html)
+         * The Objective-J compiler source code
+           (https://github.com/cappuccino/cappuccino/tree/master/Objective-J),
+           in particular acorn.js, ObjJAcornCompiler.js, and
+           Constants.js
+    -->
+
+
+    <!-- using a style from another lang file before referencing a
+         context from the file causes "style not defined" errors
+         https://gitlab.gnome.org/GNOME/gtksourceview/issues/67
+    -->
+    <context id="style-not-defined-error-workaround">
+      <include>
+        <context ref="js:js"/>
+      </include>
+    </context> <!-- /style-not-defined-error-workaround -->
+
+
+    <!-- # General -->
+
+    <!-- ## Preprocessor directives -->
+
+    <context id="preprocessor-directives" style-ref="js:directive" end-at-line-end="true">
+      <start extended="true">
+        \#
+        (?:
+          define |
+          elif |
+          else |
+          endif |
+          error |
+          if |
+          ifdef |
+          ifndef |
+          include |
+          pragma |
+          undef |
+          warning
+        )
+        \%{js:keyword-end}
+      </start>
+      <include>
+        <context ref="def:line-continue"/>
+      </include>
+    </context> <!-- /preprocessor-directives -->
+
+    <!-- ## Objective-J types -->
+
+    <context id="_common-types" style-ref="type">
+      <prefix>\%{js:keyword-start}</prefix>
+      <suffix>\%{js:keyword-end}</suffix>
+      <keyword>BOOL</keyword>
+      <keyword>byte</keyword>
+      <keyword>char</keyword>
+      <keyword>double</keyword>
+      <keyword>float</keyword>
+      <keyword>id</keyword>
+      <keyword>int</keyword>
+      <keyword>long</keyword>
+      <keyword>SEL</keyword>
+      <keyword>short</keyword>
+      <keyword>signed</keyword>
+      <keyword>unsigned</keyword>
+    </context> <!-- /_common-types -->
+
+    <context id="_variable-only-types">
+      <include>
+
+        <context id="_variable-only-type-keywords" style-ref="type">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>IBOutlet</keyword>
+        </context> <!-- /_variable-only-type-keywords -->
+
+        <context id="_variable-only-at-type-keywords" style-ref="type">
+          <prefix>@</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>outlet</keyword>
+        </context> <!-- /_variable-only-at-type-keywords -->
+
+      </include>
+    </context> <!-- /_variable-only-types -->
+
+    <context id="_method-return-only-types">
+      <include>
+
+        <context id="_method-return-only-type-keywords" style-ref="type">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>IBAction</keyword>
+          <keyword>void</keyword>
+        </context> <!-- /_method-return-only-type-keywords -->
+
+        <context id="_method-return-only-at-type-keywords" style-ref="type">
+          <prefix>@</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>action</keyword>
+        </context> <!-- /_method-return-only-at-type-keywords -->
+
+      </include>
+    </context> <!-- /_method-return-only-types -->
+
+
+    <!-- # @class statement -->
+
+    <context id="at-class-statements">
+      <start extended="true">
+        @class \%{js:keyword-end}
+      </start>
+      <end>\%{js:identifier}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context id="_at-class-statement-content"/>
+      </include>
+    </context> <!-- /at-class-statements -->
+
+
+    <!-- # @global statement -->
+
+    <context id="at-global-statements">
+      <start extended="true">
+        @global \%{js:keyword-end}
+      </start>
+      <end>\%{js:identifier}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context id="_at-global-statement-content"/>
+      </include>
+    </context> <!-- /at-global-statements -->
+
+
+    <!-- # @implementation declaration -->
+
+    <!-- ## Member variables -->
+
+    <context id="_at-implementation-variable-declaration-accessor-modifiers-end-parent" end-parent="true">
+      <start>\(</start>
+      <end>\)</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/> <!-- allowed? -->
+
+        <context id="_at-implementation-variable-declaration-accessor-modifiers-content">
+          <include>
+
+            <context id="_at-implementation-variable-declaration-accessor-modifier-keywords" style-ref="js:keyword">
+              <prefix>\%{js:keyword-start}</prefix>
+              <suffix>\%{js:keyword-end}</suffix>
+              <keyword>copy</keyword>
+              <keyword>getter</keyword>
+              <keyword>property</keyword>
+              <keyword>readonly</keyword>
+              <keyword>readwrite</keyword>
+              <keyword>setter</keyword>
+            </context> <!-- /_at-implementation-variable-declaration-accessor-modifier-keywords -->
+
+          </include>
+        </context> <!-- /_at-implementation-variable-declaration-accessor-modifiers-content -->
+
+      </include>
+    </context> <!-- /_at-implementation-variable-declaration-accessor-modifiers-end-parent -->
+
+    <context id="_at-implementation-variable-declaration-accessors">
+      <start extended="true">
+        @accessors \%{js:keyword-end}
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <!-- no comments here -->
+
+        <context id="_at-implementation-variable-declaration-accessor-content">
+          <include>
+            <context ref="_at-implementation-variable-declaration-accessor-modifiers-end-parent"/>
+          </include>
+        </context> <!-- /_at-implementation-variable-declaration-accessor-content -->
+
+      </include>
+    </context> <!-- /_at-implementation-variable-declaration-accessors -->
+
+    <context id="_at-implementation-variable-declaration" once-only="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-implementation-variable-declaration-content">
+          <include>
+            <context ref="_common-types"/>
+            <context ref="_variable-only-types"/>
+            <context ref="_at-implementation-variable-declaration-accessors"/>
+          </include>
+        </context> <!-- /_at-implementation-variable-declaration-content -->
+
+      </include>
+    </context> <!-- /_at-implementation-variable-declaration -->
+
+    <!-- ## Member methods -->
+
+    <context id="_at-implementation-method-definitions">
+      <start>[+-]</start>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-implementation-method-definition-content">
+          <include>
+            <context ref="_common-types"/>
+            <context ref="_method-return-only-types"/>
+
+            <context id="_at-implementation-method-definition-body" end-parent="true">
+              <start>{</start>
+              <end>}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="js-fn:_function-body-content"/>
+              </include>
+            </context> <!-- /_at-implementation-method-definition-body -->
+
+          </include>
+        </context> <!-- /_at-implementation-method-definition-content -->
+
+      </include>
+    </context> <!-- /_at-implementation-method-definitions -->
+
+    <!-- ## @implementation declaration -->
+
+    <context id="at-implementation-declarations">
+      <start extended="true">
+        @implementation \%{js:keyword-end}
+      </start>
+      <end extended="true">
+        @end \%{js:keyword-end}
+      </end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context sub-pattern="0" where="end" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-implementation-declaration-content">
+          <include>
+            <context ref="_at-implementation-variable-declaration"/>
+            <context ref="_at-implementation-method-definitions"/>
+          </include>
+        </context> <!-- /_at-implementation-declaration-content -->
+
+      </include>
+    </context> <!-- /at-implementation-declarations -->
+
+
+    <!-- # @import statement -->
+
+    <context id="at-import-statements" style-ref="js:directive">
+      <start extended="true">
+        @import \%{js:keyword-end}
+      </start>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-import-statement-content">
+          <include>
+
+            <context id="_choice-at-import-framework-reference" style-ref="js:included-file" end-parent="true" class="path">
+              <start>&lt;</start>
+              <end>&gt;</end>
+            </context> <!-- /_choice-at-import-framework-reference -->
+
+            <context ref="js-lit:choice-string-path"/>
+          </include>
+        </context> <!-- /_at-import-statement-content -->
+
+      </include>
+    </context> <!-- /at-import-statements -->
+
+
+    <!-- # @protocol declaration -->
+
+    <context id="at-protocol-declarations">
+      <start extended="true">
+        @protocol \%{js:keyword-end}
+      </start>
+      <end extended="true">
+        @end \%{js:keyword-end}
+      </end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context sub-pattern="0" where="end" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-protocol-declaration-content">
+          <include>
+
+            <context id="_at-protocol-at-keywords" style-ref="js:keyword">
+              <prefix>@</prefix>
+              <suffix>\%{js:keyword-end}</suffix>
+              <keyword>optional</keyword>
+              <keyword>required</keyword>
+            </context> <!-- /_at-protocol-at-keywords -->
+
+            <context id="_at-protocol-method-types" style-ref="js:keyword">
+              <match>[+-]</match>
+            </context> <!-- /_at-protocol-method-types -->
+
+            <context ref="_common-types"/>
+            <context ref="_method-return-only-types"/>
+          </include>
+        </context> <!-- /_at-protocol-declaration-content -->
+
+      </include>
+    </context> <!-- /at-protocol-declarations -->
+
+
+    <!-- # @typedef statements -->
+
+    <context id="at-typedef-statements">
+      <start extended="true">
+        @typedef \%{js:keyword-end}
+      </start>
+      <end>\%{js:identifier}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+        <context id="_at-typedef-statement-content"/>
+      </include>
+    </context> <!-- /at-typedef-statements -->
+
+
+    <!-- # Messages -->
+
+    <context id="_message-parameter-data">
+      <start>:</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_message-parameter-data-content">
+          <include>
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_message-parameter-data-content -->
+
+      </include>
+    </context> <!-- /_message-parameter-data -->
+
+
+    <!-- # JavaScript additions -->
+
+    <!-- ## General -->
+
+    <context id="_embedded-lang-hooks">
+      <include>
+        <context ref="preprocessor-directives"/>
+        <context ref="js:embedded-lang-hooks" original="true"/>
+      </include>
+    </context> <!-- /_embedded-lang-hooks -->
+
+    <replace id="js:embedded-lang-hooks" ref="_embedded-lang-hooks"/>
+
+    <!-- ignore preprocessor directives inside comments -->
+    <context id="_comment-content" class-disabled="no-spell-check">
+      <include>
+        <context ref="js:embedded-lang-hooks" original="true"/>
+        <context ref="def:in-comment"/>
+      </include>
+    </context> <!-- /_comment-content -->
+
+    <replace id="js:_comment-content" ref="_comment-content"/>
+
+
+    <!-- ## Literals -->
+
+    <define-regex id="_at-function-keyword" extended="true">
+      @ (?: deref | ref ) \%{js:keyword-end}
+    </define-regex> <!-- /_at-function-keyword -->
+
+    <context id="_choice-at-function-keyword" style-ref="js:keyword" end-parent="true">
+      <start>(?=\%{_at-function-keyword})</start>
+      <end>\%{_at-function-keyword}</end>
+    </context> <!-- /_choice-at-function-keyword -->
+
+    <context id="_choice-at-selector-literal" end-parent="true">
+      <start extended="true">
+        @selector \%{js:keyword-end}
+      </start>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:keyword"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_at-selector-literal-content">
+          <include>
+
+            <context id="_at-selector-literal-arguments-end-parent" end-parent="true">
+              <start>\(</start>
+              <end>\)</end>
+            </context> <!-- /_at-selector-literal-arguments-end-parent -->
+
+          </include>
+        </context> <!-- /_at-selector-literal-content -->
+
+      </include>
+    </context> <!-- /_choice-at-selector-literal -->
+
+    <context id="_choice-at-string" style-ref="js:string" end-parent="true">
+      <start>@(?=["'])</start>
+      <include>
+        <!-- no comments here -->
+        <context ref="js-lit:choice-string"/>
+      </include>
+    </context> <!-- /_choice-at-string -->
+
+    <context id="_choice-at-array-literal" style-ref="js:array-literal" end-parent="true">
+      <start>@(?=\[)</start>
+      <include>
+        <!-- no comments here -->
+        <context ref="js-lit:choice-array-literal"/>
+      </include>
+    </context> <!-- /_choice-at-array-literal -->
+
+    <context id="_choice-at-dictionary-literal" style-ref="js:object-literal" end-parent="true">
+      <start>@(?={)</start>
+      <include>
+        <!-- no comments here -->
+        <context ref="js-lit:choice-object-literal"/>
+      </include>
+    </context> <!-- /_choice-at-dictionary-literal -->
+
+    <!-- ### Array literal (message syntax) -->
+
+    <context id="_array-literal-content">
+      <include>
+        <context ref="js-lit:_array-literal-content" original="true"/>
+        <context ref="_message-parameter-data"/>
+      </include>
+    </context> <!-- /_array-literal-content -->
+
+    <replace id="js-lit:_array-literal-content" ref="_array-literal-content"/>
+
+    <!-- ### Property name -->
+
+    <context id="_property-name-content">
+      <include>
+        <context ref="_choice-at-string"/>
+        <context ref="js-lit:_property-name-content" original="true"/>
+      </include>
+    </context> <!-- /_property-name-content -->
+
+    <replace id="js-lit:_property-name-content" ref="_property-name-content"/>
+
+
+    <!-- ## Values -->
+
+    <context id="_global-values">
+      <include>
+
+        <context id="_boolean-constants" style-ref="js:boolean">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>NO</keyword>
+          <keyword>YES</keyword>
+        </context> <!-- /_boolean-constants -->
+
+        <context id="_null-constants" style-ref="js:null-value">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>nil</keyword>
+          <keyword>Nil</keyword>
+          <keyword>NULL</keyword>
+        </context> <!-- /_null-constants -->
+
+        <context id="_math-constants" style-ref="js:built-in-value">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>E</keyword>
+          <keyword>LOG10E</keyword>
+          <keyword>LOG2E</keyword>
+          <keyword>LN10</keyword>
+          <keyword>LN2</keyword>
+          <keyword>PI</keyword>
+          <keyword>PI2</keyword>
+          <keyword>PI_2</keyword>
+          <keyword>SQRT1_2</keyword>
+          <keyword>SQRT2</keyword>
+        </context> <!-- /_math-constants -->
+
+        <context id="_math-functions" style-ref="js:built-in-function">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>ABS</keyword>
+          <keyword>ACOS</keyword>
+          <keyword>ASIN</keyword>
+          <keyword>ATAN</keyword>
+          <keyword>ATAN2</keyword>
+          <keyword>CEIL</keyword>
+          <keyword>COS</keyword>
+          <keyword>EXP</keyword>
+          <keyword>FLOOR</keyword>
+          <keyword>LOG</keyword>
+          <keyword>MAX</keyword>
+          <keyword>MIN</keyword>
+          <keyword>POW</keyword>
+          <keyword>RAND</keyword>
+          <keyword>ROUND</keyword>
+          <keyword>SIN</keyword>
+          <keyword>SQRT</keyword>
+          <keyword>TAN</keyword>
+        </context> <!-- /_math-functions -->
+
+        <!-- "super" is already highlighted by default -->
+        <context id="_object-keywords" style-ref="js:keyword">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>_cmd</keyword>
+          <keyword>self</keyword>
+        </context> <!-- /_object-keywords -->
+
+        <context ref="js-val:global-values" original="true"/>
+      </include>
+    </context> <!-- /_global-values -->
+
+    <replace id="js-val:global-values" ref="_global-values"/>
+
+
+    <!-- ## Expressions -->
+
+    <context id="_primary-expression-content">
+      <include>
+        <context ref="_choice-at-function-keyword"/>
+        <context ref="_choice-at-selector-literal"/>
+        <context ref="_choice-at-string"/>
+        <context ref="_choice-at-array-literal"/>
+        <context ref="_choice-at-dictionary-literal"/>
+        <context ref="js-expr:_primary-expression-content" original="true"/>
+      </include>
+    </context> <!-- /_primary-expression-content -->
+
+    <replace id="js-expr:_primary-expression-content" ref="_primary-expression-content"/>
+
+    <!-- workaround for when a previous expression (statement) hasn't
+         ended (with a semicolon) before a message call -->
+    <context id="_bracket-property-accessor-content">
+      <include>
+        <context ref="js-expr:_bracket-property-accessor-content" original="true"/>
+        <context ref="_message-parameter-data"/>
+      </include>
+    </context> <!-- /_bracket-property-accessor-content -->
+
+    <replace id="js-expr:_bracket-property-accessor-content" ref="_bracket-property-accessor-content" />
+
+
+    <!-- # Main content -->
+
+    <context id="objj" class="no-spell-check">
+      <include>
+        <!-- are these only allowed in top level? -->
+        <context ref="at-class-statements"/>
+        <context ref="at-global-statements"/>
+        <context ref="at-implementation-declarations"/>
+        <context ref="at-import-statements"/>
+        <context ref="at-protocol-declarations"/>
+        <context ref="at-typedef-statements"/>
+        <context ref="js:js"/>
+      </include>
+    </context> <!-- /objj -->
+
+  </definitions>
+</language>

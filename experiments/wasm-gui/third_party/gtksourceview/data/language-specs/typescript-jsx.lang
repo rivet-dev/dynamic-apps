@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="typescript-jsx" name="TypeScript JSX" version="2.0" _section="Script">
+  <metadata>
+    <property name="mimetypes">application/typescript-jsx;application/x-typescript-jsx;text/x-typescript-jsx;text/typescript-jsx</property>
+    <property name="globs">*.tsx</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See typescript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # General -->
+
+    <!-- ## Main lang -->
+
+    <context id="main-lang">
+      <include>
+        <context ref="typescript:typescript"/>
+      </include>
+    </context> <!-- /main-lang -->
+
+    <replace id="jsx:main-lang" ref="main-lang"/>
+
+
+    <!-- ## @jsx comment pragma
+
+         /* @jsx dom */
+
+         can only be preceded by comments or other triple-slash
+         directives (i.e. at the top of a file)
+         can appear anywhere inside the comment(!)
+         appears to be case-insensitive
+         https://github.com/microsoft/TypeScript/blob/3c49fb0d9ffb67fd645835589d66687b4fb7543a/src/services/classifier.ts#L768
+    -->
+
+    <define-regex id="_jsx-comment-pragma" case-sensitive="false" extended="true">
+      @jsx \s+ (?&gt; \%{js:identifier} (?: \. \%{js:identifier} )* ) (?! \S )
+    </define-regex> <!-- /_jsx-comment-pragma -->
+
+    <context id="_jsx-comment-pragma" style-ref="js:directive" class="no-spell-check" once-only="true">
+      <match>\%{_jsx-comment-pragma}</match>
+    </context> <!-- /_jsx-comment-pragma -->
+
+    <context id="_jsx-comment-pragma-multiline-comments" style-ref="js:directive" class-disabled="no-spell-check" class="comment">
+      <start extended="true">
+        /\* (?= /* \** \s* \%{_jsx-comment-pragma} .*? \*/ )
+      </start>
+      <end>\*/</end>
+      <include>
+        <context ref="js:_multiline-comment-content"/>
+      </include>
+    </context> <!-- /_jsx-comment-pragma-multiline-comments -->
+
+    <context id="_multiline-comment-content">
+      <include>
+        <context ref="_jsx-comment-pragma"/>
+        <context ref="typescript:_multiline-comment-content" original="true"/>
+      </include>
+    </context> <!-- /_multiline-comment-content -->
+
+    <replace id="js:_multiline-comment-content" ref="_multiline-comment-content"/>
+
+
+    <!-- # Types -->
+
+    <!-- ## Type parameters (for arrow function)
+
+         Type parameters:
+         <T extends any>(x: T) => x
+         <T, U>(x: T, y: U) => { return x + y; }
+         <T = string>(x: T) => x
+
+         JSX Element:
+         <T attribute="value"></T>
+         <T/>
+
+         if the parameters contain an extends clause or multiple
+         parameters, we consider it a type parameters list:
+         https://github.com/Microsoft/TypeScript/issues/4922#issuecomment-142383182
+
+         we also consider it a type parameters list if contains a default
+         type (in html, an equals sign cannot directly follow the tag
+         name)
+
+         otherwise, we leave it alone and it is matched as an element
+
+         we don't consider type assertion (cast), since that is what the
+         "as" operator is for
+    -->
+
+    <context id="_arrow-function-type-parameters-list" once-only="true">
+      <start extended="true">
+        (?=
+          &lt;
+          \%{js:optional-whitespace-or-comments}
+          \%{js:identifier}
+          \%{js:optional-whitespace-or-comments}
+          (?: \%{js:extends-keyword} | [,=] )
+        )
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_arrow-function-type-parameters-list-content">
+          <include>
+            <context ref="typescript-type-gen:ordered-type-parameters-list"/>
+          </include>
+        </context> <!-- /_arrow-function-type-parameters-list-content -->
+
+      </include>
+    </context> <!-- /_arrow-function-type-parameters-list -->
+
+
+    <!-- # Expressions -->
+
+    <!-- ## Expression -->
+
+    <!-- * typescript-js-expr:pre-lhs-expression adds
+           typescript-type-gen:type-parameters-list-or-type-assertion to
+           js-expr:_pre-lhs-expression
+         * we want to replace
+           typescript-type-gen:type-parameters-list-or-type-assertion
+           with _arrow-function-type-parameters-list
+         * this is why we ref js-expr:_pre-lhs-expression below, instead
+           of typescript-js-expr:pre-lhs-expression
+    -->
+    <context id="_pre-lhs-expression">
+      <include>
+        <context ref="_arrow-function-type-parameters-list"/>
+        <context ref="js-expr:_pre-lhs-expression" original="true"/>
+      </include>
+    </context> <!-- /_pre-lhs-expression -->
+
+    <replace id="js-expr:_pre-lhs-expression" ref="_pre-lhs-expression"/>
+
+
+    <!-- # Start tag -->
+
+    <context id="_start-tag-head-content">
+      <include>
+        <context ref="jsx:_ordered-element-name"/>
+        <context ref="typescript-type-gen:ordered-type-arguments-list"/>
+        <context ref="jsx:_spread-attributes"/>
+        <context ref="jsx:_attribute-names"/>
+        <context ref="jsx:_attribute-initializers"/>
+      </include>
+    </context> <!-- /_start-tag-head-content -->
+
+    <replace id="jsx:_start-tag-head-content" ref="_start-tag-head-content"/>
+
+
+    <!-- # Main context -->
+
+    <context id="typescript-jsx" class="no-spell-check">
+      <include>
+        <context ref="_jsx-comment-pragma-multiline-comments"/>
+        <context ref="jsx:jsx"/>
+      </include>
+    </context> <!-- /typescript-jsx -->
+
+  </definitions>
+</language>

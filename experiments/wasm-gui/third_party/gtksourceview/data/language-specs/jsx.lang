@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Jeffery To <jeffery.to@gmail.com>
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="jsx" name="JSX" version="2.0" _section="Script">
+  <metadata>
+    <property name="mimetypes">application/jsx;application/x-jsx;text/x-jsx;text/jsx</property>
+    <property name="globs">*.jsx</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="element"               name="Element"/>
+    <style id="spread-attribute"      name="Spread attribute"/>
+    <style id="attribute-expression"  name="Attribute expression"/>
+    <style id="child-expression"      name="Child expression"/>
+  </styles>
+
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!-- Based on the JSX spec: https://github.com/facebook/jsx -->
+
+
+    <!-- using a style from another lang file before referencing a
+         context from the file causes "style not defined" errors
+         https://gitlab.gnome.org/GNOME/gtksourceview/issues/67
+    -->
+    <context id="style-not-defined-error-workaround">
+      <include>
+        <context ref="xml:xml"/>
+      </include>
+    </context> <!-- /style-not-defined-error-workaround -->
+
+
+    <!-- # General -->
+
+    <!-- reference js here to avoid "unknown id" error when referencing
+         a regex from js before referencing a context from js
+         https://gitlab.gnome.org/GNOME/gtksourceview/issues/67
+    -->
+    <context id="main-lang">
+      <include>
+        <context ref="js:js"/>
+      </include>
+    </context> <!-- /main-lang -->
+
+    <define-regex id="_start-tag-start">&lt;(?!/)</define-regex>
+
+
+    <!-- # Names -->
+
+    <define-regex id="_identifier-char" extended="true">
+      \%{js:identifier-char} | -
+    </define-regex> <!-- /_identifier-char -->
+
+    <define-regex id="_identifier-part" extended="true">
+      \%{_identifier-char} | \%{js:unicode-escape}
+    </define-regex> <!-- /_identifier-part -->
+
+    <!-- <JSXIdentifier> -->
+    <define-regex id="_identifier" extended="true">
+      \%{js:identifier-start} \%{_identifier-part}*
+    </define-regex> <!-- /_identifier -->
+
+    <define-regex id="_identifier-container-start" extended="true">
+      (?&lt;! \%{_identifier-char} ) (?= \%{js:identifier-start} )
+    </define-regex> <!-- /_identifier-container-start -->
+
+    <context id="_choice-identifier" end-parent="true">
+      <start>\%{_identifier-container-start}</start>
+      <end>\%{_identifier}</end>
+    </context> <!-- /_choice-identifier -->
+
+    <!-- <JSXNamespacedName> -->
+    <define-regex id="_namespaced-name" extended="true">
+      \%{_identifier} : \%{_identifier}
+    </define-regex> <!-- /_namespaced-name -->
+
+    <context id="_choice-namespaced-name" end-parent="true">
+      <start extended="true">
+        (?&lt;! \%{_identifier-char} ) (?= \%{_namespaced-name} )
+      </start>
+      <end>\%{_namespaced-name}</end>
+    </context> <!-- /_choice-namespaced-name -->
+
+    <!-- <JSXMemberExpression> -->
+    <define-regex id="_member-expression" extended="true">
+      \%{_identifier} (?: \. \%{_identifier} )+
+    </define-regex> <!-- /_member-expression -->
+
+    <context id="_choice-member-expression" end-parent="true">
+      <start extended="true">
+        (?&lt;! \%{_identifier-char} ) (?= \%{_member-expression} )
+      </start>
+      <end>\%{_member-expression}</end>
+    </context> <!-- /_choice-member-expression -->
+
+
+    <!-- # Element name -->
+
+    <!-- <JSXElementName> -->
+    <context id="_element-name" style-ref="xml:element-name" once-only="true">
+      <start>\%{_identifier-container-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_element-name-content">
+          <include>
+            <context ref="_choice-namespaced-name"/>
+            <context ref="_choice-member-expression"/>
+            <context ref="_choice-identifier"/>
+          </include>
+        </context> <!-- /_element-name-content -->
+
+      </include>
+    </context> <!-- /_element-name -->
+
+    <context id="_ordered-element-name" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_element-name"/>
+      </include>
+    </context> <!-- /_ordered-element-name -->
+
+
+    <!-- # Attributes -->
+
+    <!-- ## Spread attributes -->
+
+    <!-- <JSXSpreadAttribute> -->
+    <context id="_spread-attributes" style-ref="spread-attribute">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_spread-attribute-content">
+          <include>
+            <context ref="js:ordered-spread-syntax"/>
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_spread-attribute-content -->
+
+      </include>
+    </context> <!-- /_spread-attributes -->
+
+    <!-- ## Attribute name -->
+
+    <!-- <JSXAttributeName> -->
+    <context id="_attribute-names" style-ref="xml:attribute-name">
+      <start>\%{_identifier-container-start}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_attribute-name-content">
+          <include>
+            <context ref="_choice-namespaced-name"/>
+            <context ref="_choice-identifier"/>
+          </include>
+        </context> <!-- /_attribute-name-content -->
+
+      </include>
+    </context> <!-- /_attribute-names -->
+
+    <!-- ## Attribute value -->
+
+    <!-- <JSXAttributeValue> (part of) -->
+    <context id="_choice-attribute-value-string" style-ref="xml:attribute-value" end-parent="true" class="string" class-disabled="no-spell-check">
+      <start>["']</start>
+      <end>\%{0@start}</end>
+      <include>
+        <!-- no comments here -->
+
+        <context id="_attribute-value-string-content">
+          <include>
+            <!-- javascript escapes do not appear to be parsed here
+                 but xml entities / character references appear to be
+                 parsed -->
+            <context ref="xml:entity"/>
+            <context ref="xml:character-reference"/>
+          </include>
+        </context> <!-- /_attribute-value-string-content -->
+
+      </include>
+    </context> <!-- /_choice-attribute-value-string -->
+
+    <!-- <JSXAttributeValue> (part of) -->
+    <context id="_choice-attribute-value-expression" style-ref="attribute-expression" end-parent="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:comments"/>
+
+        <context id="_attribute-value-expression-content">
+          <include>
+            <!-- no spread syntax here -->
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_attribute-value-expression-content -->
+
+      </include>
+    </context> <!-- /_choice-attribute-value-expression -->
+
+    <!-- ## Attribute initializer -->
+
+    <!-- <JSXAttributeInitializer> -->
+    <context id="_attribute-initializers">
+      <start>=</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="xml:attribute-name"/>
+        <context ref="js:comments"/>
+
+        <context id="_attribute-initializer-content">
+          <include>
+            <context ref="_choice-attribute-value-string"/>
+            <context ref="_choice-attribute-value-expression"/>
+            <context ref="choice-element"/>
+          </include>
+        </context> <!-- /_attribute-initializer-content -->
+
+      </include>
+    </context> <!-- /_attribute-initializers -->
+
+
+    <!-- # Element / fragment -->
+
+    <context id="_start-tag-tail-non-empty-element-content">
+      <include>
+
+        <!-- ## Start tag tail -->
+
+        <context id="_start-tag-tail" style-ref="xml:tag" once-only="true" class="no-spell-check">
+          <match>&gt;</match>
+          <include>
+            <context sub-pattern="0" style-ref="xml:element-name"/>
+          </include>
+        </context> <!-- /_start-tag-tail -->
+
+        <!-- ## End tag -->
+
+        <context id="_end-tag-end-parent" style-ref="xml:tag" end-parent="true" class="no-spell-check">
+          <start>&lt;/</start>
+          <end>&gt;</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="xml:element-name"/>
+            <context sub-pattern="0" where="end" style-ref="xml:element-name"/>
+            <context ref="js:comments"/>
+
+            <context id="_end-tag-content">
+              <include>
+                <context ref="_ordered-element-name"/>
+              </include>
+            </context> <!-- /_end-tag-content -->
+
+          </include>
+        </context> <!-- /_end-tag-end-parent -->
+
+        <!-- ## Nested elements -->
+
+        <!-- <JSXElement> / <JSXFragment> -->
+        <context id="_elements" style-ref="element" class-disabled="no-spell-check">
+          <start>(?=\%{_start-tag-start})</start>
+          <include>
+            <!-- no comments here - comments parsed as regular text -->
+            <context ref="_element-content"/>
+          </include>
+        </context> <!-- /_elements -->
+
+        <!-- ## Child expressions -->
+
+        <!-- <JSXChild> / <JSXChildExpression> -->
+        <context id="_child-expressions" style-ref="child-expression" class="no-spell-check">
+          <start>{</start>
+          <end>}</end>
+          <include>
+            <context ref="js:comments"/>
+
+            <context id="_child-expression-content">
+              <include>
+                <context ref="js:ordered-spread-syntax"/>
+                <context ref="js-expr:expression-without-comma"/>
+              </include>
+            </context> <!-- /_child-expression-content -->
+
+          </include>
+        </context> <!-- /_child-expressions -->
+
+        <!-- ## XML syntax -->
+
+        <!-- javascript escapes do not appear to be parsed here
+             but xml character entity / numeric character references
+             appear to be parsed -->
+        <context ref="xml:entity"/>
+        <context ref="xml:character-reference"/>
+
+        <!-- ## Invalid characters -->
+
+        <!-- the spec does not allow these characters: { < > }
+             but we will only highlight > and } as errors -->
+        <context id="_invalid-characters" style-ref="xml:error">
+          <match>[&gt;}]</match>
+        </context> <!-- /_invalid-characters -->
+
+      </include>
+    </context> <!-- /_start-tag-tail-non-empty-element-content -->
+
+    <context id="_element-content">
+      <include>
+
+        <!-- ## Start tag -->
+
+        <!-- <JSXOpeningElement> / <JSXSelfClosingElement> -->
+        <context id="_start-tag-head" style-ref="xml:tag" once-only="true" class="no-spell-check">
+          <start>\%{_start-tag-start}</start>
+          <end>(?=/?&gt;)</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="xml:element-name"/>
+            <context ref="js:comments"/>
+
+            <context id="_start-tag-head-content">
+              <include>
+                <context ref="_ordered-element-name"/>
+                <context ref="_spread-attributes"/>
+                <context ref="_attribute-names"/>
+                <context ref="_attribute-initializers"/>
+              </include>
+            </context> <!-- /_start-tag-head-content -->
+
+          </include>
+        </context> <!-- /_start-tag-head -->
+
+        <context id="_choice-start-tag-tail-empty-element" style-ref="xml:tag" end-parent="true" class="no-spell-check">
+          <start>(?=/&gt;)</start>
+          <end>/&gt;</end>
+          <include>
+            <context sub-pattern="0" where="end" style-ref="xml:element-name"/>
+          </include>
+        </context> <!-- /_choice-start-tag-tail-empty-element -->
+
+        <context id="_choice-start-tag-tail-non-empty-element" end-parent="true">
+          <start>(?=&gt;)</start>
+          <include>
+            <!-- no comments here - comments parsed as regular text -->
+            <context ref="_start-tag-tail-non-empty-element-content"/>
+          </include>
+        </context> <!-- /_choice-start-tag-tail-non-empty-element -->
+
+      </include>
+    </context> <!-- /_element-content -->
+
+    <!-- <JSXElement> / <JSXFragment> -->
+    <context id="choice-element" style-ref="element" end-parent="true" class-disabled="no-spell-check">
+      <start>(?=\%{_start-tag-start})</start>
+      <include>
+        <!-- no comments here - comments parsed as regular text -->
+        <context ref="_element-content"/>
+      </include>
+    </context> <!-- /choice-element -->
+
+
+    <!-- # Primary expression -->
+
+    <context id="_jsx-primary-expression-content">
+      <include>
+        <context ref="choice-element"/>
+        <context ref="js-expr:_primary-expression-content" original="true"/>
+      </include>
+    </context> <!-- /_jsx-primary-expression-content -->
+
+    <replace id="js-expr:_primary-expression-content" ref="_jsx-primary-expression-content"/>
+
+
+    <!-- # Main context -->
+
+    <context id="jsx" class="no-spell-check">
+      <include>
+        <context ref="main-lang"/>
+      </include>
+    </context> <!-- /jsx -->
+
+  </definitions>
+</language>

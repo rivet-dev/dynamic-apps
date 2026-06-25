@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language id="test-full" name="Test Full" version="2.0" section="Sources">
+  <metadata>
+    <property name="mimetypes">text/x-test;application/x-test</property>
+    <property name="globs">*.test;*.tst</property>
+    <property name="extra-meta">extra</property>
+  </metadata>
+
+  <styles>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="keyword" name="Keywords" map-to="def:keyword"/>
+  </styles>
+
+  <definitions>
+
+    <context id="string" style-ref="string" end-at-line-end="true" class="string" class-disabled="no-spell-check">
+      <start>"</start>
+      <end>"</end>
+    </context>
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>foo</keyword>
+      <keyword>bar</keyword>
+    </context>
+
+    <context id="test-full" class="no-spell-check">
+      <include>
+        <context ref="string"/>
+        <context ref="keywords"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

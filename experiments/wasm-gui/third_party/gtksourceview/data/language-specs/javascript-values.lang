@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2004 Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2005 Stef Walter (formerly Nate Nielsen) <stef@memberwebs.com>
+ Copyright (C) 2005-2007 Marco Barisione <barisione@gmail.com>
+ Copyright (C) 2005-2007 Emanuele Aina
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="js-val" name="JavaScript Built-in Values" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See javascript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Global values -->
+
+    <context id="global-values">
+      <include>
+
+        <!--
+            There was a long discussion on ##javascript on freenode between
+            'katspaugh', 'joo' and 'prog_' on whether 'undefined' should be
+            highlighted on not, specialy as a constant. The conclusion was "It can't
+            be highlighted as a constant literal value, because it can be an
+            identifier (of a variable value) but leave it be as it is. Let tradition
+            and convention obscure the details."
+        -->
+
+        <!-- 18.1 Value Properties of the Global Object -->
+        <context id="_values" style-ref="js:built-in-value">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>Infinity</keyword>
+          <keyword>NaN</keyword>
+          <keyword>undefined</keyword>
+        </context> <!-- /_values -->
+
+        <!-- 18.2 Function Properties of the Global Object -->
+        <context id="_functions" style-ref="js:built-in-function">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>decodeURIComponent</keyword>
+          <keyword>decodeURI</keyword>
+          <keyword>encodeURIComponent</keyword>
+          <keyword>encodeURI</keyword>
+          <keyword>eval</keyword>
+          <keyword>isFinite</keyword>
+          <keyword>isNaN</keyword>
+          <keyword>parseFloat</keyword>
+          <keyword>parseInt</keyword>
+        </context> <!-- /_functions -->
+
+        <context id="_constructors" style-ref="js:built-in-constructor">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>ArrayBuffer</keyword>
+          <keyword>Array</keyword>
+          <keyword>BigInt</keyword> <!-- ES2020 -->
+          <keyword>Boolean</keyword>
+          <keyword>Date</keyword>
+          <keyword>Error</keyword>
+          <keyword>EvalError</keyword>
+          <keyword>Float32Array</keyword>
+          <keyword>Float64Array</keyword>
+          <keyword>Function</keyword>
+          <keyword>Int16Array</keyword>
+          <keyword>Int32Array</keyword>
+          <keyword>Int8Array</keyword>
+          <keyword>Map</keyword>
+          <keyword>Number</keyword>
+          <keyword>Object</keyword>
+          <keyword>Promise</keyword>
+          <keyword>Proxy</keyword>
+          <keyword>RangeError</keyword>
+          <keyword>ReferenceError</keyword>
+          <keyword>Reflect</keyword>
+          <keyword>RegExp</keyword>
+          <keyword>Set</keyword>
+          <keyword>String</keyword>
+          <keyword>Symbol</keyword>
+          <keyword>SyntaxError</keyword>
+          <keyword>TypeError</keyword>
+          <keyword>Uint16Array</keyword>
+          <keyword>Uint32Array</keyword>
+          <keyword>Uint8Array</keyword>
+          <keyword>Uint8ClampedArray</keyword>
+          <keyword>URIError</keyword>
+          <keyword>WeakMap</keyword>
+          <keyword>WeakSet</keyword>
+        </context> <!-- /_constructors -->
+
+        <context id="_objects" style-ref="js:built-in-object">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>Intl</keyword>
+          <keyword>JSON</keyword>
+          <keyword>Math</keyword>
+          <keyword>WebAssembly</keyword>
+        </context> <!-- /_objects -->
+
+        <!-- globalThis: ES2020 -->
+        <context id="_object-keywords" style-ref="js:keyword">
+          <match extended="true">
+            \%{js:keyword-start} arguments \%{js:keyword-end} |
+            \%{js:keyword-start} globalThis \%{js:keyword-end} |
+            \%{js:super-keyword} |
+            \%{js:this-keyword}
+          </match>
+        </context> <!-- /_object-keywords -->
+
+      </include>
+    </context> <!-- /global-values -->
+
+
+    <!-- # Properties / methods -->
+
+    <context id="properties-methods">
+      <include>
+
+        <context id="_intl-constructors" style-ref="js:built-in-constructor">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>Collator</keyword>
+          <keyword>DateTimeFormat</keyword>
+          <keyword>NumberFormat</keyword>
+          <keyword>PluralRules</keyword>
+        </context> <!-- /_intl-constructors -->
+
+        <context id="_webassembly-constructors" style-ref="js:built-in-constructor">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>CompileError</keyword>
+          <keyword>Global</keyword>
+          <keyword>Instance</keyword>
+          <keyword>LinkError</keyword>
+          <keyword>Memory</keyword>
+          <keyword>Module</keyword>
+          <keyword>RuntimeError</keyword>
+          <keyword>Table</keyword>
+        </context> <!-- /_webassembly-constructors -->
+
+        <context id="_array-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>length</keyword>
+        </context> <!-- /_array-properties -->
+
+        <context id="_array-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>concat</keyword>
+          <keyword>copyWithin</keyword>
+          <keyword>entries</keyword>
+          <keyword>every</keyword>
+          <keyword>fill</keyword>
+          <keyword>filter</keyword>
+          <keyword>findIndex</keyword>
+          <keyword>find</keyword>
+          <keyword>flatMap</keyword> <!-- ES2019 -->
+          <keyword>flat</keyword> <!-- ES2019 -->
+          <keyword>forEach</keyword>
+          <keyword>from</keyword>
+          <keyword>includes</keyword> <!-- ES2016 -->
+          <keyword>indexOf</keyword>
+          <keyword>isArray</keyword>
+          <keyword>join</keyword>
+          <keyword>keys</keyword>
+          <keyword>lastIndexOf</keyword>
+          <keyword>map</keyword>
+          <keyword>of</keyword>
+          <keyword>pop</keyword>
+          <keyword>push</keyword>
+          <keyword>reduceRight</keyword>
+          <keyword>reduce</keyword>
+          <keyword>reverse</keyword>
+          <keyword>shift</keyword>
+          <keyword>slice</keyword>
+          <keyword>some</keyword>
+          <keyword>sort</keyword>
+          <keyword>unshift</keyword>
+          <keyword>values</keyword>
+        </context> <!-- /_array-methods -->
+
+        <context id="_arraybuffer-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>byteLength</keyword>
+        </context> <!-- /_arraybuffer-properties -->
+
+        <context id="_arraybuffer-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>isView</keyword>
+          <keyword>slice</keyword>
+        </context> <!-- /_arraybuffer-methods -->
+
+        <!-- ES2020 -->
+        <context id="_bigint-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>asIntN</keyword>
+          <keyword>asUintN</keyword>
+        </context> <!-- /_bigint-methods -->
+
+        <context id="_dataview-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>buffer</keyword>
+          <keyword>byteLength</keyword>
+          <keyword>byteOffset</keyword>
+        </context> <!-- /_dataview-properties -->
+
+        <context id="_dataview-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>getFloat32</keyword>
+          <keyword>getFloat64</keyword>
+          <keyword>getInt16</keyword>
+          <keyword>getInt32</keyword>
+          <keyword>getInt8</keyword>
+          <keyword>getUint16</keyword>
+          <keyword>getUint32</keyword>
+          <keyword>getUint8</keyword>
+          <keyword>setFloat32</keyword>
+          <keyword>setFloat64</keyword>
+          <keyword>setInt16</keyword>
+          <keyword>setInt32</keyword>
+          <keyword>setInt8</keyword>
+          <keyword>setUint16</keyword>
+          <keyword>setUint32</keyword>
+          <keyword>setUint8</keyword>
+        </context> <!-- /_dataview-methods -->
+
+        <context id="_date-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>getDate</keyword>
+          <keyword>getDay</keyword>
+          <keyword>getFullYear</keyword>
+          <keyword>getHours</keyword>
+          <keyword>getMilliseconds</keyword>
+          <keyword>getMinutes</keyword>
+          <keyword>getMonth</keyword>
+          <keyword>getSeconds</keyword>
+          <keyword>getTime</keyword>
+          <keyword>getTimezoneOffset</keyword>
+          <keyword>getUTCDate</keyword>
+          <keyword>getUTCDay</keyword>
+          <keyword>getUTCFullYear</keyword>
+          <keyword>getUTCHours</keyword>
+          <keyword>getUTCMilliseconds</keyword>
+          <keyword>getUTCMinutes</keyword>
+          <keyword>getUTCMonth</keyword>
+          <keyword>getUTCSeconds</keyword>
+          <keyword>now</keyword>
+          <keyword>parse</keyword>
+          <keyword>setDate</keyword>
+          <keyword>setFullYear</keyword>
+          <keyword>setHours</keyword>
+          <keyword>setMilliseconds</keyword>
+          <keyword>setMinutes</keyword>
+          <keyword>setMonth</keyword>
+          <keyword>setSeconds</keyword>
+          <keyword>setTime</keyword>
+          <keyword>setUTCDate</keyword>
+          <keyword>setUTCFullYear</keyword>
+          <keyword>setUTCHours</keyword>
+          <keyword>setUTCMilliseconds</keyword>
+          <keyword>setUTCMinutes</keyword>
+          <keyword>setUTCMonth</keyword>
+          <keyword>setUTCSeconds</keyword>
+          <keyword>toDateString</keyword>
+          <keyword>toISOString</keyword>
+          <keyword>toJSON</keyword>
+          <keyword>toLocaleDateString</keyword>
+          <keyword>toLocaleTimeString</keyword>
+          <keyword>toTimeString</keyword>
+          <keyword>toUTCString</keyword>
+          <keyword>UTC</keyword>
+        </context> <!-- /_date-methods -->
+
+        <context id="_error-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>message</keyword>
+          <keyword>name</keyword>
+        </context> <!-- /_error-properties -->
+
+        <context id="_function-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>length</keyword>
+          <keyword>name</keyword>
+        </context> <!-- /_function-properties -->
+
+        <context id="_function-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>apply</keyword>
+          <keyword>bind</keyword>
+          <keyword>call</keyword>
+        </context> <!-- /_function-methods -->
+
+        <context id="_generator-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>next</keyword>
+          <keyword>return</keyword>
+          <keyword>throw</keyword>
+        </context> <!-- /_generator-methods -->
+
+        <context id="_intl-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>formatToParts</keyword> <!-- common to intl format object instances -->
+          <keyword>format</keyword> <!-- common to intl format object instances -->
+          <keyword>getCanonicalLocales</keyword>
+          <keyword>resolvedOptions</keyword> <!-- common to intl object instances -->
+          <keyword>supportedLocalesOf</keyword> <!-- common to intl objects -->
+        </context> <!-- /_intl-methods -->
+
+        <context id="_intl-collator-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>compare</keyword>
+        </context> <!-- /_intl-collator-methods -->
+
+        <context id="_intl-pluralrules-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>select</keyword>
+        </context> <!-- /_intl-pluralrules-methods -->
+
+        <context id="_json-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>parse</keyword>
+          <keyword>stringify</keyword>
+        </context> <!-- /_json-methods -->
+
+        <context id="_map-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>size</keyword>
+        </context> <!-- /_map-properties -->
+
+        <context id="_map-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>clear</keyword>
+          <keyword>delete</keyword>
+          <keyword>entries</keyword>
+          <keyword>forEach</keyword>
+          <keyword>get</keyword>
+          <keyword>has</keyword>
+          <keyword>keys</keyword>
+          <keyword>set</keyword>
+          <keyword>values</keyword>
+        </context> <!-- /_map-methods -->
+
+        <context id="_math-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>E</keyword>
+          <keyword>LN10</keyword>
+          <keyword>LN2</keyword>
+          <keyword>LOG10E</keyword>
+          <keyword>LOG2E</keyword>
+          <keyword>PI</keyword>
+          <keyword>SQRT1_2</keyword>
+          <keyword>SQRT2</keyword>
+        </context> <!-- /_math-properties -->
+
+        <context id="_math-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>abs</keyword>
+          <keyword>acosh</keyword>
+          <keyword>acos</keyword>
+          <keyword>asinh</keyword>
+          <keyword>asin</keyword>
+          <keyword>atan2</keyword>
+          <keyword>atanh</keyword>
+          <keyword>atan</keyword>
+          <keyword>cbrt</keyword>
+          <keyword>ceil</keyword>
+          <keyword>clz32</keyword>
+          <keyword>cosh</keyword>
+          <keyword>cos</keyword>
+          <keyword>expm1</keyword>
+          <keyword>exp</keyword>
+          <keyword>floor</keyword>
+          <keyword>fround</keyword>
+          <keyword>hypot</keyword>
+          <keyword>imul</keyword>
+          <keyword>log10</keyword>
+          <keyword>log1p</keyword>
+          <keyword>log2</keyword>
+          <keyword>log</keyword>
+          <keyword>max</keyword>
+          <keyword>min</keyword>
+          <keyword>pow</keyword>
+          <keyword>random</keyword>
+          <keyword>round</keyword>
+          <keyword>sign</keyword>
+          <keyword>sinh</keyword>
+          <keyword>sin</keyword>
+          <keyword>sqrt</keyword>
+          <keyword>tanh</keyword>
+          <keyword>tan</keyword>
+          <keyword>trunc</keyword>
+        </context> <!-- /_math-methods -->
+
+        <context id="_number-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>EPSILON</keyword>
+          <keyword>MAX_SAFE_INTEGER</keyword>
+          <keyword>MAX_VALUE</keyword>
+          <keyword>MIN_SAFE_INTEGER</keyword>
+          <keyword>MIN_VALUE</keyword>
+          <keyword>NaN</keyword>
+          <keyword>NEGATIVE_INFINITY</keyword>
+          <keyword>POSITIVE_INFINITY</keyword>
+        </context> <!-- /_number-properties -->
+
+        <context id="_number-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>isFinite</keyword>
+          <keyword>isInteger</keyword>
+          <keyword>isNaN</keyword>
+          <keyword>isSafeInteger</keyword>
+          <keyword>parseFloat</keyword>
+          <keyword>parseInt</keyword>
+          <keyword>toExponential</keyword>
+          <keyword>toFixed</keyword>
+          <keyword>toPrecision</keyword>
+        </context> <!-- /_number-methods -->
+
+        <context id="_object-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>constructor</keyword>
+          <keyword>prototype</keyword>
+        </context> <!-- /_object-properties -->
+
+        <context id="_object-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>assign</keyword>
+          <keyword>create</keyword>
+          <keyword>defineProperties</keyword>
+          <keyword>defineProperty</keyword>
+          <keyword>entries</keyword> <!-- ES2017 -->
+          <keyword>freeze</keyword>
+          <keyword>fromEntries</keyword> <!-- ES2019 -->
+          <keyword>getOwnPropertyDescriptors</keyword> <!-- ES2017 -->
+          <keyword>getOwnPropertyDescriptor</keyword>
+          <keyword>getOwnPropertyNames</keyword>
+          <keyword>getOwnPropertySymbols</keyword>
+          <keyword>getPrototypeOf</keyword>
+          <keyword>hasOwnProperty</keyword>
+          <keyword>isExtensible</keyword>
+          <keyword>isFrozen</keyword>
+          <keyword>isPrototypeOf</keyword>
+          <keyword>isSealed</keyword>
+          <keyword>is</keyword>
+          <keyword>keys</keyword>
+          <keyword>preventExtensions</keyword>
+          <keyword>propertyIsEnumerable</keyword>
+          <keyword>seal</keyword>
+          <keyword>setPrototypeOf</keyword>
+          <keyword>toLocaleString</keyword>
+          <keyword>toString</keyword>
+          <keyword>valueOf</keyword>
+          <keyword>values</keyword> <!-- ES2017 -->
+        </context> <!-- /_object-methods -->
+
+        <context id="_promise-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>allSettled</keyword> <!-- ES2020 -->
+          <keyword>all</keyword>
+          <keyword>catch</keyword>
+          <keyword>finally</keyword> <!-- ES2018 -->
+          <keyword>race</keyword>
+          <keyword>reject</keyword>
+          <keyword>resolve</keyword>
+          <keyword>then</keyword>
+        </context> <!-- /_promise-methods -->
+
+        <context id="_proxy-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>revocable</keyword>
+        </context> <!-- /_proxy-methods -->
+
+        <context id="_reflect-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>apply</keyword>
+          <keyword>construct</keyword>
+          <keyword>defineProperty</keyword>
+          <keyword>deleteProperty</keyword>
+          <keyword>getOwnPropertyDescriptor</keyword>
+          <keyword>getPrototypeOf</keyword>
+          <keyword>get</keyword>
+          <keyword>has</keyword>
+          <keyword>isExtensible</keyword>
+          <keyword>ownKeys</keyword>
+          <keyword>preventExtensions</keyword>
+          <keyword>setPrototypeOf</keyword>
+          <keyword>set</keyword>
+        </context> <!-- /_reflect-methods -->
+
+        <context id="_regexp-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>flags</keyword>
+          <keyword>global</keyword>
+          <keyword>ignoreCase</keyword>
+          <keyword>lastIndex</keyword>
+          <keyword>multiline</keyword>
+          <keyword>source</keyword>
+          <keyword>sticky</keyword>
+          <keyword>unicode</keyword>
+        </context> <!-- /_regexp-properties -->
+
+        <context id="_regexp-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>exec</keyword>
+          <keyword>test</keyword>
+        </context> <!-- /_regexp-methods -->
+
+        <context id="_set-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>size</keyword>
+        </context> <!-- /_set-properties -->
+
+        <context id="_set-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>add</keyword>
+          <keyword>clear</keyword>
+          <keyword>delete</keyword>
+          <keyword>entries</keyword>
+          <keyword>forEach</keyword>
+          <keyword>has</keyword>
+          <keyword>keys</keyword>
+          <keyword>values</keyword>
+        </context> <!-- /_set-methods -->
+
+        <context id="_string-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>length</keyword>
+        </context> <!-- /_string-properties -->
+
+        <context id="_string-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>charAt</keyword>
+          <keyword>charCodeAt</keyword>
+          <keyword>codePointAt</keyword>
+          <keyword>concat</keyword>
+          <keyword>endsWith</keyword>
+          <keyword>fromCharCode</keyword>
+          <keyword>fromCodePoint</keyword>
+          <keyword>includes</keyword>
+          <keyword>indexOf</keyword>
+          <keyword>lastIndexOf</keyword>
+          <keyword>localeCompare</keyword>
+          <keyword>matchAll</keyword> <!-- ES2020 -->
+          <keyword>match</keyword>
+          <keyword>normalize</keyword>
+          <keyword>padEnd</keyword> <!-- ES2017 -->
+          <keyword>padStart</keyword> <!-- ES2017 -->
+          <keyword>raw</keyword>
+          <keyword>repeat</keyword>
+          <keyword>replaceAll</keyword> <!-- ES2021 -->
+          <keyword>replace</keyword>
+          <keyword>search</keyword>
+          <keyword>slice</keyword>
+          <keyword>split</keyword>
+          <keyword>startsWith</keyword>
+          <keyword>substring</keyword>
+          <keyword>toLocaleLowerCase</keyword>
+          <keyword>toLocaleUpperCase</keyword>
+          <keyword>toLowerCase</keyword>
+          <keyword>toUpperCase</keyword>
+          <keyword>trimEnd</keyword> <!-- ES2019 -->
+          <keyword>trimStart</keyword> <!-- ES2019 -->
+          <keyword>trim</keyword>
+        </context> <!-- /_string-methods -->
+
+        <context id="_symbol-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>asyncIterator</keyword> <!-- ES2018 -->
+          <keyword>description</keyword> <!-- ES2019 -->
+          <keyword>hasInstance</keyword>
+          <keyword>isConcatSpreadable</keyword>
+          <keyword>iterator</keyword>
+          <keyword>matchAll</keyword>
+          <keyword>match</keyword>
+          <keyword>replace</keyword>
+          <keyword>search</keyword>
+          <keyword>species</keyword>
+          <keyword>split</keyword>
+          <keyword>toPrimitive</keyword>
+          <keyword>toStringTag</keyword>
+          <keyword>unscopables</keyword>
+        </context> <!-- /_symbol-properties -->
+
+        <context id="_symbol-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>for</keyword>
+          <keyword>keyFor</keyword>
+        </context> <!-- /_symbol-methods -->
+
+        <!-- TypedArray is one of these objects:
+             * Float32Array
+             * Float64Array
+             * Int16Array
+             * Int32Array
+             * Int8Array
+             * Uint16Array
+             * Uint32Array
+             * Uint8Array
+             * Uint8ClampedArray
+        -->
+        <context id="_typedarray-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>buffer</keyword>
+          <keyword>byteLength</keyword>
+          <keyword>byteOffset</keyword>
+          <keyword>BYTES_PER_ELEMENT</keyword>
+          <keyword>length</keyword>
+          <keyword>name</keyword>
+        </context> <!-- /_typedarray-properties -->
+
+        <context id="_typedarray-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>copyWithin</keyword>
+          <keyword>entries</keyword>
+          <keyword>every</keyword>
+          <keyword>fill</keyword>
+          <keyword>filter</keyword>
+          <keyword>findIndex</keyword>
+          <keyword>find</keyword>
+          <keyword>forEach</keyword>
+          <keyword>from</keyword>
+          <keyword>indexOf</keyword>
+          <keyword>join</keyword>
+          <keyword>keys</keyword>
+          <keyword>lastIndexOf</keyword>
+          <keyword>map</keyword>
+          <keyword>of</keyword>
+          <keyword>reduceRight</keyword>
+          <keyword>reduce</keyword>
+          <keyword>reverse</keyword>
+          <keyword>set</keyword>
+          <keyword>slice</keyword>
+          <keyword>some</keyword>
+          <keyword>sort</keyword>
+          <keyword>subarray</keyword>
+          <keyword>values</keyword>
+        </context> <!-- /_typedarray-methods -->
+
+        <context id="_weakmap-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>delete</keyword>
+          <keyword>get</keyword>
+          <keyword>has</keyword>
+          <keyword>set</keyword>
+        </context> <!-- /_weakmap-methods -->
+
+        <context id="_weakset-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>add</keyword>
+          <keyword>delete</keyword>
+          <keyword>has</keyword>
+        </context> <!-- /_weakset-methods -->
+
+        <context id="_webassembly-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>compileStreaming</keyword>
+          <keyword>compile</keyword>
+          <keyword>instantiateStreaming</keyword>
+          <keyword>instantiate</keyword>
+          <keyword>validate</keyword>
+        </context> <!-- /_webassembly-methods -->
+
+        <context id="_webassembly-instance-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>exports</keyword>
+        </context> <!-- /_webassembly-instance-properties -->
+
+        <context id="_webassembly-global-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>value</keyword>
+        </context> <!-- /_webassembly-global-properties -->
+
+        <context id="_webassembly-module-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>customSections</keyword>
+          <keyword>exports</keyword>
+          <keyword>imports</keyword>
+        </context> <!-- /_webassembly-module-methods -->
+
+        <context id="_webassembly-memory-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>buffer</keyword>
+        </context> <!-- /_webassembly-memory-properties -->
+
+        <context id="_webassembly-memory-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>grow</keyword>
+        </context> <!-- /_webassembly-memory-methods -->
+
+        <context id="_webassembly-table-properties" style-ref="js:built-in-property">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>length</keyword>
+        </context> <!-- /_webassembly-table-properties -->
+
+        <context id="_webassembly-table-methods" style-ref="js:built-in-method">
+          <prefix>\%{js:keyword-start}</prefix>
+          <suffix>\%{js:keyword-end}</suffix>
+          <keyword>get</keyword>
+          <keyword>grow</keyword>
+          <keyword>set</keyword>
+        </context> <!-- /_webassembly-table-methods -->
+
+      </include>
+    </context> <!-- /properties-methods -->
+
+  </definitions>
+</language>

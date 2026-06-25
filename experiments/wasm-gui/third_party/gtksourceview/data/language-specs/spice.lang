@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+ Author: Vlad Ionescu
+ Copyright (C) 2013 Vlad Ionescu <imbvlad@gmail.com>
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+
+ You should have received a copy of the GNU Library General Public
+ License along with this library; if not, write to the
+ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.
+
+***
+
+ This is meant to be a syntax highlighting *.lang file working for gedit or other text editors using this sort of filetype. The reference is LTspice, almost exclusively, but the program is compatible with SPICE3 syntax or with many other flavours of SPICE.
+ LTspice can be set to have tabs or fixed font, but the color scheme is a very simple one: dark-green for comments, red for concatenated line, blue for any dot-command and black for the rest. While this doesn't put strain on the eyes color-wise, it does have a tendency to make following certain aspects a tad harder, such as parameters in a large .param block or trying to find a .subckt in a netlist.
+ The methods used here are simple enough not to make everything look like a rainbow but, at the same time, to not be too simple, while trying to emphasize some key words to make editing of netlists with a text editor easier. Thus, all ennumerated below share one colour each, common or not (configurable):
+  - comments and in-line comments
+  - elements' names, model names or attributes
+  - variables
+  - dot-commands:
+    * parameters, functions
+    * simulation cards
+    * subcircuits and models
+    * other directives
+  - subcircuit's or model's names
+
+2013.06.15  - A-devices model names are now detected within concatenated lines.
+2013.06.17  - Functions are detected "by the book" (.func f(x) {...}) with matching curled braces.
+2013.11.21  - Added COUNTER to A-devices.
+2014.04.08  - Corrected variable detection with opened parenthesis behing and no space: (Ron=...)
+2014.04.22  - Only variables are now highlighted, without "="
+            - Corrected highlighting of "table()"
+            - Added *.mod to the extension list (model files)
+2014.04.25  - Elements are correctly marked when preceeded by spaces.
+            - Subcircuits ending in a simple ".ends" are now correctly detected.
+2014.05.29  - Added markup for "params:" within a ".subckt" line.
+2014.05.31  - Improved markup for "VALUE" syntax in E or G sources.
+2014.06.23  - Added markup for old-style "Laplace" in E or G sources.
+2015.04.30  - Added markup for "params:" in a concatenated .subckt line.
+2015.11.02  - Added upper-case extension recognition.
+2015.11.27  - Added OTA to A-devices.
+2015.12.26  - Added exception for coupling coefficient k
+2018.12.19  - Added markup for ".parma".
+            - Added support for the state-machine.
+            - Corrected keyword "xor" (zor) and added "ota" to A-devices.
+            - Fixed highlighting of variables without "=" afterwards.  TODO
+            - Made functions highlight the name only, without the parenthesis and within.
+2019.01.02  - Added markup for ".text"
+2021.07.31  - Modified the mimetypes and globs section
+2021.10.10  - Corrected the state machine id and style
+
+********************************************************************************
+
+  There is also a colour scheme, spice.xml, which makes the highlighting resemble LTspice's editor, see:
+  
+http://ltspicegoodies.ltwiki.org/useful.php
+
+for an html preview. It's completely optional, but it can't be hosted in the GtkSourceView's repository. The file can be downloaded from the same page.
+
+********************************************************************************
+
+-->
+
+<language id="spice" name="SPICE" version="2.0" _section="Scientific">
+
+
+<!-- The known netlist formats used by LTspice (and not only): *.sp, *.net, *.cir, *.sub, *.lib, *.mod -->
+<metadata>
+  <property name="globs">*.cir;*.CIR;*.Cir</property>
+</metadata>
+
+<styles>
+  <style id="preprocessor" name="Preprocessor" map-to="def:preprocessor"/>
+  <style id="statement" name="Statement" map-to="def:statement"/>
+  <style id="function" name="Function" map-to="def:function"/>
+  <style id="builtin" name="Builtin" map-to="def:builtin"/>
+  <style id="string" name="String" map-to="def:string"/>
+  <style id="attribute" name="Attribute" map-to="xml:attribute-name"/>
+  <style id="note" name="Note" map-to="def:note"/>
+  <style id="operator" name="Operator" map-to="def:operator"/>
+  <style id="identifier" name="Attribute name" map-to="def:identifier"/>
+  <style id="comment" name="Comment" map-to="def:comment"/>
+  <style id="doc-comment" name="Comment" map-to="def:doc-comment"/>
+  <style id="error" name="Error" map-to="def:error"/>
+  <style id="state-machine" name="State machine" map-to="t2t:italic"/>
+</styles>
+
+<!-- Nothing is case-sensitive -->
+<default-regex-options case-sensitive="false"/>
+
+<definitions>
+  <context id="spice">
+    <include>
+
+  <!--  Allowed characters in naming of elements or nets
+Exotic names like C$@. or G?\ do work in testing, but they may not be recommended. Almost any non-word character works except {} or () or ' (interpreted as a replacement for { or }) or = (it is allowed but not followed by any other character, or in net names) or , or space -->
+      <define-regex id="chars">[^\s{}(),;'=]+</define-regex>
+
+  <!--  Commented line
+Starts at line start with [*#$] and goes until EOL, can have spaces before -->
+      <context id="commented-line" style-ref="comment">
+        <start>^\s*[*#$;]</start>
+        <end>$</end>
+        <include>
+          <context id="comment-exceptions" style-ref="attribute" extend-parent="false">
+            <match>[|+\[\]&gt;&lt;\\/]</match>
+          </context>
+        </include>
+      </context>
+
+  <!--  In-line comment
+Starts from character ; until EOL. There are exceptions in netlist elements where, even if it is interpreted as an in-line comment, the engine will give errors due to the syntax malforming -->
+      <context id="inline-comment" style-ref="comment">
+        <start>\;</start>
+        <end>$</end>
+      </context>
+
+  <!--  Concatenated line
+Active if the line starts with + (with or without spaces before). It differs from LTspice in that it keeps the rest of the line with the same colour as the parent line (normal), but italic, while signaling the break with a red + sign -->
+      <context id="concat-line" style-ref="doc-comment">
+        <start>^\s*(?=\+)</start>
+        <end>$</end>
+        <include>
+          <context id="concat" style-ref="note">
+            <match>([^\s&gt;&lt;&amp;;,=/+\-*\^]?)^\s*\+</match>
+          </context>
+          <context id="concat-values" style-ref="string">
+            <match extended="true">
+              (\s[^\s&gt;&lt;&amp;(){};,=/+\-*\^]+|
+              (?![({])\s*[^\s&gt;&lt;&amp;(){};,=/+\-*\^]+)
+              (?=(\s*\=(?!(\s*\=))))
+            </match>
+          </context>
+          <context id="concat-inline-comment" style-ref="comment">
+            <match>\;.*</match>
+          </context>
+          <context id="A-devices" style-ref="identifier">
+            <match>\b(and|buf|counter|dflop|inv|modulator|xor|or|phasedet|samplehold|schmitbuf|schmitinv|schmitt|srflop|varistor|ota)\b</match>
+          </context>
+          <context id="subckt-params-concat" style-ref="builtin">
+            <match>params\:</match>
+          </context>
+        </include>
+      </context>
+
+
+<!-- Errors first
+Anything not starting with [A-Z] and having any of {}();'=, in the name is wrong -->
+      <context id="id-error" style-ref="error">
+        <match>^\s*[a-jl-z^0-9_\W]\S*([{}();'=,])</match>
+      </context>
+
+  <!--  Elements
+All elements start with [A-Z] and can have any allowed character afterwards, including none -->
+      <context id="devices" style-ref="statement">
+        <start>^\s*[a-jl-z]\S*</start>
+        <end>\s</end>
+      </context>
+
+  <!--  A-devices model names
+Useful to be highlighted since all share the same syntax of <ID net1 net2 ... net8 model parameters/attributes> and there is a small variety of them available-->
+      <context id="A-models" style-ref="identifier">
+        <prefix>((^\+\S*)?)\s</prefix>
+        <suffix>\b(?!(\s*[=&lt;&gt;(*\-+/]))</suffix>
+        <keyword>and</keyword>
+        <keyword>buf</keyword>
+        <keyword>counter</keyword>
+        <keyword>dflop</keyword>
+        <keyword>inv</keyword>
+        <keyword>modulator</keyword>
+        <keyword>xor</keyword>
+        <keyword>or</keyword>
+        <keyword>ota</keyword>
+        <keyword>phasedet</keyword>
+        <keyword>samplehold</keyword>
+        <keyword>schmitbuf</keyword>
+        <keyword>schmitinv</keyword>
+        <keyword>schmitt</keyword>
+        <keyword>srflop</keyword>
+        <keyword>varistor</keyword>
+      </context>
+
+<!-- Old-style elements (E,G) attributes -->
+      <context id="old-attributes" style-ref="function">
+        <prefix>\b</prefix>
+        <suffix>\b</suffix>
+        <keyword>value(?=(\s*[={]))</keyword>
+        <keyword>poly</keyword>
+        <keyword>laplace(?=(\s*[=({]))(?!(\s*\=))</keyword>
+        <keyword>freq(?=(\s*\{))</keyword>
+        <keyword>(?!(\=\s*))table</keyword>
+      </context>
+
+
+  <!-- Dot-commands and coupling coefficient k-->
+
+<!-- Parameters, functions -->
+      <context id="parameters" style-ref="builtin">
+        <prefix>^\s*([,.]|\.\.)</prefix>
+        <suffix>\b</suffix>
+        <keyword>funcs</keyword>
+        <keyword>func</keyword>
+        <keyword>params</keyword>
+        <keyword>param</keyword>
+        <keyword>parma</keyword>
+        <keyword>text</keyword>
+      </context>
+
+<!-- Coupling coefficient k -->
+      <context id="coupling" style-ref="builtin">
+        <prefix>^\s*</prefix>
+        <suffix>[a-z0-9_]*\b</suffix>
+        <keyword>k</keyword>
+      </context>
+
+<!-- Parameters within .subckt, on the same line, with colon -->
+      <context id="subckt-params" style-ref="builtin">
+        <prefix>\s</prefix>
+        <suffix>[:]</suffix>
+        <keyword>params</keyword>
+      </context>
+
+<!-- Directives -->
+      <context id="directives" style-ref="operator">
+        <prefix>^[,.]</prefix>
+        <suffix>\b</suffix>
+        <keyword>nodealias</keyword>
+        <keyword>nodeset</keyword>
+        <keyword>meas</keyword>
+        <keyword>options</keyword>
+        <keyword>option</keyword>
+        <keyword>opts</keyword>
+        <keyword>opt</keyword>
+        <keyword>ic</keyword>
+        <keyword>step</keyword>
+        <keyword>lib</keyword>
+        <keyword>include</keyword>
+        <keyword>inc</keyword>
+        <keyword>backanno</keyword>
+        <keyword>savebias</keyword>
+        <keyword>save</keyword>
+        <keyword>loadbias</keyword>
+        <keyword>load</keyword>
+        <keyword>global</keyword>
+        <keyword>temp</keyword>
+        <keyword>ferret</keyword>
+        <keyword>wave</keyword>
+            <!-- State-machine begin/end keywords are treated the same as directives -->
+        <keyword>mach</keyword>
+        <keyword>machine</keyword>
+        <keyword>endmach</keyword>
+        <keyword>endmachine</keyword>
+      </context>
+
+<!-- State-machine commands are still blue, but normal and italic, for distinction from directives -->
+      <context id="state-machine" style-ref="state-machine">
+        <prefix>^[,.]</prefix>
+        <suffix>\b</suffix>
+        <keyword>state</keyword>
+        <keyword>rule</keyword>
+        <keyword>output</keyword>
+      </context>
+
+<!-- Simulation cards -->
+      <context id="simulation" style-ref="builtin">
+        <prefix>^[,.]</prefix>
+        <suffix>\b</suffix>
+        <keyword>four</keyword>
+        <keyword>dc</keyword>
+        <keyword>ac</keyword>
+        <keyword>tran</keyword>
+        <keyword>op</keyword>
+        <keyword>tf</keyword>
+        <keyword>net</keyword>
+      </context>
+
+      <context id="subckt-model" style-ref="preprocessor">
+        <start extended="true">
+          ^[,.] ( end\b | (ends|subckt|model)\s+(?=(\%{chars})) )
+        </start>
+        <end>$|\s</end>
+        <include>
+          <context id="subckt-name" style-ref="note">
+            <match>((ends|model|subckt)\s+)?\%{chars}(?=($|\s*?))</match>
+          </context>
+        </include>
+      </context>
+
+<!-- Simulation cards -->
+      <context id="end-subckt" style-ref="preprocessor">
+        <prefix>^[,.]</prefix>
+        <suffix>\b</suffix>
+        <keyword>ends</keyword>
+      </context>
+
+      <context id="variables" style-ref="string">
+        <match extended="true">
+        (\s[^\s&gt;&lt;&amp;(){};,=/+\-*\^]+|
+        (?![({])\s*[^\s&gt;&lt;&amp;(){};,=/+\-*\^]+)
+        (?=(\s*\=(?!(\s*\=))))
+        </match>
+      </context>
+
+<!-- Functions highlighted without the parenthesis -->
+      <context id="funcs" style-ref="string">
+        <match extended="true">
+        ((^\s*[.](funcs|func))?)
+        \s+[^\s&gt;&lt;&amp;(){};,=/+\-*\^]+\s*(?=(\([^()]*\))\s+(\{))
+        </match>
+      </context>
+
+    </include>
+  </context>
+</definitions>
+
+</language>

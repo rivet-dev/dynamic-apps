@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ This file is part of GtkSourceView
+
+ Author: Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2004 Scott Martin <scott@coffeeblack.org>
+ Copyright (C) 2005 Stef Walter (formerly Nate Nielsen) <stef@memberwebs.com>
+ Copyright (C) 2005-2007 Marco Barisione <barisione@gmail.com>
+ Copyright (C) 2005-2007 Emanuele Aina
+ Copyright (C) 2019-2020 Jeffery To <jeffery.to@gmail.com>
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="js-lit" name="JavaScript Literals" version="2.0" _section="Script" hidden="true">
+  <!-- from js:identifier-char -->
+  <keyword-char-class>(?!\x{2E2F})[\p{L}\p{Nl}\x{1885}-\x{1886}\x{2118}\x{212E}\x{309B}-\x{309C}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{00B7}\x{0387}\x{1369}-\x{1371}\x{19DA}$\x{200C}\x{200D}]</keyword-char-class>
+
+  <definitions>
+
+    <!--
+         See javascript.lang for general notes, naming conventions, etc.
+    -->
+
+
+    <!-- # Keyword values -->
+
+    <!-- <NullLiteral> -->
+    <context id="null-value" style-ref="js:null-value">
+      <match>\%{js:null-keyword}</match>
+    </context> <!-- /null-value -->
+
+    <!-- <BooleanLiteral> -->
+    <context id="boolean" style-ref="js:boolean">
+      <match extended="true">
+        \%{js:false-keyword} | \%{js:true-keyword}
+      </match>
+    </context> <!-- /boolean -->
+
+
+    <!-- # Number -->
+
+    <!-- <NumericLiteral> -->
+    <context id="choice-number">
+      <include>
+
+        <define-regex id="_decimal" extended="true">
+          (?&gt;
+            (?: [1-9][0-9]* | 0 ) (?: \. [0-9]* )? |
+            \. [0-9]+
+          )
+          (?&gt; [eE] [+-]? [0-9]+ )?
+        </define-regex> <!-- /_decimal -->
+
+        <!-- <DecimalLiteral> -->
+        <context id="_choice-decimal" style-ref="js:decimal" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_decimal} \%{js:number-end} )
+          </start>
+          <end>\%{_decimal}</end>
+        </context> <!-- /_choice-decimal -->
+
+        <define-regex id="_decimal-integer" extended="true">
+          (?&gt; [1-9][0-9]* | 0 )
+        </define-regex> <!-- /_decimal-integer -->
+
+        <!-- ES2020 -->
+        <!-- <DecimalBigIntegerLiteral> -->
+        <context id="_choice-decimal-big-integer" style-ref="js:decimal" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_decimal-integer} n \%{js:number-end} )
+          </start>
+          <end>\%{_decimal-integer}n</end>
+        </context> <!-- /_choice-decimal-big-integer -->
+
+        <define-regex id="_binary-integer" extended="true">
+          (?&gt; 0 [bB] [01]+ )
+        </define-regex> <!-- /_binary-integer -->
+
+        <!-- <BinaryIntegerLiteral> -->
+        <context id="_choice-binary-integer" style-ref="js:binary-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_binary-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_binary-integer}n?</end>
+        </context> <!-- /_choice-binary-integer -->
+
+        <define-regex id="_octal-integer" extended="true">
+          (?&gt; 0 [oO] [0-7]+ )
+        </define-regex> <!-- /_octal-integer -->
+
+        <!-- <OctalIntegerLiteral> -->
+        <context id="_choice-octal-integer" style-ref="js:octal-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_octal-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_octal-integer}n?</end>
+        </context> <!-- /_choice-octal-integer -->
+
+        <!-- <HexIntegerLiteral> -->
+        <define-regex id="_hex-integer" extended="true">
+          (?&gt; 0 [xX] [0-9a-fA-F]+ )
+        </define-regex> <!-- /_hex-integer -->
+
+        <context id="_choice-hex-integer" style-ref="js:hex-integer" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_hex-integer} n? \%{js:number-end} )
+          </start>
+          <end>\%{_hex-integer}n?</end>
+        </context> <!-- /_choice-hex-integer -->
+
+        <define-regex id="_legacy-octal-integer" extended="true">
+          (?&gt; 0 [0-7]+ )
+        </define-regex> <!-- /_legacy-octal-integer -->
+
+        <!-- Annex B: <LegacyOctalIntegerLiteral> -->
+        <context id="_choice-legacy-octal-integer" style-ref="js:error" end-parent="true">
+          <start extended="true">
+            \%{js:number-start} (?= \%{_legacy-octal-integer} \%{js:number-end} )
+          </start>
+          <end>\%{_legacy-octal-integer}</end>
+        </context> <!-- /_choice-legacy-octal-integer -->
+
+      </include>
+    </context> <!-- /choice-number -->
+
+
+    <!-- # Escape sequences -->
+
+    <context id="_escapes">
+      <include>
+
+        <!-- Annex B: <LegacyOctalEscapeSequence> (preceeded by
+             backslash) -->
+        <context id="_legacy-octal-escape-sequences" style-ref="js:escape">
+          <match extended="true">
+            \\
+            (?:
+              0     [0-7]{1,2} |  # 0-padded number, not \0 (null character)
+              [1-3] [0-7]{0,2} |  # max \377
+              [4-7] [0-7]{0,1}
+            )
+          </match>
+        </context> <!-- /_legacy-octal-escape-sequences -->
+
+        <!-- <EscapeSequence> (preceeded by backslash) -->
+        <context id="_escape-sequences" style-ref="js:escape">
+          <match extended="true">
+            \%{js:unicode-escape} |
+            \\
+            (?:
+              x[0-9a-fA-F]{2} |  # hexadecimal escape
+              [^1-9xu]           # single character escape
+            )
+          </match>
+        </context> <!-- /_escape-sequences -->
+
+      </include>
+    </context> <!-- /_escapes -->
+
+
+    <!-- # String -->
+
+    <context id="_string-content">
+      <include>
+        <context ref="_escapes"/>
+        <context ref="def:line-continue"/>
+      </include>
+    </context> <!-- /_string-content -->
+
+    <!-- <StringLiteral> -->
+    <context id="choice-string" style-ref="js:string" end-at-line-end="true" end-parent="true" class="string" class-disabled="no-spell-check">
+      <start>["']</start>
+      <end>\%{0@start}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <!-- no comments here -->
+        <context ref="_string-content"/>
+      </include>
+    </context> <!-- /choice-string -->
+
+    <!-- <StringLiteral> -->
+    <context id="choice-string-path" style-ref="js:included-file" end-at-line-end="true" end-parent="true" class="path">
+      <start>["']</start>
+      <end>\%{0@start}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <!-- no comments here -->
+        <context ref="_string-content"/>
+      </include>
+    </context> <!-- /choice-string-path -->
+
+
+    <!-- # Array literal
+
+         [ 1, 2, 3, ...anotherArray ]
+    -->
+
+    <context id="_array-literal-element-content">
+      <include>
+        <context ref="js:ordered-spread-syntax"/>
+        <context ref="js-expr:expression-without-comma"/>
+      </include>
+    </context> <!-- /_array-literal-element-content -->
+
+    <!-- <ArrayLiteral> -->
+    <context id="choice-array-literal" style-ref="js:array-literal" end-parent="true">
+      <start>\[</start>
+      <end>]</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_array-literal-content">
+          <include>
+
+            <context id="_array-literal-first-element" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_array-literal-element-content"/>
+              </include>
+            </context> <!-- /_array-literal-first-element -->
+
+            <context id="_array-literal-elements">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_array-literal-element-content"/>
+              </include>
+            </context> <!-- /_array-literal-elements -->
+
+          </include>
+        </context> <!-- /_array-literal-content -->
+
+      </include>
+    </context> <!-- /choice-array-literal -->
+
+
+    <!-- # Property name -->
+
+    <!-- <PropertyName> -->
+    <context id="_property-name" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_property-name-content">
+          <include>
+
+            <!-- <ComputedPropertyName> -->
+            <context id="_choice-computed-property-name" end-parent="true">
+              <start>\[</start>
+              <end>]</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+
+                <context id="_computed-property-name-content">
+                  <include>
+                    <context ref="js-expr:expression-without-comma"/>
+                  </include>
+                </context> <!-- /_computed-property-name-content -->
+
+              </include>
+            </context> <!-- /_choice-computed-property-name -->
+
+            <context ref="choice-number"/>
+            <context ref="choice-string"/>
+            <context ref="js:choice-identifier-name"/>
+          </include>
+        </context> <!-- /_property-name-content -->
+
+      </include>
+    </context> <!-- /_property-name -->
+
+    <context id="ordered-property-name" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_property-name"/>
+      </include>
+    </context> <!-- /ordered-property-name -->
+
+
+    <!-- # Object literal
+
+         {
+           propertyA: 'a',
+           "propertyB": getB(),
+           1: 'one',
+           [ computedName() ]: 2 + 3,
+           method() { ... },
+           get prop() { return this._prop; },
+           set prop(v) { this._prop = v; },
+           ...objectToCopy
+         }
+    -->
+
+    <!-- ES2018 -->
+    <context id="_choice-object-literal-spread-syntax" end-parent="true">
+      <start>\%{js:spread-syntax}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:spread-syntax"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_object-literal-spread-syntax-content">
+          <include>
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_object-literal-spread-syntax-content -->
+
+      </include>
+    </context> <!-- /_choice-object-literal-spread-syntax -->
+
+    <context id="_object-literal-property-value" once-only="true">
+      <start>:</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_object-literal-property-value-content">
+          <include>
+            <context ref="js-expr:expression-without-comma"/>
+          </include>
+        </context> <!-- /_object-literal-property-value-content -->
+
+      </include>
+    </context> <!-- /_object-literal-property-value -->
+
+    <context id="_ordered-object-literal-property-value" once-only="true">
+      <start>\%{js:before-next-token}</start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="_object-literal-property-value"/>
+      </include>
+    </context> <!-- /_ordered-object-literal-property-value -->
+
+    <context id="_choice-object-literal-keyword-named-property-or-method" end-parent="true">
+      <start extended="true">
+        (?: \%{js:get-keyword} | \%{js:set-keyword} )
+        (?= \%{js:optional-whitespace-or-comments} [:=(] )
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:identifier"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_object-literal-keyword-named-property-or-method-content">
+          <include>
+            <context ref="js-fn:choice-method-definition"/>
+
+            <context ref="_ordered-object-literal-property-value"/>
+            <context ref="js:ordered-default-value-assignment"/> <!-- for destructuring assignment -->
+          </include>
+        </context> <!-- /_object-literal-keyword-named-property-or-method-content -->
+
+      </include>
+    </context> <!-- /_choice-object-literal-keyword-named-property-or-method -->
+
+    <context id="_choice-object-literal-property-or-method" end-parent="true">
+      <start extended="true">
+        (?= [\['"] ) |                         # computed property name, string
+        \%{js:number-start} (?= \.? [0-9] ) |  # number
+        \%{js:identifier-container-start}      # identifier
+      </start>
+      <end>\%{js:before-next-token}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_object-literal-property-or-method-content">
+          <include>
+            <context ref="js-fn:ordered-property-accessor-keyword"/>
+            <context ref="ordered-property-name"/>
+
+            <context ref="js-fn:choice-method-definition"/>
+
+            <context ref="_ordered-object-literal-property-value"/>
+            <context ref="js:ordered-default-value-assignment"/> <!-- for destructuring assignment -->
+          </include>
+        </context> <!-- /_object-literal-property-or-method-content -->
+
+      </include>
+    </context> <!-- /_choice-object-literal-property-or-method -->
+
+    <context id="_object-literal-property-content">
+      <include>
+        <context ref="_choice-object-literal-spread-syntax"/>
+        <context ref="_choice-object-literal-keyword-named-property-or-method"/>
+        <context ref="js-fn:choice-method-keyword-method-definition"/>
+        <context ref="_choice-object-literal-property-or-method"/>
+      </include>
+    </context> <!-- /_object-literal-property-content -->
+
+    <!-- <ObjectLiteral> -->
+    <context id="choice-object-literal" style-ref="js:object-literal" end-parent="true">
+      <start>{</start>
+      <end>}</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <context ref="js:comments"/>
+
+        <context id="_object-literal-content">
+          <include>
+
+            <context id="_object-literal-first-property" once-only="true">
+              <start>\%{js:before-next-token}</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_object-literal-property-content"/>
+              </include>
+            </context> <!-- /_object-literal-first-property -->
+
+            <context id="_object-literal-properties">
+              <start>,</start>
+              <end>\%{js:before-next-token}</end>
+              <include>
+                <context ref="js:embedded-lang-hooks"/>
+                <context ref="js:comments"/>
+                <context ref="_object-literal-property-content"/>
+              </include>
+            </context> <!-- /_object-literal-properties -->
+
+          </include>
+        </context> <!-- /_object-literal-content -->
+
+      </include>
+    </context> <!-- /choice-object-literal -->
+
+
+    <!-- # Regular expression literal
+
+         /(foo|bar)+/u
+    -->
+
+    <!-- only valid in regular expressions -->
+    <context id="_control-escapes" style-ref="js:escape">
+      <match>\\c[a-zA-Z]</match>
+    </context> <!-- /_control-escapes -->
+
+    <!-- ES2018 -->
+    <context id="_unicode-property-escapes" style-ref="js:escape">
+      <match extended="true">
+        \\ [pP] { (?: [a-zA-Z_]+ = )? [a-zA-Z0-9_]+ }
+      </match>
+    </context> <!-- /_unicode-property-escapes -->
+
+    <!-- ES2018 -->
+    <context id="_named-capture-groups">
+      <match extended="true">
+        \(\? &lt; ( \%{js:identifier} ) &gt;
+      </match>
+      <include>
+        <context sub-pattern="1" style-ref="js:regex-group"/>
+      </include>
+    </context> <!-- /_named-capture-groups -->
+
+    <!-- ES2018 -->
+    <context id="_named-capture-group-backreferences" style-ref="js:escape">
+      <match extended="true">
+        \\k &lt; ( \%{js:identifier} ) &gt;
+      </match>
+      <include>
+        <context sub-pattern="1" style-ref="js:regex-group"/>
+      </include>
+    </context> <!-- /_named-capture-group-backreferences -->
+
+    <context id="_regular-expression-character-classes" style-ref="js:regex-class" style-inside="true">
+      <start>\[</start>
+      <end>]</end>
+      <include>
+        <context ref="js:embedded-lang-hooks"/>
+        <!-- no comments here -->
+
+        <context id="_regular-expression-character-class-content">
+          <include>
+            <context ref="_control-escapes"/>
+            <context ref="_unicode-property-escapes"/>
+            <context ref="_escapes"/>
+          </include>
+        </context> <!-- /_regular-expression-character-class-content -->
+
+      </include>
+    </context> <!-- /_regular-expression-character-classes -->
+
+    <!-- <RegularExpressionLiteral> -->
+    <!-- technically, line terminators are not allowed inside -->
+    <context id="choice-regular-expression-literal" style-ref="js:regex" end-parent="true">
+      <start>/</start>
+      <end>/([gimsuy]*)</end> <!-- s (dotAll): ES2018 -->
+      <include>
+        <context sub-pattern="1" where="end" style-ref="js:regex-flag"/>
+        <context ref="js:embedded-lang-hooks"/>
+        <!-- no comments here -->
+
+        <context id="_regular-expression-literal-content">
+          <include>
+            <context ref="_control-escapes"/>
+            <context ref="_unicode-property-escapes"/>
+            <context ref="_named-capture-group-backreferences"/>
+            <context ref="_escapes"/>
+            <context ref="_named-capture-groups"/>
+            <context ref="_regular-expression-character-classes"/>
+          </include>
+        </context> <!-- /_regular-expression-literal-content -->
+
+      </include>
+    </context> <!-- /choice-regular-expression-literal -->
+
+
+    <!-- # Template literal (template string)
+
+         `this is a ${adjective} template`
+
+         the contexts are structured this way so that the
+         template-literal and template-placeholder styles (and any
+         styles inside the placeholder) do not overlap
+    -->
+
+    <context id="_template-content">
+      <include>
+        <context ref="_escapes"/>
+        <context ref="def:line-continue"/>
+      </include>
+    </context> <!-- /_template-content -->
+
+    <context id="_template-literal-content">
+      <include>
+
+        <context id="_template-head" style-ref="js:template-literal" once-only="true">
+          <start>(?&lt;=`)</start>
+          <end>(?=`|\${)</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <!-- no comments here -->
+            <context ref="_template-content"/>
+          </include>
+        </context> <!-- /_template-head -->
+
+        <context ref="js:embedded-lang-hooks"/>
+
+        <context id="_template-substitution-tails" style-ref="js:template-literal">
+          <start>(?&lt;=})</start>
+          <end>(?=`|\${)</end>
+          <include>
+            <context ref="js:embedded-lang-hooks"/>
+            <!-- no comments here -->
+            <context ref="_template-content"/>
+          </include>
+        </context> <!-- /_template-substitution-tails -->
+
+        <context id="_template-placeholders">
+          <start>\${</start>
+          <end>}</end>
+          <include>
+            <context sub-pattern="0" where="start" style-ref="js:template-placeholder"/>
+            <context sub-pattern="0" where="end" style-ref="js:template-placeholder"/>
+            <context ref="js:embedded-lang-hooks"/>
+            <context ref="js:comments"/>
+
+            <context id="_template-placeholder-content">
+              <include>
+                <context ref="js-expr:expression-with-comma"/>
+              </include>
+            </context> <!-- /_template-placeholder-content -->
+
+          </include>
+        </context> <!-- /_template-placeholders -->
+
+      </include>
+    </context> <!-- /_template-literal-content -->
+
+    <!-- <Template> / <TemplateLiteral> -->
+    <context id="template-literals">
+      <start>`</start>
+      <end>`</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:template-literal"/>
+        <context sub-pattern="0" where="end" style-ref="js:template-literal"/>
+        <!-- no embedded-lang-hooks here -->
+        <!-- no comments here -->
+        <!-- do not match comments or embedded-lang-hooks here, because
+             template-head must match immediately -->
+        <context ref="_template-literal-content"/>
+      </include>
+    </context> <!-- /template-literals -->
+
+    <!-- <Template> / <TemplateLiteral> -->
+    <context id="choice-template-literal" end-parent="true">
+      <start>`</start>
+      <end>`</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="js:template-literal"/>
+        <context sub-pattern="0" where="end" style-ref="js:template-literal"/>
+        <!-- no embedded-lang-hooks here -->
+        <!-- no comments here -->
+        <!-- do not match comments or embedded-lang-hooks here, because
+             template-head must match immediately -->
+        <context ref="_template-literal-content"/>
+      </include>
+    </context> <!-- /choice-template-literal -->
+
+  </definitions>
+</language>

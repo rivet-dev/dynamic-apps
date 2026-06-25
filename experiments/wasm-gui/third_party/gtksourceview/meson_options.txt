@@ -1,0 +1,19 @@
+option('glade_catalog',
+       type: 'boolean', value: false,
+       description: 'Whether to install Glade catalog')
+
+option('install_tests',
+       type: 'boolean', value: false,
+       description: 'Install test programs')
+
+option('gir',
+       type: 'boolean', value: true,
+       description: 'Generate gir data (requires gobject-introspection)')
+
+option('vapi',
+       type: 'boolean', value: true,
+       description: 'Generate vapi data (requires vapigen)')
+
+option('gtk_doc',
+       type: 'boolean', value: false,
+       description: 'Build reference manual (requires gtk-doc)')

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+gtksourcecompletion.ui
+This file is part of GtkSourceView
+
+Copyright (C) 2009 - Jesse van den Kieboom <jessevdk@gnome.org>
+Copyright (C) 2012, 2013 - Sébastien Wilmet <swilmet@gnome.org>
+
+GtkSourceView is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+GtkSourceView is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library; if not, see <http://www.gnu.org/licenses/>.
+-->
+
+<interface>
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkSourceCompletionInfo" id="main_window">
+    <property name="type">popup</property>
+    <property name="type_hint">combo</property>
+    <property name="resizable">False</property>
+    <property name="skip_taskbar_hint">True</property>
+    <property name="skip_pager_hint">True</property>
+    <property name="accept_focus">False</property>
+    <property name="focus_on_map">False</property>
+    <property name="decorated">False</property>
+    <property name="mnemonics-visible">True</property>
+    <child>
+      <object class="GtkGrid" id="vgrid_completion">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSourceCompletionContainer" id="completion_container">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkTreeView" id="tree_view_proposals">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="headers_visible">False</property>
+                <property name="enable_search">False</property>
+                <property name="show_expanders">False</property>
+                <property name="expand">True</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="tree_view_column_icon">
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="cell_renderer_icon"/>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="tree_view_column_proposal">
+                    <property name="expand">True</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cell_renderer_proposal"/>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="tree_view_column_accelerator">
+                    <child>
+                      <object class="GtkCellRendererText" id="cell_renderer_accelerator"/>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid" id="bottom_bar">
+            <property name="visible">True</property>
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkToggleButton" id="info_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Show detailed proposal information</property>
+                <property name="relief">GTK_RELIEF_NONE</property>
+                <property name="label" translatable="yes">_Details…</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="selection_image">
+                <property name="visible">True</property>
+                <property name="halign">end</property>
+                <property name="hexpand">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="selection_label">
+                <property name="visible">True</property>
+                <property name="margin">6</property>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="top_attach">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

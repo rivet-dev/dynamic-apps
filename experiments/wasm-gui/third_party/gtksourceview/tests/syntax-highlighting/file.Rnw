@@ -1,0 +1,15 @@
+\documentclass{article}
+\begin{document}
+Hi there!
+<<hello>>=
+    # Say hello
+    hello <- setClass("hello", slots = c(a="character", b="character"))
+    sayHi <- hello(a="Hello", b="World")
+    paste(sayHi@a, sayHi@b)
+    rm(hello)
+
+    hello <- list()
+    hello <- sayHi@a
+@
+Hi again!
+\end{document}

@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+  <!--
+    NB: The use of action namespaces is not fully supported, for at least two reasons:
+        * This is almost incompatible with shared menu items, sections and submenus
+          defined below.
+        * This could be compatible with the use of GMenu in Mousepad code, but it is
+          not fully implemented (e.g. in mousepad_window_menu_set_tooltips() and
+          mousepad_window_update_toolbar_item()).
+        So always use full action names in this file.
+  -->
+
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+
+  <!--
+    To be shared, a menu item must have an additionnal "item-share-id" attribute, and be wrapped
+    in a section whose id must match this attribute.
+    To add a shared item to a menu, use the following syntax (see examples in ./menus.ui):
+    <item>
+      <attribute name="item-share-id">id-to-be-filled-in</attribute>
+      <attribute name="label"/>
+    </item>
+    This seems to be the best we can do to approximate the expected but missing
+    '<item id="id-to-be-filled-in"/>', since the "label" attribute is required for a menu item,
+    and a custom attribute must be added that way.
+    To disambiguate with shared sections and submenus, and prevent any naming conflict, it would
+    be preferable to follow the convention below: "item." as prefix for the "item-share-id" attribute.
+  -->
+  <menu id="shared-items">
+
+    <!-- "File" menubar submenu -->
+    <section id="item.file.new">
+      <item>
+        <attribute name="item-share-id">item.file.new</attribute>
+        <attribute name="label" translatable="yes">_New</attribute>
+        <attribute name="tooltip" translatable="yes">Create a new document</attribute>
+        <attribute name="action">win.file.new</attribute>
+        <attribute name="icon">document-new</attribute>
+      </item>
+    </section>
+    <section id="item.file.open">
+      <item>
+        <attribute name="item-share-id">item.file.open</attribute>
+        <attribute name="label" translatable="yes">_Open...</attribute>
+        <attribute name="tooltip" translatable="yes">Open a file</attribute>
+        <attribute name="action">win.file.open</attribute>
+        <attribute name="icon">document-open</attribute>
+      </item>
+    </section>
+    <section id="item.file.save">
+      <item>
+        <attribute name="item-share-id">item.file.save</attribute>
+        <attribute name="label" translatable="yes">_Save</attribute>
+        <attribute name="tooltip" translatable="yes">Save the current document</attribute>
+        <attribute name="action">win.file.save</attribute>
+        <attribute name="icon">document-save</attribute>
+      </item>
+    </section>
+    <section id="item.file.save-as">
+      <item>
+        <attribute name="item-share-id">item.file.save-as</attribute>
+        <attribute name="label" translatable="yes">Save _As...</attribute>
+        <attribute name="tooltip" translatable="yes">Save current document as another file</attribute>
+        <attribute name="action">win.file.save-as</attribute>
+        <attribute name="icon">document-save-as</attribute>
+      </item>
+    </section>
+    <section id="item.file.reload">
+      <item>
+        <attribute name="item-share-id">item.file.reload</attribute>
+        <attribute name="label" translatable="yes">Re_load</attribute>
+        <attribute name="tooltip" translatable="yes">Reload file from disk</attribute>
+        <attribute name="action">win.file.reload</attribute>
+        <attribute name="icon">view-refresh</attribute>
+      </item>
+    </section>
+    <section id="item.file.detach-tab">
+      <item>
+        <attribute name="item-share-id">item.file.detach-tab</attribute>
+        <attribute name="label" translatable="yes">_Detach Tab</attribute>
+        <attribute name="tooltip" translatable="yes">Move the current document to a new window</attribute>
+        <attribute name="action">win.file.detach-tab</attribute>
+      </item>
+    </section>
+    <section id="item.file.close-tab">
+      <item>
+        <attribute name="item-share-id">item.file.close-tab</attribute>
+        <attribute name="label" translatable="yes">Close _Tab</attribute>
+        <attribute name="tooltip" translatable="yes">Close the current document</attribute>
+        <attribute name="action">win.file.close-tab</attribute>
+        <attribute name="icon">window-close</attribute>
+      </item>
+    </section>
+
+    <!-- "Edit" menubar submenu -->
+    <section id="item.edit.undo">
+      <item>
+        <attribute name="item-share-id">item.edit.undo</attribute>
+        <attribute name="label" translatable="yes">_Undo</attribute>
+        <attribute name="tooltip" translatable="yes">Undo the last action</attribute>
+        <attribute name="action">win.edit.undo</attribute>
+        <attribute name="icon">edit-undo</attribute>
+      </item>
+    </section>
+    <section id="item.edit.redo">
+      <item>
+        <attribute name="item-share-id">item.edit.redo</attribute>
+        <attribute name="label" translatable="yes">_Redo</attribute>
+        <attribute name="tooltip" translatable="yes">Redo the last undone action</attribute>
+        <attribute name="action">win.edit.redo</attribute>
+        <attribute name="icon">edit-redo</attribute>
+      </item>
+    </section>
+    <section id="item.edit.cut">
+      <item>
+        <attribute name="item-share-id">item.edit.cut</attribute>
+        <attribute name="label" translatable="yes">Cu_t</attribute>
+        <attribute name="tooltip" translatable="yes">Cut the selection</attribute>
+        <attribute name="action">win.edit.cut</attribute>
+        <attribute name="icon">edit-cut</attribute>
+      </item>
+    </section>
+    <section id="item.edit.copy">
+      <item>
+        <attribute name="item-share-id">item.edit.copy</attribute>
+        <attribute name="label" translatable="yes">_Copy</attribute>
+        <attribute name="tooltip" translatable="yes">Copy the selection</attribute>
+        <attribute name="action">win.edit.copy</attribute>
+        <attribute name="icon">edit-copy</attribute>
+      </item>
+    </section>
+    <section id="item.edit.paste">
+      <item>
+        <attribute name="item-share-id">item.edit.paste</attribute>
+        <attribute name="label" translatable="yes">_Paste</attribute>
+        <attribute name="tooltip" translatable="yes">Paste the clipboard</attribute>
+        <attribute name="action">win.edit.paste</attribute>
+        <attribute name="icon">edit-paste</attribute>
+      </item>
+    </section>
+    <section id="item.edit.select-all">
+      <item>
+        <attribute name="item-share-id">item.edit.select-all</attribute>
+        <attribute name="label" translatable="yes">Select _All</attribute>
+        <attribute name="tooltip" translatable="yes">Select the text in the entire document</attribute>
+        <attribute name="action">win.edit.select-all</attribute>
+        <attribute name="icon">edit-select-all</attribute>
+      </item>
+    </section>
+
+    <!-- "Search" menubar submenu -->
+    <section id="item.search.find">
+      <item>
+        <attribute name="item-share-id">item.search.find</attribute>
+        <attribute name="label" translatable="yes">_Find</attribute>
+        <attribute name="tooltip" translatable="yes">Search for text</attribute>
+        <attribute name="action">win.search.find</attribute>
+        <attribute name="icon">edit-find</attribute>
+      </item>
+    </section>
+    <section id="item.search.find-and-replace">
+      <item>
+        <attribute name="item-share-id">item.search.find-and-replace</attribute>
+        <attribute name="label" translatable="yes">Find and Rep_lace...</attribute>
+        <attribute name="tooltip" translatable="yes">Search for and replace text</attribute>
+        <attribute name="action">win.search.find-and-replace</attribute>
+        <attribute name="icon">edit-find-replace</attribute>
+      </item>
+    </section>
+    <section id="item.search.go-to">
+      <item>
+        <attribute name="item-share-id">item.search.go-to</attribute>
+        <attribute name="label" translatable="yes">_Go to...</attribute>
+        <attribute name="tooltip" translatable="yes">Go to a specific location in the document</attribute>
+        <attribute name="action">win.search.go-to</attribute>
+        <attribute name="icon">go-jump</attribute>
+      </item>
+    </section>
+
+    <!-- "View" menubar submenu -->
+    <section id="item.view.fullscreen">
+      <item>
+        <attribute name="item-share-id">item.view.fullscreen</attribute>
+        <attribute name="label" translatable="yes">_Fullscreen</attribute>
+        <attribute name="tooltip" translatable="yes">Make the window fullscreen</attribute>
+        <attribute name="action">win.view.fullscreen</attribute>
+        <attribute name="icon">view-fullscreen</attribute>
+      </item>
+    </section>
+
+  </menu>
+
+
+
+  <!--
+    To be shared, a section only needs a unique id, for which it would be preferable to follow
+    the convention below: "section." as prefix (see also comment for shared menu items above).
+    To add a shared section to a menu, use the following syntax (see examples in ./menus.ui):
+    <section>
+      <attribute name="section-share-id">id-to-be-filled-in</attribute>
+    </section>
+    This seems to be the best we can do to approximate the expected but missing
+    '<section id="id-to-be-filled-in"/>', since a custom attribute must be added that way.
+  -->
+  <menu id="shared-sections">
+
+    <!-- "Edit" menubar submenu -->
+    <section id="section.edit.undo-redo">
+      <item>
+        <attribute name="item-share-id">item.edit.undo</attribute>
+        <attribute name="label"/>
+      </item>
+      <item>
+        <attribute name="item-share-id">item.edit.redo</attribute>
+        <attribute name="label"/>
+      </item>
+    </section>
+
+    <section id="section.edit.selection">
+      <item>
+        <attribute name="item-share-id">item.edit.cut</attribute>
+        <attribute name="label"/>
+      </item>
+      <item>
+        <attribute name="item-share-id">item.edit.copy</attribute>
+        <attribute name="label"/>
+      </item>
+      <item>
+        <attribute name="item-share-id">item.edit.paste</attribute>
+        <attribute name="label"/>
+      </item>
+      <submenu>
+        <attribute name="label" translatable="yes">Paste _Special</attribute>
+        <attribute name="tooltip" translatable="yes">Paste the clipboard in a special way</attribute>
+        <item>
+          <attribute name="label" translatable="yes">Paste from _History</attribute>
+          <attribute name="tooltip" translatable="yes">Paste from the clipboard history</attribute>
+          <attribute name="action">win.edit.paste-special.paste-from-history</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Paste as _Column</attribute>
+          <attribute name="tooltip" translatable="yes">Paste the clipboard text into a column</attribute>
+          <attribute name="action">win.edit.paste-special.paste-as-column</attribute>
+        </item>
+      </submenu>
+      <item>
+        <attribute name="label" translatable="yes">_Delete Selection</attribute>
+        <attribute name="tooltip" translatable="yes">Delete the current selection</attribute>
+        <attribute name="action">win.edit.delete-selection</attribute>
+        <attribute name="icon">edit-delete</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Delete _Line</attribute>
+        <attribute name="tooltip" translatable="yes">Delete the current line</attribute>
+        <attribute name="action">win.edit.delete-line</attribute>
+      </item>
+    </section>
+
+    <section id="section.edit.format">
+      <submenu>
+        <attribute name="label" translatable="yes">Conve_rt</attribute>
+        <attribute name="tooltip" translatable="yes">Convert text in different ways</attribute>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">To _Lowercase</attribute>
+            <attribute name="tooltip" translatable="yes">Change the case of the selection to lowercase</attribute>
+            <attribute name="action">win.edit.convert.to-lowercase</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">To _Uppercase</attribute>
+            <attribute name="tooltip" translatable="yes">Change the case of the selection to uppercase</attribute>
+            <attribute name="action">win.edit.convert.to-uppercase</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">To _Title Case</attribute>
+            <attribute name="tooltip" translatable="yes">Change the case of the selection to title case</attribute>
+            <attribute name="action">win.edit.convert.to-title-case</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">To _Opposite Case</attribute>
+            <attribute name="tooltip" translatable="yes">Change the case of the selection opposite case</attribute>
+            <attribute name="action">win.edit.convert.to-opposite-case</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">_Tabs to Spaces</attribute>
+            <attribute name="tooltip" translatable="yes">Convert all tabs to spaces in the selection or document</attribute>
+            <attribute name="action">win.edit.convert.tabs-to-spaces</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">_Leading Spaces to Tabs</attribute>
+            <attribute name="tooltip" translatable="yes">Convert all the leading spaces to tabs in the selected line(s) or document</attribute>
+            <attribute name="action">win.edit.convert.spaces-to-tabs</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">St_rip Trailing Spaces</attribute>
+            <attribute name="tooltip" translatable="yes">Remove all the trailing spaces from the selected line(s) or document</attribute>
+            <attribute name="action">win.edit.convert.strip-trailing-spaces</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">_Transpose</attribute>
+            <attribute name="tooltip" translatable="yes">Reverse the order of something</attribute>
+            <attribute name="action">win.edit.convert.transpose</attribute>
+          </item>
+        </section>
+      </submenu>
+      <submenu>
+        <attribute name="label" translatable="yes">_Move</attribute>
+        <attribute name="tooltip" translatable="yes">Move content in different ways</attribute>
+        <item>
+          <attribute name="label" translatable="yes">One Line _Up</attribute>
+          <attribute name="tooltip" translatable="yes">Move lines one line up</attribute>
+          <attribute name="action">win.edit.move.line-up</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">One Line _Down</attribute>
+          <attribute name="tooltip" translatable="yes">Move lines one line down</attribute>
+          <attribute name="action">win.edit.move.line-down</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">One Word _Left</attribute>
+          <attribute name="tooltip" translatable="yes">Move words one word left</attribute>
+          <attribute name="action">win.edit.move.word-left</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">One Word _Right</attribute>
+          <attribute name="tooltip" translatable="yes">Move words one word right</attribute>
+          <attribute name="action">win.edit.move.word-right</attribute>
+        </item>
+      </submenu>
+      <item>
+        <attribute name="label" translatable="yes">Dup_licate Line / Selection</attribute>
+        <attribute name="tooltip" translatable="yes">Duplicate the current line or selection</attribute>
+        <attribute name="action">win.edit.duplicate-line-selection</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Increase Indent</attribute>
+        <attribute name="tooltip" translatable="yes">Increase the indentation of the selection or current line</attribute>
+        <attribute name="action">win.edit.increase-indent</attribute>
+        <attribute name="icon">format-indent-more</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Decrease Indent</attribute>
+        <attribute name="tooltip" translatable="yes">Decrease the indentation of the selection or current line</attribute>
+        <attribute name="action">win.edit.decrease-indent</attribute>
+        <attribute name="icon">format-indent-less</attribute>
+      </item>
+    </section>
+
+  </menu>
+
+
+
+  <!--
+    To be shared, a submenu only needs a unique id, for which it would be preferable to follow
+    the convention below: "submenu." as prefix (see also comment for shared menu items above).
+    To add a shared submenu to a menu, use the following syntax:
+    <submenu>
+      <attribute name="submenu-share-id">id-to-be-filled-in</attribute>
+      <attribute name="label" translatable="yes">label-to-be-filled-in</attribute>
+      [ other submenu item or custom attributes ]
+    </submenu>
+    This seems to be the best we can do to approximate the expected but missing
+    '<submenu id="id-to-be-filled-in"/>', since the "label" attribute is required for a submenu item,
+    and a custom attribute must be added that way.
+  -->
+  <menu id="shared-submenus">
+  </menu>
+
+</interface>

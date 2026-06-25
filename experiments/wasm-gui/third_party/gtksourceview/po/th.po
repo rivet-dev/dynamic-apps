@@ -1,0 +1,3622 @@
+# Thai translation of gtksourceview.
+# Copyright (C) 2004-2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gtksourceview package.
+# Theppitak Karoonboonyanan <thep@linux.thai.net>, 2004-2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtksourceview 1.1.0\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=gtksourceview&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2012-09-18 14:01+0000\n"
+"PO-Revision-Date: 2012-09-24 14:21+0700\n"
+"Last-Translator: Theppitak Karoonboonyanan <thep@linux.thai.net>\n"
+"Language-Team: Thai <thai-l10n@googlegroups.com>\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../data/glade/gtksourceview.xml.in.h:1
+msgid "GtkSourceView"
+msgstr "GtkSourceView"
+
+#. Translators: It is related to an option of a set of values
+#: ../data/glade/gtksourceview.xml.in.h:3
+msgid "Disabled"
+msgstr "ปิดใช้"
+
+#: ../data/glade/gtksourceview.xml.in.h:4
+msgid "Before"
+msgstr "หลัง"
+
+#: ../data/glade/gtksourceview.xml.in.h:5
+msgid "After"
+msgstr "ก่อน"
+
+#: ../data/glade/gtksourceview.xml.in.h:6
+msgid "Always"
+msgstr "เสมอ"
+
+#: ../data/glade/gtksourceview.xml.in.h:7
+msgid "Space"
+msgstr "ช่องว่าง"
+
+#: ../data/glade/gtksourceview.xml.in.h:8
+msgid "Tab"
+msgstr "แท็บ"
+
+#: ../data/glade/gtksourceview.xml.in.h:9
+msgid "Newline"
+msgstr "ขึ้นบรรทัดใหม่"
+
+#: ../data/glade/gtksourceview.xml.in.h:10
+msgid "Non Breaking Whitespace"
+msgstr "อักขระช่องว่างไม่แบ่งบรรทัด"
+
+#: ../data/glade/gtksourceview.xml.in.h:11
+msgid "Leading"
+msgstr "ต้นบรรทัด"
+
+#: ../data/glade/gtksourceview.xml.in.h:12
+#: ../gtksourceview/gtksourcecompletionitem.c:255
+#: ../gtksourceview/gtksourcegutterrenderertext.c:403
+msgid "Text"
+msgstr "ข้อความ"
+
+#: ../data/glade/gtksourceview.xml.in.h:13
+msgid "Trailing"
+msgstr "ท้ายบรรทัด"
+
+#. Translators: "All" is used as a label in thestatus bar of the
+#. popup, telling that all completion pages are shown
+#: ../data/glade/gtksourceview.xml.in.h:14
+#: ../gtksourceview/gtksourcecompletion.c:647
+msgid "All"
+msgstr "ทั้งหมด"
+
+#: ../data/language-specs/actionscript.lang.h:1
+#: ../data/language-specs/ada.lang.h:1 ../data/language-specs/asp.lang.h:1
+#: ../data/language-specs/automake.lang.h:1
+#: ../data/language-specs/bennugd.lang.h:1 ../data/language-specs/boo.lang.h:1
+#: ../data/language-specs/cg.lang.h:1 ../data/language-specs/chdr.lang.h:1
+#: ../data/language-specs/c.lang.h:1 ../data/language-specs/cobol.lang.h:1
+#: ../data/language-specs/cpp.lang.h:1 ../data/language-specs/csharp.lang.h:1
+#: ../data/language-specs/cuda.lang.h:1 ../data/language-specs/d.lang.h:1
+#: ../data/language-specs/eiffel.lang.h:1
+#: ../data/language-specs/erlang.lang.h:1
+#: ../data/language-specs/forth.lang.h:1
+#: ../data/language-specs/fortran.lang.h:1
+#: ../data/language-specs/fsharp.lang.h:1 ../data/language-specs/glsl.lang.h:1
+#: ../data/language-specs/go.lang.h:1 ../data/language-specs/haskell.lang.h:1
+#: ../data/language-specs/haskell-literate.lang.h:1
+#: ../data/language-specs/idl.lang.h:1 ../data/language-specs/j.lang.h:1
+#: ../data/language-specs/java.lang.h:1
+#: ../data/language-specs/makefile.lang.h:1
+#: ../data/language-specs/nemerle.lang.h:1
+#: ../data/language-specs/netrexx.lang.h:1
+#: ../data/language-specs/objc.lang.h:1 ../data/language-specs/objj.lang.h:1
+#: ../data/language-specs/ocaml.lang.h:1 ../data/language-specs/ooc.lang.h:1
+#: ../data/language-specs/opal.lang.h:1 ../data/language-specs/opencl.lang.h:1
+#: ../data/language-specs/pascal.lang.h:1
+#: ../data/language-specs/prolog.lang.h:1
+#: ../data/language-specs/scheme.lang.h:1 ../data/language-specs/sml.lang.h:1
+#: ../data/language-specs/sparql.lang.h:1 ../data/language-specs/sql.lang.h:1
+#: ../data/language-specs/systemverilog.lang.h:1
+#: ../data/language-specs/vala.lang.h:1 ../data/language-specs/vbnet.lang.h:1
+#: ../data/language-specs/verilog.lang.h:1
+#: ../data/language-specs/vhdl.lang.h:1
+msgid "Sources"
+msgstr "ซอร์สโค้ด"
+
+#: ../data/language-specs/actionscript.lang.h:2
+msgid "ActionScript"
+msgstr "แอกชันสคริปต์"
+
+#. Any comment
+#: ../data/language-specs/actionscript.lang.h:3
+#: ../data/language-specs/ada.lang.h:3 ../data/language-specs/asp.lang.h:3
+#: ../data/language-specs/bennugd.lang.h:3 ../data/language-specs/boo.lang.h:3
+#: ../data/language-specs/cg.lang.h:3 ../data/language-specs/c.lang.h:3
+#: ../data/language-specs/cobol.lang.h:3
+#: ../data/language-specs/csharp.lang.h:3 ../data/language-specs/def.lang.h:3
+#: ../data/language-specs/d.lang.h:3 ../data/language-specs/dosbatch.lang.h:3
+#: ../data/language-specs/dot.lang.h:3 ../data/language-specs/eiffel.lang.h:3
+#: ../data/language-specs/erlang.lang.h:3 ../data/language-specs/fcl.lang.h:3
+#: ../data/language-specs/forth.lang.h:3
+#: ../data/language-specs/fortran.lang.h:3
+#: ../data/language-specs/fsharp.lang.h:3 ../data/language-specs/gap.lang.h:3
+#: ../data/language-specs/go.lang.h:3 ../data/language-specs/gtkrc.lang.h:3
+#: ../data/language-specs/haskell.lang.h:4
+#: ../data/language-specs/html.lang.h:3 ../data/language-specs/idl.lang.h:3
+#: ../data/language-specs/ini.lang.h:3 ../data/language-specs/j.lang.h:4
+#: ../data/language-specs/latex.lang.h:3 ../data/language-specs/lua.lang.h:3
+#: ../data/language-specs/matlab.lang.h:3
+#: ../data/language-specs/nemerle.lang.h:3
+#: ../data/language-specs/netrexx.lang.h:6
+#: ../data/language-specs/nsis.lang.h:4 ../data/language-specs/ocaml.lang.h:3
+#: ../data/language-specs/ocl.lang.h:3 ../data/language-specs/octave.lang.h:3
+#: ../data/language-specs/ooc.lang.h:3 ../data/language-specs/opal.lang.h:4
+#: ../data/language-specs/pascal.lang.h:3 ../data/language-specs/perl.lang.h:3
+#: ../data/language-specs/php.lang.h:3 ../data/language-specs/po.lang.h:3
+#: ../data/language-specs/prolog.lang.h:3 ../data/language-specs/ruby.lang.h:4
+#: ../data/language-specs/scheme.lang.h:3
+#: ../data/language-specs/scilab.lang.h:3 ../data/language-specs/sh.lang.h:3
+#: ../data/language-specs/sml.lang.h:3 ../data/language-specs/sql.lang.h:3
+#: ../data/language-specs/t2t.lang.h:3 ../data/language-specs/texinfo.lang.h:3
+#: ../data/language-specs/vala.lang.h:3 ../data/language-specs/vbnet.lang.h:3
+#: ../data/language-specs/verilog.lang.h:3
+#: ../data/language-specs/vhdl.lang.h:3 ../data/language-specs/xml.lang.h:3
+msgid "Comment"
+msgstr "หมายเหตุ"
+
+#. Any erroneous construct
+#: ../data/language-specs/actionscript.lang.h:4
+#: ../data/language-specs/cg.lang.h:4 ../data/language-specs/c.lang.h:22
+#: ../data/language-specs/cobol.lang.h:11
+#: ../data/language-specs/csharp.lang.h:4 ../data/language-specs/css.lang.h:3
+#: ../data/language-specs/def.lang.h:53 ../data/language-specs/d.lang.h:4
+#: ../data/language-specs/dot.lang.h:4 ../data/language-specs/go.lang.h:4
+#: ../data/language-specs/html.lang.h:8 ../data/language-specs/j.lang.h:7
+#: ../data/language-specs/json.lang.h:7
+#: ../data/language-specs/nemerle.lang.h:4
+#: ../data/language-specs/ocaml.lang.h:20 ../data/language-specs/ooc.lang.h:4
+#: ../data/language-specs/opal.lang.h:6 ../data/language-specs/perl.lang.h:17
+#: ../data/language-specs/php.lang.h:4 ../data/language-specs/prolog.lang.h:9
+#: ../data/language-specs/vala.lang.h:4
+#: ../data/language-specs/verilog.lang.h:6
+#: ../data/language-specs/xml.lang.h:13
+msgid "Error"
+msgstr "ข้อผิดพลาด"
+
+#. A string constant: "this is a string"
+#: ../data/language-specs/actionscript.lang.h:5
+#: ../data/language-specs/ada.lang.h:4 ../data/language-specs/asp.lang.h:4
+#: ../data/language-specs/boo.lang.h:5 ../data/language-specs/c.lang.h:4
+#: ../data/language-specs/cobol.lang.h:8
+#: ../data/language-specs/csharp.lang.h:6 ../data/language-specs/css.lang.h:5
+#: ../data/language-specs/def.lang.h:17 ../data/language-specs/d.lang.h:5
+#: ../data/language-specs/dosbatch.lang.h:4
+#: ../data/language-specs/eiffel.lang.h:4
+#: ../data/language-specs/erlang.lang.h:7
+#: ../data/language-specs/forth.lang.h:4
+#: ../data/language-specs/fsharp.lang.h:7
+#: ../data/language-specs/gdb-log.lang.h:8 ../data/language-specs/go.lang.h:5
+#: ../data/language-specs/gtkrc.lang.h:4
+#: ../data/language-specs/haskell.lang.h:9 ../data/language-specs/idl.lang.h:7
+#: ../data/language-specs/imagej.lang.h:10 ../data/language-specs/ini.lang.h:5
+#: ../data/language-specs/j.lang.h:17 ../data/language-specs/java.lang.h:4
+#: ../data/language-specs/javascript.lang.h:13
+#: ../data/language-specs/json.lang.h:4 ../data/language-specs/lua.lang.h:4
+#: ../data/language-specs/nemerle.lang.h:7
+#: ../data/language-specs/netrexx.lang.h:4
+#: ../data/language-specs/nsis.lang.h:5 ../data/language-specs/objc.lang.h:6
+#: ../data/language-specs/objj.lang.h:8 ../data/language-specs/ocaml.lang.h:8
+#: ../data/language-specs/ocl.lang.h:4 ../data/language-specs/octave.lang.h:4
+#: ../data/language-specs/ooc.lang.h:6 ../data/language-specs/opal.lang.h:7
+#: ../data/language-specs/pascal.lang.h:4 ../data/language-specs/perl.lang.h:6
+#: ../data/language-specs/php.lang.h:9 ../data/language-specs/po.lang.h:5
+#: ../data/language-specs/prolog.lang.h:6
+#: ../data/language-specs/protobuf.lang.h:6
+#: ../data/language-specs/python.lang.h:6
+#: ../data/language-specs/python3.lang.h:6
+#: ../data/language-specs/ruby.lang.h:14
+#: ../data/language-specs/scheme.lang.h:5
+#: ../data/language-specs/scilab.lang.h:5 ../data/language-specs/sh.lang.h:5
+#: ../data/language-specs/sml.lang.h:7 ../data/language-specs/sql.lang.h:5
+#: ../data/language-specs/texinfo.lang.h:6
+#: ../data/language-specs/vala.lang.h:6 ../data/language-specs/vbnet.lang.h:4
+#: ../data/language-specs/verilog.lang.h:4
+#: ../data/language-specs/vhdl.lang.h:4
+msgid "String"
+msgstr "สตริง"
+
+#. Translators: refered to some specific keywords of the language that
+#. allow to get external functionalities
+#: ../data/language-specs/actionscript.lang.h:6
+#: ../data/language-specs/java.lang.h:8 ../data/language-specs/ooc.lang.h:7
+msgid "External"
+msgstr "ภายนอก"
+
+#: ../data/language-specs/actionscript.lang.h:7
+#: ../data/language-specs/java.lang.h:9 ../data/language-specs/ooc.lang.h:8
+msgid "Declaration"
+msgstr "การประกาศ"
+
+#: ../data/language-specs/actionscript.lang.h:8
+#: ../data/language-specs/ada.lang.h:8 ../data/language-specs/cg.lang.h:10
+#: ../data/language-specs/c.lang.h:12 ../data/language-specs/java.lang.h:10
+#: ../data/language-specs/ooc.lang.h:9
+msgid "Storage Class"
+msgstr "ลักษณะการใช้ที่เก็บข้อมูล"
+
+#: ../data/language-specs/actionscript.lang.h:9
+#: ../data/language-specs/java.lang.h:11 ../data/language-specs/ooc.lang.h:10
+msgid "Scope Declaration"
+msgstr "การประกาศขอบเขต"
+
+#. keywords: "if", "for", "while", etc.
+#: ../data/language-specs/actionscript.lang.h:10
+#: ../data/language-specs/ada.lang.h:5 ../data/language-specs/asp.lang.h:6
+#: ../data/language-specs/awk.lang.h:3 ../data/language-specs/bennugd.lang.h:7
+#: ../data/language-specs/boo.lang.h:10 ../data/language-specs/cg.lang.h:8
+#: ../data/language-specs/c.lang.h:9 ../data/language-specs/cobol.lang.h:6
+#: ../data/language-specs/cpp.lang.h:3 ../data/language-specs/csharp.lang.h:11
+#: ../data/language-specs/css.lang.h:14 ../data/language-specs/cuda.lang.h:3
+#: ../data/language-specs/def.lang.h:47 ../data/language-specs/d.lang.h:6
+#: ../data/language-specs/dosbatch.lang.h:5
+#: ../data/language-specs/dot.lang.h:5 ../data/language-specs/eiffel.lang.h:7
+#: ../data/language-specs/erlang.lang.h:4 ../data/language-specs/fcl.lang.h:5
+#: ../data/language-specs/forth.lang.h:6
+#: ../data/language-specs/fortran.lang.h:5
+#: ../data/language-specs/fsharp.lang.h:8 ../data/language-specs/gap.lang.h:5
+#: ../data/language-specs/glsl.lang.h:5 ../data/language-specs/go.lang.h:7
+#: ../data/language-specs/gtkrc.lang.h:5
+#: ../data/language-specs/haskell.lang.h:7 ../data/language-specs/idl.lang.h:6
+#: ../data/language-specs/imagej.lang.h:8 ../data/language-specs/ini.lang.h:6
+#: ../data/language-specs/java.lang.h:12
+#: ../data/language-specs/javascript.lang.h:7
+#: ../data/language-specs/lua.lang.h:5 ../data/language-specs/matlab.lang.h:4
+#: ../data/language-specs/nemerle.lang.h:8
+#: ../data/language-specs/objc.lang.h:3 ../data/language-specs/objj.lang.h:4
+#: ../data/language-specs/ocaml.lang.h:9 ../data/language-specs/ocl.lang.h:5
+#: ../data/language-specs/octave.lang.h:13
+#: ../data/language-specs/ooc.lang.h:11 ../data/language-specs/opal.lang.h:8
+#: ../data/language-specs/opencl.lang.h:3
+#: ../data/language-specs/pascal.lang.h:5 ../data/language-specs/perl.lang.h:7
+#: ../data/language-specs/php.lang.h:12 ../data/language-specs/po.lang.h:7
+#: ../data/language-specs/prolog.lang.h:5
+#: ../data/language-specs/protobuf.lang.h:4
+#: ../data/language-specs/python.lang.h:4
+#: ../data/language-specs/python3.lang.h:4 ../data/language-specs/R.lang.h:3
+#: ../data/language-specs/ruby.lang.h:7 ../data/language-specs/scheme.lang.h:6
+#: ../data/language-specs/scilab.lang.h:6 ../data/language-specs/sh.lang.h:6
+#: ../data/language-specs/sml.lang.h:4 ../data/language-specs/sparql.lang.h:7
+#: ../data/language-specs/sql.lang.h:6
+#: ../data/language-specs/systemverilog.lang.h:5
+#: ../data/language-specs/tcl.lang.h:4 ../data/language-specs/texinfo.lang.h:7
+#: ../data/language-specs/vala.lang.h:7 ../data/language-specs/vbnet.lang.h:6
+#: ../data/language-specs/verilog.lang.h:10
+#: ../data/language-specs/vhdl.lang.h:6
+msgid "Keyword"
+msgstr "คำหลัก"
+
+#: ../data/language-specs/actionscript.lang.h:11
+#: ../data/language-specs/boo.lang.h:12
+#: ../data/language-specs/csharp.lang.h:13 ../data/language-specs/d.lang.h:9
+#: ../data/language-specs/fsharp.lang.h:21
+#: ../data/language-specs/java.lang.h:13
+#: ../data/language-specs/javascript.lang.h:4
+#: ../data/language-specs/json.lang.h:5
+#: ../data/language-specs/nemerle.lang.h:10
+#: ../data/language-specs/objj.lang.h:9 ../data/language-specs/ooc.lang.h:12
+#: ../data/language-specs/php.lang.h:16 ../data/language-specs/vala.lang.h:9
+msgid "Null Value"
+msgstr "ค่า Null"
+
+#. A boolean constant: TRUE, false
+#: ../data/language-specs/actionscript.lang.h:12
+#: ../data/language-specs/ada.lang.h:7 ../data/language-specs/asp.lang.h:13
+#: ../data/language-specs/bennugd.lang.h:12
+#: ../data/language-specs/cg.lang.h:16 ../data/language-specs/c.lang.h:19
+#: ../data/language-specs/csharp.lang.h:14
+#: ../data/language-specs/def.lang.h:34
+#: ../data/language-specs/fsharp.lang.h:19 ../data/language-specs/go.lang.h:16
+#: ../data/language-specs/gtkrc.lang.h:10 ../data/language-specs/ini.lang.h:10
+#: ../data/language-specs/java.lang.h:14 ../data/language-specs/lua.lang.h:10
+#: ../data/language-specs/nemerle.lang.h:11
+#: ../data/language-specs/ocaml.lang.h:19 ../data/language-specs/ooc.lang.h:13
+#: ../data/language-specs/opal.lang.h:9 ../data/language-specs/php.lang.h:17
+#: ../data/language-specs/protobuf.lang.h:5 ../data/language-specs/R.lang.h:8
+#: ../data/language-specs/ruby.lang.h:9 ../data/language-specs/sml.lang.h:11
+#: ../data/language-specs/vala.lang.h:8 ../data/language-specs/vbnet.lang.h:9
+#: ../data/language-specs/vhdl.lang.h:8
+msgid "Boolean value"
+msgstr "ค่าบูลีน"
+
+#. A generic number constant
+#: ../data/language-specs/actionscript.lang.h:13
+#: ../data/language-specs/asp.lang.h:14 ../data/language-specs/boo.lang.h:14
+#: ../data/language-specs/cobol.lang.h:9 ../data/language-specs/def.lang.h:22
+#: ../data/language-specs/desktop.lang.h:8
+#: ../data/language-specs/forth.lang.h:8 ../data/language-specs/j.lang.h:14
+#: ../data/language-specs/java.lang.h:15
+#: ../data/language-specs/netrexx.lang.h:16
+#: ../data/language-specs/prolog.lang.h:7
+#: ../data/language-specs/vhdl.lang.h:11
+msgid "Number"
+msgstr "ตัวเลข"
+
+#: ../data/language-specs/actionscript.lang.h:14
+#: ../data/language-specs/java.lang.h:16
+#: ../data/language-specs/javascript.lang.h:12
+#: ../data/language-specs/ooc.lang.h:18
+msgid "Future Reserved Keywords"
+msgstr "คำสงวนสำหรับอนาคต"
+
+#: ../data/language-specs/actionscript.lang.h:15
+#: ../data/language-specs/ada.lang.h:9 ../data/language-specs/asp.lang.h:11
+#: ../data/language-specs/bennugd.lang.h:8 ../data/language-specs/boo.lang.h:8
+#: ../data/language-specs/cg.lang.h:9 ../data/language-specs/c.lang.h:11
+#: ../data/language-specs/cpp.lang.h:4 ../data/language-specs/csharp.lang.h:5
+#: ../data/language-specs/cuda.lang.h:4 ../data/language-specs/d.lang.h:7
+#: ../data/language-specs/eiffel.lang.h:8
+#: ../data/language-specs/forth.lang.h:7
+#: ../data/language-specs/fortran.lang.h:9
+#: ../data/language-specs/fsharp.lang.h:11
+#: ../data/language-specs/glsl.lang.h:4 ../data/language-specs/go.lang.h:8
+#: ../data/language-specs/gtkrc.lang.h:7
+#: ../data/language-specs/haskell.lang.h:8 ../data/language-specs/idl.lang.h:4
+#: ../data/language-specs/ini.lang.h:9 ../data/language-specs/java.lang.h:17
+#: ../data/language-specs/javascript.lang.h:8
+#: ../data/language-specs/nemerle.lang.h:9
+#: ../data/language-specs/objc.lang.h:4 ../data/language-specs/objj.lang.h:5
+#: ../data/language-specs/ocaml.lang.h:12 ../data/language-specs/ocl.lang.h:7
+#: ../data/language-specs/ooc.lang.h:19 ../data/language-specs/opal.lang.h:11
+#: ../data/language-specs/opencl.lang.h:4
+#: ../data/language-specs/pascal.lang.h:7 ../data/language-specs/php.lang.h:15
+#: ../data/language-specs/protobuf.lang.h:3
+#: ../data/language-specs/sml.lang.h:5 ../data/language-specs/sparql.lang.h:4
+#: ../data/language-specs/sql.lang.h:9 ../data/language-specs/vala.lang.h:5
+#: ../data/language-specs/vbnet.lang.h:7
+msgid "Data Type"
+msgstr "ชนิดข้อมูล"
+
+#: ../data/language-specs/ada.lang.h:2
+msgid "Ada"
+msgstr "Ada"
+
+#. A decimal number: 1234
+#: ../data/language-specs/ada.lang.h:6
+#: ../data/language-specs/bennugd.lang.h:10
+#: ../data/language-specs/cg.lang.h:13 ../data/language-specs/c.lang.h:16
+#: ../data/language-specs/csharp.lang.h:15
+#: ../data/language-specs/def.lang.h:26 ../data/language-specs/d.lang.h:12
+#: ../data/language-specs/eiffel.lang.h:15
+#: ../data/language-specs/erlang.lang.h:10
+#: ../data/language-specs/fsharp.lang.h:6 ../data/language-specs/go.lang.h:13
+#: ../data/language-specs/nemerle.lang.h:13
+#: ../data/language-specs/ocaml.lang.h:7 ../data/language-specs/ooc.lang.h:15
+#: ../data/language-specs/opal.lang.h:10 ../data/language-specs/php.lang.h:19
+#: ../data/language-specs/python.lang.h:13
+#: ../data/language-specs/python3.lang.h:12
+#: ../data/language-specs/ruby.lang.h:11
+msgid "Decimal number"
+msgstr "เลขฐานสิบ"
+
+#: ../data/language-specs/ada.lang.h:10 ../data/language-specs/asp.lang.h:5
+#: ../data/language-specs/bennugd.lang.h:4 ../data/language-specs/cg.lang.h:5
+#: ../data/language-specs/c.lang.h:5 ../data/language-specs/csharp.lang.h:12
+#: ../data/language-specs/forth.lang.h:5
+#: ../data/language-specs/fsharp.lang.h:20
+#: ../data/language-specs/glsl.lang.h:3
+#: ../data/language-specs/haskell.lang.h:3 ../data/language-specs/idl.lang.h:5
+#: ../data/language-specs/nemerle.lang.h:5
+#: ../data/language-specs/objj.lang.h:6 ../data/language-specs/pascal.lang.h:8
+#: ../data/language-specs/vbnet.lang.h:5
+msgid "Preprocessor"
+msgstr "พรีโพรเซสเซอร์"
+
+#: ../data/language-specs/ada.lang.h:11
+msgid "Arbitrary base number"
+msgstr "เลขฐานกำหนดเอง"
+
+#: ../data/language-specs/ada.lang.h:12
+#: ../data/language-specs/csharp.lang.h:17
+#: ../data/language-specs/verilog.lang.h:14
+#: ../data/language-specs/vhdl.lang.h:10
+msgid "Real number"
+msgstr "จำนวนจริง"
+
+#. map to nothing
+#: ../data/language-specs/ada.lang.h:13 ../data/language-specs/cg.lang.h:11
+#: ../data/language-specs/c.lang.h:14 ../data/language-specs/csharp.lang.h:8
+#: ../data/language-specs/eiffel.lang.h:12
+#: ../data/language-specs/fsharp.lang.h:18 ../data/language-specs/go.lang.h:10
+#: ../data/language-specs/haskell.lang.h:11
+#: ../data/language-specs/java.lang.h:3
+#: ../data/language-specs/javascript.lang.h:3
+#: ../data/language-specs/json.lang.h:3 ../data/language-specs/lua.lang.h:6
+#: ../data/language-specs/netrexx.lang.h:3
+#: ../data/language-specs/ocaml.lang.h:18 ../data/language-specs/ooc.lang.h:5
+#: ../data/language-specs/php.lang.h:8 ../data/language-specs/prolog.lang.h:10
+#: ../data/language-specs/python.lang.h:7
+#: ../data/language-specs/python3.lang.h:7
+#: ../data/language-specs/ruby.lang.h:3 ../data/language-specs/sml.lang.h:8
+#: ../data/language-specs/texinfo.lang.h:4
+#: ../data/language-specs/verilog.lang.h:5
+msgid "Escaped Character"
+msgstr "อักขระหลีก"
+
+#: ../data/language-specs/asp.lang.h:2
+msgid "ASP"
+msgstr "ASP"
+
+#. A function name (also: methods for classes)
+#: ../data/language-specs/asp.lang.h:7 ../data/language-specs/cg.lang.h:18
+#: ../data/language-specs/changelog.lang.h:8
+#: ../data/language-specs/css.lang.h:8 ../data/language-specs/def.lang.h:38
+#: ../data/language-specs/gap.lang.h:6 ../data/language-specs/gdb-log.lang.h:7
+#: ../data/language-specs/gtk-doc.lang.h:10
+#: ../data/language-specs/javascript.lang.h:9
+#: ../data/language-specs/lua.lang.h:8 ../data/language-specs/scheme.lang.h:7
+#: ../data/language-specs/scilab.lang.h:7 ../data/language-specs/sh.lang.h:4
+#: ../data/language-specs/sparql.lang.h:5 ../data/language-specs/sql.lang.h:7
+msgid "Function"
+msgstr "ฟังก์ชัน"
+
+#. Operators: "+", "*", etc.
+#: ../data/language-specs/asp.lang.h:8 ../data/language-specs/bennugd.lang.h:6
+#: ../data/language-specs/c.lang.h:10 ../data/language-specs/cmake.lang.h:6
+#: ../data/language-specs/cobol.lang.h:10 ../data/language-specs/def.lang.h:45
+#: ../data/language-specs/erlang.lang.h:5
+#: ../data/language-specs/imagej.lang.h:9 ../data/language-specs/nsis.lang.h:3
+#: ../data/language-specs/octave.lang.h:5
+#: ../data/language-specs/perl.lang.h:12 ../data/language-specs/php.lang.h:14
+#: ../data/language-specs/prolog.lang.h:8
+#: ../data/language-specs/sparql.lang.h:15
+msgid "Operator"
+msgstr "ตัวกระทำ"
+
+#: ../data/language-specs/asp.lang.h:9
+msgid "ASP Object"
+msgstr "อ็อบเจกต์ ASP"
+
+#: ../data/language-specs/asp.lang.h:10
+msgid "VBScript and ADO constants"
+msgstr "VBScript และค่าคงที่ ADO"
+
+#. A special constant like NULL in C or null in Java
+#: ../data/language-specs/asp.lang.h:12 ../data/language-specs/def.lang.h:32
+#: ../data/language-specs/vbnet.lang.h:8
+msgid "Special constant"
+msgstr "ค่าคงที่พิเศษ"
+
+#: ../data/language-specs/automake.lang.h:2
+msgid "Automake"
+msgstr "Automake"
+
+#: ../data/language-specs/automake.lang.h:3
+msgid "Automake Variable"
+msgstr "ตัวแปร Automake"
+
+#: ../data/language-specs/automake.lang.h:4
+msgid "Primary"
+msgstr "Primary"
+
+#: ../data/language-specs/automake.lang.h:5
+msgid "Secondary"
+msgstr "Secondary"
+
+#: ../data/language-specs/automake.lang.h:6
+msgid "Prefix"
+msgstr "Prefix"
+
+#: ../data/language-specs/automake.lang.h:7
+msgid "Optional Target"
+msgstr "เป้าหมายเสริม"
+
+#: ../data/language-specs/automake.lang.h:8
+msgid "Built-in Target"
+msgstr "เป้าหมายในตัว"
+
+#: ../data/language-specs/automake.lang.h:9
+msgid "Other Keyword"
+msgstr "คำหลักอื่น"
+
+#: ../data/language-specs/automake.lang.h:10
+msgid "Substitution"
+msgstr "การแทนที่"
+
+#: ../data/language-specs/awk.lang.h:1
+#: ../data/language-specs/dosbatch.lang.h:1
+#: ../data/language-specs/javascript.lang.h:1
+#: ../data/language-specs/lua.lang.h:1 ../data/language-specs/m4.lang.h:1
+#: ../data/language-specs/perl.lang.h:1 ../data/language-specs/php.lang.h:1
+#: ../data/language-specs/python.lang.h:1
+#: ../data/language-specs/python3.lang.h:1
+#: ../data/language-specs/ruby.lang.h:1 ../data/language-specs/sh.lang.h:1
+#: ../data/language-specs/tcl.lang.h:1
+msgid "Scripts"
+msgstr "สคริปต์"
+
+#: ../data/language-specs/awk.lang.h:2
+msgid "awk"
+msgstr "awk"
+
+#: ../data/language-specs/awk.lang.h:4
+msgid "Pattern"
+msgstr "แพตเทิร์น"
+
+#: ../data/language-specs/awk.lang.h:5 ../data/language-specs/cmake.lang.h:8
+#: ../data/language-specs/cobol.lang.h:5
+#: ../data/language-specs/haskell.lang.h:5 ../data/language-specs/ini.lang.h:8
+#: ../data/language-specs/makefile.lang.h:3
+#: ../data/language-specs/nsis.lang.h:6
+#: ../data/language-specs/octave.lang.h:14
+#: ../data/language-specs/perl.lang.h:13 ../data/language-specs/php.lang.h:5
+#: ../data/language-specs/pkgconfig.lang.h:3
+#: ../data/language-specs/prolog.lang.h:4
+#: ../data/language-specs/protobuf.lang.h:2
+#: ../data/language-specs/ruby.lang.h:21 ../data/language-specs/sh.lang.h:7
+#: ../data/language-specs/sparql.lang.h:14 ../data/language-specs/tcl.lang.h:3
+msgid "Variable"
+msgstr "ตัวแปร"
+
+#: ../data/language-specs/awk.lang.h:6 ../data/language-specs/boo.lang.h:15
+#: ../data/language-specs/glsl.lang.h:6 ../data/language-specs/go.lang.h:18
+#: ../data/language-specs/netrexx.lang.h:15
+#: ../data/language-specs/perl.lang.h:8
+#: ../data/language-specs/python.lang.h:18
+#: ../data/language-specs/python3.lang.h:17
+msgid "Builtin Function"
+msgstr "ฟังก์ชันในตัว"
+
+#: ../data/language-specs/bennugd.lang.h:2
+msgid "BennuGD"
+msgstr "BennuGD"
+
+#. Any variable name
+#: ../data/language-specs/bennugd.lang.h:5
+#: ../data/language-specs/def.lang.h:36 ../data/language-specs/php.lang.h:6
+msgid "Identifier"
+msgstr "ชื่อตัวแปร"
+
+#. A floating point constant: 2.3e10
+#: ../data/language-specs/bennugd.lang.h:9 ../data/language-specs/cg.lang.h:12
+#: ../data/language-specs/c.lang.h:15 ../data/language-specs/def.lang.h:24
+#: ../data/language-specs/d.lang.h:11 ../data/language-specs/erlang.lang.h:9
+#: ../data/language-specs/go.lang.h:11 ../data/language-specs/json.lang.h:9
+#: ../data/language-specs/nemerle.lang.h:12
+#: ../data/language-specs/ooc.lang.h:14 ../data/language-specs/php.lang.h:18
+#: ../data/language-specs/python.lang.h:12
+#: ../data/language-specs/python3.lang.h:11 ../data/language-specs/R.lang.h:10
+#: ../data/language-specs/ruby.lang.h:10
+msgid "Floating point number"
+msgstr "เลขทศนิยม"
+
+#: ../data/language-specs/bennugd.lang.h:11
+#: ../data/language-specs/cg.lang.h:15 ../data/language-specs/c.lang.h:18
+#: ../data/language-specs/csharp.lang.h:16 ../data/language-specs/d.lang.h:15
+#: ../data/language-specs/eiffel.lang.h:16 ../data/language-specs/go.lang.h:15
+#: ../data/language-specs/nemerle.lang.h:16
+#: ../data/language-specs/ooc.lang.h:17 ../data/language-specs/php.lang.h:21
+msgid "Hexadecimal number"
+msgstr "เลขฐานสิบหก"
+
+#: ../data/language-specs/bibtex.lang.h:1
+#: ../data/language-specs/docbook.lang.h:1 ../data/language-specs/dtd.lang.h:1
+#: ../data/language-specs/gtk-doc.lang.h:1
+#: ../data/language-specs/haddock.lang.h:1
+#: ../data/language-specs/html.lang.h:1 ../data/language-specs/latex.lang.h:1
+#: ../data/language-specs/mallard.lang.h:1
+#: ../data/language-specs/markdown.lang.h:1
+#: ../data/language-specs/mxml.lang.h:1 ../data/language-specs/t2t.lang.h:1
+#: ../data/language-specs/texinfo.lang.h:1 ../data/language-specs/xml.lang.h:1
+#: ../data/language-specs/xslt.lang.h:1
+#: ../gtksourceview/gtksourcecompletionitem.c:242
+#: ../gtksourceview/gtksourcegutterrenderertext.c:395
+msgid "Markup"
+msgstr "มาร์กอัป"
+
+#: ../data/language-specs/bibtex.lang.h:2
+msgid "BibTeX"
+msgstr "BibTeX"
+
+#: ../data/language-specs/bibtex.lang.h:3
+msgid "Entries"
+msgstr "รายการ"
+
+#: ../data/language-specs/bibtex.lang.h:4
+msgid "Field"
+msgstr "เขตข้อมูล"
+
+#: ../data/language-specs/boo.lang.h:2
+msgid "Boo"
+msgstr "Boo"
+
+#: ../data/language-specs/boo.lang.h:4 ../data/language-specs/python.lang.h:5
+#: ../data/language-specs/python3.lang.h:5
+msgid "Multiline string"
+msgstr "สตริงหลายบรรทัด"
+
+#: ../data/language-specs/boo.lang.h:6
+#: ../data/language-specs/javascript.lang.h:14
+#: ../data/language-specs/perl.lang.h:16 ../data/language-specs/ruby.lang.h:24
+msgid "Regular Expression"
+msgstr "นิพจน์เรกกิวลาร์"
+
+#: ../data/language-specs/boo.lang.h:7 ../data/language-specs/sparql.lang.h:8
+#: ../data/language-specs/xml.lang.h:12 ../data/language-specs/xslt.lang.h:4
+msgid "Namespace"
+msgstr "Namespace"
+
+#: ../data/language-specs/boo.lang.h:9
+msgid "Definition"
+msgstr "คำจำกัดความ"
+
+#: ../data/language-specs/boo.lang.h:11
+#: ../data/language-specs/python.lang.h:10
+#: ../data/language-specs/python3.lang.h:9
+#: ../data/language-specs/ruby.lang.h:19
+msgid "Special Variable"
+msgstr "ตัวแปรพิเศษ"
+
+#: ../data/language-specs/boo.lang.h:13
+#: ../data/language-specs/desktop.lang.h:9 ../data/language-specs/d.lang.h:10
+#: ../data/language-specs/imagej.lang.h:4
+#: ../data/language-specs/libtool.lang.h:4
+#: ../data/language-specs/objj.lang.h:3 ../data/language-specs/octave.lang.h:8
+#: ../data/language-specs/python.lang.h:11
+#: ../data/language-specs/python3.lang.h:10
+#: ../data/language-specs/scheme.lang.h:4
+#: ../data/language-specs/scilab.lang.h:8
+#: ../data/language-specs/sparql.lang.h:9
+msgid "Boolean"
+msgstr "บูลีน"
+
+#: ../data/language-specs/cg.lang.h:2
+msgid "CG Shader Language"
+msgstr "ภาษา Shader CG"
+
+#: ../data/language-specs/cg.lang.h:6
+msgid "Bindings"
+msgstr "การ Bind"
+
+#: ../data/language-specs/cg.lang.h:7 ../data/language-specs/c.lang.h:7
+#: ../data/language-specs/objj.lang.h:7
+msgid "Included File"
+msgstr "แฟ้ม Include"
+
+#: ../data/language-specs/cg.lang.h:14 ../data/language-specs/c.lang.h:17
+#: ../data/language-specs/d.lang.h:14 ../data/language-specs/go.lang.h:14
+#: ../data/language-specs/nemerle.lang.h:15
+#: ../data/language-specs/ooc.lang.h:16 ../data/language-specs/php.lang.h:20
+msgid "Octal number"
+msgstr "เลขฐานแปด"
+
+#: ../data/language-specs/cg.lang.h:17
+msgid "Swizzle operator"
+msgstr "ตัวกระทำ Swizzle"
+
+#. Translators: functions that are provided in the language
+#: ../data/language-specs/cg.lang.h:19 ../data/language-specs/erlang.lang.h:12
+#: ../data/language-specs/imagej.lang.h:3
+#: ../data/language-specs/matlab.lang.h:5
+#: ../data/language-specs/octave.lang.h:16
+#: ../data/language-specs/ruby.lang.h:16
+msgid "Builtin"
+msgstr "ในตัว"
+
+#. *
+#. * SECTION:language
+#. * @Short_description: Object representing a syntax highlighted language
+#. * @Title: GtkSourceLanguage
+#. * @See_also: #GtkSourceLanguageManager
+#. *
+#. * #GtkSourceLanguage encapsulates syntax and highlighting styles for a
+#. * particular language. Use #GtkSourceLanguageManager to obtain a
+#. * #GtkSourceLanguage instance, and gtk_source_buffer_set_language() to apply it
+#. * to a #GtkSourceBuffer.
+#.
+#: ../data/language-specs/changelog.lang.h:1
+#: ../data/language-specs/cmake.lang.h:1 ../data/language-specs/css.lang.h:1
+#: ../data/language-specs/desktop.lang.h:1
+#: ../data/language-specs/diff.lang.h:1 ../data/language-specs/dot.lang.h:1
+#: ../data/language-specs/dpatch.lang.h:1
+#: ../data/language-specs/gdb-log.lang.h:1
+#: ../data/language-specs/gtkrc.lang.h:1 ../data/language-specs/ini.lang.h:1
+#: ../data/language-specs/json.lang.h:1
+#: ../data/language-specs/libtool.lang.h:1
+#: ../data/language-specs/nsis.lang.h:1 ../data/language-specs/ocl.lang.h:1
+#: ../data/language-specs/pkgconfig.lang.h:1
+#: ../data/language-specs/po.lang.h:1 ../data/language-specs/protobuf.lang.h:1
+#: ../data/language-specs/puppet.lang.h:1
+#: ../data/language-specs/rpmspec.lang.h:1 ../data/language-specs/sh.lang.h:10
+#: ../data/language-specs/texinfo.lang.h:5
+#: ../data/language-specs/yacc.lang.h:1
+#: ../gtksourceview/gtksourcelanguage.c:55
+msgid "Others"
+msgstr "อื่นๆ"
+
+#: ../data/language-specs/changelog.lang.h:2
+msgid "ChangeLog"
+msgstr "ChangeLog"
+
+#: ../data/language-specs/changelog.lang.h:3
+#: ../data/language-specs/rpmspec.lang.h:14
+msgid "Date"
+msgstr "วันที่"
+
+#: ../data/language-specs/changelog.lang.h:4
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:455
+msgid "Name"
+msgstr "ชื่อ"
+
+#: ../data/language-specs/changelog.lang.h:5
+msgid "E-mail address"
+msgstr "ที่อยู่อีเมล"
+
+#: ../data/language-specs/changelog.lang.h:6
+msgid "File"
+msgstr "แฟ้ม"
+
+#: ../data/language-specs/changelog.lang.h:7
+msgid "Bullet"
+msgstr "Bullet"
+
+#: ../data/language-specs/changelog.lang.h:9
+msgid "Release"
+msgstr "การออกรุ่น"
+
+#: ../data/language-specs/chdr.lang.h:2
+msgid "C/C++/ObjC Header"
+msgstr "แฟ้มส่วนหัว C/C++/ObjC"
+
+#: ../data/language-specs/c.lang.h:2
+msgid "C"
+msgstr "C"
+
+#: ../data/language-specs/c.lang.h:6 ../data/language-specs/cpp.lang.h:5
+#: ../data/language-specs/objc.lang.h:5 ../data/language-specs/opal.lang.h:5
+msgid "Common Defines"
+msgstr "ข้อกำหนดสามัญ"
+
+#. A character constant: 'c'
+#: ../data/language-specs/c.lang.h:8 ../data/language-specs/csharp.lang.h:7
+#: ../data/language-specs/def.lang.h:15 ../data/language-specs/erlang.lang.h:8
+#: ../data/language-specs/gap.lang.h:4 ../data/language-specs/go.lang.h:6
+#: ../data/language-specs/haskell.lang.h:10
+#: ../data/language-specs/java.lang.h:5
+#: ../data/language-specs/nemerle.lang.h:6
+#: ../data/language-specs/netrexx.lang.h:5 ../data/language-specs/sml.lang.h:6
+#: ../data/language-specs/vhdl.lang.h:5
+msgid "Character"
+msgstr "อักขระ"
+
+#: ../data/language-specs/c.lang.h:13 ../data/language-specs/go.lang.h:9
+msgid "printf Conversion"
+msgstr "การแปลง printf"
+
+#: ../data/language-specs/c.lang.h:20
+msgid "Standard stream"
+msgstr "สตรีมมาตรฐาน"
+
+#: ../data/language-specs/c.lang.h:21
+msgid "Signal name"
+msgstr "ชื่อสัญญาณ"
+
+#: ../data/language-specs/cmake.lang.h:2
+msgid "CMake"
+msgstr "CMake"
+
+#: ../data/language-specs/cmake.lang.h:3
+msgid "Builtin Command"
+msgstr "คำสั่งในตัว"
+
+#: ../data/language-specs/cmake.lang.h:4 ../data/language-specs/glsl.lang.h:8
+msgid "Builtin Variable"
+msgstr "ตัวแปรในตัว"
+
+#. Any constant
+#: ../data/language-specs/cmake.lang.h:5 ../data/language-specs/cobol.lang.h:7
+#: ../data/language-specs/def.lang.h:13
+#: ../data/language-specs/gtk-doc.lang.h:8
+#: ../data/language-specs/libtool.lang.h:3
+#: ../data/language-specs/ruby.lang.h:17
+msgid "Constant"
+msgstr "ค่าคงที่"
+
+#: ../data/language-specs/cmake.lang.h:7
+msgid "Control Keyword"
+msgstr "คำหลักควบคุม"
+
+#: ../data/language-specs/cobol.lang.h:2
+msgid "Cobol"
+msgstr "โคบอล"
+
+#. Any statement
+#: ../data/language-specs/cobol.lang.h:4 ../data/language-specs/def.lang.h:43
+msgid "Statement"
+msgstr "ถ้อยแถลง"
+
+#: ../data/language-specs/cpp.lang.h:2
+msgid "C++"
+msgstr "C++"
+
+#: ../data/language-specs/csharp.lang.h:2
+msgid "C#"
+msgstr "C#"
+
+#. Translators: this is a format that appears in the strings
+#: ../data/language-specs/csharp.lang.h:10 ../data/language-specs/po.lang.h:8
+msgid "String Format"
+msgstr "ฟอร์แมตของสตริง"
+
+#: ../data/language-specs/css.lang.h:2
+msgid "CSS"
+msgstr "CSS"
+
+#: ../data/language-specs/css.lang.h:4
+msgid "Others 2"
+msgstr "อื่นๆ 2"
+
+#: ../data/language-specs/css.lang.h:6
+msgid "Color"
+msgstr "สี"
+
+#: ../data/language-specs/css.lang.h:7
+msgid "Others 3"
+msgstr "อื่นๆ 3"
+
+#. Translator: it is a type of number
+#: ../data/language-specs/css.lang.h:10 ../data/language-specs/fcl.lang.h:7
+#: ../data/language-specs/fortran.lang.h:8 ../data/language-specs/gap.lang.h:7
+#: ../data/language-specs/gtkrc.lang.h:6
+#: ../data/language-specs/haskell.lang.h:13
+#: ../data/language-specs/ini.lang.h:7 ../data/language-specs/json.lang.h:8
+#: ../data/language-specs/octave.lang.h:9
+#: ../data/language-specs/pascal.lang.h:6 ../data/language-specs/sml.lang.h:10
+#: ../data/language-specs/sql.lang.h:8
+msgid "Decimal"
+msgstr "เลขฐานสิบ"
+
+#: ../data/language-specs/css.lang.h:11
+msgid "Dimension"
+msgstr "ขนาด"
+
+#: ../data/language-specs/css.lang.h:12
+msgid "Known Property Value"
+msgstr "ค่าคุณสมบัติตามข้อกำหนด"
+
+#: ../data/language-specs/css.lang.h:13
+msgid "at-rules"
+msgstr "กฎ at"
+
+#: ../data/language-specs/css.lang.h:15
+msgid "ID Selector"
+msgstr ""
+
+#: ../data/language-specs/css.lang.h:16
+msgid "Class Selector"
+msgstr ""
+
+#: ../data/language-specs/css.lang.h:17
+msgid "Tag Name Selector"
+msgstr ""
+
+#: ../data/language-specs/cuda.lang.h:2
+msgid "CUDA"
+msgstr "CUDA"
+
+#: ../data/language-specs/cuda.lang.h:5
+msgid "Global Functions"
+msgstr "ฟังก์ชันโกลบอล"
+
+#: ../data/language-specs/cuda.lang.h:6
+msgid "Device Functions"
+msgstr "ฟังก์ชันสำหรับอุปกรณ์"
+
+#: ../data/language-specs/cuda.lang.h:7
+msgid "Global Variables"
+msgstr "ตัวแปรโกลบอล"
+
+#: ../data/language-specs/def.lang.h:1
+msgid "Defaults"
+msgstr "ปริยาย"
+
+#. A shebang: #!/bin/sh
+#: ../data/language-specs/def.lang.h:5
+msgid "Shebang"
+msgstr "ส่วนหัวสคริปต์ (#!/bin/sh)"
+
+#. A special comment containing documentation like in javadoc or
+#. gtk-doc
+#: ../data/language-specs/def.lang.h:8
+msgid "Documentation comment"
+msgstr "หมายเหตุสำหรับสร้างเอกสาร"
+
+#. This style doesn't map to anything since it must be used as an additional
+#. style for text which is already styled as a "doc-comment"
+#: ../data/language-specs/def.lang.h:11
+msgid "Documentation comment element"
+msgstr "อิลิเมนต์หมายเหตุสำหรับสร้างเอกสาร"
+
+#. This style doesn't map to anything since it must be used as an additional
+#. style for text which is already styled as a "string"
+#: ../data/language-specs/def.lang.h:20
+msgid "Special character (inside a string)"
+msgstr "อักขระพิเศษ (ภายในสตริง)"
+
+#. A base-N number: 0xFFFF
+#: ../data/language-specs/def.lang.h:28
+#: ../data/language-specs/python.lang.h:14
+#: ../data/language-specs/python3.lang.h:13
+#: ../data/language-specs/ruby.lang.h:12
+msgid "Base-N number"
+msgstr "เลขจำนวนเต็มฐาน N"
+
+#. A complex number
+#: ../data/language-specs/def.lang.h:30
+#: ../data/language-specs/python.lang.h:15
+#: ../data/language-specs/python3.lang.h:14
+msgid "Complex number"
+msgstr "เลขเชิงซ้อน"
+
+#. A builtin name: like __import__, abs in Python
+#. (see http://docs.python.org/lib/built-in-funcs.html)
+#: ../data/language-specs/def.lang.h:41
+msgid "Built-in identifier"
+msgstr "ชื่อที่กำหนดไว้ในภาษา"
+
+#. A primitive data type: int, long, char, etc.
+#: ../data/language-specs/def.lang.h:49 ../data/language-specs/octave.lang.h:6
+msgid "Data type"
+msgstr "ชนิดข้อมูล"
+
+#. This one is for '#include <foo.h>' and "#pragma blah", or 'use foobar', etc..
+#: ../data/language-specs/def.lang.h:51
+msgid "Preprocessor directive"
+msgstr "ข้อกำหนดพรีโพรเซสเซอร์"
+
+#. Reserved keywords: like "const" and "goto" in Java
+#: ../data/language-specs/def.lang.h:55
+msgid "Reserved keyword"
+msgstr "คำสงวน"
+
+#. Anything that needs extra attention; mostly the keywords TODO, FIXME and XXX
+#: ../data/language-specs/def.lang.h:57
+msgid "Note (FIXME, TODO, XXX, etc.)"
+msgstr "ข้อสังเกต (FIXME, TODO, XXX ฯลฯ)"
+
+#. Text that stands out, HTML links, e-mail addresses, etc.
+#: ../data/language-specs/def.lang.h:59
+msgid "Underlined"
+msgstr "ขีดเส้นใต้"
+
+#: ../data/language-specs/desktop.lang.h:2
+msgid ".desktop"
+msgstr ".desktop"
+
+#: ../data/language-specs/desktop.lang.h:3
+msgid "Group"
+msgstr "กลุ่ม"
+
+#. Translators: "Key" here means key value, that is the left hand
+#. side in a myoption=something line in a .desktop file
+#: ../data/language-specs/desktop.lang.h:6
+#: ../data/language-specs/json.lang.h:2
+msgid "Key"
+msgstr "คีย์"
+
+#: ../data/language-specs/desktop.lang.h:7
+msgid "Translation"
+msgstr "คำแปล"
+
+#: ../data/language-specs/desktop.lang.h:10
+msgid "Exec parameter"
+msgstr "พารามิเตอร์คำสั่ง"
+
+#: ../data/language-specs/desktop.lang.h:11
+msgid "Encoding"
+msgstr "รหัสอักขระ"
+
+#: ../data/language-specs/desktop.lang.h:12
+msgid "Main Category"
+msgstr "หมวดหลัก"
+
+#: ../data/language-specs/desktop.lang.h:13
+msgid "Additional Category"
+msgstr "หมวดเพิ่มเติม"
+
+#: ../data/language-specs/desktop.lang.h:14
+msgid "Reserved Category"
+msgstr "หมวดสงวนไว้"
+
+#: ../data/language-specs/diff.lang.h:2
+msgid "Diff"
+msgstr "Diff"
+
+#: ../data/language-specs/diff.lang.h:3
+msgid "Added line"
+msgstr "บรรทัดที่เพิ่ม"
+
+#. Others 2
+#: ../data/language-specs/diff.lang.h:5
+msgid "Removed line"
+msgstr "บรรทัดที่ลบ"
+
+#. Others 3
+#: ../data/language-specs/diff.lang.h:7
+msgid "Changed line"
+msgstr "บรรทัดที่เปลี่ยน"
+
+#. Preprocessor
+#: ../data/language-specs/diff.lang.h:9
+msgid "Special case"
+msgstr "กรณีพิเศษ"
+
+#. String
+#: ../data/language-specs/diff.lang.h:11 ../data/language-specs/po.lang.h:4
+msgid "Location"
+msgstr "ตำแหน่ง"
+
+#. Keyword
+#: ../data/language-specs/diff.lang.h:13
+msgid "Ignore"
+msgstr "ส่วนที่ไม่มีผล"
+
+#: ../data/language-specs/d.lang.h:2
+msgid "D"
+msgstr "D"
+
+#: ../data/language-specs/d.lang.h:8
+msgid "Special Token"
+msgstr "โทเค็นพิเศษ"
+
+#: ../data/language-specs/d.lang.h:13 ../data/language-specs/nemerle.lang.h:14
+msgid "Binary number"
+msgstr "เลขฐานสอง"
+
+#: ../data/language-specs/docbook.lang.h:2
+msgid "DocBook"
+msgstr "DocBook"
+
+#: ../data/language-specs/docbook.lang.h:3
+msgid "Header Elements"
+msgstr "อิลิเมนต์ส่วนหัว"
+
+#: ../data/language-specs/docbook.lang.h:4
+msgid "Formatting Elements"
+msgstr "อิลิเมนต์จัดรูปแบบ"
+
+#: ../data/language-specs/docbook.lang.h:5
+msgid "GUI Elements"
+msgstr "อิลิเมนต์ GUI"
+
+#: ../data/language-specs/docbook.lang.h:6
+msgid "Structural Elements"
+msgstr "อิลิเมนต์โครงสร้าง"
+
+#: ../data/language-specs/dosbatch.lang.h:2
+msgid "DOS Batch"
+msgstr "แบตช์ของดอส"
+
+#: ../data/language-specs/dosbatch.lang.h:6
+#: ../data/language-specs/latex.lang.h:8
+msgid "Command"
+msgstr "คำสั่ง"
+
+#: ../data/language-specs/dot.lang.h:2
+msgid "Graphviz Dot"
+msgstr "Dot ของ Graphviz"
+
+#: ../data/language-specs/dot.lang.h:6 ../data/language-specs/xml.lang.h:8
+msgid "Attribute name"
+msgstr "ชื่อแอตทริบิวต์"
+
+#: ../data/language-specs/dpatch.lang.h:2
+msgid "DPatch"
+msgstr "DPatch"
+
+#: ../data/language-specs/dpatch.lang.h:3
+msgid "patch-start"
+msgstr "จุดเริ่มต้นแพตช์"
+
+#: ../data/language-specs/dtd.lang.h:2 ../data/language-specs/html.lang.h:7
+msgid "DTD"
+msgstr "DTD"
+
+#: ../data/language-specs/dtd.lang.h:3
+msgid "entity"
+msgstr "เอนทิตี"
+
+#: ../data/language-specs/dtd.lang.h:4
+msgid "decl"
+msgstr "decl"
+
+#: ../data/language-specs/dtd.lang.h:5
+msgid "error"
+msgstr "ข้อผิดพลาด"
+
+#: ../data/language-specs/dtd.lang.h:6
+msgid "quoted-value"
+msgstr "ค่าที่ quote ไว้"
+
+#: ../data/language-specs/eiffel.lang.h:2
+msgid "Eiffel"
+msgstr "ไอเฟล"
+
+#: ../data/language-specs/eiffel.lang.h:5
+msgid "Debug"
+msgstr "ดีบั๊ก"
+
+#: ../data/language-specs/eiffel.lang.h:6
+msgid "Assertion"
+msgstr "การตรวจสอบยืนยัน"
+
+#: ../data/language-specs/eiffel.lang.h:9
+msgid "Design by Contract"
+msgstr "การออกแบบด้วยสัญญาข้อตกลง"
+
+#: ../data/language-specs/eiffel.lang.h:10
+msgid "Exception Handling"
+msgstr "การจัดการสิ่งผิดปรกติ"
+
+#: ../data/language-specs/eiffel.lang.h:11
+#: ../data/language-specs/ruby.lang.h:20
+msgid "Predefined Variable"
+msgstr "ตัวแปรตามข้อกำหนดภาษา"
+
+#: ../data/language-specs/eiffel.lang.h:13
+msgid "Void Value"
+msgstr "ค่า Void"
+
+#: ../data/language-specs/eiffel.lang.h:14
+#: ../data/language-specs/javascript.lang.h:6
+#: ../data/language-specs/json.lang.h:6
+msgid "Boolean Value"
+msgstr "ค่าบูลีน"
+
+#: ../data/language-specs/erlang.lang.h:2
+msgid "Erlang"
+msgstr "Erlang"
+
+#: ../data/language-specs/erlang.lang.h:6
+msgid "Atom"
+msgstr "อะตอม"
+
+#: ../data/language-specs/erlang.lang.h:11
+#: ../data/language-specs/fsharp.lang.h:4
+#: ../data/language-specs/ocaml.lang.h:5
+#: ../data/language-specs/octave.lang.h:11 ../data/language-specs/sml.lang.h:9
+#: ../data/language-specs/verilog.lang.h:13
+#: ../data/language-specs/vhdl.lang.h:9
+msgid "Base-N Integer"
+msgstr "เลขจำนวนเต็มฐาน N"
+
+#: ../data/language-specs/erlang.lang.h:13
+#: ../data/language-specs/forth.lang.h:11
+#: ../data/language-specs/systemverilog.lang.h:3
+#: ../data/language-specs/verilog.lang.h:7
+msgid "Compiler Directive"
+msgstr "คำสั่งสำหรับคอมไพเลอร์"
+
+#: ../data/language-specs/fcl.lang.h:1 ../data/language-specs/gap.lang.h:1
+#: ../data/language-specs/imagej.lang.h:1
+#: ../data/language-specs/matlab.lang.h:1
+#: ../data/language-specs/octave.lang.h:1 ../data/language-specs/R.lang.h:1
+#: ../data/language-specs/scilab.lang.h:1
+msgid "Scientific"
+msgstr "วิทยาศาสตร์"
+
+#: ../data/language-specs/fcl.lang.h:2
+msgid "FCL"
+msgstr "FCL"
+
+#: ../data/language-specs/fcl.lang.h:4 ../data/language-specs/fortran.lang.h:4
+#: ../data/language-specs/ini.lang.h:4 ../data/language-specs/octave.lang.h:10
+#: ../data/language-specs/scilab.lang.h:4 ../data/language-specs/sql.lang.h:4
+msgid "Floating Point"
+msgstr "เลขทศนิยม"
+
+#: ../data/language-specs/fcl.lang.h:6
+msgid "Block"
+msgstr "บล็อค"
+
+#: ../data/language-specs/fcl.lang.h:8 ../data/language-specs/octave.lang.h:15
+#: ../data/language-specs/scilab.lang.h:9
+msgid "Reserved Constant"
+msgstr "ค่าคงที่สงวน"
+
+#: ../data/language-specs/forth.lang.h:2
+msgid "Forth"
+msgstr "Forth"
+
+#: ../data/language-specs/forth.lang.h:9
+msgid "Debug Code"
+msgstr "โค้ดสำหรับดีบั๊ก"
+
+#: ../data/language-specs/forth.lang.h:10
+msgid "Error Text"
+msgstr "ข้อความข้อผิดพลาด"
+
+#: ../data/language-specs/fortran.lang.h:2
+msgid "Fortran 95"
+msgstr "Fortran 95"
+
+#: ../data/language-specs/fortran.lang.h:6
+msgid "Intrinsic function"
+msgstr "ฟังก์ชันภายใน"
+
+#: ../data/language-specs/fortran.lang.h:7
+msgid "BOZ Literal"
+msgstr "ค่าคงที่ BOZ"
+
+#: ../data/language-specs/fsharp.lang.h:2
+msgid "F#"
+msgstr "F#"
+
+#: ../data/language-specs/fsharp.lang.h:5
+#: ../data/language-specs/ocaml.lang.h:6 ../data/language-specs/sml.lang.h:12
+msgid "Floating Point number"
+msgstr "เลขทศนิยม"
+
+#: ../data/language-specs/fsharp.lang.h:9
+#: ../data/language-specs/ocaml.lang.h:10
+msgid "Type, module or object keyword"
+msgstr "คำเกี่ยวกับชนิด มอดูล หรือออบเจกต์"
+
+#: ../data/language-specs/fsharp.lang.h:10
+#: ../data/language-specs/ocaml.lang.h:11
+msgid "Builtin-function keyword"
+msgstr "คำหลักสำหรับฟังก์ชันในตัว"
+
+#: ../data/language-specs/fsharp.lang.h:12
+#: ../data/language-specs/ocaml.lang.h:13
+msgid "Labeled argument"
+msgstr "อาร์กิวเมนต์ที่มีป้ายกำกับ"
+
+#: ../data/language-specs/fsharp.lang.h:13
+#: ../data/language-specs/ocaml.lang.h:14
+msgid "Polymorphic Variant"
+msgstr ""
+
+#: ../data/language-specs/fsharp.lang.h:14
+#: ../data/language-specs/ocaml.lang.h:15
+msgid "Variant Constructor"
+msgstr ""
+
+#. Translators: this is a specific variable called Type
+#: ../data/language-specs/fsharp.lang.h:16
+#: ../data/language-specs/ocaml.lang.h:16
+msgid "Type Variable"
+msgstr "ตัวแปรชนิด"
+
+#: ../data/language-specs/fsharp.lang.h:17
+#: ../data/language-specs/ocaml.lang.h:17
+msgid "Module Path"
+msgstr "พาธของมอดูล"
+
+#: ../data/language-specs/gap.lang.h:2
+msgid "GAP"
+msgstr "GAP"
+
+#: ../data/language-specs/gdb-log.lang.h:2
+msgid "GDB Log"
+msgstr "ปูม GDB"
+
+#: ../data/language-specs/gdb-log.lang.h:3
+msgid "Thread Action"
+msgstr "การกระทำเกี่ยวกับเธรด"
+
+#: ../data/language-specs/gdb-log.lang.h:4
+msgid "Thread Header"
+msgstr "ส่วนหัวของเธรด"
+
+#: ../data/language-specs/gdb-log.lang.h:5
+msgid "Frame Number"
+msgstr "หมายเลขเฟรม"
+
+#: ../data/language-specs/gdb-log.lang.h:6
+msgid "Address"
+msgstr "ที่อยู่"
+
+#: ../data/language-specs/gdb-log.lang.h:9
+msgid "Filename"
+msgstr "ชื่อแฟ้ม"
+
+#: ../data/language-specs/gdb-log.lang.h:10
+msgid "Optimized Out"
+msgstr "ถูกปรับออกเพื่อประสิทธิภาพ"
+
+#: ../data/language-specs/gdb-log.lang.h:11
+msgid "Incomplete Sequence"
+msgstr "ลำดับไม่สมบูรณ์"
+
+#: ../data/language-specs/gdb-log.lang.h:12
+msgid "Prompt"
+msgstr "คำถาม"
+
+#: ../data/language-specs/glsl.lang.h:2
+msgid "OpenGL Shading Language"
+msgstr "ภาษา Shading OpenGL"
+
+#: ../data/language-specs/glsl.lang.h:7 ../data/language-specs/go.lang.h:17
+#: ../data/language-specs/python.lang.h:16
+#: ../data/language-specs/python3.lang.h:15
+msgid "Builtin Constant"
+msgstr "ค่าคงที่ในตัว"
+
+#: ../data/language-specs/glsl.lang.h:9
+msgid "Reserved Keywords"
+msgstr "คำสงวน"
+
+#: ../data/language-specs/go.lang.h:2
+msgid "Go"
+msgstr "Go"
+
+#: ../data/language-specs/go.lang.h:12
+msgid "Imaginary number"
+msgstr "จำนวนจินตภาพ"
+
+#: ../data/language-specs/gtk-doc.lang.h:2
+msgid "gtk-doc"
+msgstr "gtk-doc"
+
+#: ../data/language-specs/gtk-doc.lang.h:3
+msgid "Inline Documentation Section"
+msgstr "เอกสารประกอบในบรรทัด"
+
+#: ../data/language-specs/gtk-doc.lang.h:4
+msgid "Function Name"
+msgstr "ชื่อฟังก์ชัน"
+
+#: ../data/language-specs/gtk-doc.lang.h:5
+msgid "Signal Name"
+msgstr "ชื่อสัญญาณ"
+
+#: ../data/language-specs/gtk-doc.lang.h:6
+msgid "Property Name"
+msgstr "ชื่อคุณสมบัติ"
+
+#: ../data/language-specs/gtk-doc.lang.h:7
+msgid "Parameter"
+msgstr "พารามิเตอร์"
+
+#: ../data/language-specs/gtk-doc.lang.h:9
+#: ../data/language-specs/systemverilog.lang.h:6
+#: ../data/language-specs/verilog.lang.h:12
+#: ../data/language-specs/vhdl.lang.h:7
+msgid "Type"
+msgstr "ชนิด"
+
+#: ../data/language-specs/gtk-doc.lang.h:11
+msgid "Return"
+msgstr "การคืนค่า"
+
+#: ../data/language-specs/gtk-doc.lang.h:12
+msgid "Since"
+msgstr "ตั้งแต่"
+
+#: ../data/language-specs/gtk-doc.lang.h:13
+msgid "Deprecated"
+msgstr "ไม่แนะนำให้ใช้"
+
+#: ../data/language-specs/gtkrc.lang.h:2
+msgid "GtkRC"
+msgstr "GtkRC"
+
+#: ../data/language-specs/gtkrc.lang.h:8
+msgid "Widget State"
+msgstr "สถานะวิดเจ็ต"
+
+#: ../data/language-specs/gtkrc.lang.h:9
+msgid "Include directive"
+msgstr "คำสั่ง include"
+
+#: ../data/language-specs/haddock.lang.h:2
+msgid "Haddock"
+msgstr "Haddock"
+
+#: ../data/language-specs/haddock.lang.h:3
+msgid "Inline Haddock Section"
+msgstr "หัวข้อ Haddock ในบรรทัด"
+
+#: ../data/language-specs/haddock.lang.h:4
+msgid "Haddock Directive"
+msgstr "คำสั่ง Haddock"
+
+#: ../data/language-specs/haddock.lang.h:5
+msgid "Hyperlinked Identifier"
+msgstr "ชื่อพร้อมไฮเพอร์ลิงก์"
+
+#: ../data/language-specs/haddock.lang.h:6
+msgid "Hyperlinked Module Name"
+msgstr "ชื่อมอดูลพร้อมไฮเพอร์ลิงก์"
+
+#: ../data/language-specs/haddock.lang.h:7
+msgid "Escape"
+msgstr "อักขระหลีก"
+
+#: ../data/language-specs/haddock.lang.h:8
+#: ../data/language-specs/markdown.lang.h:13
+msgid "Emphasis"
+msgstr "เน้น"
+
+#: ../data/language-specs/haddock.lang.h:9
+msgid "Monospace"
+msgstr "ความกว้างคงที่"
+
+#: ../data/language-specs/haddock.lang.h:10
+msgid "Code Block"
+msgstr "บล็อคของโค้ด"
+
+#: ../data/language-specs/haddock.lang.h:11
+msgid "Header Property"
+msgstr "คุณสมบัติส่วนหัว"
+
+#: ../data/language-specs/haddock.lang.h:12
+msgid "Itemized list"
+msgstr "รายการข้อย่อย"
+
+#: ../data/language-specs/haddock.lang.h:13
+msgid "Enumerated list"
+msgstr "รายการเรียงลำดับ"
+
+#: ../data/language-specs/haddock.lang.h:14
+msgid "Definition list"
+msgstr "รายการคำจำกัดความ"
+
+#: ../data/language-specs/haddock.lang.h:15
+#: ../data/language-specs/markdown.lang.h:8
+msgid "URL"
+msgstr "URL"
+
+#: ../data/language-specs/haddock.lang.h:16
+#: ../data/language-specs/t2t.lang.h:13
+msgid "Anchor"
+msgstr "สมอ"
+
+#: ../data/language-specs/haskell.lang.h:2
+msgid "Haskell"
+msgstr "Haskell"
+
+#: ../data/language-specs/haskell.lang.h:6
+#: ../data/language-specs/ruby.lang.h:18
+msgid "Symbol"
+msgstr "สัญลักษณ์"
+
+#: ../data/language-specs/haskell.lang.h:12
+msgid "Float"
+msgstr "เลขทศนิยม"
+
+#: ../data/language-specs/haskell.lang.h:14
+msgid "Octal"
+msgstr "ฐานแปด"
+
+#: ../data/language-specs/haskell.lang.h:15
+msgid "Hex"
+msgstr "ฐานสิบหก"
+
+#: ../data/language-specs/haskell-literate.lang.h:2
+msgid "Literate Haskell"
+msgstr "Literate Haskell"
+
+#: ../data/language-specs/html.lang.h:2
+msgid "HTML"
+msgstr "HTML"
+
+#: ../data/language-specs/html.lang.h:4 ../data/language-specs/xml.lang.h:11
+msgid "Tag"
+msgstr "แท็ก"
+
+#: ../data/language-specs/html.lang.h:5
+msgid "Attribute Name"
+msgstr "ชื่อแอตทริบิวต์"
+
+#: ../data/language-specs/html.lang.h:6
+#: ../data/language-specs/markdown.lang.h:11
+msgid "Attribute Value"
+msgstr "ค่าของแอตทริบิวต์"
+
+#: ../data/language-specs/idl.lang.h:2
+msgid "IDL"
+msgstr "IDL"
+
+#: ../data/language-specs/imagej.lang.h:2
+msgid "ImageJ"
+msgstr "ImageJ"
+
+#: ../data/language-specs/imagej.lang.h:5
+msgid "Commands"
+msgstr "คำสั่ง"
+
+#: ../data/language-specs/imagej.lang.h:6
+#: ../data/language-specs/octave.lang.h:7
+msgid "Storage Type"
+msgstr "ชนิดของแหล่งเก็บ"
+
+#: ../data/language-specs/imagej.lang.h:7
+msgid "Escaped Characters"
+msgstr "อักขระหลีก"
+
+#: ../data/language-specs/ini.lang.h:2
+msgid ".ini"
+msgstr ".ini"
+
+#: ../data/language-specs/j.lang.h:2
+msgid "J"
+msgstr "J"
+
+#: ../data/language-specs/j.lang.h:3
+msgid "Adverb"
+msgstr "วิเศษณ์"
+
+#: ../data/language-specs/j.lang.h:5
+msgid "Conjunction"
+msgstr "ตัวเชื่อม"
+
+#: ../data/language-specs/j.lang.h:6 ../data/language-specs/perl.lang.h:15
+msgid "Control"
+msgstr "ควบคุม"
+
+#: ../data/language-specs/j.lang.h:8
+msgid "Explicit Argument"
+msgstr "อาร์กิวเมนต์แบบชัดแจ้ง"
+
+#: ../data/language-specs/j.lang.h:9
+msgid "Global"
+msgstr "โกลบอล"
+
+#: ../data/language-specs/j.lang.h:10
+msgid "Lab Text"
+msgstr ""
+
+#: ../data/language-specs/j.lang.h:11
+msgid "Local"
+msgstr "เฉพาะที่"
+
+#: ../data/language-specs/j.lang.h:12
+msgid "Noun"
+msgstr "นาม"
+
+#: ../data/language-specs/j.lang.h:13
+msgid "Explicit Noun Definition"
+msgstr "คำจำกัดความของนามอย่างชัดแจ้ง"
+
+#: ../data/language-specs/j.lang.h:15
+msgid "Parens"
+msgstr "วงเล็บ"
+
+#: ../data/language-specs/j.lang.h:16
+msgid "Primitive"
+msgstr "ชนิดมูลฐาน"
+
+#: ../data/language-specs/j.lang.h:18
+msgid "Verb"
+msgstr "กริยา"
+
+#: ../data/language-specs/java.lang.h:2
+msgid "Java"
+msgstr "Java"
+
+#: ../data/language-specs/javascript.lang.h:2
+msgid "JavaScript"
+msgstr "จาวาสคริปต์"
+
+#: ../data/language-specs/javascript.lang.h:5
+msgid "Undefined Value"
+msgstr "ค่าไม่นิยาม"
+
+#: ../data/language-specs/javascript.lang.h:10
+msgid "Properties"
+msgstr "คุณสมบัติ"
+
+#: ../data/language-specs/javascript.lang.h:11
+msgid "Constructors"
+msgstr "คอนสตรักเตอร์"
+
+#: ../data/language-specs/latex.lang.h:2
+msgid "LaTeX"
+msgstr "LaTeX"
+
+#: ../data/language-specs/latex.lang.h:4
+msgid "Math Mode"
+msgstr "โหมดคณิตศาสตร์"
+
+#: ../data/language-specs/latex.lang.h:5
+msgid "Inline Math Mode"
+msgstr "โหมดคณิตศาสตร์ในบรรทัด"
+
+#: ../data/language-specs/latex.lang.h:6
+msgid "math-bound"
+msgstr "ขอบเขตโหมดคณิตศาสตร์"
+
+#: ../data/language-specs/latex.lang.h:7
+#: ../data/language-specs/texinfo.lang.h:11
+msgid "Include"
+msgstr "Include"
+
+#: ../data/language-specs/latex.lang.h:9 ../data/language-specs/t2t.lang.h:16
+msgid "Verbatim"
+msgstr "เรียงพิมพ์ดีด"
+
+#: ../data/language-specs/libtool.lang.h:2
+msgid "libtool"
+msgstr "libtool"
+
+#: ../data/language-specs/lua.lang.h:2
+msgid "Lua"
+msgstr "Lua"
+
+#: ../data/language-specs/lua.lang.h:7
+msgid "Reserved Identifier"
+msgstr "ชื่อสงวน"
+
+#: ../data/language-specs/lua.lang.h:9 ../data/language-specs/ruby.lang.h:8
+msgid "Nil Constant"
+msgstr "ค่าคงที่ Nil"
+
+#: ../data/language-specs/m4.lang.h:2
+msgid "m4"
+msgstr "m4"
+
+#: ../data/language-specs/m4.lang.h:3
+msgid "m4-comment"
+msgstr "หมายเหตุของ m4"
+
+#: ../data/language-specs/m4.lang.h:4
+msgid "m4 Macro"
+msgstr "แมโคร m4"
+
+#: ../data/language-specs/m4.lang.h:5
+msgid "Autoconf Macro"
+msgstr "แมโคร Autoconf"
+
+#: ../data/language-specs/m4.lang.h:6
+msgid "Obsolete Autoconf Macro"
+msgstr "แมโคร Autoconf ที่เลิกใช้แล้ว"
+
+#: ../data/language-specs/makefile.lang.h:2
+msgid "Makefile"
+msgstr "Makefile"
+
+#: ../data/language-specs/makefile.lang.h:4
+msgid "Assignment Right Hand Side"
+msgstr "ฝั่งขวาของการกำหนดค่า"
+
+#: ../data/language-specs/makefile.lang.h:5
+msgid "Assignment Left Hand Side"
+msgstr "ฝั่งซ้ายของการกำหนดค่า"
+
+#: ../data/language-specs/makefile.lang.h:6
+msgid "targets"
+msgstr "เป้าหมาย"
+
+#: ../data/language-specs/makefile.lang.h:7
+msgid "prereq"
+msgstr "สิ่งพึ่งพิง"
+
+#: ../data/language-specs/makefile.lang.h:8
+msgid "command"
+msgstr "คำสั่ง"
+
+#. Translators: Trailing Tabs refers to tabulation characters present at
+#. the end of the line
+#: ../data/language-specs/makefile.lang.h:11
+msgid "Trailing Tab"
+msgstr "แท็บท้ายบรรทัด"
+
+#: ../data/language-specs/makefile.lang.h:12
+msgid "function"
+msgstr "ฟังก์ชัน"
+
+#. FIXME make it better names, and make them translatable
+#: ../data/language-specs/makefile.lang.h:13
+#: ../data/language-specs/yacc.lang.h:4
+msgid "keyword"
+msgstr "คำหลัก"
+
+#: ../data/language-specs/mallard.lang.h:2
+msgid "Mallard"
+msgstr "Mallard"
+
+#: ../data/language-specs/mallard.lang.h:3
+msgid "Page Elements"
+msgstr "อิลิเมนต์หน้า"
+
+#: ../data/language-specs/mallard.lang.h:4
+msgid "Section Elements"
+msgstr "อิลิเมนต์หัวข้อ"
+
+#: ../data/language-specs/mallard.lang.h:5
+msgid "Block Elements"
+msgstr "อิลิเมนต์แบบบล็อค"
+
+#: ../data/language-specs/mallard.lang.h:6
+msgid "Inline Elements"
+msgstr "อิลิเมนต์ในบรรทัด"
+
+#: ../data/language-specs/markdown.lang.h:2
+msgid "Markdown"
+msgstr "มาร์กดาวน์"
+
+#: ../data/language-specs/markdown.lang.h:3
+#: ../data/language-specs/rpmspec.lang.h:4 ../data/language-specs/t2t.lang.h:6
+msgid "Header"
+msgstr "ข้อมูลส่วนหัว"
+
+#: ../data/language-specs/markdown.lang.h:4
+msgid "Horizontal Rule"
+msgstr "เส้นตีแนวนอน"
+
+#: ../data/language-specs/markdown.lang.h:5
+msgid "List Marker"
+msgstr "เครื่องหมายรายการ"
+
+#: ../data/language-specs/markdown.lang.h:6
+msgid "Code"
+msgstr "โค้ด"
+
+#: ../data/language-specs/markdown.lang.h:7
+msgid "Blockquote Marker"
+msgstr "เครื่องหมายบล็อคอ้างข้อความ"
+
+#: ../data/language-specs/markdown.lang.h:9
+msgid "Link Text"
+msgstr "ข้อความลิงก์"
+
+#: ../data/language-specs/markdown.lang.h:10
+#: ../gtksourceview/gtksourcecompletionitem.c:229
+msgid "Label"
+msgstr "ป้ายชื่อ"
+
+#: ../data/language-specs/markdown.lang.h:12
+msgid "Image Marker"
+msgstr "เครื่องหมายกำกับรูปภาพ"
+
+#: ../data/language-specs/markdown.lang.h:14
+msgid "Strong Emphasis"
+msgstr "เน้นตัวเข้ม"
+
+#: ../data/language-specs/markdown.lang.h:15
+msgid "Backslash Escape"
+msgstr "อักขระหลีกขีดทับถอยหลัง"
+
+#: ../data/language-specs/markdown.lang.h:16
+msgid "Line Break"
+msgstr "ตัดบรรทัด"
+
+#: ../data/language-specs/matlab.lang.h:2
+msgid "Matlab"
+msgstr "Matlab"
+
+#: ../data/language-specs/mxml.lang.h:2
+msgid "MXML"
+msgstr "MXML"
+
+#: ../data/language-specs/mxml.lang.h:3 ../data/language-specs/xml.lang.h:7
+msgid "Element name"
+msgstr "ชื่ออิลิเมนต์"
+
+#: ../data/language-specs/mxml.lang.h:4 ../data/language-specs/xml.lang.h:5
+msgid "CDATA delimiter"
+msgstr "เครื่องหมายคั่น CDATA"
+
+#: ../data/language-specs/nemerle.lang.h:2
+msgid "Nemerle"
+msgstr "Nemerle"
+
+#: ../data/language-specs/netrexx.lang.h:2
+msgid "NetRexx"
+msgstr "NetRexx"
+
+#: ../data/language-specs/netrexx.lang.h:7
+msgid "Externals"
+msgstr "ภายนอก"
+
+#: ../data/language-specs/netrexx.lang.h:8
+msgid "Options"
+msgstr "ตัวเลือก"
+
+#: ../data/language-specs/netrexx.lang.h:9
+msgid "Data Types"
+msgstr "ชนิดข้อมูล"
+
+#: ../data/language-specs/netrexx.lang.h:10
+msgid "Special"
+msgstr "พิเศษ"
+
+#: ../data/language-specs/netrexx.lang.h:11
+msgid "Visibility"
+msgstr "ความปรากฏเห็น"
+
+#: ../data/language-specs/netrexx.lang.h:12
+msgid "Modifiers"
+msgstr "คำขยาย"
+
+#: ../data/language-specs/netrexx.lang.h:13
+msgid "Keywords"
+msgstr "คำหลัก"
+
+#: ../data/language-specs/netrexx.lang.h:14
+msgid "Sub Keywords"
+msgstr "คำหลักย่อย"
+
+#: ../data/language-specs/nsis.lang.h:2
+msgid "NSIS"
+msgstr "NSIS"
+
+#: ../data/language-specs/objc.lang.h:2
+msgid "Objective-C"
+msgstr "Objective-C"
+
+#: ../data/language-specs/objj.lang.h:2
+msgid "Objective-J"
+msgstr "Objective-J"
+
+#: ../data/language-specs/ocaml.lang.h:2
+msgid "Objective Caml"
+msgstr "Objective Caml"
+
+#: ../data/language-specs/ocaml.lang.h:4
+msgid "Ocamldoc Comments"
+msgstr "หมายเหตุ Ocamldoc"
+
+#: ../data/language-specs/ocaml.lang.h:21
+msgid "Standard Modules"
+msgstr "มอดูลมาตรฐาน"
+
+#: ../data/language-specs/ocl.lang.h:2
+msgid "OCL"
+msgstr "OCL"
+
+#: ../data/language-specs/ocl.lang.h:6
+msgid "Type Operators"
+msgstr "ตัวกระทำชนิด"
+
+#: ../data/language-specs/ocl.lang.h:8
+msgid "Operation operator"
+msgstr ""
+
+#: ../data/language-specs/octave.lang.h:2
+msgid "Octave"
+msgstr "Octave"
+
+#: ../data/language-specs/octave.lang.h:12
+msgid "Package Manager"
+msgstr "ตัวจัดการแพกเกจ"
+
+#: ../data/language-specs/ooc.lang.h:2
+msgid "OOC"
+msgstr "OOC"
+
+#: ../data/language-specs/opal.lang.h:2
+msgid "Opal"
+msgstr "Opal"
+
+#: ../data/language-specs/opal.lang.h:3 ../data/language-specs/python.lang.h:3
+#: ../data/language-specs/python3.lang.h:3
+msgid "Module Handler"
+msgstr "การจัดการมอดูล"
+
+#: ../data/language-specs/opal.lang.h:12
+msgid "Keysymbol"
+msgstr ""
+
+#: ../data/language-specs/opencl.lang.h:2
+msgid "OpenCL"
+msgstr "OpenCL"
+
+#: ../data/language-specs/opencl.lang.h:5
+msgid "Global Function"
+msgstr "ฟังก์ชันโกลบอล"
+
+#: ../data/language-specs/opencl.lang.h:6
+msgid "Device Function"
+msgstr "ฟังก์ชันสำหรับอุปกรณ์"
+
+#: ../data/language-specs/opencl.lang.h:7
+msgid "Device Cast"
+msgstr ""
+
+#: ../data/language-specs/opencl.lang.h:8
+msgid "OpenCL Constant"
+msgstr "ค่าคงที่ OpenCL"
+
+#: ../data/language-specs/opencl.lang.h:9
+msgid "Global Variable"
+msgstr "ตัวแปรโกลบอล"
+
+#: ../data/language-specs/pascal.lang.h:2
+msgid "Pascal"
+msgstr "ปาสกาล"
+
+#: ../data/language-specs/perl.lang.h:2
+msgid "Perl"
+msgstr "เพิร์ล"
+
+#: ../data/language-specs/perl.lang.h:4
+msgid "Line Directive"
+msgstr "คำสั่งกำหนดเลขบรรทัด"
+
+#: ../data/language-specs/perl.lang.h:5
+msgid "Include Statement"
+msgstr "ถ้อยแถลง include"
+
+#: ../data/language-specs/perl.lang.h:9 ../data/language-specs/php.lang.h:10
+#: ../data/language-specs/ruby.lang.h:22
+msgid "Heredoc"
+msgstr "แฟ้มข้อมูลในโค้ด"
+
+#: ../data/language-specs/perl.lang.h:10 ../data/language-specs/php.lang.h:11
+#: ../data/language-specs/ruby.lang.h:23 ../data/language-specs/sh.lang.h:12
+msgid "Heredoc Bound"
+msgstr "จบแฟ้มข้อมูลในโค้ด"
+
+#: ../data/language-specs/perl.lang.h:11
+msgid "System Command"
+msgstr "คำสั่งระบบ"
+
+#: ../data/language-specs/perl.lang.h:14
+msgid "File Descriptor"
+msgstr "ตัวแปรแฟ้มข้อมูล"
+
+#: ../data/language-specs/perl.lang.h:18
+msgid "POD"
+msgstr "POD"
+
+#: ../data/language-specs/perl.lang.h:19
+msgid "POD Escape"
+msgstr "อักขระหลีกใน POD"
+
+#: ../data/language-specs/perl.lang.h:20
+msgid "POD keyword"
+msgstr "คำหลัก POD"
+
+#: ../data/language-specs/perl.lang.h:21
+msgid "POD heading"
+msgstr "หัวข้อใน POD"
+
+#: ../data/language-specs/php.lang.h:2
+msgid "PHP"
+msgstr "PHP"
+
+#: ../data/language-specs/php.lang.h:13
+msgid "Common Function"
+msgstr "ฟังก์ชันสามัญ"
+
+#: ../data/language-specs/pkgconfig.lang.h:2
+msgid "pkg-config"
+msgstr "pkg-config"
+
+#: ../data/language-specs/pkgconfig.lang.h:4
+msgid "Package Info"
+msgstr "ข้อมูลแพกเกจ"
+
+#: ../data/language-specs/po.lang.h:2
+msgid "gettext translation"
+msgstr "คำแปล gettext"
+
+#: ../data/language-specs/po.lang.h:6
+msgid "Fuzzy"
+msgstr "คลุมเครือ"
+
+#: ../data/language-specs/prolog.lang.h:2
+msgid "Prolog"
+msgstr "โปรล็อก"
+
+#: ../data/language-specs/puppet.lang.h:2
+msgid "Puppet"
+msgstr "Puppet"
+
+#: ../data/language-specs/puppet.lang.h:3
+msgid "Resources"
+msgstr "ทรัพยากร"
+
+#: ../data/language-specs/puppet.lang.h:4
+msgid "Parameters"
+msgstr "พารามิเตอร์"
+
+#: ../data/language-specs/puppet.lang.h:5
+msgid "Metaparameters"
+msgstr "เมตาพารามิเตอร์"
+
+#: ../data/language-specs/puppet.lang.h:6
+msgid "Functions"
+msgstr "ฟังก์ชัน"
+
+#: ../data/language-specs/puppet.lang.h:7
+msgid "Values"
+msgstr "ค่า"
+
+#: ../data/language-specs/puppet.lang.h:8
+msgid "Variables"
+msgstr "ตัวแปร"
+
+#: ../data/language-specs/puppet.lang.h:9
+msgid "Class names"
+msgstr "ชื่อคลาส"
+
+#: ../data/language-specs/python.lang.h:2
+msgid "Python"
+msgstr "ไพธอน"
+
+#: ../data/language-specs/python.lang.h:8
+#: ../data/language-specs/python3.lang.h:8
+msgid "Format"
+msgstr "ฟอร์แมต"
+
+#: ../data/language-specs/python.lang.h:9
+msgid "string-conversion"
+msgstr "การแปลงสตริง"
+
+#: ../data/language-specs/python.lang.h:17
+#: ../data/language-specs/python3.lang.h:16
+msgid "Builtin Object"
+msgstr "ออบเจกต์ในตัว"
+
+#: ../data/language-specs/python3.lang.h:2
+msgid "Python 3"
+msgstr "ไพธอน 3"
+
+#: ../data/language-specs/R.lang.h:2
+msgid "R"
+msgstr "R"
+
+#: ../data/language-specs/R.lang.h:4
+msgid "Reserved Class"
+msgstr "คลาสสงวน"
+
+#: ../data/language-specs/R.lang.h:5
+msgid "Assignment Operator"
+msgstr "เครื่องหมายกำหนดค่า"
+
+#: ../data/language-specs/R.lang.h:6
+msgid "Delimiter"
+msgstr "เครื่องหมายวรรคตอน"
+
+#: ../data/language-specs/R.lang.h:7
+msgid "Special Constant"
+msgstr "ค่าคงที่พิเศษ"
+
+#: ../data/language-specs/R.lang.h:9 ../data/language-specs/verilog.lang.h:15
+msgid "Integer Number"
+msgstr "เลขจำนวนเต็ม"
+
+#: ../data/language-specs/rpmspec.lang.h:2
+msgid "RPM spec"
+msgstr "สเปค RPM"
+
+#: ../data/language-specs/rpmspec.lang.h:3
+msgid "Define"
+msgstr "ข้อกำหนด"
+
+#: ../data/language-specs/rpmspec.lang.h:5 ../data/language-specs/t2t.lang.h:7
+msgid "Section"
+msgstr "หัวข้อ"
+
+#: ../data/language-specs/rpmspec.lang.h:6
+msgid "Spec Macro"
+msgstr "แมโครสำหรับสเปค"
+
+#: ../data/language-specs/rpmspec.lang.h:7
+msgid "Directory Macro"
+msgstr "แมโครสำหรับไดเรกทอรี"
+
+#: ../data/language-specs/rpmspec.lang.h:8
+msgid "Command Macro"
+msgstr "แมโครคำสั่ง"
+
+#: ../data/language-specs/rpmspec.lang.h:9
+msgid "Conditional Macro"
+msgstr "แมโครแบบมีเงื่อนไข"
+
+#: ../data/language-specs/rpmspec.lang.h:10
+msgid "Other Macro"
+msgstr "แมโครอื่นๆ"
+
+#: ../data/language-specs/rpmspec.lang.h:11
+msgid "Flow Conditional"
+msgstr "เงื่อนไขในการทำคำสั่ง"
+
+#: ../data/language-specs/rpmspec.lang.h:12
+msgid "RPM Variable"
+msgstr "ตัวแปร RPM"
+
+#: ../data/language-specs/rpmspec.lang.h:13
+msgid "Switch"
+msgstr "ตัวเลือกในบรรทัดคำสั่ง"
+
+#: ../data/language-specs/rpmspec.lang.h:15
+msgid "Email"
+msgstr "อีเมล"
+
+#: ../data/language-specs/ruby.lang.h:2
+msgid "Ruby"
+msgstr "Ruby"
+
+#: ../data/language-specs/ruby.lang.h:5
+msgid "Attribute Definition"
+msgstr "ข้อกำหนดแอตทริบิวต์"
+
+#: ../data/language-specs/ruby.lang.h:6
+msgid "Module handler"
+msgstr "การจัดการมอดูล"
+
+#: ../data/language-specs/ruby.lang.h:13
+msgid "Numeric literal"
+msgstr "ค่าตัวเลข"
+
+#: ../data/language-specs/scheme.lang.h:2
+msgid "Scheme"
+msgstr "Scheme"
+
+#: ../data/language-specs/scilab.lang.h:2
+msgid "Scilab"
+msgstr "Scilab"
+
+#: ../data/language-specs/sh.lang.h:2
+msgid "sh"
+msgstr "sh"
+
+#. FIXME: need to sort out proper styles for variables
+#: ../data/language-specs/sh.lang.h:9
+msgid "Variable Definition"
+msgstr "การกำหนดตัวแปร"
+
+#: ../data/language-specs/sh.lang.h:11
+msgid "Common Commands"
+msgstr "คำสั่งใช้บ่อย"
+
+#: ../data/language-specs/sh.lang.h:13
+msgid "Subshell"
+msgstr "เชลล์ย่อย"
+
+#: ../data/language-specs/sml.lang.h:2
+msgid "Standard ML"
+msgstr "Standard ML"
+
+#: ../data/language-specs/sml.lang.h:13
+msgid "Module name, Variant, etc"
+msgstr ""
+
+#: ../data/language-specs/sparql.lang.h:2
+msgid "SPARQL"
+msgstr "SPARQL"
+
+#: ../data/language-specs/sparql.lang.h:3
+msgid "Class"
+msgstr "คลาส"
+
+#: ../data/language-specs/sparql.lang.h:6
+msgid "Individual"
+msgstr ""
+
+#: ../data/language-specs/sparql.lang.h:10
+msgid "Literal"
+msgstr "ค่าคงที่ข้อความ"
+
+#: ../data/language-specs/sparql.lang.h:11
+msgid "Predicate"
+msgstr "เพรดิเคต"
+
+#: ../data/language-specs/sparql.lang.h:12
+msgid "QName"
+msgstr "QName"
+
+#: ../data/language-specs/sparql.lang.h:13
+msgid "IRI"
+msgstr "IRI"
+
+#: ../data/language-specs/sql.lang.h:2
+msgid "SQL"
+msgstr "SQL"
+
+#: ../data/language-specs/sql.lang.h:10
+msgid "No idea what it is"
+msgstr "ไม่ทราบว่าคืออะไร"
+
+#: ../data/language-specs/systemverilog.lang.h:2
+msgid "SystemVerilog"
+msgstr "SystemVerilog"
+
+#: ../data/language-specs/systemverilog.lang.h:4
+msgid "System Task"
+msgstr "งานระบบ"
+
+#: ../data/language-specs/t2t.lang.h:2
+msgid "txt2tags"
+msgstr "txt2tags"
+
+#: ../data/language-specs/t2t.lang.h:4
+msgid "Option"
+msgstr "ตัวเลือก"
+
+#: ../data/language-specs/t2t.lang.h:5
+msgid "Option Name"
+msgstr "ชื่อตัวเลือก"
+
+#: ../data/language-specs/t2t.lang.h:8
+msgid "Section 1"
+msgstr "หัวข้อ 1"
+
+#: ../data/language-specs/t2t.lang.h:9
+msgid "Section 2"
+msgstr "หัวข้อ 2"
+
+#: ../data/language-specs/t2t.lang.h:10
+msgid "Section 3"
+msgstr "หัวข้อ 3"
+
+#: ../data/language-specs/t2t.lang.h:11
+msgid "Section 4"
+msgstr "หัวข้อ 4"
+
+#: ../data/language-specs/t2t.lang.h:12
+msgid "Section 5"
+msgstr "หัวข้อ 5"
+
+#: ../data/language-specs/t2t.lang.h:14 ../gtksourceview/gtksourcestyle.c:112
+#: ../gtksourceview/gtksourcestyle.c:113
+msgid "Italic"
+msgstr "เอียง"
+
+#: ../data/language-specs/t2t.lang.h:15 ../gtksourceview/gtksourcestyle.c:104
+#: ../gtksourceview/gtksourcestyle.c:105
+msgid "Bold"
+msgstr "หนา"
+
+#: ../data/language-specs/t2t.lang.h:17
+msgid "Verbatim Block"
+msgstr "บล็อคเรียงพิมพ์ดีด"
+
+#: ../data/language-specs/tcl.lang.h:2
+msgid "Tcl"
+msgstr "Tcl"
+
+#: ../data/language-specs/texinfo.lang.h:2
+msgid "Texinfo"
+msgstr "Texinfo"
+
+#: ../data/language-specs/texinfo.lang.h:8
+msgid "Macros"
+msgstr "แมโคร"
+
+#: ../data/language-specs/texinfo.lang.h:9
+msgid "File Attributes"
+msgstr "คุณลักษณะของไฟล์"
+
+#: ../data/language-specs/texinfo.lang.h:10
+msgid "Generated Content"
+msgstr "เนื้อหาอัตโนมัติ"
+
+#: ../data/language-specs/vala.lang.h:2
+msgid "Vala"
+msgstr "Vala"
+
+#: ../data/language-specs/vbnet.lang.h:2
+msgid "VB.NET"
+msgstr "VB.NET"
+
+#: ../data/language-specs/verilog.lang.h:2
+msgid "Verilog"
+msgstr "Verilog"
+
+#: ../data/language-specs/verilog.lang.h:8
+msgid "IEEE System Task"
+msgstr "งานระบบของ IEEE"
+
+#: ../data/language-specs/verilog.lang.h:9
+msgid "LRM Additional System Task"
+msgstr "งานระบบเพิ่มเติมของ LRM"
+
+#: ../data/language-specs/verilog.lang.h:11
+msgid "Gate"
+msgstr "เกต"
+
+#: ../data/language-specs/vhdl.lang.h:2
+msgid "VHDL"
+msgstr "VHDL"
+
+#: ../data/language-specs/xml.lang.h:2
+msgid "XML"
+msgstr "XML"
+
+#: ../data/language-specs/xml.lang.h:4
+msgid "DOCTYPE"
+msgstr "DOCTYPE"
+
+#: ../data/language-specs/xml.lang.h:6
+msgid "Processing instruction"
+msgstr "คำสั่งประมวลผล"
+
+#: ../data/language-specs/xml.lang.h:9
+msgid "Attribute value"
+msgstr "ค่าของแอตทริบิวต์"
+
+#: ../data/language-specs/xml.lang.h:10
+msgid "Entity"
+msgstr "เอนทิตี"
+
+#: ../data/language-specs/xslt.lang.h:2
+msgid "XSLT"
+msgstr "XSLT"
+
+#: ../data/language-specs/xslt.lang.h:3
+msgid "Element"
+msgstr "อิลิเมนต์"
+
+#: ../data/language-specs/yacc.lang.h:2
+msgid "Yacc"
+msgstr "Yacc"
+
+#: ../data/language-specs/yacc.lang.h:5
+msgid "token-type"
+msgstr "ชนิดโทเคน"
+
+#: ../data/language-specs/yacc.lang.h:6
+msgid "rule"
+msgstr "กฎ"
+
+#: ../data/styles/classic.xml.h:1
+msgid "Classic"
+msgstr "ดั้งเดิม"
+
+#: ../data/styles/classic.xml.h:2
+msgid "Classic color scheme"
+msgstr "ชุดสีแบบดั้งเดิม"
+
+#: ../data/styles/cobalt.xml.h:1
+msgid "Cobalt"
+msgstr "Cobalt"
+
+#: ../data/styles/cobalt.xml.h:2
+msgid "Blue based color scheme"
+msgstr "ชุดสีโทนน้ำเงิน"
+
+#: ../data/styles/kate.xml.h:1
+msgid "Kate"
+msgstr "Kate"
+
+#: ../data/styles/kate.xml.h:2
+msgid "Color scheme used in the Kate text editor"
+msgstr "ชุดสีที่ใช้ในโปรแกรมแก้ไขข้อความ Kate"
+
+#: ../data/styles/oblivion.xml.h:1
+msgid "Oblivion"
+msgstr "Oblivion"
+
+#: ../data/styles/oblivion.xml.h:2
+msgid "Dark color scheme using the Tango color palette"
+msgstr "ชุดสีเข้มซึ่งใช้สีจากจานสีของ Tango"
+
+#: ../data/styles/tango.xml.h:1
+msgid "Tango"
+msgstr "Tango"
+
+#: ../data/styles/tango.xml.h:2
+msgid "Color scheme using Tango color palette"
+msgstr "ชุดสีซึ่งใช้สีจากจานสีของ Tango"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:371
+msgid "Document Words"
+msgstr "คำในเอกสาร"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:456
+msgid "The provider name"
+msgstr "ชื่อของแหล่งที่มา"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:463
+#: ../gtksourceview/gtksourcecompletionitem.c:268
+msgid "Icon"
+msgstr "ไอคอน"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:464
+msgid "The provider icon"
+msgstr "ไอคอนของแหล่งที่มา"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:471
+msgid "Proposals Batch Size"
+msgstr "ขนาดของชุดคำเสนอ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:472
+msgid "Number of proposals added in one batch"
+msgstr "จำนวนคำเสนอที่จะเพิ่มในชุดหนึ่งๆ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:481
+msgid "Scan Batch Size"
+msgstr "ขนาดของการตรวจข้อมูลต่อชุด"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:482
+msgid "Number of lines scanned in one batch"
+msgstr "จำนวนบรรทัดที่จะตรวจข้อมูลในชุดหนึ่งๆ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:491
+msgid "Minimum Word Size"
+msgstr "ขนาดต่ำสุดของคำ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:492
+msgid "The minimum word size to complete"
+msgstr "ขนาดต่ำสุดของคำที่จะเติมเต็ม"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:501
+msgid "Interactive Delay"
+msgstr "เวลาหน่วงก่อนโต้ตอบ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:502
+msgid "The delay before initiating interactive completion"
+msgstr "เวลาหน่วงก่อนที่จะเริ่มเติมเต็มคำแบบโต้ตอบ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:511
+msgid "Priority"
+msgstr "ลำดับความสำคัญ"
+
+#: ../gtksourceview/completion-providers/words/gtksourcecompletionwords.c:512
+msgid "Provider priority"
+msgstr "ลำดับความสำคัญของแหล่งที่มา"
+
+#: ../gtksourceview/gtksourcebuffer.c:234
+#: ../gtksourceview/gtksourceprintcompositor.c:502
+msgid "Highlight Syntax"
+msgstr "เน้นข้อความตามไวยากรณ์"
+
+#: ../gtksourceview/gtksourcebuffer.c:235
+msgid "Whether to highlight syntax in the buffer"
+msgstr "กำหนดว่าจะเน้นข้อความในบัฟเฟอร์ตามไวยากรณ์หรือไม่"
+
+#: ../gtksourceview/gtksourcebuffer.c:248
+msgid "Highlight Matching Brackets"
+msgstr "เน้นคู่วงเล็บเปิด-ปิด"
+
+#: ../gtksourceview/gtksourcebuffer.c:249
+msgid "Whether to highlight matching brackets"
+msgstr "กำหนดว่าจะเน้นคู่วงเล็บเปิด-ปิดหรือไม่"
+
+#: ../gtksourceview/gtksourcebuffer.c:262
+#: ../gtksourceview/gtksourceundomanagerdefault.c:418
+msgid "Maximum Undo Levels"
+msgstr "จำนวนขั้นการเรียกคืนสูงสุด"
+
+#: ../gtksourceview/gtksourcebuffer.c:263
+#: ../gtksourceview/gtksourceundomanagerdefault.c:419
+msgid "Number of undo levels for the buffer"
+msgstr "จำนวนขั้นของการเรียกคืนการทำคำสั่งในบัฟเฟอร์"
+
+#. Translators: throughout GtkSourceView "language" stands
+#. * for "programming language", not "spoken language"
+#: ../gtksourceview/gtksourcebuffer.c:275
+msgid "Language"
+msgstr "ภาษา"
+
+#: ../gtksourceview/gtksourcebuffer.c:276
+msgid "Language object to get highlighting patterns from"
+msgstr "อ็อบเจกต์ภาษาที่เก็บรูปแบบการเน้นข้อความ"
+
+#: ../gtksourceview/gtksourcebuffer.c:284
+msgid "Can undo"
+msgstr "สามารถเรียกคืนได้"
+
+#: ../gtksourceview/gtksourcebuffer.c:285
+msgid "Whether Undo operation is possible"
+msgstr "ระบุว่า การกระทำสามารถเรียกคืนได้หรือไม่"
+
+#: ../gtksourceview/gtksourcebuffer.c:292
+msgid "Can redo"
+msgstr "สามารถทำซ้ำได้"
+
+#: ../gtksourceview/gtksourcebuffer.c:293
+msgid "Whether Redo operation is possible"
+msgstr "ระบุว่า การกระทำสามารถทำซ้ำได้หรือไม่"
+
+#: ../gtksourceview/gtksourcebuffer.c:307
+#: ../gtksourceview/gtksourcebuffer.c:308
+msgid "Style scheme"
+msgstr "ชุดสไตล์"
+
+#: ../gtksourceview/gtksourcebuffer.c:315
+msgid "Undo manager"
+msgstr "ผู้จัดการการเรียกคืนคำสั่ง"
+
+#: ../gtksourceview/gtksourcebuffer.c:316
+msgid "The buffer undo manager"
+msgstr "ผู้จัดการการเรียกคืนคำสั่งของบัฟเฟอร์"
+
+#: ../gtksourceview/gtksourcecompletion.c:934
+#: ../gtksourceview/gtksourcecompletion.c:957
+msgid "No extra information available"
+msgstr "ไม่มีข้อมูลพิเศษเพิ่มเติมอีก"
+
+#: ../gtksourceview/gtksourcecompletion.c:2212
+#: ../gtksourceview/gtksourcegutter.c:547
+msgid "View"
+msgstr "ตัวแสดง"
+
+#: ../gtksourceview/gtksourcecompletion.c:2213
+msgid "The GtkSourceView bound to the completion"
+msgstr "อ็อบเจกต์ GtkSourceView ที่ผูกอยู่กับการเติมเต็มคำนี้"
+
+#: ../gtksourceview/gtksourcecompletion.c:2228
+msgid "Remember Info Visibility"
+msgstr "จำการปรากฏของข้อมูล"
+
+#: ../gtksourceview/gtksourcecompletion.c:2229
+msgid "Remember the last info window visibility state"
+msgstr "จำสถานะล่าสุดของการปรากฏของหน้าต่างข้อมูล"
+
+#: ../gtksourceview/gtksourcecompletion.c:2242
+msgid "Select on Show"
+msgstr "เลือกเมื่อแสดง"
+
+#: ../gtksourceview/gtksourcecompletion.c:2243
+msgid "Select first proposal when completion is shown"
+msgstr "เลือกคำเสนอรายการแรกเมื่อแสดงการเติมเต็มคำ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2257
+msgid "Show Headers"
+msgstr "แสดงหัวเรื่อง"
+
+#: ../gtksourceview/gtksourcecompletion.c:2258
+msgid ""
+"Show provider headers when proposals from multiple providers are available"
+msgstr "แสดงหัวเรื่องของแหล่งที่มาเมื่อมีคำเสนอมากจากหลายแหล่ง"
+
+#: ../gtksourceview/gtksourcecompletion.c:2272
+msgid "Show Icons"
+msgstr "แสดงไอคอน"
+
+#: ../gtksourceview/gtksourcecompletion.c:2273
+msgid "Show provider and proposal icons in the completion popup"
+msgstr "แสดงไอคอนของแหล่งที่มาและคำเสนอในหน้าต่างผุดขึ้นสำหรับเติมเต็มคำ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2288
+msgid "Accelerators"
+msgstr "จำนวนคีย์ด่วน"
+
+#: ../gtksourceview/gtksourcecompletion.c:2289
+msgid "Number of proposal accelerators to show"
+msgstr "จำนวนคีย์ด่วนของคำเสนอที่จะแสดง"
+
+#: ../gtksourceview/gtksourcecompletion.c:2305
+msgid "Auto Complete Delay"
+msgstr "เวลาหน่วงก่อนเติมเต็มคำอัตโนมัติ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2306
+msgid "Completion popup delay for interactive completion"
+msgstr "เวลาหน่วงก่อนผุดหน้าต่างเติมเต็มคำแบบโต้ตอบ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2322
+msgid "Provider Page Size"
+msgstr "ขนาดหน้าของแหล่งที่มา"
+
+#: ../gtksourceview/gtksourcecompletion.c:2323
+msgid "Provider scrolling page size"
+msgstr "ขนาดของการเลื่อนหน้าแหล่งที่มา"
+
+#: ../gtksourceview/gtksourcecompletion.c:2342
+msgid "Proposal Page Size"
+msgstr "ขนาดหน้าของคำเสนอ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2343
+msgid "Proposal scrolling page size"
+msgstr "ขนาดของการเลื่อนหน้าคำเสนอ"
+
+#: ../gtksourceview/gtksourcecompletion.c:2704
+msgid "Provider"
+msgstr "แหล่งที่มา"
+
+#: ../gtksourceview/gtksourcecompletion.ui.h:1
+msgid "Show detailed proposal information"
+msgstr "แสดงข้อมูลของคำเสนอโดยละเอียด"
+
+#: ../gtksourceview/gtksourcecompletion.ui.h:2
+msgid "_Details..."
+msgstr "_รายละเอียด..."
+
+#: ../gtksourceview/gtksourcecompletioncontext.c:255
+#: ../gtksourceview/gtksourceview.c:306
+msgid "Completion"
+msgstr "ตัวเติมเต็มคำ"
+
+#: ../gtksourceview/gtksourcecompletioncontext.c:256
+msgid "The completion object to which the context belongs"
+msgstr "อ็อบเจกต์ตัวเติมเต็มคำที่เป็นเจ้าของบริบทนี้"
+
+#. Translators: The GtkTextIter at which the completion was invoked
+#: ../gtksourceview/gtksourcecompletioncontext.c:269
+msgid "Iterator"
+msgstr "ตัววิ่ง"
+
+#: ../gtksourceview/gtksourcecompletioncontext.c:270
+msgid "The GtkTextIter at which the completion was invoked"
+msgstr "อ็อบเจกต์ GtkTextIter ที่ใช้งานอยู่ขณะที่เรียกตัวเติมเต็มคำนี้"
+
+#: ../gtksourceview/gtksourcecompletioncontext.c:282
+msgid "Activation"
+msgstr "การเรียกทำงาน"
+
+#: ../gtksourceview/gtksourcecompletioncontext.c:283
+msgid "The type of activation"
+msgstr "ชนิดของการเรียกทำงาน"
+
+#. Tooltip style
+#: ../gtksourceview/gtksourcecompletioninfo.c:61
+msgid "Completion Info"
+msgstr "ข้อมูลของการเติมเต็มคำ"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:230
+msgid "Label to be shown for this item"
+msgstr "ป้ายชื่อที่จะแสดงสำหรับรายการนี้"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:243
+msgid "Markup to be shown for this item"
+msgstr "มาร์กอัปที่จะแสดงสำหรับรายการนี้"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:256
+msgid "Item text"
+msgstr "ข้อความของรายการ"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:269
+msgid "Icon to be shown for this item"
+msgstr "ไอคอนที่จะแสดงสำหรับรายการนี้"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:281
+msgid "Info"
+msgstr "ข้อมูล"
+
+#: ../gtksourceview/gtksourcecompletionitem.c:282
+msgid "Info to be shown for this item"
+msgstr "ข้อมูลที่จะแสดงสำหรับรายการนี้"
+
+#. regex_new could fail, for instance if there are different
+#. * named sub-patterns with the same name or if resulting regex is
+#. * too long. In this case fixing lang file helps (e.g. renaming
+#. * subpatterns, making huge keywords use bigger prefixes, etc.)
+#: ../gtksourceview/gtksourcecontextengine.c:3120
+#, c-format
+msgid ""
+"Cannot create a regex for all the transitions, the syntax highlighting "
+"process will be slower than usual.\n"
+"The error was: %s"
+msgstr ""
+"ไม่สามารถสร้าง regex สำหรับทุก transition ได้ "
+"การเน้นข้อความตามไวยากรณ์อาจทำงานช้ากว่าปกติ\n"
+"ข้อผิดพลาดคือ: %s"
+
+#: ../gtksourceview/gtksourcecontextengine.c:4443
+msgid ""
+"Highlighting a single line took too much time, syntax highlighting will be "
+"disabled"
+msgstr "การเน้นไวยากรณ์เพียงบรรทัดเดียวใช้เวลานานเกินไป จะปิดการเน้นไวยากรณ์"
+
+#: ../gtksourceview/gtksourcecontextengine.c:5687
+#, c-format
+msgid "context '%s' cannot contain a \\%%{...@start} command"
+msgstr "บริบท '%s' จะมีคำสั่ง \\%%{...@start} ไม่ได้"
+
+#: ../gtksourceview/gtksourcecontextengine.c:5848
+#: ../gtksourceview/gtksourcecontextengine.c:5937
+#, c-format
+msgid "duplicated context id '%s'"
+msgstr "id ของบริบท '%s' ซ้ำกัน"
+
+#: ../gtksourceview/gtksourcecontextengine.c:6051
+#: ../gtksourceview/gtksourcecontextengine.c:6111
+#, c-format
+msgid ""
+"style override used with wildcard context reference in language '%s' in ref "
+"'%s'"
+msgstr "มีการทับค่าสไตล์ในตัวอ้างอิงบริบทที่เป็น wildcard ในภาษา '%s' ที่ตัวอ้างอิง '%s'"
+
+#: ../gtksourceview/gtksourcecontextengine.c:6125
+#, c-format
+msgid "invalid context reference '%s'"
+msgstr "ตัวอ้างอิงบริบท '%s' ใช้การไม่ได้"
+
+#: ../gtksourceview/gtksourcecontextengine.c:6144
+#: ../gtksourceview/gtksourcecontextengine.c:6154
+#, c-format
+msgid "unknown context '%s'"
+msgstr "ไม่รู้จักบริบท '%s'"
+
+#: ../gtksourceview/gtksourcecontextengine.c:6253
+#, c-format
+msgid "Missing main language definition (id = \"%s\".)"
+msgstr "ไม่มีข้อกำหนดภาษาหลัก (id = \"%s\")"
+
+#: ../gtksourceview/gtksourcegutter.c:548
+msgid "The gutters' GtkSourceView"
+msgstr "อ็อบเจกต์ GtkSourceView ที่ผูกอยู่กับแถบด้านข้างอันนี้"
+
+#: ../gtksourceview/gtksourcegutter.c:560
+#: ../gtksourceview/gtksourcegutterrenderer.c:703
+msgid "Window Type"
+msgstr "ชนิดของหน้าต่าง"
+
+#: ../gtksourceview/gtksourcegutter.c:561
+msgid "The gutters text window type"
+msgstr "ชนิดของหน้าต่างข้อความแถบข้าง"
+
+#: ../gtksourceview/gtksourcegutter.c:572
+#: ../gtksourceview/gtksourcegutterrenderer.c:479
+msgid "X Padding"
+msgstr "การเสริมเต็มในแนว X"
+
+#: ../gtksourceview/gtksourcegutter.c:573
+#: ../gtksourceview/gtksourcegutterrenderer.c:480
+msgid "The x-padding"
+msgstr "การเสริมเต็มในแนว X"
+
+#: ../gtksourceview/gtksourcegutter.c:583
+#: ../gtksourceview/gtksourcegutterrenderer.c:495
+msgid "Y Padding"
+msgstr "การเสริมเต็มในแนว Y"
+
+#: ../gtksourceview/gtksourcegutter.c:584
+#: ../gtksourceview/gtksourcegutterrenderer.c:496
+msgid "The y-padding"
+msgstr "การเสริมเต็มในแนว Y"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:465
+#: ../gtksourceview/gtksourcegutterrenderer.c:466
+msgid "Visible"
+msgstr "ปรากฏเห็น"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:511
+msgid "X Alignment"
+msgstr "การจัดเรียงในแนว X"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:512
+msgid "The x-alignment"
+msgstr "การจัดเรียงในแนว X"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:527
+msgid "Y Alignment"
+msgstr "การจัดเรียงในแนว Y"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:528
+msgid "The y-alignment"
+msgstr "การจัดเรียงในแนว Y"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:670
+msgid "The View"
+msgstr "ช่องแสดง"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:671
+msgid "The view"
+msgstr "ช่องแสดง"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:687
+msgid "Alignment Mode"
+msgstr "โหมดการจัดเรียง"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:688
+msgid "The alignment mode"
+msgstr "โหมดการจัดเรียง"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:704
+msgid "The window type"
+msgstr "ชนิดของหน้าต่าง"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:712
+msgid "Size"
+msgstr "ขนาด"
+
+#: ../gtksourceview/gtksourcegutterrenderer.c:713
+msgid "The size"
+msgstr "ขนาด"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:293
+#: ../gtksourceview/gtksourcemarkattributes.c:316
+msgid "Pixbuf"
+msgstr "พิกซ์บัฟ"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:294
+#: ../gtksourceview/gtksourcemarkattributes.c:317
+msgid "The pixbuf"
+msgstr "พิกซ์บัฟ"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:301
+#: ../gtksourceview/gtksourcemarkattributes.c:303
+msgid "Stock Id"
+msgstr "ID ไอคอนสำเร็จรูป"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:302
+#: ../gtksourceview/gtksourcemarkattributes.c:304
+msgid "The stock id"
+msgstr "ID ไอคอนสำเร็จรูป"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:309
+#: ../gtksourceview/gtksourcemarkattributes.c:329
+msgid "Icon Name"
+msgstr "ชื่อไอคอน"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:310
+#: ../gtksourceview/gtksourcemarkattributes.c:330
+msgid "The icon name"
+msgstr "ชื่อไอคอน"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:317
+#: ../gtksourceview/gtksourcemarkattributes.c:342
+msgid "GIcon"
+msgstr "GIcon"
+
+#: ../gtksourceview/gtksourcegutterrendererpixbuf.c:318
+msgid "The gicon"
+msgstr "GIcon"
+
+#: ../gtksourceview/gtksourcegutterrenderertext.c:396
+msgid "The markup"
+msgstr "มาร์กอัป"
+
+#: ../gtksourceview/gtksourcegutterrenderertext.c:404
+msgid "The text"
+msgstr "ข้อความ"
+
+#: ../gtksourceview/gtksourcelanguage.c:228
+#: ../gtksourceview/gtksourcelanguage.c:229
+msgid "Language id"
+msgstr "id ภาษา"
+
+#: ../gtksourceview/gtksourcelanguage.c:236
+#: ../gtksourceview/gtksourcelanguage.c:237
+msgid "Language name"
+msgstr "ชื่อภาษา"
+
+#: ../gtksourceview/gtksourcelanguage.c:244
+#: ../gtksourceview/gtksourcelanguage.c:245
+msgid "Language section"
+msgstr "หมวดภาษา"
+
+#: ../gtksourceview/gtksourcelanguage.c:252
+msgid "Hidden"
+msgstr "ซ่อน"
+
+#: ../gtksourceview/gtksourcelanguage.c:253
+msgid "Whether the language should be hidden from the user"
+msgstr "ระบุว่าควรซ่อนภาษานี้ไม่ให้ผู้ใช้เห็นหรือไม่"
+
+#: ../gtksourceview/gtksourcelanguagemanager.c:150
+msgid "Language specification directories"
+msgstr "ไดเรกทอรีข้อกำหนดภาษา"
+
+#: ../gtksourceview/gtksourcelanguagemanager.c:151
+msgid ""
+"List of directories where the language specification files (.lang) are "
+"located"
+msgstr "รายชื่อไดเรกทอรีที่เก็บแฟ้มข้อกำหนดภาษา (.lang)"
+
+#: ../gtksourceview/gtksourcelanguagemanager.c:160
+msgid "Language ids"
+msgstr "id ภาษาที่มี"
+
+#: ../gtksourceview/gtksourcelanguagemanager.c:161
+msgid "List of the ids of the available languages"
+msgstr "รายชื่อของ id ของภาษาที่มี"
+
+#: ../gtksourceview/gtksourcelanguage-parser-2.c:950
+#, c-format
+msgid "Unknown id '%s' in regex '%s'"
+msgstr "ไม่รู้จัก id '%s' ใน regex '%s'"
+
+#: ../gtksourceview/gtksourcelanguage-parser-2.c:1178
+#, c-format
+msgid "in regex '%s': backreferences are not supported"
+msgstr "ใน regex '%s': ไม่รองรับการอ้างอิงกลับ"
+
+#: ../gtksourceview/gtksourcemarkattributes.c:290
+#: ../gtksourceview/gtksourcestyle.c:88
+msgid "Background"
+msgstr "พื้นหลัง"
+
+#: ../gtksourceview/gtksourcemarkattributes.c:291
+msgid "The background"
+msgstr "พื้นหลัง"
+
+#: ../gtksourceview/gtksourcemarkattributes.c:343
+msgid "The GIcon"
+msgstr "GIcon"
+
+#: ../gtksourceview/gtksourcemark.c:140
+msgid "category"
+msgstr "หมวด"
+
+#: ../gtksourceview/gtksourcemark.c:141
+msgid "The mark category"
+msgstr "หมวดของเครื่องหมาย"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:442
+msgid "Source Buffer"
+msgstr "บัฟเฟอร์ซอร์ส"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:443
+msgid "The GtkSourceBuffer object to print"
+msgstr "อ็อบเจกต์ GtkSourceBuffer ที่จะพิมพ์"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:460
+#: ../gtksourceview/gtksourceview.c:344
+msgid "Tab Width"
+msgstr "ความกว้างแท็บ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:461
+#: ../gtksourceview/gtksourceview.c:345
+msgid "Width of a tab character expressed in spaces"
+msgstr "ความกว้างของอักขระแท็บ นับในหน่วยจำนวนอักขระเว้นวรรค"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:481
+msgid "Wrap Mode"
+msgstr "โหมดการตัดบรรทัด"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:482
+msgid ""
+"Whether to wrap lines never, at word boundaries, or at character boundaries."
+msgstr "กำหนดว่าจะไม่ตัดบรรทัด, ตัดบรรทัดระหว่างคำ หรือจะตัดบรรทัดระหว่างอักขระ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:503
+msgid "Whether to print the document with highlighted syntax"
+msgstr "กำหนดว่าจะพิมพ์เอกสารโดยเน้นข้อความตามไวยากรณ์หรือไม่"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:524
+msgid "Print Line Numbers"
+msgstr "การพิมพ์เลขบรรทัด"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:525
+msgid "Interval of printed line numbers (0 means no numbers)"
+msgstr "จำนวนบรรทัดต่อการพิมพ์เลขบรรทัดหนึ่งครั้ง (0 หมายถึงไม่พิมพ์เลขบรรทัด)"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:547
+msgid "Print Header"
+msgstr "พิมพ์หัวกระดาษ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:548
+msgid "Whether to print a header in each page"
+msgstr "กำหนดว่าจะพิมพ์หัวกระดาษในแต่ละหน้าหรือไม่"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:570
+msgid "Print Footer"
+msgstr "พิมพ์ท้ายกระดาษ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:571
+msgid "Whether to print a footer in each page"
+msgstr "กำหนดว่าจะพิมพ์ท้ายกระดาษในแต่ละหน้าหรือไม่"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:593
+msgid "Body Font Name"
+msgstr "ชื่อแบบอักษรสำหรับเนื้อความ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:594
+msgid "Name of the font to use for the text body (e.g. \"Monospace 10\")"
+msgstr "ชื่อแบบอักษรที่จะใช้พิมพ์เนื้อความเอกสาร (เช่น \"Monospace 10\")"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:617
+msgid "Line Numbers Font Name"
+msgstr "ชื่อแบบอักษรสำหรับเลขบรรทัด"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:618
+msgid "Name of the font to use for the line numbers (e.g. \"Monospace 10\")"
+msgstr "ชื่อแบบอักษรสำหรับพิมพ์เลขบรรทัด (เช่น \"Monospace 10\")"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:641
+msgid "Header Font Name"
+msgstr "ชื่อแบบอักษรสำหรับหัวกระดาษ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:642
+msgid "Name of the font to use for the page header (e.g. \"Monospace 10\")"
+msgstr "ชื่อแบบอักษรสำหรับพิมพ์หัวกระดาษ (เช่น \"Monospace 10\")"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:665
+msgid "Footer Font Name"
+msgstr "ชื่อแบบอักษรสำหรับท้ายกระดาษ"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:666
+msgid "Name of the font to use for the page footer (e.g. \"Monospace 10\")"
+msgstr "ชื่อแบบอักษรสำหรับพิมพ์ท้ายกระดาษ (เช่น \"Monospace 10\")"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:682
+msgid "Number of pages"
+msgstr "จำนวนหน้า"
+
+#: ../gtksourceview/gtksourceprintcompositor.c:683
+msgid ""
+"The number of pages in the document (-1 means the document has not been "
+"completely paginated)."
+msgstr "จำนวนหน้าในเอกสาร (-1 หมายถึงเอกสารยังแบ่งหน้าไม่เสร็จ)"
+
+#: ../gtksourceview/gtksourceregex.c:125
+msgid "using \\C is not supported in language definitions"
+msgstr "ไม่รองรับการใช้ \\C ในข้อกำหนดภาษา"
+
+#: ../gtksourceview/gtksourcestyle.c:80
+msgid "Line background"
+msgstr "พื้นหลังบรรทัด"
+
+#: ../gtksourceview/gtksourcestyle.c:81
+msgid "Line background color"
+msgstr "สีพื้นหลังบรรทัด"
+
+#: ../gtksourceview/gtksourcestyle.c:89
+msgid "Background color"
+msgstr "สีพื้นหลัง"
+
+#: ../gtksourceview/gtksourcestyle.c:96
+msgid "Foreground"
+msgstr "ตัวอักษร"
+
+#: ../gtksourceview/gtksourcestyle.c:97
+msgid "Foreground color"
+msgstr "ศีตัวอักษร"
+
+#: ../gtksourceview/gtksourcestyle.c:120 ../gtksourceview/gtksourcestyle.c:121
+msgid "Underline"
+msgstr "ขีดเส้นใต้"
+
+#: ../gtksourceview/gtksourcestyle.c:128 ../gtksourceview/gtksourcestyle.c:129
+msgid "Strikethrough"
+msgstr "ขีดฆ่า"
+
+#: ../gtksourceview/gtksourcestyle.c:136
+msgid "Line background set"
+msgstr "ใช้สีพื้นหลังบรรทัด"
+
+#: ../gtksourceview/gtksourcestyle.c:137
+msgid "Whether line background color is set"
+msgstr "ระบุว่ามีการกำหนดสีพื้นหลังของบรรทัดหรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:144
+msgid "Foreground set"
+msgstr "ใช้สีตัวอักษร"
+
+#: ../gtksourceview/gtksourcestyle.c:145
+msgid "Whether foreground color is set"
+msgstr "ระบุว่ามีการกำหนดสีตัวอักษรหรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:152
+msgid "Background set"
+msgstr "ใช้สีพื้นหลัง"
+
+#: ../gtksourceview/gtksourcestyle.c:153
+msgid "Whether background color is set"
+msgstr "ระบุว่ามีการกำหนดสีพื้นหลังหรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:160
+msgid "Bold set"
+msgstr "ใช้ตัวหนา"
+
+#: ../gtksourceview/gtksourcestyle.c:161
+msgid "Whether bold attribute is set"
+msgstr "กำหนดว่ากำหนดรูปแบบเป็นตัวหนาหรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:168
+msgid "Italic set"
+msgstr "ใช้ตัวเอียง"
+
+#: ../gtksourceview/gtksourcestyle.c:169
+msgid "Whether italic attribute is set"
+msgstr "ระบุว่ามีการกำหนดรูปแบบเป็นตัวเอียงหรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:176
+msgid "Underline set"
+msgstr "ใช้ตัวขีดเส้นใต้"
+
+#: ../gtksourceview/gtksourcestyle.c:177
+msgid "Whether underline attribute is set"
+msgstr "ระบุว่ามีการกำหนดรูปแบบเป็นตัวขีดเส้นใต้หรือไม่"
+
+#: ../gtksourceview/gtksourcestyle.c:184
+msgid "Strikethrough set"
+msgstr "ใช้ตัวขีดฆ่า"
+
+#: ../gtksourceview/gtksourcestyle.c:185
+msgid "Whether strikethrough attribute is set"
+msgstr "ระบุว่ามีการกำหนดรูปแบบเป็นตัวขีดฆ่าหรือไม่"
+
+#: ../gtksourceview/gtksourcestylescheme.c:212
+#: ../gtksourceview/gtksourcestylescheme.c:213
+msgid "Style scheme id"
+msgstr "id ของชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestylescheme.c:225
+#: ../gtksourceview/gtksourcestylescheme.c:226
+msgid "Style scheme name"
+msgstr "ชื่อของชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestylescheme.c:238
+#: ../gtksourceview/gtksourcestylescheme.c:239
+msgid "Style scheme description"
+msgstr "คำบรรยายของชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestylescheme.c:251
+#: ../gtksourceview/gtksourcestylescheme.c:252
+msgid "Style scheme filename"
+msgstr "ชื่อแฟ้มชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestyleschememanager.c:152
+msgid "Style scheme search path"
+msgstr "พาธสำหรับค้นหาชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestyleschememanager.c:153
+msgid "List of directories and files where the style schemes are located"
+msgstr "รายชื่อไดเรกทอรีและแฟ้มที่เก็บชุดสไตล์"
+
+#: ../gtksourceview/gtksourcestyleschememanager.c:161
+msgid "Scheme ids"
+msgstr "id ของชุดสไตล์ที่มี"
+
+#: ../gtksourceview/gtksourcestyleschememanager.c:162
+msgid "List of the ids of the available style schemes"
+msgstr "รายชื่อของ id ของชุดสไตล์ที่มี"
+
+#: ../gtksourceview/gtksourceundomanagerdefault.c:410
+msgid "Buffer"
+msgstr "บัฟเฟอร์"
+
+#: ../gtksourceview/gtksourceundomanagerdefault.c:411
+msgid "The text buffer to add undo support on"
+msgstr "บัฟเฟอร์ข้อความที่จะเพิ่มการรองรับการเรียกคืนคำสั่ง"
+
+#: ../gtksourceview/gtksourceview.c:307
+msgid "The completion object associated with the view"
+msgstr "อ็อบเจกต์ตัวเติมเต็มคำที่เชื่อมอยู่กับตัวแสดงนี้"
+
+#: ../gtksourceview/gtksourceview.c:319
+msgid "Show Line Numbers"
+msgstr "แสดงเลขบรรทัด"
+
+#: ../gtksourceview/gtksourceview.c:320
+msgid "Whether to display line numbers"
+msgstr "กำหนดว่าจะแสดงเลขบรรทัดหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:331
+msgid "Show Line Marks"
+msgstr "แสดงการทำเครื่องหมายบรรทัด"
+
+#: ../gtksourceview/gtksourceview.c:332
+msgid "Whether to display line mark pixbufs"
+msgstr "กำหนดว่าจะแสดงรูปเล็กๆ ที่ใช้ทำเครื่องหมายบรรทัดหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:359
+msgid "Indent Width"
+msgstr "ระยะร่นบรรทัด"
+
+#: ../gtksourceview/gtksourceview.c:360
+msgid "Number of spaces to use for each step of indent"
+msgstr "จำนวนอักขระเว้นวรรคที่จะใช้ในการร่นบรรทัดแต่ละขั้น"
+
+#: ../gtksourceview/gtksourceview.c:369
+msgid "Auto Indentation"
+msgstr "ร่นบรรทัดอัตโนมัติ"
+
+#: ../gtksourceview/gtksourceview.c:370
+msgid "Whether to enable auto indentation"
+msgstr "กำหนดว่าจะเปิดใช้การร่นบรรทัดอัตโนมัติหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:377
+msgid "Insert Spaces Instead of Tabs"
+msgstr "แทรกช่องว่างแทนแท็บ"
+
+#: ../gtksourceview/gtksourceview.c:378
+msgid "Whether to insert spaces instead of tabs"
+msgstr "กำหนดว่าจะแทรกช่องว่างแทนแท็บหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:390
+msgid "Show Right Margin"
+msgstr "แสดงกั้นหน้าขวา"
+
+#: ../gtksourceview/gtksourceview.c:391
+msgid "Whether to display the right margin"
+msgstr "กำหนดว่าจะแสดงกั้นหน้าขวาหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:403
+msgid "Right Margin Position"
+msgstr "ตำแหน่งกั้นหน้าขวา"
+
+#: ../gtksourceview/gtksourceview.c:404
+msgid "Position of the right margin"
+msgstr "ตำแหน่งของกั้นหน้าขวา"
+
+#: ../gtksourceview/gtksourceview.c:420
+msgid "Smart Home/End"
+msgstr "ใช้ home/end พิเศษ"
+
+#: ../gtksourceview/gtksourceview.c:421
+msgid ""
+"HOME and END keys move to first/last non whitespace characters on line "
+"before going to the start/end of the line"
+msgstr ""
+"ปุ่ม HOME และ END จะเคลื่อนไปที่อักขระแรก/สุดท้ายที่ไม่ใช่ช่องว่างของบรรทัด ก่อนที่จะไปที่ต้น/"
+"ท้ายบรรทัด"
+
+#: ../gtksourceview/gtksourceview.c:431
+msgid "Highlight current line"
+msgstr "เน้นบรรทัดปัจจุบัน"
+
+#: ../gtksourceview/gtksourceview.c:432
+msgid "Whether to highlight the current line"
+msgstr "กำหนดว่าจะเน้นบรรทัดปัจจุบันหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:439
+msgid "Indent on tab"
+msgstr "ร่นบรรทัดเมื่อกดแท็บ"
+
+#: ../gtksourceview/gtksourceview.c:440
+msgid "Whether to indent the selected text when the tab key is pressed"
+msgstr "กำหนดว่าจะร่นข้อความที่เลือกเมื่อกดปุ่มแท็บหรือไม่"
+
+#: ../gtksourceview/gtksourceview.c:454
+msgid "Draw Spaces"
+msgstr "วาดช่องว่าง"
+
+#: ../gtksourceview/gtksourceview.c:455
+msgid "Set if and how the spaces should be visualized"
+msgstr "กำหนดวิธีแสดงผลช่องว่างชนิดต่างๆ"
+
+#: ../gtksourceview/gtksourceview-i18n.c:72
+msgid "translator-credits"
+msgstr "Theppitak Karoonboonyanan <thep@linux.thai.net>"
+
+#~ msgid "Object"
+#~ msgstr "ออบเจกต์"
+
+#~ msgid "Maximum width"
+#~ msgstr "ความกว้างสูงสุด"
+
+#~ msgid "The maximum allowed width"
+#~ msgstr "ความกว้างสูงสุดที่ให้ใช้ได้"
+
+#~ msgid "Maximum height"
+#~ msgstr "ความสูงสูงสุด"
+
+#~ msgid "The maximum allowed height"
+#~ msgstr "ความสูงสูงสุดที่ให้ใช้ได้"
+
+#~ msgid "Shrink width"
+#~ msgstr "หดความกว้าง"
+
+#~ msgid "Whether the window should shrink width to fit the contents"
+#~ msgstr "ระบุว่าหน้าต่างควรหดความกว้างให้พอดีกับเนื้อหาหรือไม่"
+
+#~ msgid "Shrink height"
+#~ msgstr "หดความสูง"
+
+#~ msgid "Whether the window should shrink height to fit the contents"
+#~ msgstr "ระบุว่าหน้าต่างควรหดความสูงให้พอดีกับเนื้อหาหรือไม่"
+
+#~ msgid "Inline C Code"
+#~ msgstr "โค้ดภาษาซีแบบ inline"
+
+#~ msgid "grammar"
+#~ msgstr "ไวยากรณ์"
+
+#~ msgid "Margin Line Alpha"
+#~ msgstr "ค่าอัลฟาของเส้นกั้นหน้า"
+
+#~ msgid "Transparency of the margin line"
+#~ msgstr "ความโปร่งแสงของเส้นกั้นหน้า"
+
+#~ msgid "Margin Line Color"
+#~ msgstr "สีของเส้นกั้นหน้า"
+
+#~ msgid "Color to use for the right margin line"
+#~ msgstr "สีของเส้นกั้นขอบขวา"
+
+#~ msgid "Margin Overlay Toggle"
+#~ msgstr "เปิด-ปิดการวาดเส้นกั้นหน้าแบบลอยตัว"
+
+#~ msgid "Whether to draw the right margin overlay"
+#~ msgstr "กำหนดว่าจะแสดงกั้นหน้าขวาแบบลอยตัวหรือไม่"
+
+#~ msgid "Margin Overlay Alpha"
+#~ msgstr "ค่าอัลฟาของเส้นกั้นหน้าขวาแบบลอยตัว"
+
+#~ msgid "Transparency of the margin overlay"
+#~ msgstr "ความโปร่งแสงของเส้นกั้นหน้าแบบลอยตัว"
+
+#~ msgid "Margin Overlay Color"
+#~ msgstr "สีของเส้นกั้นหน้าแบบลอยตัว"
+
+#~ msgid "Color to use for drawing the margin overlay"
+#~ msgstr "สีของเส้นกั้นหน้าแบบลอยตัว"
+
+#~ msgid "Check Brackets"
+#~ msgstr "ตรวจคู่วงเล็บ"
+
+#~ msgid "Attribute"
+#~ msgstr "แอตทริบิวต์"
+
+#~ msgid "Closing Bracket"
+#~ msgstr "วงเล็บปิด"
+
+#~ msgid "Hexadecimal"
+#~ msgstr "เลขฐานสิบหก"
+
+#~ msgid "Structural Elements 2"
+#~ msgstr "อิลิเมนต์โครงสร้าง 2"
+
+#~ msgid "Binary Number"
+#~ msgstr "เลขฐานสอง"
+
+#~ msgid "Character Constant"
+#~ msgstr "ค่าคงที่อักขระ"
+
+#~ msgid "Floating Point Number"
+#~ msgstr "เลขทศนิยม"
+
+#~ msgid "Keywords Defined by Macros"
+#~ msgstr "คำหลักที่กำหนดโดยแมโคร"
+
+#~ msgid "Line Comment"
+#~ msgstr "หมายเหตุแบบบรรทัด"
+
+#~ msgid "Octal Number"
+#~ msgstr "เลขฐานแปด"
+
+#~ msgid "Primitives"
+#~ msgstr "ชนิดมูลฐาน"
+
+#~ msgid "Old Style Comment"
+#~ msgstr "หมายเหตุแบบเก่า"
+
+#~ msgid "Preprocessor Definitions"
+#~ msgstr "ข้อกำหนดพรีโพรเซสเซอร์"
+
+#~ msgid "Escaping character for syntax patterns"
+#~ msgstr "อักขระหลีกสำหรับการกำหนดรูปแบบไวยากรณ์"
+
+#~ msgid "Configuration"
+#~ msgstr "ค่าตั้ง"
+
+#~ msgid "Configuration options for the print job"
+#~ msgstr "ตัวเลือกการตั้งค่างานพิมพ์"
+
+#~ msgid "Width in equivalent space characters of tabs"
+#~ msgstr "ความกว้างแท็บในหน่วยจำนวนช่องว่างที่เทียบเท่า"
+
+#~ msgid "Word wrapping mode"
+#~ msgstr "โหมดการตัดคำขึ้นบรรทัดใหม่"
+
+#~ msgid "Tag ID"
+#~ msgstr "หมายเลขแท็ก"
+
+#~ msgid "ID used to refer to the source tag"
+#~ msgstr "หมายเลขแทนแท็กในซอร์ส"
+
+#~ msgid "Tag style"
+#~ msgstr "สไตล์ของแท็ก"
+
+#~ msgid "Preprocessor Keyword"
+#~ msgstr "คำหลักของพรีโพรเซสเซอร์"
+
+#~ msgid "True And False"
+#~ msgstr "ค่าจริงกับเท็จ"
+
+#~ msgid "'#if 0' Comment"
+#~ msgstr "หมายเหตุแบบ '#if 0'"
+
+#~ msgid "Types"
+#~ msgstr "ชนิด"
+
+#~ msgid "Hexadecimal Color"
+#~ msgstr "รหัสสีฐานสิบหก"
+
+#~ msgid "Punctuators"
+#~ msgstr "เครื่องหมายวรรคตอน"
+
+#~ msgid "Unicode Character Reference"
+#~ msgstr "การอ้างอิงอักขระยูนิโค้ด"
+
+#~ msgid "Char Literal"
+#~ msgstr "ค่าคงที่อักขระ"
+
+#~ msgid "Nested Comment"
+#~ msgstr "หมายเหตุซ้อน"
+
+#~ msgid "String Literal"
+#~ msgstr "ค่าคงที่ข้อความ"
+
+#~ msgid "Input/Output"
+#~ msgstr "อินพุต/เอาต์พุต"
+
+#~ msgid "Intrinsics"
+#~ msgstr "ฟังก์ชันภายใน"
+
+#~ msgid "Double Quoted String"
+#~ msgstr "สตริงในอัญประกาศคู่"
+
+#~ msgid "Single Quoted String"
+#~ msgstr "สตริงในอัญประกาศเดี่ยว"
+
+#~ msgid "State"
+#~ msgstr "สถานะ"
+
+#~ msgid "Type or Constructor"
+#~ msgstr "ชนิดหรือคอนสตรักเตอร์"
+
+#~ msgid "Sectional"
+#~ msgstr "การแบ่ง section"
+
+#~ msgid "Integer"
+#~ msgstr "เลขจำนวนเต็ม"
+
+#~ msgid "Flow"
+#~ msgstr "เส้นทางการทำงาน"
+
+#~ msgid "Memory"
+#~ msgstr "หน่วยความจำ"
+
+#~ msgid "Numeric"
+#~ msgstr "ตัวเลข"
+
+#~ msgid "Array Operators"
+#~ msgstr "ตัวกระทำอาร์เรย์"
+
+#~ msgid "Floating-Point Number"
+#~ msgstr "เลขทศนิยม"
+
+#~ msgid "Flow Keywords"
+#~ msgstr "คำสั่งควบคุมเส้นทางการทำงาน"
+
+#~ msgid "Object Functions"
+#~ msgstr "ฟังก์ชันของอ็อบเจกต์"
+
+#~ msgid "Object Properties"
+#~ msgstr "คุณสมบัติของอ็อบเจกต์"
+
+#~ msgid "Math"
+#~ msgstr "คณิตศาสตร์"
+
+#~ msgid "Line Comment 2"
+#~ msgstr "หมายเหตุแบบบรรทัด 2"
+
+#~ msgid "Multiline String 2"
+#~ msgstr "สตริงหลายบรรทัด 2"
+
+#~ msgid "Backtick String"
+#~ msgstr "สตริงในอัญประกาศย้อน"
+
+#~ msgid "Multiline Double Quoted String"
+#~ msgstr "สตริงในอัญประกาศคู่แบบหลายบรรทัด"
+
+#~ msgid "Multiline Single Quoted String"
+#~ msgstr "สตริงในอัญประกาศเดี่ยวแบบหลายบรรทัด"
+
+#~ msgid "Block Comment 1"
+#~ msgstr "หมายเหตุแบบบล็อค 1"
+
+#~ msgid "Block Comment 2"
+#~ msgstr "หมายเหตุแบบบล็อค 2"
+
+#~ msgid "Boolean Bitwise Operators"
+#~ msgstr "ตัวกระทำบิตแบบบูลีน"
+
+#~ msgid "Functions and Function Modifiers"
+#~ msgstr "ฟังก์ชันและคำขยายฟังก์ชัน"
+
+#~ msgid "General Format"
+#~ msgstr "โครงสร้างทั่วไป"
+
+#~ msgid "Loop, Flow, and Exceptions Keywords"
+#~ msgstr "คำสั่งวนรอบ, ควบคุมเส้นทางการทำงาน, และการจัดการสิ่งผิดปรกติ"
+
+#~ msgid "Method Call"
+#~ msgstr "การเรียกเมท็อด"
+
+#~ msgid "Bash Line Comment"
+#~ msgstr "หมายเหตุบรรทัดแบบ Bash"
+
+#~ msgid "C Block Comment"
+#~ msgstr "คอมเมนต์บล็อคแบบภาษา C"
+
+#~ msgid "C++ Line Comment"
+#~ msgstr "คอมเมนต์บรรทัดแบบภาษา C++"
+
+#~ msgid "Case Insensitive Keyword"
+#~ msgstr "คำหลักไม่บังคับตัวพิมพ์ใหญ่-เล็ก"
+
+#~ msgid "Case Sensitive Keyword"
+#~ msgstr "คำหลักบังคับตัวพิมพ์ใหญ่-เล็ก"
+
+#~ msgid "First Open PHP Tag"
+#~ msgstr "แท็กแรกเปิด PHP"
+
+#~ msgid "Multiline Comment"
+#~ msgstr "หมายเหตุแบบหลายบรรทัด"
+
+#~ msgid "Punctuator"
+#~ msgstr "เครื่องหมายวรรคตอน"
+
+#~ msgid "Redirection"
+#~ msgstr "การเปลี่ยนเส้นทาง"
+
+#~ msgid "ANSI Datatypes"
+#~ msgstr "ชนิดข้อมูลของ ANSI"
+
+#~ msgid "Aggregate Functions"
+#~ msgstr "ฟังก์ชัน Aggregate"
+
+#~ msgid "Character Functions Returning Character Values"
+#~ msgstr "ฟังก์ชันอักขระที่ให้ผลลัพธ์เป็นอักขระ"
+
+#~ msgid "Character Functions Returning Number Values"
+#~ msgstr "ฟังก์ชันอักขระที่ให้ผลลัพธ์เป็นตัวเลข"
+
+#~ msgid "Conditions"
+#~ msgstr "เงื่อนไข"
+
+#~ msgid "Data Mining Functions"
+#~ msgstr "ฟังก์ชันเกี่ยวกับ Data Mining"
+
+#~ msgid "Encoding and Decoding Functions"
+#~ msgstr "ฟังก์ชันเกี่ยวกับการลงรหัสและอ่านรหัส"
+
+#~ msgid "General Comparison Functions"
+#~ msgstr "ฟังก์ชันเปรียบเทียบทั่วไป"
+
+#~ msgid "Hierarchical Function"
+#~ msgstr "ฟังก์ชันลำดับชั้น"
+
+#~ msgid "Integer Literals"
+#~ msgstr "ค่าคงที่จำนวนเต็ม"
+
+#~ msgid "Large Object Functions"
+#~ msgstr "ฟังก์ชันของอ็อบเจกต์ขนาดใหญ่"
+
+#~ msgid "NLS Character Functions"
+#~ msgstr "ฟังก์ชันอักขระภาษาท้องถิ่น"
+
+#~ msgid "NULL-Related Functions"
+#~ msgstr "ฟังก์ชันเกี่ยวกับค่าว่างเปล่า"
+
+#~ msgid "Numeric Functions"
+#~ msgstr "ฟังก์ชันเกี่ยวกับตัวเลข"
+
+#~ msgid "Object Reference Functions"
+#~ msgstr "ฟังก์ชันอ้างอิงอ็อบเจกต์"
+
+#~ msgid "Oracle Built-in Datatypes"
+#~ msgstr "ชนิดข้อมูลในตัวของออราเคิล"
+
+#~ msgid "Oracle Reserved Words"
+#~ msgstr "คำสงวนของออราเคิล"
+
+#~ msgid "Oracle-Supplied Types"
+#~ msgstr "ชนิดข้อมูลในตัวของออราเคิล"
+
+#~ msgid "SQL/DS and DB2 Datatypes"
+#~ msgstr "ชนิดข้อมูลของ SQL/DS และ DB2"
+
+#~ msgid "Size Clause"
+#~ msgstr "ขนาดข้อมูล"
+
+#~ msgid "Text Literals"
+#~ msgstr "ค่าคงที่ข้อความ"
+
+#~ msgid "XML Functions"
+#~ msgstr "ฟังก์ชัน XML"
+
+#~ msgid "Characters"
+#~ msgstr "อักขระ"
+
+#~ msgid "Formatting"
+#~ msgstr "การจัดรูปแบบ"
+
+#~ msgid "Indexing"
+#~ msgstr "การทำดรรชนี"
+
+#~ msgid "Markup (block)"
+#~ msgstr "มาร์กอัป (บล็อค)"
+
+#~ msgid "Markup (inline)"
+#~ msgstr "มาร์กอัป (ในบรรทัด)"
+
+#~ msgid "Sectioning"
+#~ msgstr "การแบ่งหัวข้อ"
+
+#~ msgid "True and False"
+#~ msgstr "ค่าจริงกับเท็จ"
+
+#~ msgid "Double Quote String"
+#~ msgstr "สตริงในอัญประกาศคู่"
+
+#~ msgid "Single Quote String"
+#~ msgstr "สตริงในอัญประกาศเดี่ยว"
+
+#~ msgid "Miscellaneous Single-Row Functions"
+#~ msgstr "ฟังก์ชันแถวเดี่ยวจิปาถะ"
+
+#. Translators: This is the sorted list of encodings used by
+#. * GtkSourceView for automatic detection of the file encoding. You may
+#. * want to customize it adding encodings that are common in your
+#. * country, for instance the GB18030 encoding for the Chinese
+#. * translation. You may also want to remove the ISO-8859-15 encoding
+#. * (covering English and most Western European languages) if you think
+#. * people in your country will rarely use it.  "CURRENT" is a magic
+#. * value used by GtkSourceView and it represents the encoding for the
+#. * current locale, so please don't translate the "CURRENT" term.  Only
+#. * recognized encodings are used. See
+#. * https://git.gnome.org/browse/gtksourceview/tree/gtksourceview/gtksourceencoding.c#n147
+#. * for a list of supported encodings.
+#.
+#: ../gtksourceview/gtksourceencoding.c:517
+msgid "['UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"
+msgstr "['UTF-8', 'CURRENT', 'TIS-620', 'UTF-16']"

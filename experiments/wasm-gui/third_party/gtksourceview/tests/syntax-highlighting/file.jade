@@ -1,0 +1,22 @@
+// Comment
+- // This is JavaScript
+- var title = 'jade test'
+
+doctype
+html
+  head
+    title #{title}
+  body
+    h1.title #{title}
+    // This comment will be output
+    //- This comment wont be output
+    //-
+      p This element is in a comment
+    p This element is not in a comment
+    p
+      | The pipe always goes at the beginning of its own line,
+      | not counting indentation.
+    p.
+      Using regular tags can help keep your lines short,
+      but interpolated tags may be easier to #[em visualize]
+      whether the tags and text are whitespace-separated.

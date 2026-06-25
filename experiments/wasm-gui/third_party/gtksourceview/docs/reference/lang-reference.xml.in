@@ -1,0 +1,1030 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+   "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+ <!ENTITY % local.common.attrib "xmlns:xi CDATA #FIXED 'http://www.w3.org/2003/XInclude'">
+ <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+ %gtkdocentities;
+]>
+<refentry id="lang-reference">
+<refmeta>
+<refentrytitle>Language Definition v2.0 Reference</refentrytitle>
+</refmeta>
+
+<refnamediv>
+<refname>Language Definition v2.0 Reference</refname>
+<refpurpose>
+Reference to the GtkSourceView language definition file format
+</refpurpose>
+</refnamediv>
+
+<refsect1>
+<title>Overview</title>
+
+<note>
+  <para>
+    The version 2 here refers to the language definition file format,
+    not to the version of GtkSourceView. This reference is suitable
+    for GtkSourceView 2, 3 and 4.
+  </para>
+</note>
+
+<para>
+This is an overview of the Language Definition XML format, describing the
+meaning and usage of every element and attribute.  The formal definition is
+stored in the RelaxNG schema file <filename>language2.rng</filename> which
+should be installed on your system in the directory
+<filename>${PREFIX}/share/gtksourceview-@GSV_API_VERSION@/</filename> (where
+<filename>${PREFIX}</filename> can be <filename>/usr/</filename> or
+<filename>/usr/local/</filename> if you have installed from source.
+</para>
+
+<para>
+The preinstalled language files are located in
+<filename>${PREFIX}/share/gtksourceview-@GSV_API_VERSION@/language-specs/</filename>. Custom
+user languages are usually placed in
+<filename>~/.local/share/gtksourceview-@GSV_API_VERSION@/language-specs/</filename>. Note:
+replace @GSV_API_VERSION@ with 2.0 or 3.0 in the path for GtkSourceView version
+2 or version 3.
+</para>
+</refsect1>
+
+<refsect1>
+<title>Some advices</title>
+
+<para>
+The easiest way to start a new language definition is to copy a preinstalled
+language definition from a language that has similar constructs as the one you
+want to write a specification for. You can copy and rename a file from the
+systems directory to the local user one (create the directory if it doesn't
+exist yet) and edit the file accordingly.
+</para>
+
+<para>
+The important thing you need to change are the <code>id</code> and
+<code>name</code> of the language and the metadata properties
+<code>mimetypes</code> and <code>globs</code> in the language spec. These
+should resemble your new language. It might be that your files do not have an
+appropriate mimetype associated yet. You can either in that case leave it
+empty, or add a new mimetype (see below).
+</para>
+
+<para>
+If for some reason your language spec doesn't show up in an application like
+gedit, it might be a good idea to start the application from a terminal window
+and see if any errors/warnings appear for your language file. This usually
+gives good clues what's wrong with the specification. Note that you need to
+restart the application to take into account changes in a language definition
+file.
+</para>
+</refsect1>
+
+<refsect1>
+<title>Conventions</title>
+
+<para>
+It is better to follow the following conventions, especially if you want to
+contribute upstream, and get your language definition file included in
+GtkSourceView.
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+      Indentation: 2 spaces.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      Have the main context at the bottom.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      Use references to def.lang.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      Add an example in tests/syntax-highlighting/.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      LGPL v2.1+ license (copy/paste the license header from c.lang, for
+      example).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      Add the e-mail address of the language definition file author(s).
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      Refer to the HACKING file for submitting your language definition
+      file upstream. If the file is not included upstream, you can also
+      add the language definition file to the GtkSourceView wiki, so
+      users can easily find it.
+    </para>
+  </listitem>
+</itemizedlist>
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;language&gt;</code></title>
+<para>
+The root element for Language Definition files.
+</para>
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;metadata&gt;</code> (optional)</member>
+<member><code>&lt;styles&gt;</code> (optional)</member>
+<member><code>&lt;default-regex-options&gt;</code> (optional)</member>
+<member><code>&lt;keyword-char-class&gt;</code> (optional)</member>
+<member><code>&lt;definitions&gt;</code> (mandatory)</member>
+</simplelist>.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (mandatory)</term>
+<listitem><para>
+Identifier for the description. This is used for
+external references and must be unique among language descriptions. It can
+contain a string of letters, digits, hyphens ("<code>-</code>") and
+underscores ("<code>_</code>").
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>name</code> or <code>_name</code> (mandatory)</term>
+<listitem>
+  <para>
+    The name of the language presented to the user. With <code>_name</code>, the
+    string is marked for translation (see the gettext documentation).
+  </para>
+
+  <para>
+    The name should be marked for translation only if: (1) it contains a common
+    English word, for example "C++ header" should be translated, but not "C++"
+    or "XML". Or (2) if the name contains several words, because in some
+    languages the word order should be different, for example "LLVM IR" or "RPM
+    spec" should also be marked for translation.
+  </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>version</code> (mandatory)</term>
+<listitem><para>
+The version of the XML format (currently "2.0").
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>section</code> or <code>_section</code> (optional)</term>
+<listitem><para>
+The category in which the language has to be grouped when presented to the user.
+With <code>_section</code> the string is marked for translation. Currently used
+categories in GtkSourceView are "Source", "Script", "Markup", "Scientific" and
+"Other", but it is possible to use arbitrary categories (while usually
+discouraged). The convention in GtkSourceView is to use <code>_section</code>.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>hidden</code> (optional)</term>
+<listitem><para>
+It's a hint that the language should be "hidden" from user. For instance,
+def.lang has this flag, and a text editor should not present "default" as
+a syntax highlighting choice.
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;metadata&gt;</code></title>
+
+<para>
+Contains optional metadata about the language definition.
+</para>
+
+<para>
+Recognized elements are (all optional):
+</para>
+
+<varlistentry>
+<term><code>mimetypes</code></term>
+<listitem><para>
+The semicolon-separated list of mimetypes associated to the language. See the
+<ulink url="http://www.freedesktop.org/wiki/Specifications/shared-mime-info-spec/">shared-mime-info</ulink>
+freedesktop.org specification. A language definition file shipped by
+GtkSourceView needs to have a mimetype defined in the shared-mime-info
+database. If the language definition file is not shipped by GtkSourceView, you
+can also create the mimetype locally, usually in
+<filename>~/.local/share/mime/packages/</filename>.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>globs</code></term>
+<listitem><para>
+The semicolon-separated list of globs associated to the language.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>line-comment-start</code></term>
+<listitem><para>
+String used to create single-line comment in files of this type, e.g.
+"#" in shell scripts.
+It may be used in an editor to implement Comment/Uncomment functionality.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>block-comment-start</code></term>
+<listitem><para>
+String used to start block comment in files of this type, e.g. "/*" in C
+files.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>block-comment-end</code></term>
+<listitem><para>
+String used to end block comment in files of this type, e.g. "*/" in C
+files.
+</para></listitem>
+</varlistentry>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;styles&gt;</code></title>
+
+<para>
+Contains the definitions of every style used in the current language and
+their association with predefined styles in GtkSourceView.
+</para>
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;style&gt;</code> (one or more)</member>
+</simplelist>.
+</para>
+</refsect1>
+
+
+<refsect1>
+<title>Tag <code>&lt;style&gt;</code></title>
+
+<para>
+Defines a style, associating its id with a user visible translatable
+name and a default style.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (mandatory)</term>
+<listitem><para>
+Identifier for the style. This is used in the current language
+to refer to this style and must be unique for the current document.
+It can contain a string of letters, digits,
+hyphens ("<code>-</code>") and underscores ("<code>_</code>").
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>name</code> or <code>_name</code> (mandatory)</term>
+<listitem>
+  <para>
+    The user visible name for the style. With <code>_name</code> the string is
+    marked for translation.
+  </para>
+
+  <para>
+    The convention in GtkSourceView is to <emphasis>never</emphasis> mark those
+    strings for translation because they are extremely rarely used in the UI of
+    an application (for example it could be used by a GUI tool to edit or create
+    style schemes, but it is not really useful beyond that), and because those
+    strings would be hard to translate (as a result, if those strings are
+    translated, in practice they would often be translated in a way that the
+    user doesn't understand what it means; for example for the C language,
+    "include" or "define" should not be translated, those are keywords of the
+    programming language).
+  </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>map-to</code> (optional)</term>
+<listitem><para>
+Used to map the style with a default style, to use colors and
+font properties defined for those default styles.
+The id of the default style has to be preceded with the id of the
+language where it is defined, separated with a semicolon ":".
+When omitted the style is not considered derived from any style and will
+not be highlighted until the user specifies a color scheme for this
+style.
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;keyword-char-class&gt;</code></title>
+
+<para>
+Contains a regex character class used to redefine the customizable
+word boundary delimiters "\%[" and "\%]". This class is the set of character
+that can be commonly found in a keyword.
+If the element is omitted the two delimiters default to "\b".
+</para>
+
+<para>
+Contained elements: none.
+</para>
+</refsect1>
+
+
+<refsect1>
+<title>Tag <code>&lt;default-regex-options&gt;</code></title>
+
+<para>
+Used to set global options for how regular expressions are processed.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+<variablelist>
+<title>Attributes</title>
+<varlistentry>
+<term><code>case-sensitive</code> (optional)</term>
+<listitem><para>Set to <code>false</code> to make regular expressions
+ignore case.
+Defaults to <code>true</code>.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>extended</code> (optional)</term>
+<listitem><para>Setting this to <code>true</code> makes the regular
+expression engine ignore spaces and comments. These comments start with
+"<code>#</code>" and continue to the end of the line.
+Defaults to <code>false</code>.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>dupnames</code> (optional)</term>
+<listitem><para>Setting this to true allows one to repeat an identifier
+for capturing parentheses.  This is useful for some patterns that you
+know only one instance of a named subpattern can ever be matched.
+Defaults to <code>false</code>.
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;definitions&gt;</code></title>
+
+<para>
+The element containing the real description of the syntax to be
+highlighted. It contains one or more <code>&lt;context&gt;</code> element and an
+arbitrary number of <code>&lt;define-regex&gt;</code> elements, interleaved.
+It has no attributes.
+Every contained element must have its <code>id</code> attribute set to an
+identifier unique for the document. Exactly one of the contained
+<code>&lt;context&gt;</code> element must have
+the <code>id</code> attribute set to the <code>id</code> of the
+<code>&lt;language&gt;</code> root element,
+representing the initial context for the highlighting, the one the engine
+enters at the beginning of the highlighted file.
+</para>
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;context&gt;</code> (one or more)</member>
+<member><code>&lt;define-regex&gt;</code> (zero or more)</member>
+</simplelist>.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;define-regex&gt;</code></title>
+
+<para>
+The syntax highlighting engine of GtkSourceView uses
+<link linkend="GRegex"><type>GRegex</type></link>,
+which uses the PCRE library. See the
+<ulink url="https://developer.gnome.org/glib/stable/glib-regex-syntax.html">Regular expression syntax</ulink>
+page in the GLib reference manual.
+</para>
+
+<para>
+The <code>&lt;define-regex&gt;</code> tag defines a regular expression that can
+be reused inside other regular expression, to avoid replicating common portions.
+Those regular expressions are in the form <code>/regex/options</code>.  If there
+are no options to be specified and you don't need to match the spaces at the
+start and at the end of the regular expression, you can omit the slashes,
+putting here only <code>regex</code>.  The possible options are those specified
+above in the description of the <code>&lt;default-regex-options&gt;</code>
+element. To disable a group of options, instead, you have to prepend an hyphen
+<code>-</code> to them.  In GtkSourceView are also available some extensions to
+the standard Perl style regular expressions:
+</para>
+
+<itemizedlist>
+<listitem><para>
+<code>\%[</code> and <code>\%]</code> are custom word boundaries, which can
+be redefined with the <code>&lt;keyword-char-class&gt;</code> (in contrast with
+<code>\b</code>);
+</para></listitem>
+
+<listitem><para>
+<code>\%{id}</code> will include the regular expression defined in another
+<code>&lt;define-regex&gt;</code> element with the specified id.
+</para></listitem>
+</itemizedlist>
+
+<para>
+It is allowed to use any of the attributes from
+<code>&lt;default-regex-options&gt;</code> as attributes of this tag.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (mandatory)</term>
+<listitem><para>
+Identifier for the regular expression. This is used
+for the inclusion of the defined regular expression and must be unique
+for the current document. It can contain a string of letters, digits,
+hyphens ("<code>-</code>") and underscores ("<code>_</code>").
+</para></listitem>
+</varlistentry>
+</variablelist>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;context&gt;</code></title>
+
+<para>
+This is the most important element when describing the syntax: the file to
+be highlighted is partitioned in contexts representing the portions to be
+colored differently. Contexts can also contain other contexts.
+There are different kind of context elements: simple contexts, container
+contexts, sub-pattern contexts, reference contexts and keyword contexts.
+</para>
+
+<para>
+Context classes can be enabled or disabled for some contexts, with the
+<code>class</code> and <code>class-disabled</code> attributes. You can create
+your own context classes in custom language definition files. Here are the
+default context classes:
+</para>
+
+<itemizedlist>
+  <listitem>
+    <para>
+      <emphasis>comment</emphasis>: the context delimits a comment;
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      <emphasis>no-spell-check</emphasis>: the context's content should
+      not be spell checked;
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      <emphasis>path</emphasis>: the context delimits a path to a file;
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      <emphasis>string</emphasis>: the context delimits a string.
+    </para>
+  </listitem>
+</itemizedlist>
+
+<refsect2>
+<title>Simple contexts</title>
+They contain a mandatory <code>&lt;match&gt;</code> element and an optional
+<code>&lt;include&gt;</code> element. The context will span over the strings
+matched by the regular expression contained in the <code>&lt;match&gt;</code>
+element. In the <code>&lt;include&gt;</code> element you
+can only put sub-pattern contexts.
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;match&gt;</code> (mandatory)</member>
+<member><code>&lt;include&gt;</code> (optional)</member>
+</simplelist>.
+</para>
+
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (optional)</term>
+<listitem><para>
+A unique identifier for the context, used in references to the context. It
+can contain a string of letters, digits, hyphens ("<code>-</code>") and
+underscores ("<code>_</code>").
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>style-ref</code> (optional)</term>
+<listitem><para>
+Highlighting style for this context. Value of this attribute
+may be id of a style defined in current lang file, or id of a style
+defined in other files prefixed with corresponding language id,
+e.g. "def:comment".
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>extend-parent</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context has higher
+priority than the end of its parent. If not specified it defaults to
+<code>true</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>end-parent</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context terminates parent context.
+If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>first-line-only</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context can occur only
+on the first line of buffer. If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>once-only</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context can occur only
+once in its parent. If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to enable.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class-disabled</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to disable.
+</para></listitem></varlistentry>
+</variablelist>
+
+</refsect2>
+
+<refsect2>
+<title>Container contexts</title>
+They contain a <code>&lt;start&gt;</code> element and an optional
+<code>&lt;end&gt;</code>. They respectively contain the regular
+expression that makes the engine enter in the context and the terminating one.
+In the optional <code>&lt;include&gt;</code> element you can put contained
+contexts of every type (simple, container, sub-pattern or reference).
+If the <code>&lt;start&gt;</code> element is omitted, then the
+<code>id</code> attribute and the <code>&lt;include&gt;</code> become
+mandatory (the context can only be used as a container to include
+its children).
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;start&gt;</code> (optional)</member>
+<member><code>&lt;end&gt;</code> (optional)</member>
+<member><code>&lt;include&gt;</code> (optional)</member>
+</simplelist>.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (mandatory only if <code>&lt;start&gt;</code> not present)</term>
+<listitem><para>
+A unique identifier for the context, used in references to the context. It
+can contain a string of letters, digits, hyphens ("<code>-</code>") and
+underscores ("<code>_</code>").
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>style-ref</code> (optional)</term>
+<listitem><para>
+Highlighting style for this context. Value of this attribute
+may be id of a style defined in current lang file, or id of a style
+defined in other files prefixed with corresponding language id,
+e.g. "def:comment".
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>style-inside</code> (optional)</term>
+<listitem><para>
+If this attribute is "true", then the highlighting style will
+be applied to the area between start and end matches; otherwise
+whole context will be highlighted.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>extend-parent</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context has a higher
+priority than the end of its parent. If not specified it defaults to
+<code>true</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>end-at-line-end</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context must be forced
+to end at the end of the line. If not specified it defaults to
+<code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>end-parent</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context terminates parent context
+when it ends.
+If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>first-line-only</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context can start only
+on the first line of buffer. If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>once-only</code> (optional)</term>
+<listitem><para>
+A boolean value telling the engine whether the context can occur only
+once in its parent. For a container context, it means that
+<emphasis>each</emphasis> included context can occur once.
+If not specified it defaults to <code>false</code>.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to enable.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class-disabled</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to disable.
+</para></listitem></varlistentry>
+</variablelist>
+</refsect2>
+
+<refsect2>
+<title>Sub-pattern contexts</title>
+
+<para>
+They refer to a group in a regular expression of the parent context, so it
+is possible to highlight differently only a portion of the matched regular
+expression.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (optional)</term>
+<listitem><para>
+A unique identifier for the context. It can contain a string of letters,
+digits, hyphens ("<code>-</code>") and underscores ("<code>_</code>").
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>sub-pattern</code> (mandatory)</term>
+<listitem><para>
+The sub-pattern to which we refer. "0" means the whole expression, "1" the
+first group, "2" the second one, etc. If named sub-patterns are used you can
+also use the name.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>where</code> (mandatory only in container contexts)</term>
+<listitem><para>
+Can be "<code>start</code>" or "<code>end</code>". It has to be used
+only if the parent is a container context to specify whether the
+sub-pattern is in the regular
+expression of the <code>&lt;start&gt;</code> or the <code>&lt;end&gt;</code>
+element. In simple contexts it must be omitted.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to enable.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>class-disabled</code> (optional)</term>
+<listitem><para>
+A space-separated list of context classes to disable.
+</para></listitem></varlistentry>
+</variablelist>
+
+</refsect2>
+
+<refsect2>
+<title>Reference contexts</title>
+
+<para>
+Used to include a previously defined context.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>ref</code> (mandatory)</term>
+<listitem><para>
+The id of the context to be included. A colon followed by an asterisk
+("<code>:*</code>") at the end of the id means that the parent should include
+every children of the specified context, instead of the context itself.
+Prepending the id of another language to the id of the context (separated
+with a semicolon ":") is possible to include contexts defined inside such
+external language.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>style-ref</code> (optional)</term>
+<listitem><para>
+Style in included context may be overridden by using this attribute.
+Its value is id of the style to be used instead of style specified
+in the referenced context.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>ignore-style</code> (optional)</term>
+<listitem><para>
+If this attribute is "true" then the referenced context will not
+be highlighted. It does not affect child contexts and their styles.
+</para></listitem></varlistentry>
+
+<varlistentry>
+<term><code>original</code> (optional)</term>
+<listitem><para>
+If this attribute is "true", it references the original context, if it
+has been replaced with the <code>&lt;replace&gt;</code> tag.
+</para></listitem></varlistentry>
+</variablelist>
+
+</refsect2>
+
+<refsect2>
+<title>Keyword contexts</title>
+<para>
+They contain a list of <code>&lt;keyword&gt;</code> and matches every keyword
+listed. You can also put a <code>&lt;prefix&gt;</code> and/or a
+<code>&lt;suffix&gt;</code> common to every keyword.
+</para>
+<para>
+Note that keywords are matched in the order they are listed, so if you
+have both a keyword "foo" and a keyword "foobar", you should always list
+foobar before foo, or it will never be matched.
+</para>
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;prefix&gt;</code> (optional)</member>
+<member><code>&lt;suffix&gt;</code> (optional)</member>
+<member><code>&lt;keyword&gt;</code> (one or more)</member>
+</simplelist>.
+</para>
+
+<para>
+The attributes are the same used in simple contexts. If the
+<code>once-only</code> attribute is <code>true</code>, it means that
+<emphasis>each</emphasis> keyword can occur once.
+</para>
+
+</refsect2>
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;include&gt;</code></title>
+
+<para>
+Contains the list of context contained in the current
+<code>&lt;context&gt;</code>.
+</para>
+
+<para>
+Contained elements:
+<simplelist type="inline">
+<member><code>&lt;context&gt;</code> (one or more)</member>
+<member><code>&lt;define-regex&gt;</code> (zero or more)</member>
+</simplelist>.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;match&gt;</code></title>
+
+<para>
+Contains the regular expression for the current simple context.
+The expression is in the same form used in
+<code>&lt;define-regex&gt;</code> elements.
+It is allowed to use any of the attributes from
+<code>&lt;default-regex-options&gt;</code> as attributes of this tag.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;start&gt;</code></title>
+
+<para>
+Contains the starting regular expression for the current container context.
+The expression is in the same form used in <code>&lt;define-regex&gt;</code>
+elements.
+It is allowed to use any of the attributes from
+<code>&lt;default-regex-options&gt;</code> as attributes of this tag.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;end&gt;</code></title>
+
+<para>
+Contains the terminating regular expression for the current container
+context. The expression is in the same form used in <code>&lt;define-regex&gt;</code>
+elements, with an extension: <code>\%{sub-pattern@start}</code> will be
+substituted with the string matched in the corresponding sub-pattern
+(can be a number or a name if named sub-patterns are used) in the
+preceding <code>&lt;start&gt;</code> element. For instance you could
+implement shell-style here-documents with this code:
+</para>
+
+<programlisting>
+&lt;context id="here-doc"&gt;
+    &lt;start&gt;&amp;lt;&amp;lt;\s*(\S+)$&lt;/start&gt;
+    &lt;end&gt;^\%{1@start}$&lt;/end&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para>
+It is also possible to use any of the attributes from
+<code>&lt;default-regex-options&gt;</code> as attributes of this tag.
+</para>
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;keyword&gt;</code></title>
+
+<para>
+Contains a keyword to be matched by the current context. The keyword is a
+regular expression in the form used in <code>&lt;define-regex&gt;</code>.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;prefix&gt;</code></title>
+
+<para>
+Contains a prefix common to all of the following keywords in the current
+context. The prefix is a regular expression in the form used in
+<code>&lt;define-regex&gt;</code>. If not specified it defaults to
+<code>\%[</code>
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;suffix&gt;</code></title>
+
+<para>
+Contains a suffix common to all of the following keywords in the current
+context. The suffix is a regular expression in the form used in
+<code>&lt;define-regex&gt;</code>. If not specified it defaults to
+<code>\%]</code>
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+</refsect1>
+
+<refsect1>
+<title>Tag <code>&lt;replace&gt;</code></title>
+
+<para>
+The replace tag allows you to change one context so it functions as
+another context.  For example, in the <code>html.lang</code> definition,
+there are a few references to a null context with id
+"<code>embedded-lang-hook</code>".  In <code>php.lang</code>, that context is
+replaced like this: <code>&lt;replace id="html:embedded-lang-hook"
+ref="php-block"&gt;</code>, so that php blocks are recognized within the
+<code>html:html</code> context at the points where the
+<code>embedded-lang-hook</code> context appears.
+</para>
+
+<para>
+Contained elements: none.
+</para>
+
+<variablelist>
+<title>Attributes:</title>
+
+<varlistentry>
+<term><code>id</code> (mandatory)</term>
+<listitem><para>
+The id of the context to replace. Ex: <code>id="html:embedded-lang-hook"</code>
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><code>ref</code> (mandatory)</term>
+<listitem><para>
+The id of the context to put in place of the context being replaced. Ex: <code>ref="php-block"</code>
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</refsect1>
+
+</refentry>
