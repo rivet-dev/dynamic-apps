@@ -33,6 +33,15 @@ static int command_line(GApplication *app, GApplicationCommandLine *cl, gpointer
   gtk_widget_show_all(w);
   g_printerr("CMDPROBE: window shown -- COMMAND_LINE PATH + VOLUME MONITOR WORK\n");
 
+  /* XU5: Thunar's ThunarPathEntry (a GtkEntry subclass) blocks in g_object_new before its instance_init.
+   * Test whether the FIRST GtkEntry instantiation itself hangs (its CSS/IM-module/class setup). */
+  g_printerr("CMDPROBE: gtk_entry_new() -- first GtkEntry...\n");
+  GtkWidget *entry = gtk_entry_new();
+  g_printerr("CMDPROBE: gtk_entry_new -> %p (GtkEntry class+instance init OK)\n", (void*) entry);
+  g_printerr("CMDPROBE: gtk_entry_completion_new()...\n");
+  GtkEntryCompletion *comp = gtk_entry_completion_new();
+  g_printerr("CMDPROBE: gtk_entry_completion_new -> %p (OK)\n", (void*) comp);
+
   /* Thunar-like folder load: ThunarFolder enumerates the directory ASYNC (g_file_enumerate_children_async).
    * If the completion never fires, the folder never loads = the suspected Thunar block. */
   GFile *root = g_file_new_for_path("/");
