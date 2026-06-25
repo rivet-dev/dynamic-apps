@@ -34,6 +34,13 @@ static void activate(GtkApplication *app, gpointer data) {
     g_printerr("GTKAPP: xfconf done (no deadlock)\n");
   }
 #endif
+  /* Bisection step: garcon_menu_load sets up GFileMonitor on the menu dirs. GLib's inotify backend
+   * spawns a helper thread the monitor init may wait on -- if it doesn't get scheduled, this blocks. */
+  g_printerr("GTKAPP: g_file_monitor_directory /usr/share/applications (suspect deadlock)\n");
+  GFile *dir = g_file_new_for_path("/usr/share/applications");
+  GError *merr = NULL;
+  GFileMonitor *mon = g_file_monitor_directory(dir, G_FILE_MONITOR_NONE, NULL, &merr);
+  g_printerr("GTKAPP: file monitor = %p err=%s (no deadlock)\n", (void *) mon, merr ? merr->message : "(none)");
   GtkWidget *w = gtk_application_window_new(app);
   gtk_window_set_default_size(GTK_WINDOW(w), 320, 200);
   gtk_widget_show_all(w);
