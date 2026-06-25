@@ -310,16 +310,26 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     defaults file" → exit 1). `scripts/prepare-xfwm4.sh` stages that defaults file + the bundled Default
     fallback theme. (2) `prepare-themes.sh` transcodes XPM-only decoration images → PNG (our gdk-pixbuf is
     PNG-only; several Greybird borders ship only `.xpm`).
-  - **★ OPEN BLOCKER: xfwm4 draws NO visible decoration** (titlebar band above the placed window is 100%
-    black). Ruled out: theme-not-found (Greybird+Default both blank), the defaults-file exit, XPM-only
-    borders (transcoded), and a missing PNG loader (`gdk_pixbuf__png_image` IS in `xfwm4.wasm`;
-    gdk-pixbuf built `builtin_loaders=png`; `xfwmPixmapLoad` reaches the PNG path via `xfwmPixmapCompose`).
-    So it's a **frame-draw / Expose / reparent-render** runtime issue (cf. M8's post-reparent Expose
-    drops), not image loading. NEXT (constraint #4): XTRACE the xfwm4↔Xvfb frame creation + draw, confirm
-    reparent + whether the frame pixmap/Expose reaches the framebuffer; compare vs M8's working openbox.
-    Side finding: xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc` → "Cannot read Pixmap
-    header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug (rewind doesn't discard read-ahead);
-    non-fatal here (PNG fallback) but a real platform gap. Proof `~/tmp/gui-progress/2026-06-25T00/xu2-*`.
+  - **★ OPEN BLOCKER — ROOT CAUSE NARROWED (2026-06-25, constraint #4 observability):** xfwm4 draws NO
+    visible decoration (titlebar band black) even though it reparents + uploads real images. Proven via
+    XTRACE + a new `guest-xclient/bgpixmap-test.c` repro on the bare wasm X server:
+    - xfwm4 runs as a WM: reparents (3 ReparentNotify), creates the 326×32 titlebar, uploads REAL
+      decoration pixel data (18 PutImage, 17–62% nonzero), ~30 CopyArea. Images LOAD fine.
+    - The wasm X server (real X.Org Xvfb) passes EVERY primitive xfwm4 uses: solid bg color, background
+      pixmap, **tiled** bg pixmap (16×16 tile on a 200×150 win), direct draw, **and SHAPE/`XShapeCombineMask`**
+      (left-half mask → left orange, right black). openbox decorates fine in the same workspace.
+    - **Root cause:** xfwm4 shapes its title/side/corner decoration windows with a mask via
+      `XShapeCombineMask` (frame.c:512-544); the mask is a **depth-1 bitmap drawn with CAIRO**
+      (`cairo_xlib_surface_create_for_bitmap`, `xfwmPixmapDrawFromGdkPixbuf`). An all-zero mask shapes a
+      window to NOTHING (proven). Since even fully-opaque transcoded decoration PNGs (mask should be all-1s)
+      render invisible, **cairo→depth-1(A1)-bitmap rendering produces EMPTY masks in the wasm cairo build**
+      → every decoration window is shaped away → invisible (black root shows through). openbox/twm draw
+      rectangular decorations directly and never shape, so they work.
+    - NEXT (constraint #5, platform layer): a cairo-to-A1 test client to confirm, then fix the wasm cairo
+      build's A1/depth-1 xlib-surface (pixman A1) rendering. xfwm4 stays UNMODIFIED. Proof
+      `~/tmp/gui-progress/2026-06-25T01/xu2-{diag-bgpixmap-works,diag-shape-works}.png` + `rootcause-diagnosis.txt`.
+    - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
+      → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
 - **XU3 — xfce4-panel + whiskermenu.** ⬜ The panel renders with the Whisker app menu, taskbar, clock,
   systray; the menu opens and lists apps. Proof screenshot.
 - **XU4 — xfdesktop.** ⬜ Wallpaper + desktop icons + right-click root menu render. Proof screenshot at
