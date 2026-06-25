@@ -1,0 +1,61 @@
+# Copyright © 2012 Christian Persch
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Not bash or zsh?
+[ -n "${BASH_VERSION:-}" -o -n "${ZSH_VERSION:-}" ] || return 0
+
+# Not an interactive shell?
+[[ $- == *i* ]] || return 0
+
+# Not running under vte?
+[ "${VTE_VERSION:-0}" -ge 3405 ] || return 0
+
+# TERM not supported?
+case "$TERM" in
+    xterm*|vte*|gnome*) :;;
+    *) return 0 ;;
+esac
+
+__vte_osc7 () {
+  printf "\033]7;file://%s%s\033\\" "${HOSTNAME}" "$(@libexecdir@/vte-urlencode-cwd)"
+}
+
+__vte_prompt_command() {
+  local pwd='~'
+  [ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/}
+  pwd="${pwd//[[:cntrl:]]}"
+  printf "\033]0;%s@%s:%s\033\\" "${USER}" "${HOSTNAME%%.*}" "${pwd}"
+  __vte_osc7
+}
+
+if [[ -n "${BASH_VERSION:-}" ]]; then
+
+    # Newer bash versions support PROMPT_COMMAND as an array. In this case
+    # only add the __vte_osc7 function to it, and leave setting the terminal
+    # title to the outside setup.
+    # On older bash, we can only overwrite the whole PROMPT_COMMAND, so must
+    # use the __vte_prompt_command function which also sets the title.
+
+    if [[ "$(declare -p PROMPT_COMMAND 2>&1)" =~ "declare -a" ]]; then
+	PROMPT_COMMAND+=(__vte_osc7)
+    else
+	PROMPT_COMMAND="__vte_prompt_command"
+    fi
+
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    precmd_functions+=(__vte_osc7)
+fi
+
+return 0
