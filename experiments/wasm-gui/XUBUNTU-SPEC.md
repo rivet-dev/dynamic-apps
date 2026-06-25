@@ -461,10 +461,20 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   clock all CLEARED. Two remaining blockers: (1) a Thunar-specific GtkApplication-startup block (no window
   maps even with no folder arg; the minimal gtkapp-probe DID render, so it is Thunar's startup, not generic),
   and (2) the file-view GIO VFS-init trap below (Thunar's folder enumerate uses g_file_query_info eagerly).
-- **★ THE FILE-VIEW GATE (the single blocker for XU4 icons + XU5 folders + XU6 file dialogs):** `g_vfs_get_default()`
-  traps `RuntimeError: unreachable` -- so the ENTIRE GFile object path (g_file_new_for_path / get_path /
-  query_info all call g_vfs_get_default first) is blocked, while raw lstat + glib path-based g_file_get_contents
-  (no GVfs) WORK. **REDIAGNOSED 2026-06-25 -- this OVERTURNS the prior "binaryen --fpcast-emu defect" theory:**
+- **★ THE FILE-VIEW GATE -- ✅ SOLVED 2026-06-25 (was the single blocker for XU4 icons + XU5 folders + XU6 file
+  dialogs).** FIX: `toolchain/gio-vfs-local-shim.c` + `-Wl,--wrap=g_vfs_get_default` (build-gtk-app.sh
+  `SECURE_EXEC_GIO_VFS_LOCAL=1`) wraps g_vfs_get_default -> g_vfs_get_local. In a module-less sandbox (no
+  dlopen -> no gvfs daemon backends) the default GVfs is ALWAYS the local vfs, so this is the semantically
+  correct value AND bypasses the trapping `_g_io_modules_ensure_loaded` machinery. VALIDATED on fileview-probe:
+  g_vfs_get_default / g_file_new_for_path / g_file_get_path / **g_file_query_info all PASS** (err=none). A
+  toolchain --wrap shim (constraint #5, like gmodule-shim.c / the writev wrap), no component patched. Apply to
+  xfdesktop/Thunar/file-dialog builds. (Root cause of the underlying trap -- a built-in GIO type registration in
+  ensure_loaded -- is sidestepped, not yet pinpointed; only matters if a component needs GSettings/volume-monitor,
+  which Xfce avoids via xfconf + GIO_USE_VOLUME_MONITOR=null.)
+  <details><summary>diagnosis history</summary>
+  Originally g_vfs_get_default() trapped `RuntimeError: unreachable`, blocking the ENTIRE GFile object path
+  (g_file_new_for_path / get_path / query_info all call g_vfs_get_default first), while raw lstat + glib
+  path-based g_file_get_contents (no GVfs) WORK. **REDIAGNOSED 2026-06-25 -- this OVERTURNED the prior "binaryen --fpcast-emu defect" theory:**
   a NO_FPCAST build (build-gtk-app.sh `SECURE_EXEC_NO_FPCAST=1`, drops --fpcast-emu entirely) STILL traps at
   the same spot, and the trap is `unreachable` (a REAL unreachable: abort / g_assert_not_reached / NULL-vtable
   call / an unimplemented stub) -- NOT a call_indirect "signature mismatch". So this is a GIO VFS-INITIALIZATION
@@ -477,7 +487,8 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   of fpcast. NEXT: (1) confirm guest env reaches --exec then test GIO_USE_VFS=local (force local vfs, skip the
   module scan); (2) disassemble the trapping libgio function; (3) ensure GLocalVfs is registered / the GIO
   module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
-  zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18f).
+  zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18h).
+  </details>
 - **XU6 — bundled apps.** ⬜ xfce4-terminal (live shell via PTY), mousepad, ristretto, appfinder,
   xfce4-notifyd (a notification pops). Proof screenshots.
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop

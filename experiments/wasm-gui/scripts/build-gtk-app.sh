@@ -57,6 +57,13 @@ if [ -n "${SECURE_EXEC_GMODULE_SOFTFAIL:-}" ]; then
   GMOD_OBJ="$EXP/toolchain/gmodule-softfail.o"
   GMOD_WRAP="-Wl,--wrap=g_module_open -Wl,--wrap=g_module_open_full -Wl,--wrap=g_module_symbol -Wl,--wrap=g_module_close -Wl,--wrap=g_module_make_resident -Wl,--wrap=g_module_error -Wl,--wrap=g_module_supported"
 fi
+# SECURE_EXEC_GIO_VFS_LOCAL=1: wrap g_vfs_get_default -> g_vfs_get_local (the correct default for a
+# module-less sandbox; bypasses the trapping _g_io_modules_ensure_loaded). Unblocks the GFile path.
+if [ -n "${SECURE_EXEC_GIO_VFS_LOCAL:-}" ]; then
+  "$CC" $CFLAGS -c "$EXP/toolchain/gio-vfs-local-shim.c" -o "$EXP/toolchain/gio-vfs-local-shim.o"
+  GMOD_OBJ="$GMOD_OBJ $EXP/toolchain/gio-vfs-local-shim.o"
+  GMOD_WRAP="$GMOD_WRAP -Wl,--wrap=g_vfs_get_default"
+fi
 echo "== linking $NAME against the GTK stack ($WASMSUB) =="
 # EXTRA_LIBS: optional extra -l/-D flags for a probe (e.g. -lxfconf-0 -ldbuscreds + the GDBus wraps to
 # exercise xfconf). Placed before $GLIBS so its symbols resolve against the GTK/GIO archives.
