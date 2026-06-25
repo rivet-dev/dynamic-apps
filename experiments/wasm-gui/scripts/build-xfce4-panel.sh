@@ -69,7 +69,7 @@ WNCKRESO="$EXP/toolchain/libwnck-resources.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$PREFIX/lib/libwnck-3.a" libwnck_3_la-wnck-resources.o 2>/dev/null \
   && mv -f libwnck_3_la-wnck-resources.o "$WNCKRESO" )
 echo "== building libxfce4panel + common =="
-LINK0="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=8388608"
+LINK0="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,-z,stack-size=${PANEL_STACK_SIZE:-8388608}"
 make -j4 -C libxfce4panel CFLAGS="$CFLAGS" LDFLAGS="$LINK0" > /tmp/make-xfce4-panel.log 2>&1
 make -j4 -C common LDFLAGS="$LINK0" >> /tmp/make-xfce4-panel.log 2>&1
 
