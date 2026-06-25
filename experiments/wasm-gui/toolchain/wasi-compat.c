@@ -305,3 +305,26 @@ __attribute__((weak)) int pipe(int fds[2]) {
     return 0;
 }
 __attribute__((weak)) int pipe2(int fds[2], int flags) { (void)flags; return pipe(fds); }
+
+/* inotify: wasi has no inotify. Without sys/inotify.h + these symbols, GLib's meson omits its inotify
+ * file-monitor backend, so g_file_monitor falls back to GPollFileMonitor -- which issues
+ * g_file_query_info_async per watched file, and those async query_info workers HANG in the wasm worker
+ * (task#11: the xfce4-panel applicationsmenu watches ~46 menu files via garcon's g_file_monitor ->
+ * 46 hung workers -> black panel). Provide a NO-OP inotify: inotify_init1 returns a real but
+ * NEVER-READY fd (the read end of a kernel pipe whose write end is held open and never written), so
+ * GLib's UNMODIFIED inotify backend registers + polls it but receives no events. A static desktop menu
+ * needs no live change events. Constraint #5: a sysroot/runtime shim, not a component patch. */
+__attribute__((weak)) int inotify_init1(int flags) {
+    (void)flags;
+    int fds[2];
+    if (pipe(fds) != 0) return -1;
+    /* fds[1] (write end) is intentionally never closed and never written, so fds[0] never becomes
+     * readable -> the inotify GSource polls but never fires. fds[0] is already non-blocking. */
+    return fds[0];
+}
+__attribute__((weak)) int inotify_init(void) { return inotify_init1(0); }
+__attribute__((weak)) int inotify_add_watch(int fd, const char *name, unsigned int mask) {
+    (void)fd; (void)name; (void)mask;
+    static int wd; return ++wd;  /* positive dummy watch descriptor; no events ever fire */
+}
+__attribute__((weak)) int inotify_rm_watch(int fd, int wd) { (void)fd; (void)wd; return 0; }
