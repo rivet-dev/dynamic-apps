@@ -263,7 +263,9 @@ thunar_location_bar_install_widget (ThunarLocationBar    *bar,
     {
       if (bar->locationEntry == NULL)
         {
+          g_printerr ("TWDBG: LE1 gtk_widget_new(THUNAR_TYPE_LOCATION_ENTRY)...\n");
           bar->locationEntry = gtk_widget_new (THUNAR_TYPE_LOCATION_ENTRY, "current-directory", NULL, NULL);
+          g_printerr ("TWDBG: LE2 location_entry created\n");
           g_object_ref (bar->locationEntry);
           g_signal_connect_swapped (bar->locationEntry, "change-directory", G_CALLBACK (thunar_navigator_change_directory), THUNAR_NAVIGATOR (bar));
           g_signal_connect_swapped (bar->locationEntry, "open-new-tab", G_CALLBACK (thunar_navigator_open_new_tab), THUNAR_NAVIGATOR (bar));

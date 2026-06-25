@@ -1011,7 +1011,9 @@ thunar_window_init (ThunarWindow *window)
   window->job_operation_history = thunar_job_operation_history_get_default ();
 
   window->location_toolbar = NULL;
+  g_printerr ("TWDBG: g2 location_toolbar_create...\n");
   thunar_window_location_toolbar_create (window);
+  g_printerr ("TWDBG: g2b location_toolbar done\n");
 
   uca_path = xfce_resource_save_location (XFCE_RESOURCE_CONFIG, "Thunar/uca.xml", TRUE);
   window->uca_file         = g_file_new_for_path (uca_path);
@@ -1034,7 +1036,9 @@ thunar_window_init (ThunarWindow *window)
     type = THUNAR_TYPE_TREE_PANE;
   else
     type = G_TYPE_NONE;
+  g_printerr ("TWDBG: g3 install_sidepane (type=%d)...\n", (int) type);
   thunar_window_install_sidepane (window, type);
+  g_printerr ("TWDBG: g4 install_sidepane done\n");
   g_free (last_side_pane);
 
   /* synchronise the "directory-specific-settings" property with the global "misc-directory-specific-settings" property */
@@ -6100,7 +6104,9 @@ thunar_window_location_toolbar_create (ThunarWindow *window)
   g_object_get (G_OBJECT (window->preferences), "misc-small-toolbar-icons", &small_icons, NULL);
 
   /* allocate the new location bar widget */
+  g_printerr ("TWDBG: L1 thunar_location_bar_new...\n");
   window->location_bar = thunar_location_bar_new ();
+  g_printerr ("TWDBG: L2 location_bar_new done\n");
   g_object_bind_property (G_OBJECT (window), "current-directory", G_OBJECT (window->location_bar), "current-directory", G_BINDING_SYNC_CREATE);
   g_signal_connect_swapped (G_OBJECT (window->location_bar), "change-directory", G_CALLBACK (thunar_window_set_current_directory), window);
   g_signal_connect_swapped (G_OBJECT (window->location_bar), "open-new-tab", G_CALLBACK (thunar_window_notebook_open_new_tab), window);
@@ -6108,6 +6114,7 @@ thunar_window_location_toolbar_create (ThunarWindow *window)
   gtk_widget_show (window->location_bar);
 
   /* setup the toolbar for the location bar */
+  g_printerr ("TWDBG: L3 gtk_toolbar_new + toolbar items...\n");
   window->location_toolbar = gtk_toolbar_new ();
   gtk_toolbar_set_style (GTK_TOOLBAR (window->location_toolbar), GTK_TOOLBAR_ICONS);
   gtk_toolbar_set_icon_size (GTK_TOOLBAR (window->location_toolbar),
