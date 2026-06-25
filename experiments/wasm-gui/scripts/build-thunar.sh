@@ -35,7 +35,13 @@ fi
 CFG_SUB="$(ls "$TP"/libX11-threads/config.sub 2>/dev/null | head -1)"
 CFG_GUESS="$(ls "$TP"/libX11-threads/config.guess 2>/dev/null | head -1)"
 for d in . build-aux; do [ -d "$d" ] && cp "$CFG_SUB" "$CFG_GUESS" "$d/" 2>/dev/null || true; done
-make distclean >/dev/null 2>&1
+# Direct clean instead of `make distclean`: the prior build's Makefile has AM_MAINTAINER_MODE on, so
+# `make <anything>` first tries to regenerate Makefile.in from Makefile.am via the host automake (wrong
+# version) and WIPES the Makefile.in -> configure then fails "cannot find input file: Makefile.in". Remove
+# the generated files directly (no `make`), so the restored Makefile.in survive into configure.
+find . -name Makefile -type f -delete 2>/dev/null
+rm -f config.status config.cache config.log thunar/thunar 2>/dev/null
+find . -name '*.o' -delete 2>/dev/null; find . -name '.libs' -type d -exec rm -rf {} + 2>/dev/null
 export CC="$EXP/toolchain/clang-wasi-wrap.sh"
 export CFLAGS="$CFLAGS -I$PREFIX/include -g0"
 export LDFLAGS="$LDFLAGS -L$PREFIX/lib -lhostcompat"

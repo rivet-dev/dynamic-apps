@@ -778,9 +778,11 @@ thunar_window_init (ThunarWindow *window)
   /* unset the view type */
   window->view_type = G_TYPE_NONE;
 
+  g_printerr ("TWDBG: init s0 enter; provider_factory...\n");
   /* grab a reference on the provider factory and load the providers*/
   window->provider_factory = thunarx_provider_factory_get_default ();
   window->thunarx_preferences_providers = thunarx_provider_factory_list_providers (window->provider_factory, THUNARX_TYPE_PREFERENCES_PROVIDER);
+  g_printerr ("TWDBG: a providers done\n");
 
   /* grab a reference on the preferences */
   window->preferences = thunar_preferences_get ();
@@ -821,6 +823,7 @@ thunar_window_init (ThunarWindow *window)
   /* set up a handler to confirm exit when there are multiple tabs open  */
   g_signal_connect (window, "delete-event", G_CALLBACK (thunar_window_delete), NULL);
 
+  g_printerr ("TWDBG: b device_monitor_get...\n");
   /* connect to the volume monitor */
   window->device_monitor = thunar_device_monitor_get ();
   g_signal_connect (window->device_monitor, "device-pre-unmount", G_CALLBACK (thunar_window_device_pre_unmount), window);
@@ -832,7 +835,9 @@ thunar_window_init (ThunarWindow *window)
   g_signal_connect (window, "key-release-event", G_CALLBACK (thunar_window_propagate_key_event), NULL);
   g_signal_connect_after (window, "key-release-event", G_CALLBACK (thunar_window_after_propagate_key_event), NULL);
 
+  g_printerr ("TWDBG: c device_monitor done; action_mgr...\n");
   window->action_mgr = g_object_new (THUNAR_TYPE_ACTION_MANAGER, "widget", GTK_WIDGET (window), NULL);
+  g_printerr ("TWDBG: d action_mgr done\n");
 
   g_object_bind_property (G_OBJECT (window), "current-directory", G_OBJECT (window->action_mgr), "current-directory", G_BINDING_SYNC_CREATE);
   g_signal_connect_swapped (G_OBJECT (window->action_mgr), "change-directory", G_CALLBACK (thunar_window_set_current_directory), window);
@@ -864,6 +869,7 @@ thunar_window_init (ThunarWindow *window)
   thunar_window_create_menu (window, THUNAR_WINDOW_ACTION_BOOKMARKS_MENU, G_CALLBACK (thunar_window_update_bookmarks_menu));
   thunar_window_create_menu (window, THUNAR_WINDOW_ACTION_HELP_MENU, G_CALLBACK (thunar_window_update_help_menu));
   gtk_widget_show_all (window->menubar);
+  g_printerr ("TWDBG: e menus done\n");
 
   window->menubar_visible = last_menubar_visible;
   if (last_menubar_visible == FALSE)
@@ -915,7 +921,9 @@ thunar_window_init (ThunarWindow *window)
   gtk_paned_pack1 (GTK_PANED (window->paned), window->sidepane_box, FALSE, FALSE);
   gtk_widget_show (window->sidepane_box);
 
+  g_printerr ("TWDBG: e2 before sidepane gtk_image_new_from_file\n");
   window->sidepane_preview_image = gtk_image_new_from_file ("");
+  g_printerr ("TWDBG: e3 sidepane image done\n");
   gtk_widget_set_margin_top (window->sidepane_preview_image, 10);
   gtk_widget_set_margin_bottom (window->sidepane_preview_image, 10);
   gtk_box_pack_end (GTK_BOX (window->sidepane_box), window->sidepane_preview_image, FALSE, TRUE, 0);
@@ -974,7 +982,9 @@ thunar_window_init (ThunarWindow *window)
   /* split view: Create panes where the two notebooks */
   window->paned_notebooks = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
   g_signal_connect_swapped (window->preferences, "notify::misc-vertical-split-pane", G_CALLBACK (thunar_window_paned_notebooks_update_orientation), window);
+  g_printerr ("TWDBG: e4 before update_orientation\n");
   thunar_window_paned_notebooks_update_orientation (window);
+  g_printerr ("TWDBG: e5 update_orientation done\n");
 
   window->view_box = gtk_grid_new ();
   gtk_paned_pack1 (GTK_PANED (window->paned_right), window->view_box, TRUE, FALSE);
@@ -993,7 +1003,9 @@ thunar_window_init (ThunarWindow *window)
   g_signal_connect (G_OBJECT (window), "remove", G_CALLBACK (thunar_window_paned_notebooks_destroy), window);
 
   /* add first notebook and select it*/
+  g_printerr ("TWDBG: f paned_notebooks_add...\n");
   window->notebook_selected = thunar_window_paned_notebooks_add(window);
+  g_printerr ("TWDBG: g paned_notebooks_add done\n");
 
   /* get a reference of the global job operation history */
   window->job_operation_history = thunar_job_operation_history_get_default ();
@@ -1079,13 +1091,16 @@ thunar_window_init (ThunarWindow *window)
       g_signal_connect_swapped (window->bookmark_monitor, "changed", G_CALLBACK (thunar_window_update_bookmarks), window);
 
   /* initial load of the bookmarks */
+  g_printerr ("TWDBG: h update_bookmarks...\n");
   thunar_window_update_bookmarks (window);
+  g_printerr ("TWDBG: i bookmarks done; recent_manager...\n");
 
   /* update recent */
   g_signal_connect (G_OBJECT (gtk_recent_manager_get_default()), "changed", G_CALLBACK (thunar_window_recent_reload), window);
 
   window->search_query = NULL;
   window->reset_view_type_idle_id = 0;
+  g_printerr ("TWDBG: init END\n");
 }
 
 
