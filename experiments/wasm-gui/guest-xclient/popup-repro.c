@@ -21,8 +21,9 @@ int main(int argc, char **argv){
   GdkRectangle geo = {0,0,700,500};
   if (mon){ M("monitor_get_geometry"); gdk_monitor_get_geometry(mon, &geo); }
   fprintf(stderr, "POPUP-REPRO: geo %dx%d+%d+%d\n", geo.width, geo.height, geo.x, geo.y);
-  M("label+add"); gtk_container_add(GTK_CONTAINER(w), gtk_label_new("Hello notification, all wasm."));
-  M("show_all"); gtk_widget_show_all(w);
+  M("no label (empty window)");
+  M("realize"); gtk_widget_realize(w); M("realized");
+  M("show_all"); gtk_widget_show_all(w); M("show_all_done");
   M("move"); gtk_window_move(GTK_WINDOW(w), geo.x + geo.width - 320, geo.y + 40);
   M("main loop start"); g_timeout_add(6000, quit_cb, NULL); gtk_main();
   M("DONE"); return 0;
