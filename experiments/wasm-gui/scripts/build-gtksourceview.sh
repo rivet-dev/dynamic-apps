@@ -24,10 +24,14 @@ ninja -C "$BD" gtksourceview/libgtksourceview-4core.a > /tmp/gsv-ninja.log 2>&1
 RC=$?
 echo "ninja rc=$RC"
 if [ -f "$BD/gtksourceview/libgtksourceview-4core.a" ]; then
-  cp -f "$BD/gtksourceview/libgtksourceview-4core.a" "$PREFIX/lib/libgtksourceview-4.a"
+  # FAT archive (embed the .o): meson emits a THIN libgtksourceview-4core.a whose relative .o paths do
+  # not resolve from a downstream app's build dir ("could not get the buffer for a child of the archive").
+  rm -f "$PREFIX/lib/libgtksourceview-4.a"
+  "$WSDK/bin/llvm-ar" crs "$PREFIX/lib/libgtksourceview-4.a" $(find "$BD/gtksourceview/libgtksourceview-4core.a.p" -name '*.o')
   PC="$(find "$BD" -name 'gtksourceview-4.pc' | head -1)"; [ -n "$PC" ] && cp -f "$PC" "$PCDIR/"
-  mkdir -p "$PREFIX/include/gtksourceview-4/gtksourceview"
-  cp -f "$SRC"/gtksourceview/*.h "$PREFIX/include/gtksourceview-4/gtksourceview/" 2>/dev/null
-  find "$BD/gtksourceview" -name '*.h' -exec cp -f {} "$PREFIX/include/gtksourceview-4/gtksourceview/" \; 2>/dev/null
+  mkdir -p "$PREFIX/include/gtksourceview-4"
+  # Recursive headers: the umbrella gtksource.h includes subdir headers (completion-providers/words/...).
+  ( cd "$SRC" && find gtksourceview -name '*.h' | tar -cf - -T - ) | tar -xf - -C "$PREFIX/include/gtksourceview-4/"
+  ( cd "$BD" && find gtksourceview -name '*.h' 2>/dev/null | tar -cf - -T - ) | tar -xf - -C "$PREFIX/include/gtksourceview-4/" 2>/dev/null
   echo "built libgtksourceview-4.a ($(stat -c%s "$PREFIX/lib/libgtksourceview-4.a")); pc=$([ -n "$PC" ] && echo yes)"
 else echo "BUILD FAILED; ninja tail:"; tail -25 /tmp/gsv-ninja.log; fi
