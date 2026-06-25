@@ -12,6 +12,17 @@
  * set of statically-linked plugins) and provides panel_static_plugin_lookup(). */
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+/* Build with -DGMODSHIM_DEBUG to trace which plugins the panel opens/resolves through the shim. */
+#ifdef GMODSHIM_DEBUG
+static void shimlog(const char *a, const char *b) {
+  write(2, "GMODSHIM ", 9); write(2, a, strlen(a));
+  if (b) { write(2, " ", 1); write(2, b, strlen(b)); }
+  write(2, "\n", 1);
+}
+#else
+static void shimlog(const char *a, const char *b) { (void) a; (void) b; }
+#endif
 
 /* Resolve a plugin entry symbol from the static table. `name` is the plugin (e.g. "separator"),
  * `symbol` is the entry point the panel asked for ("xfce_panel_module_init" for GObject/TypeModule
@@ -48,6 +59,7 @@ void *__wrap_g_module_open(const char *file_name, int flags) {
   if (!panel_static_plugin_lookup(h0.name, "xfce_panel_module_init")
       && !panel_static_plugin_lookup(h0.name, "xfce_panel_module_construct"))
     return NULL;
+  shimlog("open", h0.name);
   struct shim_handle *h = (struct shim_handle *) malloc(sizeof *h);
   if (!h) return NULL;
   size_t i = 0;
@@ -68,7 +80,7 @@ gboolean __wrap_g_module_symbol(void *handle, const char *symbol_name, void **sy
   /* GObject/TypeModule plugins export xfce_panel_module_init; simple plugins export
    * xfce_panel_module_construct. Resolve whichever the panel asks for from the static table. */
   void *fn = panel_static_plugin_lookup(h->name, symbol_name);
-  if (fn) { *symbol = fn; return 1; }
+  if (fn) { shimlog("resolved", symbol_name); *symbol = fn; return 1; }
   *symbol = NULL;
   return 0; /* e.g. xfce_panel_module_preinit absent -> not supported for static plugins */
 }

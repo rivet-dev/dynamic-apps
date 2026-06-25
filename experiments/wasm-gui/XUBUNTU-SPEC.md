@@ -410,7 +410,22 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        (`scripts/prepare-xfce4-panel.sh`; fixture, not a patch). **Result: the panel BAR renders** — a
        full-width 798×28 bar, no crash (`scripts/test-xu3-panel.sh` → "BAR renders"). Proof
        `~/tmp/gui-progress/2026-06-25T03/xu3-panel-bar-renders.png`. The bar is empty (no plugins yet).
-    2. **gmodule/dlopen static plugins — shim WRITTEN; per-plugin wiring is the remaining work.** All 13
+    2. **gmodule/dlopen static plugins — ✅ MECHANISM PROVEN (2026-06-25): the separator plugin loads
+       through the shim, no dlopen, reproducible.** `toolchain/gmodule-shim.c` (linked + `-Wl,--wrap=g_module_*`)
+       intercepts the panel's `g_module_open(<.so>)`/`g_module_symbol`, parses the plugin name from the
+       path, and resolves the entry from the generated `gmodule-plugins.gen.c` table. Each plugin `.o` is
+       rebuilt with a compile-time entry-symbol rename (`-D<entry>=<name>_module_entry`, appended to the
+       plugin's CPPFLAGS so the sysroot/`-include wasi-compat.h` survive) to avoid the all-plugins-export-
+       the-same-symbol clash. Confirmed end-to-end via `GMODSHIM open separator` + `GMODSHIM resolved
+       xfce_panel_module_init` (debug build) — the panel loads + constructs the plugin with no dlopen and
+       no "no module found". Fully baked into `build-xfce4-panel.sh` (`STATIC_PLUGINS="name:entry"` list)
+       + `prepare-xfce4-panel.sh` (stages a stub `.so` at the compile-time `PANEL_PLUGINS_LIB_DIR` so the
+       panel's `g_file_test` passes, the plugin `.desktop` with `X-XFCE-Internal=TRUE`, and the config
+       entry). `test-xu3-panel.sh` → "BAR renders" with the separator. NEXT: add the visible plugins to
+       `STATIC_PLUGINS`/`PLUGINS` — clock, tasklist (window-buttons), systray — then build + static-link
+       xfce4-whiskermenu-plugin (a separate package) for the app menu = XU3 DoD. (Stub-`.so` paths are the
+       absolute wasm-prefix path; a `--libdir=/usr/lib` rebuild would make them clean `/usr/lib/...`.)
+    2z. **(historical) gmodule/dlopen static plugins.** All 13
        panel plugins are external `.so` loaded via `g_module_open(<path>)`+`g_module_symbol`; the sandbox
        has no dlopen, and they can't all be statically linked under their real names (every plugin exports
        the same entry symbol). **Approach (constraint #5; panel+plugins UNMODIFIED — toolchain shim + a
