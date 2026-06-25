@@ -759,6 +759,7 @@ mod tests {
             file_path: "".into(),
             bridge_code: "(function(){ /* bridge */ })()".into(),
             post_restore_script: "".into(),
+            userland_code: String::new(),
             user_code: "console.log('hello')".into(),
         });
     }
@@ -771,6 +772,7 @@ mod tests {
             file_path: "/app/index.mjs".into(),
             bridge_code: "(function(){ /* bridge */ })()".into(),
             post_restore_script: "__runtimeApplyConfig({})".into(),
+            userland_code: String::new(),
             user_code: "export default 42".into(),
         });
     }
@@ -922,6 +924,7 @@ mod tests {
     fn roundtrip_warm_snapshot() {
         roundtrip(&BinaryFrame::WarmSnapshot {
             bridge_code: "(function(){ /* bridge IIFE */ })()".into(),
+            userland_code: String::new(),
         });
     }
 
@@ -929,6 +932,7 @@ mod tests {
     fn roundtrip_warm_snapshot_empty_bridge_code() {
         roundtrip(&BinaryFrame::WarmSnapshot {
             bridge_code: "".into(),
+            userland_code: String::new(),
         });
     }
 
@@ -936,6 +940,7 @@ mod tests {
     fn roundtrip_warm_snapshot_large_bridge_code() {
         roundtrip(&BinaryFrame::WarmSnapshot {
             bridge_code: "x".repeat(100_000),
+            userland_code: String::new(),
         });
     }
 
@@ -943,6 +948,7 @@ mod tests {
     fn extract_session_id_warm_snapshot_returns_none() {
         let frame = BinaryFrame::WarmSnapshot {
             bridge_code: "bridge()".into(),
+            userland_code: String::new(),
         };
         let mut buf = Vec::new();
         write_frame(&mut buf, &frame).expect("write");
@@ -1023,6 +1029,7 @@ mod tests {
                 file_path: "".into(),
                 bridge_code: "bridge()".into(),
                 post_restore_script: "".into(),
+                userland_code: String::new(),
                 user_code: "1+1".into(),
             },
             BinaryFrame::DestroySession {
@@ -1093,7 +1100,9 @@ mod tests {
 
         let destroy_session = vec![MSG_DESTROY_SESSION, 1, b's', 0xAA];
         let terminate_execution = vec![MSG_TERMINATE_EXECUTION, 1, b's', 0xAA];
-        let warm_snapshot = vec![MSG_WARM_SNAPSHOT, 0, 0, 0, 0, 0, 0xAA];
+        // WarmSnapshot body: no-session-id flag, bridge_code (u32 len = 0), then
+        // userland_code (u32 len = 0); a single trailing 0xAA must be rejected.
+        let warm_snapshot = vec![MSG_WARM_SNAPSHOT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xAA];
 
         for body in [
             create_session,
@@ -1170,6 +1179,7 @@ mod tests {
                 file_path: "".into(),
                 bridge_code: "".into(),
                 post_restore_script: "".into(),
+                userland_code: String::new(),
                 user_code: "".into(),
             },
             BinaryFrame::BridgeResponse {
@@ -1265,6 +1275,7 @@ mod tests {
                     file_path: "".into(),
                     bridge_code: "".into(),
                     post_restore_script: "".into(),
+                    userland_code: String::new(),
                     user_code: "".into(),
                 },
                 0x05,
@@ -1295,6 +1306,7 @@ mod tests {
             (
                 BinaryFrame::WarmSnapshot {
                     bridge_code: "bridge()".into(),
+                    userland_code: String::new(),
                 },
                 0x09,
             ),
@@ -1542,6 +1554,7 @@ mod tests {
             file_path: long_path,
             bridge_code: "".into(),
             post_restore_script: "".into(),
+            userland_code: String::new(),
             user_code: "".into(),
         };
         let result = frame_to_bytes(&frame);

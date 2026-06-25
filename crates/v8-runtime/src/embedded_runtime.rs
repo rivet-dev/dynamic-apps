@@ -11,8 +11,7 @@ use crate::host_call::CallIdRouter;
 use crate::ipc_binary::BinaryFrame;
 use crate::runtime_protocol::{
     validate_bridge_response_status, BridgeResponse, ModuleReaderHandle, RuntimeCommand,
-    RuntimeEvent, SessionMessage,
-    StreamEvent,
+    RuntimeEvent, SessionMessage, StreamEvent,
 };
 use crate::session::{RuntimeEventEnvelope, SessionCommand, SessionManager};
 use crate::snapshot::SnapshotCache;
@@ -302,10 +301,11 @@ impl EmbeddedV8SessionHandle {
         &self,
         reader: Box<dyn crate::execution::GuestModuleReader>,
     ) -> io::Result<()> {
-        self.runtime.dispatch(RuntimeCommand::SetSessionModuleReader {
-            session_id: self.session_id.clone(),
-            reader: ModuleReaderHandle::new(reader),
-        })
+        self.runtime
+            .dispatch(RuntimeCommand::SetSessionModuleReader {
+                session_id: self.session_id.clone(),
+                reader: ModuleReaderHandle::new(reader),
+            })
     }
 
     pub fn terminate(&self) -> io::Result<()> {
@@ -601,9 +601,7 @@ fn dispatch_runtime_command(
             match reader.take() {
                 Some(reader) => sender
                     .send(SessionCommand::SetModuleReader(reader))
-                    .map_err(|e| {
-                        other_io_error(format!("session thread disconnected: {}", e))
-                    }),
+                    .map_err(|e| other_io_error(format!("session thread disconnected: {}", e))),
                 None => Ok(()),
             }
         }

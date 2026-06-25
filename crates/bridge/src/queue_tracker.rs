@@ -199,11 +199,10 @@ fn dispatch_warning(warning: &LimitWarning) {
 /// Use this for runtime caps such as CPU or heap exhaustion where there is no
 /// continuously sampled queue depth to observe before the terminal edge.
 pub fn warn_limit_exhausted(name: TrackedLimit, observed: usize, capacity: usize) {
-    let fill_percent = if capacity == 0 {
-        0
-    } else {
-        observed.saturating_mul(100) / capacity
-    };
+    let fill_percent = observed
+        .saturating_mul(100)
+        .checked_div(capacity)
+        .unwrap_or(0);
     let category = name.category();
     tracing::warn!(
         limit = name.as_str(),
@@ -276,11 +275,10 @@ impl QueueGauge {
     /// Fill fraction (0–100) at the given depth. Saturates rather than dividing
     /// by zero for untracked (capacity 0) queues.
     fn fill_percent(&self, depth: usize) -> usize {
-        if self.capacity == 0 {
-            0
-        } else {
-            depth.saturating_mul(100) / self.capacity
-        }
+        depth
+            .saturating_mul(100)
+            .checked_div(self.capacity)
+            .unwrap_or(0)
     }
 
     /// Record a new depth: refresh the high-water mark and emit an edge-triggered

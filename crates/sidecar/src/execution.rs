@@ -3066,14 +3066,12 @@ where
                             compile_cache_root: Some(self.cache_root.join("node-compile-cache")),
                         });
                 let built_reader = build_module_reader(vm, &resolved);
-                let guest_reader = built_reader
-                    .clone()
-                    .map(|reader| {
-                        Box::new(crate::plugins::host_dir::SessionModuleReader::new(reader))
-                            as Box<dyn GuestModuleReader>
-                    });
-                let module_reader = built_reader
-                    .map(|reader| Box::new(reader) as Box<dyn ModuleFsReader + Send>);
+                let guest_reader = built_reader.clone().map(|reader| {
+                    Box::new(crate::plugins::host_dir::SessionModuleReader::new(reader))
+                        as Box<dyn GuestModuleReader>
+                });
+                let module_reader =
+                    built_reader.map(|reader| Box::new(reader) as Box<dyn ModuleFsReader + Send>);
                 let execution = self
                     .javascript_engine
                     .start_execution_with_module_reader(
@@ -5386,9 +5384,7 @@ where
                     prepare_javascript_shadow(vm, &resolved)?;
 
                     let built_reader = build_module_reader(vm, &resolved);
-                    let guest_reader = built_reader
-                        .clone()
-                        .map(|reader| {
+                    let guest_reader = built_reader.clone().map(|reader| {
                         Box::new(crate::plugins::host_dir::SessionModuleReader::new(reader))
                             as Box<dyn GuestModuleReader>
                     });
@@ -5787,9 +5783,7 @@ where
                     prepare_javascript_shadow(vm, &resolved)?;
 
                     let built_reader = build_module_reader(vm, &resolved);
-                    let guest_reader = built_reader
-                        .clone()
-                        .map(|reader| {
+                    let guest_reader = built_reader.clone().map(|reader| {
                         Box::new(crate::plugins::host_dir::SessionModuleReader::new(reader))
                             as Box<dyn GuestModuleReader>
                     });
@@ -13608,7 +13602,7 @@ fn record_sync_rpc(method: &str) {
     };
     *map.entry(method.to_string()).or_insert(0) += 1;
     let total: u64 = map.values().sum();
-    if total == 1 || total % 50 == 0 {
+    if total == 1 || total.is_multiple_of(50) {
         let mut top: Vec<(&String, &u64)> = map.iter().collect();
         top.sort_by(|a, b| b.1.cmp(a.1));
         let breakdown = top

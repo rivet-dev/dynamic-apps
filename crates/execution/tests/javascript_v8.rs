@@ -4045,14 +4045,10 @@ fn javascript_execution_v8_event_channel_backpressures_instead_of_destroying_ses
     let mut stdout = Vec::new();
     let mut stderr = Vec::new();
     let mut exit_code = None;
-    loop {
-        // A poll error (e.g. EventChannelClosed) means the session was torn down
-        // out from under us — exactly the destroy-on-full regression — so stop and
-        // let the assertions below report the truncation rather than panicking.
-        let event = match execution.poll_event_blocking(Duration::from_secs(10)) {
-            Ok(event) => event,
-            Err(_session_died) => break,
-        };
+    // A poll error (e.g. EventChannelClosed) means the session was torn down
+    // out from under us — exactly the destroy-on-full regression — so stop and
+    // let the assertions below report the truncation rather than panicking.
+    while let Ok(event) = execution.poll_event_blocking(Duration::from_secs(10)) {
         match event {
             Some(JavascriptExecutionEvent::Stdout(chunk)) => stdout.extend(chunk),
             Some(JavascriptExecutionEvent::Stderr(chunk)) => stderr.extend(chunk),
@@ -4253,7 +4249,10 @@ console.log("ORDER_OK:" + trace);
         stdout.contains("ORDER_OK:data:chunk-1,immediate,data:chunk-2"),
         "expected macrotask to interleave between chunks; stdout: {stdout}\nstderr: {stderr}"
     );
-    assert_eq!(socket_reads, 3, "expected exactly chunk1, chunk2, EOF reads");
+    assert_eq!(
+        socket_reads, 3,
+        "expected exactly chunk1, chunk2, EOF reads"
+    );
 }
 
 fn javascript_execution_v8_dynamic_import_accepts_file_urls() {

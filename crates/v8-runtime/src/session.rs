@@ -846,6 +846,10 @@ fn session_thread(
                     userland_code,
                     user_code,
                 } => {
+                    // `userland_code` is consumed only by the non-test snapshot
+                    // path below; keep it bound (without a warning) under `test`.
+                    #[cfg(test)]
+                    let _ = &userland_code;
                     #[cfg(not(test))]
                     {
                         let session_id = session_id.clone();

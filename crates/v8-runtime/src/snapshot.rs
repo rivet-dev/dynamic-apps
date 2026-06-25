@@ -102,11 +102,7 @@ const SNAPSHOT_USERLAND_PREP: &str = r#"
 /// Compile and run a Script in the snapshot-creation context, returning a
 /// descriptive error (with the V8 exception message) on failure. `label`
 /// identifies the phase (e.g. "bridge code" / "userland code") in error text.
-fn run_snapshot_script(
-    scope: &mut v8::HandleScope,
-    code: &str,
-    label: &str,
-) -> Result<(), String> {
+fn run_snapshot_script(scope: &mut v8::HandleScope, code: &str, label: &str) -> Result<(), String> {
     let try_catch = &mut v8::TryCatch::new(scope);
     let source = match v8::String::new(try_catch, code) {
         Some(source) => source,
@@ -447,8 +443,7 @@ fn snapshot_cache_key(bridge_code: &str, userland_code: Option<&str>) -> Snapsho
     match userland_code {
         None => sha256(bridge_code.as_bytes()),
         Some(userland_code) => {
-            let mut buf =
-                Vec::with_capacity(bridge_code.len() + 1 + userland_code.len());
+            let mut buf = Vec::with_capacity(bridge_code.len() + 1 + userland_code.len());
             buf.extend_from_slice(bridge_code.as_bytes());
             buf.push(0);
             buf.extend_from_slice(userland_code.as_bytes());
@@ -1520,10 +1515,12 @@ pub fn run_snapshot_consolidated_checks() {
             let b = cache
                 .get_or_create_with_userland(bridge_code, Some(userland))
                 .expect("userland cache hit");
-            assert!(Arc::ptr_eq(&a, &b), "identical userland should hit the cache");
+            assert!(
+                Arc::ptr_eq(&a, &b),
+                "identical userland should hit the cache"
+            );
 
-            let userland2 =
-                "(function(){ globalThis.__x = { f: function(){ return 7; } }; })();";
+            let userland2 = "(function(){ globalThis.__x = { f: function(){ return 7; } }; })();";
             let c = cache
                 .get_or_create_with_userland(bridge_code, Some(userland2))
                 .expect("changed userland create");

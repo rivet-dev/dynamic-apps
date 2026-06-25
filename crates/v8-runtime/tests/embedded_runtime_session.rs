@@ -59,6 +59,7 @@ fn dispatch_execute(
             file_path: String::new(),
             bridge_code: bridge_code.to_owned(),
             post_restore_script: String::new(),
+            userland_code: String::new(),
             user_code: user_code.to_owned(),
         },
     })
@@ -186,6 +187,7 @@ fn assert_warmed_snapshot_bridge_state() -> io::Result<()> {
 
     runtime.dispatch(RuntimeCommand::WarmSnapshot {
         bridge_code: bridge_code.to_owned(),
+        userland_code: String::new(),
     })?;
     dispatch_execute(
         runtime.as_ref(),

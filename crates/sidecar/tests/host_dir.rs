@@ -6,6 +6,10 @@
 #[path = "../src/macos_fs.rs"]
 mod macos_fs;
 
+// The source is `include!`d wholesale but this test only exercises the
+// filesystem-plugin subset, so items used elsewhere in the crate (e.g. the
+// session-thread `SessionModuleReader`) are legitimately unused here.
+#[allow(dead_code)]
 mod host_dir {
     include!("../src/plugins/host_dir.rs");
 
