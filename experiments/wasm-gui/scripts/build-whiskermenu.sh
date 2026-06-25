@@ -56,6 +56,15 @@ done
 echo "whiskermenu: compiled $n .cpp (fails=$fails)"
 [ $fails -eq 0 ] || { echo "COMPILE FAILED"; exit 1; }
 
+# Registration shim: XFCE_PANEL_PLUGIN_REGISTER generates xfce_panel_module_construct, which defers
+# whiskermenu_construct to a "realize" handler (run AFTER the panel sets the plugin name/unique-id) --
+# fixing the garbage-name crash from mapping the RAW construct directly. Rename the macro's
+# xfce_panel_module_construct -> whiskermenu_module_entry for the gmodule static-plugin table. C, not C++.
+"$WSDK/bin/clang" $CFLAGS -D_WASI_EMULATED_SIGNAL -Dxfce_panel_module_construct=whiskermenu_module_entry \
+  -include "$CFGH" $CF -c "$EXP/toolchain/whiskermenu-register.c" -o "$OBJDIR/whiskermenu-register.o" \
+  2>/tmp/wm-register.err || { echo "register shim FAILED:"; grep -aiE "error" /tmp/wm-register.err | head -3; exit 1; }
+echo "register shim ok: $("$WSDK/bin/llvm-nm" "$OBJDIR/whiskermenu-register.o" 2>/dev/null | grep -c whiskermenu_module_entry) entry symbol(s)"
+
 # Archive into libwhiskermenu.a (the panel build force-links the entry + the gmodule shim resolves it).
 "$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libwhiskermenu.a" "$OBJDIR"/*.o
 echo "built libwhiskermenu.a ($(stat -c%s "$PREFIX/lib/libwhiskermenu.a") bytes, $n objects)"

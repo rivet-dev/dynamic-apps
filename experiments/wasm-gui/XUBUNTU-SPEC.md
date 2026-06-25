@@ -69,8 +69,8 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | Component | Role | Upstream repo | Status |
 |---|---|---|---|
 | **xfwm4** | window manager (compositing **OFF** → software) | https://gitlab.xfce.org/xfce/xfwm4 | ⬜ |
-| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟢 (XU3: panel + clock + tasklist (live window button) + systray + separator + **applicationsmenu** all render, all wasm, via the gmodule static-plugin shim; Greybird theming proven. The applicationsmenu DRAWS (2026-06-25, 23200 bar px) after task#11 was fixed: the hang was GPollFileMonitor's async query_info because wasi had no inotify; fixed by adding sys/inotify.h + no-op inotify runtime stubs so GLib's UNMODIFIED inotify backend compiles + GIO uses the no-op inotify monitor. whiskermenu (C++) not yet built) |
-| **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ (C++ build pending; will share the same garcon-menu deadlock until the GIO worker-context wakeup is fixed) |
+| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟢 (XU3: panel + clock + tasklist (live window button) + systray + separator + **applicationsmenu** all render, all wasm, via the gmodule static-plugin shim; Greybird theming proven. The applicationsmenu DRAWS (2026-06-25, 23200 bar px) after task#11 was fixed: the hang was GPollFileMonitor's async query_info because wasi had no inotify; fixed by adding sys/inotify.h + no-op inotify runtime stubs so GLib's UNMODIFIED inotify backend compiles + GIO uses the no-op inotify monitor. whiskermenu (C++, the 6th plugin) now also DRAWS -- see its row) |
+| **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | 🟢 (XU3: UNMODIFIED whiskermenu 2.8.3 (C++, 24 .cpp) cross-compiled to wasm + integrated as the 6th static panel plugin; the panel bar DRAWS with whiskermenu (2026-06-25, 23200 bar px). Built via `scripts/build-whiskermenu.sh` (direct clang++ compile, no CMake cross-toolchain) + an EXTERNAL_PLUGINS path in build-xfce4-panel.sh. Loads garcon lazily so it avoids the binaryen fpcast file-view gate. The one platform fix: `toolchain/whiskermenu-register.c` (XFCE_PANEL_PLUGIN_REGISTER -> the proper xfce_panel_module_construct that DEFERS the construct to a realize handler, after the panel sets the plugin name) -- mapping the raw construct directly crashed in xfce_panel_plugin_lookup_rc_file on a garbage name) |
 | **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | 🟡 (XU4: builds + the desktop WALLPAPER renders full-screen under xfwm4, all wasm. NOT deadlocked -- was idle + needed a WM + the Xvfb monitor key "monitorscreen". Desktop icons (file-icons) + root menu (garcon) still to wire) |
 | **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | ⬜ (reuse pcmanfm/libfm work) |
 | **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ✅ (XU1: GTK window themed Greybird via the XSETTINGS push) |
@@ -149,7 +149,8 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
    (linked + `-Wl,--wrap=g_module_*`) resolves each plugin's entry from a generated table; each plugin
    `.o` is rebuilt with a compile-time entry-symbol rename. Five plugins are static-linked + load:
    separator, clock, tasklist, systray, applicationsmenu. The panel + plugins stay UNMODIFIED upstream.
-   REMAINING: whiskermenu (C++ build); the populated applicationsmenu deadlocks (GIO worker-context).
+   whiskermenu (C++) is the 6th plugin via the EXTERNAL_PLUGINS path (external lib + C++ stdlib link + the
+   realize-deferred construct shim). All 6 plugins draw.
 4. **Hand-launched session harness (bypass xfce4-session).** ⬜ A launcher script
    (`scripts/test-xu-session.sh`) sequencing `dbus → xfsettingsd → xfwm4 → xfce4-panel → xfdesktop →
    thunar --daemon`, gated on readiness — the Xfce analogue of `test-m8-lxde.sh`. Avoids ICE/SM +
@@ -391,7 +392,7 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
       + `xu2-elimination-chain.txt`.
     - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
       → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
-- **XU3 — xfce4-panel + whiskermenu.** 🟢 PANEL + APPLICATIONSMENU DONE (2026-06-25); whiskermenu (C++) remaining.
+- **XU3 — xfce4-panel + whiskermenu.** 🟢 DONE (2026-06-25): panel core + applicationsmenu + **whiskermenu** all draw, all wasm. whiskermenu (UNMODIFIED 2.8.3, C++) cross-compiled + integrated as the 6th static plugin; bar DRAWS (23200 px). The realize-deferred construct shim (toolchain/whiskermenu-register.c) was the one platform fix.
   DoD: the panel renders with the app menu, taskbar, clock, systray. The panel bar with
   applicationsmenu + clock + separator DRAWS (proof: ~/tmp/gui-progress/2026-06-25T12/xu3-applicationsmenu-bar-*.png,
   23200 bar px, clean upstream GLib). task#11 (the applicationsmenu hang) CLOSED via the inotify fix
