@@ -48,11 +48,20 @@ GLIBS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --static --libs gtk+-3.0 | 
 # override in libhostcompat; unwrapped it hits wasi-libc's writev and silently fails on host_net fds,
 # so gdk reports "Unable to open display") and an 8MB stack (GTK's deep init overflows the wasm default).
 GTKFLAGS="-Wl,--wrap=writev -Wl,-z,stack-size=8388608"
+# SECURE_EXEC_GMODULE_SOFTFAIL=1: link the generic GModule soft-fail shim (wasm has no dlopen). Makes
+# g_module_open return NULL gracefully so GIO's _g_io_modules_ensure_loaded module scan completes +
+# registers built-in types (the local vfs) -- unblocking g_vfs_get_default and the whole GFile path.
+GMOD_OBJ=""; GMOD_WRAP=""
+if [ -n "${SECURE_EXEC_GMODULE_SOFTFAIL:-}" ]; then
+  "$CC" $CFLAGS -c "$EXP/toolchain/gmodule-softfail.c" -o "$EXP/toolchain/gmodule-softfail.o"
+  GMOD_OBJ="$EXP/toolchain/gmodule-softfail.o"
+  GMOD_WRAP="-Wl,--wrap=g_module_open -Wl,--wrap=g_module_open_full -Wl,--wrap=g_module_symbol -Wl,--wrap=g_module_close -Wl,--wrap=g_module_make_resident -Wl,--wrap=g_module_error -Wl,--wrap=g_module_supported"
+fi
 echo "== linking $NAME against the GTK stack ($WASMSUB) =="
 # EXTRA_LIBS: optional extra -l/-D flags for a probe (e.g. -lxfconf-0 -ldbuscreds + the GDBus wraps to
 # exercise xfconf). Placed before $GLIBS so its symbols resolve against the GTK/GIO archives.
-"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $GTKFLAGS $MEMFLAG $THREAD_LINK \
-  -o "$OUT" "$EXP/guest-xclient/$NAME.c" ${EXTRA_LIBS:-} $GLIBS $HOSTSOCK \
+"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $GTKFLAGS $GMOD_WRAP $MEMFLAG $THREAD_LINK \
+  -o "$OUT" "$EXP/guest-xclient/$NAME.c" ${EXTRA_LIBS:-} $GMOD_OBJ $GLIBS $HOSTSOCK \
   -L"$VANILLA" -lwasi-emulated-mman -lwasi-emulated-process-clocks $THREAD_LIBS \
   "$SETJMP" "$LIBC"
 ENV_IMPORTS="$(wasm-dis "$OUT" 2>/dev/null | grep -coE '\(import "env" "')"
