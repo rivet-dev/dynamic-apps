@@ -513,16 +513,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
   zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18h).
   </details>
-- **XU6 — bundled apps.** 🟡 TWO APPS RENDER (all wasm): (1) UNMODIFIED **xfce4-appfinder** 4.18.0
-  (scripts/build-appfinder.sh) WINDOW RENDERS solo (2026-06-25, 69% non-black; gui-progress/2026-06-25T18/xu6-appfinder.png).
-  (2) UNMODIFIED **mousepad** 0.6.1 (the Xubuntu text editor) FULL editor WINDOW RENDERS (2026-06-25, 83% non-black;
-  gui-progress/2026-06-25T20/xu6-mousepad.png) -- scripts/build-mousepad.sh + build-gtksourceview.sh + stage-gschemas.sh.
-  Mousepad exercised + proved the full toolchain chain: the **errno-TLS fix** (host_socket/host_pipe_dup/expat rebuilt
-  -matomics + EAI_* netdb shim), gtksourceview-4 (built via meson), and crucially the **__wasi_init_tp / libtool fix** --
-  mousepad's libtool final link never archive-pulls libc.a __init_tls.o, so a DIRECT non-libtool clang link (like
-  appfinder's) is required to define __wasi_init_tp; plus staging the GSettings schemas so mousepad-settings.c does not
-  warn/early-exit. KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC.
-  Remaining XU6: xfce4-terminal (live shell via PTY), ristretto, xfce4-notifyd (a notification pops). Proof screenshots.
+- **XU6 — bundled apps.** 🟡 THREE APPS RENDER with verified REAL text (all wasm): **xfce4-appfinder** 4.18.0,
+  **mousepad** 0.6.1 (the Xubuntu text editor -- "File Edit Search View Document Help" menu, root-warning, editor),
+  and **ristretto** 0.13.2 (the Xubuntu image viewer -- "File Edit View Go Help" menu, toolbar icons, "Press open
+  to select an image"). Proofs: gui-progress/2026-06-25T20/{xu6-appfinder-fonts,xu7-wm-mousepad,xu6-ristretto}.png.
+  Scripts: build-appfinder.sh, build-mousepad.sh + build-gtksourceview.sh + stage-gschemas.sh, build-ristretto.sh +
+  build-libexif.sh. THE REUSABLE APP RECIPE (now solid, applied to ristretto first-try): the **errno-TLS fix**
+  (host_socket/host_pipe_dup/expat rebuilt -matomics + EAI_* netdb shim so TLS errno is consistent), the **__wasi_init_tp
+  / libtool fix** (the libtool final link never archive-pulls libc.a __init_tls.o, so a DIRECT non-libtool clang link
+  defines __wasi_init_tp for any thread-spawning app), the errno.o bundle + gio-vfs-local/empty-path shims + the
+  libxfce4ui GResource force-link, the full pkg-config dep closure, GSettings-schema staging, and **render-app.sh which
+  stages the mandatory FONT fixtures + asserts 0 fontconfig errors** (without fonts, text is .notdef tofu, not glyphs).
+  KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC. Remaining XU6:
+  xfce4-terminal (live shell via PTY), xfce4-notifyd (a notification pops).
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal

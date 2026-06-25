@@ -1,0 +1,154 @@
+<ui>
+    <menubar name="main-menu">
+        <menu action="file-menu">
+            <menuitem action="open"/>
+            <placeholder name="placeholder-open-recent"/>
+            <separator/>
+            <menuitem action="save-copy"/>
+            <!--
+            <separator/>
+            <menuitem action="print"/>
+            -->
+            <separator/>
+            <menuitem action="properties"/>
+            <menuitem action="print"/>
+            <separator/>
+            <menuitem action="close"/>
+            <menuitem action="quit"/>
+        </menu>
+        <menu action="edit-menu">
+            <menuitem action="copy-image"/>
+            <separator/>
+            <menu action="open-with-menu">
+                <placeholder name="open-with-apps" />
+            </menu>
+            <separator/>
+            <menu action="sorting-menu">
+                <menuitem action="sort-filename"/>
+                <menuitem action="sort-filetype"/>
+                <menuitem action="sort-date"/>
+            </menu>
+            <menuitem action="delete"/>
+            <separator/>
+            <menuitem action="clear-private-data"/>
+            <separator/>
+            <menuitem action="preferences"/>
+        </menu>
+        <menu action="view-menu">
+            <menuitem action="show-toolbar"/>
+            <menuitem action="show-statusbar"/>
+            <menuitem action="show-thumbnailbar"/>
+            <menu action="thumbnailbar-position-menu">
+                <menuitem action="pos-left"/>
+                <menuitem action="pos-right"/>
+                <menuitem action="pos-top"/>
+                <menuitem action="pos-bottom"/>
+            </menu>
+            <menu action="thumbnailbar-size-menu">
+                <menuitem action="size-very-small"/>
+                <menuitem action="size-smaller"/>
+                <menuitem action="size-small"/>
+                <menuitem action="size-normal"/>
+                <menuitem action="size-large"/>
+                <menuitem action="size-larger"/>
+                <menuitem action="size-very-large"/>
+            </menu>
+            <separator/>
+            <menu action="zoom-menu">
+                <menuitem action="zoom-in"/>
+                <menuitem action="zoom-out"/>
+                <menuitem action="zoom-fit"/>
+                <menuitem action="zoom-100"/>
+                <separator/>
+                <menu action="default-zoom-menu">
+                    <menuitem action="default-zoom-smart"/>
+                    <menuitem action="default-zoom-fit"/>
+                    <menuitem action="default-zoom-100"/>
+                </menu>
+            </menu>
+            <menu action="rotation-menu">
+                <menuitem action="rotate-cw"/>
+                <menuitem action="rotate-ccw"/>
+            </menu>
+            <menu action="flip-menu">
+                <menuitem action="flip-horizontally"/>
+                <menuitem action="flip-vertically"/>
+            </menu>
+            <separator/>
+            <menuitem action="fullscreen"/>
+            <separator/>
+            <menuitem action="set-as-wallpaper"/>
+        </menu>
+        <menu action="go-menu">
+            <menuitem action="back"/>
+            <menuitem action="forward"/>
+            <menuitem action="first"/>
+            <menuitem action="last"/>
+            <separator/>
+            <placeholder name="placeholder-slideshow" />
+        </menu>
+        <menu action="help-menu">
+            <menuitem action="contents"/>
+            <menuitem action="about"/>
+        </menu>
+    </menubar>
+
+    <popup name="navigation-toolbar-menu">
+        <menu action="position-menu">
+            <menuitem action="pos-left"/>
+            <menuitem action="pos-right"/>
+            <menuitem action="pos-top"/>
+            <menuitem action="pos-bottom"/>
+        </menu>
+        <menu action="size-menu">
+            <menuitem action="size-very-small"/>
+            <menuitem action="size-smaller"/>
+            <menuitem action="size-small"/>
+            <menuitem action="size-normal"/>
+            <menuitem action="size-large"/>
+            <menuitem action="size-larger"/>
+            <menuitem action="size-very-large"/>
+        </menu>
+    </popup>
+
+    <popup name="image-viewer-menu">
+        <menuitem action="open"/>
+        <menuitem action="properties"/>
+        <menuitem action="print"/>
+        <menuitem action="close"/>
+    <menuitem action="copy-image"/>
+        <separator/>
+        <menu action="open-with-menu">
+            <placeholder name="open-with-apps" />
+        </menu>
+        <separator/>
+        <menuitem action="zoom-in"/>
+        <menuitem action="zoom-out"/>
+        <menuitem action="zoom-100"/>
+        <menuitem action="zoom-fit"/>
+    </popup>
+
+    <!--
+
+    -->
+    <toolbar name="main-toolbar">
+        <toolitem action="open"/>
+        <separator />
+        <toolitem action="save-copy"/>
+        <toolitem action="delete"/>
+        <separator />
+        <toolitem action="edit"/>
+        <separator name="separator-1"/>
+        <toolitem action="back"/>
+        <placeholder name="placeholder-slideshow" />
+        <toolitem action="forward"/>
+        <separator name="separator-2"/>
+        <toolitem action="zoom-in"/>
+        <toolitem action="zoom-out"/>
+        <toolitem action="zoom-100"/>
+        <toolitem action="zoom-fit"/>
+        <separator />
+        <placeholder name="placeholder-fullscreen" />
+    </toolbar>
+
+</ui>

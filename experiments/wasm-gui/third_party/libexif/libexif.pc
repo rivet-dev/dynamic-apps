@@ -1,0 +1,12 @@
+prefix=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libexif
+Description: Library for easy access to EXIF data
+Requires:
+Version: 0.6.24
+Libs: -L${libdir} -lexif
+Libs.private: -lm
+Cflags: -I${includedir}

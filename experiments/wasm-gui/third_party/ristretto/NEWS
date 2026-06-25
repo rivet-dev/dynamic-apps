@@ -1,0 +1,730 @@
+0.13.2 (2024-02-05)
+======
+- Update copyright year
+- Fix duplicate mnemonic in File menu
+- image_viewer: Add missing sanity check
+- Fix criticals about unset GIO attributes
+- viewer: Fix possible crash when closing while an image is loading
+- Ensure that file manager proxy creation is non-blocking
+- Add icons at missing sizes, clean up SVG metadata
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.13.1 (2023-05-13)
+======
+- I18n: Update po/LINGUAS list
+- I18n: Update po/LINGUAS list
+- Force g_file_query_info if magic_file returns 
+"application/octet-stream"
+- build: Use m4_defined min versions and cleanup
+- Replace XDT_CHECK_LIBX11 and guard x11 code paths
+- build: Use XDT_VERSION_INIT and get rid of configure.ac.in
+- build: Switch from intltool to gettext
+- viewer: Paint background icon at window scale
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.13.0 (2023-02-09)
+======
+- New Features:
+  - Add print support (#1)
+
+- Bug Fixes:
+  - editor-chooser: Expand tree view vertically
+  - properties-dialog: Update thumbnail on "ready" signal
+  - Fix remaining blurry icons when UI scale > 1
+  - thumbnailer: Properly support window scaling (#81)
+  - Revert "thumbnailer: Increase thumbnail sizes"
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.12.4 (2022-12-16)
+======
+- Dependency Changes:
+  - GLib >= 2.56.0
+
+- Appearance Changes:
+  - thumbnailer: Increase thumbnail sizes (#81)
+
+- Code Refactoring:
+  - build: Let xdt-depends.m4 macros set GLib macros
+  - flatpak: Update D-Bus permissions after changing file manager method
+  - flatpak: Updates from Flathub
+  - Remove duplicated RsttoMainWindow:device-scale property
+
+- Bug Fixes:
+  - use-thunar-properties: Add & improve comments (!37)
+  - thumbnailer: Add a warning if D-Bus proxy creation failed
+  - Allow Xfconf initialization to fail (#19)
+  - thumbnailer: Add missing sanity checks
+  - Use a better-known bus name and object path for D-Bus proxy (#95, !36)
+  - Properly update iterator when browsing a list containing invalid files (#94)
+  - thumbnailer: Remove invalid files after processing thumbnail queue (#94)
+
+- Translation Updates:
+  Kazakh, Korean, Occitan (post 1500), Polish, Portuguese
+
+0.12.3 (2022-07-09)
+======
+- Bug Fixes:
+  - thumbnailer: Fall back on lower qualities in case of unsupported flavor (#81)
+  - Secure error handling when opening multiple files
+  - Use `G_FILE_MONITOR_WATCH_MOVES` for file monitoring
+  - Do not keep sticky state when current file is removed
+  - Fix management of transaction source id
+  - Correctly handle deletion when there is only one image (#89)
+  - Update iter list on insertion and deletion (#88)
+  - build: Fix intltool lock file problem during make distcheck
+  - Display error message on stderr
+  - i18n: Use `xfce_textdomain()` to initialize translations
+  - Ensure that an error is set if no pixbuf is available
+  - Fix some memory leaks
+
+- Code Refactoring:
+  - flatpak: Some updates from Flathub
+  - Remove old icon files
+  - Remove TODO file
+  - Flatpak: Add libopenraw dependency
+
+- Translation Updates:
+  Chinese (China), Danish, Greek, Korean, Malay, Portuguese (Brazil),
+  Turkish
+
+0.12.2 (2022-01-14)
+======
+- New Features:
+  - Thumbnailer: Add support for shared thumbnail repositories (#82)
+  - Thumbnailer: Add thumbnail flavor support (#81)
+
+- Performance Improvement:
+  - Optimization: Use TreeModel IFace to walk the image list
+  - Optimization: Add index and list link to RsttoImageListIter
+  - Optimization: Switch to GQueue in RsttoImageList
+
+- Code Refactoring:
+  - Flatpak: Add lifecycle manager patch to Xfconf dependency
+  - Flatpak: Add Tumbler dependency as a private service (!35)
+  - Flatpak: Add pixbuf loaders
+  - Refactoring: Cleanup and simplifications around thumbnail size
+  - Redistribute thumbnail sizes uniformly
+  - Disable debug checks in release mode
+  - Cleanup: Miscellaneous
+  - Cleanup: Remove unused APIs in RsttoImageList
+
+- Bug Fixes:
+  - Fix and complete file change monitoring
+  - Thumbnailer: Rework queue management
+  - Thumbnailer: Properly set the number of visible items
+  - Take the device scale into account to limit rendering quality
+  - Avoid multi-threading issue with X11 (#76)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.12.1 (2021-11-26)
+======
+- Dependency Changes:
+  - GLib >= 2.44.0
+
+- Performance Improvement:
+  - Optimize sorting by content type
+  - Load images asynchronously (#16, #29, #32, !34)
+  - Increase image loading buffer size (!34)
+
+- Appearance Changes:
+  - Allow to display all files in the open dialog (!33)
+
+- Code Refactoring:
+  - Rework the file opening procedure (!33)
+
+- Bug Fixes:
+  - Fix a memory leak when closing the window directly
+  - Refactoring: Clarify thumbnailer queue management
+  - Thumbnailer: Do not empty an unprocessed file list
+  - Update window title on image deletion or insertion
+  - Perform content-based filtering wherever necessary
+  - Set device scale for animated images
+  - Properly recognize SVG compressed image files
+  - Use the generic pixbuf loader for RAW image files
+  - Fix pointer behavior in fullscreen mode
+  - Icon bar: Properly highlight item under the cursor
+  - Icon bar: Center on the active item for any size change
+  - Fix regression: Exif orientation is not respected (#69)
+  - Do not try to load images whose pixbuf is not available (!34)
+  - Fix memory management of image loading objects (!34)
+  - Use URIs instead of filenames in the `.desktop` file (#49)
+  - Directory loading: Allow to load a directory via the cli
+  - Flatpak: Access remote locations with GVfs
+  - Directory loading: Fix improper use of GFileEnumerator APIs (#68)
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.12.0 (2021-10-11)
+======
+- Dependency Changes:
+  - libxfce4ui >= 4.16.0
+  - libxfce4util >= 4.16.0
+
+- New Features:
+  - Allow to choose the default scale (!29)
+  - Keep the scale in memory for each loaded image (#7, #17, !28)
+  - Toggle fullscreen mode by double clicking on the image
+
+- Performance Improvement:
+  - Optimize directory loading (#20, #22, #32, #37, !31)
+  - Optimize image viewer redraw: Disable overlay scrolling (#64)
+  - Optimize image viewer redraw: Reuse source surface (#64, !26)
+  - Avoid using Cairo Xlib backend to create surfaces (#60, #61, #62, !25)
+  - Optimize image viewer redraw: Animation (#64)
+  - Optimize image viewer redraw: Background color (#64)
+  - Optimize image viewer redraw: Clock (#64)
+  - Optimize image viewer redraw: Selection box (#64)
+  - Don't redraw the main window when it loses focus (#64)
+  - Remove the shadow of the toolbar buttons (#51, #64)
+
+- Appearance Changes:
+  - Hide thumbnail scrollbar when unused (!24)
+  - Use the same background for the image and the thumbnails (#36, !23)
+  - Drop preferences-desktop-default-applications icon
+
+- Code Refactoring:
+  - Flatpak build (!32)
+  - Refactoring: Use only one file filter for the app
+  - Refactoring: Icon bar adjustments
+  - Cleanup: `icon_bar.c`
+  - Cleanup: Pass orientation directly from file to viewer
+  - Code refactoring: Image viewer adjustments, scale and drawing (!27)
+  - Use integers for the image rendering rectangle
+  - Code cleanup: Build sanitation, obsolete code removal, spacing, normalization (!22)
+  - Transfer contents from dispose() to finalize()
+  - Add debugging macros
+
+- Bug Fixes:
+  - Protect asynchronous jobs from an application exit
+  - Fix position of the active item in the icon bar when vertical (#34)
+  - Take into account the device scale (#47, !30)
+  - Properly load images via drag and drop (#67)
+  - Delay GdkPixbufLoader "closed" signal handler
+  - Use the same scale factor to zoom via action and scrolling
+  - Fix a lack of centering when zooming via the menu action
+  - Fix some memory leak (several commits of this kind)
+  - Fix file creation monitoring
+  - Try to display the image on `GDK_PIXBUF_ERROR_CORRUPT_IMAGE` (#39)
+  - Always set adjustment upper bounds greater than page sizes (#35)
+  - Scaling/zoom corrections (#30, !8)
+  - Fix animated GIF display
+  - Automate and sanitize memory management of sources (#65)
+  - Fix `rstto_icon_bar_rows_reordered()` (#48)
+  - Chain up to parent in dispose() and finalize()
+
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.11.0 (2021-06-11)
+======
+- Update copyright years and appdata infos
+- Enable `HAVE_MAGIC_H`-delimited code
+- Fix compilation warnings
+- autoconf: Some updates
+- Update `.gitignore`
+- Add option to copy image to clipboard (!20)
+- Allow dragging window when CSD is used (#52)
+- Remove GSourceFunc casts
+- Added new stock icons with reverse DNS format
+- Updates README.md
+- Include string.h
+- Codebase cleanup (!7)
+- Make build less verbose
+- Update .gitignore
+- Make sure that argument passed to strncmp is non-NULL (!1)
+- privacy_dialog.c: Remove dead initialization (!2)
+- image_list.c: Remove dead assignment (!2)
+- Add basic GitLab pipeline
+- Switch to README.md and foreign automake mode
+- Bug #16717: Move from exo-csource to xdt-csource
+- Resolve couple "cast between incompatible function types" warnings
+- Fix memory leaks in Privacy Dialog
+- Resolve deprecation warnings
+- Resolve some deprecation warnings
+- Clean up unused functions
+- Rename vars and funcs: show -> hide
+- Add inactivity timeout setting to Preferences
+- Hide the cursor while inactive in fullscreen mode
+- Fix 'Status bar appears upon leaving fullscreen'
+- Update .gitignore
+- Do not show translation info on --help output
+- Fix "window-state-event" handler
+- Update credits
+- Add support for old gtk2-style bg color settings
+- Add missing LDFLAGS (fixes build on *bsd)
+- In fullscreen mode, show toolbar when the mouse pointer is moved to
+the top
+- Return to git versioning
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Norwegian Bokmål, Occitan (post
+  1500), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Turkish,
+  Ukrainian, Uyghur
+
+0.10.0 (2019-08-09)
+=====
+- Fix file permissions for ristretto.png
+- Port to GTK3
+- Resolve or suppress deprecation warnings
+- Add icons to "Close", "Cancel", "Apply", "OK" buttons
+- Resolve "GtkDialog mapped without a transient parent" for set wallpaper
+  dialog
+- Fix the ristretto icon loading size (128, not 256)
+- Fix sensitivity of flip menu
+- Add more separators to the menus
+- Make Preferences dialog prettier
+- Make the privacy dialog prettier
+- Support for setting background image for both gtk2 and gtk3 versions of
+  xfdesktop (bug #14571)
+- configure: print build configuration
+
+* Translation updates:
+  Belarusian (be), Danish (da), German (de), Spanish (es), Basque (eu),
+  Finnish (fi), Hungarian (hu), Armenian (Armenia) (hy_AM), Italian (it),
+  Kazakh (kk), Lithuanian (lt), Norwegian Bokmål (nb), Polish (pl),
+  Portuguese (pt), Portuguese (Brazil) (pt_BR), Russian (ru), Turkish (tr),
+  Chinese (China) (zh_CN), Chinese (Taiwan) (zh_TW)
+
+0.8.5 (2019-07-17)
+=====
+- Fix a few memory leaks
+- Fix "Sort type unsupported" when sorting by file type
+- Add support for Canon CR2 format
+  (https://bugs.launchpad.net/ubuntu/+source/ristretto/+bug/1778695)
+- Drop saturation and brightness support as no more supported by xfdesktop
+- Show info on focal length and ISO in statusbar (bug #13993)
+- Fix Glib-Critical errors "Source ID X was not found"
+- Place appdata.xml to metainfo dir (bug #15382)
+- Fix Xfce wallpaper manager (for single monitor only) (bug #14571)
+- Fix corrupted (large) GIF images (bug #15177)
+- Update thumbnail bar on changing the sorting order (bug #10246)
+- Improve "Sorting" menu (bug #15539)
+- appdata.xml: Remove releases info and update URLs (bug #15482)
+
+* Translation updates:
+  Arabic (ar), Asturian (ast), Belarusian (be), Bulgarian (bg), Catalan (ca),
+  Czech (cs), Danish (da), German (de), Greek (el), English (Australia) (en_AU),
+  English (United Kingdom) (en_GB), Spanish (es), Basque (eu), Finnish (fi),
+  French (fr), Galician (gl), Hebrew (he), Croatian (hr), Hungarian (hu),
+  Indonesian (id), Icelandic (is), Italian (it), Japanese (ja), Kazakh (kk),
+  Korean (ko), Lithuanian (lt), Malay (ms), Norwegian Bokmål (nb), Dutch (nl),
+  Occitan (oc), Polish (pl), Portuguese (pt), Portuguese (Brazil) (pt_BR),
+  Romanian (ro), Russian (ru), Slovak (sk), Slovenian (sl), Albanian (sq),
+  Serbian (sr), Swedish (sv), Telugu (te), Thai (th), Turkish (tr), Uighur (ug),
+  Ukrainian (uk), Chinese (China) (zh_CN), Chinese (Taiwan) (zh_TW)
+* New translations:
+  Armenian (Armenia) (hy_AM), Interlingue (ie)
+
+0.8.4 (2019-04-08)
+=====
+- Add missing field initializers
+- Instead of thumbnails, the same icons with a crossed red circle (bug #13419)
+- Resolve g_type_class_add_private() deprecation
+- Glib-Critical errors to stdout: Source ID X was not found when attempting to
+  remove it (bug #15268)
+- Fix memory leak (bug #12034)
+- Show file size in the status bar (bug #14791)
+- Fix opening of PPM files (bug #14709)
+
+* Translation updates:
+  Arabic (ar), Asturian (ast), Belarusian (be), Bulgarian (bg), Catalan (ca),
+  Czech (cs), Danish (da), German (de), Greek (el), English (United Kingdom)
+  (en_GB), Spanish (es), Basque (eu), Finnish (fi), French (fr), Galician (gl),
+  Hebrew (he), Croatian (hr), Hungarian (hu), Indonesian (id), Icelandic (is),
+  Italian (it), Japanese (ja), Kazakh (kk), Korean (ko), Lithuanian (lt), Malay
+  (ms), Norwegian Bokmål (nb), Dutch (nl), Occitan (oc), Polish (pl), Portuguese
+  (pt), Portuguese (Brazil) (pt_BR), Romanian (ro), Russian (ru), Slovak (sk),
+  Slovenian (sl), Albanian (sq), Serbian (sr), Swedish (sv), Telugu (te), Thai
+  (th), Turkish (tr), Uighur (ug), Ukrainian (uk), Chinese (China) (zh_CN),
+  Chinese (Taiwan) (zh_TW)
+
+0.8.3 (2018-06-28)
+=====
+- Fix GLib-GObject-CRITICAL in directory monitoring code
+- Fix loading image from an URL
+- Freeing memory used for storing bg colors was done wrong (bug #13335)
+- Fix opening image files that are symlinks (bug #13576)
+- Fix BMP files failing to load with libmagic (bug #13489)
+- Port to GDBus
+
+* Translation updates:
+  Arabic (ar), Asturian (ast), Bulgarian (bg), Catalan (ca), Czech (cs), Danish
+  (da), German (de), Greek (el), English (Australia) (en_AU), English (United
+  Kingdom) (en_GB), Spanish (es), Basque (eu), Finnish (fi), French (fr),
+  Galician (gl), Hebrew (he), Croatian (hr), Hungarian (hu), Indonesian (id),
+  Icelandic (is), Italian (it), Japanese (ja), Kazakh (kk), Korean (ko),
+  Lithuanian (lt), Malay (ms), Norwegian Bokmål (nb), Dutch (nl), Occitan (oc),
+  Polish (pl), Portuguese (pt), Portuguese (Brazil) (pt_BR), Romanian (ro),
+  Russian (ru), Slovak (sk), Slovenian (sl), Albanian (sq), Serbian (sr),
+  Swedish (sv), Thai (th), Turkish (tr), Uighur (ug), Ukrainian (uk), Chinese
+  (China) (zh_CN), Chinese (Taiwan) (zh_TW)
+
+0.8.2 (2017-02-01)
+=====
+- Implement sorting by file type (Bug #12749)
+- Detect image type by its mime type instead of file extension
+  (ligmagic is used) (Bugs #11680, 12499)
+- Allow images to be flipped vertically and horizontally (Bug #13313)
+- Fix memory leaks
+
+* Translation updates:
+  Catalan (ca), Czech (cs), Danish (da), Deutsch (de), English (Australia)
+  (en_AU), Spanish (es), French (fr), Hebrew (he), Croatian (hr), Italian (it),
+  Japanese (ja), Kazakh (kk), Korean (ko), Lithuanian (lt), Malay (ms),
+  Norwegian Bokmål (nb), Polish (pl), Portuguese (pt), Portuguese (Brazilian)
+  (pt_BR), Russian (ru), Slovak (sk), Swedish (sv), Ukrainian (uk), Chinese
+  (China) (zh_CN), Chinese (Taiwan) (zh_TW).
+
+0.8.1 (2016-10-06)
+=====
+- Prepare for gtk3 migration: Do not include individual headers;
+  Replace GDK_<keyname> with GDK_KEY_<keyname>;
+  Use gtk_widget_get_allocation; Use gtk_widget_get/set_window;
+  Use gtk_widget_get/set_style; Do not use GTK_WIDGET_* macros;
+  Use accessor functions instead of direct access;
+  Do not use deprecated symbols; Do not use deprecated GTK_STOCK_*;
+  Use cairo for drawing; Do not use GDK_DISPLAY()
+- Check if file name is a valid utf8 string to avoid crashes (Bug #12445)
+- Fix SEGFAULT when pressing Delete without shown image (Bug #12860)
+- Fix memory leak in thumbnailer if image file not found (Bug #12034)
+- Prevent from using garbage values when pixbuf==NULL
+- Fix NULL pointer dereference
+- Remove dead code; found by Coverity
+- Fix possible NULL pointer dereference; found by Coverity
+- Added option to "not ask again for this session" when sending files to the
+  trash. Image deletions still require confirmation.
+- Replaced "GTK_WIDGET(window)->window" with more future compatible
+  "gtk_widget_get_window(GTK_WIDGET(window))"
+- ESC-key now quits Ristretto, or pauses a running slideshow
+- Remember last location in save-copy dialog
+- Use default filename in save-copy dialog
+- Disable save-copy dialog if no image is loaded
+- Fix various memory leaks
+- Appdata fails validation (Bug #11622)
+- Fix icon installation (Bug #11614)
+
+* Translation updates:
+  Arabic (ar), Bulgarian (bg), Catalan (ca), Czech (cs), Danish (da),
+  German (de), Greek (el), English (Australia) (en_AU), Spanish (es),
+  French (fr), Hebrew (he), Hungarian (hu), Icelandic (is), Italian (it),
+  Japanese (ja), Kazakh (kk), Korean (ko), Lithuanian (lt), Malay (ms),
+  Norwegian Bokmål (nb), Dutch (nl), Polish (pl), Portuguese (pt),
+  Portuguese (Brazilian) (pt_BR), Romanian (ro), Russian (ru), Slovak (sk),
+  Swedish (sv), Thai (th), Turkish (tr), Ukrainian (uk),
+  Chinese (China) (zh_CN), Chinese (Taiwan) (zh_TW).
+
+0.8.0 (2015-02-28)
+=====
+Stable release of Ristretto
+
+* Miscellaneous bug fixes:
+- Use collate keys to handle filename sorting (Bug #9731)
+- Add AppData file (Bug #11296)
+- Fix invert zoom direction (Bug #10746)
+- Update xfconf settings for Xfdesktop >= 4.11
+- Check for thumbnails in the new location
+- Don't check item->width twice (Bug 10534)
+- Add version check because g_thread_init is deprecated
+- Support shift+scroll to pan across an image
+- Fixed an overflow when comparing filenames with large
+  numbers in them. (Bug #9485)
+- Show filename before apptitle
+- Fix bug #8837 (Use thumbnail as appicon)
+- Update the first image in the image-list when receiving
+  a ready-signal.
+
+* Translation updates:
+  Asturian (ast), Bulgarian (bg),
+  Czech (cs), German (de), English (Australia) (en_AU),
+  Spanish (Castilian) (es), Finnish (fi), French (fr),
+  Croatian (hr), Italian (it), Japanese (ja),
+  Korean (ko), Malay (ms), Norwegian Bokmål (nb),
+  Dutch (Flemish) (nl), Occitan (post 1500) (oc),
+  Polish (pl), Portuguese (pt), Portuguese (Brazilian) (pt_BR),
+  Russian (ru), Slovak (sk), Serbian (sr), Swedish (sv),
+  Thai (th), Turkish (tr), Ukrainian (uk),
+  Chinese (China) (zh_CN), Chinese (Taiwan) (zh_TW).
+
+0.6.0 (2012-04-29)
+=====
+- Fix bug #8723 (Remove duplicate accelerators)
+- Reset adjustment-limits when closing the image (hide scrollbars)
+- Show error-message when deleting an image fails.
+- Show a 'Loading...' message in the statusbar when loading an image or
+  directory-contents.
+- Reload image when it is changed on the filesystem.
+- Add a new accelerator to force a reload (ctrl-r) - (requires the removal
+  of ~/.config/ristretto/accels.scm)
+
+0.5.2 (2012-04-16)
+=====
+- Remove the 'debug' monitor from the wallpaper chooser.
+- Add option to show a clock in fullscreen mode.
+- Improve the way 'default'-accelerators are registered.
+- Load directory-contents asynchronously. - Prevent lockup of the
+  screen.
+
+0.5.1 (2012-04-10)
+=====
+- Add 'other' applications to the editor-chooser applications-list.
+- Show mime-type icon instead of 'broken-image' icon in the
+  editor-chooser.
+- Add missing tooltips to the toolbar.
+
+0.5.0 (2012-04-02)
+=====
+- Use only one toolbar
+- Remove the 'close' button from the toolbar, and replace it
+  with an 'edit' quick-launcher.
+- Add support for a default editor.
+- Replace the thumbnailbar with a port of exo-icon-bar
+- Remove exo dependency
+- Support http://docs.xfce.org/ for documentation
+
+0.3.0 (2011-11-05)
+=====
+- Re-introduce autorotation based on the exif-orientation tag, a
+  regression since 0.0.93
+- Prevent segmentation fault when an error occurs while loading
+  an image
+- Port image-viewer to cairo.
+- Fix Bug #8097  (Prevent thumbnails from disappearing)
+- Read the bgcolor properties on startup
+- Let the file properties-dialog show file-properties.
+- Add --settings cli-option to launch the settings-dialog.
+- Add help->contents menuitem, launching documentation
+- Add a user-manual
+- Solve problem with size-calculation in size_prepared callback
+- Set default height to 440px, Show all buttons on a vertically aligned
+  navigationbar
+- Show thumbnailbar by default
+- Show toolbar when closing images in fullscreen-mode
+- Improve background-color of monitor-chooser
+- Make 'hide thumbnailbar fullscreen' the default
+- Cleanup some memory-leaks
+- Fix rounding error that generates continues rewrites of the main
+  window.
+- Decrease buffersize when loading images, solves a problem with the
+  JPEG pixbufloader.
+- Rotate thumbnails.
+
+0.2.0 (2011-10-17)
+=====
+- Fix bug #6866 (Improve the sorting algorythm for filenames)
+- Fix bug #8025 (Add Stock-icon to set-wallpaper menu-item)
+- Fix bug #7867 (Fix a problem where the image-viewer is updated too
+  often, sometimes indefinately until the widget-size is changed again.)
+- Improve open-file and close-file behaviour
+- Hide thumbnailbar when no images are opened
+- Add option to merge the 2 toolbars into one
+- Fix memory-leak of the thumbnail pixbuf
+- Make open-entire-folder the default and remove the option from the
+  preferences dialog
+- Show the toolbar when going to fullscreen-mode without any open images
+- Fix error with open-dialog because current-uri is not set correctly.
+- Reduce timeout before toolbar is hidden from 3000 to 500ms
+
+0.1.1 (2011-10-07)
+=====
+- Fix linking problems against libm
+- Improve linking against X11
+- Set return statements in various functions returning random values
+
+0.1.0 (2011-10-06)
+=====
+- Fix bug #3640 (During GIF animation shows a little arrow icon)
+- Fix bug #5977 (Add key-bindings for using the arrow buttons)
+- Fix bug #6266 (Can't set the image as wallpaper)
+- Fix bug #6910 (Patch for translation of menu-items)
+- Fix bug #7068 (Segfault after deleting a file from it)
+- Fix bug #7390 (Ristretto should not hard-code the documentation
+  install path)
+- Fix bug #7391 (Ristretto 0.0.93 is missing an include)
+- Fix bug #7424 (Patch to add shortcut (q))
+- Fix bug #7689 (ristretto freezes after selecting the show thumbnail
+  bar option)
+- Fix bug #7730 (Checking Open entire folder on startup seems to have no
+  effect)
+- Fix bug #7776 (Ristretto hangs after start)
+- Fix bug #7817 (f as additional keyboard shortcut for fullscreen)
+- Fix bug #7882 (Memory leak when navigating through a set of images)
+- Fix bug #7884 (Strange behavior with open-entire-folder set to TRUE)
+- Fix bug #7954 (Fix multiple-monitor support for xfdesktop)
+- Fix bug #7960 (Improve image zoom)
+- Fix bug #7962 (Some strings are untranslatable)
+- Emit the 'iter-changed' signal when the image-list is empty.
+- Add 'Clear private data' dialog, for clearing the recently-used list.
+- Improve the 'Set Wallpaper' dialog for setting the wallpaper on
+  xfdesktop.
+- Add an option to 'inverse' the zoom-direction when scrolling.
+- Set the maximum render-quality to the screen-size, this improves the
+  render-speed and reduces the memory-usage of ristretto.
+- Limit the maximum-scale to 400% or the window-size (whichever comes
+  last)
+- Limit the minimum-scale to an image-size of 32x32 pixels
+- Improve the subpixbuf size calculation to reduce the anoying
+  black-borders when zooming in dramatically.
+- Add tooltip to the delete button
+- Add files opened from the cli to the recently-used list
+- Move the image-iterator to the next image instead of the previous
+  image when closing.
+- Open the first image from a folder when opening a folder from the
+  recently-used-items list.
+- Re-implement the file-properties dialog. Open thunar's properties
+  dialog when thunar is available. Add a 'fallback' dialog for when
+  thunar is not available
+- Update the Gtk+ dependency to version 2.20 and the Glib dependency
+  to version 2.24
+
+0.0.93 (2011-02-28)
+======
+- Fix version number
+
+0.0.92 (2011-02-28)
+======
+- Remove dependency on libxfcegui4
+- Restore size of thumbnail-bar
+- Save and restore image zoom-state when navigating
+- Implement 'Ready' signal-handler for thumbnailer-spec
+- Fix build with --no-add-needed
+- Set 'preload-images' checkbox to the right state when the
+  preferences-window is created
+- Correctly cleanup the references to xfconf
+- Fix bug #7336 (segfault when closing last image)
+
+0.0.91 (2010-07-12)
+======
+- Remove dependency on thunar
+- Port to GIO instead of thunarvfs
+- Add option to select maximum render quality (can improve performance at the
+  cost of image-quality)
+- Store the settings in xfconf
+- Add option to completely disable the image-cache
+- Use dbus-thumbnailing spec to generate thumbnails
+- Add buttons to delete the image from disk
+- Restyle the toolbars to make room for more usefull options
+- Save position and size of thumbnail-bar
+
+0.0.22 (2009-05-15)
+======
+
+- Fix memleak (I should've unref-ed the animation-iter)
+- Improve cache size calculation
+
+0.0.21 (2008-11-27)
+======
+
+- Fix segfault when exif-data is missing (Bug #4599)
+- Fix detection of xfdesktop
+- Remove xfconf compile-time dependency, make it a runtime one on
+  xfconf-query
+- Fix segfault caused by invalid marshallers.
+- Improved history behaviour (push 'old' images to the top when
+  they are visited again)
+- Improved preloading
+- Fixed segfault caused by a reference-count bug.
+
+0.0.20 (2008-05-24)
+======
+
+- Put limits on the thumbnail-bar when scrolling
+- Add CLI options for fullscreen and slideshow
+- Make .desktop file adhere to standards
+
+0.0.19 (2008-05-10)
+======
+
+- Improve behaviour when opening a single image from the cli.
+- Add support for setting the wallpaper with xfdesktop 4.5
+- Improve behaviour of thumbnail-bar scroll feature
+
+0.0.18 (2008-03-23)
+======
+
+- Improve performance when opening folders
+
+0.0.17 (2008-02-17)
+======
+
+- Scrolling the vertical oriented thumbnail-bar no longer makes the thumbnails
+  assume the events intended for the zoom-buttons located above.
+- Ristretto no longer segfaults when using the scroll-wheel over an empty main-
+  window
+- Fix desktop-file syntax (was missing a semicolon)
+- Thumbnails behave a little better now.
+
+0.0.16 (2008-01-27)
+======
+
+- Replaced the old thumbnail_viewer with a thumbnail_bar + thumbnail widgets
+  , this should make them better themeable in the future.
+- Improved file-monitor handle behaviour (handle on folder instead of every
+  file)
+- Added zoom-mode to remember if the user is viewing at 1:1, fit or a custom
+  zoom mode when changing images
+- Add drag-support to the thumbnail-bar (look at different thumbnails without
+  modifying the view
+- Add tooltip support (atm with gtk+-2.12 only)
+- Improve caching behaviour (NOTE: when updating from an earlier version, check
+  the preferences dialog for the cache-size. It might point to 1MB which does
+  not seem very usefull)
