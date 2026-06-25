@@ -68,8 +68,12 @@ OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
 # (without it, fpcast keeps only its own byn$fpcast-emu$N thunk names). KEEP_NAMES then -Oz with
 # --debuginfo (size + names kept) so the binary still reproduces the same behaviour as release.
 PASS1_DBG=""; [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ] && PASS1_DBG="--debuginfo"
-wasm-opt --fpcast-emu -pa max-func-params@128 $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
-if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
+PA_ARG="-pa max-func-params@128"; [ -n "${SECURE_EXEC_FPCAST_NO_PA:-}" ] && PA_ARG=""
+wasm-opt --fpcast-emu $PA_ARG $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
+if [ -n "${SECURE_EXEC_FPCAST0_ONLY:-}" ]; then
+  # DIAGNOSTIC: skip the -Oz pass to test whether -Oz introduces the fpcast-emu GFile trap.
+  cp -f "$OUT.1" "$OUT"
+elif [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
   wasm-opt -Oz --debuginfo $OPTFEAT "$OUT.1" -o "$OUT"
 else
   wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers $OPTFEAT "$OUT.1" -o "$OUT"
