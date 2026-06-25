@@ -44,15 +44,16 @@ EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"; "$WSDK/bin/clang" --target=wa
 ERRNOO="$EXP/toolchain/libc-errno.o"; ( cd /tmp && "$WSDK/bin/llvm-ar" x "$WSDK/share/wasi-sysroot/lib/$WASMSUB/libc.a" errno.o 2>/dev/null && mv -f errno.o "$ERRNOO" )
 rm -f "$PREFIX/lib/libwasmshims.a"; "$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libwasmshims.a" "$VFSSHIM" "$EMPTYSHIM" "$ERRNOO"
 
-echo "== compiling notifyd daemon objects (libtool binary discarded) =="
+echo "== compiling notifyd common/ + daemon objects (libtool binaries discarded) =="
 rm -f "$SRC/xfce4-notifyd/xfce4-notifyd"
-make -j4 -C xfce4-notifyd >> /tmp/make-notifyd.log 2>&1
-echo "make rc=$? (compiles the .o)"
+make -j4 -C common >> /tmp/make-notifyd.log 2>&1 || true   # the shared lib (log/enum-types/gbus); .la link fails, .o are what we need
+make -j4 -C xfce4-notifyd >> /tmp/make-notifyd.log 2>&1 || true
+echo "common .o: $(ls "$SRC"/common/*.o 2>/dev/null | wc -l); daemon .o: $(ls "$SRC"/xfce4-notifyd/*.o 2>/dev/null | wc -l)"
 WRAPS="-Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat"
-GTKLIBS=$(PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig" pkg-config --static --libs gtk+-3.0 libxfce4ui-2 libxfconf-0 libnotify 2>/dev/null)
-echo "== direct (non-libtool) final link =="
+GTKLIBS=$(PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig" pkg-config --static --libs gtk+-3.0 libxfce4ui-2 libxfconf-0 libnotify sqlite3 dbus-1 2>/dev/null)
+echo "== direct (non-libtool) final link (daemon + common objects) =="
 "$WSDK/bin/clang" $LDFLAGS -lhostcompat \
-  "$SRC"/xfce4-notifyd/*.o \
+  "$SRC"/xfce4-notifyd/*.o "$SRC"/common/*.o \
   -o "$SRC/xfce4-notifyd/xfce4-notifyd" \
   -L"$PREFIX/lib" "$RESO" -lwasmshims -lglibcompat -ldbuscreds $GTKLIBS \
   -lXinerama -latk-bridge-2.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp \
