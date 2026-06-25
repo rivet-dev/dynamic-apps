@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENT_OS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "110";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "111";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agent-os-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -11682,7 +11682,7 @@ const hostNetImport = {
         // pipes promptly — otherwise a cross-thread GWakeup write would not be observed until timeout.
         if (pollSetHasPipes) remain = Math.min(remain, 10);
         if (globalThis.__polltrace) {
-          let pr = ''; pipeRevents.forEach((re, kfd) => { pr += ' kfd' + kfd + '=' + re; });
+          let pr = ''; pipeRevents.forEach((re, gfd) => { pr += ' gfd' + gfd + '(k' + kernelPipeKernelFd(gfd) + ')=' + re; });
           pollTrace('net_poll BLOCK n=' + n + ' hasPipes=' + pollSetHasPipes + ' pipeRevents{' + pr + ' } remain=' + remain);
         }
         const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
