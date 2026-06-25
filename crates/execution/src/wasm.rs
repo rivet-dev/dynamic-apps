@@ -38,6 +38,10 @@ pub const WASM_PREWARM_TIMEOUT_MS_ENV: &str = "AGENTOS_WASM_PREWARM_TIMEOUT_MS";
 pub const WASM_MAX_FUEL_ENV: &str = "AGENTOS_WASM_MAX_FUEL";
 pub const WASM_MAX_MEMORY_BYTES_ENV: &str = "AGENTOS_WASM_MAX_MEMORY_BYTES";
 pub const WASM_MAX_STACK_BYTES_ENV: &str = "AGENTOS_WASM_MAX_STACK_BYTES";
+/// Operator override for the wasm *runner* isolate's V8 heap cap (MB). This sizes
+/// the heap the runner needs to COMPILE and host the WASI module, not the guest
+/// module's own memory (that stays capped by `AGENTOS_WASM_MAX_MEMORY_BYTES`).
+pub const WASM_RUNNER_HEAP_LIMIT_MB_ENV: &str = "AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB";
 const WASM_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_WASM_WARMUP_METRICS__:";
 const WASM_SIGNAL_STATE_PREFIX: &str = "__AGENTOS_WASM_SIGNAL_STATE__:";
 const WASM_WARMUP_MARKER_VERSION: &str = "1";
@@ -62,6 +66,29 @@ const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
 /// starving every other tenant on the shared process. Operators that need a
 /// tighter (or looser) bound can still set `AGENTOS_WASM_MAX_FUEL` explicitly.
 const DEFAULT_WASM_EXECUTION_TIMEOUT_MS: u64 = 30_000;
+/// Default V8 heap cap (MB) for the wasm *runner* isolate.
+///
+/// The runner is trusted sidecar infrastructure: it compiles the WASI runtime +
+/// the guest's wasm module (e.g. `bash.wasm`) into its own isolate before the
+/// guest runs. That compilation routinely needs far more than the 128 MiB
+/// per-*guest*-isolate budget (`isolate::DEFAULT_HEAP_LIMIT_MB`); leaving the
+/// runner on that default makes warmup OOM mid-compile, terminating the isolate
+/// with an uncatchable (message-less) exception that surfaces as the opaque
+/// `WebAssembly warmup exited with status 1 (Error: null)`. Raising the runner
+/// heap does NOT weaken guest isolation — the guest module's memory/fuel/stack are
+/// bounded separately, Rust-side, from `request.limits`. The value is a ceiling
+/// (`heap_limits(0, cap)`), committed only as used, and operators may tune it via
+/// `AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB`.
+///
+/// Note the ceiling is reachable by guest-driven work: the runner compiles the
+/// guest's wasm module, so a large/hostile module can push the runner heap toward
+/// this cap. That is contained per-isolate (the near-heap-limit guard terminates
+/// the offending isolate, never the shared process), but operators running many
+/// concurrent wasm commands on memory-constrained hosts may want to lower it.
+const DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB: u32 = 2048;
+// The whole point of the runner heap default is to exceed the 128 MiB per-guest
+// isolate budget that OOMs warmup; enforce that invariant at compile time.
+const _: () = assert!(DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB > 128);
 const MAX_SYNC_WASM_PREWARM_MODULE_BYTES: u64 = 16 * 1024 * 1024;
 const WASM_CAPTURED_OUTPUT_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 const WASM_SYNC_READ_LIMIT_BYTES: usize = 16 * 1024 * 1024;
@@ -2100,10 +2127,15 @@ fn start_wasm_javascript_execution(
             argv: vec![String::from(WASM_INLINE_RUNNER_ENTRYPOINT)],
             env,
             cwd: request.cwd.clone(),
-            // The WASI runner's own JS limits are defaults; the WASM fuel/memory/
-            // stack caps are enforced Rust-side from `request.limits`, not via the
-            // runner's V8 heap.
-            limits: JavascriptExecutionLimits::default(),
+            // The guest WASM fuel/memory/stack caps are enforced Rust-side from
+            // `request.limits`, NOT via the runner's V8 heap. But the runner isolate
+            // still has to compile the WASI runtime + the guest module into its own
+            // heap, which overflows the 128 MiB per-guest default and OOMs warmup, so
+            // size the runner heap explicitly (operator-tunable).
+            limits: JavascriptExecutionLimits {
+                v8_heap_limit_mb: Some(wasm_runner_heap_limit_mb(request)),
+                ..JavascriptExecutionLimits::default()
+            },
             // Forward the guest-runtime identity so the runner's shim sets
             // process.* from typed config rather than env.
             guest_runtime: request.guest_runtime.clone(),
@@ -5140,6 +5172,20 @@ fn wasm_memory_limit_pages(memory_limit_bytes: u64) -> Result<u32, WasmExecution
     })
 }
 
+/// Resolve the wasm runner isolate's V8 heap cap (MB): the operator override
+/// `AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB` if set to a positive value, else the bounded
+/// default. A non-numeric or zero value falls back to the default rather than
+/// failing the execution (the runner heap is a tuning knob, not guest-supplied
+/// policy).
+fn wasm_runner_heap_limit_mb(request: &StartWasmExecutionRequest) -> u32 {
+    request
+        .env
+        .get(WASM_RUNNER_HEAP_LIMIT_MB_ENV)
+        .and_then(|value| value.parse::<u32>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB)
+}
+
 fn wasm_limit_u64(
     env: &BTreeMap<String, String>,
     key: &str,
@@ -5460,12 +5506,13 @@ mod tests {
         translate_wasm_guest_path, translate_wasm_host_symlink_target, wasm_guest_module_paths,
         wasm_host_path_is_read_only, wasm_memory_limit_bytes, wasm_memory_limit_pages,
         wasm_mutation_touches_read_only_mapping, wasm_read_only_filesystem_error,
-        wasm_sandbox_root, wasm_sync_read_length, wasm_sync_rpc_error_code, GuestRuntimeConfig,
-        StartWasmExecutionRequest, Value, WasmExecutionError, WasmExecutionLimits,
-        WasmInternalSyncRpc, WasmPermissionTier, DEFAULT_WASM_EXECUTION_TIMEOUT_MS,
+        wasm_runner_heap_limit_mb, wasm_sandbox_root, wasm_sync_read_length,
+        wasm_sync_rpc_error_code, GuestRuntimeConfig, StartWasmExecutionRequest, Value,
+        WasmExecutionError, WasmExecutionLimits, WasmInternalSyncRpc, WasmPermissionTier,
+        DEFAULT_WASM_EXECUTION_TIMEOUT_MS, DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB,
         WASM_CAPTURED_OUTPUT_LIMIT_BYTES, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV,
         WASM_MAX_STACK_BYTES_ENV, WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV,
-        WASM_SANDBOX_ROOT_ENV, WASM_SYNC_READ_LIMIT_BYTES,
+        WASM_RUNNER_HEAP_LIMIT_MB_ENV, WASM_SANDBOX_ROOT_ENV, WASM_SYNC_READ_LIMIT_BYTES,
     };
     use std::collections::{BTreeMap, VecDeque};
     use std::fs;
@@ -5493,6 +5540,46 @@ mod tests {
             env,
             cwd: cwd.to_path_buf(),
             permission_tier: WasmPermissionTier::Full,
+        }
+    }
+
+    #[test]
+    fn wasm_runner_heap_limit_defaults_and_honors_operator_override() {
+        let dir = tempdir().expect("tempdir");
+
+        // No override -> bounded default (large enough to compile the WASI runtime +
+        // guest module; the 128 MiB per-guest default OOMs warmup).
+        let default_req = request_with_env(dir.path(), BTreeMap::new());
+        assert_eq!(
+            wasm_runner_heap_limit_mb(&default_req),
+            DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB
+        );
+
+        // Positive operator override is honored.
+        let override_req = request_with_env(
+            dir.path(),
+            BTreeMap::from([(
+                String::from(WASM_RUNNER_HEAP_LIMIT_MB_ENV),
+                String::from("512"),
+            )]),
+        );
+        assert_eq!(wasm_runner_heap_limit_mb(&override_req), 512);
+
+        // Zero / non-numeric fall back to the default (it's a tuning knob, not
+        // guest-supplied policy, so a bad value must not fail the execution).
+        for bad in ["0", "not-a-number", ""] {
+            let req = request_with_env(
+                dir.path(),
+                BTreeMap::from([(
+                    String::from(WASM_RUNNER_HEAP_LIMIT_MB_ENV),
+                    String::from(bad),
+                )]),
+            );
+            assert_eq!(
+                wasm_runner_heap_limit_mb(&req),
+                DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB,
+                "invalid override {bad:?} should fall back to the default"
+            );
         }
     }
 
