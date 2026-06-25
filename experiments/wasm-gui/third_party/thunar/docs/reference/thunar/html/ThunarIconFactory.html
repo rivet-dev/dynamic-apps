@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarIconFactory: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch17.html" title="Image/Icon">
+<link rel="prev" href="ThunarImage.html" title="ThunarImage">
+<link rel="next" href="ThunarIconRenderer.html" title="ThunarIconRenderer">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarIconFactory.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarIconFactory.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarIconFactory.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch17.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarImage.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarIconRenderer.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarIconFactory"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarIconFactory.top_of_page"></a>ThunarIconFactory</span></h2>
+<p>ThunarIconFactory</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarIconFactory.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="returnvalue">ThunarIconFactory</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-get-default" title="thunar_icon_factory_get_default ()">thunar_icon_factory_get_default</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="returnvalue">ThunarIconFactory</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-get-for-icon-theme" title="thunar_icon_factory_get_for_icon_theme ()">thunar_icon_factory_get_for_icon_theme</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-get-show-thumbnail" title="thunar_icon_factory_get_show_thumbnail ()">thunar_icon_factory_get_show_thumbnail</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkPixbuf</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-load-icon" title="thunar_icon_factory_load_icon ()">thunar_icon_factory_load_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkPixbuf</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-load-file-icon" title="thunar_icon_factory_load_file_icon ()">thunar_icon_factory_load_file_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconFactory.html#thunar-icon-factory-clear-pixmap-cache" title="thunar_icon_factory_clear_pixmap_cache ()">thunar_icon_factory_clear_pixmap_cache</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconFactory.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">GtkIconTheme</span> *</td>
+<td class="property_name"><a class="link" href="ThunarIconFactory.html#ThunarIconFactory--icon-theme" title="The “icon-theme” property">icon-theme</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarIconFactory.html#ThunarIconFactory--thumbnail-draw-frames" title="The “thumbnail-draw-frames” property">thumbnail-draw-frames</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint64</span></td>
+<td class="property_name"><a class="link" href="ThunarIconFactory.html#ThunarIconFactory--thumbnail-max-file-size" title="The “thumbnail-max-file-size” property">thumbnail-max-file-size</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailMode" title="enum ThunarThumbnailMode"><span class="type">ThunarThumbnailMode</span></a></td>
+<td class="property_name"><a class="link" href="ThunarIconFactory.html#ThunarIconFactory--thumbnail-mode" title="The “thumbnail-mode” property">thumbnail-mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailSize" title="enum ThunarThumbnailSize"><span class="type">ThunarThumbnailSize</span></a></td>
+<td class="property_name"><a class="link" href="ThunarIconFactory.html#ThunarIconFactory--thumbnail-size" title="The “thumbnail-size” property">thumbnail-size</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconFactory.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarIconFactory
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarIconFactory.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarIconFactory.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-icon-factory-get-default"></a><h3>thunar_icon_factory_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="returnvalue">ThunarIconFactory</span></a> *
+thunar_icon_factory_get_default (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns the <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> that operates on the default <span class="type">GtkIconTheme</span>.
+The default <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> instance will be around for the time the
+programs runs, starting with the first call to this function.</p>
+<p>The caller is responsible to free the returned object using
+<code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-icon-factory-get-default.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> for the default icon theme.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-icon-factory-get-for-icon-theme"></a><h3>thunar_icon_factory_get_for_icon_theme ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="returnvalue">ThunarIconFactory</span></a> *
+thunar_icon_factory_get_for_icon_theme
+                               (<em class="parameter"><code><span class="type">GtkIconTheme</span> *icon_theme</code></em>);</pre>
+<p>Determines the proper <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> to be used with the specified
+<em class="parameter"><code>icon_theme</code></em>
+ and returns it.</p>
+<p>You need to explicitly free the returned <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> object
+using <code class="function">g_object_unref()</code> when you are done with it.</p>
+<div class="refsect3">
+<a name="thunar-icon-factory-get-for-icon-theme.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>icon_theme</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkIconTheme</span> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-icon-factory-get-for-icon-theme.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> for <em class="parameter"><code>icon_theme</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-icon-factory-get-show-thumbnail"></a><h3>thunar_icon_factory_get_show_thumbnail ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_icon_factory_get_show_thumbnail
+                               (<em class="parameter"><code>const <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> *factory</code></em>,
+                                <em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-icon-factory-get-show-thumbnail.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>factory</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-icon-factory-get-show-thumbnail.returns"></a><h4>Returns</h4>
+<p> if a Thumbnail show be shown for <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-icon-factory-load-icon"></a><h3>thunar_icon_factory_load_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkPixbuf</span> *
+thunar_icon_factory_load_icon (<em class="parameter"><code><a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> *factory</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>,
+                               <em class="parameter"><code><span class="type">gint</span> size</code></em>,
+                               <em class="parameter"><code><span class="type">gboolean</span> wants_default</code></em>);</pre>
+<p>Looks up the icon named <em class="parameter"><code>name</code></em>
+ in the icon theme associated with <em class="parameter"><code>factory</code></em>
+
+and returns a pixbuf for the icon at the given <em class="parameter"><code>size</code></em>
+. This function will
+return a default fallback icon if the requested icon could not be found
+and <em class="parameter"><code>wants_default</code></em>
+ is <code class="literal">TRUE</code>, else <code class="literal">NULL</code> will be returned in that case.</p>
+<p>Call <code class="function">g_object_unref()</code> on the returned pixbuf when you are
+done with it.</p>
+<div class="refsect3">
+<a name="thunar-icon-factory-load-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>factory</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>name of the icon to load.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>size</p></td>
+<td class="parameter_description"><p>desired icon size.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>wants_default</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to return the fallback icon if no icon of <em class="parameter"><code>name</code></em>
+is found in the <em class="parameter"><code>factory</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-icon-factory-load-icon.returns"></a><h4>Returns</h4>
+<p> the pixbuf for the icon named <em class="parameter"><code>name</code></em>
+at <em class="parameter"><code>size</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-icon-factory-load-file-icon"></a><h3>thunar_icon_factory_load_file_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkPixbuf</span> *
+thunar_icon_factory_load_file_icon (<em class="parameter"><code><a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> *factory</code></em>,
+                                    <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                    <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileIconState" title="enum ThunarFileIconState"><span class="type">ThunarFileIconState</span></a> icon_state</code></em>,
+                                    <em class="parameter"><code><span class="type">gint</span> icon_size</code></em>);</pre>
+<p>The caller is responsible to free the returned object using
+<code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-icon-factory-load-file-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>factory</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_state</p></td>
+<td class="parameter_description"><p>the desired icon state.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_size</p></td>
+<td class="parameter_description"><p>the desired icon size.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-icon-factory-load-file-icon.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GdkPixbuf</span> icon.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-icon-factory-clear-pixmap-cache"></a><h3>thunar_icon_factory_clear_pixmap_cache ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_icon_factory_clear_pixmap_cache
+                               (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Unset the pixmap cache on a file to force a reload on the next request.</p>
+<div class="refsect3">
+<a name="thunar-icon-factory-clear-pixmap-cache.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconFactory.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarIconFactory--icon-theme"></a><h3>The <code class="literal">“icon-theme”</code> property</h3>
+<pre class="programlisting">  “icon-theme”               <span class="type">GtkIconTheme</span> *</pre>
+<p>The <span class="type">GtkIconTheme</span> on which the given <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> instance operates
+on.</p>
+<p>Owner: ThunarIconFactory</p>
+<p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconFactory--thumbnail-draw-frames"></a><h3>The <code class="literal">“thumbnail-draw-frames”</code> property</h3>
+<pre class="programlisting">  “thumbnail-draw-frames”    <span class="type">gboolean</span></pre>
+<p>Whether to draw black frames around thumbnails.
+This looks neat, but will delay the first draw a bit.
+May have an impact on older systems, on folders with many pictures.</p>
+<p>Owner: ThunarIconFactory</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconFactory--thumbnail-max-file-size"></a><h3>The <code class="literal">“thumbnail-max-file-size”</code> property</h3>
+<pre class="programlisting">  “thumbnail-max-file-size”  <span class="type">guint64</span></pre>
+<p>Maximum file size (in bytes) allowed to be thumbnailed</p>
+<p>Owner: ThunarIconFactory</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconFactory--thumbnail-mode"></a><h3>The <code class="literal">“thumbnail-mode”</code> property</h3>
+<pre class="programlisting">  “thumbnail-mode”           <a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailMode" title="enum ThunarThumbnailMode"><span class="type">ThunarThumbnailMode</span></a></pre>
+<p>Whether this <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> will try to generate and load thumbnails
+when loading icons for <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p>
+<p>Owner: ThunarIconFactory</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_THUMBNAIL_MODE_ONLY_LOCAL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconFactory--thumbnail-size"></a><h3>The <code class="literal">“thumbnail-size”</code> property</h3>
+<pre class="programlisting">  “thumbnail-size”           <a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailSize" title="enum ThunarThumbnailSize"><span class="type">ThunarThumbnailSize</span></a></pre>
+<p>Size of the thumbnails to load</p>
+<p>Owner: ThunarIconFactory</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_THUMBNAIL_SIZE_NORMAL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

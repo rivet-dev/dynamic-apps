@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarSendtoModel: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch13.html" title="Entry Model">
+<link rel="prev" href="ThunarShortcutsModel.html" title="ThunarShortcutsModel">
+<link rel="next" href="ThunarTreeModel.html" title="ThunarTreeModel">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarSendtoModel.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarSendtoModel.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch13.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarShortcutsModel.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarTreeModel.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarSendtoModel"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarSendtoModel.top_of_page"></a>ThunarSendtoModel</span></h2>
+<p>ThunarSendtoModel</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarSendtoModel.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarSendtoModel.html" title="ThunarSendtoModel"><span class="returnvalue">ThunarSendtoModel</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarSendtoModel.html#thunar-sendto-model-get-default" title="thunar_sendto_model_get_default ()">thunar_sendto_model_get_default</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarSendtoModel.html#thunar-sendto-model-get-matching" title="thunar_sendto_model_get_matching ()">thunar_sendto_model_get_matching</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarSendtoModel.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarSendtoModel
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarSendtoModel.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarSendtoModel.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-sendto-model-get-default"></a><h3>thunar_sendto_model_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarSendtoModel.html" title="ThunarSendtoModel"><span class="returnvalue">ThunarSendtoModel</span></a> *
+thunar_sendto_model_get_default (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns a reference to the default <a class="link" href="ThunarSendtoModel.html" title="ThunarSendtoModel"><span class="type">ThunarSendtoModel</span></a>
+instance. The caller is responsible to free the returned
+reference using <code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-sendto-model-get-default.returns"></a><h4>Returns</h4>
+<p> reference to the default sendto model.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-sendto-model-get-matching"></a><h3>thunar_sendto_model_get_matching ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_sendto_model_get_matching (<em class="parameter"><code><a class="link" href="ThunarSendtoModel.html" title="ThunarSendtoModel"><span class="type">ThunarSendtoModel</span></a> *sendto_model</code></em>,
+                                  <em class="parameter"><code><span class="type">GList</span> *files</code></em>);</pre>
+<p>Returns the list of <span class="type">GAppInfo</span>s for the "Send To" targets that
+support the specified <em class="parameter"><code>files</code></em>
+.</p>
+<p>The returned list is owned by the caller and must be freed when no
+longer needed, using:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="thunar-sendto-model-get-matching.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sendto_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarSendtoModel.html" title="ThunarSendtoModel"><span class="type">ThunarSendtoModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-sendto-model-get-matching.returns"></a><h4>Returns</h4>
+<p> a <span class="type">GList</span> of supported <span class="type">GAppInfo</span>s as
+"Send To" targets for the specified <em class="parameter"><code>files</code></em>
+.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

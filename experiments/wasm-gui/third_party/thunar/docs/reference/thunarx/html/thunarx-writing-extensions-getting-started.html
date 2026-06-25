@@ -1,0 +1,252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Getting Started: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-writing-extensions.html" title="Part II. Writing Extensions">
+<link rel="prev" href="thunarx-writing-extensions.html" title="Part II. Writing Extensions">
+<link rel="next" href="thunarx-writing-extensions-advanced-topics.html" title="Advanced topics">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-writing-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="thunarx-writing-extensions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="thunarx-writing-extensions-advanced-topics.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="sect1">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="thunarx-writing-extensions-getting-started"></a>Getting Started</h2></div></div></div>
+<p>
+        Providers are <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>s loaded from shared libraries
+        installed in <code class="filename">$libdir/thunarx-2/</code>. The shared libraries are linked against the
+        <code class="systemitem">thunarx-2</code> library.
+      </p>
+<p>
+        The extensions must provide three public functions, <code class="function">thunar_extension_initialize()</code>,
+        <code class="function">thunar_extension_shutdown()</code> and <code class="function">thunar_extension_list_types()</code>.
+      </p>
+<p>
+        <code class="function">thunar_extension_initialize()</code> is passed a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>
+        object, and is responsible to register all GTypes required by the extension. <code class="function">thunar_extension_shutdown()</code> should
+        perform any extension-specific shutdown required prior to unloading the extension. <code class="function">thunar_extension_list_types()</code>
+        returns an array of GTypes that represent the types of the providers exported by the extension. Thunar will instantiate
+        objects of those types when needed.
+      </p>
+<div class="example">
+<a name="id-1.3.4.5"></a><p class="title"><b>Example 1. Basic Structure of an extension</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;gmodule.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;thunarx/thunarx.h&gt;</span><span class="cp"></span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">GType</span><span class="w"> </span><span class="n">type_list</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">foo_extension_register_type</span><span class="w"> </span><span class="p">(</span><span class="n">ThunarxProviderPlugin</span><span class="w"> </span><span class="o">*</span><span class="n">plugin</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">GTypeInfo</span><span class="w"> </span><span class="n">info</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">sizeof</span><span class="w"> </span><span class="p">(</span><span class="n">FooExtensionClass</span><span class="p">),</span><span class="w"></span>
+<span class="w">    </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">GClassInitFunc</span><span class="p">)</span><span class="w"> </span><span class="n">foo_extension_class_init</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="k">sizeof</span><span class="w"> </span><span class="p">(</span><span class="n">FooExtension</span><span class="p">),</span><span class="w"></span>
+<span class="w">    </span><span class="mi">0</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">GInstanceInitFunc</span><span class="p">)</span><span class="w"> </span><span class="n">foo_extension_init</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nb">NULL</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="p">};</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">type_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thunarx_provider_plugin_register_type</span><span class="w"> </span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                        </span><span class="n">G_TYPE_OBJECT</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                        </span><span class="s">&quot;FooExtension&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                                        </span><span class="o">&amp;</span><span class="n">info</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">  </span><span class="cm">/* implement the desired provider interfaces */</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">GType</span><span class="w"></span>
+<span class="nf">foo_extension_get_type</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">type_list</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="n">G_MODULE_EXPORT</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="n">thunar_extension_initialize</span><span class="w"> </span><span class="p">(</span><span class="n">ThunarxProviderPlugin</span><span class="w"> </span><span class="o">*</span><span class="n">plugin</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">gchar</span><span class="w"> </span><span class="o">*</span><span class="n">mismatch</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">  </span><span class="cm">/* verify the versions */</span><span class="w"></span>
+<span class="w">  </span><span class="n">mismatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thunarx_check_version</span><span class="w"> </span><span class="p">(</span><span class="n">THUNARX_MAJOR_VERSION</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">THUNARX_MINOR_VERSION</span><span class="p">,</span><span class="w"></span>
+<span class="w">                                    </span><span class="n">THUNARX_MICRO_VERSION</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">G_UNLIKELY</span><span class="w"> </span><span class="p">(</span><span class="n">mismatch</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="n">g_warning</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Version mismatch: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">mismatch</span><span class="p">);</span><span class="w"></span>
+<span class="w">      </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">  </span><span class="n">foo_extension_register_type</span><span class="w"> </span><span class="p">(</span><span class="n">plugin</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="n">G_MODULE_EXPORT</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="n">thunar_extension_shutdown</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="cm">/* any extension-specific shutdown */</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="n">G_MODULE_EXPORT</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="n">thunar_extension_list_types</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">GType</span><span class="w"> </span><span class="o">**</span><span class="n">types</span><span class="p">,</span><span class="w"></span>
+<span class="w">                             </span><span class="n">gint</span><span class="w">         </span><span class="o">*</span><span class="n">n_types</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="o">*</span><span class="n">types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">type_list</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="o">*</span><span class="n">n_types</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">G_N_ELEMENTS</span><span class="w"> </span><span class="p">(</span><span class="n">type_list</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break"><p>
+        You should check the <span class="application">TexOpenTerminal</span> extension, which is included in the Thunar
+        distribution in the <code class="filename">examples/tex-open-terminal</code> directory, for a more
+        complete example of how to write a Thunar extension.
+      </p>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="thunarx-writing-extensions-compiling-thunar-extensions"></a>Compiling Thunar Extensions</h3></div></div></div>
+<p>
+          To compile a Thunar extension, you need to tell the compiler where to find the
+          <code class="systemitem">thunarx</code> header files and library. This
+          is done with the <code class="literal">pkg-config</code> utility.
+        </p>
+<p>
+          The following interactive shell session demonstrates how <code class="literal">pkg-config</code>
+          is used (the actual output on your system will be different):
+          </p>
+<pre class="screen">
+$ pkg-config --cflags thunarx-2
+-DXTHREADS -DXUSE_MTSAFE_API -I/opt/local/include/thunarx-2 -I/usr/local/include/atk-1.0 \
+-I/usr/local/include/glib-2.0 -I/usr/local/lib/glib-2.0/include -I/usr/X11R6/include/gtk-2.0 \
+-I/usr/X11R6/lib/gtk-2.0/include -I/usr/X11R6/include -I/usr/X11R6/include/pango-1.0 \
+-I/usr/local/include/freetype2 -I/usr/local/include
+$ pkg-config --libs thunarx-2
+-Wl,--rpath -Wl,/usr/local/lib -L/usr/local/lib -L/usr/X11R6/lib -L/opt/local/lib -lthunarx-2</pre>
+<p>
+        </p>
+<p>
+          The easiest way to compile an extension is to use the <span class="emphasis"><em>backticks</em></span>
+          feature of the shell. If you enclose a command in backticks (<span class="emphasis"><em>not single
+          quotes</em></span>), then its output will be substituted into the command line before
+          execution. So to compile an extension, you would type the following:
+          </p>
+<pre class="screen">
+$ gcc -shared -fPIC -DPIC `pkg-config --cflags --libs thunarx-2` foo.c -o foo.so</pre>
+<p>
+        </p>
+</div>
+<div class="sect2">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="thunarx-writing-extensions-installing-thunar-extensions"></a>Installing Thunar Extensions</h3></div></div></div>
+<p>
+          To determine the directory where extensions must be installed on your local system,
+          you can use the following command (as mentioned above, the output will be different
+          on your system):
+          </p>
+<pre class="screen">
+$ pkg-config --variable=extensionsdir thunarx-2
+/opt/local/lib/thunarx-2</pre>
+<p>
+        </p>
+<p>
+          For example, to install the extension <code class="filename">foo.so</code> on your system,
+          you would type the following:
+          </p>
+<pre class="screen">
+$ install -d `pkg-config --variable=extensionsdir thunarx-2`
+$ install -c -m 0755 foo.so `pkg-config --variable=extensionsdir thunarx-2`/foo.so</pre>
+<p>
+        </p>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

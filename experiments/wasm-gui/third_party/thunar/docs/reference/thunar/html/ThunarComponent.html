@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarComponent: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch14.html" title="File Selection">
+<link rel="prev" href="thunar-thunar-dnd.html" title="thunar-dnd">
+<link rel="next" href="ch15.html" title="Applicaton">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarComponent.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarComponent.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarComponent.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch14.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="thunar-thunar-dnd.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch15.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarComponent"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarComponent.top_of_page"></a>ThunarComponent</span></h2>
+<p>ThunarComponent</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarComponent.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarComponent.html#thunar-component-get-selected-files" title="thunar_component_get_selected_files ()">thunar_component_get_selected_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarComponent.html#thunar-component-set-selected-files" title="thunar_component_set_selected_files ()">thunar_component_set_selected_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarComponent.html#thunar-component-restore-selection" title="thunar_component_restore_selection ()">thunar_component_restore_selection</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarComponent.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<span class="type">ThunarxFileInfoList</span> *</td>
+<td class="property_name"><a class="link" href="ThunarComponent.html#ThunarComponent--selected-files" title="The “selected-files” property">selected-files</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarComponent.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarComponent
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarComponent.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarComponent.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-component-get-selected-files"></a><h3>thunar_component_get_selected_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_component_get_selected_files (<em class="parameter"><code><a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> *component</code></em>);</pre>
+<p>Returns the set of selected <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s. Check the description
+of the :selected-files property for details.</p>
+<div class="refsect3">
+<a name="thunar-component-get-selected-files.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>component</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-component-get-selected-files.returns"></a><h4>Returns</h4>
+<p> the set of selected <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-component-set-selected-files"></a><h3>thunar_component_set_selected_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_component_set_selected_files (<em class="parameter"><code><a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> *component</code></em>,
+                                     <em class="parameter"><code><span class="type">GList</span> *selected_files</code></em>);</pre>
+<p>Sets the selected files for <em class="parameter"><code>component</code></em>
+ to <em class="parameter"><code>selected_files</code></em>
+.
+Check the description of the :selected-files property for
+details.</p>
+<div class="refsect3">
+<a name="thunar-component-set-selected-files.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>component</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>selected_files</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-component-restore-selection"></a><h3>thunar_component_restore_selection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_component_restore_selection (<em class="parameter"><code><a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> *component</code></em>);</pre>
+<p>Make sure that the <em class="parameter"><code>selected_files</code></em>
+ stay selected when a <em class="parameter"><code>component</code></em>
+
+updates. This may be necessary on row changes etc.</p>
+<div class="refsect3">
+<a name="thunar-component-restore-selection.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>component</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarComponent.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarComponent--selected-files"></a><h3>The <code class="literal">“selected-files”</code> property</h3>
+<pre class="programlisting">  “selected-files”           <span class="type">ThunarxFileInfoList</span> *</pre>
+<p>The list of currently selected files for the <a class="link" href="ThunarWindow.html" title="ThunarWindow"><span class="type">ThunarWindow</span></a> to
+which this <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> belongs.</p>
+<p>The exact semantics of this property depend on the implementor
+of this interface. For example, <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a>s will update
+the property depending on the users selection with the
+<span class="type">GtkTreeComponent</span> or <span class="type">ExoIconComponent</span>. While other components in a window,
+like the <a class="link" href="ThunarShortcutsPane.html" title="ThunarShortcutsPane"><span class="type">ThunarShortcutsPane</span></a>, will not update this property on
+their own, but rely on <a class="link" href="ThunarWindow.html" title="ThunarWindow"><span class="type">ThunarWindow</span></a> to synchronize the selected
+files list with the selected files list from the active <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a>.</p>
+<p>This way all components can behave properly depending on the
+set of selected files even though they don't have direct access
+to the <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a>.</p>
+<p>Owner: ThunarComponent</p>
+<p>Flags: Read / Write</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

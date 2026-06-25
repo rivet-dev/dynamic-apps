@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+   Copyright (c) 2006 Benedikt Meurer <benny@xfce.org>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 2 of the License, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+   more details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+   Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+
+<node name="/org/xfce/FileManager">
+  <!--
+    org.xfce.Trash
+
+    The generic Xfce Trash Bin interface, implemented by all Xfce File
+    Managers that support a trash bin.
+  -->
+  <interface name="org.xfce.Trash">
+    <!--
+      DisplayTrash (display : STRING) : VOID
+
+      display    : the screen on which to display the trash folder
+                   contents or "" to use the default screen of the
+                   file manager.
+      startup_id : the DESKTOP_STARTUP_ID environment variable for properly
+                   handling startup notification and focus stealing.
+
+      Opens a new file manager window showing the trash folder
+      contents.
+    -->
+    <method name="DisplayTrash">
+      <arg direction="in" name="display" type="s" />
+      <arg direction="in" name="startup_id" type="s" />
+    </method>
+
+    <!--
+      EmptyTrash (display : STRING) : VOID
+
+      display    : the screen on which to display the confirmation of
+                   the operation and the progress status or "" to use
+                   the default screen of the file manager.
+      startup_id : the DESKTOP_STARTUP_ID environment variable for properly
+                   handling startup notification and focus stealing.
+
+      Tells the file manager to empty the trash bin.
+    -->
+    <method name="EmptyTrash">
+      <arg direction="in" name="display" type="s" />
+      <arg direction="in" name="startup_id" type="s" />
+    </method>
+
+    <!--
+      MoveToTrash (uris : ARRAY OF STRING, display : STRING) : VOID
+
+      filenames  : an array of file:-URIs or absolute paths for the files
+                   that should be moved to the trash can.
+      display    : the screen on which to display the progress dialog
+                   and possible error messages and confirmation dialogs
+                   or "" to use the default screen of the file manager.
+      startup_id : the DESKTOP_STARTUP_ID environment variable for properly
+                   handling startup notification and focus stealing.
+
+      Tells the file manager to move all files specified by the filenames
+      to the trash bin.
+    -->
+    <method name="MoveToTrash">
+      <arg direction="in" name="filenames" type="as" />
+      <arg direction="in" name="display" type="s" />
+      <arg direction="in" name="startup_id" type="s" />
+    </method>
+
+    <!--
+      QueryTrash () : BOOLEAN
+
+      Determines whether the trash bin contains atleast one
+      item.
+
+      Returns: TRUE if the trash bin is not empty, FALSE otherwise.
+    -->
+    <method name="QueryTrash">
+      <arg direction="out" name="full" type="b" />
+    </method>
+
+    <!--
+      TrashChanged ()
+
+      This signal is emitted by the file manager whenever the state
+      of the trash bin changes.
+    -->
+    <signal name="TrashChanged"/>
+  </interface>
+</node>
+
+<!-- vi:set ts=2 sw=2 et ai: -->

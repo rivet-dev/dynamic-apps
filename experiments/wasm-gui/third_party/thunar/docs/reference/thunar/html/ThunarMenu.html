@@ -1,0 +1,405 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarMenu: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch16.html" title="Menu Entries">
+<link rel="prev" href="ch16.html" title="Menu Entries">
+<link rel="next" href="ThunarActionManager.html" title="ThunarActionManager">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarMenu.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarMenu.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarMenu.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch16.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch16.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarActionManager.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarMenu"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarMenu.top_of_page"></a>ThunarMenu</span></h2>
+<p>ThunarMenu — Wrapper of GtkMenu to simplify the creation commonly used menu-sections in thunar</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarMenu.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarMenu.html#thunar-menu-add-sections" title="thunar_menu_add_sections ()">thunar_menu_add_sections</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarMenu.html#thunar-menu-get-action-manager" title="thunar_menu_get_action_manager ()">thunar_menu_get_action_manager</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarMenu.html#ThunarMenu--action-mgr" title="The “action-mgr” property">action-mgr</a></td>
+<td class="property_flags">Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarMenu.html#ThunarMenu--change-directory-support-disabled" title="The “change-directory-support-disabled” property">change-directory-support-disabled</a></td>
+<td class="property_flags">Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarMenu.html#ThunarMenu--force-section-open" title="The “force-section-open” property">force-section-open</a></td>
+<td class="property_flags">Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">int</span></td>
+<td class="property_name"><a class="link" href="ThunarMenu.html#ThunarMenu--menu-type" title="The “menu-type” property">menu-type</a></td>
+<td class="property_flags">Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarMenu.html#ThunarMenu--tab-support-disabled" title="The “tab-support-disabled” property">tab-support-disabled</a></td>
+<td class="property_flags">Write / Construct Only</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarMenu.html#ThunarMenuType" title="enum ThunarMenuType">ThunarMenuType</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarMenu.html#ThunarMenuSections" title="enum ThunarMenuSections">ThunarMenuSections</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkMenuShell
+                    <span class="lineart">╰──</span> GtkMenu
+                        <span class="lineart">╰──</span> ThunarMenu
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.description"></a><h2>Description</h2>
+<p><a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> is a <span class="type">GtkMenu</span> which provides a unified menu-creation service for different thunar widgets.</p>
+<p>Based on the passed flags and selected sections, it fills itself with the requested menu-items
+by creating them with <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-menu-add-sections"></a><h3>thunar_menu_add_sections ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_menu_add_sections (<em class="parameter"><code><a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> *menu</code></em>,
+                          <em class="parameter"><code><a class="link" href="ThunarMenu.html#ThunarMenuSections" title="enum ThunarMenuSections"><span class="type">ThunarMenuSections</span></a> menu_sections</code></em>);</pre>
+<p>Method to add different sections of <span class="type">GtkMenuItems</span> to the <a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a>,
+according to the selected <a class="link" href="ThunarMenu.html#ThunarMenuSections" title="enum ThunarMenuSections"><span class="type">ThunarMenuSections</span></a></p>
+<div class="refsect3">
+<a name="thunar-menu-add-sections.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu_sections</p></td>
+<td class="parameter_description"><p>bit enumeration of <a class="link" href="ThunarMenu.html#ThunarMenuSections" title="enum ThunarMenuSections"><span class="type">ThunarMenuSections</span></a> which should be added to the <a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-menu-add-sections.returns"></a><h4>Returns</h4>
+<p> TRUE if any <span class="type">GtkMenuItem</span> was added</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-menu-get-action-manager"></a><h3>thunar_menu_get_action_manager ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_menu_get_action_manager (<em class="parameter"><code><a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> *menu</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-menu-get-action-manager.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-menu-get-action-manager.returns"></a><h4>Returns</h4>
+<p>The action manager of this <a class="link" href="ThunarMenu.html" title="ThunarMenu"><span class="type">ThunarMenu</span></a> instance. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarMenuType"></a><h3>enum ThunarMenuType</h3>
+<div class="refsect3">
+<a name="ThunarMenuType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-WINDOW:CAPS"></a>THUNAR_MENU_TYPE_WINDOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-CONTEXT-STANDARD-VIEW:CAPS"></a>THUNAR_MENU_TYPE_CONTEXT_STANDARD_VIEW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-CONTEXT-LOCATION-BUTTONS:CAPS"></a>THUNAR_MENU_TYPE_CONTEXT_LOCATION_BUTTONS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-CONTEXT-RENAMER:CAPS"></a>THUNAR_MENU_TYPE_CONTEXT_RENAMER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-CONTEXT-TREE-VIEW:CAPS"></a>THUNAR_MENU_TYPE_CONTEXT_TREE_VIEW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-TYPE-CONTEXT-SHORTCUTS-VIEW:CAPS"></a>THUNAR_MENU_TYPE_CONTEXT_SHORTCUTS_VIEW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="N-THUNAR-MENU-TYPE:CAPS"></a>N_THUNAR_MENU_TYPE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarMenuSections"></a><h3>enum ThunarMenuSections</h3>
+<div class="refsect3">
+<a name="ThunarMenuSections.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-OPEN:CAPS"></a>THUNAR_MENU_SECTION_OPEN</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-SENDTO:CAPS"></a>THUNAR_MENU_SECTION_SENDTO</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-CREATE-NEW-FILES:CAPS"></a>THUNAR_MENU_SECTION_CREATE_NEW_FILES</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-CUT:CAPS"></a>THUNAR_MENU_SECTION_CUT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-COPY-PASTE:CAPS"></a>THUNAR_MENU_SECTION_COPY_PASTE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-TRASH-DELETE:CAPS"></a>THUNAR_MENU_SECTION_TRASH_DELETE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-EMPTY-TRASH:CAPS"></a>THUNAR_MENU_SECTION_EMPTY_TRASH</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-RESTORE:CAPS"></a>THUNAR_MENU_SECTION_RESTORE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-DUPLICATE:CAPS"></a>THUNAR_MENU_SECTION_DUPLICATE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-MAKELINK:CAPS"></a>THUNAR_MENU_SECTION_MAKELINK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-RENAME:CAPS"></a>THUNAR_MENU_SECTION_RENAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-CUSTOM-ACTIONS:CAPS"></a>THUNAR_MENU_SECTION_CUSTOM_ACTIONS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-ZOOM:CAPS"></a>THUNAR_MENU_SECTION_ZOOM</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-PROPERTIES:CAPS"></a>THUNAR_MENU_SECTION_PROPERTIES</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-MOUNTABLE:CAPS"></a>THUNAR_MENU_SECTION_MOUNTABLE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-REMOVE-FROM-RECENT:CAPS"></a>THUNAR_MENU_SECTION_REMOVE_FROM_RECENT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-MENU-SECTION-EDIT-LAUNCHER:CAPS"></a>THUNAR_MENU_SECTION_EDIT_LAUNCHER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarMenu.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarMenu--action-mgr"></a><h3>The <code class="literal">“action-mgr”</code> property</h3>
+<pre class="programlisting">  “action-mgr”               <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *</pre>
+<p>action_mgr.</p>
+<p>Owner: ThunarMenu</p>
+<p>Flags: Write / Construct Only</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarMenu--change-directory-support-disabled"></a><h3>The <code class="literal">“change-directory-support-disabled”</code> property</h3>
+<pre class="programlisting">  “change-directory-support-disabled” <span class="type">gboolean</span></pre>
+<p>change_directory-support-disabled.</p>
+<p>Owner: ThunarMenu</p>
+<p>Flags: Write / Construct Only</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarMenu--force-section-open"></a><h3>The <code class="literal">“force-section-open”</code> property</h3>
+<pre class="programlisting">  “force-section-open”       <span class="type">gboolean</span></pre>
+<p>force-section-open.</p>
+<p>Owner: ThunarMenu</p>
+<p>Flags: Write / Construct Only</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarMenu--menu-type"></a><h3>The <code class="literal">“menu-type”</code> property</h3>
+<pre class="programlisting">  “menu-type”                <span class="type">int</span></pre>
+<p>menu-type.</p>
+<p>Owner: ThunarMenu</p>
+<p>Flags: Write / Construct Only</p>
+<p>Allowed values: [0,5]</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarMenu--tab-support-disabled"></a><h3>The <code class="literal">“tab-support-disabled”</code> property</h3>
+<pre class="programlisting">  “tab-support-disabled”     <span class="type">gboolean</span></pre>
+<p>tab-support-disabled.</p>
+<p>Owner: ThunarMenu</p>
+<p>Flags: Write / Construct Only</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

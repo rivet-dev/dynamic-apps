@@ -1,0 +1,243 @@
+<INCLUDE>thunarx/thunarx.h</INCLUDE>
+
+<SECTION>
+<FILE>thunarx-file-info</FILE>
+<TITLE>ThunarxFileInfo</TITLE>
+ThunarxFileInfoIface
+ThunarxFileInfo
+thunarx_file_info_get_name
+thunarx_file_info_get_uri
+thunarx_file_info_get_parent_uri
+thunarx_file_info_get_uri_scheme
+thunarx_file_info_get_mime_type
+thunarx_file_info_has_mime_type
+thunarx_file_info_is_directory
+thunarx_file_info_get_file_info
+thunarx_file_info_get_filesystem_info
+thunarx_file_info_get_location
+thunarx_file_info_changed
+thunarx_file_info_renamed
+THUNARX_TYPE_FILE_INFO_LIST
+thunarx_file_info_list_copy
+thunarx_file_info_list_free
+<SUBSECTION Standard>
+THUNARX_TYPE_FILE_INFO
+THUNARX_FILE_INFO
+THUNARX_IS_FILE_INFO
+THUNARX_FILE_INFO_GET_IFACE
+<SUBSECTION Private>
+thunarx_file_info_get_type
+thunarx_file_info_list_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-menu</FILE>
+<TITLE>ThunarxMenu</TITLE>
+ThunarxMenu
+thunarx_menu_new
+thunarx_menu_append_item
+thunarx_menu_prepend_item
+thunarx_menu_get_items
+<SUBSECTION Standard>
+ThunarxMenuClass
+THUNARX_TYPE_MENU
+THUNARX_MENU
+THUNARX_MENU_CLASS
+THUNARX_IS_MENU
+THUNARX_IS_MENU_CLASS
+THUNARX_MENU_GET_CLASS
+<SUBSECTION Private>
+ThunarxMenuPrivate
+thunarx_menu_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-menu-item</FILE>
+<TITLE>ThunarxMenuItem</TITLE>
+ThunarxMenuItem
+thunarx_menu_item_new
+thunarx_menu_item_activate
+thunarx_menu_item_get_sensitive
+thunarx_menu_item_set_sensitive
+thunarx_menu_item_set_menu
+thunarx_menu_item_list_free
+<SUBSECTION Standard>
+ThunarxMenuItemClass
+THUNARX_TYPE_MENU_ITEM
+THUNARX_MENU_ITEM
+THUNARX_MENU_ITEM_CLASS
+THUNARX_IS_MENU_ITEM
+THUNARX_IS_MENU_ITEM_CLASS
+THUNARX_MENU_ITEM_GET_CLASS
+<SUBSECTION Private>
+ThunarxMenuItemPrivate
+thunarx_menu_item_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-menu-provider</FILE>
+<TITLE>ThunarxMenuProvider</TITLE>
+ThunarxMenuProviderIface
+ThunarxMenuProvider
+thunarx_menu_provider_get_file_menu_items
+thunarx_menu_provider_get_folder_menu_items
+thunarx_menu_provider_get_dnd_menu_items
+<SUBSECTION Standard>
+THUNARX_TYPE_MENU_PROVIDER
+THUNARX_MENU_PROVIDER
+THUNARX_IS_MENU_PROVIDER
+THUNARX_MENU_PROVIDER_GET_IFACE
+<SUBSECTION Private>
+thunarx_menu_provider_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-preferences-provider</FILE>
+<TITLE>ThunarxPreferencesProvider</TITLE>
+ThunarxPreferencesProviderIface
+ThunarxPreferencesProvider
+thunarx_preferences_provider_get_menu_items
+<SUBSECTION Standard>
+THUNARX_TYPE_PREFERENCES_PROVIDER
+THUNARX_PREFERENCES_PROVIDER
+THUNARX_IS_PREFERENCES_PROVIDER
+THUNARX_PREFERENCES_PROVIDER_GET_IFACE
+<SUBSECTION Private>
+thunarx_preferences_provider_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-property-page</FILE>
+<TITLE>ThunarxPropertyPage</TITLE>
+ThunarxPropertyPage
+thunarx_property_page_new
+thunarx_property_page_new_with_label_widget
+thunarx_property_page_get_label
+thunarx_property_page_set_label
+thunarx_property_page_get_label_widget
+thunarx_property_page_set_label_widget
+<SUBSECTION Standard>
+ThunarxPropertyPageClass
+THUNARX_TYPE_PROPERTY_PAGE
+THUNARX_PROPERTY_PAGE
+THUNARX_PROPERTY_PAGE_CLASS
+THUNARX_IS_PROPERTY_PAGE
+THUNARX_IS_PROPERTY_PAGE_CLASS
+THUNARX_PROPERTY_PAGE_GET_CLASS
+<SUBSECTION Private>
+ThunarxPropertyPagePrivate
+thunarx_property_page_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-property-page-provider</FILE>
+<TITLE>ThunarxPropertyPageProvider</TITLE>
+ThunarxPropertyPageProvider
+ThunarxPropertyPageProviderIface
+thunarx_property_page_provider_get_pages
+<SUBSECTION Standard>
+THUNARX_TYPE_PROPERTY_PAGE_PROVIDER
+THUNARX_PROPERTY_PAGE_PROVIDER
+THUNARX_IS_PROPERTY_PAGE_PROVIDER
+THUNARX_PROPERTY_PAGE_PROVIDER_GET_IFACE
+<SUBSECTION Private>
+thunarx_property_page_provider_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-provider-factory</FILE>
+<TITLE>ThunarxProviderFactory</TITLE>
+ThunarxProviderFactory
+thunarx_provider_factory_get_default
+thunarx_provider_factory_list_providers
+<SUBSECTION Standard>
+ThunarxProviderFactoryClass
+THUNARX_TYPE_PROVIDER_FACTORY
+THUNARX_PROVIDER_FACTORY
+THUNARX_PROVIDER_FACTORY_CLASS
+THUNARX_IS_PROVIDER_FACTORY
+THUNARX_IS_PROVIDER_FACTORY_CLASS
+THUNARX_PROVIDER_FACTORY_GET_CLASS
+<SUBSECTION Private>
+thunarx_provider_factory_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-provider-plugin</FILE>
+<TITLE>ThunarxProviderPlugin</TITLE>
+ThunarxProviderPlugin
+ThunarxProviderPluginIface
+thunarx_provider_plugin_get_resident
+thunarx_provider_plugin_set_resident
+thunarx_provider_plugin_register_type
+thunarx_provider_plugin_add_interface
+thunarx_provider_plugin_register_enum
+thunarx_provider_plugin_register_flags
+THUNARX_DEFINE_TYPE
+THUNARX_DEFINE_TYPE_WITH_CODE
+THUNARX_DEFINE_ABSTRACT_TYPE
+THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE
+THUNARX_DEFINE_TYPE_EXTENDED
+THUNARX_IMPLEMENT_INTERFACE
+<SUBSECTION Standard>
+THUNARX_TYPE_PROVIDER_PLUGIN
+THUNARX_PROVIDER_PLUGIN
+THUNARX_IS_PROVIDER_PLUGIN
+THUNARX_PROVIDER_PLUGIN_GET_IFACE
+<SUBSECTION Private>
+thunarx_provider_plugin_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-renamer</FILE>
+<TITLE>ThunarxRenamer</TITLE>
+ThunarxRenamer
+ThunarxRenamerClass
+thunarx_renamer_get_help_url
+thunarx_renamer_set_help_url
+thunarx_renamer_get_name
+thunarx_renamer_set_name
+thunarx_renamer_process
+thunarx_renamer_load
+thunarx_renamer_save
+thunarx_renamer_get_menu_items
+thunarx_renamer_changed
+<SUBSECTION Standard>
+THUNARX_TYPE_RENAMER
+THUNARX_RENAMER
+THUNARX_RENAMER_CLASS
+THUNARX_IS_RENAMER
+THUNARX_IS_RENAMER_CLASS
+THUNARX_RENAMER_GET_CLASS
+<SUBSECTION Private>
+thunarx_renamer_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-renamer-provider</FILE>
+<TITLE>ThunarxRenamerProvider</TITLE>
+ThunarxRenamerProvider
+ThunarxRenamerProviderIface
+thunarx_renamer_provider_get_renamers
+<SUBSECTION Standard>
+THUNARX_TYPE_RENAMER_PROVIDER
+THUNARX_RENAMER_PROVIDER
+THUNARX_IS_RENAMER_PROVIDER
+THUNARX_RENAMER_PROVIDER_GET_IFACE
+<SUBSECTION Private>
+thunarx_renamer_provider_get_type
+</SECTION>
+
+<SECTION>
+<FILE>thunarx-version-information</FILE>
+<TITLE>Variables and functions to check the library version</TITLE>
+thunarx_major_version
+thunarx_minor_version
+thunarx_micro_version
+thunarx_check_version
+THUNARX_MAJOR_VERSION
+THUNARX_MINOR_VERSION
+THUNARX_MICRO_VERSION
+THUNARX_CHECK_VERSION
+</SECTION>
+

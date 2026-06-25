@@ -1,0 +1,133 @@
+<!--
+  Copyright (c) 2006 Benedikt Meurer <benny@xfce.org>
+-->
+
+<refentry id="Thunar">
+  <refmeta>
+    <refentrytitle>Thunar</refentrytitle>
+    <refmiscinfo class="manual">User Commands</refmiscinfo>
+    <refmiscinfo class="source"> </refmiscinfo>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Thunar</refname>
+    <refpurpose>File Manager for the Xfce Desktop Environment</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>Thunar</command>
+      <arg choice="opt">options</arg>
+      <arg rep="repeat">
+        <arg>URI</arg>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>Thunar</command>
+      <arg choice="opt">options</arg>
+      <arg choice="plain">--bulk-rename</arg>
+      <arg rep="repeat">
+        <arg>URI</arg>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>Thunar</command>
+      <arg choice="opt">options</arg>
+      <arg choice="plain">--quit</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+    <para>
+      <command>Thunar</command> is a fast and easy to use file manager for the Xfce Desktop Environment. It
+      has been designed from the ground up to be lighweight with special focus on usability. Its user
+      interface is clean and intuitive, and does not include any confusing or useless options.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Invocation</title>
+    <para>
+      <command>Thunar</command> takes a list of <replaceable>URI</replaceable>s for folders that should be
+      opened in new file manager windows or files that should be selected in new file manager windows.
+      The <replaceable>URI</replaceable>s may be specified as either <emphasis role="bold">file:</emphasis>
+      or <emphasis role="bold">trash:</emphasis> URIs, absolute paths or paths relative to the current directory
+      from which <command>Thunar</command> is being invoked. If no <replaceable>URI</replaceable>s are specified,
+      the current folder will be opened in a new file manager window.
+    </para>
+    <para>
+      When the <option>--bulk-rename</option> option is specified no file managers windows will be opened, but instead
+      the <replaceable>URI</replaceable>s will be passed to the bulk renamer. The bulk renamer allows one to
+      rename several files or folders at once using different renamer modules.
+    </para>
+
+    <refsect2>
+      <title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-?</option>, <option>--help</option></term>
+          <listitem>
+            <para>Print brief help and exit.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>-V</option>, <option>--version</option></term>
+          <listitem>
+            <para>Print version information and exit.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>-B</option>, <option>--bulk-rename</option></term>
+          <listitem>
+            <para>
+              Open the <replaceable>URI</replaceable>s in a standalone window of the bulk renamer.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>--daemon</option></term>
+          <listitem>
+            <para>
+              Do not terminate the <command>Thunar</command> instance when the last window is closed, but keep
+              it running to speed up opening new windows later on. This is the default when spawning <command>Thunar</command>
+              as part of the default Xfce session or when using D-Bus activation.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>--display=DISPLAY</option></term>
+          <listitem>
+            <para>Use the specified X <option>DISPLAY</option> for the user interface.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>-q</option>, <option>--quit</option></term>
+          <listitem>
+            <para>
+              Terminate any <command>Thunar</command> instance running in the background (spawned using the
+              <option>--daemon</option> option). This command should be used whenever <command>Thunar</command>
+              is upgraded to a new version to ensure that no old instance is reused.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>Author</title>
+    <para>
+      <command>Thunar</command> was written by Benedikt Meurer <email>benny@xfce.org</email>.
+    </para>
+    <para>
+      This manual page was written by Benedikt Meurer <email>benny@xfce.org</email>.
+    </para>
+  </refsect1>
+</refentry>

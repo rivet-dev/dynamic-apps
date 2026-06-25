@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Part IV. Other Thunar UI Widgets: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="prev" href="ThunarStatusbar.html" title="ThunarStatusbar">
+<link rel="next" href="ch11.html" title="Chooser">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
+<td><a accesskey="p" href="ThunarStatusbar.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch11.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="part">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="thunar-widgets"></a>Part IV. Other Thunar UI Widgets</h1></div></div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="chapter"><a href="ch11.html">Chooser</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarEmblemChooser.html">ThunarEmblemChooser</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarChooserDialog.html">ThunarChooserDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarPermissionsChooser.html">ThunarPermissionsChooser</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarChooserButton.html">ThunarChooserButton</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarChooserModel.html">ThunarChooserModel</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch12.html">Dialog</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-dialogs.html">thunar-dialogs</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarAbstractDialog.html">ThunarAbstractDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarColumnEditor.html">ThunarColumnEditor</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarPreferencesDialog.html">ThunarPreferencesDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarProgressDialog.html">ThunarProgressDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarPropertiesDialog.html">ThunarPropertiesDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarRenamerDialog.html">ThunarRenamerDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarSizeLabel.html">ThunarSizeLabel</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch13.html">Entry Model</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarColumnModel.html">ThunarColumnModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarListModel.html">ThunarListModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarRenamerModel.html">ThunarRenamerModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarShortcutsModel.html">ThunarShortcutsModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarSendtoModel.html">ThunarSendtoModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarTreeModel.html">ThunarTreeModel</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch14.html">File Selection</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarClipboardManager.html">ThunarClipboardManager</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-dnd.html">thunar-dnd</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarComponent.html">ThunarComponent</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch15.html">Applicaton</a></span></dt>
+<dd><dl><dt>
+<span class="refentrytitle"><a href="ThunarApplication.html">ThunarApplication</a></span><span class="refpurpose"></span>
+</dt></dl></dd>
+<dt><span class="chapter"><a href="ch16.html">Menu Entries</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarMenu.html">ThunarMenu</a></span><span class="refpurpose"> — Wrapper of GtkMenu to simplify the creation commonly used menu-sections in thunar</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarActionManager.html">ThunarActionManager</a></span><span class="refpurpose"> — Manages creation and execution of menu-item</span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch17.html">Image/Icon</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarImage.html">ThunarImage</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarIconFactory.html">ThunarIconFactory</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarIconRenderer.html">ThunarIconRenderer</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarShortcutsIconRenderer.html">ThunarShortcutsIconRenderer</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch18.html">Progress</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarProgressView.html">ThunarProgressView</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarProgressDialog.html">ThunarProgressDialog</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch19.html">Renamer</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarRenamerProgress.html">ThunarRenamerProgress</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarRenamerModel.html">ThunarRenamerModel</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarRenamerDialog.html">ThunarRenamerDialog</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-renamer-pair.html">thunar-renamer-pair</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

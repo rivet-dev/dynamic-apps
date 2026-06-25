@@ -1,0 +1,685 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarJob: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch03.html" title="Parallel Tasks">
+<link rel="prev" href="ch03.html" title="Parallel Tasks">
+<link rel="next" href="ThunarSimpleJob.html" title="ThunarSimpleJob">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarJob.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarJob.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarJob.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch03.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarSimpleJob.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarJob"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarJob.top_of_page"></a>ThunarJob</span></h2>
+<p>ThunarJob</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarJob.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-set-total-files" title="thunar_job_set_total_files ()">thunar_job_set_total_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-set-pausable" title="thunar_job_set_pausable ()">thunar_job_set_pausable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-is-pausable" title="thunar_job_is_pausable ()">thunar_job_is_pausable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-pause" title="thunar_job_pause ()">thunar_job_pause</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-resume" title="thunar_job_resume ()">thunar_job_resume</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-freeze" title="thunar_job_freeze ()">thunar_job_freeze</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-unfreeze" title="thunar_job_unfreeze ()">thunar_job_unfreeze</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-is-paused" title="thunar_job_is_paused ()">thunar_job_is_paused</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-is-frozen" title="thunar_job_is_frozen ()">thunar_job_is_frozen</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-processing-file" title="thunar_job_processing_file ()">thunar_job_processing_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-create" title="thunar_job_ask_create ()">thunar_job_ask_create</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-overwrite" title="thunar_job_ask_overwrite ()">thunar_job_ask_overwrite</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-delete" title="thunar_job_ask_delete ()">thunar_job_ask_delete</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-replace" title="thunar_job_ask_replace ()">thunar_job_ask_replace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-skip" title="thunar_job_ask_skip ()">thunar_job_ask_skip</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-ask-no-size" title="thunar_job_ask_no_size ()">thunar_job_ask_no_size</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-files-ready" title="thunar_job_files_ready ()">thunar_job_files_ready</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-new-files" title="thunar_job_new_files ()">thunar_job_new_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-set-log-mode" title="thunar_job_set_log_mode ()">thunar_job_set_log_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarOperationLogMode" title="enum ThunarOperationLogMode"><span class="returnvalue">ThunarOperationLogMode</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJob.html#thunar-job-get-log-mode" title="thunar_job_get_log_mode ()">thunar_job_get_log_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarJob.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-ask" title="The “ask” signal">ask</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-ask-replace" title="The “ask-replace” signal">ask-replace</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">gboolean</span></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-files-ready" title="The “files-ready” signal">files-ready</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-frozen" title="The “frozen” signal">frozen</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-new-files" title="The “new-files” signal">new-files</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarJob.html#ThunarJob-unfrozen" title="The “unfrozen” signal">unfrozen</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarJob.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a href="/usr/share/gtk-doc/html/exo-2/ExoJob.html#ExoJob-struct">ExoJob</a>
+        <span class="lineart">╰──</span> ThunarJob
+            <span class="lineart">├──</span> <a class="link" href="ThunarDeepCountJob.html" title="ThunarDeepCountJob">ThunarDeepCountJob</a>
+            <span class="lineart">├──</span> <a class="link" href="ThunarSimpleJob.html" title="ThunarSimpleJob">ThunarSimpleJob</a>
+            <span class="lineart">╰──</span> <a class="link" href="ThunarTransferJob.html" title="ThunarTransferJob">ThunarTransferJob</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarJob.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarJob.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-job-set-total-files"></a><h3>thunar_job_set_total_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_set_total_files (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                            <em class="parameter"><code><span class="type">GList</span> *total_files</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-set-pausable"></a><h3>thunar_job_set_pausable ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_set_pausable (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                         <em class="parameter"><code><span class="type">gboolean</span> pausable</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-is-pausable"></a><h3>thunar_job_is_pausable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_is_pausable (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-pause"></a><h3>thunar_job_pause ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_pause (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-resume"></a><h3>thunar_job_resume ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_resume (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-freeze"></a><h3>thunar_job_freeze ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_freeze (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-unfreeze"></a><h3>thunar_job_unfreeze ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_unfreeze (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-is-paused"></a><h3>thunar_job_is_paused ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_is_paused (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-is-frozen"></a><h3>thunar_job_is_frozen ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_is_frozen (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-processing-file"></a><h3>thunar_job_processing_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_processing_file (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                            <em class="parameter"><code><span class="type">GList</span> *current_file</code></em>,
+                            <em class="parameter"><code><span class="type">guint</span> n_processed</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-create"></a><h3>thunar_job_ask_create ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+thunar_job_ask_create (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-overwrite"></a><h3>thunar_job_ask_overwrite ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+thunar_job_ask_overwrite (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                          <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                          <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-delete"></a><h3>thunar_job_ask_delete ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+thunar_job_ask_delete (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-replace"></a><h3>thunar_job_ask_replace ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+thunar_job_ask_replace (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                        <em class="parameter"><code><span class="type">GFile</span> *source_path</code></em>,
+                        <em class="parameter"><code><span class="type">GFile</span> *target_path</code></em>,
+                        <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-skip"></a><h3>thunar_job_ask_skip ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+thunar_job_ask_skip (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-ask-no-size"></a><h3>thunar_job_ask_no_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_ask_no_size (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                        <em class="parameter"><code>const <span class="type">gchar</span> *format</code></em>,
+                        <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-files-ready"></a><h3>thunar_job_files_ready ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_files_ready (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                        <em class="parameter"><code><span class="type">GList</span> *file_list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-new-files"></a><h3>thunar_job_new_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_new_files (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                      <em class="parameter"><code>const <span class="type">GList</span> *file_list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-set-log-mode"></a><h3>thunar_job_set_log_mode ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_set_log_mode (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>,
+                         <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarOperationLogMode" title="enum ThunarOperationLogMode"><span class="type">ThunarOperationLogMode</span></a> log_mode</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-get-log-mode"></a><h3>thunar_job_get_log_mode ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarOperationLogMode" title="enum ThunarOperationLogMode"><span class="returnvalue">ThunarOperationLogMode</span></a>
+thunar_job_get_log_mode (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarJob.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarJob-ask"></a><h3>The <code class="literal">“ask”</code> signal</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>        *job,
+               <span class="type">char</span>             *message,
+               <a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="type">ThunarJobResponse</span></a> choices,
+               <span class="type">gpointer</span>          user_data)</pre>
+<p>The <em class="parameter"><code>message</code></em>
+ is garantied to contain valid UTF-8.</p>
+<div class="refsect3">
+<a name="ThunarJob-ask.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>message</p></td>
+<td class="parameter_description"><p>question to display to the user.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>choices</p></td>
+<td class="parameter_description"><p>a combination of <a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="type">ThunarJobResponse</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="ThunarJob-ask.returns"></a><h4>Returns</h4>
+<p> the selected choice.</p>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJob-ask-replace"></a><h3>The <code class="literal">“ask-replace”</code> signal</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarJobResponse" title="enum ThunarJobResponse"><span class="returnvalue">ThunarJobResponse</span></a>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>  *job,
+               <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *src_file,
+               <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *dst_file,
+               <span class="type">gpointer</span>    user_data)</pre>
+<p>Emitted to ask the user whether the destination file should
+be replaced by the source file.</p>
+<div class="refsect3">
+<a name="ThunarJob-ask-replace.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>src_file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> of the source file.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dst_file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> of the destination file, that
+may be replaced with the source file.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="ThunarJob-ask-replace.returns"></a><h4>Returns</h4>
+<p> the selected choice.</p>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJob-files-ready"></a><h3>The <code class="literal">“files-ready”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job,
+               <span class="type">gpointer</span>   file_list,
+               <span class="type">gpointer</span>   user_data)</pre>
+<p>This signal is used by <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>s returned by
+the <a class="link" href="thunar-thunar-io-jobs.html#thunar-io-jobs-list-directory" title="thunar_io_jobs_list_directory ()"><code class="function">thunar_io_jobs_list_directory()</code></a> function whenever
+there's a bunch of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s ready. This signal
+is garantied to be never emitted with an <em class="parameter"><code>file_list</code></em>
+
+parameter of <code class="literal">NULL</code>.</p>
+<p>To allow some further optimizations on the handler-side,
+the handler is allowed to take over ownership of the
+<em class="parameter"><code>file_list</code></em>
+, i.e. it can reuse the <em class="parameter"><code>infos</code></em>
+ list and just replace
+the data elements with it's own objects based on the
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s contained within the <em class="parameter"><code>file_list</code></em>
+ (and
+of course properly unreffing the previously contained infos).
+If a handler takes over ownership of <em class="parameter"><code>file_list</code></em>
+ it must return
+<code class="literal">TRUE</code> here, and no further handlers will be run. Else, if
+the handler doesn't want to take over ownership of <em class="parameter"><code>infos</code></em>
+,
+it must return <code class="literal">FALSE</code>, and other handlers will be run. Use
+this feature with care, and only if you can be sure that
+you are the only handler connected to this signal for a
+given job!</p>
+<div class="refsect3">
+<a name="ThunarJob-files-ready.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>a list of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="ThunarJob-files-ready.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the handler took over ownership of
+<em class="parameter"><code>file_list</code></em>
+, else <code class="literal">FALSE</code>.</p>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJob-frozen"></a><h3>The <code class="literal">“frozen”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job,
+               <span class="type">gpointer</span>   user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>job</code></em>
+ right after the <em class="parameter"><code>job</code></em>
+ is being frozen.</p>
+<div class="refsect3">
+<a name="ThunarJob-frozen.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJob-new-files"></a><h3>The <code class="literal">“new-files”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job,
+               <span class="type">gpointer</span>   file_list,
+               <span class="type">gpointer</span>   user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>job</code></em>
+ right before the <em class="parameter"><code>job</code></em>
+ is terminated
+and informs the application about the list of created files in <em class="parameter"><code>file_list</code></em>
+.
+<em class="parameter"><code>file_list</code></em>
+ contains only the toplevel file items, that were specified by
+the application on creation of the <em class="parameter"><code>job</code></em>
+.</p>
+<div class="refsect3">
+<a name="ThunarJob-new-files.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>a list of <span class="type">GFile</span>s that were created by <em class="parameter"><code>job</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJob-unfrozen"></a><h3>The <code class="literal">“unfrozen”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job,
+               <span class="type">gpointer</span>   user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>job</code></em>
+ right after the <em class="parameter"><code>job</code></em>
+ is being unfrozen.</p>
+<div class="refsect3">
+<a name="ThunarJob-unfrozen.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

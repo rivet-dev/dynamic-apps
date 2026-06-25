@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Part II. Thunar Backend Objects: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="prev" href="thunar-thunar-pango-extensions.html" title="thunar-pango-extensions">
+<link rel="next" href="ch01.html" title="File Abstraction">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
+<td><a accesskey="p" href="thunar-thunar-pango-extensions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch01.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="part">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="thunar-objects"></a>Part II. Thunar Backend Objects</h1></div></div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="chapter"><a href="ch01.html">File Abstraction</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarFile.html">ThunarFile</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarFileMonitor.html">ThunarFileMonitor</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarFolder.html">ThunarFolder</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch02.html">Device Management</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarDevice.html">ThunarDevice</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarDeviceMonitor.html">ThunarDeviceMonitor</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-notify.html">thunar-notify</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch03.html">Parallel Tasks</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarJob.html">ThunarJob</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarSimpleJob.html">ThunarSimpleJob</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-io-jobs.html">thunar-io-jobs</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-io-jobs-util.html">thunar-io-jobs-util</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-io-scan-directory.html">thunar-io-scan-directory</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarDeepCountJob.html">ThunarDeepCountJob</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarTransferJob.html">ThunarTransferJob</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch04.html">X Session / DBus Management</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="ThunarSessionClient.html">ThunarSessionClient</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-ice.html">thunar-ice</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarDBusService.html">ThunarDBusService</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch05.html">Miscellaneous</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-util.html">thunar-util</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="thunar-thunar-enum-types.html">thunar-enum-types</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarPreferences.html">ThunarPreferences</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarUserManager.html">ThunarUserManager</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarJobOperation.html">ThunarJobOperation</a></span><span class="refpurpose"> — Stores a job operation (copy, move, trash, rename, etc.)</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="ThunarJobOperationHistory.html">ThunarJobOperationHistory</a></span><span class="refpurpose"> — Manages the logging of job operations (copy, move etc.) and undoing and redoing them</span>
+</dt>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

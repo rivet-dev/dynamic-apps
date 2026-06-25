@@ -1,0 +1,4083 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarFile: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch01.html" title="File Abstraction">
+<link rel="prev" href="ch01.html" title="File Abstraction">
+<link rel="next" href="ThunarFileMonitor.html" title="ThunarFileMonitor">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarFile.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarFile.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarFile.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch01.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarFileMonitor.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarFile"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarFile.top_of_page"></a>ThunarFile</span></h2>
+<p>ThunarFile</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarFile.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="ThunarFile.html#ThunarFileGetFunc" title="ThunarFileGetFunc ()">*ThunarFileGetFunc</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get" title="thunar_file_get ()">thunar_file_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-with-info" title="thunar_file_get_with_info ()">thunar_file_get_with_info</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-for-uri" title="thunar_file_get_for_uri ()">thunar_file_get_for_uri</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-async" title="thunar_file_get_async ()">thunar_file_get_async</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-file" title="thunar_file_get_file ()">thunar_file_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFileInfo</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-info" title="thunar_file_get_info ()">thunar_file_get_info</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-parent" title="thunar_file_get_parent ()">thunar_file_get_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-check-loaded" title="thunar_file_check_loaded ()">thunar_file_check_loaded</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-execute" title="thunar_file_execute ()">thunar_file_execute</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-launch" title="thunar_file_launch ()">thunar_file_launch</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-rename" title="thunar_file_rename ()">thunar_file_rename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkDragAction</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-accepts-drop" title="thunar_file_accepts_drop ()">thunar_file_accepts_drop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint64</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-date" title="thunar_file_get_date ()">thunar_file_get_date</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-date-string" title="thunar_file_get_date_string ()">thunar_file_get_date_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-mode-string" title="thunar_file_get_mode_string ()">thunar_file_get_mode_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-size-string" title="thunar_file_get_size_string ()">thunar_file_get_size_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-size-in-bytes-string" title="thunar_file_get_size_in_bytes_string ()">thunar_file_get_size_in_bytes_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-size-string-formatted" title="thunar_file_get_size_string_formatted ()">thunar_file_get_size_string_formatted</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-size-string-long" title="thunar_file_get_size_string_long ()">thunar_file_get_size_string_long</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GVolume</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-volume" title="thunar_file_get_volume ()">thunar_file_get_volume</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="returnvalue">ThunarGroup</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-group" title="thunar_file_get_group ()">thunar_file_get_group</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarUserManager.html#ThunarUser"><span class="returnvalue">ThunarUser</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-user" title="thunar_file_get_user ()">thunar_file_get_user</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-content-type" title="thunar_file_get_content_type ()">thunar_file_get_content_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-content-type-desc" title="thunar_file_get_content_type_desc ()">thunar_file_get_content_type_desc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-load-content-type" title="thunar_file_load_content_type ()">thunar_file_load_content_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-symlink-target" title="thunar_file_get_symlink_target ()">thunar_file_get_symlink_target</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-basename" title="thunar_file_get_basename ()">thunar_file_get_basename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-symlink" title="thunar_file_is_symlink ()">thunar_file_is_symlink</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint64</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-size" title="thunar_file_get_size ()">thunar_file_get_size</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GAppInfo</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-default-handler" title="thunar_file_get_default_handler ()">thunar_file_get_default_handler</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFileType</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-kind" title="thunar_file_get_kind ()">thunar_file_get_kind</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-target-location" title="thunar_file_get_target_location ()">thunar_file_get_target_location</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarFileMode" title="enum ThunarFileMode"><span class="returnvalue">ThunarFileMode</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-mode" title="thunar_file_get_mode ()">thunar_file_get_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-mounted" title="thunar_file_is_mounted ()">thunar_file_is_mounted</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-exists" title="thunar_file_exists ()">thunar_file_exists</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-directory" title="thunar_file_is_directory ()">thunar_file_is_directory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-shortcut" title="thunar_file_is_shortcut ()">thunar_file_is_shortcut</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-mountable" title="thunar_file_is_mountable ()">thunar_file_is_mountable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-local" title="thunar_file_is_local ()">thunar_file_is_local</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-parent" title="thunar_file_is_parent ()">thunar_file_is_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-gfile-ancestor" title="thunar_file_is_gfile_ancestor ()">thunar_file_is_gfile_ancestor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-ancestor" title="thunar_file_is_ancestor ()">thunar_file_is_ancestor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-can-execute" title="thunar_file_can_execute ()">thunar_file_can_execute</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-writable" title="thunar_file_is_writable ()">thunar_file_is_writable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-hidden" title="thunar_file_is_hidden ()">thunar_file_is_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-home" title="thunar_file_is_home ()">thunar_file_is_home</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-regular" title="thunar_file_is_regular ()">thunar_file_is_regular</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-trash" title="thunar_file_is_trash ()">thunar_file_is_trash</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-trashed" title="thunar_file_is_trashed ()">thunar_file_is_trashed</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-recent" title="thunar_file_is_recent ()">thunar_file_is_recent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-in-recent" title="thunar_file_is_in_recent ()">thunar_file_is_in_recent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-desktop-file" title="thunar_file_is_desktop_file ()">thunar_file_is_desktop_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-display-name" title="thunar_file_get_display_name ()">thunar_file_get_display_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-deletion-date" title="thunar_file_get_deletion_date ()">thunar_file_get_deletion_date</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-recency" title="thunar_file_get_recency ()">thunar_file_get_recency</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-original-path" title="thunar_file_get_original_path ()">thunar_file_get_original_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-item-count" title="thunar_file_get_item_count ()">thunar_file_get_item_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-chmodable" title="thunar_file_is_chmodable ()">thunar_file_is_chmodable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-renameable" title="thunar_file_is_renameable ()">thunar_file_is_renameable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-can-be-trashed" title="thunar_file_can_be_trashed ()">thunar_file_can_be_trashed</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-file-count" title="thunar_file_get_file_count ()">thunar_file_get_file_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-set-file-count" title="thunar_file_set_file_count ()">thunar_file_set_file_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-emblem-names" title="thunar_file_get_emblem_names ()">thunar_file_get_emblem_names</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-set-emblem-names" title="thunar_file_set_emblem_names ()">thunar_file_set_emblem_names</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-custom-icon" title="thunar_file_get_custom_icon ()">thunar_file_get_custom_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-set-custom-icon" title="thunar_file_set_custom_icon ()">thunar_file_set_custom_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-thumbnail-path" title="thunar_file_get_thumbnail_path ()">thunar_file_get_thumbnail_path</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-thumbnail-path-forced" title="thunar_file_get_thumbnail_path_forced ()">thunar_file_get_thumbnail_path_forced</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="returnvalue">ThunarFileThumbState</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-thumb-state" title="thunar_file_get_thumb_state ()">thunar_file_get_thumb_state</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-set-thumb-state" title="thunar_file_set_thumb_state ()">thunar_file_set_thumb_state</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GIcon</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-preview-icon" title="thunar_file_get_preview_icon ()">thunar_file_get_preview_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFilesystemPreviewType</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-preview-type" title="thunar_file_get_preview_type ()">thunar_file_get_preview_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-icon-name" title="thunar_file_get_icon_name ()">thunar_file_get_icon_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-device-type" title="thunar_file_get_device_type ()">thunar_file_get_device_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-watch" title="thunar_file_watch ()">thunar_file_watch</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-unwatch" title="thunar_file_unwatch ()">thunar_file_unwatch</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-reload" title="thunar_file_reload ()">thunar_file_reload</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-reload-idle" title="thunar_file_reload_idle ()">thunar_file_reload_idle</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-reload-idle-unref" title="thunar_file_reload_idle_unref ()">thunar_file_reload_idle_unref</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-reload-parent" title="thunar_file_reload_parent ()">thunar_file_reload_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-destroy" title="thunar_file_destroy ()">thunar_file_destroy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-compare-by-type" title="thunar_file_compare_by_type ()">thunar_file_compare_by_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-compare-by-name" title="thunar_file_compare_by_name ()">thunar_file_compare_by_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-cache-lookup" title="thunar_file_cache_lookup ()">thunar_file_cache_lookup</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-cached-display-name" title="thunar_file_cached_display_name ()">thunar_file_cached_display_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-list-get-applications" title="thunar_file_list_get_applications ()">thunar_file_list_get_applications</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-list-to-thunar-g-file-list" title="thunar_file_list_to_thunar_g_file_list ()">thunar_file_list_to_thunar_g_file_list</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-desktop" title="thunar_file_is_desktop ()">thunar_file_is_desktop</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-get-metadata-setting" title="thunar_file_get_metadata_setting ()">thunar_file_get_metadata_setting</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-set-metadata-setting" title="thunar_file_set_metadata_setting ()">thunar_file_set_metadata_setting</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-clear-metadata-setting" title="thunar_file_clear_metadata_setting ()">thunar_file_clear_metadata_setting</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-clear-directory-specific-settings" title="thunar_file_clear_directory_specific_settings ()">thunar_file_clear_directory_specific_settings</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-has-directory-specific-settings" title="thunar_file_has_directory_specific_settings ()">thunar_file_has_directory_specific_settings</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-is-root" title="thunar_file_is_root()">thunar_file_is_root</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-has-parent" title="thunar_file_has_parent()">thunar_file_has_parent</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-dup-uri" title="thunar_file_dup_uri()">thunar_file_dup_uri</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-has-uri-scheme" title="thunar_file_has_uri_scheme()">thunar_file_has_uri_scheme</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarFile.html#thunar-file-changed" title="thunar_file_changed()">thunar_file_changed</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarFile.html#ThunarFile-destroy" title="The “destroy” signal">destroy</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#ThunarFileDateType" title="enum ThunarFileDateType">ThunarFileDateType</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#ThunarFileIconState" title="enum ThunarFileIconState">ThunarFileIconState</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState">ThunarFileThumbState</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#THUNAR-FILE-EMBLEM-NAME-SYMBOLIC-LINK:CAPS" title="THUNAR_FILE_EMBLEM_NAME_SYMBOLIC_LINK">THUNAR_FILE_EMBLEM_NAME_SYMBOLIC_LINK</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#THUNAR-FILE-EMBLEM-NAME-CANT-READ:CAPS" title="THUNAR_FILE_EMBLEM_NAME_CANT_READ">THUNAR_FILE_EMBLEM_NAME_CANT_READ</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#THUNAR-FILE-EMBLEM-NAME-CANT-WRITE:CAPS" title="THUNAR_FILE_EMBLEM_NAME_CANT_WRITE">THUNAR_FILE_EMBLEM_NAME_CANT_WRITE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="ThunarFile.html#THUNAR-FILE-EMBLEM-NAME-DESKTOP:CAPS" title="THUNAR_FILE_EMBLEM_NAME_DESKTOP">THUNAR_FILE_EMBLEM_NAME_DESKTOP</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarFile
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="ThunarFileGetFunc"></a><h3>ThunarFileGetFunc ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*ThunarFileGetFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">GFile</span> *location</code></em>,
+                      <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                      <em class="parameter"><code><span class="type">GError</span> *error</code></em>,
+                      <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>Callback type for loading <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s asynchronously. If you
+want to keep the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>, you need to ref it, else it will be
+destroyed.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get"></a><h3>thunar_file_get ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_file_get (<em class="parameter"><code><span class="type">GFile</span> *file</code></em>,
+                 <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Looks up the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> referred to by <em class="parameter"><code>file</code></em>
+. This function may return a
+ThunarFile even though the file doesn't actually exist. This is the case
+with remote URIs (like SFTP) for instance, if they are not mounted.</p>
+<p>The caller is responsible to call <code class="function">g_object_unref()</code>
+when done with the returned object.</p>
+<div class="refsect3">
+<a name="thunar-file-get.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code> on errors.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-with-info"></a><h3>thunar_file_get_with_info ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_file_get_with_info (<em class="parameter"><code><span class="type">GFile</span> *file</code></em>,
+                           <em class="parameter"><code><span class="type">GFileInfo</span> *info</code></em>,
+                           <em class="parameter"><code><span class="type">GFileInfo</span> *recent_info</code></em>,
+                           <em class="parameter"><code><span class="type">gboolean</span> not_mounted</code></em>);</pre>
+<p>Looks up the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> referred to by <em class="parameter"><code>file</code></em>
+. This function may return a
+ThunarFile even though the file doesn't actually exist. This is the case
+with remote URIs (like SFTP) for instance, if they are not mounted.</p>
+<p>This function does not use <code class="function">g_file_query_info()</code> to get the info,
+but takes a reference on the <em class="parameter"><code>info</code></em>
+,</p>
+<p>The caller is responsible to call <code class="function">g_object_unref()</code>
+when done with the returned object.</p>
+<div class="refsect3">
+<a name="thunar-file-get-with-info.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>uri</p></td>
+<td class="parameter_description"><p>an URI or an absolute filename.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>info</p></td>
+<td class="parameter_description"><p><span class="type">GFileInfo</span> to use when loading the info.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>recent_info</p></td>
+<td class="parameter_description"><p>additional <span class="type">GFileInfo</span> to use when loading the info, only for files in <code class="literal">recent:///</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>not_mounted</p></td>
+<td class="parameter_description"><p>if the file is mounted.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-with-info.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code> on errors.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-for-uri"></a><h3>thunar_file_get_for_uri ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_file_get_for_uri (<em class="parameter"><code>const <span class="type">gchar</span> *uri</code></em>,
+                         <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Convenience wrapper function for <code class="function">thunar_file_get_for_path()</code>, as its
+often required to determine a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for a given <em class="parameter"><code>uri</code></em>
+.</p>
+<p>The caller is responsible to free the returned object using
+<code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-file-get-for-uri.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>uri</p></td>
+<td class="parameter_description"><p>an URI or an absolute filename.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-for-uri.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for the given <em class="parameter"><code>uri</code></em>
+or <code class="literal">NULL</code> if
+unable to determine.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-async"></a><h3>thunar_file_get_async ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_get_async (<em class="parameter"><code><span class="type">GFile</span> *location</code></em>,
+                       <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                       <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileGetFunc" title="ThunarFileGetFunc ()"><span class="type">ThunarFileGetFunc</span></a> func</code></em>,
+                       <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-file"></a><h3>thunar_file_get_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+thunar_file_get_file (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the <span class="type">GFile</span> that refers to the location of <em class="parameter"><code>file</code></em>
+.</p>
+<p>The returned <span class="type">GFile</span> is owned by <em class="parameter"><code>file</code></em>
+ and must not be released
+with <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-file.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GFile</span> corresponding to <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-info"></a><h3>thunar_file_get_info ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFileInfo</span> *
+thunar_file_get_info (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the <span class="type">GFileInfo</span> for <em class="parameter"><code>file</code></em>
+.</p>
+<p>Note, that there's no reference taken for the caller on the
+returned <span class="type">GFileInfo</span>, so if you need the object for a longer
+perioud, you'll need to take a reference yourself using the
+<code class="function">g_object_ref()</code> method.</p>
+<div class="refsect3">
+<a name="thunar-file-get-info.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-info.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GFileInfo</span> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-parent"></a><h3>thunar_file_get_parent ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_file_get_parent (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                        <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Determines the parent <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>file</code></em>
+. If <em class="parameter"><code>file</code></em>
+ has no parent or
+the user is not allowed to open the parent folder of <em class="parameter"><code>file</code></em>
+, <code class="literal">NULL</code> will
+be returned and <em class="parameter"><code>error</code></em>
+ will be set to point to a <span class="type">GError</span> that
+describes the cause. Else, the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> will be returned, and
+the caller must call <code class="function">g_object_unref()</code> on it.</p>
+<p>You may want to call <a class="link" href="ThunarFile.html#thunar-file-has-parent" title="thunar_file_has_parent()"><code class="function">thunar_file_has_parent()</code></a> first to
+determine whether <em class="parameter"><code>file</code></em>
+ has a parent.</p>
+<div class="refsect3">
+<a name="thunar-file-get-parent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-parent.returns"></a><h4>Returns</h4>
+<p> the parent <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-check-loaded"></a><h3>thunar_file_check_loaded ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_check_loaded (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Check if <em class="parameter"><code>file</code></em>
+ has its information loaded, if not, try this once else
+return <code class="literal">FALSE</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-check-loaded.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-check-loaded.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-execute"></a><h3>thunar_file_execute ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_execute (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                     <em class="parameter"><code><span class="type">GFile</span> *working_directory</code></em>,
+                     <em class="parameter"><code><span class="type">gpointer</span> parent</code></em>,
+                     <em class="parameter"><code><span class="type">GList</span> *path_list</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *startup_id</code></em>,
+                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Tries to execute <em class="parameter"><code>file</code></em>
+ on the specified <em class="parameter"><code>screen</code></em>
+. If <em class="parameter"><code>file</code></em>
+ is executable
+and could have been spawned successfully, <code class="literal">TRUE</code> is returned, else <code class="literal">FALSE</code>
+will be returned and <em class="parameter"><code>error</code></em>
+ will be set to point to the error location.</p>
+<div class="refsect3">
+<a name="thunar-file-execute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>working_directory</p></td>
+<td class="parameter_description"><p>the working directory used to resolve relative filenames
+in <em class="parameter"><code>file_list</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>, a <span class="type">GdkScreen</span> or <span class="type">GtkWidget</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>the list of <span class="type">GFile</span>s to supply to <em class="parameter"><code>file</code></em>
+on execution.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_id</p></td>
+<td class="parameter_description"><p>startup id for the new window (send over for dbus) or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-execute.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-launch"></a><h3>thunar_file_launch ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_launch (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                    <em class="parameter"><code><span class="type">gpointer</span> parent</code></em>,
+                    <em class="parameter"><code>const <span class="type">gchar</span> *startup_id</code></em>,
+                    <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>If <em class="parameter"><code>file</code></em>
+ is an executable file, tries to execute it. Else if <em class="parameter"><code>file</code></em>
+ is
+a directory, opens a new <a class="link" href="ThunarWindow.html" title="ThunarWindow"><span class="type">ThunarWindow</span></a> to display the directory. Else,
+the default handler for <em class="parameter"><code>file</code></em>
+ is determined and run.</p>
+<p>The <em class="parameter"><code>parent</code></em>
+ can be either a <span class="type">GtkWidget</span> or a <span class="type">GdkScreen</span>, on which to
+launch the <em class="parameter"><code>file</code></em>
+. If <em class="parameter"><code>parent</code></em>
+ is a <span class="type">GtkWidget</span>, the chooser dialog (if
+no default application is available for <em class="parameter"><code>file</code></em>
+) will be transient for
+<em class="parameter"><code>parent</code></em>
+. Else if <em class="parameter"><code>parent</code></em>
+ is a <span class="type">GdkScreen</span> it specifies the screen on
+which to launch <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-launch.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>parent</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkWidget</span> or a <span class="type">GdkScreen</span> on which to launch the <em class="parameter"><code>file</code></em>
+.
+May also be <code class="literal">NULL</code> in which case the default <span class="type">GdkScreen</span> will
+be used.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>startup_id</p></td>
+<td class="parameter_description"><p>startup id for the new window (send over for dbus) or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-launch.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-rename"></a><h3>thunar_file_rename ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_rename (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                    <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>,
+                    <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                    <em class="parameter"><code><span class="type">gboolean</span> called_from_job</code></em>,
+                    <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Tries to rename <em class="parameter"><code>file</code></em>
+ to the new <em class="parameter"><code>name</code></em>
+. If <em class="parameter"><code>file</code></em>
+ cannot be renamed,
+<code class="literal">FALSE</code> will be returned and <em class="parameter"><code>error</code></em>
+ will be set accordingly. Else, if
+the operation succeeds, <code class="literal">TRUE</code> will be returned, and <em class="parameter"><code>file</code></em>
+ will have
+a new URI and a new display name.</p>
+<p>When offering a rename action in the user interface, the implementation
+should first check whether the file is available, using the
+<a class="link" href="ThunarFile.html#thunar-file-is-renameable" title="thunar_file_is_renameable ()"><code class="function">thunar_file_is_renameable()</code></a> method.</p>
+<div class="refsect3">
+<a name="thunar-file-rename.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the new file name in UTF-8 encoding.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-rename.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> on success, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-accepts-drop"></a><h3>thunar_file_accepts_drop ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkDragAction</span>
+thunar_file_accepts_drop (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                          <em class="parameter"><code><span class="type">GList</span> *path_list</code></em>,
+                          <em class="parameter"><code><span class="type">GdkDragContext</span> *context</code></em>,
+                          <em class="parameter"><code><span class="type">GdkDragAction</span> *suggested_action_return</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ can accept <em class="parameter"><code>file_list</code></em>
+ for the given <em class="parameter"><code>context</code></em>
+ and
+returns the <span class="type">GdkDragAction</span>s that can be used or 0 if no actions
+apply.</p>
+<p>If any <span class="type">GdkDragAction</span>s apply and <em class="parameter"><code>suggested_action_return</code></em>
+ is not
+<code class="literal">NULL</code>, the suggested <span class="type">GdkDragAction</span> for this drop will be stored to the
+location pointed to by <em class="parameter"><code>suggested_action_return</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-accepts-drop.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>the list of <span class="type">GFile</span>s that will be dropped.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>context</p></td>
+<td class="parameter_description"><p>the current <span class="type">GdkDragContext</span>, which is used for the drop.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>suggested_action_return</p></td>
+<td class="parameter_description"><p>return location for the suggested <span class="type">GdkDragAction</span> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-accepts-drop.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GdkDragAction</span>s supported for the drop or
+0 if no drop is possible.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-date"></a><h3>thunar_file_get_date ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
+thunar_file_get_date (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                      <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileDateType" title="enum ThunarFileDateType"><span class="type">ThunarFileDateType</span></a> date_type</code></em>);</pre>
+<p>Queries the given <em class="parameter"><code>date_type</code></em>
+ from <em class="parameter"><code>file</code></em>
+ and returns the result.</p>
+<div class="refsect3">
+<a name="thunar-file-get-date.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_type</p></td>
+<td class="parameter_description"><p>the kind of date you are interested in.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-date.returns"></a><h4>Returns</h4>
+<p> the time for <em class="parameter"><code>file</code></em>
+of the given <em class="parameter"><code>date_type</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-date-string"></a><h3>thunar_file_get_date_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_date_string (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                             <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileDateType" title="enum ThunarFileDateType"><span class="type">ThunarFileDateType</span></a> date_type</code></em>,
+                             <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarDateStyle" title="enum ThunarDateStyle"><span class="type">ThunarDateStyle</span></a> date_style</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *date_custom_style</code></em>);</pre>
+<p>Tries to determine the <em class="parameter"><code>date_type</code></em>
+ of <em class="parameter"><code>file</code></em>
+, and if <em class="parameter"><code>file</code></em>
+ supports the
+given <em class="parameter"><code>date_type</code></em>
+, it'll be formatted as string and returned. The
+caller is responsible for freeing the string using the <code class="function">g_free()</code>
+function.</p>
+<div class="refsect3">
+<a name="thunar-file-get-date-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_type</p></td>
+<td class="parameter_description"><p>the kind of date you are interested to know about <em class="parameter"><code>file</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_style</p></td>
+<td class="parameter_description"><p>the style used to format the date.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_custom_style</p></td>
+<td class="parameter_description"><p>custom style to apply, if <em class="parameter"><code>date_style</code></em>
+is set to custom</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-date-string.returns"></a><h4>Returns</h4>
+<p> the <em class="parameter"><code>date_type</code></em>
+of <em class="parameter"><code>file</code></em>
+formatted as string.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-mode-string"></a><h3>thunar_file_get_mode_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_mode_string (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the mode of <em class="parameter"><code>file</code></em>
+ as text. You'll need to free
+the result using <code class="function">g_free()</code> when you're done with it.</p>
+<div class="refsect3">
+<a name="thunar-file-get-mode-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-mode-string.returns"></a><h4>Returns</h4>
+<p> the mode of <em class="parameter"><code>file</code></em>
+as string.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-size-string"></a><h3>thunar_file_get_size_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_size_string (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the size of the file as text in a human readable
+format. You'll need to free the result using <code class="function">g_free()</code>
+if you're done with it.</p>
+<div class="refsect3">
+<a name="thunar-file-get-size-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-size-string.returns"></a><h4>Returns</h4>
+<p> the size of <em class="parameter"><code>file</code></em>
+in a human readable
+format.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-size-in-bytes-string"></a><h3>thunar_file_get_size_in_bytes_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_size_in_bytes_string (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the size in bytes of the file as text.
+You'll need to free the result using <code class="function">g_free()</code>
+if you're done with it.</p>
+<div class="refsect3">
+<a name="thunar-file-get-size-in-bytes-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-size-in-bytes-string.returns"></a><h4>Returns</h4>
+<p> the size of <em class="parameter"><code>file</code></em>
+in bytes.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-size-string-formatted"></a><h3>thunar_file_get_size_string_formatted ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_size_string_formatted (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                       <em class="parameter"><code>const <span class="type">gboolean</span> file_size_binary</code></em>);</pre>
+<p>Returns the size of the file as text in a human readable
+format in decimal or binary format. You'll need to free
+the result using <code class="function">g_free()</code> if you're done with it.</p>
+<div class="refsect3">
+<a name="thunar-file-get-size-string-formatted.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_size_binary</p></td>
+<td class="parameter_description"><p>indicates if file size format
+should be binary or not.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-size-string-formatted.returns"></a><h4>Returns</h4>
+<p> the size of <em class="parameter"><code>file</code></em>
+in a human readable
+format.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-size-string-long"></a><h3>thunar_file_get_size_string_long ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_size_string_long (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gboolean</span> file_size_binary</code></em>);</pre>
+<p>Returns the size of the file as text in a human readable
+format in decimal or binary format, including the exact
+size in bytes. You'll need to free the result using
+<code class="function">g_free()</code> if you're done with it.</p>
+<div class="refsect3">
+<a name="thunar-file-get-size-string-long.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_size_binary</p></td>
+<td class="parameter_description"><p>indicates if file size format
+should be binary or not.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-size-string-long.returns"></a><h4>Returns</h4>
+<p> the size of <em class="parameter"><code>file</code></em>
+in a human readable
+format, including size in bytes.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-volume"></a><h3>thunar_file_get_volume ()</h3>
+<pre class="programlisting"><span class="returnvalue">GVolume</span> *
+thunar_file_get_volume (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Attempts to determine the <span class="type">GVolume</span> on which <em class="parameter"><code>file</code></em>
+ is located. If <em class="parameter"><code>file</code></em>
+ cannot
+determine it's volume, then <code class="literal">NULL</code> will be returned. Else a <span class="type">GVolume</span> instance
+is returned which has to be released by the caller using <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-volume.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-volume.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GVolume</span> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-group"></a><h3>thunar_file_get_group ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="returnvalue">ThunarGroup</span></a> *
+thunar_file_get_group (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> for <em class="parameter"><code>file</code></em>
+. If there's no
+group associated with <em class="parameter"><code>file</code></em>
+ or if the system is unable to
+determine the group, <code class="literal">NULL</code> will be returned.</p>
+<p>The caller is responsible for freeing the returned object
+using <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-group.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-group.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-user"></a><h3>thunar_file_get_user ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="returnvalue">ThunarUser</span></a> *
+thunar_file_get_user (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines the <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> for <em class="parameter"><code>file</code></em>
+. If there's no
+user associated with <em class="parameter"><code>file</code></em>
+ or if the system is unable
+to determine the user, <code class="literal">NULL</code> will be returned.</p>
+<p>The caller is responsible for freeing the returned object
+using <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-user.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-user.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-content-type"></a><h3>thunar_file_get_content_type ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_content_type (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the content type of <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-get-content-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-content-type.returns"></a><h4>Returns</h4>
+<p> content type of <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-content-type-desc"></a><h3>thunar_file_get_content_type_desc ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_content_type_desc (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-load-content-type"></a><h3>thunar_file_load_content_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_load_content_type (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-symlink-target"></a><h3>thunar_file_get_symlink_target ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_symlink_target (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the path of the symlink target or <code class="literal">NULL</code> if the <em class="parameter"><code>file</code></em>
+
+is not a symlink.</p>
+<div class="refsect3">
+<a name="thunar-file-get-symlink-target.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-symlink-target.returns"></a><h4>Returns</h4>
+<p> path of the symlink target or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-basename"></a><h3>thunar_file_get_basename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_basename (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the basename of the <em class="parameter"><code>file</code></em>
+ in UTF-8 encoding.</p>
+<div class="refsect3">
+<a name="thunar-file-get-basename.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-basename.returns"></a><h4>Returns</h4>
+<p> UTF-8 encoded basename of the <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-symlink"></a><h3>thunar_file_is_symlink ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_symlink (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is a symbolic link.</p>
+<div class="refsect3">
+<a name="thunar-file-is-symlink.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-symlink.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a symbolic link.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-size"></a><h3>thunar_file_get_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
+thunar_file_get_size (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Tries to determine the size of <em class="parameter"><code>file</code></em>
+ in bytes and
+returns the size.</p>
+<div class="refsect3">
+<a name="thunar-file-get-size.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-size.returns"></a><h4>Returns</h4>
+<p> the size of <em class="parameter"><code>file</code></em>
+in bytes.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-default-handler"></a><h3>thunar_file_get_default_handler ()</h3>
+<pre class="programlisting"><span class="returnvalue">GAppInfo</span> *
+thunar_file_get_default_handler (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the default <span class="type">GAppInfo</span> for <em class="parameter"><code>file</code></em>
+ or <code class="literal">NULL</code> if there is none.</p>
+<p>The caller is responsible to free the returned <span class="type">GAppInfo</span> using
+<code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-default-handler.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-default-handler.returns"></a><h4>Returns</h4>
+<p> Default <span class="type">GAppInfo</span> for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code> if there is none.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-kind"></a><h3>thunar_file_get_kind ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFileType</span>
+thunar_file_get_kind (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the kind of <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-get-kind.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-kind.returns"></a><h4>Returns</h4>
+<p> the kind of <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-target-location"></a><h3>thunar_file_get_target_location ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+thunar_file_get_target_location (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-mode"></a><h3>thunar_file_get_mode ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarFileMode" title="enum ThunarFileMode"><span class="returnvalue">ThunarFileMode</span></a>
+thunar_file_get_mode (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the permission bits of <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-get-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-mode.returns"></a><h4>Returns</h4>
+<p> the permission bits of <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-mounted"></a><h3>thunar_file_is_mounted ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_mounted (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-exists"></a><h3>thunar_file_exists ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_exists (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-directory"></a><h3>thunar_file_is_directory ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_directory (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to a directory.</p>
+<div class="refsect3">
+<a name="thunar-file-is-directory.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-directory.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a directory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-shortcut"></a><h3>thunar_file_is_shortcut ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_shortcut (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to a shortcut to something else.</p>
+<div class="refsect3">
+<a name="thunar-file-is-shortcut.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-shortcut.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a shortcut.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-mountable"></a><h3>thunar_file_is_mountable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_mountable (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to a mountable file/directory.</p>
+<div class="refsect3">
+<a name="thunar-file-is-mountable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-mountable.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a mountable file/directory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-local"></a><h3>thunar_file_is_local ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_local (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is a local file with the
+file:// URI scheme.</p>
+<div class="refsect3">
+<a name="thunar-file-is-local.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-local.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is local.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-parent"></a><h3>thunar_file_is_parent ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_parent (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                       <em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *child</code></em>);</pre>
+<p>Determines whether <em class="parameter"><code>file</code></em>
+ is the parent directory of <em class="parameter"><code>child</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-is-parent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>child</p></td>
+<td class="parameter_description"><p>another <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-parent.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is the parent of <em class="parameter"><code>child</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-gfile-ancestor"></a><h3>thunar_file_is_gfile_ancestor ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_gfile_ancestor (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                               <em class="parameter"><code><span class="type">GFile</span> *ancestor</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-ancestor"></a><h3>thunar_file_is_ancestor ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_ancestor (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                         <em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *ancestor</code></em>);</pre>
+<p>Determines whether <em class="parameter"><code>file</code></em>
+ is somewhere inside <em class="parameter"><code>ancestor</code></em>
+,
+possibly with intermediate folders.</p>
+<div class="refsect3">
+<a name="thunar-file-is-ancestor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ancestor</p></td>
+<td class="parameter_description"><p>another <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-ancestor.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>ancestor</code></em>
+contains <em class="parameter"><code>file</code></em>
+as a
+child, grandchild, great grandchild, etc.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-can-execute"></a><h3>thunar_file_can_execute ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_can_execute (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines whether the owner of the current process is allowed
+to execute the <em class="parameter"><code>file</code></em>
+ (or enter the directory refered to by
+<em class="parameter"><code>file</code></em>
+). On UNIX it also returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ refers to a
+desktop entry.</p>
+<div class="refsect3">
+<a name="thunar-file-can-execute.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-can-execute.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+can be executed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-writable"></a><h3>thunar_file_is_writable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_writable (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines whether the owner of the current process is allowed
+to write the <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-is-writable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-writable.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+can be read.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-hidden"></a><h3>thunar_file_is_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_hidden (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ can be considered a hidden file.</p>
+<div class="refsect3">
+<a name="thunar-file-is-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-hidden.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a hidden file, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-home"></a><h3>thunar_file_is_home ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_home (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to the users home directory.</p>
+<div class="refsect3">
+<a name="thunar-file-is-home.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-home.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is the users home directory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-regular"></a><h3>thunar_file_is_regular ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_regular (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to a regular file.</p>
+<div class="refsect3">
+<a name="thunar-file-is-regular.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-regular.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a regular file.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-trash"></a><h3>thunar_file_is_trash ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_trash (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is the trash bin.</p>
+<div class="refsect3">
+<a name="thunar-file-is-trash.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-trash.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is in the trash bin</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-trashed"></a><h3>thunar_file_is_trashed ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_trashed (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is a local file that resides in
+the trash bin.</p>
+<div class="refsect3">
+<a name="thunar-file-is-trashed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-trashed.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is in the trash, or
+the trash folder itself.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-recent"></a><h3>thunar_file_is_recent ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_recent (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is the recent folder.</p>
+<div class="refsect3">
+<a name="thunar-file-is-recent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-recent.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is the recent folder bin</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-in-recent"></a><h3>thunar_file_is_in_recent ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_in_recent (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-desktop-file"></a><h3>thunar_file_is_desktop_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_desktop_file (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+ is a .desktop file.</p>
+<div class="refsect3">
+<a name="thunar-file-is-desktop-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-desktop-file.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is a .desktop file.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-display-name"></a><h3>thunar_file_get_display_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_display_name (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the <em class="parameter"><code>file</code></em>
+ name in the UTF-8 encoding, which is
+suitable for displaying the file name in the GUI.</p>
+<div class="refsect3">
+<a name="thunar-file-get-display-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-display-name.returns"></a><h4>Returns</h4>
+<p> the <em class="parameter"><code>file</code></em>
+name suitable for display.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-deletion-date"></a><h3>thunar_file_get_deletion_date ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_deletion_date (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                               <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarDateStyle" title="enum ThunarDateStyle"><span class="type">ThunarDateStyle</span></a> date_style</code></em>,
+                               <em class="parameter"><code>const <span class="type">gchar</span> *date_custom_style</code></em>);</pre>
+<p>Returns the deletion date of the <em class="parameter"><code>file</code></em>
+ if the <em class="parameter"><code>file</code></em>
+
+is located in the trash. Otherwise <code class="literal">NULL</code> will be
+returned.</p>
+<p>The caller is responsible to free the returned string
+using <code class="function">g_free()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-file-get-deletion-date.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_style</p></td>
+<td class="parameter_description"><p>the style used to format the date.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_custom_style</p></td>
+<td class="parameter_description"><p>custom style to apply, if <em class="parameter"><code>date_style</code></em>
+is set to custom</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-deletion-date.returns"></a><h4>Returns</h4>
+<p> the deletion date of <em class="parameter"><code>file</code></em>
+if <em class="parameter"><code>file</code></em>
+is
+in the trash, <code class="literal">NULL</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-recency"></a><h3>thunar_file_get_recency ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_recency (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                         <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarDateStyle" title="enum ThunarDateStyle"><span class="type">ThunarDateStyle</span></a> date_style</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *date_custom_style</code></em>);</pre>
+<p>Returns the recency date of the <em class="parameter"><code>file</code></em>
+ if the <em class="parameter"><code>file</code></em>
+
+is in the <code class="literal">recent:///</code> location. Recency differs from date accessed and date
+modified. It refers to the time of the last metadata change of a file in <code class="literal">recent:///</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-get-recency.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_style</p></td>
+<td class="parameter_description"><p>the style used to format the date.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>date_custom_style</p></td>
+<td class="parameter_description"><p>custom style to apply, if <em class="parameter"><code>date_style</code></em>
+is set to custom</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-recency.returns"></a><h4>Returns</h4>
+<p> the recency date of <em class="parameter"><code>file</code></em>
+if <em class="parameter"><code>file</code></em>
+is
+in <code class="literal">recent:///</code>, <code class="literal">NULL</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-original-path"></a><h3>thunar_file_get_original_path ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_original_path (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the original path of the <em class="parameter"><code>file</code></em>
+ if the <em class="parameter"><code>file</code></em>
+
+is located in the trash. Otherwise <code class="literal">NULL</code> will be
+returned.</p>
+<div class="refsect3">
+<a name="thunar-file-get-original-path.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-original-path.returns"></a><h4>Returns</h4>
+<p> the original path of <em class="parameter"><code>file</code></em>
+if <em class="parameter"><code>file</code></em>
+is
+in the trash, <code class="literal">NULL</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-item-count"></a><h3>thunar_file_get_item_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+thunar_file_get_item_count (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the number of items in the trash, if <em class="parameter"><code>file</code></em>
+ refers to the
+trash root directory. Otherwise returns 0.</p>
+<div class="refsect3">
+<a name="thunar-file-get-item-count.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-item-count.returns"></a><h4>Returns</h4>
+<p> number of files in the trash if <em class="parameter"><code>file</code></em>
+is the trash
+root dir, 0 otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-chmodable"></a><h3>thunar_file_is_chmodable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_chmodable (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines whether the owner of the current process is allowed
+to changed the file mode of <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-is-chmodable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-chmodable.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the mode of <em class="parameter"><code>file</code></em>
+can be changed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-renameable"></a><h3>thunar_file_is_renameable ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_renameable (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines whether <em class="parameter"><code>file</code></em>
+ can be renamed using
+<a class="link" href="ThunarFile.html#thunar-file-rename" title="thunar_file_rename ()"><code class="function">thunar_file_rename()</code></a>. Note that the return
+value is just a guess and <a class="link" href="ThunarFile.html#thunar-file-rename" title="thunar_file_rename ()"><code class="function">thunar_file_rename()</code></a>
+may fail even if this method returns <code class="literal">TRUE</code>.</p>
+<div class="refsect3">
+<a name="thunar-file-is-renameable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-renameable.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+can be renamed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-can-be-trashed"></a><h3>thunar_file_can_be_trashed ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_can_be_trashed (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-file-count"></a><h3>thunar_file_get_file_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>
+thunar_file_get_file_count (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                            <em class="parameter"><code><span class="type">GCallback</span> callback</code></em>,
+                            <em class="parameter"><code><span class="type">gpointer</span> data</code></em>);</pre>
+<p>Returns the number of items in the directory
+Counts the number of files in the directory as fast as possible.
+Will use cached data to do calculations only when the file has
+been modified since the last time its contents were counted.</p>
+<div class="refsect3">
+<a name="thunar-file-get-file-count.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p>a <span class="type">GCallback</span> to be executed after the file count</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>a <span class="type">gpointer</span> containing user data to pass to the callback</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-file-count.returns"></a><h4>Returns</h4>
+<p> Number of files in a folder</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-set-file-count"></a><h3>thunar_file_set_file_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_set_file_count (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                            <em class="parameter"><code>const <span class="type">guint</span> count</code></em>);</pre>
+<p>Set <em class="parameter"><code>file</code></em>
+'s count to the given number if it is a directory.
+Does *NOT* update the file's count timestamp.</p>
+<div class="refsect3">
+<a name="thunar-file-set-file-count.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>A <span class="type">ThunarFileInstance</span></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>count</p></td>
+<td class="parameter_description"><p>The value to set the file's count to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-emblem-names"></a><h3>thunar_file_get_emblem_names ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_file_get_emblem_names (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Determines the names of the emblems that should be displayed for
+<em class="parameter"><code>file</code></em>
+. The returned list is owned by the caller, but the list
+items - the name strings - are owned by <em class="parameter"><code>file</code></em>
+. So the caller
+must call <code class="function">g_list_free()</code>, but don't <code class="function">g_free()</code> the list items.</p>
+<p>Note that the strings contained in the returned list are
+not garantied to exist over the next iteration of the main
+loop. So in case you need the list of emblem names for
+a longer time, you'll need to take a copy of the strings.</p>
+<div class="refsect3">
+<a name="thunar-file-get-emblem-names.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-emblem-names.returns"></a><h4>Returns</h4>
+<p> the names of the emblems for <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-set-emblem-names"></a><h3>thunar_file_set_emblem_names ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_set_emblem_names (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                              <em class="parameter"><code><span class="type">GList</span> *emblem_names</code></em>);</pre>
+<p>Sets the custom emblem name list of <em class="parameter"><code>file</code></em>
+ to <em class="parameter"><code>emblem_names</code></em>
+
+and stores them in the <em class="parameter"><code>file</code></em>
+s metadata.</p>
+<div class="refsect3">
+<a name="thunar-file-set-emblem-names.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>emblem_names</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of emblem names.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-custom-icon"></a><h3>thunar_file_get_custom_icon ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_custom_icon (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Queries the custom icon from <em class="parameter"><code>file</code></em>
+ if any, else <code class="literal">NULL</code> is returned.
+The custom icon can be either a themed icon name or an absolute path
+to an icon file in the local file system.</p>
+<div class="refsect3">
+<a name="thunar-file-get-custom-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-custom-icon.returns"></a><h4>Returns</h4>
+<p> the custom icon for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-set-custom-icon"></a><h3>thunar_file_set_custom_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_set_custom_icon (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                             <em class="parameter"><code>const <span class="type">gchar</span> *custom_icon</code></em>,
+                             <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Tries to change the custom icon of the .desktop file referred
+to by <em class="parameter"><code>file</code></em>
+. If that fails, <code class="literal">FALSE</code> is returned and the
+<em class="parameter"><code>error</code></em>
+ is set accordingly.</p>
+<div class="refsect3">
+<a name="thunar-file-set-custom-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>custom_icon</p></td>
+<td class="parameter_description"><p>the new custom icon for the <em class="parameter"><code>file</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-set-custom-icon.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the icon of <em class="parameter"><code>file</code></em>
+was changed, <code class="literal">FALSE</code> otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-thumbnail-path"></a><h3>thunar_file_get_thumbnail_path ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_thumbnail_path (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailSize" title="enum ThunarThumbnailSize"><span class="type">ThunarThumbnailSize</span></a> thumbnail_size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-thumbnail-path-forced"></a><h3>thunar_file_get_thumbnail_path_forced ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_get_thumbnail_path_forced (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                       <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarThumbnailSize" title="enum ThunarThumbnailSize"><span class="type">ThunarThumbnailSize</span></a> thumbnail_size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-thumb-state"></a><h3>thunar_file_get_thumb_state ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="returnvalue">ThunarFileThumbState</span></a>
+thunar_file_get_thumb_state (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the current <a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="type">ThunarFileThumbState</span></a> for <em class="parameter"><code>file</code></em>
+. This
+method is intended to be used by <a class="link" href="ThunarIconFactory.html" title="ThunarIconFactory"><span class="type">ThunarIconFactory</span></a> only.</p>
+<div class="refsect3">
+<a name="thunar-file-get-thumb-state.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-thumb-state.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="type">ThunarFileThumbState</span></a> for <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-set-thumb-state"></a><h3>thunar_file_set_thumb_state ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_set_thumb_state (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                             <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="type">ThunarFileThumbState</span></a> state</code></em>);</pre>
+<p>Sets the <a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="type">ThunarFileThumbState</span></a> for <em class="parameter"><code>file</code></em>
+ to <em class="parameter"><code>thumb_state</code></em>
+.
+This will cause a "file-changed" signal to be emitted from
+<a class="link" href="ThunarFileMonitor.html" title="ThunarFileMonitor"><span class="type">ThunarFileMonitor</span></a>.</p>
+<div class="refsect3">
+<a name="thunar-file-set-thumb-state.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>thumb_state</p></td>
+<td class="parameter_description"><p>the new <a class="link" href="ThunarFile.html#ThunarFileThumbState" title="enum ThunarFileThumbState"><span class="type">ThunarFileThumbState</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-preview-icon"></a><h3>thunar_file_get_preview_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GIcon</span> *
+thunar_file_get_preview_icon (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns the preview icon for <em class="parameter"><code>file</code></em>
+ if any, else <code class="literal">NULL</code> is returned.</p>
+<div class="refsect3">
+<a name="thunar-file-get-preview-icon.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-preview-icon.returns"></a><h4>Returns</h4>
+<p> the custom icon for <em class="parameter"><code>file</code></em>
+or <code class="literal">NULL</code>, the GIcon is owner
+by the file, so do not unref it.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-preview-type"></a><h3>thunar_file_get_preview_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFilesystemPreviewType</span>
+thunar_file_get_preview_type (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-icon-name"></a><h3>thunar_file_get_icon_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_icon_name (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                           <em class="parameter"><code><a class="link" href="ThunarFile.html#ThunarFileIconState" title="enum ThunarFileIconState"><span class="type">ThunarFileIconState</span></a> icon_state</code></em>,
+                           <em class="parameter"><code><span class="type">GtkIconTheme</span> *icon_theme</code></em>);</pre>
+<p>Returns the name of the icon that can be used to present <em class="parameter"><code>file</code></em>
+, based
+on the given <em class="parameter"><code>icon_state</code></em>
+ and <em class="parameter"><code>icon_theme</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-get-icon-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_state</p></td>
+<td class="parameter_description"><p>the state of the <em class="parameter"><code>file</code></em>
+s icon we are interested in.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon_theme</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkIconTheme</span> on which to lookup up the icon name.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-icon-name.returns"></a><h4>Returns</h4>
+<p> the icon name for <em class="parameter"><code>file</code></em>
+in <em class="parameter"><code>icon_theme</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-device-type"></a><h3>thunar_file_get_device_type ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_device_type (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Returns : (transfer none) (nullable): the string of the device type.</p>
+<div class="refsect3">
+<a name="thunar-file-get-device-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-watch"></a><h3>thunar_file_watch ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_watch (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Tells <em class="parameter"><code>file</code></em>
+ to watch itself for changes. Not all <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>
+implementations must support this, but if a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>
+implementation implements the <a class="link" href="ThunarFile.html#thunar-file-watch" title="thunar_file_watch ()"><code class="function">thunar_file_watch()</code></a> method,
+it must also implement the <a class="link" href="ThunarFile.html#thunar-file-unwatch" title="thunar_file_unwatch ()"><code class="function">thunar_file_unwatch()</code></a> method.</p>
+<p>The <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> base class implements automatic "ref
+counting" for watches, that says, you can call <a class="link" href="ThunarFile.html#thunar-file-watch" title="thunar_file_watch ()"><code class="function">thunar_file_watch()</code></a>
+multiple times, but the virtual method will be invoked only
+once. This also means that you MUST call <a class="link" href="ThunarFile.html#thunar-file-unwatch" title="thunar_file_unwatch ()"><code class="function">thunar_file_unwatch()</code></a>
+for every <a class="link" href="ThunarFile.html#thunar-file-watch" title="thunar_file_watch ()"><code class="function">thunar_file_watch()</code></a> invokation, else the application
+will abort.</p>
+<div class="refsect3">
+<a name="thunar-file-watch.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-unwatch"></a><h3>thunar_file_unwatch ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_unwatch (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>See <a class="link" href="ThunarFile.html#thunar-file-watch" title="thunar_file_watch ()"><code class="function">thunar_file_watch()</code></a> for a description of how watching
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s works.</p>
+<div class="refsect3">
+<a name="thunar-file-unwatch.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-reload"></a><h3>thunar_file_reload ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_reload (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Tells <em class="parameter"><code>file</code></em>
+ to reload its internal state, e.g. by reacquiring
+the file info from the underlying media.</p>
+<p>You must be able to handle the case that <em class="parameter"><code>file</code></em>
+ is
+destroyed during the reload call.</p>
+<div class="refsect3">
+<a name="thunar-file-reload.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-reload.returns"></a><h4>Returns</h4>
+<p> TRUE on success, FALSE otherwise</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-reload-idle"></a><h3>thunar_file_reload_idle ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_reload_idle (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Schedules a single reload of the <em class="parameter"><code>file</code></em>
+ by calling thunar_file_reload
+when idle.</p>
+<div class="refsect3">
+<a name="thunar-file-reload-idle.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-reload-idle-unref"></a><h3>thunar_file_reload_idle_unref ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_reload_idle_unref (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Schedules a reload of the <em class="parameter"><code>file</code></em>
+ by calling thunar_file_reload
+when idle. When scheduled function returns <em class="parameter"><code>file</code></em>
+ object will be
+unreferenced.</p>
+<div class="refsect3">
+<a name="thunar-file-reload-idle-unref.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-reload-parent"></a><h3>thunar_file_reload_parent ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_reload_parent (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-destroy"></a><h3>thunar_file_destroy ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_destroy (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Emits the ::destroy signal notifying all reference holders
+that they should release their references to the <em class="parameter"><code>file</code></em>
+.</p>
+<p>This method is very similar to what <code class="function">gtk_object_destroy()</code>
+does for <span class="type">GtkObject</span>s.</p>
+<div class="refsect3">
+<a name="thunar-file-destroy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-compare-by-type"></a><h3>thunar_file_compare_by_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+thunar_file_compare_by_type (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file_a</code></em>,
+                             <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file_b</code></em>);</pre>
+<p>Compares items so that directories come before files and ancestors come
+before descendants.</p>
+<div class="refsect3">
+<a name="thunar-file-compare-by-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>the first <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>b</p></td>
+<td class="parameter_description"><p>the second <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-compare-by-type.returns"></a><h4>Returns</h4>
+<p> -1 if <em class="parameter"><code>file_a</code></em>
+should be sorted before <em class="parameter"><code>file_b</code></em>
+, 1 if
+<em class="parameter"><code>file_b</code></em>
+should be sorted before <em class="parameter"><code>file_a</code></em>
+, 0 if equal.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-compare-by-name"></a><h3>thunar_file_compare_by_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+thunar_file_compare_by_name (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file_a</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file_b</code></em>,
+                             <em class="parameter"><code><span class="type">gboolean</span> case_sensitive</code></em>);</pre>
+<p>Compares <em class="parameter"><code>file_a</code></em>
+ and <em class="parameter"><code>file_b</code></em>
+ by their display names. If <em class="parameter"><code>case_sensitive</code></em>
+
+is <code class="literal">TRUE</code> the comparison will be case-sensitive.</p>
+<div class="refsect3">
+<a name="thunar-file-compare-by-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file_a</p></td>
+<td class="parameter_description"><p>the first <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_b</p></td>
+<td class="parameter_description"><p>the second <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>case_sensitive</p></td>
+<td class="parameter_description"><p>whether the comparison should be case-sensitive.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-compare-by-name.returns"></a><h4>Returns</h4>
+<p> -1 if <em class="parameter"><code>file_a</code></em>
+should be sorted before <em class="parameter"><code>file_b</code></em>
+, 1 if
+<em class="parameter"><code>file_b</code></em>
+should be sorted before <em class="parameter"><code>file_a</code></em>
+, 0 if equal.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-cache-lookup"></a><h3>thunar_file_cache_lookup ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_file_cache_lookup (<em class="parameter"><code>const <span class="type">GFile</span> *file</code></em>);</pre>
+<p>Looks up the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>file</code></em>
+ in the internal file
+cache and returns the file present for <em class="parameter"><code>file</code></em>
+ in the
+cache or <code class="literal">NULL</code> if no <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> is cached for <em class="parameter"><code>file</code></em>
+.</p>
+<p>Note that no reference is taken for the caller.</p>
+<p>This method should not be used but in very rare cases.
+Consider using <a class="link" href="ThunarFile.html#thunar-file-get" title="thunar_file_get ()"><code class="function">thunar_file_get()</code></a> instead.</p>
+<div class="refsect3">
+<a name="thunar-file-cache-lookup.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-cache-lookup.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>file</code></em>
+in the internal
+cache, or <code class="literal">NULL</code>. If you are done with the
+file, use g_object_unref to release.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-cached-display-name"></a><h3>thunar_file_cached_display_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_file_cached_display_name (<em class="parameter"><code>const <span class="type">GFile</span> *file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-list-get-applications"></a><h3>thunar_file_list_get_applications ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_file_list_get_applications (<em class="parameter"><code><span class="type">GList</span> *file_list</code></em>);</pre>
+<p>Returns the <span class="type">GList</span> of <span class="type">GAppInfo</span>s that can be used to open
+all <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s in the given <em class="parameter"><code>file_list</code></em>
+.</p>
+<p>The caller is responsible to free the returned list using something like:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="thunar-file-list-get-applications.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-list-get-applications.returns"></a><h4>Returns</h4>
+<p> the list of <span class="type">GAppInfo</span>s that can be used to open all
+items in the <em class="parameter"><code>file_list</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-list-to-thunar-g-file-list"></a><h3>thunar_file_list_to_thunar_g_file_list ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_file_list_to_thunar_g_file_list
+                               (<em class="parameter"><code><span class="type">GList</span> *file_list</code></em>);</pre>
+<p>Transforms the <em class="parameter"><code>file_list</code></em>
+ to a <span class="type">GList</span> of <span class="type">GFile</span>s for
+the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s contained within <em class="parameter"><code>file_list</code></em>
+.</p>
+<p>The caller is responsible to free the returned list using
+<a class="link" href="thunar-thunar-gio-extensions.html#thunar-g-list-free-full" title="thunar_g_list_free_full"><code class="function">thunar_g_list_free_full()</code></a> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-file-list-to-thunar-g-file-list.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-list-to-thunar-g-file-list.returns"></a><h4>Returns</h4>
+<p> the list of <span class="type">GFile</span>s for <em class="parameter"><code>file_list</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-desktop"></a><h3>thunar_file_is_desktop ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_is_desktop (<em class="parameter"><code>const <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to the users desktop directory.</p>
+<div class="refsect3">
+<a name="thunar-file-is-desktop.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-desktop.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is the users desktop directory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-get-metadata-setting"></a><h3>thunar_file_get_metadata_setting ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_file_get_metadata_setting (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gchar</span> *setting_name</code></em>);</pre>
+<p>Gets the stored value of the metadata setting <em class="parameter"><code>setting_name</code></em>
+ for <em class="parameter"><code>file</code></em>
+. Returns <code class="literal">NULL</code>
+if there is no stored setting.</p>
+<div class="refsect3">
+<a name="thunar-file-get-metadata-setting.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setting_name</p></td>
+<td class="parameter_description"><p>the name of the setting to get</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-get-metadata-setting.returns"></a><h4>Returns</h4>
+<p>the stored value of the setting for <em class="parameter"><code>file</code></em>
+, or <code class="literal">NULL</code>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-set-metadata-setting"></a><h3>thunar_file_set_metadata_setting ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_set_metadata_setting (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gchar</span> *setting_name</code></em>,
+                                  <em class="parameter"><code>const <span class="type">gchar</span> *setting_value</code></em>,
+                                  <em class="parameter"><code><span class="type">gboolean</span> async</code></em>);</pre>
+<p>Sets the setting <em class="parameter"><code>setting_name</code></em>
+ of <em class="parameter"><code>file</code></em>
+ to <em class="parameter"><code>setting_value</code></em>
+ and stores it in
+the <em class="parameter"><code>file</code></em>
+s metadata.</p>
+<div class="refsect3">
+<a name="thunar-file-set-metadata-setting.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setting_name</p></td>
+<td class="parameter_description"><p>the name of the setting to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setting_value</p></td>
+<td class="parameter_description"><p>the value to set</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>async</p></td>
+<td class="parameter_description"><p>whether g_file_set_attributes_async or g_file_set_attributes_from_info should be used</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-clear-metadata-setting"></a><h3>thunar_file_clear_metadata_setting ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_clear_metadata_setting (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *setting_name</code></em>);</pre>
+<p>Clear the metadata setting <em class="parameter"><code>setting_name</code></em>
+ of <em class="parameter"><code>file</code></em>
+</p>
+<div class="refsect3">
+<a name="thunar-file-clear-metadata-setting.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>setting_name</p></td>
+<td class="parameter_description"><p>the name of the setting to clear</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-clear-directory-specific-settings"></a><h3>thunar_file_clear_directory_specific_settings ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_file_clear_directory_specific_settings
+                               (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Clears all directory specific settings stored in the metadata of the folder represented by <em class="parameter"><code>file</code></em>
+</p>
+<div class="refsect3">
+<a name="thunar-file-clear-directory-specific-settings.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-has-directory-specific-settings"></a><h3>thunar_file_has_directory_specific_settings ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_file_has_directory_specific_settings
+                               (<em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ has any directory specific settings stored in its metadata.</p>
+<div class="refsect3">
+<a name="thunar-file-has-directory-specific-settings.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-has-directory-specific-settings.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+has any directory specific settings stored in its metadata, and <code class="literal">FALSE</code> otherwise</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-is-root"></a><h3>thunar_file_is_root()</h3>
+<pre class="programlisting">#define thunar_file_is_root(file) (thunar_g_file_is_root (thunar_file_get_file (file)))
+</pre>
+<p>Checks whether <em class="parameter"><code>file</code></em>
+ refers to the root directory.</p>
+<div class="refsect3">
+<a name="thunar-file-is-root.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-is-root.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>file</code></em>
+is the root directory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-has-parent"></a><h3>thunar_file_has_parent()</h3>
+<pre class="programlisting">#define thunar_file_has_parent(file) (!thunar_file_is_root (THUNAR_FILE ((file))))
+</pre>
+<p>Checks whether it is possible to determine the parent <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>
+for <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-has-parent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-has-parent.returns"></a><h4>Returns</h4>
+<p> whether <em class="parameter"><code>file</code></em>
+has a parent.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-dup-uri"></a><h3>thunar_file_dup_uri()</h3>
+<pre class="programlisting">#define thunar_file_dup_uri(file) (g_file_get_uri (thunar_file_get_file (file)))
+</pre>
+<p>Returns the URI for the <em class="parameter"><code>file</code></em>
+. The caller is responsible
+to free the returned string when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-file-dup-uri.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-dup-uri.returns"></a><h4>Returns</h4>
+<p> the URI for <em class="parameter"><code>file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-has-uri-scheme"></a><h3>thunar_file_has_uri_scheme()</h3>
+<pre class="programlisting">#define thunar_file_has_uri_scheme(file, uri_scheme) (g_file_has_uri_scheme (thunar_file_get_file (file), (uri_scheme)))
+</pre>
+<p>Checks whether the URI scheme of the file matches <em class="parameter"><code>uri_scheme</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-has-uri-scheme.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>uri_scheme</p></td>
+<td class="parameter_description"><p>a URI scheme string.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-file-has-uri-scheme.returns"></a><h4>Returns</h4>
+<p> TRUE, if the schemes match, FALSE otherwise.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-file-changed"></a><h3>thunar_file_changed()</h3>
+<pre class="programlisting">#define             thunar_file_changed(file)</pre>
+<p>Emits the ::changed signal on <em class="parameter"><code>file</code></em>
+. This function is meant to be called
+by derived classes whenever they notice changes to the <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-file-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarFileDateType"></a><h3>enum ThunarFileDateType</h3>
+<p>The various dates that can be queried about a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>. Note, that not all
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> implementations support all types listed above. See the documentation
+of the <a class="link" href="ThunarFile.html#thunar-file-get-date" title="thunar_file_get_date ()"><code class="function">thunar_file_get_date()</code></a> method for details.</p>
+<div class="refsect3">
+<a name="ThunarFileDateType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-DATE-ACCESSED:CAPS"></a>THUNAR_FILE_DATE_ACCESSED</p></td>
+<td class="enum_member_description">
+<p>date of last access to the file.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-DATE-CHANGED:CAPS"></a>THUNAR_FILE_DATE_CHANGED</p></td>
+<td class="enum_member_description">
+<p>date of last change to the file meta data or the content.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-DATE-CREATED:CAPS"></a>THUNAR_FILE_DATE_CREATED</p></td>
+<td class="enum_member_description">
+<p>date of file creation.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-DATE-MODIFIED:CAPS"></a>THUNAR_FILE_DATE_MODIFIED</p></td>
+<td class="enum_member_description">
+<p>date of last modification of the file's content.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-DATE-DELETED:CAPS"></a>THUNAR_FILE_DATE_DELETED</p></td>
+<td class="enum_member_description">
+<p>date of file deletion.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-RECENCY:CAPS"></a>THUNAR_FILE_RECENCY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarFileIconState"></a><h3>enum ThunarFileIconState</h3>
+<p>The various file icon states that are used within the file manager
+views.</p>
+<div class="refsect3">
+<a name="ThunarFileIconState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-ICON-STATE-DEFAULT:CAPS"></a>THUNAR_FILE_ICON_STATE_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>the default icon for the file.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-ICON-STATE-DROP:CAPS"></a>THUNAR_FILE_ICON_STATE_DROP</p></td>
+<td class="enum_member_description">
+<p>the drop accept icon for the file.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-ICON-STATE-OPEN:CAPS"></a>THUNAR_FILE_ICON_STATE_OPEN</p></td>
+<td class="enum_member_description">
+<p>the folder is expanded.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarFileThumbState"></a><h3>enum ThunarFileThumbState</h3>
+<p>The state of the thumbnailing for a given <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p>
+<div class="refsect3">
+<a name="ThunarFileThumbState.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-THUMB-STATE-UNKNOWN:CAPS"></a>THUNAR_FILE_THUMB_STATE_UNKNOWN</p></td>
+<td class="enum_member_description">
+<p>unknown whether there's a thumbnail.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-THUMB-STATE-NONE:CAPS"></a>THUNAR_FILE_THUMB_STATE_NONE</p></td>
+<td class="enum_member_description">
+<p>no thumbnail is available.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-THUMB-STATE-READY:CAPS"></a>THUNAR_FILE_THUMB_STATE_READY</p></td>
+<td class="enum_member_description">
+<p>a thumbnail is available.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-FILE-THUMB-STATE-LOADING:CAPS"></a>THUNAR_FILE_THUMB_STATE_LOADING</p></td>
+<td class="enum_member_description">
+<p>a thumbnail is being generated.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNAR-FILE-EMBLEM-NAME-SYMBOLIC-LINK:CAPS"></a><h3>THUNAR_FILE_EMBLEM_NAME_SYMBOLIC_LINK</h3>
+<pre class="programlisting">#define THUNAR_FILE_EMBLEM_NAME_SYMBOLIC_LINK "emblem-symbolic-link"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNAR-FILE-EMBLEM-NAME-CANT-READ:CAPS"></a><h3>THUNAR_FILE_EMBLEM_NAME_CANT_READ</h3>
+<pre class="programlisting">#define THUNAR_FILE_EMBLEM_NAME_CANT_READ     "emblem-noread"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNAR-FILE-EMBLEM-NAME-CANT-WRITE:CAPS"></a><h3>THUNAR_FILE_EMBLEM_NAME_CANT_WRITE</h3>
+<pre class="programlisting">#define THUNAR_FILE_EMBLEM_NAME_CANT_WRITE    "emblem-nowrite"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNAR-FILE-EMBLEM-NAME-DESKTOP:CAPS"></a><h3>THUNAR_FILE_EMBLEM_NAME_DESKTOP</h3>
+<pre class="programlisting">#define THUNAR_FILE_EMBLEM_NAME_DESKTOP       "emblem-desktop"
+</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarFile.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarFile-destroy"></a><h3>The <code class="literal">“destroy”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file,
+               <span class="type">gpointer</span>    user_data)</pre>
+<p>Emitted when the system notices that the <em class="parameter"><code>file</code></em>
+
+was destroyed.</p>
+<div class="refsect3">
+<a name="ThunarFile-destroy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

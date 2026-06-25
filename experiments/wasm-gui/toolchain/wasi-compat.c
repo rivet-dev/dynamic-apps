@@ -41,6 +41,16 @@ int getrlimit(int r, void *l) {
     return 0;
 }
 int setrlimit(int r, const void *l) { (void)r; (void)l; return 0; }
+/* getgroups(): supplementary group IDs. wasi has no group model; the sandbox runs as a single
+ * synthetic identity, so report zero supplementary groups (Thunar references this for the file
+ * owner/group column; unstubbed it's an undefined env import -> LinkError at instantiation). */
+int getgroups(int size, unsigned int *list) { (void)size; (void)list; return 0; }
+/* passwd-database iteration: wasi has no passwd db. setpwent/endpwent are no-ops; getpwent reports
+ * end-of-database (NULL). Thunar references these to resolve the file owner-name column (the static
+ * link leaves endpwent/setpwent as undefined env imports -> LinkError without these). */
+void setpwent(void) {}
+void endpwent(void) {}
+void *getpwent(void) { return 0; }
 /* genuinely-missing-in-wasi functions the X server references (stubs: server runs single-threaded,
    no real signals/hostname lookup). Name-linkage; arg types are placeholders. */
 void *gethostbyname(const char *n) { (void)n; return 0; }

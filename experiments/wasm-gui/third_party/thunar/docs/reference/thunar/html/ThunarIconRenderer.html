@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarIconRenderer: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch17.html" title="Image/Icon">
+<link rel="prev" href="ThunarIconFactory.html" title="ThunarIconFactory">
+<link rel="next" href="ThunarShortcutsIconRenderer.html" title="ThunarShortcutsIconRenderer">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarIconRenderer.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarIconRenderer.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarIconRenderer.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch17.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarIconFactory.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarShortcutsIconRenderer.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarIconRenderer"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarIconRenderer.top_of_page"></a>ThunarIconRenderer</span></h2>
+<p>ThunarIconRenderer</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="function_type">
+<span class="returnvalue">GtkCellRenderer</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarIconRenderer.html#thunar-icon-renderer-new" title="thunar_icon_renderer_new ()">thunar_icon_renderer_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--drop-file" title="The “drop-file” property">drop-file</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--emblems" title="The “emblems” property">emblems</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--file" title="The “file” property">file</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--follow-state" title="The “follow-state” property">follow-state</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--highlight-color" title="The “highlight-color” property">highlight-color</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--highlighting-enabled" title="The “highlighting-enabled” property">highlighting-enabled</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--rounded-corners" title="The “rounded-corners” property">rounded-corners</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarIconSize" title="enum ThunarIconSize"><span class="type">ThunarIconSize</span></a></td>
+<td class="property_name"><a class="link" href="ThunarIconRenderer.html#ThunarIconRenderer--size" title="The “size” property">size</a></td>
+<td class="property_flags">Read / Write / Construct</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkCellRenderer
+            <span class="lineart">╰──</span> ThunarIconRenderer
+                <span class="lineart">╰──</span> <a class="link" href="ThunarShortcutsIconRenderer.html" title="ThunarShortcutsIconRenderer">ThunarShortcutsIconRenderer</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-icon-renderer-new"></a><h3>thunar_icon_renderer_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkCellRenderer</span> *
+thunar_icon_renderer_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="ThunarIconRenderer.html" title="ThunarIconRenderer"><span class="type">ThunarIconRenderer</span></a>. Adjust rendering
+parameters using object properties. Object properties can be
+set globally with <span class="type">g_object_set</span>. Also, with <span class="type">GtkTreeViewColumn</span>,
+you can bind a property to a value in a <span class="type">GtkTreeModel</span>.</p>
+<div class="refsect3">
+<a name="thunar-icon-renderer-new.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarIconRenderer.html" title="ThunarIconRenderer"><span class="type">ThunarIconRenderer</span></a>.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarIconRenderer.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarIconRenderer--drop-file"></a><h3>The <code class="literal">“drop-file”</code> property</h3>
+<pre class="programlisting">  “drop-file”                <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</pre>
+<p>The file which should be rendered in the drop
+accept state.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--emblems"></a><h3>The <code class="literal">“emblems”</code> property</h3>
+<pre class="programlisting">  “emblems”                  <span class="type">gboolean</span></pre>
+<p>Specifies whether to render emblems in addition to the file icons.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--file"></a><h3>The <code class="literal">“file”</code> property</h3>
+<pre class="programlisting">  “file”                     <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</pre>
+<p>The file whose icon to render.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--follow-state"></a><h3>The <code class="literal">“follow-state”</code> property</h3>
+<pre class="programlisting">  “follow-state”             <span class="type">gboolean</span></pre>
+<p>Specifies whether the icon renderer should render icons
+based on the selection state of the items. This is necessary
+for <a href="/usr/share/gtk-doc/html/exo-2/ExoIconView.html#ExoIconView-struct"><span class="type">ExoIconView</span></a>, which doesn't draw any item state indicators
+itself.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--highlight-color"></a><h3>The <code class="literal">“highlight-color”</code> property</h3>
+<pre class="programlisting">  “highlight-color”          <span class="type">char</span> *</pre>
+<p>The color with which the cell should be highlighted.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--highlighting-enabled"></a><h3>The <code class="literal">“highlighting-enabled”</code> property</h3>
+<pre class="programlisting">  “highlighting-enabled”     <span class="type">gboolean</span></pre>
+<p>Determines if the cell background should be drawn with highlight color.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--rounded-corners"></a><h3>The <code class="literal">“rounded-corners”</code> property</h3>
+<pre class="programlisting">  “rounded-corners”          <span class="type">gboolean</span></pre>
+<p>Determines if the cell should be clipped to rounded-corners.
+Useful when highlighting is enabled &amp; a highlight color is set.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarIconRenderer--size"></a><h3>The <code class="literal">“size”</code> property</h3>
+<pre class="programlisting">  “size”                     <a class="link" href="thunar-thunar-enum-types.html#ThunarIconSize" title="enum ThunarIconSize"><span class="type">ThunarIconSize</span></a></pre>
+<p>The size at which icons should be rendered by this
+<a class="link" href="ThunarIconRenderer.html" title="ThunarIconRenderer"><span class="type">ThunarIconRenderer</span></a> instance.</p>
+<p>Owner: ThunarIconRenderer</p>
+<p>Flags: Read / Write / Construct</p>
+<p>Default value: THUNAR_ICON_SIZE_32</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

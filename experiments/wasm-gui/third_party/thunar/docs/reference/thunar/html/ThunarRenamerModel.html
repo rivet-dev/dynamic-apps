@@ -1,0 +1,588 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarRenamerModel: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch19.html" title="Renamer">
+<link rel="prev" href="ThunarRenamerProgress.html" title="ThunarRenamerProgress">
+<link rel="next" href="ThunarRenamerDialog.html" title="ThunarRenamerDialog">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarRenamerModel.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarRenamerModel.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarRenamerModel.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch19.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarRenamerProgress.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarRenamerDialog.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarRenamerModel"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarRenamerModel.top_of_page"></a>ThunarRenamerModel</span></h2>
+<p>ThunarRenamerModel</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="returnvalue">ThunarRenamerModel</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-new" title="thunar_renamer_model_new ()">thunar_renamer_model_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="returnvalue">ThunarRenamerMode</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-get-mode" title="thunar_renamer_model_get_mode ()">thunar_renamer_model_get_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="returnvalue">ThunarxRenamer</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-get-renamer" title="thunar_renamer_model_get_renamer ()">thunar_renamer_model_get_renamer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-set-renamer" title="thunar_renamer_model_set_renamer ()">thunar_renamer_model_set_renamer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-insert" title="thunar_renamer_model_insert ()">thunar_renamer_model_insert</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-reorder" title="thunar_renamer_model_reorder ()">thunar_renamer_model_reorder</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-sort" title="thunar_renamer_model_sort ()">thunar_renamer_model_sort</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-clear" title="thunar_renamer_model_clear ()">thunar_renamer_model_clear</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-remove" title="thunar_renamer_model_remove ()">thunar_renamer_model_remove</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarRenamerModel.html#thunar-renamer-model-append" title="thunar_renamer_model_append()">thunar_renamer_model_append</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarRenamerModel.html#ThunarRenamerModel--can-rename" title="The “can-rename” property">can-rename</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarRenamerModel.html#ThunarRenamerModel--frozen" title="The “frozen” property">frozen</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="type">ThunarRenamerMode</span></a></td>
+<td class="property_name"><a class="link" href="ThunarRenamerModel.html#ThunarRenamerModel--mode" title="The “mode” property">mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarRenamerModel.html#ThunarRenamerModel--renamer" title="The “renamer” property">renamer</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarRenamerModel.html#ThunarRenamerModelColumn" title="enum ThunarRenamerModelColumn">ThunarRenamerModelColumn</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarRenamerModel
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-renamer-model-new"></a><h3>thunar_renamer_model_new ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="returnvalue">ThunarRenamerModel</span></a> *
+thunar_renamer_model_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Allocates a new <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> instance.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-new.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-get-mode"></a><h3>thunar_renamer_model_get_mode ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="returnvalue">ThunarRenamerMode</span></a>
+thunar_renamer_model_get_mode (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>);</pre>
+<p>Returns the <a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="type">ThunarRenamerMode</span></a> currently set
+for <em class="parameter"><code>renamer_model</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-get-mode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-renamer-model-get-mode.returns"></a><h4>Returns</h4>
+<p> the mode for <em class="parameter"><code>renamer_model</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-get-renamer"></a><h3>thunar_renamer_model_get_renamer ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="returnvalue">ThunarxRenamer</span></a> *
+thunar_renamer_model_get_renamer (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>);</pre>
+<p>Returns the <a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> currently used by
+the specified <em class="parameter"><code>renamer_model</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-get-renamer.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-renamer-model-get-renamer.returns"></a><h4>Returns</h4>
+<p> the current renamer for <em class="parameter"><code>renamer_model</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-set-renamer"></a><h3>thunar_renamer_model_set_renamer ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_set_renamer (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>,
+                                  <em class="parameter"><code><a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>);</pre>
+<p>Sets the renamer for <em class="parameter"><code>renamer_model</code></em>
+ to the
+specified <em class="parameter"><code>renamer</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-set-renamer.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-insert"></a><h3>thunar_renamer_model_insert ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_insert (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>,
+                             <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                             <em class="parameter"><code><span class="type">gint</span> position</code></em>);</pre>
+<p>Inserts the <em class="parameter"><code>file</code></em>
+ to the <em class="parameter"><code>renamer_model</code></em>
+ at <em class="parameter"><code>position</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-insert.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> to add to <em class="parameter"><code>renamer_model</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>position</p></td>
+<td class="parameter_description"><p>the position in the model. 0 is prepend, -1 is append.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-reorder"></a><h3>thunar_renamer_model_reorder ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_reorder (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>,
+                              <em class="parameter"><code><span class="type">GList</span> *tree_paths</code></em>,
+                              <em class="parameter"><code><span class="type">gint</span> position</code></em>);</pre>
+<p>Reorder the treepaths in the model to their new postion in the list
+and sends an update to the treeview to reorder the list.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-reorder.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tree_paths</p></td>
+<td class="parameter_description"><p>the list of <span class="type">GtkTreePath</span> that need to be moved to
+<em class="parameter"><code>position</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>position</p></td>
+<td class="parameter_description"><p>the new position for the list of paths.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-sort"></a><h3>thunar_renamer_model_sort ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_sort (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>,
+                           <em class="parameter"><code><span class="type">GtkSortType</span> sort_order</code></em>);</pre>
+<p>Sort the entire model by the old filename.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-sort.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sort_order</p></td>
+<td class="parameter_description"><p>sort direction of the model.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-clear"></a><h3>thunar_renamer_model_clear ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_clear (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>);</pre>
+<p>Clears the <em class="parameter"><code>renamer_model</code></em>
+ by removing all files
+from it.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-clear.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-remove"></a><h3>thunar_renamer_model_remove ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_renamer_model_remove (<em class="parameter"><code><a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> *renamer_model</code></em>,
+                             <em class="parameter"><code><span class="type">GtkTreePath</span> *path</code></em>);</pre>
+<p>Removes the item identified by the given <em class="parameter"><code>path</code></em>
+ from
+the <em class="parameter"><code>renamer_model</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-remove.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer_model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkTreePath</span> in the <em class="parameter"><code>renamer_model</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-renamer-model-append"></a><h3>thunar_renamer_model_append()</h3>
+<pre class="programlisting">#define thunar_renamer_model_append(model,file) thunar_renamer_model_insert (model, file, -1)
+</pre>
+<p>Appends the <em class="parameter"><code>file</code></em>
+ to the <em class="parameter"><code>renamer_model</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-renamer-model-append.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>model</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarRenamerModelColumn"></a><h3>enum ThunarRenamerModelColumn</h3>
+<p>The column ids provided by <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> instances.</p>
+<div class="refsect3">
+<a name="ThunarRenamerModelColumn.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-COLUMN-CONFLICT:CAPS"></a>THUNAR_RENAMER_MODEL_COLUMN_CONFLICT</p></td>
+<td class="enum_member_description">
+<p>the column which tells whether there's a name conflict.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-COLUMN-CONFLICT-WEIGHT:CAPS"></a>THUNAR_RENAMER_MODEL_COLUMN_CONFLICT_WEIGHT</p></td>
+<td class="enum_member_description">
+<p>Use to set the text to bold in case of a conflict</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-COLUMN-FILE:CAPS"></a>THUNAR_RENAMER_MODEL_COLUMN_FILE</p></td>
+<td class="enum_member_description">
+<p>the column with the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-COLUMN-NEWNAME:CAPS"></a>THUNAR_RENAMER_MODEL_COLUMN_NEWNAME</p></td>
+<td class="enum_member_description">
+<p>the column with the new name.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-COLUMN-OLDNAME:CAPS"></a>THUNAR_RENAMER_MODEL_COLUMN_OLDNAME</p></td>
+<td class="enum_member_description">
+<p>the column with the old name.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-RENAMER-MODEL-N-COLUMNS:CAPS"></a>THUNAR_RENAMER_MODEL_N_COLUMNS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarRenamerModel.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarRenamerModel--can-rename"></a><h3>The <code class="literal">“can-rename”</code> property</h3>
+<pre class="programlisting">  “can-rename”               <span class="type">gboolean</span></pre>
+<p>Whether the contents of the <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>
+can be renamed. This is <code class="literal">TRUE</code> if atleast one file
+is in the model and no conflict is present.</p>
+<p>Owner: ThunarRenamerModel</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarRenamerModel--frozen"></a><h3>The <code class="literal">“frozen”</code> property</h3>
+<pre class="programlisting">  “frozen”                   <span class="type">gboolean</span></pre>
+<p>If a <a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a> is frozen, no updates will
+be processed for the model and the "can-rename"
+property will always be <code class="literal">FALSE</code>.</p>
+<p>Owner: ThunarRenamerModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarRenamerModel--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
+<pre class="programlisting">  “mode”                     <a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="type">ThunarRenamerMode</span></a></pre>
+<p>The <a class="link" href="thunar-thunar-enum-types.html#ThunarRenamerMode" title="enum ThunarRenamerMode"><span class="type">ThunarRenamerMode</span></a> used by this
+<a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p>
+<p>Owner: ThunarRenamerModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_RENAMER_MODE_NAME</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarRenamerModel--renamer"></a><h3>The <code class="literal">“renamer”</code> property</h3>
+<pre class="programlisting">  “renamer”                  <a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> *</pre>
+<p>The <a href="/usr/share/gtk-doc/html/thunarx/ThunarxRenamer.html#ThunarxRenamer-struct"><span class="type">ThunarxRenamer</span></a> that should be used by this
+<a class="link" href="ThunarRenamerModel.html" title="ThunarRenamerModel"><span class="type">ThunarRenamerModel</span></a>.</p>
+<p>Owner: ThunarRenamerModel</p>
+<p>Flags: Read / Write</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

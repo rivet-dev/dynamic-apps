@@ -1,0 +1,1088 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarActionManager: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch16.html" title="Menu Entries">
+<link rel="prev" href="ThunarMenu.html" title="ThunarMenu">
+<link rel="next" href="ch17.html" title="Image/Icon">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarActionManager.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarActionManager.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarActionManager.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarActionManager.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch16.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarMenu.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch17.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarActionManager"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarActionManager.top_of_page"></a>ThunarActionManager</span></h2>
+<p>ThunarActionManager — Manages creation and execution of menu-item</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarActionManager.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-activate-selected-files" title="thunar_action_manager_activate_selected_files ()">thunar_action_manager_activate_selected_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-open-selected-folders" title="thunar_action_manager_open_selected_folders ()">thunar_action_manager_open_selected_folders</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-set-widget" title="thunar_action_manager_set_widget ()">thunar_action_manager_set_widget</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-get-widget" title="thunar_action_manager_get_widget ()">thunar_action_manager_get_widget</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-append-accelerators" title="thunar_action_manager_append_accelerators ()">thunar_action_manager_append_accelerators</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-append-menu-item" title="thunar_action_manager_append_menu_item ()">thunar_action_manager_append_menu_item</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-append-open-section" title="thunar_action_manager_append_open_section ()">thunar_action_manager_append_open_section</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-append-custom-actions" title="thunar_action_manager_append_custom_actions ()">thunar_action_manager_append_custom_actions</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-check-uca-key-activation" title="thunar_action_manager_check_uca_key_activation ()">thunar_action_manager_check_uca_key_activation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-mount" title="thunar_action_manager_action_mount ()">thunar_action_manager_action_mount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-unmount" title="thunar_action_manager_action_unmount ()">thunar_action_manager_action_unmount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-eject" title="thunar_action_manager_action_eject ()">thunar_action_manager_action_eject</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-set-selection" title="thunar_action_manager_set_selection ()">thunar_action_manager_set_selection</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-empty-trash" title="thunar_action_manager_action_empty_trash ()">thunar_action_manager_action_empty_trash</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-restore" title="thunar_action_manager_action_restore ()">thunar_action_manager_action_restore</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-action-restore-and-show" title="thunar_action_manager_action_restore_and_show ()">thunar_action_manager_action_restore_and_show</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-set-searching" title="thunar_action_manager_set_searching ()">thunar_action_manager_set_searching</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarActionManager.html#thunar-action-manager-get-action-entries" title="thunar_action_manager_get_action_entries ()">thunar_action_manager_get_action_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gpointer</span></td>
+<td class="property_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager--selected-device" title="The “selected-device” property">selected-device</a></td>
+<td class="property_flags">Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gpointer</span></td>
+<td class="property_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager--selected-location" title="The “selected-location” property">selected-location</a></td>
+<td class="property_flags">Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">GtkWidget</span> *</td>
+<td class="property_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager--widget" title="The “widget” property">widget</a></td>
+<td class="property_flags">Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager-device-operation-finished" title="The “device-operation-finished” signal">device-operation-finished</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager-device-operation-started" title="The “device-operation-started” signal">device-operation-started</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarActionManager.html#ThunarActionManager-new-files-created" title="The “new-files-created” signal">new-files-created</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarActionManager.html#ThunarActionManagerAction" title="enum ThunarActionManagerAction">ThunarActionManagerAction</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarActionManager.html#ThunarActionManagerFolderOpenAction" title="enum ThunarActionManagerFolderOpenAction">ThunarActionManagerFolderOpenAction</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry">XfceGtkActionEntry</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarActionManager
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.description"></a><h2>Description</h2>
+<p>The <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> class manages the creation and execution of menu-item which are used by multiple menus.
+The management is done in a central way to prevent code duplication on various places.
+XfceGtkActionEntry is used in order to define a list of the managed items and ease the setup of single items.</p>
+<p><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> implements the <a class="link" href="ThunarNavigator.html" title="ThunarNavigator"><span class="type">ThunarNavigator</span></a> interface in order to use the "open in new tab" and "change directory" service.
+It as well tracks the current directory via <a class="link" href="ThunarNavigator.html" title="ThunarNavigator"><span class="type">ThunarNavigator</span></a>.</p>
+<p><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> implements the <a class="link" href="ThunarComponent.html" title="ThunarComponent"><span class="type">ThunarComponent</span></a> interface in order to track the currently selected files.
+Based on to the current selection (and some other criteria), some menu items will not be shown, or will be insensitive.</p>
+<p>Files which are opened via <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> are poked first in order to e.g do missing mount operations.</p>
+<p>As well menu-item related services, like activation of selected files and opening tabs/new windows,
+are provided by <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>.</p>
+<p>It is required to keep an instance of <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> open, in order to listen to accellerators which target
+menu-items managed by <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>.
+Typically a single instance of <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> is provided by each <a class="link" href="ThunarWindow.html" title="ThunarWindow"><span class="type">ThunarWindow</span></a>.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-action-manager-activate-selected-files"></a><h3>thunar_action_manager_activate_selected_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_activate_selected_files
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><a class="link" href="ThunarActionManager.html#ThunarActionManagerFolderOpenAction" title="enum ThunarActionManagerFolderOpenAction"><span class="type">ThunarActionManagerFolderOpenAction</span></a> action</code></em>,
+                                <em class="parameter"><code><span class="type">GAppInfo</span> *app_info</code></em>);</pre>
+<p>Will try to open all selected files with the provided <span class="type">GAppInfo</span></p>
+<div class="refsect3">
+<a name="thunar-action-manager-activate-selected-files.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>action</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarActionManager.html#ThunarActionManagerFolderOpenAction" title="enum ThunarActionManagerFolderOpenAction"><span class="type">ThunarActionManagerFolderOpenAction</span></a> to use, if there are folders among the selected files</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>app_info</p></td>
+<td class="parameter_description"><p>a <span class="type">GAppInfo</span> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-open-selected-folders"></a><h3>thunar_action_manager_open_selected_folders ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_open_selected_folders
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> open_in_tabs</code></em>);</pre>
+<p>Will open each selected folder in a new tab/window</p>
+<div class="refsect3">
+<a name="thunar-action-manager-open-selected-folders.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>open_in_tabs</p></td>
+<td class="parameter_description"><p>TRUE to open each folder in a new tab, FALSE to open each folder in a new window</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-set-widget"></a><h3>thunar_action_manager_set_widget ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_set_widget (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                  <em class="parameter"><code><span class="type">GtkWidget</span> *widget</code></em>);</pre>
+<p>Associates <em class="parameter"><code>action_mgr</code></em>
+ with <em class="parameter"><code>widget</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-action-manager-set-widget.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>widget</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkWidget</span> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-get-widget"></a><h3>thunar_action_manager_get_widget ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_action_manager_get_widget (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+<p>Will return the parent widget of this <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a></p>
+<div class="refsect3">
+<a name="thunar-action-manager-get-widget.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-action-manager-get-widget.returns"></a><h4>Returns</h4>
+<p>the parent widget of this <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-append-accelerators"></a><h3>thunar_action_manager_append_accelerators ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_append_accelerators
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">GtkAccelGroup</span> *accel_group</code></em>);</pre>
+<p>Connects all accelerators and corresponding default keys of this widget to the global accelerator list</p>
+<div class="refsect3">
+<a name="thunar-action-manager-append-accelerators.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_group</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkAccelGroup</span> to be used used for new menu items</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-append-menu-item"></a><h3>thunar_action_manager_append_menu_item ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_action_manager_append_menu_item
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">GtkMenuShell</span> *menu</code></em>,
+                                <em class="parameter"><code><a class="link" href="ThunarActionManager.html#ThunarActionManagerAction" title="enum ThunarActionManagerAction"><span class="type">ThunarActionManagerAction</span></a> action</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> force</code></em>);</pre>
+<p>Adds the selected, widget specific <span class="type">GtkMenuItem</span> to the passed <span class="type">GtkMenuShell</span></p>
+<div class="refsect3">
+<a name="thunar-action-manager-append-menu-item.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>Instance of a  <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p><span class="type">GtkMenuShell</span> to which the item should be added</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>action</p></td>
+<td class="parameter_description"><p><a class="link" href="ThunarActionManager.html#ThunarActionManagerAction" title="enum ThunarActionManagerAction"><span class="type">ThunarActionManagerAction</span></a> to select which item should be added</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>force</p></td>
+<td class="parameter_description"><p>force to generate the item. If it cannot be used, it will be shown as insensitive</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-action-manager-append-menu-item.returns"></a><h4>Returns</h4>
+<p>The added <span class="type">GtkMenuItem</span>. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-append-open-section"></a><h3>thunar_action_manager_append_open_section ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_append_open_section
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">GtkMenuShell</span> *menu</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> support_tabs</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> support_change_directory</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> force</code></em>);</pre>
+<p>Will append the section "open/open in new window/open in new tab/open with" to the provided <span class="type">GtkMenuShell</span></p>
+<div class="refsect3">
+<a name="thunar-action-manager-append-open-section.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p><span class="type">GtkMenuShell</span> on which the open section should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>support_tabs</p></td>
+<td class="parameter_description"><p>Set to TRUE if 'open in new tab' should be shown</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>support_change_directory</p></td>
+<td class="parameter_description"><p>Set to TRUE if 'open' should be shown</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>force</p></td>
+<td class="parameter_description"><p>Append the open section, even if the selected folder is the current folder</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-action-manager-append-open-section.returns"></a><h4>Returns</h4>
+<p> TRUE if the section was added</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-append-custom-actions"></a><h3>thunar_action_manager_append_custom_actions ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_append_custom_actions
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">GtkMenuShell</span> *menu</code></em>);</pre>
+<p>Will append all custom actions which match the file-type to the provided <span class="type">GtkMenuShell</span></p>
+<div class="refsect3">
+<a name="thunar-action-manager-append-custom-actions.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p><span class="type">GtkMenuShell</span> on which the custom actions should be appended</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-action-manager-append-custom-actions.returns"></a><h4>Returns</h4>
+<p> TRUE if any custom action was added</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-check-uca-key-activation"></a><h3>thunar_action_manager_check_uca_key_activation ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_check_uca_key_activation
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                <em class="parameter"><code><span class="type">GdkEventKey</span> *key_event</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-mount"></a><h3>thunar_action_manager_action_mount ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_action_mount (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+<p>Will mount the selected device, if any. The related folder will not be opened.</p>
+<div class="refsect3">
+<a name="thunar-action-manager-action-mount.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-unmount"></a><h3>thunar_action_manager_action_unmount ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_action_unmount (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-eject"></a><h3>thunar_action_manager_action_eject ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_action_eject (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+<p>Will unmount the selected device, if any</p>
+<div class="refsect3">
+<a name="thunar-action-manager-action-eject.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-set-selection"></a><h3>thunar_action_manager_set_selection ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_set_selection (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                     <em class="parameter"><code><span class="type">GList</span> *selected_thunar_files</code></em>,
+                                     <em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *selected_device</code></em>,
+                                     <em class="parameter"><code><span class="type">GFile</span> *selected_location</code></em>);</pre>
+<p>Will set the related items as "selection" and clear any previous selection.
+Note that always only one of the 3 "selected" arguments should be set.</p>
+<div class="refsect3">
+<a name="thunar-action-manager-set-selection.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>selected_thunar_files</p></td>
+<td class="parameter_description"><p><span class="type">GList</span> of selected <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> instances, or NULL</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>selected_device</p></td>
+<td class="parameter_description"><p>selected <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> or NULL</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>selected_location</p></td>
+<td class="parameter_description"><p>selected <span class="type">GFile</span> (possibly only holds an URI), or NULL</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-empty-trash"></a><h3>thunar_action_manager_action_empty_trash ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_action_empty_trash
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-restore"></a><h3>thunar_action_manager_action_restore ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_action_restore (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-action-restore-and-show"></a><h3>thunar_action_manager_action_restore_and_show ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_action_manager_action_restore_and_show
+                               (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-set-searching"></a><h3>thunar_action_manager_set_searching ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_action_manager_set_searching (<em class="parameter"><code><a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr</code></em>,
+                                     <em class="parameter"><code><span class="type">gboolean</span> b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-action-manager-get-action-entries"></a><h3>thunar_action_manager_get_action_entries ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+thunar_action_manager_get_action_entries
+                               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarActionManagerAction"></a><h3>enum ThunarActionManagerAction</h3>
+<div class="refsect3">
+<a name="ThunarActionManagerAction.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-OPEN:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_OPEN</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-EXECUTE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_EXECUTE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-OPEN-IN-TAB:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_OPEN_IN_TAB</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-OPEN-IN-WINDOW:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_OPEN_IN_WINDOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-OPEN-LOCATION:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_OPEN_LOCATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-OPEN-WITH-OTHER:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_OPEN_WITH_OTHER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-SET-DEFAULT-APP:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_SET_DEFAULT_APP</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-SENDTO-MENU:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_SENDTO_MENU</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-SENDTO-SHORTCUTS:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_SENDTO_SHORTCUTS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-SENDTO-DESKTOP:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_SENDTO_DESKTOP</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-PROPERTIES:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_PROPERTIES</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-MAKE-LINK:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_MAKE_LINK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-DUPLICATE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_DUPLICATE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-RENAME:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_RENAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-EMPTY-TRASH:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_EMPTY_TRASH</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-REMOVE-FROM-RECENT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_REMOVE_FROM_RECENT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-CREATE-FOLDER:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_CREATE_FOLDER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-CREATE-DOCUMENT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_CREATE_DOCUMENT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-RESTORE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_RESTORE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-RESTORE-SHOW:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_RESTORE_SHOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-MOVE-TO-TRASH:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_MOVE_TO_TRASH</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-DELETE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_DELETE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-TRASH-DELETE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_TRASH_DELETE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-PASTE:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_PASTE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-PASTE-INTO-FOLDER:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_PASTE_INTO_FOLDER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-COPY:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_COPY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-CUT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_CUT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-MOUNT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_MOUNT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-UNMOUNT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_UNMOUNT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-EJECT:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_EJECT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-ACTION-EDIT-LAUNCHER:CAPS"></a>THUNAR_ACTION_MANAGER_ACTION_EDIT_LAUNCHER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-N-ACTIONS:CAPS"></a>THUNAR_ACTION_MANAGER_N_ACTIONS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarActionManagerFolderOpenAction"></a><h3>enum ThunarActionManagerFolderOpenAction</h3>
+<div class="refsect3">
+<a name="ThunarActionManagerFolderOpenAction.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-CHANGE-DIRECTORY:CAPS"></a>THUNAR_ACTION_MANAGER_CHANGE_DIRECTORY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-OPEN-AS-NEW-TAB:CAPS"></a>THUNAR_ACTION_MANAGER_OPEN_AS_NEW_TAB</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-OPEN-AS-NEW-WINDOW:CAPS"></a>THUNAR_ACTION_MANAGER_OPEN_AS_NEW_WINDOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-ACTION-MANAGER-NO-ACTION:CAPS"></a>THUNAR_ACTION_MANAGER_NO_ACTION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="XfceGtkActionEntry"></a><h3>XfceGtkActionEntry</h3>
+<pre class="programlisting">typedef struct _XfceGtkActionEntry XfceGtkActionEntry;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarActionManager--selected-device"></a><h3>The <code class="literal">“selected-device”</code> property</h3>
+<pre class="programlisting">  “selected-device”          <span class="type">gpointer</span></pre>
+<p>selected-device.</p>
+<p>Owner: ThunarActionManager</p>
+<p>Flags: Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarActionManager--selected-location"></a><h3>The <code class="literal">“selected-location”</code> property</h3>
+<pre class="programlisting">  “selected-location”        <span class="type">gpointer</span></pre>
+<p>selected-location.</p>
+<p>Owner: ThunarActionManager</p>
+<p>Flags: Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarActionManager--widget"></a><h3>The <code class="literal">“widget”</code> property</h3>
+<pre class="programlisting">  “widget”                   <span class="type">GtkWidget</span> *</pre>
+<p>The <span class="type">GtkWidget</span> with which this action manager is associated.</p>
+<p>Owner: ThunarActionManager</p>
+<p>Flags: Write</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarActionManager.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarActionManager-device-operation-finished"></a><h3>The <code class="literal">“device-operation-finished”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr,
+               <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a>        *device,
+               <span class="type">gpointer</span>             user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>action_mgr</code></em>
+ right after the device operation (mount/unmount/eject) is finished</p>
+<div class="refsect3">
+<a name="ThunarActionManager-device-operation-finished.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> on which the operation was finished</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarActionManager-device-operation-started"></a><h3>The <code class="literal">“device-operation-started”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr,
+               <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a>        *device,
+               <span class="type">gpointer</span>             user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>action_mgr</code></em>
+ right after the device operation (mount/unmount/eject) is started</p>
+<div class="refsect3">
+<a name="ThunarActionManager-device-operation-started.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> on which the operation was finished</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarActionManager-new-files-created"></a><h3>The <code class="literal">“new-files-created”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a> *action_mgr,
+               <span class="type">gpointer</span>             files,
+               <span class="type">gpointer</span>             user_data)</pre>
+<p>This signal is emitted by the <em class="parameter"><code>action_mgr</code></em>
+ whenever new files were created (e.g. via "rename", "create" or "paste")</p>
+<div class="refsect3">
+<a name="ThunarActionManager-new-files-created.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>action_mgr</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarActionManager.html" title="ThunarActionManager"><span class="type">ThunarActionManager</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>a GList of <span class="type">ThunarFiles</span> which were created</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

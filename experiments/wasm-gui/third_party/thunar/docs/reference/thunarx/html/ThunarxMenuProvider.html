@@ -1,0 +1,422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarxMenuProvider: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-providers.html" title="Part V. Providers">
+<link rel="prev" href="thunarx-providers.html" title="Part V. Providers">
+<link rel="next" href="ThunarxPropertyPageProvider.html" title="ThunarxPropertyPageProvider">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuProvider.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuProvider.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_prerequisites">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuProvider.prerequisites" class="shortcut">Prerequisites</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-providers.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="thunarx-providers.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarxPropertyPageProvider.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarxMenuProvider"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarxMenuProvider.top_of_page"></a>ThunarxMenuProvider</span></h2>
+<p>ThunarxMenuProvider — The interface to extensions that provide additional menu items</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-file-menu-items" title="thunarx_menu_provider_get_file_menu_items ()">thunarx_menu_provider_get_file_menu_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-folder-menu-items" title="thunarx_menu_provider_get_folder_menu_items ()">thunarx_menu_provider_get_folder_menu_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-dnd-menu-items" title="thunarx_menu_provider_get_dnd_menu_items ()">thunarx_menu_provider_get_dnd_menu_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxMenuProvider.html#ThunarxMenuProviderIface" title="struct ThunarxMenuProviderIface">ThunarxMenuProviderIface</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarxMenuProvider.html#ThunarxMenuProvider-struct" title="ThunarxMenuProvider">ThunarxMenuProvider</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarxMenuProvider
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.prerequisites"></a><h2>Prerequisites</h2>
+<p>
+ThunarxMenuProvider requires
+ GObject.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;thunarx/thunarx.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.description"></a><h2>Description</h2>
+<p>The <span class="interface">ThunarxMenuProvider</span> interface is implemented by
+extensions which provide additional menu items that should be displayed in
+the file or folder context menus for certain types of files.</p>
+<p>Extensions that implement this interface should do its best to respond as
+fast as possible to method invokations by the file manager. That said, when
+the file manager calls the <a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-file-menu-items" title="thunarx_menu_provider_get_file_menu_items ()"><code class="function">thunarx_menu_provider_get_file_menu_items()</code></a> or the
+<a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-folder-menu-items" title="thunarx_menu_provider_get_folder_menu_items ()"><code class="function">thunarx_menu_provider_get_folder_menu_items()</code></a> method, the implementation in the
+extension should use only the <a class="link" href="ThunarxFileInfo.html#thunarx-file-info-has-mime-type" title="thunarx_file_info_has_mime_type ()"><code class="function">thunarx_file_info_has_mime_type()</code></a> and
+<a class="link" href="ThunarxFileInfo.html#thunarx-file-info-is-directory" title="thunarx_file_info_is_directory ()"><code class="function">thunarx_file_info_is_directory()</code></a> methods to determine the menu items that should
+be added to the file manager's context menu. Don't perform any complicated I/O
+to determine the menu items list, as that would block the whole file manager process.</p>
+<p>The name of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem">ThunarxMenuItem</a>s returned from the
+<a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-file-menu-items" title="thunarx_menu_provider_get_file_menu_items ()"><code class="function">thunarx_menu_provider_get_file_menu_items()</code></a> and <a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-folder-menu-items" title="thunarx_menu_provider_get_folder_menu_items ()"><code class="function">thunarx_menu_provider_get_folder_menu_items()</code></a>
+methods must be namespaced with the module to avoid collision with internal file manager
+menu items and menu items provided by other extensions. For example, the menu item provided
+by the <code class="systemitem">ThunarOpenTerminal</code> extension should be
+called <code class="literal">ThunarOpenTerminal::open-terminal</code>.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunarx-menu-provider-get-file-menu-items"></a><h3>thunarx_menu_provider_get_file_menu_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunarx_menu_provider_get_file_menu_items
+                               (<em class="parameter"><code><a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a> *provider</code></em>,
+                                <em class="parameter"><code><span class="type">GtkWidget</span> *window</code></em>,
+                                <em class="parameter"><code><span class="type">GList</span> *files</code></em>);</pre>
+<p>Returns the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s that <em class="parameter"><code>provider</code></em>
+ has to offer for
+<em class="parameter"><code>files</code></em>
+.</p>
+<p>As a special note, this method automatically takes a reference on the
+<em class="parameter"><code>provider</code></em>
+ for every <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> object returned from the real implementation
+of this method in <em class="parameter"><code>provider</code></em>
+. This is to make sure that the extension stays
+in memory for at least the time that the menu items are used. If the extension
+wants to stay in memory for a longer time, it'll need to take care of this
+itself (e.g. by taking an additional reference on the <em class="parameter"><code>provider</code></em>
+ itself,
+that's released at a later time).</p>
+<p>The caller is responsible to free the returned list of menu items using
+something like this when no longer needed:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-file-menu-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkWindow</span> within which the menu items will be used.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>the list of <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a>s
+to which the menu items will be applied. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxFileInfo]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-file-menu-items.returns"></a><h4>Returns</h4>
+<p>the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s
+that <em class="parameter"><code>provider</code></em>
+has to offer for <em class="parameter"><code>files</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-provider-get-folder-menu-items"></a><h3>thunarx_menu_provider_get_folder_menu_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunarx_menu_provider_get_folder_menu_items
+                               (<em class="parameter"><code><a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a> *provider</code></em>,
+                                <em class="parameter"><code><span class="type">GtkWidget</span> *window</code></em>,
+                                <em class="parameter"><code><a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a> *folder</code></em>);</pre>
+<p>Returns the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s that <em class="parameter"><code>provider</code></em>
+ has to offer for
+<em class="parameter"><code>folder</code></em>
+.</p>
+<p>As a special note, this method automatically takes a reference on the
+<em class="parameter"><code>provider</code></em>
+ for every <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> object returned from the real implementation
+of this method in <em class="parameter"><code>provider</code></em>
+. This is to make sure that the extension stays
+in memory for at least the time that the menu items are used. If the extension
+wants to stay in memory for a longer time, it'll need to take care of this
+itself (e.g. by taking an additional reference on the <em class="parameter"><code>provider</code></em>
+ itself,
+that's released at a later time).</p>
+<p>The caller is responsible to free the returned list of menu items using
+something like this when no longer needed:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-folder-menu-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkWindow</span> within which the menu items will be used.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>folder</p></td>
+<td class="parameter_description"><p>the folder to which the menu items should will be applied.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-folder-menu-items.returns"></a><h4>Returns</h4>
+<p>the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s
+that <em class="parameter"><code>provider</code></em>
+has to offer for <em class="parameter"><code>folder</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-provider-get-dnd-menu-items"></a><h3>thunarx_menu_provider_get_dnd_menu_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunarx_menu_provider_get_dnd_menu_items
+                               (<em class="parameter"><code><a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a> *provider</code></em>,
+                                <em class="parameter"><code><span class="type">GtkWidget</span> *window</code></em>,
+                                <em class="parameter"><code><a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a> *folder</code></em>,
+                                <em class="parameter"><code><span class="type">GList</span> *files</code></em>);</pre>
+<p>Returns the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s that <em class="parameter"><code>provider</code></em>
+ has to offer for
+dropping the <em class="parameter"><code>files</code></em>
+ into the <em class="parameter"><code>folder</code></em>
+. For example, the thunar-archive-plugin
+provides <span class="guilabel">Extract Here</span> menu items when dropping archive
+files into a folder that is writable by the user.</p>
+<p>As a special note, this method automatically takes a reference on the
+<em class="parameter"><code>provider</code></em>
+ for every <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> object returned from the real implementation
+of this method in <em class="parameter"><code>provider</code></em>
+. This is to make sure that the extension stays
+in memory for at least the time that the menu items are used. If the extension
+wants to stay in memory for a longer time, it'll need to take care of this
+itself (e.g. by taking an additional reference on the <em class="parameter"><code>provider</code></em>
+ itself,
+that's released at a later time).</p>
+<p>The caller is responsible to free the returned list of menu items using
+something like this when no longer needed:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-dnd-menu-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkWindow</span> within which the menu items will be used.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>folder</p></td>
+<td class="parameter_description"><p>the folder into which the <em class="parameter"><code>files</code></em>
+are being dropped</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>the list of <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a>s
+for the files that are being dropped to <em class="parameter"><code>folder</code></em>
+in <em class="parameter"><code>window</code></em>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxFileInfo]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-menu-provider-get-dnd-menu-items.returns"></a><h4>Returns</h4>
+<p>the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s
+that <em class="parameter"><code>provider</code></em>
+has to offer for dropping <em class="parameter"><code>files</code></em>
+to <em class="parameter"><code>folder</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></p>
+</div>
+<p class="since">Since: 0.4.1</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuProvider.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarxMenuProviderIface"></a><h3>struct ThunarxMenuProviderIface</h3>
+<pre class="programlisting">struct ThunarxMenuProviderIface {
+  GList *(*get_file_menu_items)    (ThunarxMenuProvider *provider,
+                                    GtkWidget           *window,
+                                    GList               *files);
+
+  GList *(*get_folder_menu_items)  (ThunarxMenuProvider *provider,
+                                    GtkWidget           *window,
+                                    ThunarxFileInfo     *folder);
+
+  GList *(*get_dnd_menu_items)     (ThunarxMenuProvider *provider,
+                                    GtkWidget           *window,
+                                    ThunarxFileInfo     *folder,
+                                    GList               *files);
+};
+</pre>
+<p>Interface with virtual methods implemented by extensions that provide
+additional menu items for the file manager's context menus.
+Providers don't need to implement all of the virtual methods listed in
+the interface.</p>
+<div class="refsect3">
+<a name="ThunarxMenuProviderIface.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxMenuProviderIface.get-file-menu-items"></a>get_file_menu_items</code></em> ()</p></td>
+<td class="struct_member_description"><p>See <a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-file-menu-items" title="thunarx_menu_provider_get_file_menu_items ()"><code class="function">thunarx_menu_provider_get_file_menu_items()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxMenuProviderIface.get-folder-menu-items"></a>get_folder_menu_items</code></em> ()</p></td>
+<td class="struct_member_description"><p>See <a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-folder-menu-items" title="thunarx_menu_provider_get_folder_menu_items ()"><code class="function">thunarx_menu_provider_get_folder_menu_items()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxMenuProviderIface.get-dnd-menu-items"></a>get_dnd_menu_items</code></em> ()</p></td>
+<td class="struct_member_description"><p>See <a class="link" href="ThunarxMenuProvider.html#thunarx-menu-provider-get-dnd-menu-items" title="thunarx_menu_provider_get_dnd_menu_items ()"><code class="function">thunarx_menu_provider_get_dnd_menu_items()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuProvider-struct"></a><h3>ThunarxMenuProvider</h3>
+<pre class="programlisting">typedef struct _ThunarxMenuProvider ThunarxMenuProvider;</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

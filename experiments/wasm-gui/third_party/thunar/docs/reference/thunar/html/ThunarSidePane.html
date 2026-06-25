@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarSidePane: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch08.html" title="Side Pane">
+<link rel="prev" href="ch08.html" title="Side Pane">
+<link rel="next" href="ThunarShortcutsPane.html" title="ThunarShortcutsPane">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarSidePane.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarSidePane.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarSidePane.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch08.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch08.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarShortcutsPane.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarSidePane"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarSidePane.top_of_page"></a>ThunarSidePane</span></h2>
+<p>ThunarSidePane</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarSidePane.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarSidePane.html#thunar-side-pane-get-show-hidden" title="thunar_side_pane_get_show_hidden ()">thunar_side_pane_get_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarSidePane.html#thunar-side-pane-set-show-hidden" title="thunar_side_pane_set_show_hidden ()">thunar_side_pane_set_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarSidePane.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarSidePane.html#ThunarSidePane--show-hidden" title="The “show-hidden” property">show-hidden</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarSidePane.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarSidePane
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarSidePane.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarSidePane.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-side-pane-get-show-hidden"></a><h3>thunar_side_pane_get_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_side_pane_get_show_hidden (<em class="parameter"><code><a class="link" href="ThunarSidePane.html" title="ThunarSidePane"><span class="type">ThunarSidePane</span></a> *side_pane</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if hidden folders are shown
+in the <em class="parameter"><code>side_pane</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-side-pane-get-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>side_pane</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarSidePane.html" title="ThunarSidePane"><span class="type">ThunarSidePane</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-side-pane-get-show-hidden.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if hidden folders are
+shown in the <em class="parameter"><code>side_pane</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-side-pane-set-show-hidden"></a><h3>thunar_side_pane_set_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_side_pane_set_show_hidden (<em class="parameter"><code><a class="link" href="ThunarSidePane.html" title="ThunarSidePane"><span class="type">ThunarSidePane</span></a> *side_pane</code></em>,
+                                  <em class="parameter"><code><span class="type">gboolean</span> show_hidden</code></em>);</pre>
+<p>If <em class="parameter"><code>show_hidden</code></em>
+ is <code class="literal">TRUE</code>, hidden folders will be
+shown in the <em class="parameter"><code>side_pane</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-side-pane-set-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>side_pane</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarSidePane.html" title="ThunarSidePane"><span class="type">ThunarSidePane</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>show_hidden</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to display hidden folders.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarSidePane.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarSidePane--show-hidden"></a><h3>The <code class="literal">“show-hidden”</code> property</h3>
+<pre class="programlisting">  “show-hidden”              <span class="type">gboolean</span></pre>
+<p>Tells whether hidden folders will be displayed in
+the <a class="link" href="ThunarSidePane.html" title="ThunarSidePane"><span class="type">ThunarSidePane</span></a> instance.</p>
+<p>Owner: ThunarSidePane</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

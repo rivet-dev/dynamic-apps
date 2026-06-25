@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarLocationButton: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch09.html" title="Location Bar">
+<link rel="prev" href="ThunarLocationButtons.html" title="ThunarLocationButtons">
+<link rel="next" href="ThunarLocationEntry.html" title="ThunarLocationEntry">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarLocationButton.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarLocationButton.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarLocationButton.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarLocationButton.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch09.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarLocationButtons.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarLocationEntry.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarLocationButton"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarLocationButton.top_of_page"></a>ThunarLocationButton</span></h2>
+<p>ThunarLocationButton</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarLocationButton.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarLocationButton.html#thunar-location-button-new" title="thunar_location_button_new ()">thunar_location_button_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarLocationButton.html#thunar-location-button-get-file" title="thunar_location_button_get_file ()">thunar_location_button_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarLocationButton.html#thunar-location-button-set-file" title="thunar_location_button_set_file ()">thunar_location_button_set_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarLocationButton.html#ThunarLocationButton--file" title="The “file” property">file</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarLocationButton.html#ThunarLocationButton-gone" title="The “gone” signal">gone</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarLocationButton.html#ThunarLocationButton-location-button-clicked" title="The “location-button-clicked” signal">location-button-clicked</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkBin
+                    <span class="lineart">╰──</span> GtkButton
+                        <span class="lineart">╰──</span> GtkToggleButton
+                            <span class="lineart">╰──</span> ThunarLocationButton
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-location-button-new"></a><h3>thunar_location_button_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_location_button_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Allocates a new <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a> instance.</p>
+<div class="refsect3">
+<a name="thunar-location-button-new.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-location-button-get-file"></a><h3>thunar_location_button_get_file ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_location_button_get_file (<em class="parameter"><code><a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a> *location_button</code></em>);</pre>
+<p>Returns the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>location_button</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-location-button-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>location_button</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-location-button-get-file.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> for <em class="parameter"><code>location_button</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-location-button-set-file"></a><h3>thunar_location_button_set_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_location_button_set_file (<em class="parameter"><code><a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a> *location_button</code></em>,
+                                 <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>);</pre>
+<p>Sets the file for <em class="parameter"><code>location_button</code></em>
+ to <em class="parameter"><code>file</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-location-button-set-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>location_button</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarLocationButton--file"></a><h3>The <code class="literal">“file”</code> property</h3>
+<pre class="programlisting">  “file”                     <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *</pre>
+<p>The <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> represented by this location button.</p>
+<p>Owner: ThunarLocationButton</p>
+<p>Flags: Read / Write</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarLocationButton.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarLocationButton-gone"></a><h3>The <code class="literal">“gone”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a> *location_button,
+               <span class="type">gpointer</span>              user_data)</pre>
+<p>Emitted by <em class="parameter"><code>location_button</code></em>
+ when the file associated with
+the button is deleted.</p>
+<div class="refsect3">
+<a name="ThunarLocationButton-gone.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>location_button</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarLocationButton-location-button-clicked"></a><h3>The <code class="literal">“location-button-clicked”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a> *location_button,
+               <span class="type">gboolean</span>              arg1,
+               <span class="type">gpointer</span>              user_data)</pre>
+<p>Emitted by <em class="parameter"><code>location_button</code></em>
+ when the user clicks on the
+<em class="parameter"><code>location_button</code></em>
+ or <code class="function">gtk_button_clicked()</code> is called.</p>
+<div class="refsect3">
+<a name="ThunarLocationButton-location-button-clicked.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>location_button</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarLocationButton.html" title="ThunarLocationButton"><span class="type">ThunarLocationButton</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

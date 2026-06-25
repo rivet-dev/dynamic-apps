@@ -1,0 +1,103 @@
+This file contains a list of frequently asked questions about Thunar and the
+appropriate answers to these questions.
+
+
+1. What is Thunar?
+==================
+
+  Thunar is a fast and easy-to-use file manager for the X Window System, with a
+  special focus on the Xfce Desktop Environment.
+
+
+2. Why doesn't Thunar execute files marked as executable?
+=========================================================
+
+  For security reasons Thunar only executes files of type application/x-desktop,
+  application/x-executable and application/x-shellscript. For desktop files
+  the execution feature will only be enabled if the desktop file is of type
+  Application and a valid Exec line is given. For the other types the feature
+  is available if the file is marked executable for the current user.
+
+  Also note that for application/x-executable and application/x-shellscript, the
+  types of the file don't really need to match these types exactly, but it is
+  suffice if the detected type has a parent that matches one of the two types
+  listed above, or if the MIME-type is an alias for one of the above.
+
+
+3. Where does Thunar store the metadata associated with files?
+==============================================================
+
+  Thunar uses the metadata daemon provided by GVFS.
+
+
+4. Where does Thunar store its preferences?
+===========================================
+
+  Thunar stores the user configurable preferences (and hidden settings) in
+  an .ini file, which is located at
+
+    $XDG_CONFIG_HOME/Thunar/thunarrc
+
+  and can be examined using a text editor. See docs/README.thunarrc for an
+  overview of the various preferences.
+
+
+5. How to use mouse gestures in Thunar?
+=======================================
+
+  Thunar currently features basic support for so called "mouse gestures" in its
+  icon view. You can use these "mouse gestures" by holding down the middle
+  mouse button (usually the mouse wheel) while the mouse pointer is on the
+  background area of the icon view component (any area that is not covered by
+  an icon or a text). Now you can move the cursor into four directions to
+  perform certain actions, which are described below.
+
+   * Left  - opens the previous visited folder
+   * Up    - opens the parent folder
+   * Right - opens the next visited folder
+   * Down  - reload the current folder
+
+
+6. How do I assign different keyboard shortcuts?
+================================================
+
+  If you want to rebind a shortcut, Thunar supports the standard GTK+ way
+  of changing shortcuts: simply hover over the menu option with the mouse
+  pointer and press the keyboard shortcut you want to rebind it to.
+
+  To delete a keyboard assignment, press the Backspace key while you are
+  on the menu entry.
+
+  If the shortcut doesn't change, then you need to enable the feature in
+  GTK+. This can be achieved in 3 ways:
+
+   1. If you are running Xfce 4.3 or above then you can enable "Editable
+      menu accelerators" in the "User Interface Preferences" dialog.
+   2. If you are running GNOME then you can enable "Editable menu
+      accelerators" in the "Menu and Toolbars" control center dialog.
+   3. Otherwise put the following in your ~/.gtkrc-2.0 file (create the
+      file if it doesn't exist):
+
+       gtk-can-change-accels=1
+
+
+7. Where does Thunar store the keyboard shortcuts?
+==================================================
+
+  The custom keyboard shortcuts are stored in the standard Gtk accel map
+  format in a file located at
+
+    $XDG_CONFIG_HOME/Thunar/accels.scm
+
+  Lines starting with ; are comments. See the GTK+ documentation for details
+  about the file format. If you are a packager or a system administrator and
+  want to provide a system-wide default for the keyboard shortcuts, that is
+  different from the default shortcuts in Thunar, you can create a file
+  Thunar/accels.scm in one of the $XDG_CONFIG_DIRS. For example, if /etc/xdg
+  is part of $XDG_CONFIG_DIRS (most likely for most Linux distributions), you
+  can install system-wide defaults to
+
+    /etc/xdg/Thunar/accels.scm
+
+  Thunar will then load shortcuts from this file on first startup.
+

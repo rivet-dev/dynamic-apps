@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>thunar-dnd: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch14.html" title="File Selection">
+<link rel="prev" href="ThunarClipboardManager.html" title="ThunarClipboardManager">
+<link rel="next" href="ThunarComponent.html" title="ThunarComponent">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#thunar-thunar-dnd.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch14.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarClipboardManager.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarComponent.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="thunar-thunar-dnd"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="thunar-thunar-dnd.top_of_page"></a>thunar-dnd</span></h2>
+<p>thunar-dnd</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="thunar-thunar-dnd.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkDragAction</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-dnd.html#thunar-dnd-ask" title="thunar_dnd_ask ()">thunar_dnd_ask</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-dnd.html#thunar-dnd-perform" title="thunar_dnd_perform ()">thunar_dnd_perform</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-dnd.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-dnd.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-dnd-ask"></a><h3>thunar_dnd_ask ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkDragAction</span>
+thunar_dnd_ask (<em class="parameter"><code><span class="type">GtkWidget</span> *widget</code></em>,
+                <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *folder</code></em>,
+                <em class="parameter"><code><span class="type">GList</span> *path_list</code></em>,
+                <em class="parameter"><code><span class="type">GdkDragAction</span> actions</code></em>);</pre>
+<p>Pops up a menu that asks the user to choose one of the
+<em class="parameter"><code>actions</code></em>
+ or to cancel the drop. If the user chooses a
+valid <span class="type">GdkDragAction</span> from <em class="parameter"><code>actions</code></em>
+, then this action is
+returned. Else if the user cancels the drop, 0 will be
+returned.</p>
+<p>This method can be used to implement a response to the
+<span class="type">GDK_ACTION_ASK</span> action on drops.</p>
+<div class="refsect3">
+<a name="thunar-dnd-ask.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>widget</p></td>
+<td class="parameter_description"><p>the widget on which the drop was performed.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>folder</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> to which the <em class="parameter"><code>path_list</code></em>
+is being dropped.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>path_list</p></td>
+<td class="parameter_description"><p>the <span class="type">GFile</span>s of the files being dropped to <em class="parameter"><code>file</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>actions</p></td>
+<td class="parameter_description"><p>the list of actions supported for the drop.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-dnd-ask.returns"></a><h4>Returns</h4>
+<p> the selected <span class="type">GdkDragAction</span> or 0 to cancel.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-dnd-perform"></a><h3>thunar_dnd_perform ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_dnd_perform (<em class="parameter"><code><span class="type">GtkWidget</span> *widget</code></em>,
+                    <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                    <em class="parameter"><code><span class="type">GList</span> *uri_list</code></em>,
+                    <em class="parameter"><code><span class="type">GdkDragAction</span> action</code></em>,
+                    <em class="parameter"><code><span class="type">GClosure</span> *new_files_closure</code></em>);</pre>
+<p>Performs the drop of <em class="parameter"><code>file_list</code></em>
+ on <em class="parameter"><code>file</code></em>
+ in <em class="parameter"><code>widget</code></em>
+, as given in
+<em class="parameter"><code>action</code></em>
+ and returns <code class="literal">TRUE</code> if the drop was started successfully
+(or even completed successfully), else <code class="literal">FALSE</code>.</p>
+<div class="refsect3">
+<a name="thunar-dnd-perform.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>widget</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkWidget</span> on which the drop was done.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> on which the <em class="parameter"><code>file_list</code></em>
+was dropped.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_list</p></td>
+<td class="parameter_description"><p>the list of <span class="type">GFile</span>s that was dropped.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>action</p></td>
+<td class="parameter_description"><p>the <span class="type">GdkDragAction</span> that was performed.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>new_files_closure</p></td>
+<td class="parameter_description"><p>a <span class="type">GClosure</span> to connect to the job's "new-files" signal,
+which will be emitted when the job finishes with the
+list of <span class="type">GFile</span>s created by the job, or
+<code class="literal">NULL</code> if you're not interested in the signal.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-dnd-perform.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if the DnD operation was started
+successfully, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

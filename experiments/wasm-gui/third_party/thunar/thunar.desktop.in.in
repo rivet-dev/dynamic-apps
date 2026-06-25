@@ -1,0 +1,25 @@
+[Desktop Entry]
+_Name=Thunar File Manager
+_Comment=Browse the filesystem with the file manager
+_GenericName=File Manager
+_Keywords=file manager;explorer;finder;browser;folders;directory;directories;partitions;drives;network;devices;rename;move;copy;delete;permissions;home;trash;
+Exec=thunar %U
+Icon=org.xfce.thunar
+Terminal=false
+StartupNotify=true
+Type=Application
+Categories=System;Core;GTK;FileTools;FileManager;
+MimeType=inode/directory;
+Actions=open-home;open-computer;open-trash;
+
+[Desktop Action open-home]
+_Name=Home
+Exec=thunar %U
+
+[Desktop Action open-computer]
+_Name=Computer
+Exec=thunar computer:///
+
+[Desktop Action open-trash]
+_Name=Trash
+Exec=thunar trash:///

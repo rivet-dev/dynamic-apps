@@ -1,0 +1,438 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarDevice: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch02.html" title="Device Management">
+<link rel="prev" href="ch02.html" title="Device Management">
+<link rel="next" href="ThunarDeviceMonitor.html" title="ThunarDeviceMonitor">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarDevice.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarDevice.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarDevice.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch02.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarDeviceMonitor.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarDevice"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarDevice.top_of_page"></a>ThunarDevice</span></h2>
+<p>ThunarDevice</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarDevice.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="ThunarDevice.html#ThunarDeviceCallback" title="ThunarDeviceCallback ()">*ThunarDeviceCallback</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-eject-label" title="thunar_device_get_eject_label ()">thunar_device_get_eject_label</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-name" title="thunar_device_get_name ()">thunar_device_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GIcon</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-icon" title="thunar_device_get_icon ()">thunar_device_get_icon</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">ThunarDeviceKind</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-kind" title="thunar_device_get_kind ()">thunar_device_get_kind</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-identifier" title="thunar_device_get_identifier ()">thunar_device_get_identifier</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-identifier-unix" title="thunar_device_get_identifier_unix ()">thunar_device_get_identifier_unix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-hidden" title="thunar_device_get_hidden ()">thunar_device_get_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-can-eject" title="thunar_device_can_eject ()">thunar_device_can_eject</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-can-mount" title="thunar_device_can_mount ()">thunar_device_can_mount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-can-unmount" title="thunar_device_can_unmount ()">thunar_device_can_unmount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-is-mounted" title="thunar_device_is_mounted ()">thunar_device_is_mounted</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GFile</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-get-root" title="thunar_device_get_root ()">thunar_device_get_root</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-compare-by-name" title="thunar_device_compare_by_name ()">thunar_device_compare_by_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-mount" title="thunar_device_mount ()">thunar_device_mount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-unmount" title="thunar_device_unmount ()">thunar_device_unmount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-eject" title="thunar_device_eject ()">thunar_device_eject</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarDevice.html#thunar-device-reload-file" title="thunar_device_reload_file ()">thunar_device_reload_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarDevice.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">GObject</span> *</td>
+<td class="property_name"><a class="link" href="ThunarDevice.html#ThunarDevice--device" title="The “device” property">device</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarDevice.html#ThunarDevice--hidden" title="The “hidden” property">hidden</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="ThunarDevice.html#ThunarDevice--kind" title="The “kind” property">kind</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarDevice.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarDevice
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarDevice.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarDevice.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="ThunarDeviceCallback"></a><h3>ThunarDeviceCallback ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+<span class="c_punctuation">(</span>*ThunarDeviceCallback<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>,
+                         <em class="parameter"><code>const <span class="type">GError</span> *error</code></em>,
+                         <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-eject-label"></a><h3>thunar_device_get_eject_label ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_device_get_eject_label (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>Obtains the recommended name for the eject action,
+specific to GIO's drive type.</p>
+<div class="refsect3">
+<a name="thunar-device-get-eject-label.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-device-get-eject-label.returns"></a><h4>Returns</h4>
+<p> The recommended name of the eject action. The returned string must not be freed.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-name"></a><h3>thunar_device_get_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_device_get_name (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>Returns the name of the <em class="parameter"><code>device</code></em>
+ if the <em class="parameter"><code>device</code></em>
+
+is mounted.</p>
+<p>The caller is responsible to free the returned string
+using <code class="function">g_free()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-device-get-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-device-get-name.returns"></a><h4>Returns</h4>
+<p> the name of <em class="parameter"><code>device</code></em>
+if <em class="parameter"><code>device</code></em>
+is mounted</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-icon"></a><h3>thunar_device_get_icon ()</h3>
+<pre class="programlisting"><span class="returnvalue">GIcon</span> *
+thunar_device_get_icon (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-kind"></a><h3>thunar_device_get_kind ()</h3>
+<pre class="programlisting"><span class="returnvalue">ThunarDeviceKind</span>
+thunar_device_get_kind (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-identifier"></a><h3>thunar_device_get_identifier ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_device_get_identifier (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-identifier-unix"></a><h3>thunar_device_get_identifier_unix ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_device_get_identifier_unix (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-hidden"></a><h3>thunar_device_get_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_device_get_hidden (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-can-eject"></a><h3>thunar_device_can_eject ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_device_can_eject (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>If the user should see the option to eject this device.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-can-mount"></a><h3>thunar_device_can_mount ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_device_can_mount (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>If the user should see the option to mount this device.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-can-unmount"></a><h3>thunar_device_can_unmount ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_device_can_unmount (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>If the user should see the option to unmount this device.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-is-mounted"></a><h3>thunar_device_is_mounted ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_device_is_mounted (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-get-root"></a><h3>thunar_device_get_root ()</h3>
+<pre class="programlisting"><span class="returnvalue">GFile</span> *
+thunar_device_get_root (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-compare-by-name"></a><h3>thunar_device_compare_by_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+thunar_device_compare_by_name (<em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device1</code></em>,
+                               <em class="parameter"><code>const <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device2</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-mount"></a><h3>thunar_device_mount ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_device_mount (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>,
+                     <em class="parameter"><code><span class="type">GMountOperation</span> *mount_operation</code></em>,
+                     <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                     <em class="parameter"><code><a class="link" href="ThunarDevice.html#ThunarDeviceCallback" title="ThunarDeviceCallback ()"><span class="type">ThunarDeviceCallback</span></a> callback</code></em>,
+                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-unmount"></a><h3>thunar_device_unmount ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_device_unmount (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>,
+                       <em class="parameter"><code><span class="type">GMountOperation</span> *mount_operation</code></em>,
+                       <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                       <em class="parameter"><code><a class="link" href="ThunarDevice.html#ThunarDeviceCallback" title="ThunarDeviceCallback ()"><span class="type">ThunarDeviceCallback</span></a> callback</code></em>,
+                       <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+<p>Try to eject a <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a>, fall-back to unmounting</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-eject"></a><h3>thunar_device_eject ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_device_eject (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>,
+                     <em class="parameter"><code><span class="type">GMountOperation</span> *mount_operation</code></em>,
+                     <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                     <em class="parameter"><code><a class="link" href="ThunarDevice.html#ThunarDeviceCallback" title="ThunarDeviceCallback ()"><span class="type">ThunarDeviceCallback</span></a> callback</code></em>,
+                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-device-reload-file"></a><h3>thunar_device_reload_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_device_reload_file (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+<p>Reload the related <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> of the <a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarDevice.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarDevice--device"></a><h3>The <code class="literal">“device”</code> property</h3>
+<pre class="programlisting">  “device”                   <span class="type">GObject</span> *</pre>
+<p>device.</p>
+<p>Owner: ThunarDevice</p>
+<p>Flags: Read / Write / Construct Only</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarDevice--hidden"></a><h3>The <code class="literal">“hidden”</code> property</h3>
+<pre class="programlisting">  “hidden”                   <span class="type">gboolean</span></pre>
+<p>hidden.</p>
+<p>Owner: ThunarDevice</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarDevice--kind"></a><h3>The <code class="literal">“kind”</code> property</h3>
+<pre class="programlisting">  “kind”                     <span class="type">guint</span></pre>
+<p>kind.</p>
+<p>Owner: ThunarDevice</p>
+<p>Flags: Read / Write / Construct Only</p>
+<p>Allowed values: &lt;= 2</p>
+<p>Default value: 0</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarProgressView: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch18.html" title="Progress">
+<link rel="prev" href="ch18.html" title="Progress">
+<link rel="next" href="ThunarProgressDialog.html" title="ThunarProgressDialog">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarProgressView.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarProgressView.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarProgressView.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarProgressView.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch18.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch18.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarProgressDialog.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarProgressView"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarProgressView.top_of_page"></a>ThunarProgressView</span></h2>
+<p>ThunarProgressView</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarProgressView.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarProgressView.html#thunar-progress-view-new-with-job" title="thunar_progress_view_new_with_job ()">thunar_progress_view_new_with_job</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarProgressView.html#thunar-progress-view-set-icon-name" title="thunar_progress_view_set_icon_name ()">thunar_progress_view_set_icon_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarProgressView.html#thunar-progress-view-set-title" title="thunar_progress_view_set_title ()">thunar_progress_view_set_title</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarProgressView.html#thunar-progress-view-get-job" title="thunar_progress_view_get_job ()">thunar_progress_view_get_job</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarProgressView.html#thunar-progress-view-launch-job" title="thunar_progress_view_launch_job ()">thunar_progress_view_launch_job</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView--icon-name" title="The “icon-name” property">icon-name</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView--job" title="The “job” property">job</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView--title" title="The “title” property">title</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView-finished" title="The “finished” signal">finished</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView-force-launch" title="The “force-launch” signal">force-launch</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarProgressView.html#ThunarProgressView-need-attention" title="The “need-attention” signal">need-attention</a></td>
+<td class="signal_flags">No Hooks</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkBox
+                    <span class="lineart">╰──</span> ThunarProgressView
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-progress-view-new-with-job"></a><h3>thunar_progress_view_new_with_job ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_progress_view_new_with_job (<em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+<p>Allocates a new <a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> and associates it with the <em class="parameter"><code>job</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-progress-view-new-with-job.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>job</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-progress-view-new-with-job.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-progress-view-set-icon-name"></a><h3>thunar_progress_view_set_icon_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_progress_view_set_icon_name (<em class="parameter"><code><a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *view</code></em>,
+                                    <em class="parameter"><code>const <span class="type">gchar</span> *icon_name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-progress-view-set-title"></a><h3>thunar_progress_view_set_title ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_progress_view_set_title (<em class="parameter"><code><a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *view</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *title</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-progress-view-get-job"></a><h3>thunar_progress_view_get_job ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+thunar_progress_view_get_job (<em class="parameter"><code><a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *view</code></em>);</pre>
+<p>Returns the <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> associated with <em class="parameter"><code>view</code></em>
+
+or <code class="literal">NULL</code> if no job is currently associated with <em class="parameter"><code>view</code></em>
+.</p>
+<p>The <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> is owned by the <em class="parameter"><code>view</code></em>
+ and should
+not be freed by the caller.</p>
+<div class="refsect3">
+<a name="thunar-progress-view-get-job.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-progress-view-get-job.returns"></a><h4>Returns</h4>
+<p> the job associated with <em class="parameter"><code>view</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-progress-view-launch-job"></a><h3>thunar_progress_view_launch_job ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_progress_view_launch_job (<em class="parameter"><code><a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *view</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarProgressView--icon-name"></a><h3>The <code class="literal">“icon-name”</code> property</h3>
+<pre class="programlisting">  “icon-name”                <span class="type">char</span> *</pre>
+<p>icon-name.</p>
+<p>Owner: ThunarProgressView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarProgressView--job"></a><h3>The <code class="literal">“job”</code> property</h3>
+<pre class="programlisting">  “job”                      <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *</pre>
+<p>The <a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a>, whose progress is displayed by this view, or
+<code class="literal">NULL</code> if no job is set.</p>
+<p>Owner: ThunarProgressView</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarProgressView--title"></a><h3>The <code class="literal">“title”</code> property</h3>
+<pre class="programlisting">  “title”                    <span class="type">char</span> *</pre>
+<p>title.</p>
+<p>Owner: ThunarProgressView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarProgressView.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarProgressView-finished"></a><h3>The <code class="literal">“finished”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *thunarprogressview,
+               <span class="type">gpointer</span>            user_data)</pre>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarProgressView-force-launch"></a><h3>The <code class="literal">“force-launch”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *thunarprogressview,
+               <span class="type">gpointer</span>            user_data)</pre>
+<p>Flags: No Hooks</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarProgressView-need-attention"></a><h3>The <code class="literal">“need-attention”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarProgressView.html" title="ThunarProgressView"><span class="type">ThunarProgressView</span></a> *thunarprogressview,
+               <span class="type">gpointer</span>            user_data)</pre>
+<p>Flags: No Hooks</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

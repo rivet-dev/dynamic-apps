@@ -1,0 +1,2243 @@
+4.18.10 (2023-12-30)
+=======
+- Prevent infinite reload loop for symlinks (#1270)
+
+
+4.18.9 (2023-12-28)
+======
+- Use g_file_get_basename over realpath (#1030)
+- Fix and simplify symlink resolver (#1260)
+- Fix thumbnailer symlink support (#1260)
+- Prevent GLib GIO CRITICAL (#1204)
+- Translation Updates:
+  Albanian, Czech, Danish, Finnish, Interlingue, Occitan (post 1500),
+  Polish
+
+4.18.8 (2023-10-24)
+======
+- thunar-settings: Let Thunar guess the right display to use
+- Fix criticals about unset GIO attributes (#1063)
+- Support ipv6 remote URLs (#864)
+- Translation Updates:
+  Basque, Danish, German, Greek, Portuguese (Brazil), Romanian
+
+4.18.7 (2023-09-02)
+======
+- Fix property dialog file count (#1173)
+- Don't store GFile pointer in GTK pointer
+- Don't reload the directory on copy or cut (#1060)
+- Add folder to history only for new tab (Issue #1072)
+- Fix job operation crash on error
+- Limit number of templates to prevent lag (#472)
+- Prevent crash on multi-file-activate (#1121)
+- Remove unneeded menu separator
+- Switch zoom shortcuts
+- Prevent glib-critical - followup of (#912)
+- Keep location selector state on focus lost (#912)
+- Prevent minor memory leak (#573)
+- Translation Updates:
+  Catalan, Czech, Finnish, French, German, Greek, Interlingue, Polish, Portuguese (Brazil), Serbian, Spanish, Turkish
+
+4.18.6 (2023-04-30)
+======
+- Revert ce43203b to prevent high CPU usage in list-view (#1089)
+
+
+4.18.5 (2023-04-28)
+======
+- Prevent overflow via g_ascii methods (#1084)
+- ThunarFile: Use recursive mutex for cache (#1060)
+- Use new window for history signal handler (#1073)
+- Prevent using CSD in properties dialog (#1056)
+- Keep alpha when cutting read-only files (#1060)
+- Dont reload the current folder on copy/cut (#1060)
+- Update selected notebook on tab press (#1067)
+- Make sure that accel_group is set before using it (#1067)
+- Add job to list of jobs, not a view (#1029)
+- Undo/Redo: Improve error handling
+- Make spinner always visible
+- Optioanlly show prop-dialog hightlight tab (#1056)
+- Translation Updates:
+  Albanian, Bulgarian, Chinese (China), Chinese (Taiwan), Croatian,
+  Dutch, English (United Kingdom), Estonian, French, German, Greek,
+  Hebrew, Indonesian, Italian, Japanese, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazil), Serbian, Spanish, Swedish, Turkish
+
+4.18.4 (2023-02-22)
+======
+- Dont open folder when mounting device (Issue #919)
+- Dont show full menu for unmounted devices (#1049)
+- Support handling URIs via desktop file (#1044)
+- Focus correct split pane on mouse click (#1039)
+- Prevent wrong undo/redo notify (#1036)
+- Support undo trash for linked pathes (#1030)
+- Always ask before delete files via undo (#1027)
+- Fix use after free fault (#1031)
+- Allow symlink creation on remote locations (#875)
+- Prevent crash when closing window (#884)
+- Keep directory specific sort details (#1017)
+- Dont add extra-dot when creating links (#1019)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Latvian, Malay, Norwegian Bokmål, Norwegian Nynorsk,
+  Occitan (post 1500), Persian (Iran), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian, Uyghur, Vietnamese
+
+4.18.3 (2023-01-20)
+======
+- Prevent critical when changing directory (#1014)
+- Keep hidden toolbar hidden after Ctrl+L (#1011)
+- Prevent jumping cursor on file deletion (#910)
+- Prevent Critical when file counting is enabled
+- Properly handle resident thunar plugins (#1007)
+- Translation Updates:
+  Albanian, Czech, Finnish, Galician, Greek, Spanish, Swedish
+
+4.18.2 (2023-01-10)
+======
+- Prevent crash for copy+overwrite via DBus (#1002)
+- Make 'empty trash' sensitive on tab-switch (#1001)
+- Prevent segfault for location selector (Issue #994)
+- split-view: prevent losing open tabs (Issue #986)
+- Shrink rename dialog only in height
+- Improve alignment of XfceFileNameInput
+- Revert "Prevent focus stealing of file transfer dialog (Issue #643)"
+- Prevent rare crash when closing thunar (issue #698)
+- Fix spacing in Properties dialog
+- Double compact view ellipsization threshold
+- Prevent crash after closing windows (Issue #995)
+- bulk renamer: Remember LastActiveMode (Issue #989)
+- Re-add symlink target in type column (issue #985)
+- Few thumbnails missing after scroll (Issue #843)
+- Dont show toolbar menu for back/forward (Issue #983)
+- Only attach toolbar after toolbar items were set up (Issue #927)
+- Translation Updates:
+  Chinese (China), Chinese (Taiwan), Dutch, French, German, Greek,
+  Hebrew, Italian, Japanese, Korean, Lithuanian, Norwegian Bokmål,
+  Occitan (post 1500), Polish, Portuguese, Portuguese (Brazil),
+  Serbian, Spanish, Swedish
+
+4.18.1 (2022-12-22)
+======
+- Fix several thumbnailing issues
+- 'replace' option fixed for copy with '*.partial~' (Issue #974)
+- Preserve trusted state when launchers are copied
+- Dont reset zoom-level for directory specific settings (issue #970)
+- Prevent build failure for NixOS (Issue #972)
+- Prevent location bar crash (Issue #968)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese
+  (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Esperanto, Estonian, Finnish, French, Galician, German, Greek,
+  Hebrew, Hungarian, Icelandic, Indonesian, Interlingue, Italian,
+  Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian
+  Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian (Iran),
+  Polish, Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian,
+  Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Ukrainian, Urdu,
+  Urdu (Pakistan), Uyghur, Vietnamese
+
+4.18.0 (2022-12-15)
+======
+- Fix minor mem leak (Issue #961)
+- Ask if desktop files should be trusted (Issue #959)
+- build: Bump requirements for Xfce 4.18
+- Initialize thumbnail request to 0
+- Fix slow thumbnail loading in icon/compact view (Issue #952)
+- Enable translations for some preferences fields (Issue #953)
+- Enable translations for statusbar action-entries (Issue #953)
+- Allow to localize toolbar Item 'Location Bar' (Issue #953)
+- Translation Updates:
+  Bulgarian, Chinese (Taiwan), Czech, Dutch, French, German, Greek,
+  Hungarian, Italian, Japanese, Kazakh, Norwegian Bokmål, Occitan
+  (post 1500), Polish, Portuguese, Portuguese (Brazil), Serbian,
+  Spanish
+
+4.17.12 (2022-12-01)
+=======
+- Follow Symlinks in 'thunar_file_can_execute' (#944)
+- renamed 'thunar_file_is_executable' to 'thunar_file_can_execute'
+- Regression: Trust all .desktop files inside XDG_DATA_DIRS (Issue #944)
+- Check if trusted_button exists before using it (Issue #944)
+- Show meaningful error for invalid remote bookmarks (Isssue #941)
+- Fix for launcher trusted/executable checkboxes (Issue #944)
+- thunar-apr: Properly free errors (Issue #944)
+- Update copyright to 2022
+- Only show hamburger button when menubar is disabled (Issue #934)
+- Only show hamburger button when menubar is disabled (Issue #934)
+- Properly round percentages in 'usage' text
+- Dbus methods not selecting files/folders (Issue #929)
+- Fix argument type for xfce_shortcuts_editor_new (Issue #928)
+- Reposition Highlight tab in Properties dialog
+- Image preview visible flag desynced between instances
+- Properly include pcre2 CFLAGS and LDFLAGS (Issue #848)
+- Fix capitalization in some strings
+- Set style to reasonable value when setting wallpaper (Issue #907)
+- Fix blurriness in image preview pane when UI scale > 1
+- Fix blurriness in gesture icons when UI scale > 1
+- Fix blurriness in drag icons when UI scale > 1
+- Fix blurriness in path bar location image when UI scale > 1
+- Fix blurriness in ThunarImage when UI scaling > 1
+- Fix blurriness in emblem chooser when UI scaling > 1
+- Fix blurriness in icon renderers at UI scale > 1
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Bulgarian, Catalan,
+  Chinese (China), Chinese (Taiwan), Czech, Danish, Dutch, Eastern
+  Armenian, English (Australia), English (United Kingdom), Estonian,
+  Finnish, French, Galician, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Kazakh,
+  Korean, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post
+  1500), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Serbian, Slovak, Spanish, Swedish, Thai
+
+4.17.11 (2022-11-01)
+=======
+- Fix typo for setting "misc-image-preview-mode"
+- Shorten image preview enum strings in settings dialog
+- preview sidebar: only load the thumbnails if previews wanted.
+- Remove lag in search feature (Issue #914)
+- Bulk renamer: Drop unmainted PCRE in favor of PCRE2 (Issue #848)
+- Better handing of file updates during search
+- Make fd.o ShowItemProperties behavior consistent with Thunar
+- List View: Add file count to size column for directories (Issue #61)
+- Translation for few buttons missing (Issue #916)
+- Add option to suppress the confirmation dialog on delete (Issue #809)
+- Regression: Fix build with notifications disabled (Issue #909)
+- Translation Updates:
+  Dutch, English (United Kingdom), Icelandic, Kazakh, Occitan (post
+  1500), Portuguese
+
+4.17.10 (2022-10-16)
+=======
+- Introduce separate class for 'thunar-job-operation-history'
+- Add Toolbar items for undo/redo (Issue #819)
+- Add notification on undo/redo (Issue #903)
+- Shorten wait time to show file transfer rate (Issue #888)
+- Add Image preview sidepane (Issue #357)
+- Prevent GLib-GIO-CRITICAL messages if 'file_>info' is not set
+- Add 'redo' feature and multi-level undo/redo (Issue #819)
+- Add 'undo' support for the latest link operation (Issue #819)
+- Add 'undo' support for the latest file-create operation (Issue 819)
+- Add 'undo' support for the latest trash operation (Issue #819)
+- Add 'undo' support for the latest rename operation (Issue #819)
+- Add 'undo' support for the latest move operation (Issue #819)
+- Add 'undo' support for the latest copy operation (Issue #819)
+- Update Dbus support for feature "Set Default Application" (issue #342)
+- hidden preference "misc-open-new-windows-in-split-view" (Issue #889)
+- Add title to message dialogs
+- Fix details view's name column's prelight when highlight is enabled
+- Add split-view button to Toolbar (Issue #831)
+- View accels not working after initial startup (Issue #803)
+- Remove "open with" prefix for apps in open with menu (Issue #863)
+- Prevent xfconf warning during startup for property "sort-order"
+- Thunar hangs with misc-directory-specific-settings (Issue #861)
+- Add DnD support for application/octet-stream (#278)
+- Add support for PrefersNonDefaultGPU in .desktop files (Issue #692)
+- Enable right click + drag for list view (Issue #851)
+- Inhibit some actions when a search is active (Issue #847)
+- Add posibillity to set custom color to specific files (Issue: #160)
+- Add support for alternative copy/paste/cut shortcuts (Issue #845)
+- Properly remember sort settings in all cases (Issue #836)
+- Create separate section for thumbnail settings in preferences dialog
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Japanese, Kazakh, Korean, Latvian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Romanian, Serbian, Slovak, Spanish,
+  Swedish, Telugu, Thai, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.9
+======
+- Dont rely on xfconf value for menubar toggle (Issue #777)
+- Dont rely on xfconf value for statusbar toggle (Issue #777)
+- Dont rely on xfconf value for sidepane menu items (Issue #777)
+- Bulk renamer: Rename in multiple iterations (Issue #108)
+- meaningful naming for Location Selector (Issue #826)
+- Prevent GLib-GObject-CRITICAL when using tree-view (Issue #827)
+- Bulk Renamer: Allow multiple matches when using regex (Issue #230)
+- Fix various memory leaks (Issue #573)
+- Ignore escape sequences when executing launchers
+- Fix crash when changing tab titles preferences (#808)
+- Don't modify the 'exe' line in .desktop files unintentionally
+- Search: show symlinks in results (Issue #809)
+- Rename ThunarLauncher class to ThunarActionManager
+- Enable to switch from search entry to other UI elements (Issue #792)
+- Hide accel labels in launcher submenus (Issue #779)
+- Fix broken build with gcc7 : “declaration is not a statement”
+- List View: Show relative paths for column 'location'
+- Check for empty path property in .desktop files
+- Add tooltips for select by pattern dialog
+- Restore view-type before exiting while search is active (Issue #794)
+- Add menu item 'edit launcher' for '.desktop' files
+- Search string normalization and diacritic stripping (Issue #793)
+- Add border around infobar in trash (Issue #795)
+- Fix segfault when closing Thunar during search (Issue #789)
+- Respect last-show-hidden during search (Issue #785)
+- Allow searching for multiple search terms (Issue #783)
+- Handle special columns properly when ending a search (Issue #782)
+- Replace exo_str_* () with GLib functions
+- Bump up Glib dependency to 2.66.0
+- Fixed folder activation during search in some cases (Issue #774)
+- ExoIconView search workaround: do not save the temporary view type
+- Fix column editor model filter logic
+- Show the `Location` column in `recent:\`.
+- Show the `Search with Catfish...` button only if catfish is installed
+- Tweak order of tab settings in preferences dialog
+- build: Fix intltool lock file problem during make distcheck
+- Add option to show last modified date in the statusbar (Issue #641)
+- Usage of glist to concatinate statusbar strings
+- Add configure option to set thunarx default dirs
+- Add configure option to enable thunarx custom dirs (Issue #771)
+- Sort symlinks like regular files when sorting by type (Issue #71)
+- Make thunar toolbar editor resizable and set a default size
+- Refactor thunarx module loading (Issue #755)
+- Add preference to disable recursive search (Issue #751)
+- Compact View: Optional ellipsization instead of word wrap (Issue #595)
+- Add toolbar button to show menubar when hidden (Issue #174)
+- Bookmark accels not working (Issue #762)
+- Toolbar Editor: Default to a bigger dialog size (Issue #758)
+- Toolbar: Make custom actions invisible by default (Issue #757)
+- Dont show a checkbox for "vertical split pane" in the settings
+- Show as well invalid bookmarks in the bookmarks menu (Issue #582)
+- Remove 'Date Deleted' from 'Configure Column' List (Issue #750)
+- Move trash infobar to the bottom (Issue #605)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Japanese, Kazakh, Korean, Latvian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Romanian, Serbian, Slovak, Spanish,
+  Swedish, Telugu, Thai, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.8
+======
+
+- Show `Configure Toolbar...` option on right-clicking toolbar items.
+- Add built-in buttons for toolbar customization:
+    Search, Toggle,Reload, Zoom
+- Allow to customize toolbar by using custom actions (Issues #607 #621)
+- Location bar: Make sure to show the correct root button (Issue #725)
+- Recursive search: Do not search when the search query is empty.
+- Fix: Escape does not unselect files.
+- Column headers: Configure columns popup on right-click
+- Bulk renamer: Use wording "Extension" over "Suffix" (Issue #729)
+- Look for thunar plugins at $THUNARX_DIRS (Issue #748)
+- Speedup search by disabling row-related callbacks while searching
+- Add spinner element to each tab to display search status
+- Add option for vertical split panes (#722)
+- List view name column improvements (#736)
+- Option to show full path in tabs (Issue #627)
+- Generate documentation for internal functions (Issue #617)
+- Fix of various memory leaks
+- Dont reload the view when text is copied (Issue #706)
+- Use 'g_timeout_add_full' to set tree-view cursor (Issue #351)
+- NULL checks to prevent crash on malformed bookmark URI (Issue #716)
+- Skip files with IO errors during directory scan (Issue #696)
+- Shortcuts View: Allow devices a drag and drop target (Issue #708)
+- Support for thumbnail size x-large and xx-large (Issue #606)
+- Add support for accelerators that include the `Tab` key (Issue #580)
+- Add Recursive Search (!146)
+- Use save way to copy a "struct tm" to prevent crash (Issue #700)
+- Add UCA parameter to specify a number of files (Issue #26)
+- Fix: User disabled accelerators are re-enabled on 2nd restart (!177)
+- Add a GUI shortcuts editor (Issue #279)
+- Use alphabetical sorting for devices in the side-pane (Issue #610)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Japanese, Kazakh, Korean, Latvian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Romanian, Serbian, Slovak, Spanish,
+  Swedish, Telugu, Thai, Turkish, Urdu, Urdu (Pakistan), Uyghur,
+  Vietnamese
+
+4.17.7
+======
+- Use GList over gchar** for getting an uri list (Issue #684)
+- Prevent crash when restoring non-existing URI (Issue #684)
+- Regression: Can't copy and replace a directory any more (Issue #682)
+- 'New file' dialog: Dont highlight extension for templates (Issue #676)
+- Use g_strcmp0 over strcmp to prevent crash (Issue #679)
+- Inherit sort column/order of new tabs from current tab (Issue #678)
+- Feature: Statusbar customization (Issue #666)
+- Add link to thunar doc. to uca chooser dialog (Issue #245)
+- Dont replace ACSII characters < 0 for FAT filesystems (Issue #655)
+- Fix: Side pane tree view loading time increased (Issue #659)
+- Remove the `file://` prefix in the location column
+- Support '.' in themed desktop-file names
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Japanese, Kazakh, Korean, Latvian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Panjabi
+  (Punjabi), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai, Turkish,
+  Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.6
+======
+- Reset sort_column if it exceeds THUNAR_N_VISIBLE_COLUMNS
+- Avoid many 'Failed to open directory' windows (Issue #660)
+- Add file & folder count on the properties dialog (Issue #395)
+- Use basename instead of display_name for file duplication (Issue #649)
+- Fix signal disconnect in thunar_window_unrealize to prevent crash
+- Don't go beyond THUNAR_N_VISIBLE_COLUMNS while parsing col widths
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Japanese, Kazakh, Korean, Latvian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Panjabi
+  (Punjabi), Persian (Iran), Polish, Portuguese, Portuguese (Brazil),
+  Romanian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai, Turkish,
+  Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.5
+======
+- Listen to changes on shortcuts to update them when required
+- Prevent crash on copy+paste of many files (Issue #649)
+- Ctrl + L does not leave search mode (Issue #645)
+- Use move action when dragging files of different users (#196)
+- Prevent focus stealing of file transfer dialog (Issue #643)
+- Make file transfer window non-transient (Issue #109)
+- shortcut view location cursor can flicker on selection (Issue #644)
+- Fix file-icon update when file is cut (Issue #588)
+- Incorrect "Send To" behavior with multiple arguments (Issue #609)
+- Support thumbnails for symlinks (and devices / unknowns)
+- Add option to verify file checksums on copy (Issue #511)
+- Open correct folder on middle-click in tree-view (Issue #626)
+- Shortcut-view: Keep focus in sync with current folder
+- Add a `Location` column that appears while in search mode
+- Add "Open Item Location" option in the context menu of files in Recent
+- Add a new 'Open Item Location' entry in the right click context menu.
+- Rework Search in Thunar (Issues #2, #28, #290)
+- Remove fragmented file if file transfer is interrupted
+- Fix invalid filenames when copying to FAT-like filesystem (Issue #77)
+- Support shared thumbnail repositories (Issue #262)
+- Add preference to limit the maximum file size to be thumbnailed (#310)
+- Use *.partial~ as an intermediate file for copy
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean, Latvian,
+  Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500),
+  Panjabi (Punjabi), Persian (Iran), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai,
+  Turkish, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.4
+======
+- Restore split-view separator position (Issue #616)
+- Skip `switch-page` handler when switching to other split-view tab 
+(Issue #615)
+- Change thunar_file_is_trashed to thunar_file_is_trash in 
+thunar-launcher.c
+- Provide additional menu item for trashed files: "restore and open 
+folder" (Issue #382)
+- Open restored tabs in correct order (Issue #613)
+- After restoring tabs set focus on the last focused tab
+- For "foo.txt" next available file should be of the form "foo N.txt"
+- Remove redundant code
+- Ask "close window with tabs?" as well for STRG+Q (Issue #611)
+- Keep modified time of files copied from foreign locations (Issue #218)
+- Use more general method to pick file names on copy (Issue #244)
+- Add possibility to 'trust' launchers (Issue #156)
+- Remove reload button from toolbar (!125)
+- Fix build warnings
+- Add a preference to restore tabs on startup (Issue #338)
+- Fix Recent entry in the Go menu
+- Use thunar_g_file_new_for_computer and thunar_g_file_new_for_network
+- Add support for the `recent:///` location in Thunar.
+- Add basic support for gtk-recent (Issue #257)
+- Fix: Incorrect thumbnail size being displayed sometimes when zooming 
+quickly
+- Add zoom-level as a per-directory setting (Issue #418)
+- Rename variable `dot` to `extension`
+- Generate incremental file name when a name collision is detected 
+(Issue #210)
+- Fix GLib-CRITICAL in list-view (Issue #487)
+- thunar_file_is_executable() now checks if .desktop file is safe
+- Fix missing folder in history when opened in new tab (Issue #594)
+- Fix missing folder in history when opened in new tab (Issue #594)
+- Manage parallel job outside ThunarTransferJob (Issue #569)
+- Replace ExoBinding with GBinding equivalent
+- Move bookmarks into a separate Bookmarks menu (Issue #572)
+- Proper destruction of member variables for thunar-launcher
+- Fixing various memory leaks (Issue #573)
+- Fix showing volume uuid in transfer dialog (Issue #579)
+- Update manpage (Issue #121)
+- Dont show "execute" on context menu for folders
+- Translation Updates:
+  Albanian, Basque, Bulgarian, Catalan, Chinese (China), Czech, Danish,
+  Dutch, Estonian, French, Galician, German, Hebrew, Italian, Japanese,
+  Malay, Norwegian Bokmål, Polish, Portuguese, Portuguese (Brazil),
+  Serbian, Spanish, Swedish, Thai, Turkish
+
+4.17.3
+======
+- Regression: Activating Desktop Icon does not Use Default Application 
+(Issue #575)
+
+
+4.17.2
+======
+- Prevent crash if non-existing bookmark is right-clicked (Issue #552)
+- Sendto-menu: Renamed "Create Shortcut" to "Add Bookmark"
+- Allow middle-clicking navigation buttons (Issue #98)
+- Support `Today`/`Yesterday` option for custom date styles (Issue #292)
+- Prevent crash if invalid-symlink is used as bookmark (Issue #552)
+- Scroll to correct height after changing to a parent dir (Issue #531)
+- Dont execute files, passed via command line due to security risks
+- Move 'reload' button out of pathbar (Issue #559)
+- Improve usability of Computer:// in list view (Issue #297)
+- Select the correct bookmark after opening a new window (Issue #106)
+- Shortcut-view regression: Middle mouse click on folder did not work
+- Make use of xfce icon "org.xfce.settings.default-applications"
+- Avoid excessively checking whether files are executables (Issue #180)
+- Add Option to keep focus while opening folder in new tab (Issue #364)
+- Add `Add Bookmark` menu item to the Go menu (Issue #283)
+- On "Select by Pattern" add option for case sensitivity (Issue #173)
+- CDDA appears twice in side pane (Issue #486)
+- Add `Empty Trash` infobar while in the trash folder (Issue #11)
+- Add section 'Default Application' for app. selection (Issue #342)
+- BulkRenamer: Preselect `Name and Suffix` if only dirs are selected
+- List view: Leave size column blank for directories (Issue #543)
+- BulkRenamer: Split 'Rename' button into 'Apply' and 'Done' (Issue #22)
+- Critical error when opening Edit menu (Issue #542)
+- Add menu entry 'Set Default App' to 'Open with' submenu (Issue #342)
+- Shortcuts view regression : Watch trash for changes (Issue #538)
+- Fix `misc-full-path-in-title` memory fault (Issue #484)
+- Add 'sort by Date Deleted' option to 'arrange items' menu (Issue #123)
+- Add 'date deleted' column for the trash directory (Issue #123)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean, Latvian,
+  Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500),
+  Panjabi (Punjabi), Persian (Iran), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai,
+  Turkish, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.17.1
+======
+- Use a more specific device eject label (Issue #153)
+- Reload current directory before selecting new files (Issue #524)
+- Shortcuts view: Open new folder after creation
+- ThunarLauncher: Dont expose "select files" closure
+- Use thunar-menu and launcher in shortcuts view (Issue #198)
+- thunar-launcher: Send signal when device operation is started/finished
+- Removed 'the root folder has no parent' dialog box
+- tree-view: Hide menu-item "properties" for unmounted devices
+- Regression: Missing "mount"/"unmount" on tree-view devices
+- thunar-launcher: unpack g_value with correct call
+- Remove watches on shortcuts (Issue #513) (Issue #47)
+- Regression: Select copied files after copy operation (Issue #520)
+- Reintroduce alternative zoom shortcuts (Issue #514)
+- Prevent hangup if a copy task that is blocked is resumed (Issue #467)
+- Improve comments in "thumbnail_needs_frame"
+- Improve device unmount messages (Issue #516)
+- Regression: Allow custom image files for UCA icons (Issue #517)
+- Dont merge folders when creating copy with same name (Issue 491)
+- Fix incorrect return value in scroll event handler (Issue #512)
+- Use wording "queued" instead of "frozen" for jobs (Issue #511)
+- Use wording "queued" instead of "frozen" for jobs (Issue #511)
+- Revamp documentation to modernize/uniformize accross components
+- Remove tray icon and related methods (Issue #495)
+- Regression: Skip app info updates on sendto actions (Issue #502)
+- Regression: Toggle menu visibility on F10 if menu hidden (Issue #498)
+- thunar-launcher: Unify way to set selected device/location/files
+- thunar-launcher: Keep ref on ThunarDevice while poking
+- thunar-launcher: Unify way to set selected device/location/files
+- thunar-launcher: Provide service to open locations (bookmarks)
+- Regression: "Shift" + "Select Trash in menu" has to trigger delete
+- Fix compilation warnings
+- Fix XSLT processor warnings
+- Fix GObject introspection warnings
+- Translation Updates:
+  Basque, Bulgarian, Chinese (China), Czech, Dutch, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Italian, Japanese, Korean,
+  Norwegian Bokmål, Occitan (post 1500), Persian (Iran), Portuguese,
+  Portuguese (Brazil), Serbian, Spanish, Swedish, Turkish, Uyghur
+
+4.17.0
+======
+- By default show all available volumes (#384)
+- Add "created" column to list view (#478)
+- Add suffix '- Thunar' to the title bar (Issue #482)
+- Dont select previous file after delete/trash (Issue #477)
+- Increase min. size of "text" field in bulk renamer (Issue #474)
+- Add option to forget application association (Issue #197)
+- Regression: "Open with other application" missing (Issue #470)
+- New feature: Split View (Issue #445)
+- Revert "Fix popup menus size (Bug #15832)"
+- Always create new files and folders in current directory (Issue #462)
+- Improve file operations progress dialog (Issue #365)
+- Prevent crash on Ctrl+H when there is no sidepane (Issue #453)
+- Roleback to previous spinner handling (Issue #448)
+- Add option to unselect all files (Issue #424)
+- Unset tree view cursor if toplevel path is unknown (Issue #351)
+- Remove GSourceFunc casts
+- Add submenus for custom actions (Issue #184)
+- REFACTOR: always queue_popup in details view on right click (#421)
+- merged master from upstream
+- Dont use ThunarFiles when they are already destoyed
+- Use single main menu category in .desktop files (Issue #40)
+- Add toggle in preferences to allow running shell scripts (Issue #224)
+- Add action to toggle sort direction (#130)
+- Use sort menu as well for detailed view (#139)
+- Add support to created date in file properties
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Asturian, Basque,
+  Bengali, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean, Latvian,
+  Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500),
+  Panjabi (Punjabi), Persian (Iran), Polish, Portuguese, Portuguese
+  (Brazil), Romanian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai,
+  Turkish, Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+4.16.0
+======
+- Fix action of Back/Forward mouse gesture when using RTL (Issue #90)
+- Prevent crash on mouse gesture action (Issue #443)
+- Avoid crashes when closing thunar with ctrl+w (#336)
+- Ignore double-click events from back/forward mouse button (Issue #371)
+- Remove GLIB_CHECK_VERSION IFDEFs which are obsolete after glib bump
+- bump minimum required exo version to 4.15.3
+- Wrap box around spinner to prevent flickering (Issue #440)
+- Use g_drive_is_removable over g_drive_is_media_removable
+- bump glib (and gio, gthread, etc) to 2.50.0
+- Do not duplicate app_info when added via custom command (Issue #309)
+- Escape all whitespace characters in custom command path
+- Remove hidden quotes for "Open with"->"custom command" (Issue #425)
+- Ignore unknown XML elements in UCA.xml
+- Regression: Fix broken bulk renamer context menu (Issue #436)
+- Revert of b12247c2 and proper fix for Issue #423
+- Remove duplicated code in renamer and prevent possible leak
+- Prevent possible crash of thunar_launcher_poke (Issue #436)
+- Fix combo box entry order (Issue #435)
+- Remove TODO file
+- Change focus when clicking an emblem entry (Issue #315)
+- Bump GLib minimum version to 2.44
+- Prevent Gtk-CRITICAL when terminating session (Issue #430)
+- Missing thunarx support on the shortcut view (Issue #423)
+- Translation Updates:
+  Basque, Chinese (China), Czech, Danish, Estonian, Korean, Norwegian
+  Nynorsk, Turkish, Vietnamese
+
+4.15.3
+======
+- No special treatment on "rename" for .desktop files (Issue #56)
+- Show full filename/extention for .desktop files (Issue #56)
+- Focus view when location selector is closed (Issue #420)
+- Thunar shows wrong content after outside operations (Issue #355)
+- Regression: Restore file menu section arrangement
+- Use same README.md structure than other xfce projects
+- Fall back to fast content type if regular is unavilable in file 
+  attributes (!36)
+- Fix Regressions around menu bar spinner (Issue #394)
+- Fix error for custom date format in details view (issue #389)
+- Add support for transparency in gtk-themes (!31)
+- Regression: Apply accel keys only to current tab (Issue #386)
+- Translation Updates:
+  Albanian, Arabic, Armenian, Armenian (Armenia), Basque, Bengali, 
+  Catalan, Chinese (Hong Kong), Czech, Danish, Dutch, Eastern Armenian, 
+  English (Australia), English (United Kingdom), Esperanto, Estonian, 
+  Finnish, French, Greek, Hebrew, Hungarian, Icelandic, Indonesian, 
+  Interlingue, Kazakh, Korean, Latvian, Malay, Norwegian Bokmål, 
+  Norwegian Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Persian 
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Romanian, Serbian, 
+  Slovak, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Urdu, Urdu 
+  (Pakistan), Uyghur, Vietnamese, 
+
+4.15.2
+======
+- Regression: Dont crash when starting thunar with gvfs disabled
+- Move mount/unmount/eject actions into launcher (Issue #349)
+- Use thunar-menu and launcher in tree-view (Issue# 349)
+- Use the new icon when running with elevated privileges (root)
+- Remove limit on paths to check in thunar_file_accepts_drop (Issue #350)
+- AC_CONFIG_MACRO_DIR → AC_CONFIG_MACRO_DIRS (MR !27)
+- Avoid crashes when using details view (Issue #307)
+- Fix unavailable rubber banding in detailed view (Issue #326)
+- Remove obsolete dispose method to prevent warning (Issue #319)
+- Show device indentifier in side pane tooltip (Issue #207)
+- Make use of shared field codes expansion of libxfce4util (MR !23)
+- Implement directory specific sort-column and sort-order (Issue #8)
+- Add an option to delete saved directory specific settings (Issue #8)
+- Implements directory specific view type (Issue #8)
+- Add features to support directory specific view settings (Issue #8)
+- Regression: Add missing seperator to icon view submenu
+- Replace _thunar_assert() with _thunar_return_if_fail() in order to 
+  prevent crash when build with debug on FreeBSD (MR !22)
+- Menu items cut/copy/paste do not work for location entry (Issue #303)
+- Translation Updates:
+  Albanian, Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), Czech, 
+  Danish, Dutch, French, Galician, German, Hebrew, Italian, Japanese, 
+  Kazakh, Korean, Norwegian Bokmål, Portuguese, Portuguese (Brazil), 
+  Spanish, Swedish, Turkish, 
+
+4.15.1
+======
+- Shorten strings for different views (Issue #247)
+- Segfault when file is created while files are selected (Issue #339)
+- Thunar hangs when closing windows using CTRL+W (Issue #336)
+- Regression: Missing accelerators for bookmark items (Issue #331)
+- Fixed SEGV when the side pane is hidden (Issue #335)
+- Regression: Window menu not updated properly (Issue #320)
+- Support queued copy (configurable) (Issue #294)
+- Regression: "Create Archive..." doesn't show (Fixes #329)
+- Translation Updates:
+  Albanian, Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), 
+  Danish, Dutch, Esperanto, Estonian, French, Galician, Hebrew, Italian, 
+  Kazakh, Norwegian Bokmål, Portuguese, Portuguese (Brazil), Spanish, 
+  Turkish, 
+
+4.15.0
+======
+- Fix unavailable rubber banding in detailed view (Issue #326)
+- Context menu entries in Thunar flutter while downloading (Issue #276)
+- Improve cusor handling after file deletion in thunar (Issue #69)
+- Fix regression: Trying to open a .desktop file from the context menu
+  leads to the execution of the file (Issue #325)
+- Use numbering on label "open new window/tab" only for multiple windows/tabs
+  (MR #15)
+- Remove "Sort by" and "View as" from menu item labels (Issue #247)
+- Add new app icon and switch to rDNS icon name (MR #11)
+- Replace deprecated GtkActionEntry with XfceGtkActionEntry (Issue #293)
+- Menus are now updated when selection changes not only when opened (Issue #293)
+- Merge all file-context-menus into one (Issue #198)
+- Ghost file ocasionally remains when dropping file into directory (Fixes #312)
+- Use XfceFilenameInput to validate long filenames (Bug #13720)
+- Support for variables like $HOME in address bar (Bug #12165)
+- Fix eject button click detection when using RTL languages (Bug #11387)
+- Remove upper case from group names in shortcuts view
+- Option to rename a file when existing copy conflicts (Bug #16686)
+- Remove suffix "- FileManager" from window title
+- Move from exo-csource to xdt-csource (Bug #16717)
+- Pause button on copy/move (Bug #16685)
+- Allow drag-and-drop of multiple files in icon view (Bug #2487)
+- Add keywords to .desktop files to thunar (Bug #16618)
+- Reduce vertical space in Templates info popup
+- Hide android phone from network group (Bug #11584)
+- Reduce size of Templates info popup
+- Do not add "cant-write" emblem to files in the Trash
+- Hide Browse Network entry in shortcuts view if not supported
+- Move 'network' to the bottom of tree view (Bug #16516)
+- Add examples to "Select by Pattern" dialog (Bug #16587)
+- Improve tooltips in shortcuts view (Bug #16566)
+- Rename "Disconnect" context menu entry in side pane (Bug #16558)
+- Make path entry matching case-insensitive (Bug #12747)
+- Add new bookmarks to bottom of list in shortcuts view (Bug #16526)
+- Move places above devices in shortcuts view (Bug #11586)
+- Add desktop actions for home, computer and trash (Bug #16497)
+- Option to use static icon instead of folder icon (Bug #16501)
+- Remove top level desktop entry from tree view (Bug #16474)
+- Easy access to computer:/// (Bug #16472)
+- Use libxfce4ui close-multiple-tab dialog (Bug #16254)
+- Replace deprecated G_FILE_MONITOR_EVENT_MOVED (Bug #16328)
+- Use symbolic icon for eject (Bug #16281)
+- Prevent ghost files after "move" on remote locations (Bug #15704)
+- Add a confirmation dialog when closing a window with multiple open tabs.
+- Improve explanation string for "invert selection" action (Bug #15625)
+- Improve layout of Permissions tab (Bug #15557)
+- Remove superfluous shell script "ThunarBulkRename" (Bug #15373)
+- Make labels in permissions chooser wrap
+- Add a small delay when dismissing notifications (Bug #14552)
+- File / Folder size text in statusbar sometimes is ambiguous (Bug #14203)
+- Add missing parameter to ThunarBrowserPokeDeviceFunc function
+- Add property to enable/disable frames on thumbnails (Bug #14433)
+- Improved spacing between widgets in Properties and Preferences dialogs
+- Fixed numerous compiler warnings
+- Fixed numerous warning and critical messages
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian, Armenian (Armenia), Asturian,
+  Basque, Belarusian, Bengali, Bulgarian, Catalan, Chinese (China),
+  Chinese (Hong Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch,
+  Eastern Armenian, English (Australia), English (United Kingdom),
+  Esperanto, Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Interlingue, Italian, Japanese,
+  Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål,
+  Norwegian Nynorsk, Occitan (post 1500), Panjabi (Punjabi), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Telugu, Thai, Turkish,
+  Uighur, Ukrainian, Urdu, Urdu (Pakistan), Vietnamese
+
+1.8.15
+======
+- Only open devices after successful mount attempt (Bug #16831)
+- Fix shortcut support for addressbar (Bug #4537 and Bug #13680)
+- Fix crash in bulk renamer on repeated rename (Bug #16824)
+- Add checks for thumbnailer 0 handles (Bug #14122)
+- Replace 'thunar_return_if_fail (THUNAR_IS_DEVICE (device))' with 
+standard 'if (..)' to prevent possible crashes. (Bug #13404)
+- Fix check if folder is fully loaded when expanding path in tree view. 
+Prevents 100% CPU load and loosing sync with main view in some cases.
+(Bug #15762)
+- Fixes 100%CPU on tree-view in some rare cases (Bug #16024)
+- Delete native files faster (Bug #16641)
+- Support libxfce4ui XfceTitledDialog new API (Bug #16616)
+- Translation Updates:
+  Albanian, Amharic, Arabic, Armenian, Armenian (Armenia), Basque, 
+  Belarusian, Bengali, Bulgarian, Catalan, Chinese (China), Chinese (Hong 
+  Kong), Chinese (Taiwan), Croatian, Czech, Danish, Dutch, English 
+  (Australia), English (United Kingdom), Esperanto, Estonian, Finnish, 
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic, 
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean, Latvian, 
+  Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 
+  1500), Panjabi (Punjabi), Persian (Iran), Polish, Portuguese, 
+  Portuguese (Brazil), Romanian, Russian, Serbian, Slovak, Spanish, 
+  Swedish, Telugu, Thai, Turkish, Uighur, Ukrainian, Urdu, Urdu 
+  (Pakistan), Vietnamese
+
+1.8.14
+======
+- Revert "Allow opening of multiple file selections (bug #2487)", 
+because it introduced a regression (Not possible any more to DnD 
+multiple files in icon/compact view)
+- Translation Updates: Portuguese
+
+1.8.13
+======
+- Use tre-view toplevel path of the cursor, if available, in order to 
+prevent jumping (Bug #16024)
+- Increase vertical gap between icon and its label slightly (Bug #16041)
+- Fix crash when inserting USB device in tree-view  mode. (Bug #15172)
+- Fix jump to Home when ejecting a currently viewed device (Bug #16504)
+- Allow context menu when editing location in pathbar (Bug #16483)
+- Sort device entries in tree view (Bug #16471)
+- Allow to open multiple files at once (Bug #2487)
+- Fix incorrect pathbar autocomplete (Bug #16267)
+- Avoid unreadable names in detailed view (Bug #16391)
+- Prevent crash when renaming files (Bug #10805)
+- Translation Updates:
+  Belarusian, Croatian, Finnish, French, Hebrew, Indonesian, Kazakh, 
+  Malay, Portuguese, Portuguese (Brazil)
+
+1.8.12
+======
+- NULL is the proper sentinel for g_object_new() (Bug #16310)
+- Drop timer on finalize (Bug #15305)
+- Store column width setting asynchronously and only once (Bug #15305)
+- When move to trash fails, ask whether to delete files (Bug #15975)
+- Ctrl+Mousewheel does not enlarge/shrink entries (for detailed list 
+view) (Bug #15936)
+- Extra padding for Eject button when scrollbar is visible (Bug #15312)
+- Use standard icon instead of custom
+- Translation Updates: Albanian, Chinese (China), Chinese (Taiwan), Croatian,
+  Czech, Dutch, French, Galician, Greek, Hungarian, Italian, Japanese,
+  Norwegian Bokmål, Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak,
+  Spanish, Swedish, Ukrainian
+
+1.8.11
+======
+- Thunar 1.8.10 crashing on startup in FreeBSD and Fedora, caused by 
+nonfunctional pango version check (Bug #16136, Bug #16138)
+- Translation Updates:
+Interlingue, Spanish
+
+1.8.10
+======
+- Allow compilation with panel 4.15
+- thunar-job: callee should keep track of the number of processed files 
+(Bug #16117)
+- Thunar does not show a context menu on right-click when started via 
+trash-panel-plugin (Bug #16000)
+- Make sure icon text is centered after unchecking "Text beside icons"
+- Remove the vertical gap between icon and its label (Bug #16041)
+- Fix icon view alignment (Bug #16107)
+- Not possible to grab scrollbar on the very right pixels when Thunar 
+is maximized (Bug #16050)
+- Wrap text of error dialog
+- Not possible to empty the trash via the pathbar context menu
+- Crash on refresh if remote folder has been removed (Bug #15961)
+- Center action buttons in conflict dialog window (Bug #15973) - 
+Prevent usage of deprecated gtk_dialog_get_action_area
+- Ensure user customizable action uses currently selected file path (Bug #15119)
+- make filename label selectable in conflict dialog window
+- Center action buttons in conflict dialog window (Bug #15973)
+- Clear user customizable action shortcut when the action is deleted
+- Prevent Gtk-CRITICAL when adding or modifying a user customizable action.
+- Thunar SendTo Email: Add missing archive formats for archive 
+detection (Bug #15917)
+- sendto plugin: fix content type resolution. (Bug #15916)
+- sendto plugin: extract function tse_file_is_archive (Bug #15916)
+- sendto plugin: move g_file_info_get_content_type() call out of the 
+cycle (Bug #15916)
+- All glory to lowercase (Bug #15394)
+- mismatched names between thunar.appdata.xml and thunar.desktop (Bug #15498)
+- Replace text "Enter the new name:" by "Enter the name:" for file 
+creation dialog (Bug #15423)
+- Remove superfluous .desktop file "Thunar-folder-handler.desktop.in" 
+(Bug #15467)
+- Prevent unnecessary fallback copy-delete in file move when overwriting
+- Fix possible memory leak
+- Fix popup menus size (Bug #15832)
+- Add Alt+D as alternative accelerator for Open Location (Bug #15828)
+- Do not insert hyphens at intra-word line breaks (Bug #15856)
+- Translation Updates:
+  Albanian, Arabic, Belarusian, Bulgarian, Catalan, Chinese (Taiwan), 
+  Croatian, Danish, Dutch, English (United Kingdom), French, Galician, 
+  German, Hungarian, Italian, Japanese, Korean, Lithuanian, Malay, 
+  Norwegian Bokmål, Persian (Iran), Polish, Portuguese, Portuguese 
+  (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish, Thai, Turkish, 
+  Ukrainian
+
+1.8.9
+======
+- Remove 'auto-expand folders' from tree-view since it causes bad
+usability with keyboard (Bug #15743)
+- preferences: Add button icons to Help/Close
+- Use designated initializer to avoid compile warnings (Bug #15734)
+- Prevent premature disposal of clipboard manager (Bug #15635)
+- Keep "Open with" menu items updated (Bug #15530)
+- Translation Updates: Norwegian Bokmål, Norwegian Nynorsk, Portuguese,
+Portuguese (Brazil), Turkish
+
+1.8.8
+=====
+- Do not register "send to" as last used app (Bug #14118)
+- Use https where possible
+- Dont restart the folder monitor on each refresh (Bug #13364)
+- Fix XML declaratation in uca.xml (Bug #13623)
+- Always show the executable checkbox (Bug #15605)
+- Replace Trash action with Delete as needed (Bug #15352)
+- Translation updates: Armenian, Finnish, Kazakh,
+Portuguese (Brazil), Swedish, Thai, Turkish
+
+1.8.7
+=====
+- Fix crash on unmounted volume in tree pane right click (Bug #15452)
+- Do not check G_FILE_ATTRIBUTE_ACCESS_CAN_WRITE anymore (Bug #15367)
+- Deactivate "Move to Trash" menu entry on volumes without trash (Bug #15352)
+- thunar-sendto-email.desktop: use xdg mail-send icon
+- Restore "Empty File" menu icon (Bug #15540)
+- Rename Camelcase to Title Case (Bug #15579)
+- Update mimeapps.list only when necessary (Bug #15533)
+- Prevent new bookmarks on sidebar when dragging files (Bug #14921)
+- Translation updates: Albanian, Armenian (Armenia), Belarusian, Catalan,
+Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+English (Australia), Finnish, French, Galician, German, Hebrew, Hungarian,
+Interlingue, Italian, Japanese, Malay, Norwegian Nynorsk, Portuguese, Russian,
+Serbian, Spanish, Thai, Turkish
+
+1.8.6
+=====
+- Job is now optional for thunar_io_scan_directory
+- Expand scroll window of file operation progress dialog (Bug #14946)
+- Fix compiler error -Wcast-function-type (GCC 8)
+- Bump glib minimal required version
+- Fix g_type_class_add_private is deprecated
+- Small code cleanup
+- Fix pathbar to on middle click open folders in new tabs (Bug #15302)
+- Translation updates: Danish
+
+1.8.5
+=====
+- Do not exit when dbus name registration fails (Bug #15149)
+- tree view jumps (scrolls) when clicking on a directory (Bug #15174)
+- Correctly check if destination is writable (Bug #14718)
+- Make tree-view 'Move to Trash' icon the same as in main pane
+- Make toggle for the delete entry affect tree-view side pane too
+- Pathbar buttons are now resized on folder rename (#15024)
+- Load templates synchronously (Bug #15200)
+- delete key in tree-view can delete the user home folder (Bug #15095)
+- Hide unneeded context menu entries for folder "Trash" in tree view
+- crash after clicking when XDG_SESSION_TYPE isn't set (Bug #15366)
+- man page incorrectly suggests '-v' instead of '-V'
+- Fix how wallpaper is set on Gnome
+- SEGV (11) on USB-flash connection (Bug #13813)
+- Fix session startup priority
+- Fix queued context menu popup
+- Restore right-click drag and drop functionality (Bug #14583)
+- Translation updates: Albanian, Amharic, Arabic, Asturian, Basque, Belarusian,
+Bengali, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong SAR China),
+Chinese (Taiwan), Croatian, Czech, Danish, Dutch, English (Australia),
+English (United Kingdom), Esperanto, Estonian, Finnish, French, Galician,
+German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue, Italian,
+Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål,
+Norwegian Nynorsk, Occitan, Persian (Iran), Polish, Portuguese,
+Portuguese (Brazil), Punjabi, Romanian, Russian, Serbian, Slovak, Slovenian,
+Spanish, Swedish, Telugu, Thai, Turkish, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.8.4
+=====
+- renamed org.freedesktop.FileManager1.service.in to
+ org.xfce.Thunar.FileManager1.service.in to avoid name clashes (Bug #12414)
+- Exit when name org.freedesktop.filemanager1 lost on message-dbus (Bug #15088)
+- Translation updates: Bengali, Catalan, Portuguese
+
+1.8.3
+=====
+- Thunar sometimes mounts USB drives with root permission (Bug #14719)
+- FreeBSD -Thunar crash due to passing null to strcmp() (Bug #15059)
+- Add support for org.freedesktop.FileManager1 (Bug #12414)
+- Still 8sec delay on logout when there is an open thunar window (Bug #15008)
+- Thunar does not recover directories opened in a previous session (Bug #14969)
+- Thunar utilizes 100%CPU when the parent directory is not readable (Bug #14900)
+- Add support for CTRL+Z in rename dialog (Bug #14956)
+- Thunar rarely freezes when switching to tree-view (#14960)
+- Crash in tree-view when multiple windows are open (Bug #14714)
+- Improve description of UCA command parameters (Bug #14720)
+- Fixed some Warnings and GLib-GObject-CRITICAL messages
+- Translation updates: Albanian, Belarusian, Catalan, Chinese (China),
+Chinese (Taiwan), Croatian, Czech, English (Australia), Finnish, Galician,
+German, Greek, Hebrew, Hungarian, Icelandic, Italian, Japanese, Kazakh, Korean,
+Lithuanian, Malay, Norwegian Bokmål, Portuguese, Portuguese (Brazil), Romanian,
+Russian, Slovak, Spanish, Thai, Turkish
+
+1.8.2
+=====
+- Custom actions without an icon could caused the file manager to crash (Bug #14464)
+- Fixed segfault while clicking or typing when using wayland (Bug #14461)
+- Spinner still active after user cancels to mount volume (Bug #14536)
+- Fix standard view border during drag and drop (Bug #14523)
+- Fix build without HAVE_GIO_UNIX (Bug #12863)
+- Fix messed up row-height with disabled "automatically expand columns as needed" in
+detailed view. (Bug #14548)
+- Add custom date format Bug (#14527)
+- Avoid segfault on file operations (Bug #14281)
+- Update progress when deleting files (Bug #14102)
+- More options for thumbnail size (Bug #14451)
+- Show numeric(%) progress in file operation dialog (Bug #14102)
+- Add Ctrl+= as alternative accelerator for Zoom In (Bug #14586)
+- Fix UCA forgets keyboard shortcut (Bug #14617)
+- Add preference to open new thunar instances as tabs (Bug #13314)
+- Add support for folder.jpg (Bug #14576)
+- Show file size in binary units by default (Bug #14653)
+- Removed start limit from Bulk Renamer to rename by number (Bug #14437)
+- Added preferences item to toggle 'delete' in the context menu (Bug #13327)
+- Added infobox to preferences in order to inform about missing gvfs
+- Right mouse click will not display icons for custom actions (Bug #14685)
+- Allow tabs switch with Ctrl + PgUp/PgDown (Bug #9585)
+- Many minor styling fixes
+- Translation updates: Albanian, Amharic, Arabic, Asturian, Basque, Belarusian, Bengali,
+Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong SAR China), Chinese (Taiwan),
+Croatian, Czech, Danish, Dutch, English (Australia), English (United Kingdom), Esperanto,
+Estonian, Finnish, French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+Indonesian, Italian, Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay,
+Norwegian Bokmål,Norwegian Nynorsk, Occitan, Persian (Iran), Polish, Portuguese,
+Portuguese (Brazil), Punjabi, Romanian, Russian, Serbian, Slovak, Slovenian, Spanish,
+Swedish, Telugu, Thai, Turkish, Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.8.1
+=====
+- Downgrade libxfce4-ui required version to 4.12.0
+- Bump exo version to 0.12.0
+- Use symbolic icon for edit button in pathbar
+- Add the right-click menu item "Open with" as well for folders
+- Translation updates: Catalan, French, Galician, Norwegian Bokmål
+
+1.8.0
+=====
+- Refresh folder-copy and -move icons from Adwaita icon theme
+- Introduce ellipsis to Detailed View filename
+- Convert AppData file to AppStream (Bug #14037)
+- fixed and/or silenced all remaining gtk3 deprecations
+- Translation updates: Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech,
+Danish, Dutch, English (Australia), English (United Kingdom), French, Galician, German, Hebrew,
+Hungarian, Italian, Japanese, Korean, Lithuanian, Malay, Polish, Portuguese, Portuguese (Brazil),
+Russian, Spanish, Turkish, Ukrainian
+
+1.7.2
+=====
+- Thunar confuses files (bug #12435)
+- Use display_name instead of basename to display filenames (bug #13532) 
+- Avoid unexpected overshoot fade on icon view
+- Make it possible to assign accelerators to custom actions
+- Killing thunar as well kills all launched sub-processes (bug #14277)
+- Thunar User Configurable Actions do not work for remote locations (bug #7652), patch from (bug#7305)
+- replaced links to "http://thunar.xfce.org/" with "https://docs.xfce.org/xfce/thunar/start"
+- SIGSEGV when thumbnailer is under heavy load after opening many tabs (bug #13756)
+- bumped dependency to xfce4-panel to API v.2 / 4.12.0
+- Fixed creation of .desktop file when dropping URL into folder (bug #14239)
+- Restoring non-empty folders leaves copy in Trash (bug #13535)
+- Fixed an uncritical "use after free"
+- Translation updates: Albanian, Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+Dutch, English (Australia),Finnish, French, Galician, German, Greek, Hebrew, Indonesian, Italian,
+Japanese, Kazakh, Latvian, Lithuanian, Malay, Norwegian Bokmål, Persian (Iran), Polish, Portuguese,
+Portuguese (Brazil), Russian, Serbian, Slovak, Spanish, Swedish, Turkish, Ukrainian
+
+1.7.1
+=====
+- Do not translate "Trash" files and folders (Bug #14211)
+- Regression: Context menu misplaced (bug #14216)
+- Crash in thunar_file_is_gfile_ancestor (bug #14202)
+- Add a systemd user unit for the two D-Bus session services (bug #12236)
+- Add setting to show file sizes in bytes (bug #11690) fix for statusbar
+- Add setting to show file sizes in bytes (bug #11690) fix for overwrite confirmation dialog
+- Add setting to show file size in bytes in detailed view (Bug #11690)
+- Show exact size in bytes in directory properties dialog (bug #12858)
+- Thunar's "open with" custom command doesn't escape the path (bug #10883)
+- Fix potential buffer overflow (bug #12444)
+- Thunar fails to scan for file templates if the Templates directory is a symbolic link ( bug #12032 )
+- missing codegen for "make dist" in thunar-tpa (bug #14190)
+- Ported thunar-tpa to gdbus (bug #14038)
+- fixed bug - no bool argument available for dbus signal "TrashChanged"
+- Bump gtk to 3.22
+- Prevent crash after updating thunar if old thunar deamon is still running
+- Only show additional "real_name" of user in detailed_view if it is different from "name" (bug #13648)
+- Change inappropriate word "Sentence" in upper-/lowercase renamer (bug #9483)
+- Skip functions not meant to be introspectable (Bug #14045)
+- Fix for failing GObject introspection build. Followup of (Bug #14070)
+- thunarx-provider-module.h missing inside tar.bz2 file created by "make dist" (Bug #14070)
+- Fix crash on unavailable file move copy (Bug #14056)
+- Provide missing g-i annotations (Bug #14045)
+- Use e.g. instead of i.e. (Bug #14035)
+- Translation updates:Arabic, Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech,
+  Danish, Dutch, English (United Kingdom), Esperanto, Finnish, French, Galician, German, Hebrew, Japanese,
+  Kazakh, Korean, Lithuanian, Malay, Polish, Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian,
+  Slovak, Spanish, Thai, Turkish, Ukrainian
+
+1.7.0
+=====
+- GTK3 Port
+- Replace dbus-glib with GDBus
+- Improved Pathbar style for Location Selector
+- Bump thunarx to version 3 and replace GtkAction with ThunarxMenu and ThunarxMenuItem
+- GObject-Introspection support for thunarx-3
+- Update thunarx documentation and fix its generation
+- Same bugfixes from 1.6.13
+- Translation updates: Albanian, Amharic, Arabic, Asturian, Bangla, Basque,
+  Belarusian, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch, English (Australia),
+  English (United Kingdom), Esperanto, Estonian, Finnish, French, Galician,
+  German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Italian, Japanese,
+  Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk,
+  Occitan, Persian (Iran), Polish, Portuguese, Portuguese (Brazil), Punjabi,
+  Romanian, Russian, Serbian, Slovak, Spanish, Swedish, Telugu, Thai, Turkish,
+  Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.6.17
+======
+- tree view jumps (scrolls) when clicking on a directory (Bug #15174)
+- Correctly check if destination is writable (Bug #14718)
+- SEGV (11) on USB-flash connection (Bug #13813)
+- Translation updates: Albanian, Amharic, Arabic, Asturian, Basque, Belarusian,
+Bengali, Bulgarian, Catalan, Chinese (Hong Kong SAR China), Danish, Dutch,
+English (Australia), English (United Kingdom), Esperanto, Estonian, Finnish,
+French, Galician, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian,
+Interlingue, Japanese, Kazakh, Korean, Latvian, Malay, Norwegian Bokmål,
+Norwegian Nynorsk, Occitan, Persian (Iran), Polish, Portuguese,
+Portuguese (Brazil), Punjabi, Romanian, Russian, Serbian, Slovenian, Spanish,
+Swedish, Telugu, Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.6.16
+======
+- Thunar sometimes mounts USB drives with root permission (Bug #14719)
+- FreeBSD -Thunar crash due to passing null to strcmp() (Bug #15059)
+- 100%CPU when the parent directory is not readable in tree-view (Bug #14900)
+- Add support for CTRL+Z in rename dialog (Bug #14956)
+- Thunar rarely freezes when switching to tree-view (#14960)
+- Crash in tree-view when multiple windows are open (Bug #14714)
+- Avoid segfault on file operations (Bug #14281)
+- Translation updates: Amharic, Asturian, Basque, Belarusian, Bengali, Catalan,
+Chinese (China), Chinese (Hong Kong SAR China), Chinese (Taiwan), Croatian,
+Czech, Danish, English (Australia), English (United Kingdom), Esperanto,
+Estonian, French, Galician, Greek, Icelandic, Italian, Kazakh, Latvian,
+Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Occitan, Persian (Iran),
+Portuguese, Punjabi, Russian, Slovak, Slovenian, Telugu, Thai, Turkish,
+Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.6.15
+======
+- Thunar confuses files (bug #12435)
+- Thunar User Configurable Actions do not work for remote locations (bug #7652), patch from (bug#7305)
+- replaced links to "http://thunar.xfce.org/" with "https://docs.xfce.org/xfce/thunar/Start/"
+- SIGSEGV when thumbnailer is under heavy load after opening many tabs (bug #13756)
+- Fixed creation of .desktop file when dropping URL into folder (bug #14239)
+- Restoring non-empty folders leaves copy in Trash (bug #13535)
+- Translation updates: Catalan, Persian (Iran), Portuguese, Swedish
+
+1.6.14
+======
+- Do not translate "Trash" files and folders (Bug #14211)
+- Crash in thunar_file_is_gfile_ancestor (bug #14202)
+- Fix potential buffer overflow (Bug #12444)
+- Fix crash on unavailable file move copy (Bug #14056)
+- Translation updates: Arabic, Belarusian, Catalan, English (United Kingdom),
+  Finnish, Galician, Malay, Romanian, Serbian, Slovak, Thai
+  
+1.6.13
+======
+- Handle cases when file watch is not supported (Bug #13881)
+- Missing Trash Translation String (Bug #13409)
+- Delete Thunar symlink on uninstall (Bug #13533)
+- Handle g_mem_is_system_malloc deprecation
+- Prefer local (file://) URIs than native ones (e.g. smb://) (Bug #13845)
+- Translation updates: Amharic, Arabic, Asturian, Bangla, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese (Taiwan),
+  Croatian, Czech, Danish, Dutch, English (Australia), English (United Kingdom),
+  Esperanto, Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean, Latvian,
+  Lithuanian, Malay, Norwegian Bokmål, Norwegian Nynorsk, Occitan, Persian,
+  Polish, Portuguese, Portuguese (Brazil), Punjabi, Romanian, Russian, Serbian,
+  Slovak, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Urdu,
+  Urdu (Pakistan), Uyghur, Vietnamese
+
+1.6.12
+======
+- Fix deadlock in mutex causing Thunar to hang (Bug #13481)
+- Add support for Exif:ImageDescription and Exif:UserComment
+- Do not pass NULL to g_file_test
+- Bump libxfce4panel version for TPA plugin to 4.9.0
+- Switch from XfcePanelImage to GtkImage
+- Fixed a compilation error with the newest dev panel API
+- Translation updates: Catalan, Dutch (Flemish), Galician, Korean, Lithuanian,
+  Spanish, Thai
+
+1.6.11
+======
+- Fix a crash for on cut/pasting of multiple files (Bug #12260)
+- Fix a crash when renaming files (Bug #12264)
+- Fix missing return value for debug in thunar_file_reload (bug #12827)
+- Fix thunar history being deleted after view change (bug #12708)
+- Expand the name column by default in details view (#11357)
+- Silently ignore G_IO_ERROR_FAILED_HANDLED (#8695)
+- Fixing missing return value in standard view
+- Fix crashes when reloading target file after move (bug #11983)
+- Translation updates: Arabic, Asturian, Basque, Bulgarian, Catalan, Croatian,
+  Danish, Dutch (Flemish), English (Australia), English (Great Britain), Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic, Italian, Korean,
+  Lithuanian, Norwegian Bokmal, Norwegian Nynorsk, Occitan, Portuguese,
+  Portuguese (Brazilian), Slovak, Swedish
+
+1.6.10
+======
+- Do not track thunar/thunar-marshal.{c,h} (Harald Judt)
+- Remove Makefile and Makefile.in files when running distclean (Harald Judt)
+- Remove subversion $Id$ tags (Harald Judt)
+- Really fix trash state at startup (bug #9513 and #11913) (Harald Judt)
+- Use proper return type for thunar_file_reload (bug #11913) (Harald Judt)
+- Revert "Fix loading the trash bin status at startup (bug #9513)" (Harald Judt)
+
+1.6.9
+=====
+- Fix ThunarBulkRename script not supporting spaces (bug #9713) (Harald Judt)
+- Use "Name" column for drag & drop instead of first column (bug #11905) (Harald Judt)
+- Update the path entry icon when current file changes (Harald Judt)
+- Revert changes for restoring the trash in the session client (bug #9513) (Harald Judt)
+- Fix loading the trash bin status at startup (bug #9513) (Harald Judt)
+- Turn off building gtk-docs API reference (Harald Judt)
+- Fix cppcheck warning about uninitialized variable (Harald Judt)
+- Disable "Set as default application" by default in the chooser dialog (bug #10548) (Harald Judt)
+- Remember chosen application in the chooser dialog as last used (Harald Judt)
+- Remember the last used application when opening files (Harald Judt)
+- Fix reload when file is replaced with directory of the same name (Harald Judt)
+- Do listen for G_FILE_MONITOR_EVENT_ATTRIBUTE_CHANGED (bug #11896) (Harald Judt)
+- Fix comments for toggle-menubar (Harald Judt)
+- Allow opening by middle-click in tree view only for mounted devices and resources (Harald Judt)
+- Keep selection in original tree view when middle-clicking for new tab/window (Harald Judt)
+- Keep path selected after unmounting a device via KEY_Left (Harald Judt)
+- Unmount device if collapsing a collapsed device tree with KEY_Left in the tree view (Harald Judt)
+- Fix wrong network icon shown in tree view (Harald Judt)
+- Fix tree view opening mounted devices in new tab (Harald Judt)
+- Use only open selection instead of open action with KEY_Up and KEY_Down (Harald Judt)
+- Fix assertion when hitting KEY_Left on a top-level item in the tree view (Harald Judt)
+- Revert workaround for desktop toplevel item in the tree view (Harald Judt)
+- Always select the proper toplevel item in the thunar tree view (Harald Judt)
+- Unescape URI in history error message (Harald Judt)
+- Remove unmounted files from history when going back or forward (Harald Judt)
+- Translation updates: Basque, French, Galician
+
+1.6.8
+=====
+- Watch for CHANGES_DONE_HINT instead of CHANGED and ATTRIBUTE_CHANGED (bug #8377) (Harald Judt)
+- Shortcut view: Fix "selection in selection" graphical bug when renaming shortcut (Harald Judt)
+- Fix broken shortcut renaming (bug #11885) (Harald Judt)
+- Unescape URIs in the shortcut view (bug #10831) (Harald Judt)
+- Fix compiler warning because of missing curly braces (Harald Judt)
+- Fix compilation error because of wrong variable name (Harald Judt)
+- Fix unescaping of local paths in path entry (bug #8190) (Harald Judt)
+- Fix escaping and unescaping URI in path entry (bug #8910) (Harald Judt)
+- Let the tree view keep the focus when clicking on an item (bug #11863) (Harald Judt)
+- Fix switching to the 10th tab via <alt>-<0> keyboard shortcut (Harald Judt)
+- Fix removal of a directory wrongly affecting the current tab (bug #10981) (Harald Judt)
+- Keep the scroll position when restoring the file selection (Harald Judt)
+- Restore selection only when rows-reordered signal is received (bug #11855) (Harald Judt)
+- For folders copied always append "copy #" to the end of their names (bug #11862) (Harald Judt)
+- Update F5 binding for new ThunarWindow::reload signal (Evangelos Foutras)
+- Do not perform the complete folder reload in idle (bug #11849) (Harald Judt)
+- Coverity CID 60623: Unused value (Harald Judt)
+- Coverity CID 60621: Missing return statement (Harald Judt)
+- Coverity CID 60620: Explicit null dereferenced (Harald Judt)
+- Coverity CID 60619: Explicit null dereferenced (Harald Judt)
+- Coverity CID 60617: Unchecked return value (Harald Judt)
+- Remove unused variable in thunar_standard_view_set_history (Harald Judt)
+- Remove startup notification dependencies (bug #11837) (Harald Judt)
+- Translation updates: Galician, German, Lithuanian
+
+1.6.7
+=====
+- Improve drag & drop and selecting in the details view (bug #11605) (Harald Judt)
+- Let row changes accumulate a bit before restoring selection (Harald Judt)
+- Implement reloading file information on manual reload (Harald Judt)
+- Extend reload functions to allow a full reload (Harald Judt)
+- Check in thunar-marshal with new _thunar_marshal_BOOLEAN__BOOLEAN (Harald Judt)
+- Reload files changed by jobs in an idle loop (bug #11008) (Harald Judt)
+- Refactor code for moving thumbnail cache file on renames/moves (Harald Judt)
+- Rework thunar_file_monitor to properly register moved files (Harald Judt)
+- Add function to reload parent file of a file (Harald Judt)
+- Fix updating file info for moved files (bug #11008) (Harald Judt)
+- Revert "Refresh file info after getting it from cache (bug #11008)" (Harald Judt)
+- Update the location bar after reload (bug #10518) (Harald Judt)
+- Fix updating custom actions (bug #11749) (Harald Judt)
+- Update rows on changes of case-sensitive and folders-first settings (Harald Judt)
+- Fix typos and grammar mistakes in a few comments (Harald Judt)
+- Make new windows inherit the history of the origin view (bug #5538) (Harald Judt)
+- Make new tabs inherit the history of the origin view (bug #5538) (Harald Judt)
+- Keep the history across view changes (bug #10171) (Harald Judt)
+- Implement functions for copying the history of a view (Harald Judt)
+- Rename tsv_restore_selection to tsv_select_after_row_deleted (Harald Judt)
+- Redraw the details view on row changes (Harald Judt)
+- Restore selection on row changes too (bug #9886) (Harald Judt)
+- Improve mouse wheel zoom behaviour (Harald Judt)
+- Remember and restore file selection on view changes (Harald Judt)
+- Restore file selection when changing sort order (bug #9886) (Harald Judt)
+- Update model with changed binary file size setting immediately (Harald Judt)
+- Fix typo busy_pulse in thunar-shortcuts-model.c (Harald Judt)
+- Fix typo in thunar-clipboard-manager (Harald Judt)
+- Fix Gdk-CRITICAL error (Thaddaeus Tintenfisch)
+- Clean up more files with make clean (Harald Judt)
+- Rework usage of binary file size properties (bug #11450) (Harald Judt)
+- Remove duplicate break statement in thunar-standard-view (Harald Judt)
+- Fix compiler warning about shadowing 'basename' (bug #11633) (Matt Thirtytwo)
+- thunar/thunar-dbus-service-infos.xml corrections (Thaddaeus Tintenfisch)
+- Fix startup id handling for launch requests over D-Bus (bug #9646) (Thaddaeus Tintenfisch)
+- Fallback to non-cached version of source file (bug #9142) (Thaddaeus Tintenfisch)
+- Translation updates: Chinese (China), Croatian, English (Australia), French, German,
+  Greek, Italian, Lithuanian, Polish, Swedish, Ukrainian
+
+1.6.6
+=====
+- Removed GNU extension -i from sed (Peter de Ridder)
+- Bump default size of file properties dialog a bit (Harald Judt)
+- Respect the "View new folders using" preference (bug #11606) (Harald Judt)
+- Improve check for shell scripts and add hidden option for bug #7596 (Harald Judt)
+- Fix some GTK_STOCK icon usages resulting in missing icons (bug #11608) (Jani Välimaa)
+- plugins/thunar-wallpaper: Fix icon (Jani Välimaa)
+- Fix icon name for folders and a memory leak (bug #11608) (Harald Judt)
+- Also query for network location icons (Nick Schermer)
+- Don't use deprecated function (Nick Schermer)
+- Secure threading in the idle thumbnail loading (Nick Schermer)
+- Sidepane treeview: Do not switch folder when clicking a row expander (Harald Judt)
+- Fix cppcheck possible errors/warnings (Harald Judt)
+- Hide template file extensions in context menu (bug #11571) (Thaddaeus Tintenfisch)
+- thunar-wallpaper: Fix translation in applications other than thunar (Harald Judt)
+- thunar-wallpaper: Check if file is really an image (bug #11565) (Thaddaeus Tintenfisch)
+- Update another copyright string (Harald Judt)
+- Fix endless rename loop in case of error on the properties dialog (bug #11557) (Harald Judt)
+- Translation updates: Asturian, Bulgarian, Finnish, French, German,
+  Norwegian Bokmål, Romanian, Slovak, Spanish
+
+1.6.5
+=====
+- Bump autotools versions
+- Add .gitignore
+- Do not execute but only open shell scripts by default (bug #7596) (Harald Judt)
+- Fix typo in error message (Nick Schermer)
+- Improve keyboard navigation for thunar-tree-view (bug #4519) (Harald Judt)
+- Allow <ctrl> + middle click in shortcut and treeview panes (Harald Judt)
+- Set correct dialog window hint for progress dialog (bug #11467) (Matt Thirtytwo)
+- Refresh file info after getting it from cache (bug #11008) (Peter de Ridder)
+- Remove unused enum for signal handlers (bug #11493) (Matt Thirtytwo)
+- Simplify Makefile.am. Generated files are separated from typed source files (Matt Thirtytwo)
+- thunar-tpa: Install desktop file to $(datadir)/xfce4/panel/plugins (Robby Workman)
+- Fix anchor offset in xfce_dialog_show_help () function. (Olivier Duchateau)
+- Properly handle m4 stuff (Harald Judt)
+- TWP: Single-workspace-mode = TRUE is the default (Bug #11047) (Eric Koegel)
+- thunar-wallpaper: Do not use escaped filenames for xfconf (Harald Judt)
+- Use xfconf and handle xfdesktop's single workspace (Bug #11047) (Eric Koegel)
+- Revert "Workaround for crashes on RHEL5" (Andrzej)
+- Revert "Fallback to image surface, workaround for bug in Cairo/RENDER" (Andrzej)
+- Renaming a file from another file manager, file disappears in Thunar window (bug #11430) (Andrzej)
+- Make usage/free string more clear (bug #11345) (Harald Judt)
+- Make single middle click open files and folders (bug #10587) (Harald Judt)
+- Add a progressbar to the freespace indicator in the properties dialog (Harald Judt, Simon Steinbeiss)
+- Change resize style in thunar-wallpaper plugin (Thaddaeus Tintenfisch)
+- Add vim modeline. Remove obsolete '$Id$' line (Matt Thirtytwo)
+- Right click context menu with wrong icon (bug #10652) (Andrzej)
+- Translation updates
+
+1.6.4
+=====
+- make distcheck fix (reference docs linking error) (Andrzej)
+- Add support for binary file size units (bug #10864) (Andre Miranda)
+- Strip trailing spaces/Github test (Nick)
+- Fix case of Xfce in appdata description (Simon)
+- Update intltool (Eric)
+- Add pkexec policy (Bug #11122) (Eric)
+- Remove trailing whitespace from Makefile to prevent warning (Simon)
+- Add appdata file for Thunar (Bug 11172) (Eric)
+- Check for thumbnails in the new location (Bug #11263) (Eric)
+- Default application not respected with glib >= 2.41 (Bug #11212) (Guido)
+- Add support for the GTK 3 bookmarks file (bug #10627) (Alistair)
+- Update xfconf setting for thunar-wallpaper plugin (Eric)
+- Update copyright. (Nick)
+- thunar-tpa: fix libxfce4panel version checking macros (Andrzej)
+- Fallback to image surface, workaround for bug in Cairo/RENDER (Andrzej)
+- Fixed missing inode-directory/folder icons on old systems. (Andrzej)
+- Change name of file copies (and links) (bug #7518). (Nick)
+- Improve the extension selection to not match hidden names. (Nick)
+- Safe accels 10 sec after changes (bug #10139). (Nick)
+- Force icons on the toolbar (bug #10179). (Nick)
+- Improve handling of renames (bug #10242). (Nick)
+- Smarter file extension selecting (bug #10268). (Jeff Shipley)
+- I18n: Remove broken / unsupported translations. (Nick)
+- Force reference on files from the cache. (Nick)
+- Drop README.thunarrc. (Nick)
+- Translation updates.
+
+1.6.3
+=====
+- Autotools updates.
+- Allow keyboard shortcuts for user customizable actions (bug #1941).
+- Prepend and later reverse for collecting selection.
+- Some optimizations in renamer loop.
+- Plug leak in file renamer (bug #9864).
+- Escape name for sidepane tooltips (bug #10001).
+- Revert "Remove image resolution from statusbar."
+- Fix segfault when going back to removed directory (bug #9831).
+- Translation updates: Arabic, Bulgarian, Catalan (Valencian), Czech, 
+  Spanish (Castilian), French, Hebrew, Croatian, Hungarian, Indonesian, 
+  Italian, Japanese, Kazakh, Korean, Dutch (Flemish), Norwegian 
+  Nynorsk, Polish, Portuguese, Portuguese (Brazilian), Russian, 
+  Slovenian, Serbian, Ukrainian, Chinese (China), Chinese (Taiwan).
+
+1.6.2
+=====
+- Don't abort startup if dbus failed.
+- Put * around string if * and ? are not used in the pattern.
+- Revert "Remove right-click drag possibility (bug #3549)."
+- Revert "Directly popup menus on selected items (bug #3550)."
+- Update shortcuts headers when removing a shortcut (bug #9651).
+- Implement tab middle click in location buttons (bug #9684).
+- Add new tab option to right-click menu of location buttons.
+- Small improvement in thumbnail frame.
+- Key combos not working with location buttons (bug #9625).
+- Open tree node if expanded and mounted (bug #9603).
+- Use some more cairo renderering.
+- Make Desktop in Go menu translatable (bug #9616).
+- Send to menu not updated for directories (bug #9618).
+- Fix freeze on /proc/kmsg.
+- Show all volumes in the devices list.
+- Removed translations: Dzongkha, Kazakh, Kurdish, Macedonian.
+- Translation updates: Arabic, Czech, Italian, Japanese, 
+  Georgian, Korean, Dutch (Flemish), Polish, Portuguese,
+  Russian, Ukrainian.
+
+1.6.1
+=====
+- Fix bulk renamer url to the wiki.
+- Show NoDisplay=true applications (bug #9595).
+- Fast read content type of unreadable files (bug #9553).
+- Submenu the sidepane visibility menu.
+- Hide shortcut pane header when there are no items.
+- Keybindings to switch to tab with Alt+N (bug #9585).
+- Make tabs scrollable.
+- Session-save mount operation passwords.
+- Check trash status 2s after startup from session.
+- Clear mutex to avoid memleak with 2.32 api.
+- Fix file menu displacement after a forced update (bug #9604).
+- Put remote bookmarks in places and improve icon loading.
+- Use ThunarBrowser to resolve locations in launcher.
+- Translation updates: Amharic, Arabic, Asturian, Belarusian, 
+  Bengali, Catalan (Valencian), Czech, Danish, German, Dzongkha, Greek, 
+  English (United Kingdom), Esperanto, Spanish (Castilian), Estonian, 
+  Basque, Finnish, French, Galician, Hebrew, Croatian, Hungarian, 
+  Indonesian, Icelandic, Italian, Japanese, Georgian, Kazakh, Korean, 
+  Kurdish, Lithuanian, Latvian, Macedonian, Norwegian Bokmal, Dutch 
+  (Flemish), Norwegian Nynorsk, Panjabi (Punjabi), Polish, Portuguese, 
+  Portuguese (Brazilian), Romanian, Russian, Sinhala, Slovak, Albanian, 
+  Serbian, Swedish, Telugu, Turkish, Uyghur, Ukrainian, Urdu, Urdu 
+  (Pakistan), Vietnamese, Chinese (China), Chinese (Taiwan).
+
+1.6.0
+=====
+- Drop spacing betweek Kind and icon in file properties.
+- Make sure trash is loaded during session restore (bug #9513).
+- Don't open a useless tab (bug #9519).
+- Remove session file if there are no windows (bug #9519).
+- Add special tooltip for the trash in shortcuts.
+- Revert "Improve pervious commit.. (bug #9552).
+- Slightly increase the progress dialog (bug #9545).
+- Set icon names in go menu (bug #9559).
+- Hide spinner when there's no activity (bug #9563).
+- Fix sorting by type (bug #9549).
+- Remove the display names from the emblems (bug #9548).
+- Test if the application generated a thumbnail if not supported.
+- Translation updates: Czech, Danish, German, Hebrew, Croatian,
+  Hungarian, Italian, Japanese, Dutch (Flemish), Polish, Portuguese,
+  Portuguese (Brazilian), Romanian, Russian, Ukrainian, Chinese
+  (Taiwan).
+
+1.5.3
+=====
+- Re-add the has-handler check when inserting rows.
+- Use g_object_notify_by_pspec in most places.
+- Install GParamSpec properties at once in a couple of objects.
+- Update the statusbar in a short timeout.
+- Remove image resolution from statusbar.
+- Fix supported applications for multiple files.
+- Idle updating the launcher.
+- Don't queue tumbler requests for non-regular files.
+- Pass the correct emblem size to the icon factory.
+- Store cairo surfaces on pixbufs.
+- Right-click on not-selected row will show menu of current folder
+  in details view (bug #3386).
+- Load content types on-demand and preload in an idle.
+- Use origional date in properties page for images.
+- Add option to only show local thumbnails.
+- Translation updates: Arabic, Czech, German, Italian, Kazakh, 
+  Korean, Polish, Portuguese, Russian, Ukrainian, Chinese (China), 
+  Chinese (Taiwan).
+
+1.5.2
+=====
+- Do not unref g_file_icon_get_file() file (bug #9439).
+- Don't add duplicates of devices (bug #9440).
+- Fix typo of Trash in standard view (bug #9437).
+- Don't use deprecated g_thread_init().
+- Use GArray instead of GValueArray and new mutex API.
+- Clear cached icon when trash changed (bug #9432).
+- Also clear cache on reload of a file.
+- Keep file permissions when renaming a desktop file.
+- Write localized name of a desktop file (bug #8783).
+- Fix back/forward gestures and 8/9 button events.
+- Use seconds timers where possible.
+- Idle selecting item in shortcuts pane.
+- Do not set selection after removing files (bug #8780).
+- Fix linking on Cygwin (bug #4561).
+- Sort renamer list by clicking on name header (bug #2622).
+- Always set the icons size of the toolbar.
+- Make the entry the default location bar.
+- Don't set weight in chooser model to light (bug #7688).
+- Fallback to only default values if xfconf failed.
+- Improve generating remote display names (bug #9442).
+- Remove user directories and add bookmarks in go menu.
+- Trigger callback function when opening unmounted locations (bug #9447).
+- Don't add a bookmark to the same location twice.
+- Also watch the bookmark files.
+- Use stock home icons for ~.
+- Do not freeze on new files outsize this directory (bug #9468).
+- Some more optimizations in icon name loading.
+- Don't include notify.h if not available (bug #9480).
+- Add free space tooltip for devices.
+- Use GSequence in the list model.
+- Directly collect the full info namespace for ls dir.
+- Drop unused check for icons of executables.
+- Don't write empty session files.
+- Add support for tabs in session saving.
+- Translation updates: Amharic, Arabic, Asturian, Belarusian,
+  Bengali, Catalan (Valencian), Czech, Danish, German, Dzongkha, Greek,
+  English (United Kingdom), Esperanto, Spanish (Castilian), Estonian,
+  Basque, Finnish, French, Galician, Hebrew, Croatian, Hungarian,
+  Indonesian, Icelandic, Italian, Japanese, Georgian, Kazakh, Korean,
+  Kurdish, Lithuanian, Latvian, Macedonian, Norwegian Bokmal, Dutch
+  (Flemish), Norwegian Nynorsk, Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazilian), Romanian, Russian, Sinhala, Slovak, Albanian,
+  Serbian, Swedish, Telugu, Turkish, Uyghur, Ukrainian, Urdu, Urdu
+  (Pakistan), Vietnamese, Chinese (China), Chinese (Taiwan).
+
+1.5.1
+=====
+- Show custom commands again in the menus (bug #9169).
+- Drop usage of glib 2.32 functions.
+- Allow resizing of chooser dialog.
+- Don't abort on non-utf8 charaters in path entry.
+- Don't show drive icon for remote mounts in history.
+- Release all ThunarFiles when closing a view, this should resolve
+  mounts that were empty after unmounting.
+- Show tooltip uri/filename in history menu item.
+- End with a / in the path entry.
+- Add function to generate nice remote display names.
+- Easy adding bookmarks for remote mounts.
+- Do not call eject in thunar_device_volume_mount_finished.
+- Reduce tumbler traffic on startup of Thunar.
+- Use drive_stop in device handling.
+- Put reload button in location entry.
+- Create pull-down history buttons and remove arrows.
+- Shortcut pane: Do not mount after eject (bug #9403).
+- Use go-home icon name for menu and toolbar.
+- Drop the separators in the toolbar.
+- Extend history tooltips to describe functionality of the button.
+- Avoid segfault with null mime-type (bug #8390).
+- Implement tabs in Thunar (bug #6102).
+- Do not try to mount a device twice in treeview (bug #9412).
+- Keep delaying selecing files if not loaded yet (bug #7328).
+- Slightly toned thumbnail frame.
+- Make loading priority in shortcuts model higher.
+- Collect properties at once in window_init.
+- Use infobar for root warning in window.
+- Option to set small toolbar icons (bug #3971).
+- Avoid crash when toplevel window cannot be found (bug #9417).
+- Revert "Remove XdndDirectSave0 protocol." (bug #9414).
+- Rename filename of insecure desktop files (bug #8786).
+- Cache pixmaps on the ThunarFile and drop ring buffer.
+- Add lazy checks to thumbnailer.
+- Add menu item for permanent delete.
+- Only show "Move to Trash" if trash is supported.
+
+
+1.5.0
+=====
+- Add support for multiple selections in file preferences dialog.
+- Depend on Gtk 2.24 and Glib 2.30.
+- Implement selection inversion.
+- Improve refresh feedback when using dnd between 2 windows.
+- Resize rename dialog based on filename length (bug #7684).
+- Force bulk renamer when Shift is pressed (bug #7684).
+- Add a sentence case rename mode to sbr.
+- Regenerate thumbnails on file changes (bug #8473).
+- Hide recommended applications that are not visible (bug #9169).
+- Sort recommended applications (bug #8927).
+- Use system-file-manager icon-name in desktop file (bug #9128).
+- Check mime type in desktop files in the sendto menu (bug #7392).
+- Improvement in the file progress dialog.
+- Show full template filename in menu (bug #6140).
+- Store metadata (emblems) in GVFS's daemon.
+- Use Path from desktop file as CWD (bug #5760).
+- Add working directory entry to apr (bug #5760).
+- Add hidden option to show full path in window title (bug #6412).
+- Unset DBUS variables once registered (bug #8800).
+- Only collect image data if the mime-type is image/* (bug #2913).
+- Don't copy templates but create them (bug #8312).
+- Add menu item to hide the menu bar.
+- Improve statusbar selection text (bug #8989).
+- Don't allow starting multiple daemons (bug #3814).
+- Make massing plugin warnings non-fatal (bug #2604).
+- Show transfer rate in transfer dialog (bug #8250).
+- Check free space before copying (bug #5658).
+- Port settings to xfconf.
+- Handle null content-types when sorting (bug #8465).
+- Scroll to first file with pattern select.
+- Add secure desktop file launching (bug #5012).
+- Use g_utf8_collate_key_for_filename for sorting (bug #7110).
+- Only deep-count on the same filesystem.
+- Don't force scrolling to the window edge.
+- Translation updates: Amharic, Arabic, Asturian, Belarusian,
+  Bengali, Catalan (Valencian), Czech, Danish, German, Dzongkha, Greek,
+  English (United Kingdom), Esperanto, Spanish (Castilian), Estonian,
+  Basque, Finnish, French, Galician, Hebrew, Croatian, Hungarian,
+  Indonesian, Icelandic, Italian, Japanese, Georgian, Kazakh, Korean,
+  Kurdish, Lithuanian, Latvian, Macedonian, Norwegian Bokmal, Dutch
+  (Flemish), Norwegian Nynorsk, Panjabi (Punjabi), Polish, Portuguese,
+  Portuguese (Brazilian), Romanian, Russian, Sinhala, Slovak, Albanian,
+  Serbian, Swedish, Telugu, Turkish, Uyghur, Ukrainian, Urdu, Urdu
+  (Pakistan), Vietnamese, Chinese (China), Chinese (Taiwan).
+
+1.4.0
+=====
+- Add a 64x64 and 128x128 icon for Thunar.
+- Move away from the hard-coded size of window icons (bug #8626).
+- Link against gmodule (bug #8467).
+- Don't use deprecated g_format_size_for_display.
+- Don't use g_atexit anymore.
+- Use mount operations with eject and unmount.
+- Unref mount operation from sendto menu.
+- Fix invalid replacement from previous commit (bug #8779).
+- Translation updates: German, English (United Kingdom), Croatian,
+  Hungarian, Japanese, Kazakh, Korean, Dutch (Flemish), Polish,
+  Portuguese (Brazilian), Romanian, Chinese (China).
+
+1.3.2
+=====
+- Support small property for trash panel applet (bug #8391).
+- Make uca.xml readable for humans.
+- Enable startup-notify in the uca example.
+- Hide thumb queue cleanup debug and plug memleak.
+- Plug more leaks in thumbnailer.
+- Reload ThunarView if job finishes.
+- Use macro to get uri where possible.
+- Free string in progress view.
+- Fix file selection problems.
+- Free module list in provider factory.
+- Use a normal ExoBinding to avoid mem leak.
+- Bump 4util and 4ui dependencies.
+- Use macro to search for sed (bug #8686).
+- Translation updates: Catalan (Valencian), Czech, Greek, Basque,
+  Finnish, French, Galician, Croatian, Japanese, Korean, Dutch
+  (Flemish), Norwegian Nynorsk, Portuguese, Portuguese (Brazilian),
+  Turkish.
+
+1.3.1
+=====
+- Fix crash when trying to thumbnail a file with unknown content type.
+- Fix properties dialog crash with files with unknown content type.
+- Fix crash when hovering a CD drive with a special icon (bug #7309).
+  Reported and solved by Ambroz Bizjak.
+- Use portable abicheck.sh from xfconf.
+- Avoid segfaults due to interpreting display names as format strings.
+- Improve the UI according to bugs #7496 and #7497.
+- Treat backup files as hidden as with thunar-vfs (bug #7615).
+- Fix crash when opening a mountable drive with no media (bug #7308)
+  in a way that does not break SMB shares (#bug 7774).
+  Patches by Ambroz Bizjak and Axel Sommerfeldt.
+- Fix segfaults in case icons are missing or not found (bug #7880).
+- Allow exec bit of MS-DOS executables and MSI to be changed
+  (bug #3545).
+- Prevent falling back to an unexpected locale (bug #4746).
+  Patch by Martin Jürgens and Mark Trompell.
+- Show translated names of desktop files (bug #7393).
+  Fix by Lionel Le Folgoc<lionel@lefolgoc.net>.
+- Fix sorting of filenames with large numbers (bug #5356).
+  Patch by Eric Koegel.
+- Respect ThunarIconFactory::show-thumbnails. Fixes a regression.
+- Fix crash when removing an ancestor of the current folder (bug #8168).
+- Fix handling %U when launching multiple files with an app (bug #7456).
+- Improve sorting of file names that include numbers (bug #5359,
+  bug #8022, #4269, #5286).
+- Add a "Skip All" button to the file overwrite dialog (bug #4263).
+- Compress icons and images.
+- Remove the manual.
+- Use 32 instead of 36 pixels for small icons.
+- Show Thunar settings in category.
+- Don't update UI more then fourth per second in deep count job.
+- Fix sorting of applications in chooser dialog.
+- Depend on Gtk 2.20 and Glib 2.24 and drop some workarounds.
+- Fix removing custom application launchers again.
+- Prevent looping in some renamers.
+- Fix segfault when plugin returns a NULL suffix.
+- Remove spec file, rpm build and update libtool.
+- Lowercase the thunar executable and install a Thunar symlink.
+- Make the clipboard persistence (bug #7060).
+- Use glib functions for get/set cwd (bug #7522).
+- Don't interpret file display names as format strings
+- Translation updates (ar, ca, cs, da, de, el, es, eu, fi, fr, gl, he,
+  hr, hu, id, is, it, kk, ko, lt, nl, nn, pl, pt, pt_BR, ro, ru, sk,
+  sv, te, tr, uk, zh_CN, zh_TW).
+
+1.3.0
+=====
+- Paste files in correct order (bug #6504).
+- Fix truncated strings when loading and storing emblems (bug #7171).
+- Only erase top-level items from trash (bug #7147).
+- Don't interpret file display names as format strings (bug #7128).
+- Ship stock_folder-copy.png and stock_folder-move.png icons with
+  Thunar itself (bug #6851).
+- Fix segfault when calling strcasecmp with NULL parameters (bug #7206).
+- Only change the Name field when renaming desktop files (bug #7155).
+- Force desktop file reload after changing the Name field.
+- Fix memory leak caused by not destroying the rename job.
+- Allow installation of helper scripts in a custom location using the
+  --with-helper-path-prefix=PATH configure option.
+- Improve thumbnailing by avoid sending thumbnail requests while the
+  user is scrolling in a directory.
+- Cancel thumbnail requests when leaving a directory.
+- Avoid regenerating thumbnails when files are copied, moved, linked
+  or trashed.
+- Update the thumbnail cache when files are deleted permanently.
+- Translation updates: Galician, Polish, Portuguese, Romanian, Serbian.
+
+1.2.0
+=====
+- Properly try alternative names when creating links (bug #6867).
+- Only show the "Eject Volume" context menu action when the volume is
+  present.
+- Translation updates: Arabic, French, Galician, Greek, Romanian,
+  Turkish.
+
+1.1.6
+=====
+- Fix unused variable warning when building with GLib < 2.20.
+- Fix file operation status icon not disappearing by hiding the icon
+  prior to destroying it (bug #6891). Patch by Xavier D.
+- Fix Gtk 2.16 function.
+- Fix twp plugin for images with a quote in file name (bug #5056).
+- Bump copyrights to 2011.
+- Translation updates (zh_TW, de, cs, fi, uk, pt, ru, nb, ja,
+  de, en_GB, sv, id, hr, ar).
+
+1.1.5
+=====
+- Make .desktop entries installed by Thunar validate against
+  desktop-file-utils 0.16 (bug #6655). Patch by Samuli Suominen.
+- Fix missing instruction to load the sendto model (bug #6762).
+- Fix the sample D-Bus client for the org.xfce.FileManager interface.
+- Fix home folder being displayed as "Desktop" if $HOME is set to
+  /home/username/Desktop.
+- Fix outdated Thunar D-Bus API usage in the trash panel applet.
+- Create user dirs instead of showing an error if they don't exist.
+- Allow scrolling in the 'Open With' combo box of the file properties
+  dialog (bug #3055).
+- Expand filenames starting with './' based on the current working
+  directory instead of home (bug #3451).
+- Print an error if thunar-settings fails to contact the file manager
+  service (bug #6547).
+- Permanently delete files if at least one of them cannot be trashed
+  (bug #6748).
+- Fix a typo in configure.in.in (bug #6724).
+- Include panel macro header (bug #6680).
+- Use GTK_STOCK_FILE as the fallback icon for files (bug #6662).
+- Fix compiler warnings about shadowed variables.
+- Use Name field as display name of desktop entries (bug #6860).
+- Fix a memory leak in thunar_transfer_job_execute().
+- Fix a segmentation fault when reloading files.
+- Avoid GIO 2.20 function calls.
+- Properly avoid launching the file manager recursively by checking
+  the GAppInfo id/name.
+- Translation updates: Hungarian, German, Slovak,
+  Portuguese (Brazilian), Chinese (China), Greek, Catalan (Valencian),
+  Italian, Basque, Spanish (Castilian), Kazakh, Portuguese, Hebrew,
+  Galician, Indonesian, Chinese (Taiwan), Japanese.
+
+1.1.4
+=====
+- Add startup parameter to the D-Bus call in thunar-settings (bug
+  #6768). This will make thunar-settings start again.
+- Properly hide partitions that are not mountable by the user.
+- Translation updates: Japanese, Finnish.
+
+1.1.3
+=====
+- Add new D-Bus methods:
+  - Execute()
+  - CreateFileFromTemplate()
+  - CreateFile()
+  - RenameFile()
+- Properly remember the default handler for a file / content type (bug
+  #6167).
+- Replace - with _ in parameter names of the D-Bus API.
+- Do not display shadowed mounts.
+- Provide an eject button for removable and present volumes in the
+  side pane (bug #3658).
+- Auto-select previously selected subdirectories when walking through
+  the history (bug #5538).
+- Delay applying the file selection until folders have finished
+  loading.
+- Fix broken compilation with -Wl,-z,defs and -Wl,--as-needed.
+- Translation updates: Basque, Chinese (Taiwan), Ukrainian, Galician,
+  Portuguese, Catalan (Valencian), Finnish, Italian, Danish, Kazakh,
+  Swedish, Greek, Japanese, Russian, German, Uyghur.
+
+1.1.2
+=====
+- Move helpers from $libexecdir to $libdir/Thunar.
+- Fix replacing @docdir@ in ThunarHelp.
+- Move panel plugin to $(libdir)/xfce4/panel/plugins.
+- Move manual translations to docs/manual/po.
+- Abort dist when validating the xml file fails.
+- Wait for a reply in thunar-settings.
+- Add CopyTo, CopyInto, MoveInto, LinkInto, UnlinkFiles
+  D-Bus methods.
+- Add startup-id to more D-Bus methods.
+- Move LaunchFiles to org.xfce.FM.
+- Remove README.volumes and ThumbnailersCacheFormat as
+  those are specific to thunar-vfs.
+- Display content type in the file properties dialog
+  tooltip (bug #2369).
+- Translation updates (kk, pt, ca, fr, da, fi, it, uk, he, de,
+  zh_TW, gl)
+
+1.1.1
+=====
+- Port the code related to thunar-volman to udev. This is an optional
+  part of Thunar. The consequences are that instead of calling
+  thunar-volman with HAL UDIs, we'll now call thunar-volman with
+  sysfs paths. For this to work, a more recent version of thunar-volman
+  is required: 0.5.0.
+- Re-implement mount/eject notifications based on libnotify.
+  Notifications were gone after the port to GIO because we no longer
+  used exo-mount to mount or eject devices.
+- Fix segfaults when loading image icons.
+- Force a folder reload when the new_file closure is finished (bug
+  #6409).
+- Update the trash panel plugin to the new panel framework.
+- Create status icon only when we're actually going to display it.
+- Change CWD before spawning applications in ThunarLauncher.
+- Fix browsing shortcuts and mountables in ThunarLauncher.
+- Synchronize ThunarListModel sorting with detailed list view
+  captions.
+- Fix sorting by type in ThunarListModel (bug #6143).
+- Refilter the tree model when a hidden dir is entered/left (bug
+  #6142).
+- Properly update the cursor when a row is deleted (bug #5361).
+- Use stock icons and standard icon names where appropriate (bug
+  #6133).
+- Updated translations: Kazakh, Hebrew, Greek, Italian, Chinese
+  (Taiwan), Indonesian, Croatian, Bengali, German, Slovak, French,
+  Uyghur, Turkish, Galician, Spanish (Castilian), Russian, Sinhala,
+  Ukrainian, Portuguese (Brazilian), Danish, Basque, Finnish, Czech.
+
+1.1.0
+=====
+- Replace ThunarVFS with GIO. There will be a separate maintenance
+  release of ThunarVFS soon after this release. All functionality
+  previously based on ThunarVFS is now implemented on top of GIO
+  and GVfs. This means that remote filesystems can be accessed via
+  SFTP, FTP, SMB etc. For this as well as the trash feature GVfs
+  is required. Thunar does not depend on it because GVfs is a set
+  of GIO extensions and there is no guarantee for those to be
+  available at runtime if they are installed at buildtime. This is left
+  for distributions to set up properly.
+- Thumbnails are now generated using the thumbnail management D-Bus
+  specification. One implementation of this specification is Tumbler
+  which is released independently.
+- Bump the API version of Thunarx to 2 because symbols related to
+  ThunarVFS were removed and replaced by new symbols dealing with GIO.
+  This requires all existing plugins to be updated and linked against
+  thunarx-2 instead of thunarx-1.
+- Show "Network" item in the side pane and the "Go" menu if the
+  network:// URI scheme is supported by GIO (via an extension). Make
+  the "Trash" item optional too.
+- Use a single shared progress dialog for file operations instead of
+  individual dialogs for each operation. The visual information in this
+  shared dialog still has to be improved (work on this has been started
+  in an experimental branch).
+- Use g_utf8_strlen to calculate the side pane width (bugs #3965, #5390)
+- Add startup ID parameter to the BulkRename and LaunchFiles D-Bus methods
+  in order to support startup notification over D-Bus.
+- Avoid requesting drag data if the drag target is GDK_NONE (bug #5771).
+- Add startup notification support to the custom actions plugin.
+- Use install-exec-hook for installing the thunar symlink (bug #5835).
+- Use silent build rules if available.
+- Use libxfce4ui instead of libxfcegui4.
+- Depend on xfce4-dev-tools >= 4.7.2 to get rid of custom configure code.
+- Depend on exo-1 >= 0.5.1.
+- Updated translations: German, French, Chinese, Portuguese, Czech, Slovak,
+  Latvian, Basque, Danish, Asturian, Japanese, Galician, Spanish, Greek,
+  Turkish, Russian, Swedish, Catalan, Albanian, Kazakh.
+
+1.0.1
+========
+- Put quotes around filenames in thunar-wallpaper-plugin (bug #5056)
+- Apply umask properly when creating files/directories.
+  Patch by Giovanni Bechis (bug #3532).
+
+1.0.0
+========
+- Fix crash when entering the same hidden directory twice in the
+  location entry (bug #4847).
+- Pass the current event time to startup notification, so focus
+  stealing works properly.
+
+0.9.99.1
+========
+- Optional nano version added to configure.in.in.
+- Update Danish, Norwegian Bokmal, Simplified Chinese and Turkish
+  translations.
+
+0.9.93
+======
+- Fix crash in the tree side pane when hidden files are toggled (bug #2502).
+- Always show an error dialog if one of the files passed via the command
+  line cannot be opened.
+- Only show eject option for devices when requires_eject is TRUE (bug #3978).
+- Fix crash when cd drive is ejected (bug #4257).
+- Use posix_fadvise() for copying large files.
+- Use -V for version information.
+- Restore the selection after deleting a file (bug #3884).
+- Fix completion in the path bar when ~/ is used (bug #2973).
+- Change the tooltip of the trash plugin from "Trash is full" to
+  "Trash contains files" (bug #3266).
+- Popup the location selector when the dead tilde is pressed. This allows
+  people with dead keys to use the location selector.
+- Unload folders in the tree side pane when they are collapsed (bug #4051).
+- Don't monitor /proc and /dev on Linux systems.
+- Implement window groups so modal dialogs don't block other Thunar
+  windows (bug #3586).
+- Open a question dialog before removing a custom action (bug #3838).
+- Make the first alpha numeric character upper-case in the case renamer
+  (bug #3559).
+- Update links to the Glib reference manual in the docs (bug #4555).
+- Only respond to the predefined key bindings for deleting files when
+  the user has not set a custom accelerator (bug #4173).
+- Implement menu providers in the side pane popup menus (bug #2740).
+- Unmounted volumes are 50% translucent so give some visual feedback.
+- Add rename option to the tree side pane popup menu.
+- Don't go back in the history anymore if the new directory is the first
+  one in the backward history (bug #4660).
+- Implement reorder, positioned drag and drop and rubberbanding in the
+  renamer dialog (bug #3325).
+- Change Name value of the desktop entry to "Thunar File Manager".
+- Go back and forward using the 8th and 9th button on the mouse (bug #4687).
+- Various compilers warnings were fixed, some performace improvements
+  and less memory allocations.
+- Update Albanian, Basque, Belarusian, Brazilian Portuguese, Catalan, Czech,
+  Danish, Finnish, French, Galician, German, Hungarian, Indonesian, Japanese,
+  Norwegian Bokmal, Polish, Simplified Chinese, Spanish, Swedish, Turkish and
+  Ukrainian translations.
+
+0.9.92
+======
+- Fix build on MacOS X (bug #4433).
+- Don't create Thunar -> thunar symlink on case-insensitive
+  filesystems (bug #4430).
+- Add thunar-wallpaper-plugin for setting the wallpaper on
+  xfdesktop >= 4.5.90.
+
+0.9.91
+======
+- Update Basque, French and Spanish translations
+
+0.9.80
+======
+- Fix .desktop file to launch thunar-settings dialog with
+  xfce4-settings-manager
+- Update Indonesian, Korean, Polisn, Arabic, Ukranian, Galician, Turkish,
+  English Brittish, Lithuanian, Latvian, Chinese (traditional), Portuguese,
+  Brazilian Portuguese, Catalan, Greek, French, Spanish, Russian, Czech and
+  Hungarian translations.
+- Add Kurdish translation
+
+
+0.9.0
+=====
+- Do not display volumes without mountable file systems (Bug #3555).
+- Properly recognize OGG files as audio files for custom actions (Bug #3604).
+- Add new date renamer (Bug #3656).
+- Pass the correct $DISPLAY value to processes spawned by Thunar and
+  xfdesktop in multi screen environments (Bug #3667).
+- Preselect the whole filename when renaming folders (Bug #3057).
+- Prevent infinite recursion on JPEG files with broken EXIF data (Bug #3452).
+- Fix crash on amd64 (Bug #3303).
+- Add support to retry job based operations.
+- Display more details in the override dialog (Bug #3268).
+- Add support for different date/time formats (Bug #3265).
+- Fix crash on sparc64 (Bug #2815).
+- Properly binaries selected for custom actions (Bug #3105).
+- Fix invalid invocation of thunar-volman for volumes that should be
+  ignored (Bug #2789).
+- Reduce binary size by stripping XML comments and whitespace (Bug #3094).
+- Use the correct HAL property to determine whether a given volume or
+  device requires eject (Bug #3119).
+- Automatically disable thumbnailing if storing a thumbnail fails because
+  of a fatal error (Bug #3020).
+- Fix crash because of unaligned memory access (Bug #2880).
+- Fix compilation with the Sun Studio 11 compiler (Bug #2899, #2900).
+- Updated translations: Alexander Nyakhaychyk (be), Pau Rul-lan Ferragut (ca),
+                        Benedikt Meurer (de), Piarres Beobide (eu), Jari
+                        Rahkonen (fi) Daichi Kawahata (ja), ByungHyun Choi (ko),
+                        Stephan Arts, Peter Maassen and Vincent Tunru (nl),
+                        Szymon Kałasz (pl), Fábio Nogueira (pt_BR), Mişu
+                        Moldovan (ro), Eren Turkay (tr), Dmitry Nikitin (uk)
+- New translations: Mohamed Magdy (ar), Jeff Bailes (en_GB), Rihards Prieditis
+                    (lv), Terje Uriansrud (nb_NO), Amanpreet SIngh Alam (pa),
+                    Nuno Miguel (pt_PT), Besnik Bleta (sq), ﻢﺤﻣﺩ ﻊﻠﻳ ﺰ�ﻠﻤﻜﻳ (ur)
+
+
+0.8.0
+=====
+- Add documentation for the bulk renamer (Bug #1594).
+- Improve the user manual (Bug #1365).
+- Connect the various "Help" buttons (Bug #1230).
+- Automatically add removable devices as targets to the "Send To" menu
+  (Bug #2683).
+- Allow to use "Eject" button on CD-ROM drives to unmount and eject the media
+  (Bug #2759).
+- Use Exif embedded thumbnails if available, which reduces the amount of data
+  that must be retrieved from a camera to around 50k instead of the whole JPEG
+  image, which can be up to several mega bytes.
+- Treat hotplugged drives as removable drives, so they will be displayed in
+  the side pane.
+- Improve startup notification support.
+- Add support for trashes other than the home trash (Bug #2132).
+- Fix crash on platforms where sizeof(GType) != sizeof(gint) (Bug #2726).
+- Add support for thunar-volman, which gets invoked by Thunar whenever a
+  new device is added to the HAL device tree.
+- Add support for memory cards and generic removable disk drives (Bug #2652).
+- Handle blank discs and pure audio discs as well (Bug #2599).
+- Use exo-mount to mount, eject and unmount volumes of relying on external
+  utilities, like pmount or gnome-mount, that do not always behave properly
+  (Bug #2715).
+- Add ability to mount floppy drives using exo-mount (Bug #2075).
+- Make sure GThread gets initialized first to avoid possible crashes in
+  the GSlice allocator later.
+- Add ability to load custom thumbnailers from .desktop files.
+- Stop unused threads after ten seconds of idle time to return some more
+  free memory to the kernel.
+- Improve performance when loading really large folders using a parallel
+  lock-free algorithm.
+- Ellipsize long shortcut names, but make sure "File System" still fits into
+  the side pane.
+- Properly initialize the translation domain for thunar-vfs (Bug #2543).
+- Do not gather detailed statistics from non-regular files to avoid blocking
+  Thunar forever reading from a named pipe (Bug #2655).
+- Add keyboard shortcuts to switch between the different views (Bug #2600).
+- Do not display "Desktop (Create Link)" action in "Send To" menu for
+  trashed files, because symlinks cannot be created for files in the
+  trash (Bug #2539).
+- Fix crash when transfering a lot of files via drag'n'drop or clipboard
+  (Bug #2356).
+- Fix modal about dialog blocking other windows (Bug #2545).
+- Fix build with dbus-binding-tool 0.72 and above (Bug #2528).
+- Fix installation on case insensitive file systems (Bug #2521).
+- Set word-wrap width depending on current zoom-level (Bug #2505).
+- Improve the performance of the automatic path completion (Bug #1681).
+- Properly redraw the shortcuts pane after after drag'n'drop (Bug #2498).
+- Updated translations: Pau Rul-lan Ferragut (ca), Michal Várady (cs),
+                        Benedikt Meurer and Fabian Nowak (de), Stavros
+			Giannouris (el), Piarres Beobide (eu), Jari Rahkonen
+			(fi), Maximilian Schleiss, Mike Massonnet and Niki
+			Kovacs (fr), Szervác Attila (hu), Roberto Pariset
+			(it), Piotr Maliński and Szymon Kałasz (pl), Andrey
+			Fedoseev (ru), Alexander Toresson (sv), Kang
+			Kang (zh_CN).
+- New translations: Alexander Nyakhaychyk (be), ByungHyun Choi (ko), Jovan
+                    Naumovski and Viktor Stojanovski (mk), Stephan Arts and
+		    Vincent Tunru (nl), Amanpreet Singh Alam (pa).
+
+
+0.5.0rc1
+========
+- Add a "Trash" menu entry to the "Go" menu (#2486).
+- Add a drop-down menu to the toolbar-style location bar to enable quick
+  access to the shortcuts even if the classic file manager look'n'feel is
+  being used (#2024).
+- Add support for HAL on FreeBSD. Make HAL the preferred volume manager on
+  FreeBSD.
+- Adjust the preferences dialog to match the look of the other Xfce preferences
+  dialogs (#2379).
+- Allow to change the icon of .desktop files (#2150).
+- Allow Thunar extensions to add menu items to the Drag'n'Drop context menu.
+  This is for example used by the thunar-archive-plugin to add an "Extract
+  Here" action, which extracts a dragged archive file at the drop location.
+- Display the real mime type as tooltip for the "Kind" label in the properties
+  dialog (#2369).
+- Keep the modification time when copying files (#2244).
+- Make sure emblems don't get too large with SVG icon themes (#2466).
+- Make sure Thunar is restarted prior to xfdesktop, so the trash support in
+  xfdesktop works as expected even if D-Bus autoactivation is not setup
+  properly.
+- Place automake options into configure.in.in instead of Makefile.am and add
+  the tar-ustar option to fix building distributions on system where tar
+  defaults to the deprecated V7 format (#2304).
+- Place cursor on the first selected file after a new file or folder was
+  created (#2368).
+- Place focus on the main view after changing the current directory (#2367).
+- Properly clean up the path bar when a folder that is currently displayed
+  on the path bar is deleted.
+- Properly validate the Name of .desktop files (#2227).
+- Update the icon mime icon lookup to try icon names from Icon Naming Spec
+  first, and fallback to legacy GNOME icon names.
+- Use default dbus connection timeout (#2243).
+- Use exo-open for the default "Open Terminal Here" action (#2256).
+- Use the thumbnail database to load SVG icons from the icon theme, because
+  loading SVG is quite slow and takes a lot more memory than loading and
+  scaling PNG icons from the thumbnail database.
+- Fix usage of deprecated HAL policy functions (#2475).
+- Fix crash with newer GtkTreeView's if the "row-has-child-toggled" signal is
+  emitted even if the child state of a node did not change (#2372).
+- Fix several race conditions that were introduced over time and prevented the
+  "new-files" job handling from working properly with Gamin and automatic
+  folder reload (#2199).
+- Fix invalid calculation of free space on OpenBSD/amd64 (#2383).
+- Fix crash due to invalid handling of file names with printf(3)-style format
+  arguments (#2468).
+- Fix crash on systems with small per-thread stacks (#2269).
+- Fix installation on Win32 platforms (#2432).
+- Fix build with GLib 2.6.x (#2317).
+- Fix build with latest dbus-glib (#2263).
+- Updated translations: Pau Rul-lan Ferragut (ca), Michal Várady (cs), Benedikt
+			Meurer (de), Stavros Giannouris (el), Jarbas Araujo,
+			Antono Vasiljev and Sylvain Vedrenne (eo), Piarres
+			Beobide (eu), Jari Rhkonen (fi), Maximilian Schleiss
+			(fr), Piotr Maliński (pl), Adriano Winter Bess (pt_BR),
+			Andrey Fedoseev (ru), Hydonsingore Cia (zh_TW)
+- New translations: Sonam Pelden (dz)
+
+
+0.4.0rc1
+========
+- An implementation of the XDG Trash Specification was imported and is now
+  used by both Thunar and xfdesktop to display and manage trashed files.
+  The implementation is currently limited to the home trash, but that will
+  be extended to support foreign trash cans soon.
+- Add a trash panel applet for the Xfce panel, that displays the current
+  state of the trash, allows to open and empty the trash, and supports
+  drops of files to the trash.
+- Add "No to all" response to the transfer progress dialog, which allows to
+  skip all further overwrite dialogs (Bug #1666).
+- Add ISO Speed Ratings to the Image page of the properties dialog.
+- Add rubberband selection support to the detailed list view when build with
+  GTK+ 2.9.0 and above (Bug #1996).
+- Add menus to the "Back" and "Forward" buttons in the toolbar (Bug #1782).
+- Update the path bar with the latest changes to GtkFileChooser (Bug #2060).
+- The dependency of the thunar-vfs library on GConf is gone. Instead the
+  available thumbnailers are now determined by an external tool and added to
+  a cache file, which will be mapped by all processes using the thunar-vfs
+  library (Bug #2131).
+- Add a new thumbnailer for TrueType fonts using the FreeType 2.x library.
+- Add a warning text to the window when running as super user (Bug #2218).
+- Add desktop shortcut to the shortcuts pane and use a special icon for the
+  desktop folder (Bug #2235).
+- Use the new icon chooser dialog, available with exo 0.3.1.10rc1, to pick
+  icons for custom actions.
+- Fix invalid display of the file's group in the properties dialog (Bug #1838).
+- Fix the location entry completion crashing with certain GTK+ versions (Bug
+  #1891).
+- Fix list model related crashes with GTK+ 2.10 (Gnome Bug #349128).
+- Use CRLF for text/uri-list as specified by RFC 2483 (Bug #2166).
+- Fix invalid substitution of %d in custom commands (Bug #2214).
+- Fix not working Ctrl+A in the location entry (Bug #2036).
+- Fix the progress bar text being truncated (Bug #2003).
+- Fix missing mkdtemp on Solaris (Bug #2070).
+- Fix compilation with compilers other than gcc (Bug #1852).
+- Fix compilation on NetBSD 2.99 and above.
+- Fix compilation on OpenBSD.
+- Add manual page for Thunar (Bug #1650).
+- Unmount volumes prior to ejecting them (Bug #2236).
+- Do not use different icons to represent the home folder.
+- Use "<folder> - File Manager" for the title of Thunar windows to make it
+  easier to identify file manager windows in the taskbar.
+- The thunar-vfs reference manual was updated to reflect the latest changes.
+- Case sensitive sorting is now disabled by default (Bug #2064).
+- Use a localized human readable format for the file dates (Bug #2057).
+- Use the new GSlice allocator where possible to reduce memory overhead.
+- Avoid the usage of GMemChunk, because in GLib 2.10 and above that is not
+  only inefficient, but also continously leaks memory.
+- Updated translations: Pau Rul-lan Ferragut (ca), Michal Várady (cs),
+                        Benedikt Meurer and Fabian Nowak (de), Stavros
+			Giannouris (el), Sylvain Vedrenne (eo), Piarres
+			Beobide (eu), Jari Rahkonen (fi), Maximilian
+			Schleiss (fr), Szervác Attila (hu), Roberto
+			Pariset (it), Piotr Maliński and Szymon Kałasz (pl),
+			Hydonsingore Cia (zh_TW)
+- New translations: Iván Seoane Pardo (gl), Dimitri Gogelia (ka)
+
+
+0.3.2beta2
+==========
+- The default operation when dropping files into a folder is now to move the
+  files if both the source files and the target folder is on the same file
+  system and the source files are owned by the user.
+- The custom actions are now run using the shell.
+- Added the "Send To" menu, which allows users to easily send files to other
+  applications from within the file manager. Default targets are "Desktop
+  (Create Link)", "Mail Recipient" and "Side Pane (Create Shortcut)". Additio-
+  nal targets can be dynamically added via .desktop files.
+- Support for session management was added.
+- The "Open With" dialog now allows users to remove launchers that were
+  previously added via the custom command box.
+- The number of relocations for the libraries was reduced to improve the
+  application startup time.

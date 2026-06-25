@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# vi:set et ai sw=2 sts=2 ts=2: */
+
+output=`dbus-send --session --print-reply --dest=org.xfce.FileManager \
+  /org/xfce/FileManager org.xfce.FileManager.DisplayPreferencesDialog \
+  "string:" "string:$DESKTOP_STARTUP_ID"`
+
+if ! [ $? -eq 0 ]; then
+  echo $output
+  exit 1
+fi

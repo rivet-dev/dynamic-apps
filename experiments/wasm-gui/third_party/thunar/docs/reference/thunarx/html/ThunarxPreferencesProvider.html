@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarxPreferencesProvider: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-providers.html" title="Part V. Providers">
+<link rel="prev" href="ThunarxPropertyPageProvider.html" title="ThunarxPropertyPageProvider">
+<link rel="next" href="ThunarxRenamerProvider.html" title="ThunarxRenamerProvider">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarxPreferencesProvider.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarxPreferencesProvider.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_prerequisites">  <span class="dim">|</span> 
+                  <a href="#ThunarxPreferencesProvider.prerequisites" class="shortcut">Prerequisites</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-providers.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarxPropertyPageProvider.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarxRenamerProvider.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarxPreferencesProvider"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarxPreferencesProvider.top_of_page"></a>ThunarxPreferencesProvider</span></h2>
+<p>ThunarxPreferencesProvider — The interface to extensions that provide preferences</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxPreferencesProvider.html#thunarx-preferences-provider-get-menu-items" title="thunarx_preferences_provider_get_menu_items ()">thunarx_preferences_provider_get_menu_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxPreferencesProvider.html#ThunarxPreferencesProviderIface" title="struct ThunarxPreferencesProviderIface">ThunarxPreferencesProviderIface</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarxPreferencesProvider.html#ThunarxPreferencesProvider-struct" title="ThunarxPreferencesProvider">ThunarxPreferencesProvider</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarxPreferencesProvider
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.prerequisites"></a><h2>Prerequisites</h2>
+<p>
+ThunarxPreferencesProvider requires
+ GObject.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;thunarx/thunarx.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.description"></a><h2>Description</h2>
+<p>The ThunarxPreferencesProvider interface is implemented by extensions that
+want to register additional items in the preferences menu of the file
+manager. In general this should only be done by extensions that are closely
+tied to the file manager (for example, the <code class="literal">thunar-uca</code> is
+such an extension, while an extension that just adds <span class="guimenuitem">Compress
+file</span> and <span class="guimenuitem">Uncompress file</span> to the
+context menu of compressed files should not add their own preferences to
+the file manager menu, because it should use desktop-wide settings for
+archive managers instead).</p>
+<p>The name of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s
+returned from the thunarx_preferences_provider_get_menu <code class="function">items()</code> method must be
+namespaced with the model to avoid collision with internal file manager menu items
+and menu items provided by other extensions. For example, the preferences menu item
+provided by the <code class="literal">thunar-uca</code> extension is called
+<code class="literal">ThunarUca::manage-menu-items</code>.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunarx-preferences-provider-get-menu-items"></a><h3>thunarx_preferences_provider_get_menu_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunarx_preferences_provider_get_menu_items
+                               (<em class="parameter"><code><a class="link" href="ThunarxPreferencesProvider.html" title="ThunarxPreferencesProvider"><span class="type">ThunarxPreferencesProvider</span></a> *provider</code></em>,
+                                <em class="parameter"><code><span class="type">GtkWidget</span> *window</code></em>);</pre>
+<p>Returns the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s that <em class="parameter"><code>provider</code></em>
+ has to offer
+as preferences within <em class="parameter"><code>window</code></em>
+. These menu items will usually be added
+to the builtin list of preferences in the "Edit" menu of the file
+manager's <em class="parameter"><code>window</code></em>
+.</p>
+<p>Plugin writers that implement this interface should make sure to
+choose descriptive names and tooltips, and not to crowd the
+"Edit" menu too much. That said, think twice before implementing
+this interface, as too many preference menu items will render the
+file manager useless over time!</p>
+<p>The caller is responsible to free the returned list of menu items using
+something like this when no longer needed:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="thunarx-preferences-provider-get-menu-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>provider</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxPreferencesProvider.html" title="ThunarxPreferencesProvider"><span class="type">ThunarxPreferencesProvider</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>the <span class="type">GtkWindow</span> within which the menu items will be used.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-preferences-provider-get-menu-items.returns"></a><h4>Returns</h4>
+<p>the list of
+<a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s that <em class="parameter"><code>provider</code></em>
+has to offer as preferences
+within <em class="parameter"><code>window</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxPreferencesProvider.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarxPreferencesProviderIface"></a><h3>struct ThunarxPreferencesProviderIface</h3>
+<pre class="programlisting">struct ThunarxPreferencesProviderIface {
+  GList *(*get_menu_items) (ThunarxPreferencesProvider *provider,
+                            GtkWidget                  *window);
+};
+</pre>
+<p>Interface with virtual methods implementation by extensions that
+want to install preferences items in the file managers menu.
+Providers don't need to implement all of the virtual methods listed
+in the interface.</p>
+<div class="refsect3">
+<a name="ThunarxPreferencesProviderIface.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody><tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxPreferencesProviderIface.get-menu-items"></a>get_menu_items</code></em> ()</p></td>
+<td class="struct_member_description"><p>See <a class="link" href="ThunarxPreferencesProvider.html#thunarx-preferences-provider-get-menu-items" title="thunarx_preferences_provider_get_menu_items ()"><code class="function">thunarx_preferences_provider_get_menu_items()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxPreferencesProvider-struct"></a><h3>ThunarxPreferencesProvider</h3>
+<pre class="programlisting">typedef struct _ThunarxPreferencesProvider ThunarxPreferencesProvider;</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

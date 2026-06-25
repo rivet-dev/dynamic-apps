@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    For now, better don't edit this with glade, since glade insists upon inserting
+    deprecated properties and otherwise messing with the file.
+-->
+<interface>
+  <requires lib="gtk+" version="3.12"/>
+  <template class="ThunarUcaChooser" parent="GtkDialog">
+    <property name="default-width">500</property>
+    <property name="default-height">350</property>
+    <property name="type-hint">dialog</property>
+    <property name="title" translatable="yes">Custom Actions</property>
+    <property name="destroy-with-parent">True</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="vbox">
+        <!-- label at the top -->
+        <child>
+          <object class="GtkBox">
+            <property name="border-width">6</property>
+            <property name="spacing">3</property>
+            <property name="visible">TRUE</property>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">dialog-information</property>
+                <property name="icon-size">5</property>
+                <property name="visible">TRUE</property>
+                <property name="yalign">0.0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">You can configure custom actions that will appear in the file managers context menus for certain kinds of files.
+
+Check the &lt;a href="https://docs.xfce.org/xfce/thunar/custom-actions"&gt;documentation&lt;/a&gt; for a collection of custom action samples.</property>
+                <property name="use-markup">True</property>
+                <property name="xalign">0.0</property>
+                <property name="yalign">0.5</property>
+                <property name="visible">TRUE</property>
+                <property name="wrap">TRUE</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <!-- main part -->
+        <child>
+          <object class="GtkFrame">
+            <property name="border-width">6</property>
+            <property name="visible">true</property>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">0</property>
+                <property name="visible">TRUE</property>
+                <property name="hexpand">TRUE</property>
+                <property name="vexpand">TRUE</property>
+                <!-- tree view containing the list of items -->
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="visible">TRUE</property>
+                    <property name="expand">TRUE</property>
+                    <child>
+                      <object class="GtkTreeView" id="treeview">
+                        <property name="headers-visible">FALSE</property>
+                        <property name="visible">TRUE</property>
+                        <signal name="row-activated" handler="thunar_uca_chooser_edit_clicked" swapped="true" />
+                        <!-- TODO: setup columns here -->
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection">
+                            <property name="mode">GTK_SELECTION_SINGLE</property>
+                            <signal name="changed" handler="thunar_uca_chooser_selection_changed" swapped="true" />
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <!-- buttons -->
+                <child>
+                  <object class="GtkToolbar">
+                    <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                    <property name="visible">TRUE</property>
+                    <property name="toolbar-style">GTK_TOOLBAR_ICONS</property>
+                    <property name="icon-size">GTK_ICON_SIZE_BUTTON</property>
+                    <property name="show-arrow">false</property>
+                    <!-- add button -->
+                    <child>
+                      <object class="GtkToolButton" id="add_button">
+                        <property name="tooltip-text" translatable="yes">Add a new custom action.</property>
+                        <property name="visible">TRUE</property>
+                        <property name="icon-name">list-add-symbolic</property>
+                        <signal name="clicked" handler="thunar_uca_chooser_add_clicked" swapped="true" />
+                      </object>
+                    </child>
+                    <!-- edit button -->
+                    <child>
+                      <object class="GtkToolButton" id="edit_button">
+                        <property name="tooltip-text" translatable="yes">Edit the currently selected action.</property>
+                        <property name="visible">TRUE</property>
+                        <property name="icon-name">emblem-system-symbolic</property>
+                        <signal name="clicked" handler="thunar_uca_chooser_edit_clicked" swapped="true" />
+                      </object>
+                    </child>
+                    <!-- remove button -->
+                    <child>
+                      <object class="GtkToolButton" id="delete_button">
+                        <property name="tooltip-text" translatable="yes">Delete the currently selected action.</property>
+                        <property name="visible">TRUE</property>
+                        <property name="icon-name">list-remove-symbolic</property>
+                        <signal name="clicked" handler="thunar_uca_chooser_delete_clicked" swapped="true" />
+                      </object>
+                    </child>
+                    <!-- move up button -->
+                    <child>
+                      <object class="GtkToolButton" id="up_button">
+                        <property name="tooltip-text" translatable="yes">Move the currently selected action up by one row.</property>
+                        <property name="visible">TRUE</property>
+                        <property name="icon-name">go-up-symbolic</property>
+                        <signal name="clicked" handler="thunar_uca_chooser_up_clicked" swapped="true" />
+                      </object>
+                    </child>
+                    <!-- move down button -->
+                    <child>
+                      <object class="GtkToolButton" id="down_button">
+                        <property name="tooltip-text" translatable="yes">Move the currently selected action down by one row.</property>
+                        <property name="visible">TRUE</property>
+                        <property name="icon-name">go-down-symbolic</property>
+                        <signal name="clicked" handler="thunar_uca_chooser_down_clicked" swapped="true" />
+                      </object>
+                    </child>
+                  </object>
+                </child> <!-- end: buttons toolbar -->
+              </object>
+            </child> <!-- end of main part hbox -->
+          </object>
+        </child> <!-- end of main part frame -->
+      </object>
+    </child>
+  </template>
+</interface>

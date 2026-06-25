@@ -1,0 +1,456 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarxMenuItem: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-abstraction-layer.html" title="Part IV. Abstraction Layer">
+<link rel="prev" href="ThunarxMenu.html" title="ThunarxMenu">
+<link rel="next" href="ThunarxPropertyPage.html" title="ThunarxPropertyPage">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuItem.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuItem.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuItem.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarxMenuItem.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-abstraction-layer.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarxMenu.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarxPropertyPage.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarxMenuItem"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarxMenuItem.top_of_page"></a>ThunarxMenuItem</span></h2>
+<p>ThunarxMenuItem — The base class for menu items added to the context menus</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="returnvalue">ThunarxMenuItem</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-new" title="thunarx_menu_item_new ()">thunarx_menu_item_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-activate" title="thunarx_menu_item_activate ()">thunarx_menu_item_activate</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-get-sensitive" title="thunarx_menu_item_get_sensitive ()">thunarx_menu_item_get_sensitive</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-set-sensitive" title="thunarx_menu_item_set_sensitive ()">thunarx_menu_item_set_sensitive</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-set-menu" title="thunarx_menu_item_set_menu ()">thunarx_menu_item_set_menu</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxMenuItem.html#thunarx-menu-item-list-free" title="thunarx_menu_item_list_free ()">thunarx_menu_item_list_free</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--icon" title="The “icon” property">icon</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--label" title="The “label” property">label</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarxMenu.html" title="ThunarxMenu"><span class="type">ThunarxMenu</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--menu" title="The “menu” property">menu</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--name" title="The “name” property">name</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--priority" title="The “priority” property">priority</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--sensitive" title="The “sensitive” property">sensitive</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem--tooltip" title="The “tooltip” property">tooltip</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem-activate" title="The “activate” signal">activate</a></td>
+<td class="signal_flags">Run Last</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxMenuItem.html#ThunarxMenuItem-struct" title="struct ThunarxMenuItem">ThunarxMenuItem</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarxMenuItem
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;thunarx/thunarx.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.description"></a><h2>Description</h2>
+<p>The class for menu items that can be added to Thunar's context menus
+by extensions implementing the <a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a>, <a class="link" href="ThunarxPreferencesProvider.html" title="ThunarxPreferencesProvider"><span class="type">ThunarxPreferencesProvider</span></a>
+or <a class="link" href="ThunarxRenamerProvider.html" title="ThunarxRenamerProvider"><span class="type">ThunarxRenamerProvider</span></a> interfaces. The items returned by extensions from
+*_get_menu_items() methods are instances of this class or a derived class.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunarx-menu-item-new"></a><h3>thunarx_menu_item_new ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="returnvalue">ThunarxMenuItem</span></a> *
+thunarx_menu_item_new (<em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *label</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *tooltip</code></em>,
+                       <em class="parameter"><code>const <span class="type">gchar</span> *icon</code></em>);</pre>
+<p>Creates a new menu item that can be added to the toolbar or to a contextual menu.</p>
+<div class="refsect3">
+<a name="thunarx-menu-item-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>identifier for the menu item</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>label</p></td>
+<td class="parameter_description"><p>user-visible label of the menu item</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>tooltip</p></td>
+<td class="parameter_description"><p>tooltip of the menu item</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>icon</p></td>
+<td class="parameter_description"><p>textual representation of the icon to display in the menu
+item, as returned by <code class="function">g_icon_to_string()</code>. A path or icon name
+are valid representations too.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-menu-item-new.returns"></a><h4>Returns</h4>
+<p> a newly created <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-item-activate"></a><h3>thunarx_menu_item_activate ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunarx_menu_item_activate (<em class="parameter"><code><a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> *item</code></em>);</pre>
+<p>Emits the activate signal.</p>
+<div class="refsect3">
+<a name="thunarx-menu-item-activate.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>pointer to a <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-item-get-sensitive"></a><h3>thunarx_menu_item_get_sensitive ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunarx_menu_item_get_sensitive (<em class="parameter"><code><a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> *item</code></em>);</pre>
+<p>Returns whether the menu item is sensitive.</p>
+<div class="refsect3">
+<a name="thunarx-menu-item-get-sensitive.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>pointer to a <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-item-set-sensitive"></a><h3>thunarx_menu_item_set_sensitive ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_menu_item_set_sensitive (<em class="parameter"><code><a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> *item</code></em>,
+                                 <em class="parameter"><code><span class="type">gboolean</span> sensitive</code></em>);</pre>
+<p>Sets the ::sensitive property of the menu item to <em class="parameter"><code>sensitive</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunarx-menu-item-set-sensitive.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>pointer to a <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sensitive</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to make the menu item sensitive</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-item-set-menu"></a><h3>thunarx_menu_item_set_menu ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_menu_item_set_menu (<em class="parameter"><code><a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> *item</code></em>,
+                            <em class="parameter"><code><a class="link" href="ThunarxMenu.html" title="ThunarxMenu"><span class="type">ThunarxMenu</span></a> *menu</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>menu</code></em>
+ to menu item.</p>
+<div class="refsect3">
+<a name="thunarx-menu-item-set-menu.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>item</p></td>
+<td class="parameter_description"><p>pointer to a <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>menu</p></td>
+<td class="parameter_description"><p>pointer to a <a class="link" href="ThunarxMenu.html" title="ThunarxMenu"><span class="type">ThunarxMenu</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-menu-item-list-free"></a><h3>thunarx_menu_item_list_free ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_menu_item_list_free (<em class="parameter"><code><span class="type">GList</span> *items</code></em>);</pre>
+<div class="refsect3">
+<a name="thunarx-menu-item-list-free.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>items</p></td>
+<td class="parameter_description"><p>a list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarxMenuItem-struct"></a><h3>struct ThunarxMenuItem</h3>
+<pre class="programlisting">struct ThunarxMenuItem;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarxMenuItem--icon"></a><h3>The <code class="literal">“icon”</code> property</h3>
+<pre class="programlisting">  “icon”                     <span class="type">char</span> *</pre>
+<p>Textual representation of the icon (as returned by g_icon_to_string()) to display in the menu item.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--label"></a><h3>The <code class="literal">“label”</code> property</h3>
+<pre class="programlisting">  “label”                    <span class="type">char</span> *</pre>
+<p>Label to display to the user.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--menu"></a><h3>The <code class="literal">“menu”</code> property</h3>
+<pre class="programlisting">  “menu”                     <a class="link" href="ThunarxMenu.html" title="ThunarxMenu"><span class="type">ThunarxMenu</span></a> *</pre>
+<p>The menu belonging to this item. May be null.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--name"></a><h3>The <code class="literal">“name”</code> property</h3>
+<pre class="programlisting">  “name”                     <span class="type">char</span> *</pre>
+<p>Name of the item.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write / Construct Only</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--priority"></a><h3>The <code class="literal">“priority”</code> property</h3>
+<pre class="programlisting">  “priority”                 <span class="type">gboolean</span></pre>
+<p>Show priority text in toolbars.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--sensitive"></a><h3>The <code class="literal">“sensitive”</code> property</h3>
+<pre class="programlisting">  “sensitive”                <span class="type">gboolean</span></pre>
+<p>Whether the menu item is sensitive.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxMenuItem--tooltip"></a><h3>The <code class="literal">“tooltip”</code> property</h3>
+<pre class="programlisting">  “tooltip”                  <span class="type">char</span> *</pre>
+<p>Tooltip for the menu item.</p>
+<p>Owner: ThunarxMenuItem</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxMenuItem.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarxMenuItem-activate"></a><h3>The <code class="literal">“activate”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> *thunarxmenuitem,
+               <span class="type">gpointer</span>         user_data)</pre>
+<p>Flags: Run Last</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

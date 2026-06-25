@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarTransferJob: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch03.html" title="Parallel Tasks">
+<link rel="prev" href="ThunarDeepCountJob.html" title="ThunarDeepCountJob">
+<link rel="next" href="ch04.html" title="X Session / DBus Management">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarTransferJob.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarTransferJob.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarTransferJob.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarDeepCountJob.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch04.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarTransferJob"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarTransferJob.top_of_page"></a>ThunarTransferJob</span></h2>
+<p>ThunarTransferJob</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarTransferJob.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarTransferJob.html#thunar-transfer-job-new" title="thunar_transfer_job_new ()">thunar_transfer_job_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarTransferJob.html#thunar-transfer-job-get-status" title="thunar_transfer_job_get_status ()">thunar_transfer_job_get_status</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarTransferJob.html#thunar-transfer-job-can-start" title="thunar_transfer_job_can_start ()">thunar_transfer_job_can_start</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarTransferJob.html#ThunarTransferJob--file-size-binary" title="The “file-size-binary” property">file-size-binary</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarParallelCopyMode" title="enum ThunarParallelCopyMode"><span class="type">ThunarParallelCopyMode</span></a></td>
+<td class="property_name"><a class="link" href="ThunarTransferJob.html#ThunarTransferJob--parallel-copy-mode" title="The “parallel-copy-mode” property">parallel-copy-mode</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarUsePartialMode" title="enum ThunarUsePartialMode"><span class="type">ThunarUsePartialMode</span></a></td>
+<td class="property_name"><a class="link" href="ThunarTransferJob.html#ThunarTransferJob--transfer-use-partial" title="The “transfer-use-partial” property">transfer-use-partial</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarVerifyFileMode" title="enum ThunarVerifyFileMode"><span class="type">ThunarVerifyFileMode</span></a></td>
+<td class="property_name"><a class="link" href="ThunarTransferJob.html#ThunarTransferJob--transfer-verify-file" title="The “transfer-verify-file” property">transfer-verify-file</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarTransferJob.html#ThunarTransferJobType" title="enum ThunarTransferJobType">ThunarTransferJobType</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a href="/usr/share/gtk-doc/html/exo-2/ExoJob.html#ExoJob-struct">ExoJob</a>
+        <span class="lineart">╰──</span> <a class="link" href="ThunarJob.html" title="ThunarJob">ThunarJob</a>
+            <span class="lineart">╰──</span> ThunarTransferJob
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-transfer-job-new"></a><h3>thunar_transfer_job_new ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+thunar_transfer_job_new (<em class="parameter"><code><span class="type">GList</span> *source_file_list</code></em>,
+                         <em class="parameter"><code><span class="type">GList</span> *target_file_list</code></em>,
+                         <em class="parameter"><code><a class="link" href="ThunarTransferJob.html#ThunarTransferJobType" title="enum ThunarTransferJobType"><span class="type">ThunarTransferJobType</span></a> type</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-transfer-job-get-status"></a><h3>thunar_transfer_job_get_status ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_transfer_job_get_status (<em class="parameter"><code><a class="link" href="ThunarTransferJob.html" title="ThunarTransferJob"><span class="type">ThunarTransferJob</span></a> *job</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-transfer-job-can-start"></a><h3>thunar_transfer_job_can_start ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_transfer_job_can_start (<em class="parameter"><code><a class="link" href="ThunarTransferJob.html" title="ThunarTransferJob"><span class="type">ThunarTransferJob</span></a> *transfer_job</code></em>,
+                               <em class="parameter"><code><span class="type">GList</span> *running_job_list</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarTransferJobType"></a><h3>enum ThunarTransferJobType</h3>
+<div class="refsect3">
+<a name="ThunarTransferJobType.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-TRANSFER-JOB-COPY:CAPS"></a>THUNAR_TRANSFER_JOB_COPY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-TRANSFER-JOB-LINK:CAPS"></a>THUNAR_TRANSFER_JOB_LINK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-TRANSFER-JOB-MOVE:CAPS"></a>THUNAR_TRANSFER_JOB_MOVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-TRANSFER-JOB-TRASH:CAPS"></a>THUNAR_TRANSFER_JOB_TRASH</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarTransferJob.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarTransferJob--file-size-binary"></a><h3>The <code class="literal">“file-size-binary”</code> property</h3>
+<pre class="programlisting">  “file-size-binary”         <span class="type">gboolean</span></pre>
+<p>Owner: ThunarTransferJob</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarTransferJob--parallel-copy-mode"></a><h3>The <code class="literal">“parallel-copy-mode”</code> property</h3>
+<pre class="programlisting">  “parallel-copy-mode”       <a class="link" href="thunar-thunar-enum-types.html#ThunarParallelCopyMode" title="enum ThunarParallelCopyMode"><span class="type">ThunarParallelCopyMode</span></a></pre>
+<p>Owner: ThunarTransferJob</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_PARALLEL_COPY_MODE_ONLY_LOCAL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarTransferJob--transfer-use-partial"></a><h3>The <code class="literal">“transfer-use-partial”</code> property</h3>
+<pre class="programlisting">  “transfer-use-partial”     <a class="link" href="thunar-thunar-enum-types.html#ThunarUsePartialMode" title="enum ThunarUsePartialMode"><span class="type">ThunarUsePartialMode</span></a></pre>
+<p>Owner: ThunarTransferJob</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_USE_PARTIAL_MODE_NEVER</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarTransferJob--transfer-verify-file"></a><h3>The <code class="literal">“transfer-verify-file”</code> property</h3>
+<pre class="programlisting">  “transfer-verify-file”     <a class="link" href="thunar-thunar-enum-types.html#ThunarVerifyFileMode" title="enum ThunarVerifyFileMode"><span class="type">ThunarVerifyFileMode</span></a></pre>
+<p>Owner: ThunarTransferJob</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_VERIFY_FILE_MODE_NEVER</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>thunar-gdk-extensions: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="glib-gtk-extensions.html" title="Part I. Glib/GTK Extensions">
+<link rel="prev" href="thunar-thunar-gtk-extensions.html" title="thunar-gtk-extensions">
+<link rel="next" href="thunar-thunar-pango-extensions.html" title="thunar-pango-extensions">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#thunar-thunar-gdk-extensions.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="glib-gtk-extensions.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="thunar-thunar-gtk-extensions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="thunar-thunar-pango-extensions.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="thunar-thunar-gdk-extensions"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="thunar-thunar-gdk-extensions.top_of_page"></a>thunar-gdk-extensions</span></h2>
+<p>thunar-gdk-extensions</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="thunar-thunar-gdk-extensions.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GdkScreen</span> *
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-gdk-extensions.html#thunar-gdk-screen-open" title="thunar_gdk_screen_open ()">thunar_gdk_screen_open</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-gdk-extensions.html#thunar-gdk-cairo-set-source-pixbuf" title="thunar_gdk_cairo_set_source_pixbuf ()">thunar_gdk_cairo_set_source_pixbuf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-gdk-extensions.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-gdk-extensions.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-gdk-screen-open"></a><h3>thunar_gdk_screen_open ()</h3>
+<pre class="programlisting"><span class="returnvalue">GdkScreen</span> *
+thunar_gdk_screen_open (<em class="parameter"><code>const <span class="type">gchar</span> *display_name</code></em>,
+                        <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>Opens the screen referenced by the <em class="parameter"><code>display_name</code></em>
+. Returns a
+reference on the <span class="type">GdkScreen</span> for <em class="parameter"><code>display_name</code></em>
+ or <code class="literal">NULL</code> if
+<em class="parameter"><code>display_name</code></em>
+ couldn't be opened.</p>
+<p>If <em class="parameter"><code>display_name</code></em>
+ is the empty string "", a reference on the
+default screen will be returned.</p>
+<p>The caller is responsible to free the returned object
+using <code class="function">g_object_unref()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-gdk-screen-open.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>display_name</p></td>
+<td class="parameter_description"><p>a fully qualified display name.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>return location for errors or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-gdk-screen-open.returns"></a><h4>Returns</h4>
+<p> the <span class="type">GdkScreen</span> for <em class="parameter"><code>display_name</code></em>
+or <code class="literal">NULL</code> if
+<em class="parameter"><code>display_name</code></em>
+could not be opened.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-gdk-cairo-set-source-pixbuf"></a><h3>thunar_gdk_cairo_set_source_pixbuf ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_gdk_cairo_set_source_pixbuf (<em class="parameter"><code><span class="type">cairo_t</span> *cr</code></em>,
+                                    <em class="parameter"><code><span class="type">GdkPixbuf</span> *pixbuf</code></em>,
+                                    <em class="parameter"><code><span class="type">gdouble</span> pixbuf_x</code></em>,
+                                    <em class="parameter"><code><span class="type">gdouble</span> pixbuf_y</code></em>,
+                                    <em class="parameter"><code><span class="type">gint</span> scale_factor</code></em>);</pre>
+<p>Works like gdk_cairo_set_source_pixbuf but we try to cache the surface
+on the pixbuf, which is efficient within Thunar because we also share
+the pixbufs using the icon cache.</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

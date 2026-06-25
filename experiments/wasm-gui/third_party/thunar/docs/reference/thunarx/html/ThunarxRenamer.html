@@ -1,0 +1,824 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarxRenamer: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-abstraction-layer.html" title="Part IV. Abstraction Layer">
+<link rel="prev" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin">
+<link rel="next" href="thunarx-providers.html" title="Part V. Providers">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarxRenamer.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarxRenamer.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
+                  <a href="#ThunarxRenamer.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarxRenamer.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarxRenamer.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-abstraction-layer.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarxProviderPlugin.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="thunarx-providers.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarxRenamer"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarxRenamer.top_of_page"></a>ThunarxRenamer</span></h2>
+<p>ThunarxRenamer — The abstract base class for bulk renamers</p>
+</td>
+<td class="gallery_image" valign="top" align="right"><img src="bulk-rename.png"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarxRenamer.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-get-help-url" title="thunarx_renamer_get_help_url ()">thunarx_renamer_get_help_url</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-set-help-url" title="thunarx_renamer_set_help_url ()">thunarx_renamer_set_help_url</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-get-name" title="thunarx_renamer_get_name ()">thunarx_renamer_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-set-name" title="thunarx_renamer_set_name ()">thunarx_renamer_set_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-process" title="thunarx_renamer_process ()">thunarx_renamer_process</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-load" title="thunarx_renamer_load ()">thunarx_renamer_load</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-save" title="thunarx_renamer_save ()">thunarx_renamer_save</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-get-menu-items" title="thunarx_renamer_get_menu_items ()">thunarx_renamer_get_menu_items</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-changed" title="thunarx_renamer_changed ()">thunarx_renamer_changed</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxRenamer.html#ThunarxRenamer--help-url" title="The “help-url” property">help-url</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarxRenamer.html#ThunarxRenamer--name" title="The “name” property">name</a></td>
+<td class="property_flags">Read / Write / Construct Only</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarxRenamer.html#ThunarxRenamer-changed" title="The “changed” signal">changed</a></td>
+<td class="signal_flags">Run First</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxRenamer.html#ThunarxRenamer-struct" title="struct ThunarxRenamer">ThunarxRenamer</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxRenamer.html#ThunarxRenamerClass" title="struct ThunarxRenamerClass">ThunarxRenamerClass</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkBox
+                    <span class="lineart">╰──</span> ThunarxRenamer
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
+<p>
+ThunarxRenamer implements
+ AtkImplementorIface,  GtkBuildable and  GtkOrientable.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;thunarx/thunarx.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.description"></a><h2>Description</h2>
+<p>The abstract base class <span class="type">ThunarxRenamer</span> is implemented by
+extensions which provide additional bulk renamers that should be used in
+the bulk rename dialog.</p>
+<p>Derived classes must override the <a class="link" href="ThunarxRenamer.html#thunarx-renamer-process" title="thunarx_renamer_process ()"><code class="function">thunarx_renamer_process()</code></a> method, which
+is called by the bulk rename dialog for every file to generate a new name. For
+example, the <span class="type">ThunarSbrReplaceRenamer</span> class included in the
+<code class="literal">thunar-sbr</code> plugin (which is part of the Thunar distribution)
+provides a bulk renamer, named <span class="emphasis"><em>Search &amp; Replace</em></span>,
+which allows the user to rename multiple files by searching for a pattern in
+each file name and, if the pattern is found, replacing it with the specified
+replacement text.</p>
+<p>The active <span class="type">ThunarxRenamer</span>s user interface is displayed in a frame
+below the file list, as shown in the screenshot above. Derived classes should try
+to limit the number of widgets displayed in the main user interface. For example,
+if you have more than six settings, you should consider adding an <span class="guibutton">Advanced</span>,
+button which opens a dialog with the additional settings.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunarx-renamer-get-help-url"></a><h3>thunarx_renamer_get_help_url ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunarx_renamer_get_help_url (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>);</pre>
+<p>Returns the URL of the documentation for <em class="parameter"><code>renamer</code></em>
+
+or <code class="literal">NULL</code> if no specific documentation is available
+for <em class="parameter"><code>renamer</code></em>
+ and the general documentation of the
+Thunar renamers should be displayed instead.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-get-help-url.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-renamer-get-help-url.returns"></a><h4>Returns</h4>
+<p> the URL of the documentation for <em class="parameter"><code>renamer</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-set-help-url"></a><h3>thunarx_renamer_set_help_url ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_renamer_set_help_url (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                              <em class="parameter"><code>const <span class="type">gchar</span> *help_url</code></em>);</pre>
+<p>The URL to the documentation of this <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.
+Derived classes can set this property to point to the
+documentation for the specific renamer. The documentation
+of the specific renamer in turn should contain a link to
+the general Thunar renamer documentation.</p>
+<p>May also be unset, in which case the general Thunar renamer
+documentation will be shown when the user clicks the "Help"
+button.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-set-help-url.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>help_url</p></td>
+<td class="parameter_description"><p>the new URL to the documentation of <em class="parameter"><code>renamer</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-get-name"></a><h3>thunarx_renamer_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunarx_renamer_get_name (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>);</pre>
+<p>Returns the user visible name for <em class="parameter"><code>renamer</code></em>
+, previously
+set with <a class="link" href="ThunarxRenamer.html#thunarx-renamer-set-name" title="thunarx_renamer_set_name ()"><code class="function">thunarx_renamer_set_name()</code></a>.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-get-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-renamer-get-name.returns"></a><h4>Returns</h4>
+<p> the user visible name for <em class="parameter"><code>renamer</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-set-name"></a><h3>thunarx_renamer_set_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_renamer_set_name (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                          <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>);</pre>
+<p>Sets the user visible name for <em class="parameter"><code>renamer</code></em>
+ to <em class="parameter"><code>name</code></em>
+. This method should
+only be called by derived classes and prior to returning the <em class="parameter"><code>renamer</code></em>
+
+is returned from <a class="link" href="ThunarxRenamerProvider.html#thunarx-renamer-provider-get-renamers" title="thunarx_renamer_provider_get_renamers ()"><code class="function">thunarx_renamer_provider_get_renamers()</code></a>.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-set-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the new user visible name for <em class="parameter"><code>renamer</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-process"></a><h3>thunarx_renamer_process ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunarx_renamer_process (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                         <em class="parameter"><code><a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a> *file</code></em>,
+                         <em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>,
+                         <em class="parameter"><code><span class="type">guint</span> index</code></em>);</pre>
+<p>Determines the replacement for <em class="parameter"><code>text</code></em>
+ (which is the relevant
+part of the full <em class="parameter"><code>file</code></em>
+ name, i.e. either the suffix, the name
+or the name and the suffix).</p>
+<p>The caller is responsible to free the returned string using
+<code class="function">g_free()</code> when no longer needed.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-process.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a> for the file whose new
+name - according to <em class="parameter"><code>renamer</code></em>
+- should be
+determined.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>text</p></td>
+<td class="parameter_description"><p>the part of the filename to which the
+<em class="parameter"><code>renamer</code></em>
+should be applied.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>index</p></td>
+<td class="parameter_description"><p>the index of the file in the list, used
+for renamers that work on numbering.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-renamer-process.returns"></a><h4>Returns</h4>
+<p> the string with which to replace <em class="parameter"><code>text</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-load"></a><h3>thunarx_renamer_load ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_renamer_load (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                      <em class="parameter"><code><span class="type">GHashTable</span> *settings</code></em>);</pre>
+<p>Tells <em class="parameter"><code>renamer</code></em>
+ to load its internal settings from the specified
+<em class="parameter"><code>settings</code></em>
+. The <em class="parameter"><code>settings</code></em>
+ hash table contains previously saved
+settings, see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-save" title="thunarx_renamer_save ()"><code class="function">thunarx_renamer_save()</code></a>, as key/value pairs of
+strings. That is, both the keys and the values are strings.</p>
+<p>Implementations of <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> may decide to override this
+method to perform custom loading of settings. If you do not
+override this method, the default method of <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>
+will be used, which simply loads all <span class="type">GObject</span> properties
+provided by <em class="parameter"><code>renamer</code></em>
+s class (excluding the ones
+provided by the parent classes) from the <em class="parameter"><code>settings</code></em>
+. The
+<span class="type">GObject</span> properties must be transformable to strings and
+from strings.</p>
+<p>If you decide to override this method for your <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>
+implementation, you should also override <a class="link" href="ThunarxRenamer.html#thunarx-renamer-save" title="thunarx_renamer_save ()"><code class="function">thunarx_renamer_save()</code></a>.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-load.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>settings</p></td>
+<td class="parameter_description"><p>a <span class="type">GHashTable</span> which contains the previously saved
+settings for <em class="parameter"><code>renamer</code></em>
+as key/value pairs of strings.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-save"></a><h3>thunarx_renamer_save ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_renamer_save (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                      <em class="parameter"><code><span class="type">GHashTable</span> *settings</code></em>);</pre>
+<p>Tells <em class="parameter"><code>renamer</code></em>
+ to save its internal settings to the specified
+<em class="parameter"><code>settings</code></em>
+, which can afterwards be loaded by <a class="link" href="ThunarxRenamer.html#thunarx-renamer-load" title="thunarx_renamer_load ()"><code class="function">thunarx_renamer_load()</code></a>.</p>
+<p>The strings saved to <em class="parameter"><code>settings</code></em>
+ must be allocated by <code class="function">g_strdup()</code>,
+both the keys and the values. For example to store the string
+<code class="literal">Bar</code> for the setting <code class="literal">Foo</code>,
+you'd use:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_hash_table_replace</span><span class="w"> </span><span class="p">(</span><span class="n">settings</span><span class="p">,</span><span class="w"> </span><span class="n">g_strdup</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Foo&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">g_strdup</span><span class="w"> </span><span class="p">(</span><span class="s">&quot;Bar&quot;</span><span class="p">));</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Implementations of <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> may decide to override this
+method to perform custom saving of settings. If you do not overrride
+this method, the default method of <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> will be used,
+which simply stores all <span class="type">GObject</span> properties provided by the
+<em class="parameter"><code>renamer</code></em>
+s class (excluding the ones provided by the parent
+classes) to the <em class="parameter"><code>settings</code></em>
+. The <span class="type">GObject</span> properties must be transformable
+to strings.</p>
+<p>If you decide to override this method for your <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>
+implementation, you should also override <a class="link" href="ThunarxRenamer.html#thunarx-renamer-load" title="thunarx_renamer_load ()"><code class="function">thunarx_renamer_load()</code></a>.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-save.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>settings</p></td>
+<td class="parameter_description"><p>a <span class="type">GHashTable</span> to which the current settings of <em class="parameter"><code>renamer</code></em>
+should be stored as key/value pairs of strings.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-get-menu-items"></a><h3>thunarx_renamer_get_menu_items ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunarx_renamer_get_menu_items (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>,
+                                <em class="parameter"><code><span class="type">GtkWindow</span> *window</code></em>,
+                                <em class="parameter"><code><span class="type">GList</span> *files</code></em>);</pre>
+<p>Returns the list of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s provided by <em class="parameter"><code>renamer</code></em>
+ for
+the given list of <em class="parameter"><code>files</code></em>
+. By default, this method returns <code class="literal">NULL</code>
+(the empty list), but derived classes may override this method
+to provide additional items for files in the bulk renamer
+dialog list.</p>
+<p>The returned <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s will be displayed in the file's
+context menu of the bulk renamer dialog, when this <em class="parameter"><code>renamer</code></em>
+ is
+active. For example, an ID3-Tag based renamer may add an menu item
+"Edit Tags" to the context menus of supported media files and,
+when activated, display a dialog (which should be transient and
+modal for <em class="parameter"><code>window</code></em>
+, if not <code class="literal">NULL</code>), which allows the users to edit
+media file tags on-the-fly.</p>
+<p>Derived classes that override this method should always check
+first if all the <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a>s in the list of <em class="parameter"><code>files</code></em>
+
+are supported, and only return menu items that can be performed on
+this specific list of <em class="parameter"><code>files</code></em>
+. For example, the ID3-Tag renamer
+mentioned above, should first check whether all items in <em class="parameter"><code>files</code></em>
+
+are actually audio files. The <a class="link" href="ThunarxFileInfo.html#thunarx-file-info-has-mime-type" title="thunarx_file_info_has_mime_type ()"><code class="function">thunarx_file_info_has_mime_type()</code></a>
+of the <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a> interface can be used to easily test
+whether a file in the <em class="parameter"><code>files</code></em>
+ list is of a certain MIME type.</p>
+<p>Some menu items may only work properly if only a single file is
+selected (for example, the ID3-Tag renamer will probably only
+supporting editing one file at a time). In this case you have
+basicly two options: Either you can return <code class="literal">NULL</code> here if <em class="parameter"><code>files</code></em>
+
+does not contain exactly one item, or you can return the menu items
+as usual, but make them insensitive, using:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">thunarx_menu_item_set_sensitive</span><span class="w"> </span><span class="p">(</span><span class="n">item</span><span class="p">,</span><span class="w"> </span><span class="n">FALSE</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The latter has the advantage that the user will still notice the
+existance of the menu item and probably realize that it can only be
+applied to a single item at once.</p>
+<p>The caller is responsible to free the returned list using something
+like the following:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>As a special note, this method automatically takes a reference on the
+<em class="parameter"><code>renamer</code></em>
+ for every <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a> object returned from the real implementation
+of this method in <em class="parameter"><code>renamer</code></em>
+. This is to make sure that the extension stays
+in memory for at least the time that the menu items are used.</p>
+<p>The name of <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s returned from this method must be namespaced with
+the module to avoid collision with internal file manager menu items and
+menu items provided by other extensions. For example, the menu item
+provided by the ID3-Tag renamer mentioned above, should be named
+<code class="literal">TagRenamer::edit-tags</code> (if <code class="literal">TagRenamer</code>
+is the class name). For additional information about the way <a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s
+should be returned from extensions and the way they are used, read the
+description of the <a class="link" href="ThunarxMenuProvider.html" title="ThunarxMenuProvider"><span class="type">ThunarxMenuProvider</span></a> interface or read the introduction
+provided with this reference manual.</p>
+<p>A note of warning concerning the <em class="parameter"><code>window</code></em>
+ parameter. Plugins should
+avoid taking a reference on <em class="parameter"><code>window</code></em>
+, as that might introduce a
+circular reference and can thereby cause a quite large memory leak.
+Instead, if <em class="parameter"><code>window</code></em>
+ is not <code class="literal">NULL</code>, add a weak reference using the
+<code class="function">g_object_weak_ref()</code> or <code class="function">g_object_add_weak_pointer()</code> method. But don't
+forget to release the weak reference if <em class="parameter"><code>window</code></em>
+ survived the lifetime
+of your menu item (which is likely to be the case in most situations).</p>
+<div class="refsect3">
+<a name="thunarx-renamer-get-menu-items.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>window</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkWindow</span> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="ThunarxFileInfo.html" title="ThunarxFileInfo"><span class="type">ThunarxFileInfo</span></a>s. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxFileInfo]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-renamer-get-menu-items.returns"></a><h4>Returns</h4>
+<p>the list of
+<a class="link" href="ThunarxMenuItem.html" title="ThunarxMenuItem"><span class="type">ThunarxMenuItem</span></a>s provided by <em class="parameter"><code>renamer</code></em>
+for the given list of
+<em class="parameter"><code>files</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> ThunarxMenuItem]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-renamer-changed"></a><h3>thunarx_renamer_changed ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_renamer_changed (<em class="parameter"><code><a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer</code></em>);</pre>
+<p>This method should be used by derived classes
+to emit the "changed" signal for <em class="parameter"><code>renamer</code></em>
+. See
+the documentation of the "changed" signal for
+details.</p>
+<div class="refsect3">
+<a name="thunarx-renamer-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarxRenamer-struct"></a><h3>struct ThunarxRenamer</h3>
+<pre class="programlisting">struct ThunarxRenamer;</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxRenamerClass"></a><h3>struct ThunarxRenamerClass</h3>
+<pre class="programlisting">struct ThunarxRenamerClass {
+  /* virtual methods */
+  gchar *(*process)        (ThunarxRenamer  *renamer,
+                            ThunarxFileInfo *file,
+                            const gchar     *text,
+                            guint            index);
+
+  void   (*load)           (ThunarxRenamer  *renamer,
+                            GHashTable      *settings);
+  void   (*save)           (ThunarxRenamer  *renamer,
+                            GHashTable      *settings);
+
+  GList *(*get_menu_items) (ThunarxRenamer  *renamer,
+                            GtkWindow       *window,
+                            GList           *files);
+
+  /* signals */
+  void (*changed) (ThunarxRenamer *renamer);
+};
+</pre>
+<p>Abstract base class with virtual methods implemented by extensions
+that provide additional bulk renamers for the integrated bulk
+rename module in Thunar.</p>
+<div class="refsect3">
+<a name="ThunarxRenamerClass.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxRenamerClass.process"></a>process</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-process" title="thunarx_renamer_process ()"><code class="function">thunarx_renamer_process()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxRenamerClass.load"></a>load</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-load" title="thunarx_renamer_load ()"><code class="function">thunarx_renamer_load()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxRenamerClass.save"></a>save</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-save" title="thunarx_renamer_save ()"><code class="function">thunarx_renamer_save()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxRenamerClass.get-menu-items"></a>get_menu_items</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-get-menu-items" title="thunarx_renamer_get_menu_items ()"><code class="function">thunarx_renamer_get_menu_items()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxRenamerClass.changed"></a>changed</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxRenamer.html#thunarx-renamer-changed" title="thunarx_renamer_changed ()"><code class="function">thunarx_renamer_changed()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarxRenamer--help-url"></a><h3>The <code class="literal">“help-url”</code> property</h3>
+<pre class="programlisting">  “help-url”                 <span class="type">char</span> *</pre>
+<p>The URL to the documentation of this <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.
+Derived classes can set this property to point to the
+documentation for the specific renamer. The documentation
+of the specific renamer in turn should contain a link to
+the general Thunar renamer documentation.</p>
+<p>May also be unset, in which case the general Thunar renamer
+documentation will be shown when the user clicks the "Help"
+button.</p>
+<p>Owner: ThunarxRenamer</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxRenamer--name"></a><h3>The <code class="literal">“name”</code> property</h3>
+<pre class="programlisting">  “name”                     <span class="type">char</span> *</pre>
+<p>The user visible name of the renamer, that is displayed
+in the bulk rename dialog of the file manager. Derived
+classes should set a useful name.</p>
+<p>Owner: ThunarxRenamer</p>
+<p>Flags: Read / Write / Construct Only</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxRenamer.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarxRenamer-changed"></a><h3>The <code class="literal">“changed”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a> *renamer,
+               <span class="type">gpointer</span>        user_data)</pre>
+<p>Derived classes should emit this signal using the
+<a class="link" href="ThunarxRenamer.html#thunarx-renamer-changed" title="thunarx_renamer_changed ()"><code class="function">thunarx_renamer_changed()</code></a> method whenever the user
+changed a setting in the <em class="parameter"><code>renamer</code></em>
+ GUI.</p>
+<p>The file manager will then invoke <a class="link" href="ThunarxRenamer.html#thunarx-renamer-process" title="thunarx_renamer_process ()"><code class="function">thunarx_renamer_process()</code></a>
+for all files that should be renamed and update the preview.</p>
+<div class="refsect3">
+<a name="ThunarxRenamer-changed.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>renamer</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxRenamer.html" title="ThunarxRenamer"><span class="type">ThunarxRenamer</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run First</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

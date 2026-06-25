@@ -1,0 +1,412 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarJobOperation: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch05.html" title="Miscellaneous">
+<link rel="prev" href="ThunarUserManager.html" title="ThunarUserManager">
+<link rel="next" href="ThunarJobOperationHistory.html" title="ThunarJobOperationHistory">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarJobOperation.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarJobOperation.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch05.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarUserManager.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarJobOperationHistory.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarJobOperation"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarJobOperation.top_of_page"></a>ThunarJobOperation</span></h2>
+<p>ThunarJobOperation — Stores a job operation (copy, move, trash, rename, etc.)</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarJobOperation.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="returnvalue">ThunarJobOperation</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-new" title="thunar_job_operation_new ()">thunar_job_operation_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-add" title="thunar_job_operation_add ()">thunar_job_operation_add</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-overwrite" title="thunar_job_operation_overwrite ()">thunar_job_operation_overwrite</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="returnvalue">ThunarJobOperation</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-new-invert" title="thunar_job_operation_new_invert ()">thunar_job_operation_new_invert</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-execute" title="thunar_job_operation_execute ()">thunar_job_operation_execute</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-compare" title="thunar_job_operation_compare ()">thunar_job_operation_compare</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-get-timestamps" title="thunar_job_operation_get_timestamps ()">thunar_job_operation_get_timestamps</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-set-start-timestamp" title="thunar_job_operation_set_start_timestamp ()">thunar_job_operation_set_start_timestamp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-set-end-timestamp" title="thunar_job_operation_set_end_timestamp ()">thunar_job_operation_set_end_timestamp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-get-kind-nick" title="thunar_job_operation_get_kind_nick ()">thunar_job_operation_get_kind_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">ThunarJobOperationKind</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-get-kind" title="thunar_job_operation_get_kind ()">thunar_job_operation_get_kind</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-get-overwritten-files" title="thunar_job_operation_get_overwritten_files ()">thunar_job_operation_get_overwritten_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarJobOperation.html#thunar-job-operation-empty" title="thunar_job_operation_empty ()">thunar_job_operation_empty</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarJobOperation.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="ThunarJobOperation.html#THUNAR-TYPE-JOB-OPERATION:CAPS" title="THUNAR_TYPE_JOB_OPERATION">THUNAR_TYPE_JOB_OPERATION</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarJobOperation.html#ThunarJobOperation-struct" title="ThunarJobOperation">ThunarJobOperation</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarJobOperation.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarJobOperation
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarJobOperation.description"></a><h2>Description</h2>
+<p>The <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> class represents a single 'job operation', a file operation like copying, moving
+trashing, renaming etc. and its source/target locations.</p>
+</div>
+<div class="refsect1">
+<a name="ThunarJobOperation.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-job-operation-new"></a><h3>thunar_job_operation_new ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="returnvalue">ThunarJobOperation</span></a> *
+thunar_job_operation_new (<em class="parameter"><code><span class="type">ThunarJobOperationKind</span> kind</code></em>);</pre>
+<p>Creates a new <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> of the given kind. Should be unref'd by the caller after use.</p>
+<div class="refsect3">
+<a name="thunar-job-operation-new.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>kind</p></td>
+<td class="parameter_description"><p>The kind of operation being created.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-job-operation-new.returns"></a><h4>Returns</h4>
+<p>the newly created <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a>. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-add"></a><h3>thunar_job_operation_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_operation_add (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                          <em class="parameter"><code><span class="type">GFile</span> *source_file</code></em>,
+                          <em class="parameter"><code><span class="type">GFile</span> *target_file</code></em>);</pre>
+<p>Adds the specified <em class="parameter"><code>source_file</code></em>
+-<em class="parameter"><code>target_file</code></em>
+ pair to the given job operation.</p>
+<div class="refsect3">
+<a name="thunar-job-operation-add.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job_operation</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>source_file</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span> representing the source file</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>target_file</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span> representing the target file</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-overwrite"></a><h3>thunar_job_operation_overwrite ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_operation_overwrite (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                                <em class="parameter"><code><span class="type">GFile</span> *overwritten_file</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-new-invert"></a><h3>thunar_job_operation_new_invert ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="returnvalue">ThunarJobOperation</span></a> *
+thunar_job_operation_new_invert (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-execute"></a><h3>thunar_job_operation_execute ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_operation_execute (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                              <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-compare"></a><h3>thunar_job_operation_compare ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint</span>
+thunar_job_operation_compare (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *operation1</code></em>,
+                              <em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *operation2</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-get-timestamps"></a><h3>thunar_job_operation_get_timestamps ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_operation_get_timestamps (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                                     <em class="parameter"><code><span class="type">gint64</span> *start_timestamp</code></em>,
+                                     <em class="parameter"><code><span class="type">gint64</span> *end_timestamp</code></em>);</pre>
+<p>Getter for both timestamps</p>
+<div class="refsect3">
+<a name="thunar-job-operation-get-timestamps.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job_operation</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_timestamp</p></td>
+<td class="parameter_description"><p>Will be set to the current start_timestamp of the <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>end_timestamp</p></td>
+<td class="parameter_description"><p>Will be set to the current end_timestamp of the <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-set-start-timestamp"></a><h3>thunar_job_operation_set_start_timestamp ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_operation_set_start_timestamp
+                               (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                                <em class="parameter"><code><span class="type">gint64</span> start_timestamp</code></em>);</pre>
+<p>Setter for start_timestamp</p>
+<div class="refsect3">
+<a name="thunar-job-operation-set-start-timestamp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job_operation</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_timestamp</p></td>
+<td class="parameter_description"><p>the new start_timestamp of the <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-set-end-timestamp"></a><h3>thunar_job_operation_set_end_timestamp ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_job_operation_set_end_timestamp
+                               (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>,
+                                <em class="parameter"><code><span class="type">gint64</span> end_timestamp</code></em>);</pre>
+<p>Setter for end_timestamp</p>
+<div class="refsect3">
+<a name="thunar-job-operation-set-end-timestamp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>job_operation</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_timestamp</p></td>
+<td class="parameter_description"><p>the new end_timestamp of the <a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-get-kind-nick"></a><h3>thunar_job_operation_get_kind_nick ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_job_operation_get_kind_nick (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-get-kind"></a><h3>thunar_job_operation_get_kind ()</h3>
+<pre class="programlisting"><span class="returnvalue">ThunarJobOperationKind</span>
+thunar_job_operation_get_kind (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-get-overwritten-files"></a><h3>thunar_job_operation_get_overwritten_files ()</h3>
+<pre class="programlisting">const <span class="returnvalue">GList</span> *
+thunar_job_operation_get_overwritten_files
+                               (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-job-operation-empty"></a><h3>thunar_job_operation_empty ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_job_operation_empty (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *job_operation</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarJobOperation.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="THUNAR-TYPE-JOB-OPERATION:CAPS"></a><h3>THUNAR_TYPE_JOB_OPERATION</h3>
+<pre class="programlisting">#define THUNAR_TYPE_JOB_OPERATION (thunar_job_operation_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarJobOperation-struct"></a><h3>ThunarJobOperation</h3>
+<pre class="programlisting">typedef struct _ThunarJobOperation ThunarJobOperation;</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

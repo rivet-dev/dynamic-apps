@@ -1,0 +1,602 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarView: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch07.html" title="Main View">
+<link rel="prev" href="ch07.html" title="Main View">
+<link rel="next" href="ThunarStandardView.html" title="ThunarStandardView">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarView.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarView.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarView.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch07.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarStandardView.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarView"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarView.top_of_page"></a>ThunarView</span></h2>
+<p>ThunarView</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarView.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-loading" title="thunar_view_get_loading ()">thunar_view_get_loading</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-statusbar-text" title="thunar_view_get_statusbar_text ()">thunar_view_get_statusbar_text</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-show-hidden" title="thunar_view_get_show_hidden ()">thunar_view_get_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-set-show-hidden" title="thunar_view_set_show_hidden ()">thunar_view_set_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="returnvalue">ThunarZoomLevel</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-zoom-level" title="thunar_view_get_zoom_level ()">thunar_view_get_zoom_level</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-set-zoom-level" title="thunar_view_set_zoom_level ()">thunar_view_set_zoom_level</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-reset-zoom-level" title="thunar_view_reset_zoom_level ()">thunar_view_reset_zoom_level</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-reload" title="thunar_view_reload ()">thunar_view_reload</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-visible-range" title="thunar_view_get_visible_range ()">thunar_view_get_visible_range</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-scroll-to-file" title="thunar_view_scroll_to_file ()">thunar_view_scroll_to_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-get-selected-files" title="thunar_view_get_selected_files ()">thunar_view_get_selected_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarView.html#thunar-view-set-selected-files" title="thunar_view_set_selected_files ()">thunar_view_set_selected_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarView.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarView.html#ThunarView--loading" title="The “loading” property">loading</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarView.html#ThunarView--show-hidden" title="The “show-hidden” property">show-hidden</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarView.html#ThunarView--statusbar-text" title="The “statusbar-text” property">statusbar-text</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a></td>
+<td class="property_name"><a class="link" href="ThunarView.html#ThunarView--zoom-level" title="The “zoom-level” property">zoom-level</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarView.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarView
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarView.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarView.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-view-get-loading"></a><h3>thunar_view_get_loading ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_view_get_loading (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+<p>Tells whether the given <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> is currently loading or
+layouting its contents.</p>
+<div class="refsect3">
+<a name="thunar-view-get-loading.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-view-get-loading.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>view</code></em>
+is currently being loaded, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-get-statusbar-text"></a><h3>thunar_view_get_statusbar_text ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_view_get_statusbar_text (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+<p>Queries the text that should be displayed in the status bar
+associated with <em class="parameter"><code>view</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-view-get-statusbar-text.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-view-get-statusbar-text.returns"></a><h4>Returns</h4>
+<p> the text to be displayed in the status bar
+asssociated with <em class="parameter"><code>view</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-get-show-hidden"></a><h3>thunar_view_get_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_view_get_show_hidden (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if hidden and backup files are shown
+in <em class="parameter"><code>view</code></em>
+. Else <code class="literal">FALSE</code> is returned.</p>
+<div class="refsect3">
+<a name="thunar-view-get-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-view-get-show-hidden.returns"></a><h4>Returns</h4>
+<p> whether <em class="parameter"><code>view</code></em>
+displays hidden files.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-set-show-hidden"></a><h3>thunar_view_set_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_set_show_hidden (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                             <em class="parameter"><code><span class="type">gboolean</span> show_hidden</code></em>);</pre>
+<p>If <em class="parameter"><code>show_hidden</code></em>
+ is <code class="literal">TRUE</code> then <em class="parameter"><code>view</code></em>
+ will display hidden and
+backup files, else those files will be hidden from the user
+interface.</p>
+<div class="refsect3">
+<a name="thunar-view-set-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>show_hidden</p></td>
+<td class="parameter_description"><p>&amp;TRUE to display hidden files, else <code class="literal">FALSE</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-get-zoom-level"></a><h3>thunar_view_get_zoom_level ()</h3>
+<pre class="programlisting"><a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="returnvalue">ThunarZoomLevel</span></a>
+thunar_view_get_zoom_level (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+<p>Returns the <a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> currently used for the <em class="parameter"><code>view</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-view-get-zoom-level.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-view-get-zoom-level.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> currently used for the <em class="parameter"><code>view</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-set-zoom-level"></a><h3>thunar_view_set_zoom_level ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_set_zoom_level (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                            <em class="parameter"><code><a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> zoom_level</code></em>);</pre>
+<p>Sets the zoom level used for <em class="parameter"><code>view</code></em>
+ to <em class="parameter"><code>zoom_level</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-view-set-zoom-level.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>zoom_level</p></td>
+<td class="parameter_description"><p>the new <a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> for <em class="parameter"><code>view</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-reset-zoom-level"></a><h3>thunar_view_reset_zoom_level ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_reset_zoom_level (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+<p>Resets the zoom level of <em class="parameter"><code>view</code></em>
+ to the default
+<a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> for <em class="parameter"><code>view</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-view-reset-zoom-level.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-reload"></a><h3>thunar_view_reload ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_reload (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                    <em class="parameter"><code><span class="type">gboolean</span> reload_info</code></em>);</pre>
+<p>Tells <em class="parameter"><code>view</code></em>
+ to reread the currently displayed folder
+contents from the underlying media. If reload_info is
+TRUE, it will reload information for all files too.</p>
+<div class="refsect3">
+<a name="thunar-view-reload.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>reload_info</p></td>
+<td class="parameter_description"><p>whether to reload file info for all files too</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-get-visible-range"></a><h3>thunar_view_get_visible_range ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_view_get_visible_range (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                               <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> **start_file</code></em>,
+                               <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> **end_file</code></em>);</pre>
+<p>Sets <em class="parameter"><code>start_file</code></em>
+ and <em class="parameter"><code>end_file</code></em>
+ to be the first and last visible
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p>
+<p>The files should be freed with <code class="function">g_object_unref()</code> when no
+longer needed.</p>
+<div class="refsect3">
+<a name="thunar-view-get-visible-range.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>start_file</p></td>
+<td class="parameter_description"><p>return location for start of region, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>end_file</p></td>
+<td class="parameter_description"><p>return location for end of region, or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-view-get-visible-range.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if valid files were placed in <em class="parameter"><code>start_file</code></em>
+and <em class="parameter"><code>end_file</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-scroll-to-file"></a><h3>thunar_view_scroll_to_file ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_scroll_to_file (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                            <em class="parameter"><code><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> *file</code></em>,
+                            <em class="parameter"><code><span class="type">gboolean</span> select_file</code></em>,
+                            <em class="parameter"><code><span class="type">gboolean</span> use_align</code></em>,
+                            <em class="parameter"><code><span class="type">gfloat</span> row_align</code></em>,
+                            <em class="parameter"><code><span class="type">gfloat</span> col_align</code></em>);</pre>
+<p>Tells <em class="parameter"><code>view</code></em>
+ to scroll to the <em class="parameter"><code>file</code></em>
+. If <em class="parameter"><code>view</code></em>
+ is currently
+loading, it'll remember to scroll to <em class="parameter"><code>file</code></em>
+ later when
+the contents are loaded.</p>
+<div class="refsect3">
+<a name="thunar-view-scroll-to-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>view</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file</p></td>
+<td class="parameter_description"><p>the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> to scroll to.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>select_file</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to also select the <em class="parameter"><code>file</code></em>
+in the <em class="parameter"><code>view</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>use_align</p></td>
+<td class="parameter_description"><p>whether to use alignment arguments.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>row_align</p></td>
+<td class="parameter_description"><p>the vertical alignment.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>col_align</p></td>
+<td class="parameter_description"><p>the horizontal alignment.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-get-selected-files"></a><h3>thunar_view_get_selected_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_view_get_selected_files (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-view-set-selected-files"></a><h3>thunar_view_set_selected_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_view_set_selected_files (<em class="parameter"><code><a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> *view</code></em>,
+                                <em class="parameter"><code><span class="type">GList</span> *path_list</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarView.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarView--loading"></a><h3>The <code class="literal">“loading”</code> property</h3>
+<pre class="programlisting">  “loading”                  <span class="type">gboolean</span></pre>
+<p>Indicates whether the given <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> is currently loading or
+layouting its contents. Implementations should invoke
+<code class="function"><GTKDOCLINK HREF="g-object-notify"><code class="function">g_object_notify()</code></code></GTKDOCLINK> on this property whenever they start to load
+the contents and then once they have finished loading.</p>
+<p>Other modules can use this property to display some kind of
+user visible notification about the loading state, e.g. a
+progress bar or an animated image.</p>
+<p>Owner: ThunarView</p>
+<p>Flags: Read</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarView--show-hidden"></a><h3>The <code class="literal">“show-hidden”</code> property</h3>
+<pre class="programlisting">  “show-hidden”              <span class="type">gboolean</span></pre>
+<p>Tells whether to display hidden and backup files in the
+<a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> or whether to hide them.</p>
+<p>Owner: ThunarView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarView--statusbar-text"></a><h3>The <code class="literal">“statusbar-text”</code> property</h3>
+<pre class="programlisting">  “statusbar-text”           <span class="type">char</span> *</pre>
+<p>The text to be displayed in the status bar, which is associated
+with this <a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> instance. Implementations should invoke
+<code class="function"><GTKDOCLINK HREF="g-object-notify"><code class="function">g_object_notify()</code></code></GTKDOCLINK> on this property, whenever they have a new
+text to be display in the status bar (e.g. the selection changed
+or similar).</p>
+<p>Owner: ThunarView</p>
+<p>Flags: Read</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarView--zoom-level"></a><h3>The <code class="literal">“zoom-level”</code> property</h3>
+<pre class="programlisting">  “zoom-level”               <a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a></pre>
+<p>The <a class="link" href="thunar-thunar-enum-types.html#ThunarZoomLevel" title="enum ThunarZoomLevel"><span class="type">ThunarZoomLevel</span></a> at which the items within this
+<a class="link" href="ThunarView.html" title="ThunarView"><span class="type">ThunarView</span></a> should be displayed.</p>
+<p>Owner: ThunarView</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_ZOOM_LEVEL_100_PERCENT</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

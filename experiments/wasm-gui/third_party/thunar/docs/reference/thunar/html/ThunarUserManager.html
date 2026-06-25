@@ -1,0 +1,464 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarUserManager: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch05.html" title="Miscellaneous">
+<link rel="prev" href="ThunarPreferences.html" title="ThunarPreferences">
+<link rel="next" href="ThunarJobOperation.html" title="ThunarJobOperation">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarUserManager.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarUserManager.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch05.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarPreferences.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarJobOperation.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarUserManager"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarUserManager.top_of_page"></a>ThunarUserManager</span></h2>
+<p>ThunarUserManager</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarUserManager.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-group-get-id" title="thunar_group_get_id ()">thunar_group_get_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-group-get-name" title="thunar_group_get_name ()">thunar_group_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-get-groups" title="thunar_user_get_groups ()">thunar_user_get_groups</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-get-name" title="thunar_user_get_name ()">thunar_user_get_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-get-real-name" title="thunar_user_get_real_name ()">thunar_user_get_real_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-is-me" title="thunar_user_is_me ()">thunar_user_is_me</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="returnvalue">ThunarUserManager</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-manager-get-default" title="thunar_user_manager_get_default ()">thunar_user_manager_get_default</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="returnvalue">ThunarGroup</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-manager-get-group-by-id" title="thunar_user_manager_get_group_by_id ()">thunar_user_manager_get_group_by_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarUserManager.html#ThunarUser"><span class="returnvalue">ThunarUser</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-manager-get-user-by-id" title="thunar_user_manager_get_user_by_id ()">thunar_user_manager_get_user_by_id</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarUserManager.html#thunar-user-manager-get-all-groups" title="thunar_user_manager_get_all_groups ()">thunar_user_manager_get_all_groups</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<a name="ThunarGroup"></a><a name="ThunarUser"></a><div class="refsect1">
+<a name="ThunarUserManager.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">├──</span> ThunarGroup
+    <span class="lineart">├──</span> ThunarUser
+    <span class="lineart">╰──</span> ThunarUserManager
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarUserManager.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarUserManager.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-group-get-id"></a><h3>thunar_group_get_id ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+thunar_group_get_id (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> *group</code></em>);</pre>
+<p>Returns the unique id of the given <em class="parameter"><code>group</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-group-get-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-group-get-id.returns"></a><h4>Returns</h4>
+<p> the unique id of <em class="parameter"><code>group</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-group-get-name"></a><h3>thunar_group_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_group_get_name (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> *group</code></em>);</pre>
+<p>Returns the name of the <em class="parameter"><code>group</code></em>
+. If the system is
+unable to determine the name of <em class="parameter"><code>group</code></em>
+, it'll
+return the group id as string.</p>
+<div class="refsect3">
+<a name="thunar-group-get-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>group</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-group-get-name.returns"></a><h4>Returns</h4>
+<p> the name of <em class="parameter"><code>group</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-get-groups"></a><h3>thunar_user_get_groups ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_user_get_groups (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> *user</code></em>);</pre>
+<p>Returns all <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>s that <em class="parameter"><code>user</code></em>
+
+belongs to. The returned list and the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>s
+contained within the list are owned by <em class="parameter"><code>user</code></em>
+ and must not be
+freed or altered by the caller.</p>
+<p>Note that if <em class="parameter"><code>user</code></em>
+ has a primary group, this group will
+also be contained in the returned list.</p>
+<div class="refsect3">
+<a name="thunar-user-get-groups.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>user</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-get-groups.returns"></a><h4>Returns</h4>
+<p> the groups that <em class="parameter"><code>user</code></em>
+belongs to.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-get-name"></a><h3>thunar_user_get_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_user_get_name (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> *user</code></em>);</pre>
+<p>Returns the name of <em class="parameter"><code>user</code></em>
+. If the system is
+unable to determine the account name of <em class="parameter"><code>user</code></em>
+,
+it'll return the user id as string.</p>
+<div class="refsect3">
+<a name="thunar-user-get-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>user</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-get-name.returns"></a><h4>Returns</h4>
+<p> the name of <em class="parameter"><code>user</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-get-real-name"></a><h3>thunar_user_get_real_name ()</h3>
+<pre class="programlisting">const <span class="returnvalue">gchar</span> *
+thunar_user_get_real_name (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> *user</code></em>);</pre>
+<p>Returns the real name of <em class="parameter"><code>user</code></em>
+ or <code class="literal">NULL</code> if the
+real name for <em class="parameter"><code>user</code></em>
+ is not known to the underlying
+system.</p>
+<div class="refsect3">
+<a name="thunar-user-get-real-name.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>user</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-get-real-name.returns"></a><h4>Returns</h4>
+<p> the real name for <em class="parameter"><code>user</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-is-me"></a><h3>thunar_user_is_me ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_user_is_me (<em class="parameter"><code><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> *user</code></em>);</pre>
+<p>Checks whether the owner of the current process is
+described by <em class="parameter"><code>user</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunar-user-is-me.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>user</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-is-me.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>user</code></em>
+is the owner of the current
+process, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-manager-get-default"></a><h3>thunar_user_manager_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="returnvalue">ThunarUserManager</span></a> *
+thunar_user_manager_get_default (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns the default <a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a> instance, which is shared
+by all modules using the user module. Call <code class="function">g_object_unref()</code> on the
+returned object when you are done with it.</p>
+<div class="refsect3">
+<a name="thunar-user-manager-get-default.returns"></a><h4>Returns</h4>
+<p> the default <a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a> instance.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-manager-get-group-by-id"></a><h3>thunar_user_manager_get_group_by_id ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="returnvalue">ThunarGroup</span></a> *
+thunar_user_manager_get_group_by_id (<em class="parameter"><code><a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a> *manager</code></em>,
+                                     <em class="parameter"><code><span class="type">guint32</span> id</code></em>);</pre>
+<p>Looks up the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> corresponding to <em class="parameter"><code>id</code></em>
+ in <em class="parameter"><code>manager</code></em>
+. Returns
+<code class="literal">NULL</code> if <em class="parameter"><code>manager</code></em>
+ is unable to determine the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> for <em class="parameter"><code>id</code></em>
+,
+else a pointer to the corresponding <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>. The caller is
+responsible for freeing the returned object using <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-user-manager-get-group-by-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>manager</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>id</p></td>
+<td class="parameter_description"><p>the group id.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-manager-get-group-by-id.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a> corresponding to <em class="parameter"><code>id</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-manager-get-user-by-id"></a><h3>thunar_user_manager_get_user_by_id ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarUserManager.html#ThunarUser"><span class="returnvalue">ThunarUser</span></a> *
+thunar_user_manager_get_user_by_id (<em class="parameter"><code><a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a> *manager</code></em>,
+                                    <em class="parameter"><code><span class="type">guint32</span> id</code></em>);</pre>
+<p>Looks up the <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> corresponding to <em class="parameter"><code>id</code></em>
+ in <em class="parameter"><code>manager</code></em>
+. Returns
+<code class="literal">NULL</code> if <em class="parameter"><code>manager</code></em>
+ is unable to determine the <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> for <em class="parameter"><code>id</code></em>
+,
+else a pointer to the corresponding <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a>. The caller is
+responsible for freeing the returned object using <code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="thunar-user-manager-get-user-by-id.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>manager</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>id</p></td>
+<td class="parameter_description"><p>the user id.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-manager-get-user-by-id.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarUserManager.html#ThunarUser"><span class="type">ThunarUser</span></a> corresponding to <em class="parameter"><code>id</code></em>
+or <code class="literal">NULL</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-user-manager-get-all-groups"></a><h3>thunar_user_manager_get_all_groups ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_user_manager_get_all_groups (<em class="parameter"><code><a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a> *manager</code></em>);</pre>
+<p>Returns the list of all <a class="link" href="ThunarUserManager.html#ThunarGroup"><span class="type">ThunarGroup</span></a>s in the system
+that are known to the <em class="parameter"><code>manager</code></em>
+.</p>
+<p>The caller is responsible to free the returned list using:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="n">g_object_unref</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="thunar-user-manager-get-all-groups.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>manager</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarUserManager.html" title="ThunarUserManager"><span class="type">ThunarUserManager</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-user-manager-get-all-groups.returns"></a><h4>Returns</h4>
+<p> the list of all groups known to the <em class="parameter"><code>manager</code></em>
+.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

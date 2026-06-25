@@ -1,0 +1,892 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarListModel: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch13.html" title="Entry Model">
+<link rel="prev" href="ThunarColumnModel.html" title="ThunarColumnModel">
+<link rel="next" href="ThunarRenamerModel.html" title="ThunarRenamerModel">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarListModel.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarListModel.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarListModel.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#ThunarListModel.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch13.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarColumnModel.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarRenamerModel.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarListModel"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarListModel.top_of_page"></a>ThunarListModel</span></h2>
+<p>ThunarListModel</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarListModel.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="returnvalue">ThunarListModel</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-new" title="thunar_list_model_new ()">thunar_list_model_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="returnvalue">ThunarFolder</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-folder" title="thunar_list_model_get_folder ()">thunar_list_model_get_folder</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-set-folder" title="thunar_list_model_set_folder ()">thunar_list_model_set_folder</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-set-folders-first" title="thunar_list_model_set_folders_first ()">thunar_list_model_set_folders_first</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-show-hidden" title="thunar_list_model_get_show_hidden ()">thunar_list_model_get_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-set-show-hidden" title="thunar_list_model_set_show_hidden ()">thunar_list_model_set_show_hidden</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-file-size-binary" title="thunar_list_model_get_file_size_binary ()">thunar_list_model_get_file_size_binary</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-set-file-size-binary" title="thunar_list_model_set_file_size_binary ()">thunar_list_model_set_file_size_binary</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-file" title="thunar_list_model_get_file ()">thunar_list_model_get_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-paths-for-files" title="thunar_list_model_get_paths_for_files ()">thunar_list_model_get_paths_for_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-paths-for-pattern" title="thunar_list_model_get_paths_for_pattern ()">thunar_list_model_get_paths_for_pattern</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-statusbar-text" title="thunar_list_model_get_statusbar_text ()">thunar_list_model_get_statusbar_text</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-get-job" title="thunar_list_model_get_job ()">thunar_list_model_get_job</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarListModel.html#thunar-list-model-set-job" title="thunar_list_model_set_job ()">thunar_list_model_set_job</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--case-sensitive" title="The “case-sensitive” property">case-sensitive</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--date-custom-style" title="The “date-custom-style” property">date-custom-style</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarDateStyle" title="enum ThunarDateStyle"><span class="type">ThunarDateStyle</span></a></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--date-style" title="The “date-style” property">date-style</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--file-size-binary" title="The “file-size-binary” property">file-size-binary</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a> *</td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--folder" title="The “folder” property">folder</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="thunar-thunar-enum-types.html#ThunarFolderItemCount" title="enum ThunarFolderItemCount"><span class="type">ThunarFolderItemCount</span></a></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--folder-item-count" title="The “folder-item-count” property">folder-item-count</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--folders-first" title="The “folders-first” property">folders-first</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">guint</span></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--num-files" title="The “num-files” property">num-files</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarListModel.html#ThunarListModel--show-hidden" title="The “show-hidden” property">show-hidden</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signal_proto_type">
+<col width="300px" class="signal_proto_name">
+<col width="200px" class="signal_proto_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarListModel.html#ThunarListModel-error" title="The “error” signal">error</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="ThunarListModel.html#ThunarListModel-search-done" title="The “search-done” signal">search-done</a></td>
+<td class="signal_flags">Run Last</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarListModel.html#ThunarListModelSearch" title="enum ThunarListModelSearch">ThunarListModelSearch</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> ThunarListModel
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-list-model-new"></a><h3>thunar_list_model_new ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="returnvalue">ThunarListModel</span></a> *
+thunar_list_model_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Allocates a new <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> not associated with
+any <a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a>.</p>
+<div class="refsect3">
+<a name="thunar-list-model-new.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-folder"></a><h3>thunar_list_model_get_folder ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="returnvalue">ThunarFolder</span></a> *
+thunar_list_model_get_folder (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-list-model-get-folder.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a valid <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> object.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-folder.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a> <em class="parameter"><code>store</code></em>
+is associated with
+or <code class="literal">NULL</code> if <em class="parameter"><code>store</code></em>
+has no folder.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-set-folder"></a><h3>thunar_list_model_set_folder ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_list_model_set_folder (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                              <em class="parameter"><code><a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a> *folder</code></em>,
+                              <em class="parameter"><code><span class="type">gchar</span> *search_query</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-list-model-set-folder.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a valid <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>folder</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>search_query</p></td>
+<td class="parameter_description"><p>a <span class="type">string</span> or <code class="literal">NULL</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-set-folders-first"></a><h3>thunar_list_model_set_folders_first ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_list_model_set_folders_first (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                     <em class="parameter"><code><span class="type">gboolean</span> folders_first</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-list-model-set-folders-first.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>folders_first</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to let <em class="parameter"><code>store</code></em>
+list folders first.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-show-hidden"></a><h3>thunar_list_model_get_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_list_model_get_show_hidden (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-list-model-get-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-show-hidden.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if hidden files will be shown, else <code class="literal">FALSE</code>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-set-show-hidden"></a><h3>thunar_list_model_set_show_hidden ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_list_model_set_show_hidden (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                   <em class="parameter"><code><span class="type">gboolean</span> show_hidden</code></em>);</pre>
+<div class="refsect3">
+<a name="thunar-list-model-set-show-hidden.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>show_hidden</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> if hidden files should be shown, else <code class="literal">FALSE</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-file-size-binary"></a><h3>thunar_list_model_get_file_size_binary ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunar_list_model_get_file_size_binary
+                               (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>);</pre>
+<p>Returns <code class="literal">TRUE</code> if the file size should be formatted
+as binary.</p>
+<div class="refsect3">
+<a name="thunar-list-model-get-file-size-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a valid <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> object.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-file-size-binary.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if file size format is binary.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-set-file-size-binary"></a><h3>thunar_list_model_set_file_size_binary ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_list_model_set_file_size_binary
+                               (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> file_size_binary</code></em>);</pre>
+<p>If <em class="parameter"><code>file_size_binary</code></em>
+ is <code class="literal">TRUE</code> the file size should be
+formatted as binary.</p>
+<div class="refsect3">
+<a name="thunar-list-model-set-file-size-binary.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a valid <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> object.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>file_size_binary</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to format file size as binary.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-file"></a><h3>thunar_list_model_get_file ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarFile.html" title="ThunarFile"><span class="returnvalue">ThunarFile</span></a> *
+thunar_list_model_get_file (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                            <em class="parameter"><code><span class="type">GtkTreeIter</span> *iter</code></em>);</pre>
+<p>Returns the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> referred to by <em class="parameter"><code>iter</code></em>
+. Free
+the returned object using <code class="function"><GTKDOCLINK HREF="g-object-unref"><code class="function">g_object_unref()</code></code></GTKDOCLINK> when
+you are done with it.</p>
+<div class="refsect3">
+<a name="thunar-list-model-get-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>iter</p></td>
+<td class="parameter_description"><p>a valid <span class="type">GtkTreeIter</span> for <em class="parameter"><code>store</code></em>
+.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-file.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-paths-for-files"></a><h3>thunar_list_model_get_paths_for_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_list_model_get_paths_for_files (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                       <em class="parameter"><code><span class="type">GList</span> *files</code></em>);</pre>
+<p>Determines the list of <span class="type">GtkTreePath</span>s for the <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s
+found in the <em class="parameter"><code>files</code></em>
+ list. If a <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a> from the <em class="parameter"><code>files</code></em>
+ list is not
+available in <em class="parameter"><code>store</code></em>
+, no <span class="type">GtkTreePath</span> will be returned for it. So, in effect,
+only <span class="type">GtkTreePath</span>s for the subset of <em class="parameter"><code>files</code></em>
+ available in <em class="parameter"><code>store</code></em>
+ will
+be returned.</p>
+<p>The caller is responsible to free the returned list using:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">GDestroyNotify</span><span class="p">)</span><span class="w"> </span><span class="n">gtk_tree_path_free</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="thunar-list-model-get-paths-for-files.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>files</p></td>
+<td class="parameter_description"><p>a list of <a class="link" href="ThunarFile.html" title="ThunarFile"><span class="type">ThunarFile</span></a>s.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-paths-for-files.returns"></a><h4>Returns</h4>
+<p> the list of <span class="type">GtkTreePath</span>s for <em class="parameter"><code>files</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-paths-for-pattern"></a><h3>thunar_list_model_get_paths_for_pattern ()</h3>
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+thunar_list_model_get_paths_for_pattern
+                               (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *pattern</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> case_sensitive</code></em>,
+                                <em class="parameter"><code><span class="type">gboolean</span> match_diacritics</code></em>);</pre>
+<p>Looks up all rows in the <em class="parameter"><code>store</code></em>
+ that match <em class="parameter"><code>pattern</code></em>
+ and returns
+a list of <span class="type">GtkTreePath</span>s corresponding to the rows.</p>
+<p>The caller is responsible to free the returned list using:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">g_list_free_full</span><span class="w"> </span><span class="p">(</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">GDestroyNotify</span><span class="p">)</span><span class="w"> </span><span class="n">gtk_tree_path_free</span><span class="p">);</span><span class="w"></span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refsect3">
+<a name="thunar-list-model-get-paths-for-pattern.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>pattern</p></td>
+<td class="parameter_description"><p>the pattern to match.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>case_sensitive</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to use case sensitive search.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>match_diacritics</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to use case sensitive search.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-paths-for-pattern.returns"></a><h4>Returns</h4>
+<p> the list of <span class="type">GtkTreePath</span>s that match <em class="parameter"><code>pattern</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-statusbar-text"></a><h3>thunar_list_model_get_statusbar_text ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> *
+thunar_list_model_get_statusbar_text (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                                      <em class="parameter"><code><span class="type">GList</span> *selected_items</code></em>);</pre>
+<p>Generates the statusbar text for <em class="parameter"><code>store</code></em>
+ with the given
+<em class="parameter"><code>selected_items</code></em>
+.</p>
+<p>This function is used by the <a class="link" href="ThunarStandardView.html" title="ThunarStandardView"><span class="type">ThunarStandardView</span></a> (and thereby
+implicitly by <a class="link" href="ThunarIconView.html" title="ThunarIconView"><span class="type">ThunarIconView</span></a> and <a class="link" href="ThunarDetailsView.html" title="ThunarDetailsView"><span class="type">ThunarDetailsView</span></a>) to
+calculate the text to display in the statusbar for a given
+file selection.</p>
+<p>The caller is reponsible to free the returned text using
+<code class="function">g_free()</code> when it's no longer needed.</p>
+<div class="refsect3">
+<a name="thunar-list-model-get-statusbar-text.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>selected_items</p></td>
+<td class="parameter_description"><p>the list of selected items (as GtkTreePath's).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunar-list-model-get-statusbar-text.returns"></a><h4>Returns</h4>
+<p> the statusbar text for <em class="parameter"><code>store</code></em>
+with the given
+<em class="parameter"><code>selected_items</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-get-job"></a><h3>thunar_list_model_get_job ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="returnvalue">ThunarJob</span></a> *
+thunar_list_model_get_job (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-list-model-set-job"></a><h3>thunar_list_model_set_job ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_list_model_set_job (<em class="parameter"><code><a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store</code></em>,
+                           <em class="parameter"><code><a class="link" href="ThunarJob.html" title="ThunarJob"><span class="type">ThunarJob</span></a> *job</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarListModelSearch"></a><h3>enum ThunarListModelSearch</h3>
+<div class="refsect3">
+<a name="ThunarListModelSearch.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-LIST-MODEL-SEARCH-RECURSIVE:CAPS"></a>THUNAR_LIST_MODEL_SEARCH_RECURSIVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-LIST-MODEL-SEARCH-NON-RECURSIVE:CAPS"></a>THUNAR_LIST_MODEL_SEARCH_NON_RECURSIVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarListModel--case-sensitive"></a><h3>The <code class="literal">“case-sensitive”</code> property</h3>
+<pre class="programlisting">  “case-sensitive”           <span class="type">gboolean</span></pre>
+<p>Tells whether the sorting should be case sensitive.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--date-custom-style"></a><h3>The <code class="literal">“date-custom-style”</code> property</h3>
+<pre class="programlisting">  “date-custom-style”        <span class="type">char</span> *</pre>
+<p>The style used for custom format of dates.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: "%Y-%m-%d %H:%M:%S"</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--date-style"></a><h3>The <code class="literal">“date-style”</code> property</h3>
+<pre class="programlisting">  “date-style”               <a class="link" href="thunar-thunar-enum-types.html#ThunarDateStyle" title="enum ThunarDateStyle"><span class="type">ThunarDateStyle</span></a></pre>
+<p>The style used to format dates.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_DATE_STYLE_SIMPLE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--file-size-binary"></a><h3>The <code class="literal">“file-size-binary”</code> property</h3>
+<pre class="programlisting">  “file-size-binary”         <span class="type">gboolean</span></pre>
+<p>file-size-binary.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--folder"></a><h3>The <code class="literal">“folder”</code> property</h3>
+<pre class="programlisting">  “folder”                   <a class="link" href="ThunarFolder.html" title="ThunarFolder"><span class="type">ThunarFolder</span></a> *</pre>
+<p>The folder presented by this <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--folder-item-count"></a><h3>The <code class="literal">“folder-item-count”</code> property</h3>
+<pre class="programlisting">  “folder-item-count”        <a class="link" href="thunar-thunar-enum-types.html#ThunarFolderItemCount" title="enum ThunarFolderItemCount"><span class="type">ThunarFolderItemCount</span></a></pre>
+<p>Tells when the size column of folders should show the number of containing files</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: THUNAR_FOLDER_ITEM_COUNT_ONLY_LOCAL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--folders-first"></a><h3>The <code class="literal">“folders-first”</code> property</h3>
+<pre class="programlisting">  “folders-first”            <span class="type">gboolean</span></pre>
+<p>folders-first.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: TRUE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--num-files"></a><h3>The <code class="literal">“num-files”</code> property</h3>
+<pre class="programlisting">  “num-files”                <span class="type">guint</span></pre>
+<p>num-files.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel--show-hidden"></a><h3>The <code class="literal">“show-hidden”</code> property</h3>
+<pre class="programlisting">  “show-hidden”              <span class="type">gboolean</span></pre>
+<p>show-hidden.</p>
+<p>Owner: ThunarListModel</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarListModel.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="ThunarListModel-error"></a><h3>The <code class="literal">“error”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store,
+               <span class="type">gpointer</span>         error,
+               <span class="type">gpointer</span>         user_data)</pre>
+<p>Emitted when an error occurs while loading the
+<em class="parameter"><code>store</code></em>
+ content.</p>
+<div class="refsect3">
+<a name="ThunarListModel-error.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>a <span class="type">GError</span> that describes the problem.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarListModel-search-done"></a><h3>The <code class="literal">“search-done”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a> *store,
+               <span class="type">gpointer</span>         user_data)</pre>
+<p>Emitted when a recursive search finishes.</p>
+<div class="refsect3">
+<a name="ThunarListModel-search-done.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>store</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarListModel.html" title="ThunarListModel"><span class="type">ThunarListModel</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>a <span class="type">GError</span> that describes the problem.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: Run Last</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarStatusbar: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch10.html" title="Status Bar">
+<link rel="prev" href="ch10.html" title="Status Bar">
+<link rel="next" href="thunar-widgets.html" title="Part IV. Other Thunar UI Widgets">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarStatusbar.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarStatusbar.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarStatusbar.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch10.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch10.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="thunar-widgets.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarStatusbar"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarStatusbar.top_of_page"></a>ThunarStatusbar</span></h2>
+<p>ThunarStatusbar</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarStatusbar.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GtkWidget</span> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarStatusbar.html#thunar-statusbar-new" title="thunar_statusbar_new ()">thunar_statusbar_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarStatusbar.html#thunar-statusbar-setup-event" title="thunar_statusbar_setup_event ()">thunar_statusbar_setup_event</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarStatusbar.html#thunar-statusbar-append-accelerators" title="thunar_statusbar_append_accelerators ()">thunar_statusbar_append_accelerators</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="ThunarStatusbar.html#thunar-statusbar-get-action-entries" title="thunar_statusbar_get_action_entries ()">thunar_statusbar_get_action_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<span class="type">char</span> *</td>
+<td class="property_name"><a class="link" href="ThunarStatusbar.html#ThunarStatusbar--text" title="The “text” property">text</a></td>
+<td class="property_flags">Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="ThunarStatusbar.html#ThunarStatusBarAction" title="enum ThunarStatusBarAction">ThunarStatusBarAction</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry">XfceGtkActionEntry</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> GInitiallyUnowned
+        <span class="lineart">╰──</span> GtkWidget
+            <span class="lineart">╰──</span> GtkContainer
+                <span class="lineart">╰──</span> GtkBox
+                    <span class="lineart">╰──</span> GtkStatusbar
+                        <span class="lineart">╰──</span> ThunarStatusbar
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-statusbar-new"></a><h3>thunar_statusbar_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GtkWidget</span> *
+thunar_statusbar_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Allocates a new <a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a> instance with no
+text set.</p>
+<div class="refsect3">
+<a name="thunar-statusbar-new.returns"></a><h4>Returns</h4>
+<p> the newly allocated <a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a> instance.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-statusbar-setup-event"></a><h3>thunar_statusbar_setup_event ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_statusbar_setup_event (<em class="parameter"><code><a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a> *statusbar</code></em>,
+                              <em class="parameter"><code><span class="type">GtkWidget</span> *event_box</code></em>);</pre>
+<p>Sets the statusbar's GtkEventBox and uses it to receive signals.</p>
+<div class="refsect3">
+<a name="thunar-statusbar-setup-event.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>statusbar</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a> instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>event_box</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkWidget</span> instance (actually a GtkEventBox passed as a GtkWidget).</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-statusbar-append-accelerators"></a><h3>thunar_statusbar_append_accelerators ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_statusbar_append_accelerators (<em class="parameter"><code><a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a> *statusbar</code></em>,
+                                      <em class="parameter"><code><span class="type">GtkAccelGroup</span> *accel_group</code></em>);</pre>
+<p>Connects all accelerators and corresponding default keys of this widget to the global accelerator list</p>
+<div class="refsect3">
+<a name="thunar-statusbar-append-accelerators.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>statusbar</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarStatusbar.html" title="ThunarStatusbar"><span class="type">ThunarStatusbar</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>accel_group</p></td>
+<td class="parameter_description"><p>a <span class="type">GtkAccelGroup</span> to be used used for new menu items</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-statusbar-get-action-entries"></a><h3>thunar_statusbar_get_action_entries ()</h3>
+<pre class="programlisting"><a class="link" href="ThunarStandardView.html#XfceGtkActionEntry" title="XfceGtkActionEntry"><span class="returnvalue">XfceGtkActionEntry</span></a> *
+thunar_statusbar_get_action_entries (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarStatusBarAction"></a><h3>enum ThunarStatusBarAction</h3>
+<div class="refsect3">
+<a name="ThunarStatusBarAction.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-ACTION-TOGGLE-SIZE:CAPS"></a>THUNAR_STATUS_BAR_ACTION_TOGGLE_SIZE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-ACTION-TOGGLE-SIZE-IN-BYTES:CAPS"></a>THUNAR_STATUS_BAR_ACTION_TOGGLE_SIZE_IN_BYTES</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-ACTION-TOGGLE-FILETYPE:CAPS"></a>THUNAR_STATUS_BAR_ACTION_TOGGLE_FILETYPE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-ACTION-TOGGLE-DISPLAY-NAME:CAPS"></a>THUNAR_STATUS_BAR_ACTION_TOGGLE_DISPLAY_NAME</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-ACTION-TOGGLE-LAST-MODIFIED:CAPS"></a>THUNAR_STATUS_BAR_ACTION_TOGGLE_LAST_MODIFIED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="THUNAR-STATUS-BAR-N-ACTIONS:CAPS"></a>THUNAR_STATUS_BAR_N_ACTIONS</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="XfceGtkActionEntry"></a><h3>XfceGtkActionEntry</h3>
+<pre class="programlisting">typedef struct _XfceGtkActionEntry XfceGtkActionEntry;</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarStatusbar.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarStatusbar--text"></a><h3>The <code class="literal">“text”</code> property</h3>
+<pre class="programlisting">  “text”                     <span class="type">char</span> *</pre>
+<p>The main text to be displayed in the statusbar. This property
+can only be written.</p>
+<p>Owner: ThunarStatusbar</p>
+<p>Flags: Write</p>
+<p>Default value: NULL</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

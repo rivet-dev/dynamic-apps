@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE actions [
+  <!ELEMENT actions (action)+>
+
+  <!ELEMENT action (icon|patterns|name|unique-id|command|description|directories|audio-files|image-files|other-files|text-files|video-files)*>
+
+  <!ELEMENT icon (#PCDATA)>
+  <!ELEMENT command (#PCDATA)>
+  <!ELEMENT patterns (#PCDATA)>
+
+  <!ELEMENT name (#PCDATA)>
+  <!ATTLIST name xml:lang CDATA #IMPLIED>
+
+  <!ELEMENT unique-id (#PCDATA)>
+
+  <!ELEMENT description (#PCDATA)>
+  <!ATTLIST description xml:lang CDATA #IMPLIED>
+
+  <!ELEMENT startup-notify EMPTY>
+
+  <!ELEMENT directories EMPTY>
+  <!ELEMENT audio-files EMPTY>
+  <!ELEMENT image-files EMPTY>
+  <!ELEMENT other-files EMPTY>
+  <!ELEMENT text-files EMPTY>
+  <!ELEMENT video-files EMPTY>
+]>
+
+<!--
+  Copyright (c) 2005-2006 Benedikt Meurer <benny@xfce.org>
+
+  Default thunar-uca configuration file, which gets installed system-wide.
+  This should act more like an example, and is therefore kept simple.
+-->
+
+<actions>
+
+  <action>
+    <icon>utilities-terminal</icon>
+    <patterns>*</patterns>
+    <range></range>
+    <_name>Open Terminal Here</_name>
+    <command>exo-open --working-directory %f --launch TerminalEmulator</command>
+    <_description>Example for a custom action</_description>
+    <startup-notify/>
+    <directories/>
+  </action>
+
+</actions>

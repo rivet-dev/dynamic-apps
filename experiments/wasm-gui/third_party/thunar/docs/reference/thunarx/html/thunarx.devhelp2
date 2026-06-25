@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<book xmlns="http://www.devhelp.net/book" title="thunarx Reference Manual" link="index.html" author="" name="thunarx" version="2" language="c" online="https://developer.xfce.org/thunar/index.html">
+  <chapters>
+    <sub name="Overview" link="thunarx-overview.html">
+      <sub name="Goals" link="thunarx-overview.html#thunarx-overview-goals"/>
+    </sub>
+    <sub name="Writing Extensions" link="thunarx-writing-extensions.html">
+      <sub name="Basic Concepts" link="thunarx-writing-extensions.html#thunarx-writing-extensions-basic-concepts"/>
+      <sub name="Getting Started" link="thunarx-writing-extensions-getting-started.html"/>
+      <sub name="Advanced topics" link="thunarx-writing-extensions-advanced-topics.html"/>
+    </sub>
+    <sub name="Fundamentals" link="thunarx-fundamentals.html">
+      <sub name="Variables and functions to check the library version" link="thunarx-Variables-and-functions-to-check-the-library-version.html"/>
+    </sub>
+    <sub name="Abstraction Layer" link="thunarx-abstraction-layer.html">
+      <sub name="ThunarxFileInfo" link="ThunarxFileInfo.html"/>
+      <sub name="ThunarxMenu" link="ThunarxMenu.html"/>
+      <sub name="ThunarxMenuItem" link="ThunarxMenuItem.html"/>
+      <sub name="ThunarxPropertyPage" link="ThunarxPropertyPage.html"/>
+      <sub name="ThunarxProviderPlugin" link="ThunarxProviderPlugin.html"/>
+      <sub name="ThunarxRenamer" link="ThunarxRenamer.html"/>
+    </sub>
+    <sub name="Providers" link="thunarx-providers.html">
+      <sub name="ThunarxMenuProvider" link="ThunarxMenuProvider.html"/>
+      <sub name="ThunarxPropertyPageProvider" link="ThunarxPropertyPageProvider.html"/>
+      <sub name="ThunarxPreferencesProvider" link="ThunarxPreferencesProvider.html"/>
+      <sub name="ThunarxRenamerProvider" link="ThunarxRenamerProvider.html"/>
+    </sub>
+    <sub name="Using Thunar extensions in applications" link="thunarx-using-extensions.html">
+      <sub name="ThunarxProviderFactory" link="ThunarxProviderFactory.html"/>
+    </sub>
+    <sub name="Index" link="ix01.html"/>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="function" name="thunarx_check_version ()" link="thunarx-Variables-and-functions-to-check-the-library-version.html#thunarx-check-version"/>
+    <keyword type="macro" name="THUNARX_CHECK_VERSION()" link="thunarx-Variables-and-functions-to-check-the-library-version.html#THUNARX-CHECK-VERSION:CAPS"/>
+    <keyword type="variable" name="thunarx_major_version" link="thunarx-Variables-and-functions-to-check-the-library-version.html#thunarx-major-version"/>
+    <keyword type="variable" name="thunarx_minor_version" link="thunarx-Variables-and-functions-to-check-the-library-version.html#thunarx-minor-version"/>
+    <keyword type="variable" name="thunarx_micro_version" link="thunarx-Variables-and-functions-to-check-the-library-version.html#thunarx-micro-version"/>
+    <keyword type="macro" name="THUNARX_MAJOR_VERSION" link="thunarx-Variables-and-functions-to-check-the-library-version.html#THUNARX-MAJOR-VERSION:CAPS"/>
+    <keyword type="macro" name="THUNARX_MINOR_VERSION" link="thunarx-Variables-and-functions-to-check-the-library-version.html#THUNARX-MINOR-VERSION:CAPS"/>
+    <keyword type="macro" name="THUNARX_MICRO_VERSION" link="thunarx-Variables-and-functions-to-check-the-library-version.html#THUNARX-MICRO-VERSION:CAPS"/>
+    <keyword type="function" name="thunarx_file_info_get_name ()" link="ThunarxFileInfo.html#thunarx-file-info-get-name"/>
+    <keyword type="function" name="thunarx_file_info_get_uri ()" link="ThunarxFileInfo.html#thunarx-file-info-get-uri"/>
+    <keyword type="function" name="thunarx_file_info_get_parent_uri ()" link="ThunarxFileInfo.html#thunarx-file-info-get-parent-uri"/>
+    <keyword type="function" name="thunarx_file_info_get_uri_scheme ()" link="ThunarxFileInfo.html#thunarx-file-info-get-uri-scheme"/>
+    <keyword type="function" name="thunarx_file_info_get_mime_type ()" link="ThunarxFileInfo.html#thunarx-file-info-get-mime-type"/>
+    <keyword type="function" name="thunarx_file_info_has_mime_type ()" link="ThunarxFileInfo.html#thunarx-file-info-has-mime-type"/>
+    <keyword type="function" name="thunarx_file_info_is_directory ()" link="ThunarxFileInfo.html#thunarx-file-info-is-directory"/>
+    <keyword type="function" name="thunarx_file_info_get_file_info ()" link="ThunarxFileInfo.html#thunarx-file-info-get-file-info"/>
+    <keyword type="function" name="thunarx_file_info_get_filesystem_info ()" link="ThunarxFileInfo.html#thunarx-file-info-get-filesystem-info"/>
+    <keyword type="function" name="thunarx_file_info_get_location ()" link="ThunarxFileInfo.html#thunarx-file-info-get-location"/>
+    <keyword type="function" name="thunarx_file_info_changed ()" link="ThunarxFileInfo.html#thunarx-file-info-changed"/>
+    <keyword type="function" name="thunarx_file_info_renamed ()" link="ThunarxFileInfo.html#thunarx-file-info-renamed"/>
+    <keyword type="function" name="thunarx_file_info_list_copy ()" link="ThunarxFileInfo.html#thunarx-file-info-list-copy"/>
+    <keyword type="function" name="thunarx_file_info_list_free ()" link="ThunarxFileInfo.html#thunarx-file-info-list-free"/>
+    <keyword type="struct" name="struct ThunarxFileInfoIface" link="ThunarxFileInfo.html#ThunarxFileInfoIface"/>
+    <keyword type="struct" name="ThunarxFileInfo" link="ThunarxFileInfo.html#ThunarxFileInfo-struct"/>
+    <keyword type="macro" name="THUNARX_TYPE_FILE_INFO_LIST" link="ThunarxFileInfo.html#THUNARX-TYPE-FILE-INFO-LIST:CAPS"/>
+    <keyword type="signal" name="The “changed” signal" link="ThunarxFileInfo.html#ThunarxFileInfo-changed"/>
+    <keyword type="signal" name="The “renamed” signal" link="ThunarxFileInfo.html#ThunarxFileInfo-renamed"/>
+    <keyword type="function" name="thunarx_menu_new ()" link="ThunarxMenu.html#thunarx-menu-new"/>
+    <keyword type="function" name="thunarx_menu_append_item ()" link="ThunarxMenu.html#thunarx-menu-append-item"/>
+    <keyword type="function" name="thunarx_menu_prepend_item ()" link="ThunarxMenu.html#thunarx-menu-prepend-item"/>
+    <keyword type="function" name="thunarx_menu_get_items ()" link="ThunarxMenu.html#thunarx-menu-get-items"/>
+    <keyword type="struct" name="struct ThunarxMenu" link="ThunarxMenu.html#ThunarxMenu-struct"/>
+    <keyword type="function" name="thunarx_menu_item_new ()" link="ThunarxMenuItem.html#thunarx-menu-item-new"/>
+    <keyword type="function" name="thunarx_menu_item_activate ()" link="ThunarxMenuItem.html#thunarx-menu-item-activate"/>
+    <keyword type="function" name="thunarx_menu_item_get_sensitive ()" link="ThunarxMenuItem.html#thunarx-menu-item-get-sensitive"/>
+    <keyword type="function" name="thunarx_menu_item_set_sensitive ()" link="ThunarxMenuItem.html#thunarx-menu-item-set-sensitive"/>
+    <keyword type="function" name="thunarx_menu_item_set_menu ()" link="ThunarxMenuItem.html#thunarx-menu-item-set-menu"/>
+    <keyword type="function" name="thunarx_menu_item_list_free ()" link="ThunarxMenuItem.html#thunarx-menu-item-list-free"/>
+    <keyword type="struct" name="struct ThunarxMenuItem" link="ThunarxMenuItem.html#ThunarxMenuItem-struct"/>
+    <keyword type="property" name="The “icon” property" link="ThunarxMenuItem.html#ThunarxMenuItem--icon"/>
+    <keyword type="property" name="The “label” property" link="ThunarxMenuItem.html#ThunarxMenuItem--label"/>
+    <keyword type="property" name="The “menu” property" link="ThunarxMenuItem.html#ThunarxMenuItem--menu"/>
+    <keyword type="property" name="The “name” property" link="ThunarxMenuItem.html#ThunarxMenuItem--name"/>
+    <keyword type="property" name="The “priority” property" link="ThunarxMenuItem.html#ThunarxMenuItem--priority"/>
+    <keyword type="property" name="The “sensitive” property" link="ThunarxMenuItem.html#ThunarxMenuItem--sensitive"/>
+    <keyword type="property" name="The “tooltip” property" link="ThunarxMenuItem.html#ThunarxMenuItem--tooltip"/>
+    <keyword type="signal" name="The “activate” signal" link="ThunarxMenuItem.html#ThunarxMenuItem-activate"/>
+    <keyword type="function" name="thunarx_property_page_new ()" link="ThunarxPropertyPage.html#thunarx-property-page-new"/>
+    <keyword type="function" name="thunarx_property_page_new_with_label_widget ()" link="ThunarxPropertyPage.html#thunarx-property-page-new-with-label-widget"/>
+    <keyword type="function" name="thunarx_property_page_get_label ()" link="ThunarxPropertyPage.html#thunarx-property-page-get-label"/>
+    <keyword type="function" name="thunarx_property_page_set_label ()" link="ThunarxPropertyPage.html#thunarx-property-page-set-label"/>
+    <keyword type="function" name="thunarx_property_page_get_label_widget ()" link="ThunarxPropertyPage.html#thunarx-property-page-get-label-widget"/>
+    <keyword type="function" name="thunarx_property_page_set_label_widget ()" link="ThunarxPropertyPage.html#thunarx-property-page-set-label-widget"/>
+    <keyword type="struct" name="struct ThunarxPropertyPage" link="ThunarxPropertyPage.html#ThunarxPropertyPage-struct"/>
+    <keyword type="property" name="The “label” property" link="ThunarxPropertyPage.html#ThunarxPropertyPage--label"/>
+    <keyword type="property" name="The “label-widget” property" link="ThunarxPropertyPage.html#ThunarxPropertyPage--label-widget"/>
+    <keyword type="function" name="thunarx_provider_plugin_get_resident ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-get-resident"/>
+    <keyword type="function" name="thunarx_provider_plugin_set_resident ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-set-resident"/>
+    <keyword type="function" name="thunarx_provider_plugin_register_type ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-type"/>
+    <keyword type="function" name="thunarx_provider_plugin_add_interface ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-add-interface"/>
+    <keyword type="function" name="thunarx_provider_plugin_register_enum ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-enum"/>
+    <keyword type="function" name="thunarx_provider_plugin_register_flags ()" link="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-flags"/>
+    <keyword type="macro" name="THUNARX_DEFINE_TYPE()" link="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE:CAPS"/>
+    <keyword type="macro" name="THUNARX_DEFINE_TYPE_WITH_CODE()" link="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE-WITH-CODE:CAPS"/>
+    <keyword type="macro" name="THUNARX_DEFINE_ABSTRACT_TYPE()" link="ThunarxProviderPlugin.html#THUNARX-DEFINE-ABSTRACT-TYPE:CAPS"/>
+    <keyword type="macro" name="THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE()" link="ThunarxProviderPlugin.html#THUNARX-DEFINE-ABSTRACT-TYPE-WITH-CODE:CAPS"/>
+    <keyword type="macro" name="THUNARX_DEFINE_TYPE_EXTENDED()" link="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE-EXTENDED:CAPS"/>
+    <keyword type="macro" name="THUNARX_IMPLEMENT_INTERFACE()" link="ThunarxProviderPlugin.html#THUNARX-IMPLEMENT-INTERFACE:CAPS"/>
+    <keyword type="struct" name="ThunarxProviderPlugin" link="ThunarxProviderPlugin.html#ThunarxProviderPlugin-struct"/>
+    <keyword type="struct" name="struct ThunarxProviderPluginIface" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface"/>
+    <keyword type="property" name="The “resident” property" link="ThunarxProviderPlugin.html#ThunarxProviderPlugin--resident"/>
+    <keyword type="function" name="thunarx_renamer_get_help_url ()" link="ThunarxRenamer.html#thunarx-renamer-get-help-url"/>
+    <keyword type="function" name="thunarx_renamer_set_help_url ()" link="ThunarxRenamer.html#thunarx-renamer-set-help-url"/>
+    <keyword type="function" name="thunarx_renamer_get_name ()" link="ThunarxRenamer.html#thunarx-renamer-get-name"/>
+    <keyword type="function" name="thunarx_renamer_set_name ()" link="ThunarxRenamer.html#thunarx-renamer-set-name"/>
+    <keyword type="function" name="thunarx_renamer_process ()" link="ThunarxRenamer.html#thunarx-renamer-process"/>
+    <keyword type="function" name="thunarx_renamer_load ()" link="ThunarxRenamer.html#thunarx-renamer-load"/>
+    <keyword type="function" name="thunarx_renamer_save ()" link="ThunarxRenamer.html#thunarx-renamer-save"/>
+    <keyword type="function" name="thunarx_renamer_get_menu_items ()" link="ThunarxRenamer.html#thunarx-renamer-get-menu-items"/>
+    <keyword type="function" name="thunarx_renamer_changed ()" link="ThunarxRenamer.html#thunarx-renamer-changed"/>
+    <keyword type="struct" name="struct ThunarxRenamer" link="ThunarxRenamer.html#ThunarxRenamer-struct"/>
+    <keyword type="struct" name="struct ThunarxRenamerClass" link="ThunarxRenamer.html#ThunarxRenamerClass"/>
+    <keyword type="property" name="The “help-url” property" link="ThunarxRenamer.html#ThunarxRenamer--help-url"/>
+    <keyword type="property" name="The “name” property" link="ThunarxRenamer.html#ThunarxRenamer--name"/>
+    <keyword type="signal" name="The “changed” signal" link="ThunarxRenamer.html#ThunarxRenamer-changed"/>
+    <keyword type="function" name="thunarx_menu_provider_get_file_menu_items ()" link="ThunarxMenuProvider.html#thunarx-menu-provider-get-file-menu-items"/>
+    <keyword type="function" name="thunarx_menu_provider_get_folder_menu_items ()" link="ThunarxMenuProvider.html#thunarx-menu-provider-get-folder-menu-items"/>
+    <keyword type="function" name="thunarx_menu_provider_get_dnd_menu_items ()" link="ThunarxMenuProvider.html#thunarx-menu-provider-get-dnd-menu-items" since="0.4.1"/>
+    <keyword type="struct" name="struct ThunarxMenuProviderIface" link="ThunarxMenuProvider.html#ThunarxMenuProviderIface"/>
+    <keyword type="struct" name="ThunarxMenuProvider" link="ThunarxMenuProvider.html#ThunarxMenuProvider-struct"/>
+    <keyword type="function" name="thunarx_property_page_provider_get_pages ()" link="ThunarxPropertyPageProvider.html#thunarx-property-page-provider-get-pages"/>
+    <keyword type="struct" name="ThunarxPropertyPageProvider" link="ThunarxPropertyPageProvider.html#ThunarxPropertyPageProvider-struct"/>
+    <keyword type="struct" name="struct ThunarxPropertyPageProviderIface" link="ThunarxPropertyPageProvider.html#ThunarxPropertyPageProviderIface"/>
+    <keyword type="function" name="thunarx_preferences_provider_get_menu_items ()" link="ThunarxPreferencesProvider.html#thunarx-preferences-provider-get-menu-items"/>
+    <keyword type="struct" name="struct ThunarxPreferencesProviderIface" link="ThunarxPreferencesProvider.html#ThunarxPreferencesProviderIface"/>
+    <keyword type="struct" name="ThunarxPreferencesProvider" link="ThunarxPreferencesProvider.html#ThunarxPreferencesProvider-struct"/>
+    <keyword type="function" name="thunarx_renamer_provider_get_renamers ()" link="ThunarxRenamerProvider.html#thunarx-renamer-provider-get-renamers"/>
+    <keyword type="struct" name="ThunarxRenamerProvider" link="ThunarxRenamerProvider.html#ThunarxRenamerProvider-struct"/>
+    <keyword type="struct" name="struct ThunarxRenamerProviderIface" link="ThunarxRenamerProvider.html#ThunarxRenamerProviderIface"/>
+    <keyword type="function" name="thunarx_provider_factory_get_default ()" link="ThunarxProviderFactory.html#thunarx-provider-factory-get-default"/>
+    <keyword type="function" name="thunarx_provider_factory_list_providers ()" link="ThunarxProviderFactory.html#thunarx-provider-factory-list-providers"/>
+    <keyword type="struct" name="ThunarxProviderFactory" link="ThunarxProviderFactory.html#ThunarxProviderFactory-struct"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-name" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-name"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-uri" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-uri"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-parent-uri" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-parent-uri"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-uri-scheme" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-uri-scheme"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-mime-type" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-mime-type"/>
+    <keyword type="member" name="ThunarxFileInfoIface.has-mime-type" link="ThunarxFileInfo.html#ThunarxFileInfoIface.has-mime-type"/>
+    <keyword type="member" name="ThunarxFileInfoIface.is-directory" link="ThunarxFileInfo.html#ThunarxFileInfoIface.is-directory"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-file-info" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-file-info"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-filesystem-info" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-filesystem-info"/>
+    <keyword type="member" name="ThunarxFileInfoIface.get-location" link="ThunarxFileInfo.html#ThunarxFileInfoIface.get-location"/>
+    <keyword type="member" name="ThunarxFileInfoIface.changed" link="ThunarxFileInfo.html#ThunarxFileInfoIface.changed"/>
+    <keyword type="member" name="ThunarxFileInfoIface.renamed" link="ThunarxFileInfo.html#ThunarxFileInfoIface.renamed"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.get-resident" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.get-resident"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.set-resident" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.set-resident"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.register-type" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.register-type"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.add-interface" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.add-interface"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.register-enum" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.register-enum"/>
+    <keyword type="member" name="ThunarxProviderPluginIface.register-flags" link="ThunarxProviderPlugin.html#ThunarxProviderPluginIface.register-flags"/>
+    <keyword type="member" name="ThunarxRenamerClass.process" link="ThunarxRenamer.html#ThunarxRenamerClass.process"/>
+    <keyword type="member" name="ThunarxRenamerClass.load" link="ThunarxRenamer.html#ThunarxRenamerClass.load"/>
+    <keyword type="member" name="ThunarxRenamerClass.save" link="ThunarxRenamer.html#ThunarxRenamerClass.save"/>
+    <keyword type="member" name="ThunarxRenamerClass.get-menu-items" link="ThunarxRenamer.html#ThunarxRenamerClass.get-menu-items"/>
+    <keyword type="member" name="ThunarxRenamerClass.changed" link="ThunarxRenamer.html#ThunarxRenamerClass.changed"/>
+    <keyword type="member" name="ThunarxMenuProviderIface.get-file-menu-items" link="ThunarxMenuProvider.html#ThunarxMenuProviderIface.get-file-menu-items"/>
+    <keyword type="member" name="ThunarxMenuProviderIface.get-folder-menu-items" link="ThunarxMenuProvider.html#ThunarxMenuProviderIface.get-folder-menu-items"/>
+    <keyword type="member" name="ThunarxMenuProviderIface.get-dnd-menu-items" link="ThunarxMenuProvider.html#ThunarxMenuProviderIface.get-dnd-menu-items"/>
+    <keyword type="member" name="ThunarxPropertyPageProviderIface.get-pages" link="ThunarxPropertyPageProvider.html#ThunarxPropertyPageProviderIface.get-pages"/>
+    <keyword type="member" name="ThunarxPreferencesProviderIface.get-menu-items" link="ThunarxPreferencesProvider.html#ThunarxPreferencesProviderIface.get-menu-items"/>
+    <keyword type="member" name="ThunarxRenamerProviderIface.get-renamers" link="ThunarxRenamerProvider.html#ThunarxRenamerProviderIface.get-renamers"/>
+  </functions>
+</book>

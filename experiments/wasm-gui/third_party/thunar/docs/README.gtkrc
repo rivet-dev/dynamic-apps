@@ -1,0 +1,83 @@
+Thunar GTK Style Properties
+===========================
+
+  Several user interface elements in Thunar are customizable via the standard
+  GTK style mechanism. Besides the customization provided by the GTK widgets,
+  that are used in Thunar, there are a bunch of additional settings that can
+  be customized via the GTK theme or the ~/.gtkrc-2.0 file in the users home
+  directory.
+
+  The following list includes the customizable widgets and the settings that
+  can be customized for this widgets.
+
+
+ThunarAbstractIconView
+----------------------
+
+  The ThunarAbstractIconView widget class is the base class for both the
+  ThunarIconView (the "Icon View") and the ThunarCompactView (the "Compact
+  List View"). It provides two additional settings that can be customized:
+
+   * column-spacing (0...)
+
+     The additional space inserted between columns in the icon and
+     compact view. Defaults to 6 for both the icon and the compact
+     view.
+
+   * row-spacing (0...)
+
+     The additional space inserted between rows in the icon and
+     compact view. Defaults to 6 for the icon view and 0 for the
+     compact view.
+
+  For example, say you want to reduce the additional spacing for the icon view
+  to 3 pixel, then you can put the following lines in the file ~/.gtkrc-2.0 in
+  your home directory (just create the file if it is not already present):
+
+   style "thunar-icon-view-reduced-style"
+   {
+     ThunarIconView::column-spacing = 3
+     ThunarIconView::row-spacing = 3
+   }
+
+   class "ThunarIconView" style "thunar-icon-view-reduced-style"
+
+
+ThunarPathEntry
+---------------
+
+  The ThunarPathEntry widget class is used for the location bar, both in the
+  traditional location selector and the "Open Location" dialog. The path entry
+  displays an icon right before the path, whose size can be customized via the
+
+   * icon-size (16/22/24/33/36/48/64/72/96/128/192)
+
+  style property. For example to increase the size to 24 pixel, you can put the
+  following lines in the file ~/.gtkrc-2.0:
+
+   style "thunar-path-entry-increased-style"
+   {
+     ThunarPathEntry::icon-size = 24
+   }
+
+   class "ThunarPathEntry" style "thunar-path-entry-increased-style"
+
+  You should however make sure that your icon theme supports the icon size,
+  otherwise you might end up with ugly up/down-scaled icons.
+
+
+ThunarLocationButtons
+---------------------
+
+  The ThunarLocationButtons widget class is used for the path bar style loca-
+  tion selector. It provides the following customizable style properties:
+
+   * spacing (0...)
+
+     The amount of space inserted between the path buttons. Defaults to
+     3 pixels.
+
+
+
+Additional information can be found on the Thunar Project Wiki:
+https://docs.xfce.org/xfce/thunar/hidden-settings

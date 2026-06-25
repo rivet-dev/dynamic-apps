@@ -1,0 +1,63 @@
+Bug tracking system
+===================
+
+Thunar uses the Xfce bug tracking system at https://gitlab.xfce.org/xfce/thunar,
+hosted and maintained by the Xfce project.
+
+
+Patches
+=======
+
+Please submit merge requests to the Xfce GitLab instance.
+Your code must comply with the coding style described below.
+
+Please base on work against the master branch of this package. You can always
+clone the Thunar repository from
+
+  https://gitlab.xfce.org/xfce/thunar
+
+
+Feature requests
+================
+
+Please file feature requests to the Xfce's GitLab
+(https://gitlab.xfce.org/xfce/thunar).
+Make sure that your feature request wasn't reported already before; requesting
+a feature several times won't increase the changed that it gets added!
+
+
+Coding Style
+============
+
+ - GNU coding conventions, with GLib-like extensions, mostly the same
+   as GTK+.
+ - Always expand tabs. This differs from the GNU suggestion, but it is
+   necessary to be independent from a given tab setting.
+ - Do NOT ever misuse debugging macros like g_return_val_if_fail() or
+   g_return_if_fail() to control program flow. They are solely useful
+   to discover bugs, the final binary won't include code for these
+   statements, and so any use of these macros to control program
+   flow presents a bug!
+ - Do NOT follow the philosophy "If it works, it's right" that most
+   other open source projects follow, instead Thunar's philosophy is
+   "It doesn't work unless it's right". Think carefully of what you want
+   to do, don't just fire up your favourite editor and start hacking
+   in the hope that it will evolve into something useful one day.
+ - Maintainability goes over performance. If you have to choose between
+   a maintainable and a fast solution, always prefer the former, as it's
+   quite easy to optimize well-designed modules, but very hard and costly
+   to make spaghetti-code readable.
+ - Write ChangeLog entries. Whenever you commit a change or send a patch,
+   write a good entry per change to the ChangeLog file, see the libexo
+   ChangeLog for the exact format; it's very important to be descriptive
+   and correct here, else you'll loose your commit bits or your patches
+   won't be considered for inclusion.
+ - Use GObject whenever possible. Object-oriented design and programming
+   makes it easier to separate functionality and also aids in verification
+   and testing, and GObject provides a very solid base.
+
+
+Release process
+===============
+
+Refer to https://www.xfce.org/about/releasemodel

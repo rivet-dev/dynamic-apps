@@ -1,0 +1,589 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ThunarxProviderPlugin: thunarx Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="thunarx Reference Manual">
+<link rel="up" href="thunarx-abstraction-layer.html" title="Part IV. Abstraction Layer">
+<link rel="prev" href="ThunarxPropertyPage.html" title="ThunarxPropertyPage">
+<link rel="next" href="ThunarxRenamer.html" title="ThunarxRenamer">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#ThunarxProviderPlugin.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#ThunarxProviderPlugin.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#ThunarxProviderPlugin.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="thunarx-abstraction-layer.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarxPropertyPage.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ThunarxRenamer.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="ThunarxProviderPlugin"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="ThunarxProviderPlugin.top_of_page"></a>ThunarxProviderPlugin</span></h2>
+<p>ThunarxProviderPlugin — The interface to the plugin type registration</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-get-resident" title="thunarx_provider_plugin_get_resident ()">thunarx_provider_plugin_get_resident</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-set-resident" title="thunarx_provider_plugin_set_resident ()">thunarx_provider_plugin_set_resident</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-type" title="thunarx_provider_plugin_register_type ()">thunarx_provider_plugin_register_type</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-add-interface" title="thunarx_provider_plugin_add_interface ()">thunarx_provider_plugin_add_interface</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-enum" title="thunarx_provider_plugin_register_enum ()">thunarx_provider_plugin_register_enum</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-flags" title="thunarx_provider_plugin_register_flags ()">thunarx_provider_plugin_register_flags</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE:CAPS" title="THUNARX_DEFINE_TYPE()">THUNARX_DEFINE_TYPE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE-WITH-CODE:CAPS" title="THUNARX_DEFINE_TYPE_WITH_CODE()">THUNARX_DEFINE_TYPE_WITH_CODE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-DEFINE-ABSTRACT-TYPE:CAPS" title="THUNARX_DEFINE_ABSTRACT_TYPE()">THUNARX_DEFINE_ABSTRACT_TYPE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-DEFINE-ABSTRACT-TYPE-WITH-CODE:CAPS" title="THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE()">THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-DEFINE-TYPE-EXTENDED:CAPS" title="THUNARX_DEFINE_TYPE_EXTENDED()">THUNARX_DEFINE_TYPE_EXTENDED</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="ThunarxProviderPlugin.html#THUNARX-IMPLEMENT-INTERFACE:CAPS" title="THUNARX_IMPLEMENT_INTERFACE()">THUNARX_IMPLEMENT_INTERFACE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_name"><a class="link" href="ThunarxProviderPlugin.html#ThunarxProviderPlugin--resident" title="The “resident” property">resident</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="ThunarxProviderPlugin.html#ThunarxProviderPlugin-struct" title="ThunarxProviderPlugin">ThunarxProviderPlugin</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="ThunarxProviderPlugin.html#ThunarxProviderPluginIface" title="struct ThunarxProviderPluginIface">ThunarxProviderPluginIface</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GInterface</a>
+    <span class="lineart">╰──</span> ThunarxProviderPlugin
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;thunarx/thunarx.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.description"></a><h2>Description</h2>
+<p><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> is the interface to the file manager's type plugin loader implementation. It
+provides methods to extensions - also called <span class="emphasis"><em>provider plugins</em></span> - to register dynamic
+types and control certain aspects of the plugin (see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-set-resident" title="thunarx_provider_plugin_set_resident ()"><code class="function">thunarx_provider_plugin_set_resident()</code></a>).</p>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-get-resident"></a><h3>thunarx_provider_plugin_get_resident ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+thunarx_provider_plugin_get_resident (<em class="parameter"><code>const <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>);</pre>
+<p>Determines whether the application is allowed to unload <em class="parameter"><code>plugin</code></em>
+
+from memory when no longer needed and reload it on demand. If
+<code class="literal">FALSE</code> is returned, then the application may unload <em class="parameter"><code>plugin</code></em>
+, else
+if <code class="literal">TRUE</code> is returned the application will take care that <em class="parameter"><code>plugin</code></em>
+
+is never unloaded from memory during the lifetime of the application.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-get-resident.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-get-resident.returns"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if <em class="parameter"><code>plugin</code></em>
+will be kept in memory once loaded
+for the first time.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-set-resident"></a><h3>thunarx_provider_plugin_set_resident ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_provider_plugin_set_resident (<em class="parameter"><code><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>,
+                                      <em class="parameter"><code><span class="type">gboolean</span> resident</code></em>);</pre>
+<p>This method is used to instruct the application that <em class="parameter"><code>plugin</code></em>
+ must be
+kept in memory during the lifetime of the application. The default
+is to allow the application to unload <em class="parameter"><code>plugin</code></em>
+ from the memory when
+no longer needed. If this method is invoked with a <em class="parameter"><code>resident</code></em>
+ value
+of <code class="literal">TRUE</code> then the application will never try to unload <em class="parameter"><code>plugin</code></em>
+.</p>
+<p>This method has no effect unless called from the
+<code class="literal">thunar_extension_initialize</code> method of the <em class="parameter"><code>plugin</code></em>
+.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-set-resident.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>resident</p></td>
+<td class="parameter_description"><p><code class="literal">TRUE</code> to make <em class="parameter"><code>plugin</code></em>
+resident in memory.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-register-type"></a><h3>thunarx_provider_plugin_register_type ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+thunarx_provider_plugin_register_type (<em class="parameter"><code><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>,
+                                       <em class="parameter"><code><span class="type">GType</span> type_parent</code></em>,
+                                       <em class="parameter"><code>const <span class="type">gchar</span> *type_name</code></em>,
+                                       <em class="parameter"><code>const <span class="type">GTypeInfo</span> *type_info</code></em>,
+                                       <em class="parameter"><code><span class="type">GTypeFlags</span> type_flags</code></em>);</pre>
+<p>Looks up or registers a type that is implemented with a particular type <em class="parameter"><code>plugin</code></em>
+. If a type with name <em class="parameter"><code>type_name</code></em>
+
+was previously registered, the <span class="type">GType</span> identifier for the type is returned, otherwise the type is newly registered,
+and the resulting <span class="type">GType</span> identifier returned.</p>
+<p>When reregistering a type (typically because a module is unloaded then reloaded, and reinitialized), module and
+<em class="parameter"><code>type_parent</code></em>
+ must be the same as they were previously.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-type.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type_parent</p></td>
+<td class="parameter_description"><p>the type for the parent class.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type_name</p></td>
+<td class="parameter_description"><p>name for the type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type_info</p></td>
+<td class="parameter_description"><p>type information structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>type_flags</p></td>
+<td class="parameter_description"><p>flags field providing details about the type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-type.returns"></a><h4>Returns</h4>
+<p> the new or existing type id.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-add-interface"></a><h3>thunarx_provider_plugin_add_interface ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunarx_provider_plugin_add_interface (<em class="parameter"><code><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>,
+                                       <em class="parameter"><code><span class="type">GType</span> instance_type</code></em>,
+                                       <em class="parameter"><code><span class="type">GType</span> interface_type</code></em>,
+                                       <em class="parameter"><code>const <span class="type">GInterfaceInfo</span> *interface_info</code></em>);</pre>
+<p>Registers an additional interface for a type, whose interface lives in the given type <em class="parameter"><code>plugin</code></em>
+.
+If the interface was already registered for the type in this <em class="parameter"><code>plugin</code></em>
+, nothing will be done.</p>
+<p>As long as any instances of the type exist, the type <em class="parameter"><code>plugin</code></em>
+ will not be unloaded.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-add-interface.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>instance_type</p></td>
+<td class="parameter_description"><p>type to which to add the interface.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>interface_type</p></td>
+<td class="parameter_description"><p>interface type to add.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>interface_info</p></td>
+<td class="parameter_description"><p>type information structure.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-register-enum"></a><h3>thunarx_provider_plugin_register_enum ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+thunarx_provider_plugin_register_enum (<em class="parameter"><code><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>,
+                                       <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>,
+                                       <em class="parameter"><code>const <span class="type">GEnumValue</span> *const_static_values</code></em>);</pre>
+<p>Looks up or registers an enumeration that is implemented with a particular type <em class="parameter"><code>plugin</code></em>
+. If a type
+with name <em class="parameter"><code>name</code></em>
+ was previously registered, the <span class="type">GType</span> identifier for the type is returned,
+otherwise the type is newly registered, and the resulting <span class="type">GType</span> identifier returned.</p>
+<p>As long as any instances of the type exist, the type <em class="parameter"><code>plugin</code></em>
+ will not be unloaded.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-enum.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name for the type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>const_static_values</p></td>
+<td class="parameter_description"><p>an array of <span class="type">GEnumValue</span> structs for the possible enumeration values.
+The array is terminated by a struct with all members being <code class="literal">0</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-enum.returns"></a><h4>Returns</h4>
+<p> the new or existing type id.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunarx-provider-plugin-register-flags"></a><h3>thunarx_provider_plugin_register_flags ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+thunarx_provider_plugin_register_flags
+                               (<em class="parameter"><code><a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a> *plugin</code></em>,
+                                <em class="parameter"><code>const <span class="type">gchar</span> *name</code></em>,
+                                <em class="parameter"><code>const <span class="type">GFlagsValue</span> *const_static_values</code></em>);</pre>
+<p>Looks up or registers a flags type that is implemented with a particular type <em class="parameter"><code>plugin</code></em>
+. If a type with name
+qname was previously registered, the <span class="type">GType</span> identifier for the type is returned, otherwise the type is newly
+registered, and the resulting <span class="type">GType</span> identifier returned.</p>
+<p>As long as any instances of the type exist, the type <em class="parameter"><code>plugin</code></em>
+ will not be unloaded.</p>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-flags.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>plugin</p></td>
+<td class="parameter_description"><p>a <a class="link" href="ThunarxProviderPlugin.html" title="ThunarxProviderPlugin"><span class="type">ThunarxProviderPlugin</span></a>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>name for the type.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>const_static_values</p></td>
+<td class="parameter_description"><p>an array of <span class="type">GFlagsValue</span> structs for the possible flags values.
+The array is terminated by a struct with all members being <code class="literal">0</code>.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="thunarx-provider-plugin-register-flags.returns"></a><h4>Returns</h4>
+<p> the new or existing type id.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-DEFINE-TYPE:CAPS"></a><h3>THUNARX_DEFINE_TYPE()</h3>
+<pre class="programlisting">#define THUNARX_DEFINE_TYPE(TN, t_n, T_P)                         THUNARX_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, 0, {})
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-DEFINE-TYPE-WITH-CODE:CAPS"></a><h3>THUNARX_DEFINE_TYPE_WITH_CODE()</h3>
+<pre class="programlisting">#define THUNARX_DEFINE_TYPE_WITH_CODE(TN, t_n, T_P, _C_)          THUNARX_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, 0, _C_)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-DEFINE-ABSTRACT-TYPE:CAPS"></a><h3>THUNARX_DEFINE_ABSTRACT_TYPE()</h3>
+<pre class="programlisting">#define THUNARX_DEFINE_ABSTRACT_TYPE(TN, t_n, T_P)                THUNARX_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, G_TYPE_FLAG_ABSTRACT, {})
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-DEFINE-ABSTRACT-TYPE-WITH-CODE:CAPS"></a><h3>THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE()</h3>
+<pre class="programlisting">#define THUNARX_DEFINE_ABSTRACT_TYPE_WITH_CODE(TN, t_n, T_P, _C_) THUNARX_DEFINE_TYPE_EXTENDED (TN, t_n, T_P, G_TYPE_FLAG_ABSTRACT, _C_)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-DEFINE-TYPE-EXTENDED:CAPS"></a><h3>THUNARX_DEFINE_TYPE_EXTENDED()</h3>
+<pre class="programlisting">#define             THUNARX_DEFINE_TYPE_EXTENDED(TypeName, type_name, TYPE_PARENT, flags, CODE)</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="THUNARX-IMPLEMENT-INTERFACE:CAPS"></a><h3>THUNARX_IMPLEMENT_INTERFACE()</h3>
+<pre class="programlisting">#define             THUNARX_IMPLEMENT_INTERFACE(TYPE_IFACE, iface_init)</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="ThunarxProviderPlugin-struct"></a><h3>ThunarxProviderPlugin</h3>
+<pre class="programlisting">typedef struct _ThunarxProviderPlugin ThunarxProviderPlugin;</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ThunarxProviderPluginIface"></a><h3>struct ThunarxProviderPluginIface</h3>
+<pre class="programlisting">struct ThunarxProviderPluginIface {
+  gboolean (*get_resident)    (const ThunarxProviderPlugin *plugin);
+  void     (*set_resident)    (ThunarxProviderPlugin       *plugin,
+                               gboolean                     resident);
+
+  GType    (*register_type)   (ThunarxProviderPlugin       *plugin,
+                               GType                        type_parent,
+                               const gchar                 *type_name,
+                               const GTypeInfo             *type_info,
+                               GTypeFlags                   type_flags);
+  void     (*add_interface)   (ThunarxProviderPlugin       *plugin,
+                               GType                        instance_type,
+                               GType                        interface_type,
+                               const GInterfaceInfo        *interface_info);
+  GType    (*register_enum)   (ThunarxProviderPlugin       *plugin,
+                               const gchar                 *name,
+                               const GEnumValue            *const_static_values);
+  GType    (*register_flags)  (ThunarxProviderPlugin       *plugin,
+                               const gchar                 *name,
+                               const GFlagsValue           *const_static_values);
+};
+</pre>
+<p>Interface with virtual methods implemented by the file manager and
+accessible from the extensions.</p>
+<div class="refsect3">
+<a name="ThunarxProviderPluginIface.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.get-resident"></a>get_resident</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-get-resident" title="thunarx_provider_plugin_get_resident ()"><code class="function">thunarx_provider_plugin_get_resident()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.set-resident"></a>set_resident</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-set-resident" title="thunarx_provider_plugin_set_resident ()"><code class="function">thunarx_provider_plugin_set_resident()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.register-type"></a>register_type</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-type" title="thunarx_provider_plugin_register_type ()"><code class="function">thunarx_provider_plugin_register_type()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.add-interface"></a>add_interface</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-add-interface" title="thunarx_provider_plugin_add_interface ()"><code class="function">thunarx_provider_plugin_add_interface()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.register-enum"></a>register_enum</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-enum" title="thunarx_provider_plugin_register_enum ()"><code class="function">thunarx_provider_plugin_register_enum()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><em class="structfield"><code><a name="ThunarxProviderPluginIface.register-flags"></a>register_flags</code></em> ()</p></td>
+<td class="struct_member_description"><p>see <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-register-flags" title="thunarx_provider_plugin_register_flags ()"><code class="function">thunarx_provider_plugin_register_flags()</code></a>.</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="ThunarxProviderPlugin.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="ThunarxProviderPlugin--resident"></a><h3>The <code class="literal">“resident”</code> property</h3>
+<pre class="programlisting">  “resident”                 <span class="type">gboolean</span></pre>
+<p>Tells whether a plugin must reside in memory once loaded for
+the first time. See <a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-get-resident" title="thunarx_provider_plugin_get_resident ()"><code class="function">thunarx_provider_plugin_get_resident()</code></a> and
+<a class="link" href="ThunarxProviderPlugin.html#thunarx-provider-plugin-set-resident" title="thunarx_provider_plugin_set_resident ()"><code class="function">thunarx_provider_plugin_set_resident()</code></a> for more details.</p>
+<p>Owner: ThunarxProviderPlugin</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

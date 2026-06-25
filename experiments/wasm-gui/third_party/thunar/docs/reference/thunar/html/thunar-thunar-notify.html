@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>thunar-notify: Thunar Internal Functions Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
+<link rel="home" href="index.html" title="Thunar Internal Functions Reference Manual">
+<link rel="up" href="ch02.html" title="Device Management">
+<link rel="prev" href="ThunarDeviceMonitor.html" title="ThunarDeviceMonitor">
+<link rel="next" href="ch03.html" title="Parallel Tasks">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#thunar-thunar-notify.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ThunarDeviceMonitor.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch03.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="thunar-thunar-notify"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="thunar-thunar-notify.top_of_page"></a>thunar-notify</span></h2>
+<p>thunar-notify</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="thunar-thunar-notify.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-unmount" title="thunar_notify_unmount ()">thunar_notify_unmount</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-eject" title="thunar_notify_eject ()">thunar_notify_eject</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-progress" title="thunar_notify_progress ()">thunar_notify_progress</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-finish" title="thunar_notify_finish ()">thunar_notify_finish</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-undo" title="thunar_notify_undo ()">thunar_notify_undo</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-redo" title="thunar_notify_redo ()">thunar_notify_redo</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="thunar-thunar-notify.html#thunar-notify-uninit" title="thunar_notify_uninit ()">thunar_notify_uninit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-notify.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="thunar-thunar-notify.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="thunar-notify-unmount"></a><h3>thunar_notify_unmount ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_unmount (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-eject"></a><h3>thunar_notify_eject ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_eject (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-progress"></a><h3>thunar_notify_progress ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_progress (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>,
+                        <em class="parameter"><code>const <span class="type">gchar</span> *message_to_show</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-finish"></a><h3>thunar_notify_finish ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_finish (<em class="parameter"><code><a class="link" href="ThunarDevice.html" title="ThunarDevice"><span class="type">ThunarDevice</span></a> *device</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-undo"></a><h3>thunar_notify_undo ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_undo (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-redo"></a><h3>thunar_notify_redo ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_redo (<em class="parameter"><code><a class="link" href="ThunarJobOperation.html" title="ThunarJobOperation"><span class="type">ThunarJobOperation</span></a> *operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="thunar-notify-uninit"></a><h3>thunar_notify_uninit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+thunar_notify_uninit (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.33.1</div>
+</body>
+</html>

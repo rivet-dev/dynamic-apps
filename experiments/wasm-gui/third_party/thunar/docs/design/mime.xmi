@@ -1,0 +1,2118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMI xmlns:UML="http://schema.omg.org/spec/UML/1.3" verified="false" timestamp="2005-08-06T16:29:34" xmi.version="1.2" >
+ <XMI.header>
+  <XMI.documentation>
+   <XMI.exporter>umbrello uml modeller http://uml.sf.net</XMI.exporter>
+   <XMI.exporterVersion>1.4</XMI.exporterVersion>
+   <XMI.exporterEncoding>UnicodeUTF8</XMI.exporterEncoding>
+  </XMI.documentation>
+  <XMI.metamodel xmi.name="UML" href="UML.xml" xmi.version="1.3" />
+ </XMI.header>
+ <XMI.content>
+  <UML:Model isSpecification="false" isLeaf="false" isRoot="false" isAbstract="false" >
+   <UML:Namespace.ownedElement>
+    <UML:Stereotype isSpecification="false" isLeaf="false" visibility="public" xmi.id="3" isRoot="false" isAbstract="false" name="datatype" />
+    <UML:Stereotype isSpecification="false" isLeaf="false" visibility="public" xmi.id="12" isRoot="false" isAbstract="false" name="interface" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="2" isRoot="false" isAbstract="false" name="int" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="4" isRoot="false" isAbstract="false" name="char" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="5" isRoot="false" isAbstract="false" name="bool" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="6" isRoot="false" isAbstract="false" name="float" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="7" isRoot="false" isAbstract="false" name="double" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="8" isRoot="false" isAbstract="false" name="long" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="9" isRoot="false" isAbstract="false" name="short" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="10" isRoot="false" isAbstract="false" name="string" />
+    <UML:DataType stereotype="3" isSpecification="false" isLeaf="false" visibility="public" xmi.id="14" isRoot="false" isAbstract="false" name="void" />
+    <UML:Class isSpecification="false" isLeaf="false" visibility="public" xmi.id="45" isRoot="false" isAbstract="true" name="ThunarVfsMimeProvider" >
+     <UML:Classifier.feature>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="46" isRoot="false" isAbstract="true" name="lookup_data" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="677" type="10" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="47" isRoot="false" value="" type="10" isAbstract="false" name="data" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="48" isRoot="false" value="" type="2" isAbstract="false" name="length" />
+        <UML:Parameter isSpecification="false" kind="out" isLeaf="false" visibility="private" xmi.id="49" isRoot="false" value="" type="2" isAbstract="false" name="priority" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="51" isRoot="false" isAbstract="true" name="lookup_literal" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="678" type="10" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="52" isRoot="false" value="" type="10" isAbstract="false" name="filename" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="54" isRoot="false" isAbstract="true" name="lookup_suffix" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="679" type="10" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="55" isRoot="false" value="" type="10" isAbstract="false" name="suffix" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="58" isRoot="false" value="" type="5" isAbstract="false" name="ignore_case" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="61" isRoot="false" isAbstract="true" name="lookup_glob" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="680" type="10" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="62" isRoot="false" value="" type="10" isAbstract="false" name="filename" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="66" isRoot="false" isAbstract="true" name="get_stop_characters" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="681" type="10" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="67" isRoot="false" isAbstract="true" name="get_max_buffer_extents" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="682" type="2" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+     </UML:Classifier.feature>
+    </UML:Class>
+    <UML:Class isSpecification="false" isLeaf="false" visibility="public" xmi.id="92" isRoot="false" isAbstract="false" name="ThunarVfsMimeCache" >
+     <UML:GeneralizableElement.generalization>
+      <UML:Generalization xmi.idref="142" />
+     </UML:GeneralizableElement.generalization>
+    </UML:Class>
+    <UML:Class isSpecification="false" isLeaf="false" visibility="public" xmi.id="99" isRoot="false" isAbstract="false" name="ThunarVfsMimeLegacy" >
+     <UML:GeneralizableElement.generalization>
+      <UML:Generalization xmi.idref="157" />
+     </UML:GeneralizableElement.generalization>
+    </UML:Class>
+    <UML:Class isSpecification="false" isLeaf="false" visibility="public" xmi.id="196" isRoot="false" isAbstract="false" name="ThunarVfsMimeDatabase" >
+     <UML:Classifier.feature>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="232" isRoot="false" isAbstract="false" name="get_info" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="683" type="204" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="233" isRoot="false" value="" type="10" isAbstract="false" name="mime_type" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="245" isRoot="false" isAbstract="false" name="get_info_for_data" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="684" type="204" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="246" isRoot="false" value="" type="10" isAbstract="false" name="data" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="258" isRoot="false" value="" type="2" isAbstract="false" name="length" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="270" isRoot="false" isAbstract="false" name="get_info_for_name" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="685" type="204" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="271" isRoot="false" value="" type="10" isAbstract="false" name="name" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="284" isRoot="false" isAbstract="false" name="get_info_for_file" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="686" type="204" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="285" isRoot="false" value="" type="10" isAbstract="false" name="path" />
+        <UML:Parameter isSpecification="false" isLeaf="false" visibility="private" xmi.id="299" isRoot="false" value="" type="10" isAbstract="false" name="name" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+     </UML:Classifier.feature>
+    </UML:Class>
+    <UML:Class isSpecification="false" isLeaf="false" visibility="public" xmi.id="204" isRoot="false" isAbstract="false" name="ThunarVfsMimeInfo" >
+     <UML:Classifier.feature>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="217" isRoot="false" isAbstract="false" name="get_comment" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="687" type="10" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="218" isRoot="false" isAbstract="false" name="get_name" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="688" type="10" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="219" isRoot="false" isAbstract="false" name="get_media" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="689" type="10" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+      <UML:Operation isSpecification="false" isLeaf="false" visibility="public" xmi.id="220" isRoot="false" isAbstract="false" name="get_subtype" >
+       <UML:BehavioralFeature.parameter>
+        <UML:Parameter kind="return" xmi.id="690" type="10" />
+       </UML:BehavioralFeature.parameter>
+      </UML:Operation>
+     </UML:Classifier.feature>
+    </UML:Class>
+    <UML:Generalization isSpecification="false" child="92" visibility="public" xmi.id="142" parent="45" discriminator="" name="" />
+    <UML:Generalization isSpecification="false" child="99" visibility="public" xmi.id="157" parent="45" discriminator="" name="" />
+    <UML:Association isSpecification="false" visibility="public" xmi.id="453" name="" >
+     <UML:Association.connection>
+      <UML:AssociationEnd isSpecification="false" visibility="public" changeability="changeable" isNavigable="false" xmi.id="454" aggregation="none" type="196" name="" />
+      <UML:AssociationEnd isSpecification="false" visibility="private" changeability="changeable" isNavigable="true" xmi.id="455" aggregation="none" type="45" name="" multiplicity="*" />
+     </UML:Association.connection>
+    </UML:Association>
+    <UML:Association isSpecification="false" visibility="public" xmi.id="544" name="" >
+     <UML:Association.connection>
+      <UML:AssociationEnd isSpecification="false" visibility="public" changeability="changeable" isNavigable="false" xmi.id="545" aggregation="none" type="196" name="" />
+      <UML:AssociationEnd isSpecification="false" visibility="private" changeability="changeable" isNavigable="true" xmi.id="546" aggregation="none" type="204" name="" multiplicity="*" />
+     </UML:Association.connection>
+    </UML:Association>
+   </UML:Namespace.ownedElement>
+  </UML:Model>
+ </XMI.content>
+ <XMI.extensions xmi.extender="umbrello" >
+  <docsettings viewid="1" documentation="" uniqueid="690" />
+  <diagrams>
+   <diagram snapgrid="1" showattsig="1" fillcolor="#ffffc0" linewidth="0" zoom="100" showgrid="1" showopsig="1" usefillcolor="1" snapx="10" canvaswidth="886" snapy="10" showatts="1" xmi.id="1" documentation="" type="402" showops="1" showpackage="0" name="ThunarVFS MIME components" localid="900000" showstereotype="1" showscope="1" snapcsgrid="1" font="Bitstream Vera Sans,11,-1,5,50,0,0,0,0,0" linecolor="#ff0000" canvasheight="745" >
+    <widgets>
+     <classwidget usesdiagramfillcolour="0" width="540" showattsigs="601" usesdiagramusefillcolour="0" x="30" linecolour="#ff0000" y="235" showopsigs="601" linewidth="none" usesdiagramlinewidth="1" usesdiagramlinecolour="0" fillcolour="#ffffc0" height="170" usefillcolor="1" showpubliconly="0" showattributes="1" isinstance="0" xmi.id="45" showoperations="1" showpackage="0" showscope="1" showstereotype="1" font="Bitstream Vera Sans,11,-1,5,75,1,0,0,0,0" />
+     <classwidget usesdiagramfillcolour="0" width="190" showattsigs="603" usesdiagramusefillcolour="0" x="105" linecolour="#ff0000" y="490" showopsigs="603" linewidth="none" usesdiagramlinewidth="1" usesdiagramlinecolour="0" fillcolour="#ffffc0" height="40" usefillcolor="1" showpubliconly="0" showattributes="0" isinstance="0" xmi.id="92" showoperations="0" showpackage="0" showscope="0" showstereotype="0" font="Bitstream Vera Sans,11,-1,5,75,0,0,0,0,0" />
+     <classwidget usesdiagramfillcolour="0" width="200" showattsigs="603" usesdiagramusefillcolour="0" x="310" linecolour="#ff0000" y="490" showopsigs="603" linewidth="none" usesdiagramlinewidth="1" usesdiagramlinecolour="0" fillcolour="#ffffc0" height="40" usefillcolor="1" showpubliconly="0" showattributes="0" isinstance="0" xmi.id="99" showoperations="0" showpackage="0" showscope="0" showstereotype="0" font="Bitstream Vera Sans,11,-1,5,75,0,0,0,0,0" />
+     <classwidget usesdiagramfillcolour="0" width="580" showattsigs="601" usesdiagramusefillcolour="0" x="10" linecolour="#ff0000" y="25" showopsigs="601" linewidth="none" usesdiagramlinewidth="1" usesdiagramlinecolour="0" fillcolour="#ffffc0" height="130" usefillcolor="1" showpubliconly="0" showattributes="1" isinstance="0" xmi.id="196" showoperations="1" showpackage="0" showscope="1" showstereotype="1" font="Bitstream Vera Sans,11,-1,5,75,0,0,0,0,0" />
+     <classwidget usesdiagramfillcolour="0" width="220" showattsigs="601" usesdiagramusefillcolour="0" x="590" linecolour="#ff0000" y="235" showopsigs="601" linewidth="none" usesdiagramlinewidth="1" usesdiagramlinecolour="0" fillcolour="#ffffc0" height="130" usefillcolor="1" showpubliconly="0" showattributes="1" isinstance="0" xmi.id="204" showoperations="1" showpackage="0" showscope="1" showstereotype="1" font="Bitstream Vera Sans,11,-1,5,75,0,0,0,0,0" />
+    </widgets>
+    <messages/>
+    <associations>
+     <assocwidget totalcounta="2" indexa="1" totalcountb="3" indexb="1" widgetbid="45" widgetaid="92" xmi.id="142" >
+      <linepath>
+       <startpoint startx="200" starty="490" />
+       <endpoint endx="210" endy="405" />
+      </linepath>
+     </assocwidget>
+     <assocwidget totalcounta="2" indexa="1" totalcountb="3" indexb="2" widgetbid="45" widgetaid="99" xmi.id="157" >
+      <linepath>
+       <startpoint startx="410" starty="490" />
+       <endpoint endx="390" endy="405" />
+      </linepath>
+     </assocwidget>
+     <assocwidget totalcounta="2" indexa="1" totalcountb="2" indexb="1" widgetbid="45" widgetaid="196" xmi.id="453" >
+      <linepath>
+       <startpoint startx="300" starty="155" />
+       <endpoint endx="300" endy="235" />
+      </linepath>
+      <floatingtext usesdiagramfillcolour="1" width="20" usesdiagramusefillcolour="1" x="300" linecolour="none" y="205" linewidth="none" usesdiagramlinewidth="1" posttext="" usesdiagramlinecolour="1" role="702" fillcolour="none" height="30" usefillcolor="1" pretext="" isinstance="0" xmi.id="501" text="*" font="Bitstream Vera Sans,11,-1,5,50,0,0,0,0,0" />
+      <floatingtext usesdiagramfillcolour="1" width="80" usesdiagramusefillcolour="1" x="205" linecolour="none" y="205" linewidth="none" usesdiagramlinewidth="1" posttext="" usesdiagramlinecolour="1" role="710" fillcolour="none" height="30" usefillcolor="1" pretext="-" isinstance="0" xmi.id="499" text="providers" font="Bitstream Vera Sans,11,-1,5,50,0,0,0,0,0" />
+     </assocwidget>
+     <assocwidget totalcounta="2" indexa="1" totalcountb="2" indexb="1" widgetbid="204" widgetaid="196" xmi.id="544" >
+      <linepath>
+       <startpoint startx="590" starty="90" />
+       <endpoint endx="700" endy="235" />
+       <point x="700" y="90" />
+      </linepath>
+      <floatingtext usesdiagramfillcolour="1" width="20" usesdiagramusefillcolour="1" x="700" linecolour="none" y="205" linewidth="none" usesdiagramlinewidth="1" posttext="" usesdiagramlinecolour="1" role="702" fillcolour="none" height="30" usefillcolor="1" pretext="" isinstance="0" xmi.id="620" text="*" font="Bitstream Vera Sans,11,-1,5,50,0,0,0,0,0" />
+      <floatingtext usesdiagramfillcolour="1" width="50" usesdiagramusefillcolour="1" x="640" linecolour="none" y="205" linewidth="none" usesdiagramlinewidth="1" posttext="" usesdiagramlinecolour="1" role="710" fillcolour="none" height="30" usefillcolor="1" pretext="-" isinstance="0" xmi.id="618" text="infos" font="Bitstream Vera Sans,11,-1,5,50,0,0,0,0,0" />
+     </assocwidget>
+    </associations>
+   </diagram>
+  </diagrams>
+  <listview>
+   <listitem open="1" type="800" label="Views" >
+    <listitem open="1" type="801" label="Logical View" >
+     <listitem open="0" type="807" id="1" label="ThunarVFS MIME components" />
+     <listitem open="1" type="813" id="92" />
+     <listitem open="1" type="813" id="196" >
+      <listitem open="0" type="815" id="232" />
+      <listitem open="0" type="815" id="245" />
+      <listitem open="0" type="815" id="270" />
+      <listitem open="0" type="815" id="284" />
+     </listitem>
+     <listitem open="1" type="813" id="204" >
+      <listitem open="0" type="815" id="217" />
+      <listitem open="0" type="815" id="218" />
+      <listitem open="0" type="815" id="219" />
+      <listitem open="0" type="815" id="220" />
+     </listitem>
+     <listitem open="1" type="813" id="99" />
+     <listitem open="1" type="813" id="45" >
+      <listitem open="0" type="815" id="46" />
+      <listitem open="0" type="815" id="51" />
+      <listitem open="0" type="815" id="54" />
+      <listitem open="0" type="815" id="61" />
+      <listitem open="0" type="815" id="66" />
+      <listitem open="0" type="815" id="67" />
+     </listitem>
+     <listitem open="1" type="830" label="Datatypes" >
+      <listitem open="1" type="829" id="5" />
+      <listitem open="1" type="829" id="4" />
+      <listitem open="1" type="829" id="7" />
+      <listitem open="1" type="829" id="6" />
+      <listitem open="1" type="829" id="2" />
+      <listitem open="1" type="829" id="8" />
+      <listitem open="1" type="829" id="9" />
+      <listitem open="1" type="829" id="10" />
+      <listitem open="1" type="829" id="14" />
+     </listitem>
+    </listitem>
+    <listitem open="1" type="802" label="Use Case View" />
+    <listitem open="1" type="821" label="Component View" />
+    <listitem open="1" type="827" label="Deployment View" />
+    <listitem open="1" type="836" label="Entity Relationship Model" />
+   </listitem>
+  </listview>
+  <codegeneration>
+   <codegenerator language="Cpp" >
+    <codedocument writeOutCode="false" package="" id="Makefile_DOC" fileExt="" fileName="Makefile" >
+     <textblocks/>
+     <header>
+      <codecomment tag="" />
+     </header>
+    </codedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="45" parent_class="45" fileExt=".cpp" fileName="thunarvfsmimeprovider" >
+     <textblocks>
+      <codeblockwithcomments tag="includes" text="#include &quot;thunarvfsmimeprovider.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="constructionMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Constructors/Destructors" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+      <hierarchicalcodeblock tag="otherMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Methods" />
+       </header>
+       <textblocks>
+        <codeoperation parent_id="46" tag="operation_46" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="51" tag="operation_51" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="54" tag="operation_54" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="61" tag="operation_61" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="66" tag="operation_66" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="67" tag="operation_67" canDelete="false" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+       </textblocks>
+      </hierarchicalcodeblock>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimeprovider.cpp - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.cpp&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:09&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="142" field_type="6619252" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="157" field_type="6619252" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="453" field_type="6619252" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="92" parent_class="92" fileExt=".cpp" fileName="thunarvfsmimecache" >
+     <textblocks>
+      <codeblockwithcomments tag="includes" text="#include &quot;thunarvfsmimecache.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="constructionMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Constructors/Destructors" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+      <hierarchicalcodeblock tag="otherMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Methods" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimecache.cpp - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.cpp&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:57&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="142" field_type="7667816" initialValue="" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="0" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="142" tag="" canDelete="false" writeOutText="false" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="99" parent_class="99" fileExt=".cpp" fileName="thunarvfsmimelegacy" >
+     <textblocks>
+      <codeblockwithcomments tag="includes" text="#include &quot;thunarvfsmimelegacy.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="constructionMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Constructors/Destructors" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+      <hierarchicalcodeblock tag="otherMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Methods" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimelegacy.cpp - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.cpp&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:59&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="157" field_type="6815828" initialValue="" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="0" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="157" tag="" canDelete="false" writeOutText="false" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="196" parent_class="196" fileExt=".cpp" fileName="thunarvfsmimedatabase" >
+     <textblocks>
+      <codeblockwithcomments tag="includes" text="#include &quot;thunarvfsmimedatabase.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="constructionMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Constructors/Destructors" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+      <hierarchicalcodeblock tag="otherMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Methods" />
+       </header>
+       <textblocks>
+        <codeoperation parent_id="232" tag="operation_232" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="245" tag="operation_245" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="270" tag="operation_270" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="284" tag="operation_284" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+       </textblocks>
+      </hierarchicalcodeblock>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimedatabase.cpp - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.cpp&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:34&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="453" field_type="6226034" initialValue=" new vector( )" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="453" tag="" canDelete="false" indentLevel="1" role_id="0" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="453" tag="" canDelete="false" writeOutText="false" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="453" tag="" canDelete="false" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="453" tag="" canDelete="false" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="453" tag="" canDelete="false" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="544" field_type="6226034" initialValue=" new vector( )" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="544" tag="" canDelete="false" indentLevel="1" role_id="0" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="544" tag="" canDelete="false" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="544" tag="" canDelete="false" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="544" tag="" canDelete="false" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="204" parent_class="204" fileExt=".cpp" fileName="thunarvfsmimeinfo" >
+     <textblocks>
+      <codeblockwithcomments tag="includes" text="#include &quot;thunarvfsmimeinfo.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="constructionMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Constructors/Destructors" />
+       </header>
+       <textblocks/>
+      </hierarchicalcodeblock>
+      <hierarchicalcodeblock tag="otherMethodsBlock" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" text="Methods" />
+       </header>
+       <textblocks>
+        <codeoperation parent_id="217" tag="operation_217" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="218" tag="operation_218" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="219" tag="operation_219" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+        <codeoperation parent_id="220" tag="operation_220" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" />
+         </header>
+        </codeoperation>
+       </textblocks>
+      </hierarchicalcodeblock>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimeinfo.cpp - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.cpp&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:43&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="544" field_type="6684773" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text="FIX ME;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="544" tag="" canDelete="false" writeOutText="false" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="cppheader45" parent_class="45" fileExt=".h" fileName="thunarvfsmimeprovider" >
+     <textblocks>
+      <codeblockwithcomments tag="hashDefBlock" text="#ifndef THUNARVFSMIMEPROVIDER_H&amp;#010;#define THUNARVFSMIMEPROVIDER_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="includes" text="#include &lt;string>&amp;#010;#include &quot;thunarvfsmimedatabase.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="using" writeOutText="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="namespace" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" text="Namespace" />
+       </header>
+       <textblocks>
+        <codeblockwithcomments tag="enums" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" writeOutText="false" />
+         </header>
+        </codeblockwithcomments>
+        <cppheaderclassdeclarationblock parent_id="45" tag="classDeclarationBlock" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" text="Class ThunarVfsMimeProvider&amp;#010;" />
+         </header>
+         <textblocks>
+          <hierarchicalcodeblock tag="publicBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Public stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="publicFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="pubMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks>
+                <codeblockwithcomments tag="emptyconstructor" writeOutText="false" indentLevel="1" text="ThunarVfsMimeProvider ( ) { }" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="Empty Constructor" />
+                 </header>
+                </codeblockwithcomments>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="pubStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="pubRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks>
+                <codeoperation parent_id="46" tag="operation_46" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param data &amp;#010;@param length &amp;#010;@param priority " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="51" tag="operation_51" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param filename " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="54" tag="operation_54" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param suffix &amp;#010;@param ignore_case " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="61" tag="operation_61" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param filename " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="66" tag="operation_66" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="67" tag="operation_67" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+               </textblocks>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="protectedBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Protected stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="protectedFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="protMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="protStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="protRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="privateBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Private stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="privateFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="privMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="privStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="privRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+         </textblocks>
+        </cppheaderclassdeclarationblock>
+       </textblocks>
+      </hierarchicalcodeblock>
+      <codeblockwithcomments tag="hashDefBlockEnd" text="#endif //THUNARVFSMIMEPROVIDER_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimeprovider.h - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.h&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:09&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="142" field_type="7143519" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text=" ThunarVfsMimeCache ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="157" field_type="7143519" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text=" ThunarVfsMimeLegacy ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="453" field_type="7143519" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text=" ThunarVfsMimeDatabase ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="cppheader92" parent_class="92" fileExt=".h" fileName="thunarvfsmimecache" >
+     <textblocks>
+      <codeblockwithcomments tag="hashDefBlock" text="#ifndef THUNARVFSMIMECACHE_H&amp;#010;#define THUNARVFSMIMECACHE_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="includes" text="#include &lt;string>&amp;#010;#include &quot;thunarvfsmimeprovider.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="using" writeOutText="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="namespace" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" text="Namespace" />
+       </header>
+       <textblocks>
+        <codeblockwithcomments tag="enums" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" writeOutText="false" />
+         </header>
+        </codeblockwithcomments>
+        <cppheaderclassdeclarationblock parent_id="92" tag="classDeclarationBlock" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" text="Class ThunarVfsMimeCache&amp;#010;" />
+         </header>
+         <textblocks>
+          <hierarchicalcodeblock tag="publicBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Public stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="publicFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="pubMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks>
+                <codeblockwithcomments tag="emptyconstructor" writeOutText="false" indentLevel="1" text="ThunarVfsMimeCache ( ) { }" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="Empty Constructor" />
+                 </header>
+                </codeblockwithcomments>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="pubStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="pubRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="protectedBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Protected stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="protectedFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="protMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="protStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="protRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="privateBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Private stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="privateFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="privMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="privStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="privRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+         </textblocks>
+        </cppheaderclassdeclarationblock>
+       </textblocks>
+      </hierarchicalcodeblock>
+      <codeblockwithcomments tag="hashDefBlockEnd" text="#endif //THUNARVFSMIMECACHE_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimecache.h - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.h&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:57&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="142" field_type="6815860" initialValue="" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="0" text=" ThunarVfsMimeProvider ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="142" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="142" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="cppheader99" parent_class="99" fileExt=".h" fileName="thunarvfsmimelegacy" >
+     <textblocks>
+      <codeblockwithcomments tag="hashDefBlock" text="#ifndef THUNARVFSMIMELEGACY_H&amp;#010;#define THUNARVFSMIMELEGACY_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="includes" text="#include &lt;string>&amp;#010;#include &quot;thunarvfsmimeprovider.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="using" writeOutText="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="namespace" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" text="Namespace" />
+       </header>
+       <textblocks>
+        <codeblockwithcomments tag="enums" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" writeOutText="false" />
+         </header>
+        </codeblockwithcomments>
+        <cppheaderclassdeclarationblock parent_id="99" tag="classDeclarationBlock" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" text="Class ThunarVfsMimeLegacy&amp;#010;" />
+         </header>
+         <textblocks>
+          <hierarchicalcodeblock tag="publicBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Public stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="publicFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="pubMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks>
+                <codeblockwithcomments tag="emptyconstructor" writeOutText="false" indentLevel="1" text="ThunarVfsMimeLegacy ( ) { }" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="Empty Constructor" />
+                 </header>
+                </codeblockwithcomments>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="pubStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="pubRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="protectedBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Protected stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="protectedFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="protMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="protStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="protRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="privateBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Private stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="privateFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="privMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="privStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="privRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+         </textblocks>
+        </cppheaderclassdeclarationblock>
+       </textblocks>
+      </hierarchicalcodeblock>
+      <codeblockwithcomments tag="hashDefBlockEnd" text="#endif //THUNARVFSMIMELEGACY_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimelegacy.h - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.h&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:59&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="157" field_type="6815860" initialValue="" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="0" text=" ThunarVfsMimeProvider ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="157" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="157" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="cppheader196" parent_class="196" fileExt=".h" fileName="thunarvfsmimedatabase" >
+     <textblocks>
+      <codeblockwithcomments tag="hashDefBlock" text="#ifndef THUNARVFSMIMEDATABASE_H&amp;#010;#define THUNARVFSMIMEDATABASE_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="includes" text="#include &lt;string>&amp;#010;#include &lt;vector>&amp;#010;#include &quot;thunarvfsmimeprovider.h&quot;&amp;#010;#include &quot;thunarvfsmimeinfo.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="using" writeOutText="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="namespace" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" text="Namespace" />
+       </header>
+       <textblocks>
+        <codeblockwithcomments tag="enums" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" writeOutText="false" />
+         </header>
+        </codeblockwithcomments>
+        <cppheaderclassdeclarationblock parent_id="196" tag="classDeclarationBlock" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" text="Class ThunarVfsMimeDatabase&amp;#010;" />
+         </header>
+         <textblocks>
+          <hierarchicalcodeblock tag="publicBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Public stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="publicFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="pubMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks>
+                <codeblockwithcomments tag="emptyconstructor" writeOutText="false" indentLevel="1" text="ThunarVfsMimeDatabase ( ) { }" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="Empty Constructor" />
+                 </header>
+                </codeblockwithcomments>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="pubStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="pubRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks>
+                <codeoperation parent_id="232" tag="operation_232" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param mime_type " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="245" tag="operation_245" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param data &amp;#010;@param length " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="270" tag="operation_270" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param name " />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="284" tag="operation_284" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="&amp;#010;@param path &amp;#010;@param name " />
+                 </header>
+                </codeoperation>
+               </textblocks>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="protectedBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Protected stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="protectedFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="protMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="protStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="protRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="privateBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Private stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="privateFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="privMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="privStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="privRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+         </textblocks>
+        </cppheaderclassdeclarationblock>
+       </textblocks>
+      </hierarchicalcodeblock>
+      <codeblockwithcomments tag="hashDefBlockEnd" text="#endif //THUNARVFSMIMEDATABASE_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimedatabase.h - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.h&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:34&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="453" field_type="4456549" initialValue=" new vector( )" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="453" tag="" canDelete="false" indentLevel="1" role_id="0" text=" vector providersVector;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="453" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="453" tag="" canDelete="false" indentLevel="1" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="453" tag="" canDelete="false" indentLevel="1" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="453" tag="" canDelete="false" indentLevel="1" classfield_id="453" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+      <codeclassfield parent_id="544" field_type="4456549" initialValue=" new vector( )" role_id="1" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="544" tag="" canDelete="false" indentLevel="1" role_id="0" text=" vector infosVector;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="544" tag="" canDelete="false" indentLevel="1" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="544" tag="" canDelete="false" indentLevel="1" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="544" tag="" canDelete="false" indentLevel="1" classfield_id="544" role_id="0" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+    <classifiercodedocument writeOutCode="true" package="" id="cppheader204" parent_class="204" fileExt=".h" fileName="thunarvfsmimeinfo" >
+     <textblocks>
+      <codeblockwithcomments tag="hashDefBlock" text="#ifndef THUNARVFSMIMEINFO_H&amp;#010;#define THUNARVFSMIMEINFO_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="includes" text="#include &lt;string>&amp;#010;#include &quot;thunarvfsmimedatabase.h&quot;&amp;#010;" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <codeblockwithcomments tag="using" writeOutText="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+      <hierarchicalcodeblock tag="namespace" canDelete="false" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" text="Namespace" />
+       </header>
+       <textblocks>
+        <codeblockwithcomments tag="enums" writeOutText="false" >
+         <header>
+          <cppcodedocumentation tag="" writeOutText="false" />
+         </header>
+        </codeblockwithcomments>
+        <cppheaderclassdeclarationblock parent_id="204" tag="classDeclarationBlock" canDelete="false" >
+         <header>
+          <cppcodedocumentation tag="" text="Class ThunarVfsMimeInfo&amp;#010;" />
+         </header>
+         <textblocks>
+          <hierarchicalcodeblock tag="publicBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Public stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="publicFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="pubMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks>
+                <codeblockwithcomments tag="emptyconstructor" writeOutText="false" indentLevel="1" text="ThunarVfsMimeInfoi ( ) { }" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" text="Empty Constructor" />
+                 </header>
+                </codeblockwithcomments>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="pubStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="pubRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks>
+                <codeoperation parent_id="217" tag="operation_217" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="218" tag="operation_218" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="219" tag="operation_219" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+                <codeoperation parent_id="220" tag="operation_220" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" indentLevel="1" />
+                 </header>
+                </codeoperation>
+               </textblocks>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="protectedBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Protected stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="protectedFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="protMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="protStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="protRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+          <hierarchicalcodeblock tag="privateBlock" canDelete="false" >
+           <header>
+            <cppcodedocumentation tag="" text="Private stuff" />
+           </header>
+           <textblocks>
+            <hierarchicalcodeblock tag="privateFieldsDecl" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" text="Fields" />
+             </header>
+             <textblocks/>
+            </hierarchicalcodeblock>
+            <hierarchicalcodeblock tag="privMethodsBlock" canDelete="false" indentLevel="1" >
+             <header>
+              <cppcodedocumentation tag="" indentLevel="1" />
+             </header>
+             <textblocks>
+              <hierarchicalcodeblock tag="constructionMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Constructors" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="accessorMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Accessor Methods" />
+               </header>
+               <textblocks>
+                <hierarchicalcodeblock tag="privStaticAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+                <hierarchicalcodeblock tag="privRegularAccessorMethods" canDelete="false" indentLevel="1" >
+                 <header>
+                  <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+                 </header>
+                 <textblocks/>
+                </hierarchicalcodeblock>
+               </textblocks>
+              </hierarchicalcodeblock>
+              <hierarchicalcodeblock tag="operationMethods" canDelete="false" indentLevel="1" >
+               <header>
+                <cppcodedocumentation tag="" indentLevel="1" text="Operations" />
+               </header>
+               <textblocks/>
+              </hierarchicalcodeblock>
+             </textblocks>
+            </hierarchicalcodeblock>
+           </textblocks>
+          </hierarchicalcodeblock>
+         </textblocks>
+        </cppheaderclassdeclarationblock>
+       </textblocks>
+      </hierarchicalcodeblock>
+      <codeblockwithcomments tag="hashDefBlockEnd" text="#endif //THUNARVFSMIMEINFO_H" >
+       <header>
+        <cppcodedocumentation tag="" writeOutText="false" />
+       </header>
+      </codeblockwithcomments>
+     </textblocks>
+     <header>
+      <codecomment tag="" text="/************************************************************************&amp;#010;  			thunarvfsmimeinfo.h - Copyright bmeurer&amp;#010;&amp;#010;Here you can write a license for your code, some comments or any other&amp;#010;information you want to have in your generated code. To to this simply&amp;#010;configure the &quot;headings&quot; directory in uml to point to a directory&amp;#010;where you have your heading files.&amp;#010;&amp;#010;or you can just replace the contents of this file with your own.&amp;#010;If you want to do this, this file is located at&amp;#010;&amp;#010;/usr/local/share/apps/umbrello/headings/heading.h&amp;#010;&amp;#010;-->Code Generators searches for heading files based on the file extension&amp;#010;   i.e. it will look for a file name ending in &quot;.h&quot; to include in C++ header&amp;#010;   files, and for a file name ending in &quot;.java&quot; to include in all generated&amp;#010;   java code.&amp;#010;   If you name the file &quot;heading.&lt;extension>&quot;, Code Generator will always&amp;#010;   choose this file even if there are other files with the same extension in the&amp;#010;   directory. If you name the file something else, it must be the only one with that&amp;#010;   extension in the directory to guarantee that Code Generator will choose it.&amp;#010;&amp;#010;you can use variables in your heading files which are replaced at generation&amp;#010;time. possible variables are : author, date, time, filename and filepath.&amp;#010;just write %variable_name%&amp;#010;&amp;#010;This file was generated on Sat Aug 6 2005 at 16:28:43&amp;#010;The original location of this file is &amp;#010;**************************************************************************/&amp;#010;" />
+     </header>
+     <classfields>
+      <codeclassfield parent_id="544" field_type="7667827" initialValue="" role_id="0" writeOutMethods="true" listClassName="" >
+       <header>
+        <cppcodedocumentation tag="" />
+       </header>
+       <ccfdeclarationcodeblock parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" role_id="1" text=" ThunarVfsMimeDatabase ;" >
+        <header>
+         <cppcodedocumentation tag="" writeOutText="false" indentLevel="1" />
+        </header>
+       </ccfdeclarationcodeblock>
+       <codeaccessormethod accessType="0" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="1" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="2" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="3" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+       <codeaccessormethod accessType="4" parent_id="544" tag="" canDelete="false" writeOutText="false" indentLevel="1" classfield_id="544" role_id="1" >
+        <header>
+         <cppcodedocumentation tag="" indentLevel="1" />
+        </header>
+       </codeaccessormethod>
+      </codeclassfield>
+     </classfields>
+    </classifiercodedocument>
+   </codegenerator>
+  </codegeneration>
+ </XMI.extensions>
+</XMI>
