@@ -524,8 +524,17 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   defines __wasi_init_tp for any thread-spawning app), the errno.o bundle + gio-vfs-local/empty-path shims + the
   libxfce4ui GResource force-link, the full pkg-config dep closure, GSettings-schema staging, and **render-app.sh which
   stages the mandatory FONT fixtures + asserts 0 fontconfig errors** (without fonts, text is .notdef tofu, not glyphs).
-  KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC. Remaining XU6:
-  xfce4-terminal (live shell via PTY), xfce4-notifyd (a notification pops).
+  KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC.
+  **xfce4-notifyd** (the notification daemon): the FULL daemon + D-Bus chain WORKS all-wasm -- it builds (the
+  4-lib dep chain libnotify + sqlite3 + libdbus-1 + the notifyd common/ objects, direct-link), INSTANTIATES,
+  OWNS org.freedesktop.Notifications, and RECEIVES the Notify call from a libnotify sender (notify-sender.wasm,
+  proven by the sender getting PAST GDBus ServiceUnknown). Only the POPUP WINDOW draw is gated: notifyd's
+  xfce-notify-window.c (an RGBA/app-paintable window) construction HANGS -- the SAME class as the Thunar
+  ThunarPathEntry hang (plain windows construct fine; these specific widgets block in the wasm runtime). The
+  RGBA-visual theory is ruled out (GTK falls back when depth-24-only; wasm Xvfb has no depth-32). Scripts:
+  build-libnotify.sh, build-notifyd.sh. Remaining XU6: notifyd's popup draw (surfaced, = the Thunar construction
+  class) + **xfce4-terminal** (its VTE needs fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready
+  sans icu/gnutls + the TIOCGWINSZ shim).
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal
