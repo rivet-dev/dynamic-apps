@@ -69,7 +69,11 @@ OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
 # --debuginfo (size + names kept) so the binary still reproduces the same behaviour as release.
 PASS1_DBG=""; [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ] && PASS1_DBG="--debuginfo"
 PA_ARG="-pa max-func-params@128"; [ -n "${SECURE_EXEC_FPCAST_NO_PA:-}" ] && PA_ARG=""
-wasm-opt --fpcast-emu $PA_ARG $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
+# DIAGNOSTIC: SECURE_EXEC_NO_FPCAST=1 drops --fpcast-emu entirely. Tests whether --fpcast-emu is itself
+# breaking exact-signature vtable dispatch (GVfs/GFile) -- if g_file_new_for_path works without it, the
+# fpcast pass is the culprit, not a genuine signature mismatch needing emulation.
+FPCAST_ARG="--fpcast-emu $PA_ARG"; [ -n "${SECURE_EXEC_NO_FPCAST:-}" ] && FPCAST_ARG=""
+wasm-opt $FPCAST_ARG $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
 if [ -n "${SECURE_EXEC_FPCAST0_ONLY:-}" ]; then
   # DIAGNOSTIC: skip the -Oz pass to test whether -Oz introduces the fpcast-emu GFile trap.
   cp -f "$OUT.1" "$OUT"

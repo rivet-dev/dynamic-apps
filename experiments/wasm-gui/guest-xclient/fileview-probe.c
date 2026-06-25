@@ -15,6 +15,17 @@ int main(int argc, char **argv) {
   int r = lstat(path, &st);
   g_printerr("FVPROBE: lstat(%s)=%d size=%lld (baseline, no vtable)\n", path, r, (long long) st.st_size);
 
+  /* BISECT the GVfs path (g_file_new_for_path = g_vfs_get_file_for_path(g_vfs_get_default(), path)). */
+  g_printerr("FVPROBE: g_vfs_get_default...\n");
+  GVfs *vfs = g_vfs_get_default();
+  g_printerr("FVPROBE: default vfs=%p active=%d\n", (void*) vfs, vfs ? g_vfs_is_active(vfs) : -1);
+  g_printerr("FVPROBE: g_vfs_get_local...\n");
+  GVfs *lvfs = g_vfs_get_local();
+  g_printerr("FVPROBE: local vfs=%p\n", (void*) lvfs);
+  g_printerr("FVPROBE: g_vfs_get_file_for_path(local)...\n");
+  GFile *lf = g_vfs_get_file_for_path(lvfs, path);
+  g_printerr("FVPROBE: local get_file_for_path=%p\n", (void*) lf);
+
   /* The gate: GFile creation goes through the GVfs vtable. */
   g_printerr("FVPROBE: g_file_new_for_path...\n");
   GFile *f = g_file_new_for_path(path);

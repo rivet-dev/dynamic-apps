@@ -453,25 +453,31 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        the plugin `.desktop` with `X-XFCE-Internal=true` (→ INTERNAL mode, no wrapper fork) at the panel
        data dir; (e) add the plugin to the xfconf config. NEXT: prove the path with one plugin
        (separator → clock), then tasklist/systray/clock + build xfce4-whiskermenu-plugin.
-- **XU4 — xfdesktop.** 🟢 WALLPAPER DONE (2026-06-25); desktop ICONS gated on the file-view fpcast defect.
+- **XU4 — xfdesktop.** 🟢 WALLPAPER DONE (2026-06-25); desktop ICONS gated on the file-view GIO VFS-init trap.
   Wallpaper renders full-screen under xfwm4 (proof: ~/tmp/gui-progress/2026-06-25T13/xu4-*.png; relinked
   against the inotify libgio, no regression). Desktop file-icons do NOT populate -- gated on the binaryen
   --fpcast-emu defect below (xfdesktop's icon view enumerates ~/Desktop eagerly via g_file_query_info).
 - **XU5 — Thunar.** ⬜ Thunar builds + runs; file-monitor hang (task#11 inotify fix) + D-Bus session bus +
   clock all CLEARED. Two remaining blockers: (1) a Thunar-specific GtkApplication-startup block (no window
   maps even with no folder arg; the minimal gtkapp-probe DID render, so it is Thunar's startup, not generic),
-  and (2) the file-view fpcast defect below (Thunar's folder enumerate uses g_file_query_info eagerly).
-- **★ THE FILE-VIEW GATE (the single blocker for XU4 icons + XU5 folders + XU6 file dialogs):** a binaryen
-  `wasm-opt --fpcast-emu` defect mis-dispatching the GFile/GLocalFile interface vtable + GIO callback indirect
-  calls. EXHAUSTIVELY ISOLATED (2026-06-25): g_file_query_info / g_file_new_for_path / g_file_get_path TRAP
-  (lean build) or HANG (full build, = the old task#11 "async never completes"), while raw lstat +
-  g_file_get_contents (no GFile vtable) WORK. Ruled out: missing syscall, clock (MONOTONIC advances),
-  concurrency (main-thread traps too), -Oz pass, -pa max-func-params, stale binaryen (128 is current), volume
-  monitor, file monitor. Layout-dependent (the trapping function shifts per build), so the panel (lazy GFile)
-  works but eager-query_info file-views trap/hang. Unpinnable (moves) + unsymbolizable (lib funcs absent from
-  the name section; DWARF low_pc zeroed). FIX (focused, native/toolchain layer): file a binaryen --fpcast-emu
-  bug, OR a typed-function-references GIO build path, OR a layout workaround. Diagnostics: build-gtk-app.sh
-  SECURE_EXEC_FPCAST0_ONLY / FPCAST_NO_PA. Full trail in M8-STATUS-LOG.md (2026-06-25T17c..17i).
+  and (2) the file-view GIO VFS-init trap below (Thunar's folder enumerate uses g_file_query_info eagerly).
+- **★ THE FILE-VIEW GATE (the single blocker for XU4 icons + XU5 folders + XU6 file dialogs):** `g_vfs_get_default()`
+  traps `RuntimeError: unreachable` -- so the ENTIRE GFile object path (g_file_new_for_path / get_path /
+  query_info all call g_vfs_get_default first) is blocked, while raw lstat + glib path-based g_file_get_contents
+  (no GVfs) WORK. **REDIAGNOSED 2026-06-25 -- this OVERTURNS the prior "binaryen --fpcast-emu defect" theory:**
+  a NO_FPCAST build (build-gtk-app.sh `SECURE_EXEC_NO_FPCAST=1`, drops --fpcast-emu entirely) STILL traps at
+  the same spot, and the trap is `unreachable` (a REAL unreachable: abort / g_assert_not_reached / NULL-vtable
+  call / an unimplemented stub) -- NOT a call_indirect "signature mismatch". So this is a GIO VFS-INITIALIZATION
+  trap, not a codegen/binaryen issue. The earlier "shifts per build" was just function-index renumbering, not
+  fpcast layout-dependence. Bisect (guest-xclient/fileview-probe.c, run via host --exec): lstat works, then
+  g_vfs_get_default is the FIRST call to trap (before g_vfs_get_local / get_file_for_path / query_info).
+  CANDIDATES for the unreachable: the GIO module scan (g_module_open dlopen stub), an unregistered GLocalVfs
+  type (g_object_new on a 0 type -> abort), or g_assert_not_reached in the extension-point/module-load path.
+  The panel/applicationsmenu/whiskermenu work because they DON'T create GFiles at startup (lazy), not because
+  of fpcast. NEXT: (1) confirm guest env reaches --exec then test GIO_USE_VFS=local (force local vfs, skip the
+  module scan); (2) disassemble the trapping libgio function; (3) ensure GLocalVfs is registered / the GIO
+  module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
+  zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18f).
 - **XU6 — bundled apps.** ⬜ xfce4-terminal (live shell via PTY), mousepad, ristretto, appfinder,
   xfce4-notifyd (a notification pops). Proof screenshots.
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
