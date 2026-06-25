@@ -1,0 +1,424 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Andrei Stepanov, 2014
+# Aleksey Kabanov <ak099@mail.ru>, 2013
+# Andrei Stepanov, 2022
+# Andrey Fedoseev <andrey.fedoseev@gmail.com>, 2006,2008
+# Anthony Ivanoff <a-i@bk.ru>, 2005
+# Artem Zolochevskiy <artem.zolochevskiy@gmail.com>, 2011
+# AlexanderFilev, 2018,2021
+# Denis Koryavov <dkoryavov@yandex.ru>, 2009-2010
+# Dmitrij Smirnov <other@igus.lv>, 2010
+# Igor <f2404@yandex.ru>, 2017-2020
+# ivmazurenko <ivmazurenko@yandex.ru>, 2021
+# Maxim Zenin <webmechanics@gmail.com>, 2006
+# NIkitaBelobrov <qvzqvz@gmail.com>, 2008
+# Sergey Alyoshin <alyoshin.s@gmail.com>, 2014-2015
+# Sergey Fedoseev <fedoseev.sergey@gmail.com>, 2006
+# Sergey Shlyapugin <shlyapugin@gmail.com>, 2013
+# Артём Котлубай <artemkotlubai@yandex.ru>, 2022
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfce4-appfinder\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-11-28 14:59+0100\n"
+"PO-Revision-Date: 2013-07-02 20:40+0000\n"
+"Last-Translator: Артём Котлубай <artemkotlubai@yandex.ru>, 2022\n"
+"Language-Team: Russian (http://www.transifex.com/xfce/xfce4-appfinder/language/ru/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#. close all windows and quit
+#: ../src/appfinder-gdbus.c:84
+msgid "Forced to quit"
+msgstr "Принудительное завершение"
+
+#: ../src/appfinder-category-model.c:147
+msgid "All Applications"
+msgstr "Все приложения"
+
+#: ../src/appfinder-model.c:615
+msgid "Name"
+msgstr "Название"
+
+#: ../src/appfinder-model.c:616
+msgid "Comment"
+msgstr "Комментарий"
+
+#: ../src/appfinder-model.c:617
+msgid "Command"
+msgstr "Команда"
+
+#: ../src/appfinder-model.c:618
+msgid "Categories"
+msgstr "Категории"
+
+#: ../src/appfinder-model.c:619
+msgid "Filename"
+msgstr "Имя файла"
+
+#: ../src/appfinder-model.c:2501
+msgid "Application has no command"
+msgstr "Приложению не присвоена команда"
+
+#: ../src/appfinder-model.c:2934
+msgid "Commands History"
+msgstr "Журнал команд"
+
+#: ../src/appfinder-model.c:2958
+msgid "Bookmarks"
+msgstr "Закладки"
+
+#: ../src/appfinder-preferences.c:266
+msgid "C_lear"
+msgstr "О_чистить"
+
+#: ../src/appfinder-preferences.c:267
+msgid "This will permanently clear the custom command history."
+msgstr "Журнал команд будет необратимо очищен."
+
+#: ../src/appfinder-preferences.c:268
+msgid "Are you sure you want to clear the command history?"
+msgstr "Вы хотите очистить журнал команд?"
+
+#: ../src/appfinder-preferences.c:377
+msgid "_Delete"
+msgstr "У_далить"
+
+#: ../src/appfinder-preferences.c:378
+msgid "The custom action will be deleted permanently."
+msgstr "Пользовательское действие будет удалено без возможности восстановления."
+
+#: ../src/appfinder-preferences.c:379
+#, c-format
+msgid "Are you sure you want to delete pattern \"%s\"?"
+msgstr "Удалить шаблон «%s»?"
+
+#: ../src/appfinder-window.c:232 ../src/appfinder-preferences.glade.h:10
+#: ../data/xfce4-appfinder.desktop.in.h:1
+#: ../data/org.xfce.xfce4-appfinder.appdata.xml.in.h:1
+msgid "Application Finder"
+msgstr "Поиск приложений"
+
+#: ../src/appfinder-window.c:279
+msgid "Toggle view mode"
+msgstr "Переключить режим отображения"
+
+#: ../src/appfinder-window.c:358
+msgid "_Preferences"
+msgstr "_Настройки"
+
+#: ../src/appfinder-window.c:369 ../src/appfinder-window.c:1097
+msgid "La_unch"
+msgstr "За_пустить"
+
+#: ../src/appfinder-window.c:898
+msgid "Failed to launch desktop item editor"
+msgstr "Не удалось запустить редактор элементов рабочего стола"
+
+#: ../src/appfinder-window.c:924
+msgid ""
+"This will permanently remove the custom desktop file from your home "
+"directory."
+msgstr "Ваш desktop-файл будет навсегда удалён из вашего домашнего каталога."
+
+#: ../src/appfinder-window.c:925
+#, c-format
+msgid "Are you sure you want to revert \"%s\"?"
+msgstr "Возвратить шаблон «%s»?"
+
+#: ../src/appfinder-window.c:935
+msgid "Failed to remove desktop file"
+msgstr "Не удалось удалить desktop-файл"
+
+#. I18N: the first %s will be replace with users' applications directory, the
+#. * second with Hidden=true
+#: ../src/appfinder-window.c:968
+#, c-format
+msgid ""
+"To unhide the item you have to manually remove the desktop file from \"%s\" "
+"or open the file in the same directory and remove the line \"%s\"."
+msgstr "Чтобы снова отображать этот элемент, вам придётся вручную удалить desktop-файл из «%s» или открыть этот файл в том же каталоге и удалить строку «%s»."
+
+#: ../src/appfinder-window.c:973 ../src/appfinder-window.c:1143
+msgid "_Hide"
+msgstr "С_крыть"
+
+#: ../src/appfinder-window.c:974
+#, c-format
+msgid "Are you sure you want to hide \"%s\"?"
+msgstr "Скрыть «%s»?"
+
+#: ../src/appfinder-window.c:1079
+msgid "Remove From Bookmarks"
+msgstr "Удалить из закладок"
+
+#: ../src/appfinder-window.c:1079
+msgid "Add to Bookmarks"
+msgstr "Добавить в закладки"
+
+#: ../src/appfinder-window.c:1111
+msgid "_Edit"
+msgstr "_Правка"
+
+#: ../src/appfinder-window.c:1128
+msgid "_Revert"
+msgstr "_Отменить"
+
+#: ../src/main.c:64
+msgid "Start in collapsed mode"
+msgstr "Запускать в свёрнутом режиме"
+
+#: ../src/main.c:65
+msgid "Print version information and exit"
+msgstr "Показать информацию о версии и выйти"
+
+#: ../src/main.c:66
+msgid "Replace the existing service"
+msgstr "Заменить существующую службу"
+
+#: ../src/main.c:67
+msgid "Quit all instances"
+msgstr "Закрыть все экземпляры"
+
+#: ../src/main.c:68
+msgid "Do not try to use or become a D-Bus service"
+msgstr "Не пытаться использовать или быть службой D-Bus"
+
+#: ../src/main.c:231
+#, c-format
+msgid "Type \"%s --help\" for usage."
+msgstr "Выполните «%s --help» для получения информации об использовании."
+
+#: ../src/main.c:242
+msgid "The Xfce development team. All rights reserved."
+msgstr "Команда разработчиков Xfce. Все права защищены."
+
+#: ../src/main.c:243
+#, c-format
+msgid "Please report bugs to <%s>."
+msgstr "Об ошибках сообщайте на <%s>."
+
+#: ../src/appfinder-preferences.glade.h:1
+msgid "Prefix"
+msgstr "префикс"
+
+#: ../src/appfinder-preferences.glade.h:2
+msgid "Regular Expression"
+msgstr "регулярное выражение"
+
+#: ../src/appfinder-preferences.glade.h:3
+msgid "Very Small"
+msgstr "крошечный"
+
+#: ../src/appfinder-preferences.glade.h:4
+msgid "Smaller"
+msgstr "очень маленький"
+
+#: ../src/appfinder-preferences.glade.h:5
+msgid "Small"
+msgstr "маленький"
+
+#: ../src/appfinder-preferences.glade.h:6
+msgid "Normal"
+msgstr "нормальный"
+
+#: ../src/appfinder-preferences.glade.h:7
+msgid "Large"
+msgstr "крупный"
+
+#: ../src/appfinder-preferences.glade.h:8
+msgid "Larger"
+msgstr "большой"
+
+#: ../src/appfinder-preferences.glade.h:9
+msgid "Very Large"
+msgstr "очень большой"
+
+#: ../src/appfinder-preferences.glade.h:11
+msgid "_Close"
+msgstr "_Закрыть"
+
+#: ../src/appfinder-preferences.glade.h:12
+msgid "_Help"
+msgstr "_Справка"
+
+#: ../src/appfinder-preferences.glade.h:13
+msgid "Remember last _selected category"
+msgstr "Запо_минать использованные категории"
+
+#: ../src/appfinder-preferences.glade.h:14
+msgid "Always c_enter the window"
+msgstr "Окно в _центре экрана"
+
+#: ../src/appfinder-preferences.glade.h:15
+msgid "Center the window on startup."
+msgstr "Размещать окно в центре экрана."
+
+#: ../src/appfinder-preferences.glade.h:16
+msgid "Keep running _instance in the background"
+msgstr "У_держивать запущенное приложение"
+
+#: ../src/appfinder-preferences.glade.h:17
+msgid ""
+"Instead of quitting the application when the last window is closed, keep a "
+"running instance to speed up opening new windows. You might want to disable "
+"this to reduce memory usage."
+msgstr "Задержать работающий экземпляр приложения в памяти вместо выхода из него при закрытии последнего окна, чтобы ускорить открытие новых окон. Вы можете отключить эту опцию для уменьшения использования памяти."
+
+#: ../src/appfinder-preferences.glade.h:18
+msgid "Single window"
+msgstr "Одно окно"
+
+#: ../src/appfinder-preferences.glade.h:19
+msgid ""
+"When an instance is running in the background, only open one window at a "
+"time."
+msgstr "Открывать только одно окно, когда экземпляр приложения работает в фоне."
+
+#: ../src/appfinder-preferences.glade.h:20
+msgid "Sort recently used items first"
+msgstr "Показывать недавние элементы первыми"
+
+#: ../src/appfinder-preferences.glade.h:21
+msgid ""
+"Order items, such that items that are most recently used are always on the "
+"top."
+msgstr "Упорядочивать элементы так, чтобы те из них, которые использовались недавно, оказывались наверху."
+
+#: ../src/appfinder-preferences.glade.h:22
+msgid "Behaviour"
+msgstr "Поведение"
+
+#: ../src/appfinder-preferences.glade.h:23
+msgid "_View items as icons"
+msgstr "Элементы как з_начки"
+
+#: ../src/appfinder-preferences.glade.h:24
+msgid "Text besi_de icons"
+msgstr "_Текст возле значков"
+
+#: ../src/appfinder-preferences.glade.h:25
+msgid "Ite_m icon size:"
+msgstr "Размер значка э_лемента:"
+
+#: ../src/appfinder-preferences.glade.h:26
+msgid "Hide category pane"
+msgstr "Скрыть панель категорий"
+
+#: ../src/appfinder-preferences.glade.h:27
+msgid "Hide category panel and show all applications."
+msgstr "Спрятать панель категорий и показать все приложения."
+
+#: ../src/appfinder-preferences.glade.h:28
+msgid "Categ_ory icon size:"
+msgstr "Размер значка _категории:"
+
+#: ../src/appfinder-preferences.glade.h:29
+msgid "Hide window decorations"
+msgstr "Скрыть украшения окон"
+
+#: ../src/appfinder-preferences.glade.h:30
+msgid "Hide window decorations such as title bar and borders."
+msgstr "Скрыть элементы оформления окна, такие как строка заголовка и границы."
+
+#: ../src/appfinder-preferences.glade.h:31
+msgid "Appearance"
+msgstr "Внешний вид"
+
+#: ../src/appfinder-preferences.glade.h:32
+msgid "C_lear Custom Command History"
+msgstr "О_чистить журнал команд"
+
+#: ../src/appfinder-preferences.glade.h:33
+msgid "History"
+msgstr "Журнал"
+
+#: ../src/appfinder-preferences.glade.h:34
+msgid "_General"
+msgstr "О_бщие"
+
+#: ../src/appfinder-preferences.glade.h:35
+msgid "Custom actions are only available in collapsed mode."
+msgstr "Пользовательские действия доступны только в свёрнутом режиме."
+
+#: ../src/appfinder-preferences.glade.h:36
+msgid "Pattern"
+msgstr "Шаблон"
+
+#: ../src/appfinder-preferences.glade.h:37
+msgid "Add a new custom action."
+msgstr "Добавить пользовательское действие."
+
+#: ../src/appfinder-preferences.glade.h:38
+msgid "Remove the currently selected action."
+msgstr "Удалить выделенное действие."
+
+#: ../src/appfinder-preferences.glade.h:40
+#, no-c-format
+msgid ""
+"If the type is set to prefix, %s will be replaced with the string after the "
+"pattern, %S with the complete entry text. For regular expressions you can "
+"use \\0 and \\<num>."
+msgstr "Если в качестве типа выбран 'префикс', то %s будет заменено на строку после шаблона, а %S на текст целиком. Для регулярных выражений можно использовать последовательности \\0 и \\<число>."
+
+#: ../src/appfinder-preferences.glade.h:41
+msgid "Co_mmand:"
+msgstr "_Команда:"
+
+#: ../src/appfinder-preferences.glade.h:42
+msgid "Patte_rn:"
+msgstr "_Шаблон:"
+
+#: ../src/appfinder-preferences.glade.h:43
+msgid "_Type:"
+msgstr "_Тип:"
+
+#: ../src/appfinder-preferences.glade.h:44
+msgid "_Save match in command history"
+msgstr "Со_хранять совпадения в журнале команд"
+
+#: ../src/appfinder-preferences.glade.h:45
+msgid "Custom _Actions"
+msgstr "_Пользовательские действия"
+
+#: ../data/xfce4-appfinder.desktop.in.h:2
+msgid "Find and launch applications installed on your system"
+msgstr "Поиск и запуск установленных в вашей системе приложений"
+
+#: ../data/xfce4-appfinder.desktop.in.h:3
+msgid "program;applications;bookmarks;"
+msgstr "приложение;приложения;закладки;"
+
+#: ../data/xfce4-run.desktop.in.h:1
+msgid "Run Program..."
+msgstr "Запустить приложение..."
+
+#: ../data/xfce4-run.desktop.in.h:2
+msgid "Enter a command you want to launch"
+msgstr "Введите команду, которую вы хотите запустить"
+
+#: ../data/xfce4-run.desktop.in.h:3
+msgid ""
+"run;command;application;program;finder;search;launcher;everything;spotlight;sherlock;applesearch;unity"
+" dash;krunner;synapse;ulauncher;launchy;gnome "
+"do;pie;apwal;recoll;alfred;quicksilver;tracker;beagle;kupfer;"
+msgstr "выполнить;команда;приложение;программа;поиск;запуск;всё;spotlight;sherlock;applesearch;unity dash;krunner;synapse;ulauncher;launchy;gnome do;pie;apwal;recoll;alfred;quicksilver;tracker;beagle;kupfer;"
+
+#: ../data/org.xfce.xfce4-appfinder.appdata.xml.in.h:2
+msgid "Application to quickly run applications and commands"
+msgstr "Приложение для быстрого запуска приложений и команд"
+
+#: ../data/org.xfce.xfce4-appfinder.appdata.xml.in.h:3
+msgid ""
+"The application finder is a tool to find and launch installed applications "
+"on your system and quickly execute commands. It can also be used to quickly "
+"add launchers to the Xfce Panel by dragging an item from the view and drop "
+"it on the panel."
+msgstr "Поиск приложений — инструмент для поиска и запуска установленных в вашей системе приложений и для быстрого выполнения команд. Он также может быть использован для быстрого добавления значков запуска на панель Xfce с помощью перетаскивания."

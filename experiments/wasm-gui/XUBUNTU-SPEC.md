@@ -513,8 +513,13 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
   zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18h).
   </details>
-- **XU6 — bundled apps.** ⬜ xfce4-terminal (live shell via PTY), mousepad, ristretto, appfinder,
-  xfce4-notifyd (a notification pops). Proof screenshots.
+- **XU6 — bundled apps.** 🟡 FIRST APP RENDERS: UNMODIFIED xfce4-appfinder 4.18.0 builds (scripts/build-appfinder.sh,
+  the Thunar autotools+GTK recipe; all deps garcon/libxfce4ui/gtk/exo/xfconf already built) + its WINDOW RENDERS
+  solo, all wasm (2026-06-25, 69% non-black; proof gui-progress/2026-06-25T18/xu6-appfinder.png). The two platform
+  fixes carry over (gio-vfs-local wrap + the empty-path shim). KEY: appfinder has a search GtkEntry and renders
+  fine -> this CONFIRMS the XU5 Thunar window hang is ThunarPathEntry-SPECIFIC (its completion + ThunarListModel +
+  ThunarIconRenderer), NOT a generic GtkEntry/GTK-construction problem. Remaining XU6: xfce4-terminal (live shell
+  via PTY), mousepad, ristretto, xfce4-notifyd (a notification pops). Proof screenshots.
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal
