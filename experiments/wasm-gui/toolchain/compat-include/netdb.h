@@ -54,8 +54,11 @@ struct addrinfo {
 #define EAI_AGAIN      -3
 #define EAI_FAIL       -4
 #define EAI_FAMILY     -6
+#define EAI_SOCKTYPE   -7
+#define EAI_SERVICE    -8
 #define EAI_MEMORY     -10
 #define EAI_SYSTEM     -11
+#define EAI_OVERFLOW   -12
 int getaddrinfo(const char *, const char *, const struct addrinfo *, struct addrinfo **);
 void freeaddrinfo(struct addrinfo *);
 const char *gai_strerror(int);

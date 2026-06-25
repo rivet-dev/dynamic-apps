@@ -61,8 +61,11 @@ fi
 # that lets libxcb use STOCK upstream fcntl — constraint #5).
 # Compile against the vanilla WSDK threaded sysroot (NOT $CFLAGS' patched sysroot, which redeclares
 # getrlimit and conflicts with wasi-compat.c's stub).
+# -matomics -mbulk-memory: WITHOUT them, direct `errno` references (e.g. host_socket.c/host_pipe_dup.c)
+# emit NON-TLS errno relocs, which force errno into non-TLS .bss and break any TLS-errno object pulled
+# into the same link (gtk's gtkbuilder.c.o etc.). The threaded errno is TLS, so all objects must agree.
 _COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
-  -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread)
+  -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread -matomics -mbulk-memory)
 "${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
 "${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$TL/override_fcntl.o"
 # override_ioctl.o: host_net FIONREAD so libX11 uses STOCK upstream ioctl(FIONREAD) — constraint #5.
