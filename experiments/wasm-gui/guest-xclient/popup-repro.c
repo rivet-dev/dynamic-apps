@@ -14,7 +14,7 @@ int main(int argc, char **argv){
   M("window_new"); GtkWidget *w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   GdkScreen *scr = gtk_widget_get_screen(w);
   M("rgba_visual"); GdkVisual *rgba = gdk_screen_get_rgba_visual(scr);
-  if (rgba){ M("set_visual(rgba)"); gtk_widget_set_visual(w, rgba); } else M("no rgba -> fallback");
+  if (0 && rgba){ M("set_visual(rgba)"); gtk_widget_set_visual(w, rgba); } else M("no rgba -> fallback");
   M("app_paintable"); gtk_widget_set_app_paintable(w, TRUE);
   M("get_display"); GdkDisplay *disp = gdk_screen_get_display(scr);
   M("get_primary_monitor"); GdkMonitor *mon = gdk_display_get_primary_monitor(disp);
