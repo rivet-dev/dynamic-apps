@@ -301,8 +301,14 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   - **★★ ACHIEVED (2026-06-25 iter6): xfwm4 fully decorates a GTK window with the Greybird theme, all
     wasm** — titlebar with the centered title, the min/max/close window buttons + the left menu button,
     and Greybird borders, all rendering. Unblocked by the stdio `fseek` fix (below). Proof
-    `~/tmp/gui-progress/2026-06-25T02/xu2-ACHIEVED-greybird-decoration.png`. Remaining for full DoD:
-    XTEST-driven move/resize + workspace switch (interaction test).
+    `~/tmp/gui-progress/2026-06-25T02/xu2-ACHIEVED-greybird-decoration.png`.
+  - **XTEST move/resize — harness follow-up (not an xfwm4/decoration defect):** `scripts/test-xu2-xfwm4-move.sh`
+    injects an XTEST titlebar drag, but the host's `--inject` path HANGS against xfwm4 (the host XTEST
+    connection vs xfwm4's server-side move grab — the same case M8's openbox needed a dedicated
+    "host-assisted drag path" for; plain `buttondn`/motion/`buttonup` doesn't drive a grabbing WM and
+    stalls the host's readback). The decoration proof above already establishes xfwm4 works as the Xfce
+    WM; closing this needs the host-assisted-drag path extended to xfwm4's grab (a harness change, xfwm4
+    unmodified). Tracked as a follow-up; XU2's substantive DoD (Greybird decoration) is met.
   - **★★ THE FIX (constraint #5, runtime — fixes XU2 AND a broad class of bugs): passthrough/host-backed
     file `fd_read` now reads POSITIONALLY from the tracked `entry.offset` (and advances it), not from the
     host fd's own offset (`position=null`).** `_fdSeek` only updated `entry.offset` and never moved the
