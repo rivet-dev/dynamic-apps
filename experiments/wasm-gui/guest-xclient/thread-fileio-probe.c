@@ -7,18 +7,30 @@
 #include <gio/gio.h>
 #include <glib.h>
 #include <stdio.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 static gpointer thread_func(gpointer data) {
   (void) data;
   const char *path = "/etc/machine-id";
-  g_printerr("PROBE: worker thread started; reading %s via g_file_get_contents...\n", path);
-  char *contents = NULL; gsize len = 0; GError *err = NULL;
-  gboolean ok = g_file_get_contents(path, &contents, &len, &err);
-  g_printerr("PROBE: ***worker file read returned*** ok=%d len=%zu err=%s\n",
-             ok, (size_t) len, err ? err->message : "(none)");
+  /* Isolate the deeper root: query_info with a MINIMAL stat-only attribute set (the same kind of op the
+   * GPollFileMonitor used: ETAG+SIZE) in a worker -- no content-type, no getxattr. If THIS hangs/traps
+   * the deeper root is stat-in-worker; if it completes, the root is the content-type/getxattr path. */
+  /* Bisect the query_info trap: first a RAW lstat (vs the fstat that g_file_get_contents used + worked),
+   * then g_file_query_info. Whichever traps is the culprit. */
+  struct stat st;
+  g_printerr("PROBE: raw lstat(%s)...\n", path);
+  int lr = lstat(path, &st);
+  g_printerr("PROBE: ***raw lstat returned*** rc=%d size=%ld mode=%o (lstat works in this context)\n", lr, (long) st.st_size, (unsigned) st.st_mode);
+  g_printerr("PROBE: now g_file_query_info(standard::type)...\n");
+  GFile *f = g_file_new_for_path(path);
+  GError *err = NULL;
+  GFileInfo *info = g_file_query_info(f, "standard::type", 0, NULL, &err);
+  g_printerr("PROBE: ***query_info returned*** info=%p err=%s\n", (void*) info, err ? err->message : "(none)");
+  if (info) g_object_unref(info);
   g_clear_error(&err);
-  g_free(contents);
-  return GINT_TO_POINTER(ok ? 1 : 0);
+  g_object_unref(f);
+  return GINT_TO_POINTER(info ? 1 : 0);
 }
 
 #ifdef POOL_MAIN
@@ -91,6 +103,10 @@ int main(void) {
              worker_done, spins, worker_done ? "worker completed despite busy main" : "STARVED (busy main blocks worker file I/O = task#11 root)");
   g_thread_join(t);
 #else
+  /* First do the SAME query_info on the MAIN thread to compare main vs worker. */
+  g_printerr("PROBE: [main-thread] running query_info on the MAIN thread first...\n");
+  thread_func(NULL);
+  g_printerr("PROBE: [main-thread] main-thread query_info DID return (so it's worker-specific if the worker traps)\n");
   g_printerr("PROBE: spawning worker thread for the file read\n");
   GThread *t = g_thread_new("fileio-worker", thread_func, NULL);
   g_printerr("PROBE: main thread joining the worker...\n");
