@@ -69,7 +69,7 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | Component | Role | Upstream repo | Status |
 |---|---|---|---|
 | **xfwm4** | window manager (compositing **OFF** → software) | https://gitlab.xfce.org/xfce/xfwm4 | ⬜ |
-| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟡 (XU3: panel + clock + tasklist (live window button) + systray + separator render UNDER xfwm4, all wasm, via the gmodule static-plugin shim; Greybird theming proven. App menu (applicationsmenu populated) blocked on a GIO worker-context futex deadlock) |
+| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟢 (XU3: panel + clock + tasklist (live window button) + systray + separator + **applicationsmenu** all render, all wasm, via the gmodule static-plugin shim; Greybird theming proven. The applicationsmenu DRAWS (2026-06-25, 23200 bar px) after task#11 was fixed: the hang was GPollFileMonitor's async query_info because wasi had no inotify; fixed by adding sys/inotify.h + no-op inotify runtime stubs so GLib's UNMODIFIED inotify backend compiles + GIO uses the no-op inotify monitor. whiskermenu (C++) not yet built) |
 | **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ (C++ build pending; will share the same garcon-menu deadlock until the GIO worker-context wakeup is fixed) |
 | **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | 🟡 (XU4: builds + the desktop WALLPAPER renders full-screen under xfwm4, all wasm. NOT deadlocked -- was idle + needed a WM + the Xvfb monitor key "monitorscreen". Desktop icons (file-icons) + root menu (garcon) still to wire) |
 | **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | ⬜ (reuse pcmanfm/libfm work) |
@@ -391,8 +391,13 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
       + `xu2-elimination-chain.txt`.
     - Side finding (real platform gap, non-fatal): xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc`
       → "Cannot read Pixmap header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug; PNG fallback covers it.
-- **XU3 — xfce4-panel + whiskermenu.** 🟡 IN PROGRESS (2026-06-25). DoD: the panel renders with the
-  Whisker app menu, taskbar, clock, systray; the menu opens and lists apps. Proof screenshot.
+- **XU3 — xfce4-panel + whiskermenu.** 🟢 PANEL + APPLICATIONSMENU DONE (2026-06-25); whiskermenu (C++) remaining.
+  DoD: the panel renders with the app menu, taskbar, clock, systray. The panel bar with
+  applicationsmenu + clock + separator DRAWS (proof: ~/tmp/gui-progress/2026-06-25T12/xu3-applicationsmenu-bar-*.png,
+  23200 bar px, clean upstream GLib). task#11 (the applicationsmenu hang) CLOSED via the inotify fix
+  (sys/inotify.h + no-op runtime stubs; see status log). REMAINING: whiskermenu (the Xubuntu-DEFAULT menu, a
+  C++ xfce4-whiskermenu-plugin build, not yet fetched/built; should render like applicationsmenu since both
+  load garcon lazily).
   - **Panel core BUILT (2026-06-25):** UNMODIFIED xfce4-panel 4.18.6 → `xfce4-panel.wasm` (15.9 MB) +
     `libxfce4panel-2.0.a` (the plugin SDK), via `scripts/build-xfce4-panel.sh` (the Xfce autotools + GTK
     recipe; deps cairo/exo/garcon/garcon-gtk3/gtk3/libwnck/libxfce4ui/util all already built; no
@@ -447,10 +452,25 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        the plugin `.desktop` with `X-XFCE-Internal=true` (→ INTERNAL mode, no wrapper fork) at the panel
        data dir; (e) add the plugin to the xfconf config. NEXT: prove the path with one plugin
        (separator → clock), then tasklist/systray/clock + build xfce4-whiskermenu-plugin.
-- **XU4 — xfdesktop.** ⬜ Wallpaper + desktop icons + right-click root menu render. Proof screenshot at
-  ≥1024×768.
-- **XU5 — Thunar.** ⬜ Thunar (Xfce file manager, gvfs/tumbler off) lists a real VFS dir, decorated by
-  xfwm4. Proof screenshot. (Reuses the M8.3/M8.5 libfm + listing work.)
+- **XU4 — xfdesktop.** 🟢 WALLPAPER DONE (2026-06-25); desktop ICONS gated on the file-view fpcast defect.
+  Wallpaper renders full-screen under xfwm4 (proof: ~/tmp/gui-progress/2026-06-25T13/xu4-*.png; relinked
+  against the inotify libgio, no regression). Desktop file-icons do NOT populate -- gated on the binaryen
+  --fpcast-emu defect below (xfdesktop's icon view enumerates ~/Desktop eagerly via g_file_query_info).
+- **XU5 — Thunar.** ⬜ Thunar builds + runs; file-monitor hang (task#11 inotify fix) + D-Bus session bus +
+  clock all CLEARED. Two remaining blockers: (1) a Thunar-specific GtkApplication-startup block (no window
+  maps even with no folder arg; the minimal gtkapp-probe DID render, so it is Thunar's startup, not generic),
+  and (2) the file-view fpcast defect below (Thunar's folder enumerate uses g_file_query_info eagerly).
+- **★ THE FILE-VIEW GATE (the single blocker for XU4 icons + XU5 folders + XU6 file dialogs):** a binaryen
+  `wasm-opt --fpcast-emu` defect mis-dispatching the GFile/GLocalFile interface vtable + GIO callback indirect
+  calls. EXHAUSTIVELY ISOLATED (2026-06-25): g_file_query_info / g_file_new_for_path / g_file_get_path TRAP
+  (lean build) or HANG (full build, = the old task#11 "async never completes"), while raw lstat +
+  g_file_get_contents (no GFile vtable) WORK. Ruled out: missing syscall, clock (MONOTONIC advances),
+  concurrency (main-thread traps too), -Oz pass, -pa max-func-params, stale binaryen (128 is current), volume
+  monitor, file monitor. Layout-dependent (the trapping function shifts per build), so the panel (lazy GFile)
+  works but eager-query_info file-views trap/hang. Unpinnable (moves) + unsymbolizable (lib funcs absent from
+  the name section; DWARF low_pc zeroed). FIX (focused, native/toolchain layer): file a binaryen --fpcast-emu
+  bug, OR a typed-function-references GIO build path, OR a layout workaround. Diagnostics: build-gtk-app.sh
+  SECURE_EXEC_FPCAST0_ONLY / FPCAST_NO_PA. Full trail in M8-STATUS-LOG.md (2026-06-25T17c..17i).
 - **XU6 — bundled apps.** ⬜ xfce4-terminal (live shell via PTY), mousepad, ristretto, appfinder,
   xfce4-notifyd (a notification pops). Proof screenshots.
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
