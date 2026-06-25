@@ -3,6 +3,7 @@
  * the markers are allowed (constraint #5 is about UNMODIFIED components). */
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <string.h>
 #define M(s) do { fprintf(stderr, "POPUP-REPRO: " s "\n"); } while(0)
 static gboolean quit_cb(gpointer d){ (void)d; M("timeout->quit"); gtk_main_quit(); return G_SOURCE_REMOVE; }
 int main(int argc, char **argv){
@@ -21,7 +22,9 @@ int main(int argc, char **argv){
   GdkRectangle geo = {0,0,700,500};
   if (mon){ M("monitor_get_geometry"); gdk_monitor_get_geometry(mon, &geo); }
   fprintf(stderr, "POPUP-REPRO: geo %dx%d+%d+%d\n", geo.width, geo.height, geo.x, geo.y);
-  M("no label (empty window)");
+  M("vbox+8 labels"); { GtkWidget *box=gtk_box_new(GTK_ORIENTATION_VERTICAL,2);
+    for(int i=0;i<8;i++){ char t[64]; snprintf(t,sizeof t,"Label line number %d here",i); gtk_container_add(GTK_CONTAINER(box),gtk_label_new(t)); }
+    gtk_container_add(GTK_CONTAINER(w),box); }
   M("realize"); gtk_widget_realize(w); M("realized");
   M("show_all"); gtk_widget_show_all(w); M("show_all_done");
   M("move"); gtk_window_move(GTK_WINDOW(w), geo.x + geo.width - 320, geo.y + 40);
