@@ -35,6 +35,21 @@ int main(int argc, char **argv) {
     gtk_init(&argc, &argv);
     g_printerr("M8-GTK: after gtk_init (display connected)\n");
 
+    /* XU1 acceptance: report the settings GTK resolved from the X XSETTINGS manager selection that
+     * xfsettingsd publishes (Net/ThemeName -> gtk-theme-name, etc). If xfsettingsd pushed the xfconf
+     * xsettings channel over X, these print "Greybird" / the channel values; with no manager they
+     * stay at GTK's compiled defaults. This is the definitive end-to-end XSETTINGS-push assertion. */
+    {
+        GtkSettings *st = gtk_settings_get_default();
+        gchar *theme = NULL, *icons = NULL, *font = NULL;
+        gint dpi = -1;
+        g_object_get(st, "gtk-theme-name", &theme, "gtk-icon-theme-name", &icons,
+                     "gtk-font-name", &font, "gtk-xft-dpi", &dpi, NULL);
+        g_printerr("XU1-XSETTINGS: gtk-theme-name=%s gtk-icon-theme-name=%s gtk-font-name=%s gtk-xft-dpi=%d\n",
+                   theme ? theme : "(null)", icons ? icons : "(null)", font ? font : "(null)", dpi);
+        g_free(theme); g_free(icons); g_free(font);
+    }
+
     GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(win), "secure-exec GTK3 (wasm)");
     gtk_window_set_default_size(GTK_WINDOW(win), 360, 200);

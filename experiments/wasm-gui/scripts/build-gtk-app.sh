@@ -18,35 +18,39 @@ cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+export CC="${CC:-$EXP/toolchain/clang-wasi-wrap.sh}"   # strips libtool/ELF-isms (--as-needed etc.)
 PREFIX="$EXP/third_party/wasm-prefix${SECURE_EXEC_WASM_THREADS:+-threads}"; P="$PREFIX/lib"
 NAME="${1:-gtk-hello}"
 WASMSUB="wasm32-wasip1${SECURE_EXEC_WASM_THREADS:+-threads}"
 SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"
 LIBC="$THREADS_SYSROOT/lib/$WASMSUB/libc.a"
-COMPAT="$EXP/toolchain/wasi-compat${SECURE_EXEC_WASM_THREADS:+-threads}.o"
 VANILLA="$WSDK/share/wasi-sysroot/lib/$WASMSUB"
 OUT="$EXP/guest-xclient/$NAME.wasm"
-# Threaded: real BSD sockets come from the patched host_socket.o (host_net ABI); the vanilla threaded
-# sysroot has none. Also use real pthreads (-lwasi-emulated-signal), NOT the single-threaded emulation.
+# Threaded: real BSD sockets + the host-import/compat shims come from libhostcompat.a (host_socket +
+# host_pipe_dup + override_fcntl + override_writev + wasi-compat-threads + ...), the SAME archive the
+# Xfce/M8 GTK builds (build-lxpanel/openbox) link. The vanilla threaded sysroot has none of these.
 if [ -n "${SECURE_EXEC_WASM_THREADS:-}" ]; then
-  # host_socket.o (sockets) + host_pipe_dup.o (pipe/dup/dup2) route to the kernel host_net/host_fd ABI;
-  # the vanilla threaded sysroot has neither. pipe() is required for GLib's cross-thread main-loop
-  # wakeup (GWakeup), which real threads now exercise. Both objects are feature-agnostic (no atomics).
-  HOSTSOCK="$EXP/toolchain/threads-libs/host_socket.o $EXP/toolchain/threads-libs/host_pipe_dup.o $EXP/toolchain/threads-libs/override_fcntl.o"
+  [ -f "$P/libhostcompat.a" ] || { echo "libhostcompat.a missing; run scripts/build-openbox.sh (builds it)"; exit 1; }
+  HOSTSOCK="-L$P -lhostcompat"
   THREAD_LIBS="-lwasi-emulated-signal"
   THREAD_LINK="-Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=$((512*1024*1024)) -Wl,--export=wasi_thread_start"
   MEMFLAG=""   # threaded memory is host-supplied (imported), growable via --max-memory above
 else
-  HOSTSOCK=""; THREAD_LIBS="-lwasi-emulated-pthread"; THREAD_LINK=""; MEMFLAG="-Wl,--max-memory=134217728"
+  HOSTSOCK="$EXP/toolchain/wasi-compat.o"; THREAD_LIBS="-lwasi-emulated-pthread"; THREAD_LINK=""; MEMFLAG="-Wl,--max-memory=134217728"
 fi
 
 [ -f "$P/libgtk-3.a" ] || { echo "GTK not built; run scripts/build-gtk3.sh first"; exit 1; }
 GFLAGS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --cflags gtk+-3.0)"
 GLIBS="$(PKG_CONFIG_LIBDIR="$P/pkgconfig" pkg-config --static --libs gtk+-3.0 | sed 's/-pthread//g')"
 
+# ★ Two MANDATORY GTK link flags (every GTK guest -- this was the xfsettingsd "Unable to open display"
+# blocker): --wrap=writev (libxcb writes the X11 setup via writev, which MUST route to the host_net
+# override in libhostcompat; unwrapped it hits wasi-libc's writev and silently fails on host_net fds,
+# so gdk reports "Unable to open display") and an 8MB stack (GTK's deep init overflows the wasm default).
+GTKFLAGS="-Wl,--wrap=writev -Wl,-z,stack-size=8388608"
 echo "== linking $NAME against the GTK stack ($WASMSUB) =="
-"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $MEMFLAG $THREAD_LINK \
-  -o "$OUT" "$EXP/guest-xclient/$NAME.c" "$COMPAT" $HOSTSOCK $GLIBS \
+"$CC" $CFLAGS $GFLAGS -Wl,--allow-undefined -Wl,--no-check-features $GTKFLAGS $MEMFLAG $THREAD_LINK \
+  -o "$OUT" "$EXP/guest-xclient/$NAME.c" $GLIBS $HOSTSOCK \
   -L"$VANILLA" -lwasi-emulated-mman -lwasi-emulated-process-clocks $THREAD_LIBS \
   "$SETJMP" "$LIBC"
 ENV_IMPORTS="$(wasm-dis "$OUT" 2>/dev/null | grep -coE '\(import "env" "')"

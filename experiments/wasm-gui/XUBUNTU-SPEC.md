@@ -73,8 +73,8 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ |
 | **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | ⬜ |
 | **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | ⬜ (reuse pcmanfm/libfm work) |
-| **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ⬜ (**the "feels right" linchpin**) |
-| **xfconf** | settings store (D-Bus service) | https://gitlab.xfce.org/xfce/xfconf | ⬜ |
+| **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ✅ (XU1: GTK window themed Greybird via the XSETTINGS push) |
+| **xfconf** | settings store (D-Bus service) | https://gitlab.xfce.org/xfce/xfconf | ✅ (XU1: round-trip over GDBus) |
 
 ### 3.2 Xfce core libraries (dependencies of the above)
 | Lib | Role | Repo |
@@ -212,9 +212,10 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     and genuinely waits on write-readiness to flush its auth `OK`/replies, which the X libs never did.
   - The X server M8 spine still passes (twm decorates a window) — no regression. **Gates everything else;
     now unblocked.** TCB note: the daemon is an untrusted guest; no host-fd/privilege expansion.
-- **XU1 — xfconf + xfsettingsd.** 🟡 IN PROGRESS (2026-06-24). DoD: xfconf stores/serves a value over
-  D-Bus; xfsettingsd pushes XSETTINGS to a GTK client (theme/font visibly applied). Proof: a GTK window
-  in Greybird, not default. **Foundation de-risked first (constraint #4):** xfconf/xfsettingsd reach the
+- **XU1 — xfconf + xfsettingsd.** ✅ DONE (2026-06-25). DoD MET: xfconf stores/serves a value over
+  D-Bus; xfsettingsd pushes XSETTINGS to a GTK client (theme/font visibly applied) — a GTK window
+  rendered in Greybird (not default Adwaita), proven logically (gtk-theme-name=Greybird readback) and
+  visually (30% `#cecece` Greybird grey in the framebuffer). **Foundation de-risked first (constraint #4):** xfconf/xfsettingsd reach the
   bus via **GDBus** (GIO's D-Bus client), not libdbus — so the gate is GDBus-over-host_net. Built a GDBus
   probe (`guest-xclient/gdbus-probe.c` + `scripts/build-gdbus-probe.sh`) linked against the threaded
   GLib/GIO stack + the dbus_creds host_net shims, run against the daemon via `--bus-test`. Progress:
@@ -277,9 +278,23 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     default). With both, **xfsettingsd opens the display, connects to xfconf, and runs its settings
     helpers past gtk_init** (`test-xu1-xsettings.sh` → LIVE). These two flags are now mandatory for every
     GTK component (XU2 xfwm4, XU3 panel, …). Proof `~/tmp/gui-progress/2026-06-24T??/xu1-xfsettingsd-live.txt`.
-  - **REMAINING for full XU1 acceptance (visual):** stage the Greybird gtk-3.0 theme + a GTK client,
-    run the combined harness, and screenshot the GTK window themed by Greybird (proving the XSETTINGS
-    push). Only an Xft demo client + no Greybird are staged yet; build a gtk-hello + fetch Greybird.
+  - **★ FULL XU1 ACCEPTANCE DONE ✅ (2026-06-25): the complete xfconf → xfsettingsd → X-XSETTINGS → GTK
+    chain works end-to-end, all wasm, and a GTK window themes itself with the real Xubuntu Greybird.**
+    `scripts/test-xu1-greybird.sh` → **PASS**: dbus-daemon + xfconfd (D-Bus service serving the
+    `Net/ThemeName=Greybird` xsettings channel) + **xfsettingsd** (X-client: opens the display, reads
+    xfconf over the bus, publishes the XSETTINGS manager selection to the X server) + **gtk-hello**
+    (X-client: reads XSETTINGS, themes itself). Proof is twofold: (1) **logical** — gtk-hello's readback
+    prints `XU1-XSETTINGS: gtk-theme-name=Greybird gtk-icon-theme-name=elementary-xfce gtk-font-name=Sans 10`,
+    i.e. all three channel values flowed through xfsettingsd's X publish into GTK; (2) **visual** — the
+    framebuffer PNG is **30% Greybird grey `#cecece`** (Greybird's exact `theme_bg_color`; default Adwaita
+    would be near-white `#f6f5f4`), the GTK window rendered in the Greybird theme. The real prebuilt
+    Greybird gtk-3.0 theme (Ubuntu noble `greybird-gtk-theme` deb, vendored `third_party/greybird-theme/`,
+    staged by `scripts/prepare-themes.sh`) is loaded BY NAME from the XSETTINGS push, not pinned. **Key
+    sequencing fix:** xfsettingsd is a `--client` (X-gated loop, settle-gated so it owns `_XSETTINGS_S0`
+    before gtk-hello reads it), NOT a `--dbus-service` (those launch before the X server is up → "Unable
+    to open display"). xfconfd stays a `--dbus-service` (pure D-Bus). gtk-hello build = `build-gtk-app.sh`
+    (now fixed: links `libhostcompat.a` + the two mandatory GTK flags). M8/XU0 stay green. Proof
+    `~/tmp/gui-progress/2026-06-25T00/xu1-greybird-{gtk.png,readback.txt,log}`. **XU1 COMPLETE.**
 - **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
   Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
   the Xubuntu WM.)
