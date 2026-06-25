@@ -69,8 +69,8 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | Component | Role | Upstream repo | Status |
 |---|---|---|---|
 | **xfwm4** | window manager (compositing **OFF** → software) | https://gitlab.xfce.org/xfce/xfwm4 | ⬜ |
-| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | ⬜ |
-| **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ |
+| **xfce4-panel** | panel / taskbar / systray / clock | https://gitlab.xfce.org/xfce/xfce4-panel | 🟡 (XU3: panel + clock + tasklist (live window button) + systray + separator render UNDER xfwm4, all wasm, via the gmodule static-plugin shim; Greybird theming proven. App menu (applicationsmenu populated) blocked on a GIO worker-context futex deadlock) |
+| **xfce4-whiskermenu-plugin** | the iconic Xubuntu app menu | https://gitlab.xfce.org/panel-plugins/xfce4-whiskermenu-plugin | ⬜ (C++ build pending; will share the same garcon-menu deadlock until the GIO worker-context wakeup is fixed) |
 | **xfdesktop4** | wallpaper + desktop icons + root menu | https://gitlab.xfce.org/xfce/xfdesktop | ⬜ |
 | **Thunar** (+ thunar-volman) | file manager | https://gitlab.xfce.org/xfce/thunar | ⬜ (reuse pcmanfm/libfm work) |
 | **xfce4-settings** (xfsettingsd) | settings daemon → XSETTINGS push (theme/font/cursor) | https://gitlab.xfce.org/xfce/xfce4-settings | ✅ (XU1: GTK window themed Greybird via the XSETTINGS push) |
@@ -142,11 +142,14 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
    socket path they use for X11. Provide `DBUS_SESSION_BUS_ADDRESS`. Keeps the bus **out of the TCB**
    (it routes guest↔guest messages, enforces nothing security-critical). **TCB note:** new IPC surface
    — surface for human sign-off (§7) even though running it as a guest is the conservative choice.
-2. **xfconf + xfsettingsd bring-up.** ⬜ With the bus up, xfconf (settings store) and xfsettingsd
-   (XSETTINGS push) must run; stage the **xubuntu-default-settings** xfconf channels so themes/fonts/
-   wallpaper/`xfwm4 compositing=off` are applied. Without this the desktop renders default-ugly.
-3. **Static panel plugins.** ⬜ Build xfce4-panel + whiskermenu + any plugins **statically** (no
-   dlopen), mirroring the lxpanel `--disable-plugins-loading` approach.
+2. **xfconf + xfsettingsd bring-up.** ✅ (XU1) xfconf + xfsettingsd run as guests; the xsettings xfconf
+   channel (Net/ThemeName=Greybird, IconThemeName=elementary-xfce) is staged and pushed as XSETTINGS so
+   a GTK app/panel themes Greybird live. (xubuntu-default-settings full channel set still to stage.)
+3. **Static panel plugins.** ✅ (XU3, mostly) The sandbox has no dlopen, so `toolchain/gmodule-shim.c`
+   (linked + `-Wl,--wrap=g_module_*`) resolves each plugin's entry from a generated table; each plugin
+   `.o` is rebuilt with a compile-time entry-symbol rename. Five plugins are static-linked + load:
+   separator, clock, tasklist, systray, applicationsmenu. The panel + plugins stay UNMODIFIED upstream.
+   REMAINING: whiskermenu (C++ build); the populated applicationsmenu deadlocks (GIO worker-context).
 4. **Hand-launched session harness (bypass xfce4-session).** ⬜ A launcher script
    (`scripts/test-xu-session.sh`) sequencing `dbus → xfsettingsd → xfwm4 → xfce4-panel → xfdesktop →
    thunar --daemon`, gated on readiness — the Xfce analogue of `test-m8-lxde.sh`. Avoids ICE/SM +

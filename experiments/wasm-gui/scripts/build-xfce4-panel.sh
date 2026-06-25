@@ -30,10 +30,10 @@ CFG_GUESS="$(ls "$TP"/libX11-threads/config.guess 2>/dev/null | head -1)"
 for d in . build-aux; do [ -d "$d" ] && cp "$CFG_SUB" "$CFG_GUESS" "$d/" 2>/dev/null || true; done
 make distclean >/dev/null 2>&1
 export CC="$EXP/toolchain/clang-wasi-wrap.sh"
-# -g0 (appended; last -g wins): build WITHOUT DWARF so wasi-sdk lld emits the wasm "name" custom section
-# (under -g it emits DWARF and omits the name section, leaving stackdumps numeric). The name section is
-# what the V8 SECURE_EXEC_KEEP_NAMES symbolizer needs; the release fpcast strips it (--strip-debug) so the
-# shipping panel.wasm is unaffected, while a --strip-dwarf fpcast keeps names for diagnostic stackdumps.
+# -g0: drop DWARF from the panel's OWN objects (smaller .o). NOTE: this alone does NOT give a usable wasm
+# name section for symbolized stackdumps -- the linked libs (libxfce4ui/libwnck/libgarcon/libgio) are
+# built with -g, so their DWARF dominates the final binary and lld still omits the name section. A
+# symbolized panel stackdump would need those libs rebuilt -g0 too (a deeper toolchain pass).
 export CFLAGS="$CFLAGS -I$PREFIX/include -g0"
 export LDFLAGS="$LDFLAGS -L$PREFIX/lib -lhostcompat"
 echo "== configuring xfce4-panel =="
