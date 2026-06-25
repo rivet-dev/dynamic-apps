@@ -39,6 +39,35 @@ for p in $PLUGINS; do
 "
 done
 
+# applicationsmenu: stage the garcon menu + category .directory files + a sample of apps so the menu
+# populates (else "Failed to load the applications menu: menus/xfce-applications.menu not found").
+case " $PLUGINS " in *" applicationsmenu "*)
+  mkdir -p "$OUT/etc/xdg/menus" "$OUT/usr/share/desktop-directories" "$OUT/usr/share/applications"
+  cp -f "$PREFIX/etc/xdg/menus/xfce-applications.menu" "$OUT/etc/xdg/menus/" 2>/dev/null
+  cp -f "$PREFIX"/share/desktop-directories/*.directory "$OUT/usr/share/desktop-directories/" 2>/dev/null
+  # A representative app set (the entries just need to appear in the menu; they need not be runnable here).
+  emit_app() { # name  categories  icon
+    cat > "$OUT/usr/share/applications/$(echo "$1" | tr ' ' '-').desktop" <<APP
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=$1
+Exec=$(echo "$1" | tr 'A-Z ' 'a-z-')
+Icon=$3
+Categories=$2;
+Terminal=false
+APP
+  }
+  emit_app "Xfce Terminal"  "System;Utility;TerminalEmulator" "utilities-terminal"
+  emit_app "Mousepad"       "Utility;TextEditor"               "accessories-text-editor"
+  emit_app "Thunar"         "System;Utility;FileManager"       "system-file-manager"
+  emit_app "Firefox"        "Network;WebBrowser"               "web-browser"
+  emit_app "Ristretto"      "Graphics;Viewer"                  "ristretto"
+  emit_app "Settings Manager" "Settings;X-XFCE-SettingsDialog" "preferences-desktop"
+  emit_app "App Finder"     "System;Utility"                   "system-search"
+  ;;
+esac
+
 cat > "$CHDIR/xfce4-panel.xml" <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-panel" version="1.0">
