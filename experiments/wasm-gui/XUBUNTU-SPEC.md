@@ -404,11 +404,12 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
        (automake dedups the repeated `-l`); also `rm` the panel binary first (make won't relink it for a
        LIBS-string change). Baked into `build-xfce4-panel.sh`; libxfce4ui untouched. Helps XU4/XU5 too.
        Confirmed: the dialog renders correctly and the **panel bar renders** (empty — plugins still blocked).
-    1b. **NEW blocker — `fork()` for first-run config migration.** With no existing config the panel
-       `fork`s `xfce4-panel-migrate` → "Failed to fork (Resource temporarily unavailable)" (wasm has no
-       fork), surfaced via the now-working error dialog. NEXT: pre-stage a panel config (xfconf
-       `xfce4-panel.xml`, like the xfwm4/xsettings channels) so the panel finds a config and skips the
-       migration fork. Fixture, not a patch.
+    1b. **`fork()` for first-run config migration. ✅ FIXED (2026-06-25).** With no config the panel `fork`s
+       `xfce4-panel-migrate` → "Failed to fork" (wasm has no fork). Fix: pre-stage an xfconf
+       `xfce4-panel.xml` (configver=2) so the panel finds a valid config and skips migration entirely
+       (`scripts/prepare-xfce4-panel.sh`; fixture, not a patch). **Result: the panel BAR renders** — a
+       full-width 798×28 bar, no crash (`scripts/test-xu3-panel.sh` → "BAR renders"). Proof
+       `~/tmp/gui-progress/2026-06-25T03/xu3-panel-bar-renders.png`. The bar is empty (no plugins yet).
     2. **gmodule/dlopen static plugins.** All 13 panel plugins (applicationsmenu/tasklist/clock/systray/…)
        are external `.so` loaded via `g_module_open`+`g_module_symbol` (none `X-XFCE-Internal` by default);
        the sandbox has no dlopen. Unlike M8's lxpanel (built-in internal plugins registered in a static
