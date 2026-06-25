@@ -45,7 +45,7 @@ FB="$(mktemp /tmp/xu7-full-fb.XXXXXX.bin)"
 OUT="${OUT:-/tmp/xu7-full.log}"
 PNG="${PNG:-$HOME/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/xu7-shell-session.png}"; mkdir -p "$(dirname "$PNG")"
 echo "running XU7 SHELL (xfwm4+panel+xfdesktop) -> png=$PNG log=$OUT"
-WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=60 APP_SETTLE_MS=5000 \
+WM_SETTLE_QUIET_MS=${WM_SETTLE_QUIET_MS:-18000} WM_SETTLE_CAP_S=${WM_SETTLE_CAP_S:-150} APP_SETTLE_MS=${APP_SETTLE_MS:-18000} \
 timeout "${OUTER:-400}" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-340}" \
   --server "$EXP/Xvfb.wasm" --dbus "$EXP/dbus-daemon.wasm" --dbus-service "$EXP/xfconfd.wasm" \
   --client "$EXP/xfwm4.wasm" --client "$EXP/xfce4-panel.wasm" --client "$EXP/xfdesktop.wasm" \
