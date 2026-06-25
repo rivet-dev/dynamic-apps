@@ -5,10 +5,31 @@
  * that dispatches the GFile/GVfs vtable correctly. Build: scripts/build-gtk-app.sh fileview-probe. */
 #include <gio/gio.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
 #include <stdio.h>
 
 int main(int argc, char **argv) {
   const char *path = argc > 1 ? argv[1] : "/etc/machine-id";
+
+  /* EMPTY-PATH HANG REPRO (XU5 Thunar block = gtk_image_new_from_file("") -> gdk_pixbuf opens ""). Each
+   * call should return -1/ENOENT immediately; a missing "...done" line = the empty-path op HANGS. */
+  errno = 0; g_printerr("FVEMPTY: lstat(\"\")...\n");
+  struct stat est; int er = lstat("", &est);
+  g_printerr("FVEMPTY: lstat(\"\")=%d errno=%d(%s)\n", er, errno, strerror(errno));
+  errno = 0; g_printerr("FVEMPTY: stat(\"\")...\n");
+  int sr = stat("", &est);
+  g_printerr("FVEMPTY: stat(\"\")=%d errno=%d(%s)\n", sr, errno, strerror(errno));
+  errno = 0; g_printerr("FVEMPTY: open(\"\", O_RDONLY)...\n");
+  int efd = open("", O_RDONLY);
+  g_printerr("FVEMPTY: open(\"\")=%d errno=%d(%s)\n", efd, errno, strerror(errno));
+  if (efd >= 0) close(efd);
+  errno = 0; g_printerr("FVEMPTY: fopen(\"\", rb)...\n");
+  FILE *ef = fopen("", "rb");
+  g_printerr("FVEMPTY: fopen(\"\")=%p errno=%d(%s) -- empty-path ops ALL RETURNED\n", (void*) ef, errno, strerror(errno));
+  if (ef) fclose(ef);
 
   /* Baseline: raw lstat (no GFile vtable) is known to work. */
   struct stat st;
