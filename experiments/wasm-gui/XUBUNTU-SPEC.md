@@ -460,19 +460,20 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   Wallpaper renders full-screen under xfwm4 (proof: ~/tmp/gui-progress/2026-06-25T13/xu4-*.png; relinked
   against the inotify libgio, no regression). Desktop file-icons do NOT populate -- gated on the binaryen
   --fpcast-emu defect below (xfdesktop's icon view enumerates ~/Desktop eagerly via g_file_query_info).
-- **XU5 — Thunar.** 🟡 Thunar 4.18.10 builds + runs, all wasm; two real platform fixes landed (file-view
-  GVfs-local wrap + the wasi empty-path shim, toolchain/wasi-empty-path-shim.c). REMAINING: the window does
-  not map on UNMODIFIED Thunar. The deep descent (ThunarWindow ctor -> ... -> gtk_image_new_from_file("")
-  empty-path hang, FIXED -> then the path-entry/GtkEntry first-init) bottomed out at a RUNTIME cross-thread
-  wakeup bug, NOT a Thunar bug: the construction spawns worker threads that complete + exit (child-N exit 0),
-  but their completion never wakes the main thread's GMainContext poll, so the main thread waits forever
-  (CreateWindow=0, spins=0). **The "56% renders solo" result was an ARTIFACT of the diagnostic TWDBG g_printerr
-  calls** -- each stderr write is a host sync-RPC that incidentally wakes the main poll, letting it re-check
-  the worker condition + proceed; with the printfs reverted (clean unmodified build) Thunar hangs black
-  (4/65317 non-black). So the gating fix is the wasm-threads RUNTIME cross-thread GMainContext wakeup (a
-  worker's g_main_context_wakeup / GWakeup pipe write must wake the main thread's poll) -- same family as
-  task#11 (file-monitor async), task#13 (off-thread net.poll_wait), and the M8.6 futex-storm. Surfaced for
-  human sign-off as a runtime/threading item. Original build notes below.
+- **XU5 — Thunar.** ✅ DONE 2026-06-25 -- **UNMODIFIED Thunar 4.18.10 renders a full file-manager window
+  with a REAL root filesystem listing, all wasm**: the "File Edit View Go Bookmarks Help" menu, the navigation
+  toolbar with back/forward/up/home + the **ThunarPathEntry showing "/"** (the very widget once thought to
+  "hang"), the root-account warning, the Places/Devices side pane (root home + File System), and a grid of the
+  actual root folders (bin boot data dev etc fonts home lib media mnt opt proc root run sbin srv sys tmp ... =
+  "20 folders"). Proof: gui-progress/2026-06-25T22/xu5-thunar-clean.png (63% non-black, CLEAN build, NO debug).
+  **The prior "cross-thread GMainContext wakeup deadlock / printf-artifact" finding was WRONG and is OVERTURNED:**
+  Thunar was never deadlocked -- it is just SLOW (the perf-root GTK first-text cascade), taking ~51s+ to acquire
+  its D-Bus names (org.xfce.Thunar + org.freedesktop.FileManager1) and construct. The old "clean build hangs
+  (4/65317 black)" was a TOO-SHORT TIMEOUT; with a 160s timeout the clean (no-printf, no-debug) build renders
+  fully and identically. So NO runtime/threading sign-off is needed here -- the earlier surfaced wakeup item is
+  retracted. (The construction is slow due to the deep perf root, but it COMPLETES on its own.) The two real
+  platform fixes still stand: the file-view GVfs-local wrap + the wasi empty-path shim
+  (toolchain/wasi-empty-path-shim.c). Original build notes below.
   file-monitor hang (task#11 inotify fix), D-Bus session bus, clock, AND the file-view gate (the
   g_vfs_get_default->g_vfs_get_local wrap is wired into build-thunar.sh; Thunar runs with NO unreachable
   trap now). Test: scripts/test-xu5-thunar.sh (xfwm4 + thunar browsing /root). ONE remaining blocker: the
