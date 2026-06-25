@@ -525,16 +525,19 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   libxfce4ui GResource force-link, the full pkg-config dep closure, GSettings-schema staging, and **render-app.sh which
   stages the mandatory FONT fixtures + asserts 0 fontconfig errors** (without fonts, text is .notdef tofu, not glyphs).
   KEY (still true): appfinder's plain GtkEntry renders -> the XU5 Thunar hang is ThunarPathEntry-SPECIFIC.
-  **xfce4-notifyd** (the notification daemon): the FULL daemon + D-Bus chain WORKS all-wasm -- it builds (the
-  4-lib dep chain libnotify + sqlite3 + libdbus-1 + the notifyd common/ objects, direct-link), INSTANTIATES,
-  OWNS org.freedesktop.Notifications, and RECEIVES the Notify call from a libnotify sender (notify-sender.wasm,
-  proven by the sender getting PAST GDBus ServiceUnknown). Only the POPUP WINDOW draw is gated: notifyd's
-  xfce-notify-window.c (an RGBA/app-paintable window) construction HANGS -- the SAME class as the Thunar
-  ThunarPathEntry hang (plain windows construct fine; these specific widgets block in the wasm runtime). The
-  RGBA-visual theory is ruled out (GTK falls back when depth-24-only; wasm Xvfb has no depth-32). Scripts:
-  build-libnotify.sh, build-notifyd.sh. Remaining XU6: notifyd's popup draw (surfaced, = the Thunar construction
-  class) + **xfce4-terminal** (its VTE needs fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready
-  sans icu/gnutls + the TIOCGWINSZ shim).
+  **xfce4-notifyd** (the notification daemon) ✓ THE NOTIFICATION POPUP RENDERS, all wasm: the full daemon
+  (libnotify + sqlite3 + libdbus-1 + notifyd common/, direct-link) instantiates, owns
+  org.freedesktop.Notifications, receives Notify from a libnotify sender, AND shows a real popup -- a
+  light-bulb dialog-information icon + bold "Hello from secure-exec" summary + "A real Xubuntu notification,
+  all wasm in the sandbox." body in a white rounded notification window at the top-right. Proof:
+  gui-progress/2026-06-25T22/xu6-notifyd-visible.png. The earlier "popup hang" was NOT a deadlock -- it was
+  three things: (1) the **Default notify theme was not staged** ($(datadir)/themes/Default/xfce-notify-4.0/
+  gtk.css from notifyd's themes/gtk-3.20/Default/gtk.css) -- a FIXTURE gap, now staged into a vm-tree; (2) the
+  ~40s perf-root construction slowness (the GTK first-text cascade); (3) the notification EXPIRING before the
+  framebuffer capture (default timeout) -- fixed by NOTIFY_EXPIRES_NEVER in the test sender + capturing during
+  the show window. With the theme staged the synchronous Notify COMPLETES ("notification sent (try 4)") and the
+  popup paints. Scripts: build-libnotify.sh, build-notifyd.sh. Remaining XU6: **xfce4-terminal** (its VTE needs
+  fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready sans icu/gnutls + the TIOCGWINSZ shim).
 - **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal

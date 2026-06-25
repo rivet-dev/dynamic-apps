@@ -9,7 +9,7 @@ int main(void) {
     "Hello from secure-exec",
     "A real Xubuntu notification, all wasm in the sandbox.",
     "dialog-information");
-  notify_notification_set_timeout(n, 60000);
+  notify_notification_set_timeout(n, 0); /* NOTIFY_EXPIRES_NEVER -- stay until run end */
   for (int i = 0; i < 40; i++) {
     GError *err = NULL;
     if (notify_notification_show(n, &err)) { fprintf(stderr, "NOTIFY-SENDER: notification sent (try %d)\n", i); return 0; }
