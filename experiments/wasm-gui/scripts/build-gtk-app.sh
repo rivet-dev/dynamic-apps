@@ -64,6 +64,13 @@ if [ -n "${SECURE_EXEC_GIO_VFS_LOCAL:-}" ]; then
   GMOD_OBJ="$GMOD_OBJ $EXP/toolchain/gio-vfs-local-shim.o"
   GMOD_WRAP="$GMOD_WRAP -Wl,--wrap=g_vfs_get_default"
 fi
+# SECURE_EXEC_EMPTY_PATH_SHIM=1: reject an empty path -> ENOENT at the libc boundary (POSIX). wasi-libc
+# resolves open("")/fopen("")/stat("") to the cwd DIRECTORY; gdk_pixbuf then hangs parsing a dir as an image.
+if [ -n "${SECURE_EXEC_EMPTY_PATH_SHIM:-}" ]; then
+  "$CC" $CFLAGS -c "$EXP/toolchain/wasi-empty-path-shim.c" -o "$EXP/toolchain/wasi-empty-path-shim.o"
+  GMOD_OBJ="$GMOD_OBJ $EXP/toolchain/wasi-empty-path-shim.o"
+  GMOD_WRAP="$GMOD_WRAP -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat"
+fi
 echo "== linking $NAME against the GTK stack ($WASMSUB) =="
 # EXTRA_LIBS: optional extra -l/-D flags for a probe (e.g. -lxfconf-0 -ldbuscreds + the GDBus wraps to
 # exercise xfconf). Placed before $GLIBS so its symbols resolve against the GTK/GIO archives.

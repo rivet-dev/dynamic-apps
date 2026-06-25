@@ -41,7 +41,10 @@ for d in . build-aux; do [ -d "$d" ] && cp "$CFG_SUB" "$CFG_GUESS" "$d/" 2>/dev/
 # the generated files directly (no `make`), so the restored Makefile.in survive into configure.
 find . -name Makefile -type f -delete 2>/dev/null
 rm -f config.status config.cache config.log thunar/thunar 2>/dev/null
-find . -name '*.o' -delete 2>/dev/null; find . -name '.libs' -type d -exec rm -rf {} + 2>/dev/null
+# Remove the FULL libtool object set (.o AND .lo AND .la AND .libs/). Removing only .o leaves the libtool
+# .lo "up-to-date", so make skips recompiling and the .o (in .libs/) is missing at archive time.
+find . \( -name '*.o' -o -name '*.lo' -o -name '*.la' \) -delete 2>/dev/null
+find . -name '.libs' -type d -exec rm -rf {} + 2>/dev/null
 export CC="$EXP/toolchain/clang-wasi-wrap.sh"
 export CFLAGS="$CFLAGS -I$PREFIX/include -g0"
 export LDFLAGS="$LDFLAGS -L$PREFIX/lib -lhostcompat"
@@ -75,8 +78,14 @@ WNCKRESO="$EXP/toolchain/libwnck-resources.o"
 VFSSHIM="$EXP/toolchain/gio-vfs-local-shim.o"
 "$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
   -c "$EXP/toolchain/gio-vfs-local-shim.c" -o "$VFSSHIM"
-GTKTRANS="$RESO $WNCKRESO $VFSSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,-z,stack-size=8388608"
+# EMPTY-PATH fix: reject an empty path -> ENOENT at the libc boundary (POSIX). wasi-libc resolves
+# open("")/fopen("") to the cwd DIRECTORY; Thunar's gtk_image_new_from_file("") then has gdk_pixbuf parse a
+# dir as an image and HANGS (the ThunarWindow constructor never returns). See toolchain/wasi-empty-path-shim.c.
+EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
+  -c "$EXP/toolchain/wasi-empty-path-shim.c" -o "$EMPTYSHIM"
+GTKTRANS="$RESO $WNCKRESO $VFSSHIM $EMPTYSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
 echo "== building thunarx (extension lib) =="
 make -j4 -C thunarx LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 echo "== building thunar binary =="
