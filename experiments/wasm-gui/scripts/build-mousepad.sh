@@ -55,15 +55,16 @@ EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"
 # symbol, but errno.o (HIDDEN _Thread_local) is otherwise never archive-pulled, so --allow-undefined
 # synthesizes errno in non-TLS .bss -> the TLS relocs fail. As an archive member, -lwasmshims pulls it
 # to satisfy those references (libtool rejects a raw .o; -Wl,-u,errno got mangled).
+# errno.o force-bundle: under -Wl,--allow-undefined gtk's direct TLS errno ref would otherwise be
+# synthesized non-TLS. (KEY FINDING: dropping --allow-undefined entirely makes errno + __wasilibc_pthread_self
+# resolve cleanly from libc.a as TLS, leaving __wasi_init_tp as the SINGLE undefined -- but its __init_tls.o
+# is not archive-pulled by the crt here, and bundling __init_tls.o re-breaks errno. The render fix is to
+# get that one __wasi_init_tp definition in without disturbing errno: provide it in the runtime imports,
+# or determine why appfinder crt-pulls __init_tls.o and mousepad does not.)
 ERRNOO="$EXP/toolchain/libc-errno.o"
 ( cd /tmp && "$WSDK/bin/llvm-ar" x "$WSDK/share/wasi-sysroot/lib/$WASMSUB/libc.a" errno.o 2>/dev/null && mv -f errno.o "$ERRNOO" )
-rm -f "$PREFIX/lib/libwasmshims.a"   # rebuild fresh (ar rcs only updates; a stale __init_tls member breaks the link)
+rm -f "$PREFIX/lib/libwasmshims.a"   # rebuild fresh (ar rcs only updates)
 "$WSDK/bin/llvm-ar" rcs "$PREFIX/lib/libwasmshims.a" "$VFSSHIM" "$EMPTYSHIM" "$ERRNOO"
-# NOTE: this errno.o force-bundle makes the link succeed, but it stops libc.a's crt from archive-pulling
-# __init_tls.o -> __wasi_init_tp stays an undefined import -> instantiation LinkError (the render blocker).
-# Bundling __init_tls.o instead fails with its own TLS reloc error. Clean fix (next): drop the bundle +
-# replace -Wl,--allow-undefined with -Wl,--allow-undefined-file=<host-imports> so errno + __wasi_init_tp
-# are resolved from libc.a (pulled) rather than imported, keeping the crt TLS chain intact.
 # gtksourceview-4 + its libxml2 dep, then the GTK/X stack.
 GTKTRANS="-lwasmshims -lgtksourceview-4 -lxml2 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
 # -Wl,-u,errno force-pulls libc.a's TLS errno.o definition; otherwise --allow-undefined synthesizes
