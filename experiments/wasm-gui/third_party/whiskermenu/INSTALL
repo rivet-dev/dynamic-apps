@@ -1,0 +1,106 @@
+Basic Installation
+==================
+
+CMake is designed for the build process to be done in a separate
+directory. The simplest way to compile this plugin is:
+
+  1. `cd' into the extracted directory.
+
+  2. `cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr' to create a location
+     for the sources and then configure the sources. There are more options
+     you can pass to cmake, see below for details.
+
+  3. `cmake --build build' to compile the plugin. This will also rerun
+     cmake for you if any CMakeLists.txt files have changed.
+
+  4. `cmake --install build' to install the plugin. This has to be done
+     with root privileges if installing to system directories, but the
+     rest of the build should be done with regular user privileges.
+
+     For packaging you can optionally install the plugin into a temporary
+     directory by setting the DESTDIR environment variable. For example,
+     `DESTDIR="alternate/directory" cmake --install build' will prepend
+     'alternate/directory' before all installation names.
+
+Uninstallation
+==============
+
+  1. `cmake --build build --target uninstall' to remove the installed
+     files. Note that if you provided a DESTDIR variable when installing,
+     be sure to provide the same variable. The DESTDIR variable must be
+     an absolute path when uninstalling.
+
+Release Builds
+==============
+
+CMake does not specify any compiler optimizations by default; this is
+useful if you want to inherit CFLAGS and CXXFLAGS from the environment.
+You may want to add "-DCMAKE_BUILD_TYPE=Release" during configuration
+to get an optimized build.
+
+Debug Builds
+============
+
+You should create different directories for each type of build:
+
+  1. `cmake -B debug -S . -DCMAKE_BUILD_TYPE=Debug' to configure the sources.
+
+  2. `cmake --build debug' to compile the plugin.
+
+More CMake Options
+==================
+
+-DCMAKE_BUILD_TYPE=<type>
+    Choose the type of build. Possible values are:
+      'None' 'Debug' 'Release' 'RelWithDebInfo' 'MinSizeRel'
+
+-DCMAKE_INSTALL_PREFIX=<path>
+    Choose the base location where the plugin is installed
+    (defaults to /usr/local).
+
+-DCMAKE_INSTALL_BINDIR=<path>
+    Choose where binaries are installed
+    (defaults to $CMAKE_INSTALL_PREFIX/bin).
+
+-DCMAKE_INSTALL_LIBDIR=<path>
+    Choose where libraries are installed
+    (defaults to $CMAKE_INSTALL_PREFIX/lib).
+
+-DCMAKE_INSTALL_DATADIR=<path>
+    Choose where the data files are installed
+    (defaults to $CMAKE_INSTALL_PREFIX/share).
+
+-DCMAKE_INSTALL_LOCALEDIR=<path>
+    Choose where the localization files are installed
+    (defaults to $CMAKE_INSTALL_DATADIR/locale).
+
+-DCMAKE_INSTALL_MANDIR=<path>
+    Choose where manual pages are installed
+    (defaults to $CMAKE_INSTALL_DATADIR/man).
+
+-DENABLE_ACCOUNTS_SERVICE=[ON]
+    Check for the AccountsService library.
+
+-DENABLE_GTK_LAYER_SHELL=[ON]
+    Use GtkLayerShell to position menu in Wayland.
+
+-DENABLE_VISIBILITY=[ON]
+    Make compiler hide local symbols in plugin.
+
+-DENABLE_AS_NEEDED=[ON]
+    Pass -Wl,--as-needed to the linker to reduce symbols in plugin.
+
+-DENABLE_LINKER_OPTIMIZED_HASH_TABLES=[ON]
+    Pass -Wl,-O1 to the linker to optimize hash tables in plugin.
+
+-DENABLE_LINK_TIME_OPTIMIZATION=[ON]
+    Reduce size by optimizing entire plugin at link time.
+    (on by default in 'Release', 'RelWithDebInfo', 'MinSizeRel').
+
+-DENABLE_STRIP=[ON]
+    Reduce size by removing symbols.
+    (on by default in 'Release', 'MinSizeRel').
+
+-DENABLE_DEVELOPER_MODE=[OFF]
+    Enable strict checks which are not needed by users of the plugin
+    but are useful for development.
