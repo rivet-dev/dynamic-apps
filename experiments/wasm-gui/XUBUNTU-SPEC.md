@@ -295,9 +295,31 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
     to open display"). xfconfd stays a `--dbus-service` (pure D-Bus). gtk-hello build = `build-gtk-app.sh`
     (now fixed: links `libhostcompat.a` + the two mandatory GTK flags). M8/XU0 stay green. Proof
     `~/tmp/gui-progress/2026-06-25T00/xu1-greybird-{gtk.png,readback.txt,log}`. **XU1 COMPLETE.**
-- **XU2 — xfwm4 (the real Xfce WM).** ⬜ xfwm4 (compositing off) decorates a GTK window with the
-  Greybird theme; move/resize + workspaces via XTEST. Proof screenshot. (Supersedes M8.2's openbox as
-  the Xubuntu WM.)
+- **XU2 — xfwm4 (the real Xfce WM).** 🟡 IN PROGRESS (2026-06-25). DoD: xfwm4 (compositing off)
+  decorates a GTK window with the Greybird theme; move/resize + workspaces via XTEST. Proof screenshot.
+  (Supersedes M8.2's openbox as the Xubuntu WM.)
+  - **BUILT + RUNS as a WM ✅ (2026-06-25):** built UNMODIFIED libXinerama 1.1.5 + libwnck 3.24.1 (the
+    staged libwnck was an ancient 3.4.9 < the `>= 3.14` xfwm4 needs; 3.24.1 is the last autotools series,
+    3.32+ is meson) + xfwm4 4.18.0 → `xfwm4.wasm` (15.9 MB), all wasm, via `scripts/build-libwnck.sh` +
+    `scripts/build-xfwm4.sh` (compositor/startup-notification/xpresent off — no GPU; the Xfce autotools +
+    two mandatory GTK flags recipe). xfwm4 takes over the root, connects to xfconf over D-Bus, and
+    **places the gtk-hello window centered** (exact WM placement). `scripts/test-xu2-xfwm4.sh` runs the
+    full stack (dbus + xfconfd serving the `xfwm4` channel theme=Greybird + xfwm4 + gtk-hello).
+  - **Two platform fixes landed:** (1) `--datadir=/usr/share` in the xfwm4 build (it loads its `defaults`
+    file from compile-time `PACKAGE_DATADIR`, not XDG; the wasm-prefix path is absent in the VM → "Missing
+    defaults file" → exit 1). `scripts/prepare-xfwm4.sh` stages that defaults file + the bundled Default
+    fallback theme. (2) `prepare-themes.sh` transcodes XPM-only decoration images → PNG (our gdk-pixbuf is
+    PNG-only; several Greybird borders ship only `.xpm`).
+  - **★ OPEN BLOCKER: xfwm4 draws NO visible decoration** (titlebar band above the placed window is 100%
+    black). Ruled out: theme-not-found (Greybird+Default both blank), the defaults-file exit, XPM-only
+    borders (transcoded), and a missing PNG loader (`gdk_pixbuf__png_image` IS in `xfwm4.wasm`;
+    gdk-pixbuf built `builtin_loaders=png`; `xfwmPixmapLoad` reaches the PNG path via `xfwmPixmapCompose`).
+    So it's a **frame-draw / Expose / reparent-render** runtime issue (cf. M8's post-reparent Expose
+    drops), not image loading. NEXT (constraint #4): XTRACE the xfwm4↔Xvfb frame creation + draw, confirm
+    reparent + whether the frame pixmap/Expose reaches the framebuffer; compare vs M8's working openbox.
+    Side finding: xfwm4's `xpm_image_load` does `fread(1024)+fseek(0,SEEK_SET)+getc` → "Cannot read Pixmap
+    header" ×672 = a wasi-libc fseek-after-fread stdio-buffer bug (rewind doesn't discard read-ahead);
+    non-fatal here (PNG fallback) but a real platform gap. Proof `~/tmp/gui-progress/2026-06-25T00/xu2-*`.
 - **XU3 — xfce4-panel + whiskermenu.** ⬜ The panel renders with the Whisker app menu, taskbar, clock,
   systray; the menu opens and lists apps. Proof screenshot.
 - **XU4 — xfdesktop.** ⬜ Wallpaper + desktop icons + right-click root menu render. Proof screenshot at
