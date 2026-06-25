@@ -1,0 +1,12 @@
+#define GETTEXT_PACKAGE "xfce4-whiskermenu-plugin"
+#define PACKAGE_LOCALE_DIR "/usr/share/locale"
+#define PACKAGE_NAME "xfce4-whiskermenu-plugin"
+#define PACKAGE_VERSION "2.8.3"
+#define BINDIR "/usr/bin"
+#define DATADIR "/usr/share"
+#define SETTINGS_MENUFILE "/etc/xdg/menus/xfce-settings-manager.menu"
+#define G_LOG_DOMAIN "whiskermenu"
+#define GSEAL_ENABLE 1
+#define GTK_MULTIHEAD_SAFE 1
+#define G_DISABLE_ASSERT 1
+#define G_DISABLE_CAST_CHECKS 1
