@@ -31,6 +31,15 @@ indirect-call-heavy, is only 1.3s. The GTK libs are already compiled `-O2`; the 
 pass-1 level is moot because the pipeline runs a `-Oz` second pass that already optimizes the wrappers.
 So opt-level tuning is NOT the fix.
 
+**Sub-localized further (`css-bench`):** the CSS *parser* is NOT the bottleneck — it parses 4000 synthetic
+rules in **1256ms (0.32ms/rule)**. The ~12s lands in the **draw-time style cascade**: it appears in
+`show_all`'s first paint (`gtk_render_layout` → the style context → the CSS-value computation for the
+label's color/font), not in `gtk_widget_get_preferred_size` (which measured 0ms). So the cost is the
+GObject CSS-value machinery executed on the first text paint — exactly the indirect-call-heavy path that
+the fpcast-emu penalizes, confirming (not changing) the typed-function-references fix direction. (Open,
+non-actionable lead: whether the cascade scales with theme rule-count — a smaller theme would change the
+required authentic Greybird/Adwaita look, so it is not a usable fix.)
+
 **Consequence per app:** standalone apps pay the ~13s **once** and render (appfinder/mousepad/ristretto
 do). But notifyd's **synchronous** `Notify` D-Bus call blocks the sender during it, and notifyd's popup
 has an *additional* widget-specific cost (>134s in its run — its custom XfceNotifyWindow CSS + Pango
