@@ -84,14 +84,26 @@ VFSSHIM="$EXP/toolchain/gio-vfs-local-shim.o"
 EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"
 "$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
   -c "$EXP/toolchain/wasi-empty-path-shim.c" -o "$EMPTYSHIM"
-GTKTRANS="$RESO $WNCKRESO $VFSSHIM $EMPTYSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
+# gmodule static-plugin shim: --wrap=g_module_open returns the MAIN module for thunarx/panel plugin paths so the
+# statically-linked plugin init (thunar_extension_initialize) resolves without dlopen. See GMODULE-STATIC-PLUGINS.md.
+GMODSHIM="$EXP/toolchain/gmodule-static-shim.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
+  -c "$EXP/toolchain/gmodule-static-shim.c" -o "$GMODSHIM"
+# The thunar-sbr renamer plugin, statically linked (whole-archive keeps all renamer GTypes, not just the init).
+SBR_A="$SRC/plugins/thunar-sbr/.libs/libthunar-sbr.a"
+GTKTRANS="$RESO $WNCKRESO $VFSSHIM $EMPTYSHIM $GMODSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,--wrap=g_module_open -Wl,-z,stack-size=8388608"
 echo "== building thunarx (extension lib) =="
 make -j4 -C thunarx LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
+# Build the thunar-sbr renamer plugin here (the shared workspace churns away a prior standalone build), so
+# SBR_A is always fresh for the static-plugin link below.
+echo "== building thunar-sbr (renamer plugin, statically linked via the gmodule shim) =="
+make -j4 -C plugins/thunar-sbr LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
+[ -f "$SBR_A" ] || echo "WARN: SBR_A still missing after make: $SBR_A"
 echo "== building thunar binary =="
 rm -f "$SRC/thunar/thunar"
 # Thunar links thunarx + libxfce4kbd-private-3 (keyboard shortcuts) on top of the GTK stack.
-make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
+make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 -Wl,--whole-archive $SBR_A -Wl,--no-whole-archive $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
 RC=$?
 echo "thunar make rc=$RC"
 find . -path "*/thunar/thunar" -type f -not -path "*.deps*" 2>/dev/null | while read f; do echo "  $(stat -c%s "$f") $f"; done

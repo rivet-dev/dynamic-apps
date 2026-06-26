@@ -43,3 +43,24 @@ This is the same idea that already works for the V8 bridge / static gdk-pixbuf l
 
 *Visible proof of the blocker today: `~/tmp/gui-progress/2026-06-26T14/xu5-thunar-bulk-rename.png` (the "no
 renamer modules" infobar). Status detail: `M8-STATUS-LOG.md` T58.*
+
+## Progress + build-plumbing blockers (2026-06-26, steps 1-2 wired)
+DONE: mechanism confirmed (gmodule g_module_open(NULL)=main module); toolchain/gmodule-static-shim.c written
+(`__wrap_g_module_open` -> main module for thunarx/panel paths); build-thunar.sh wired to build thunar-sbr,
+link it, compile+link the shim, and add `-Wl,--wrap=g_module_open`. The thunar BINARY links clean (54 MB).
+
+BLOCKED on build plumbing (needs a FOCUSED session, not 5-min cron fires -- each rebuild is slow and the
+shared workspace churns mid-build):
+1. **libtool drops `-Wl,--whole-archive`**: `libthunar-sbr.a` reaches the link but the whole-archive wrapper is
+   stripped by libtool, so the SBR objects are GC'd (the linked binary has 0 `thunar_extension_initialize`).
+   Fix options: a direct (non-libtool) final clang link for thunar like the dialog recipe uses; or
+   `-Wl,-u,thunar_extension_initialize -Wl,-u,<each renamer>_get_type`; or `-Wl,--whole-archive` passed in a way
+   libtool preserves (`-Wl,` doubling / `-XCClinker`).
+2. **thunar.wasm fpcast is separate**: build-thunar.sh only builds the native-wasm BINARY; the fpcast-emu+-Oz to
+   thunar.wasm lives elsewhere (test-xu5-thunar.sh / a wrap step) and must be run after, or thunar.wasm is stale.
+3. **workspace churn wipes `.libs`**: a concurrent session removes thunarx/thunar-sbr `.libs/*.a` between steps;
+   building them in-script (added) mostly mitigates but a focused session with no concurrent churn is cleaner.
+
+RECOMMENDATION: finish this in a focused session -- iterate the thunar relink interactively (resolve #1 with a
+direct clang link, run the fpcast for #2), confirm the bulk-rename infobar clears, THEN generalize the shim's
+path-match + the static link to the xfce4-panel plugin family for XU3. The shim + wiring are committed and ready.

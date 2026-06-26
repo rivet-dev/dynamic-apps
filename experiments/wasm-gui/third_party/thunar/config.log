@@ -29,7 +29,6 @@ uname -v = #1 SMP PREEMPT_DYNAMIC Debian 6.1.158-1 (2025-11-09)
 
 PATH: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/host-bin/
 PATH: /home/linuxbrew/.linuxbrew/bin/
-PATH: /home/linuxbrew/.linuxbrew/bin/
 PATH: /home/nathan/misc/bun/bin/
 PATH: /home/nathan/.bun/bin/
 PATH: /home/nathan/.bun/bin/
@@ -315,8 +314,67 @@ configure: failed program was:
 configure:5069: result: no
 configure:5069: checking for sys/param.h
 configure:5069: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -c --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c >&5
-configure:5069: $? = 0
-configure:5069: result: yes
+In file included from conftest.c:49:
+In file included from /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/param.h:32:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/sys/resource.h:20:8: error: redefinition of 'rlimit'
+   20 | struct rlimit { rlim_t rlim_cur, rlim_max; };
+      |        ^
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h:47:8: note: previous definition is here
+   47 | struct rlimit { rlim_t rlim_cur; rlim_t rlim_max; };
+      |        ^
+1 error generated.
+configure:5069: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "thunar"
+| #define PACKAGE_TARNAME "thunar"
+| #define PACKAGE_VERSION "4.18.10"
+| #define PACKAGE_STRING "thunar 4.18.10"
+| #define PACKAGE_BUGREPORT "https://gitlab.xfce.org/xfce/thunar"
+| #define PACKAGE_URL ""
+| #define PACKAGE "thunar"
+| #define VERSION "4.18.10"
+| #define HAVE_STDIO_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| /* end confdefs.h.  */
+| #include <stddef.h>
+| #ifdef HAVE_STDIO_H
+| # include <stdio.h>
+| #endif
+| #ifdef HAVE_STDLIB_H
+| # include <stdlib.h>
+| #endif
+| #ifdef HAVE_STRING_H
+| # include <string.h>
+| #endif
+| #ifdef HAVE_INTTYPES_H
+| # include <inttypes.h>
+| #endif
+| #ifdef HAVE_STDINT_H
+| # include <stdint.h>
+| #endif
+| #ifdef HAVE_STRINGS_H
+| # include <strings.h>
+| #endif
+| #ifdef HAVE_SYS_TYPES_H
+| # include <sys/types.h>
+| #endif
+| #ifdef HAVE_SYS_STAT_H
+| # include <sys/stat.h>
+| #endif
+| #ifdef HAVE_UNISTD_H
+| # include <unistd.h>
+| #endif
+| #include <sys/param.h>
+configure:5069: result: no
 configure:5100: checking whether it is safe to define __EXTENSIONS__
 configure:5119: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -c --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c >&5
 configure:5119: $? = 0
@@ -327,13 +385,13 @@ configure:5152: $? = 0
 configure:5179: result: no
 configure:5235: checking for library containing strerror
 configure:5265: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-conftest.c:43:6: warning: incompatible redeclaration of library function 'strerror' [-Wincompatible-library-redeclaration]
-   43 | char strerror ();
+conftest.c:42:6: warning: incompatible redeclaration of library function 'strerror' [-Wincompatible-library-redeclaration]
+   42 | char strerror ();
       |      ^
-conftest.c:43:6: note: 'strerror' is a builtin with type 'char *(int)'
+conftest.c:42:6: note: 'strerror' is a builtin with type 'char *(int)'
 1 warning generated.
 wasm-ld: warning: function signature mismatch: strerror
->>> defined as () -> i32 in /tmp/conftest-cfb47c.o
+>>> defined as () -> i32 in /tmp/conftest-37c3a2.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(strerror.o)
 configure:5265: $? = 0
 configure:5285: result: none required
@@ -581,8 +639,8 @@ configure:15162: $? = 0
 configure:15162: result: yes
 configure:15168: checking for paths.h
 configure:15168: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -c --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c >&5
-conftest.c:76:10: fatal error: 'paths.h' file not found
-   76 | #include <paths.h>
+conftest.c:75:10: fatal error: 'paths.h' file not found
+   75 | #include <paths.h>
       |          ^~~~~~~~~
 1 error generated.
 configure:15168: $? = 1
@@ -606,7 +664,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -689,7 +746,7 @@ configure:15210: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain
 configure:15210: $? = 0
 configure:15210: result: yes
 configure:15216: checking for sys/param.h
-configure:15216: result: yes
+configure:15216: result: no
 configure:15222: checking for sys/stat.h
 configure:15222: result: yes
 configure:15228: checking for sys/time.h
@@ -722,7 +779,7 @@ configure:15448: $? = 0
 configure:15448: result: yes
 configure:15454: checking for mkdtemp
 configure:15454: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-wasm-ld: error: /tmp/conftest-26c2eb.o: undefined symbol: mkdtemp
+wasm-ld: error: /tmp/conftest-16969e.o: undefined symbol: mkdtemp
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:15454: $? = 1
 configure: failed program was:
@@ -745,7 +802,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -779,7 +835,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -824,14 +879,14 @@ configure:15454: result: no
 configure:15460: checking for pread
 configure:15460: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: pread
->>> defined as () -> i32 in /tmp/conftest-97dac0.o
+>>> defined as () -> i32 in /tmp/conftest-f3c027.o
 >>> defined as (i32, i32, i32, i64) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(pread.o)
 configure:15460: $? = 0
 configure:15460: result: yes
 configure:15466: checking for pwrite
 configure:15466: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: pwrite
->>> defined as () -> i32 in /tmp/conftest-19f2b5.o
+>>> defined as () -> i32 in /tmp/conftest-071a64.o
 >>> defined as (i32, i32, i32, i64) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(pwrite.o)
 configure:15466: $? = 0
 configure:15466: result: yes
@@ -841,7 +896,7 @@ configure:15472: $? = 0
 configure:15472: result: yes
 configure:15478: checking for setgroupent
 configure:15478: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-wasm-ld: error: /tmp/conftest-43b286.o: undefined symbol: setgroupent
+wasm-ld: error: /tmp/conftest-e94460.o: undefined symbol: setgroupent
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:15478: $? = 1
 configure: failed program was:
@@ -864,7 +919,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -898,7 +952,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -945,7 +998,7 @@ configure: failed program was:
 configure:15478: result: no
 configure:15484: checking for setpassent
 configure:15484: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-wasm-ld: error: /tmp/conftest-2e5294.o: undefined symbol: setpassent
+wasm-ld: error: /tmp/conftest-c79688.o: undefined symbol: setpassent
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:15484: $? = 1
 configure: failed program was:
@@ -968,7 +1021,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1002,7 +1054,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1050,46 +1101,46 @@ configure:15484: result: no
 configure:15490: checking for strcoll
 configure:15490: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: strcoll
->>> defined as () -> i32 in /tmp/conftest-101e6a.o
+>>> defined as () -> i32 in /tmp/conftest-43fe14.o
 >>> defined as (i32, i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(strcoll.o)
 configure:15490: $? = 0
 configure:15490: result: yes
 configure:15496: checking for strlcpy
 configure:15496: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-conftest.c:84:6: warning: incompatible redeclaration of library function 'strlcpy' [-Wincompatible-library-redeclaration]
-   84 | char strlcpy ();
+conftest.c:82:6: warning: incompatible redeclaration of library function 'strlcpy' [-Wincompatible-library-redeclaration]
+   82 | char strlcpy ();
       |      ^
-conftest.c:84:6: note: 'strlcpy' is a builtin with type 'unsigned long (char *, const char *, unsigned long)'
+conftest.c:82:6: note: 'strlcpy' is a builtin with type 'unsigned long (char *, const char *, unsigned long)'
 1 warning generated.
 wasm-ld: warning: function signature mismatch: strlcpy
->>> defined as () -> i32 in /tmp/conftest-c99252.o
+>>> defined as () -> i32 in /tmp/conftest-f950fe.o
 >>> defined as (i32, i32, i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(strlcpy.o)
 configure:15496: $? = 0
 configure:15496: result: yes
 configure:15502: checking for strptime
 configure:15502: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: strptime
->>> defined as () -> i32 in /tmp/conftest-b478a7.o
+>>> defined as () -> i32 in /tmp/conftest-d56cbf.o
 >>> defined as (i32, i32, i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(strptime.o)
 configure:15502: $? = 0
 configure:15502: result: yes
 configure:15508: checking for symlink
 configure:15508: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: symlink
->>> defined as () -> i32 in /tmp/conftest-fb833d.o
+>>> defined as () -> i32 in /tmp/conftest-f72eea.o
 >>> defined as (i32, i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(posix.o)
 configure:15508: $? = 0
 configure:15508: result: yes
 configure:15514: checking for atexit
 configure:15514: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: atexit
->>> defined as () -> i32 in /tmp/conftest-26eb18.o
+>>> defined as () -> i32 in /tmp/conftest-b16642.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(atexit.o)
 configure:15514: $? = 0
 configure:15514: result: yes
 configure:15531: checking for bind_textdomain_codeset
 configure:15531: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-wasm-ld: error: /tmp/conftest-1f9309.o: undefined symbol: bind_textdomain_codeset
+wasm-ld: error: /tmp/conftest-e1c8cf.o: undefined symbol: bind_textdomain_codeset
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:15531: $? = 1
 configure: failed program was:
@@ -1112,7 +1163,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1146,7 +1196,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1203,8 +1252,8 @@ configure:15565: checking how to run the C preprocessor
 configure:15591: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -E --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c
 configure:15591: $? = 0
 configure:15606: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -E --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c
-conftest.c:73:10: fatal error: 'ac_nonexistent.h' file not found
-   73 | #include <ac_nonexistent.h>
+conftest.c:71:10: fatal error: 'ac_nonexistent.h' file not found
+   71 | #include <ac_nonexistent.h>
       |          ^~~~~~~~~~~~~~~~~~
 1 error generated.
 configure:15606: $? = 1
@@ -1228,7 +1277,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1262,7 +1310,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1286,8 +1333,8 @@ configure:15633: result: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/t
 configure:15647: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -E --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c
 configure:15647: $? = 0
 configure:15662: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -E --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h conftest.c
-conftest.c:73:10: fatal error: 'ac_nonexistent.h' file not found
-   73 | #include <ac_nonexistent.h>
+conftest.c:71:10: fatal error: 'ac_nonexistent.h' file not found
+   71 | #include <ac_nonexistent.h>
       |          ^~~~~~~~~~~~~~~~~~
 1 error generated.
 configure:15662: $? = 1
@@ -1311,7 +1358,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1345,7 +1391,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1371,7 +1416,7 @@ configure:15731: $? = 0
 configure:15918: result: libraries , headers 
 configure:16016: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c   -lX11 >&5
 wasm-ld: warning: function signature mismatch: XOpenDisplay
->>> defined as () -> i32 in /tmp/conftest-055664.o
+>>> defined as () -> i32 in /tmp/conftest-881b93.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/libX11.a(OpenDis.o)
 configure:16016: $? = 0
 configure:16115: checking for gethostbyname
@@ -1400,7 +1445,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1434,7 +1478,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1510,7 +1553,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1544,7 +1586,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1601,7 +1642,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1635,7 +1675,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1669,7 +1708,7 @@ configure: failed program was:
 configure:16196: result: no
 configure:16213: checking for connect
 configure:16213: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
-[parse exception: popping from empty stack (at 0:1130)]
+[parse exception: popping from empty stack (at 0:1144)]
 Fatal: error parsing wasm (try --debug for more info)
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:16213: $? = 1
@@ -1693,7 +1732,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1727,7 +1765,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1803,7 +1840,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1837,7 +1873,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -1872,7 +1907,7 @@ configure:16253: result: no
 configure:16263: checking for remove
 configure:16263: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c  >&5
 wasm-ld: warning: function signature mismatch: remove
->>> defined as () -> i32 in /tmp/conftest-64e9c0.o
+>>> defined as () -> i32 in /tmp/conftest-d0d519.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads/libc.a(posix.o)
 configure:16263: $? = 0
 configure:16263: result: yes
@@ -1902,7 +1937,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -1936,7 +1970,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -2012,7 +2045,6 @@ configure: failed program was:
 | #define HAVE_SYS_TYPES_H 1
 | #define HAVE_UNISTD_H 1
 | #define HAVE_WCHAR_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define STDC_HEADERS 1
 | #define _ALL_SOURCE 1
 | #define _DARWIN_C_SOURCE 1
@@ -2046,7 +2078,6 @@ configure: failed program was:
 | #define HAVE_STDLIB_H 1
 | #define HAVE_STRING_H 1
 | #define HAVE_SYS_MMAN_H 1
-| #define HAVE_SYS_PARAM_H 1
 | #define HAVE_SYS_STAT_H 1
 | #define HAVE_SYS_TIME_H 1
 | #define HAVE_SYS_TYPES_H 1
@@ -2081,7 +2112,7 @@ configure:16353: result: no
 configure:16372: checking for IceConnectionNumber in -lICE
 configure:16395: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c -lICE   >&5
 wasm-ld: warning: function signature mismatch: IceConnectionNumber
->>> defined as () -> i32 in /tmp/conftest-131239.o
+>>> defined as () -> i32 in /tmp/conftest-2a6d66.o
 >>> defined as (i32) -> i32 in /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/libICE.a(misc.o)
 configure:16395: $? = 0
 configure:16405: result: yes
@@ -2255,7 +2286,7 @@ configure:19651: result: no
 configure:19694: checking for SmcSaveYourselfDone in -lSM
 configure:19717: /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/clang-wasi-wrap.sh -o conftest --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -O2 -pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_PROCESS_CLOCKS -D_GNU_SOURCE -mllvm -wasm-enable-sjlj -Wno-error=implicit-function-declaration -Wno-error=int-conversion -Wno-int-conversion -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -g0 --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include -include /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h --target=wasm32-wasip1-threads --sysroot=/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot -Wl,--shared-memory -Wl,--import-memory -Wl,--export-memory -Wl,--max-memory=536870912 -Wl,--export=wasi_thread_start -Wl,--no-check-features -lwasi-emulated-signal -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -L/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasip1-threads -lwasi-emulated-mman -lwasi-emulated-process-clocks -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lhostcompat conftest.c -lSM    -lSM -lICE -lX11 -lICE  >&5
 wasm-ld: warning: function signature mismatch: SmcSaveYourselfDone
->>> defined as () -> i32 in /tmp/conftest-511fbd.o
+>>> defined as () -> i32 in /tmp/conftest-45b7f9.o
 >>> defined as (i32, i32) -> void in /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/libSM.a(sm_client.o)
 configure:19717: $? = 0
 configure:19727: result: yes
@@ -2419,8 +2450,16 @@ configure:20690: checking PLATFORM_LDFLAGS
 configure:20692: result: 
 configure:20705: checking whether to build the thunar-apr plugin
 configure:20715: result: yes
-configure:20951: checking for optional package libexif >= 0.6.0
-configure:20953: result: not found
+configure:20749: checking for wasm32-wasi-pkg-config
+configure:20784: result: /usr/bin/pkg-config
+configure:20857: checking pkg-config is at least version 0.9.0
+configure:20860: result: yes
+configure:20882: checking for libexif >= 0.6.0
+configure:20886: result: 0.6.24
+configure:20889: checking EXIF_CFLAGS
+configure:20892: result: -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include 
+configure:20895: checking EXIF_LIBS
+configure:20898: result: -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lexif 
 configure:20982: checking whether to build the thunar-sbr plugin
 configure:20992: result: yes
 configure:21026: checking for wasm32-wasi-pkg-config
@@ -2470,67 +2509,67 @@ generated by GNU Autoconf 2.71.  Invocation command line was
 
 on nathan-dev
 
-config.status:1523: creating Makefile
-config.status:1523: creating docs/Makefile
-config.status:1523: creating docs/design/Makefile
-config.status:1523: creating docs/papers/Makefile
-config.status:1523: creating docs/reference/Makefile
-config.status:1523: creating docs/reference/thunarx/Makefile
-config.status:1523: creating docs/reference/thunarx/version.xml
-config.status:1523: creating docs/reference/thunar/Makefile
-config.status:1523: creating docs/reference/thunar/version.xml
-config.status:1523: creating examples/Makefile
-config.status:1523: creating examples/tex-open-terminal/Makefile
-config.status:1523: creating icons/Makefile
-config.status:1523: creating icons/16x16/Makefile
-config.status:1523: creating icons/24x24/Makefile
-config.status:1523: creating icons/48x48/Makefile
-config.status:1523: creating icons/128x128/Makefile
-config.status:1523: creating icons/scalable/Makefile
-config.status:1523: creating plugins/Makefile
-config.status:1523: creating plugins/thunar-apr/Makefile
-config.status:1523: creating plugins/thunar-sbr/Makefile
-config.status:1523: creating plugins/thunar-sendto-email/Makefile
-config.status:1523: creating plugins/thunar-tpa/Makefile
-config.status:1523: creating plugins/thunar-uca/Makefile
-config.status:1523: creating plugins/thunar-wallpaper/Makefile
-config.status:1523: creating po/Makefile.in
-config.status:1523: creating thunar/Makefile
-config.status:1523: creating thunarx/Makefile
-config.status:1523: creating thunarx/thunarx-3.pc
-config.status:1523: creating thunarx/thunarx-config.h
-config.status:1523: creating config.h
-config.status:1704: config.h is unchanged
-config.status:1752: executing depfiles commands
-config.status:1829: cd examples/tex-open-terminal       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1522: creating Makefile
+config.status:1522: creating docs/Makefile
+config.status:1522: creating docs/design/Makefile
+config.status:1522: creating docs/papers/Makefile
+config.status:1522: creating docs/reference/Makefile
+config.status:1522: creating docs/reference/thunarx/Makefile
+config.status:1522: creating docs/reference/thunarx/version.xml
+config.status:1522: creating docs/reference/thunar/Makefile
+config.status:1522: creating docs/reference/thunar/version.xml
+config.status:1522: creating examples/Makefile
+config.status:1522: creating examples/tex-open-terminal/Makefile
+config.status:1522: creating icons/Makefile
+config.status:1522: creating icons/16x16/Makefile
+config.status:1522: creating icons/24x24/Makefile
+config.status:1522: creating icons/48x48/Makefile
+config.status:1522: creating icons/128x128/Makefile
+config.status:1522: creating icons/scalable/Makefile
+config.status:1522: creating plugins/Makefile
+config.status:1522: creating plugins/thunar-apr/Makefile
+config.status:1522: creating plugins/thunar-sbr/Makefile
+config.status:1522: creating plugins/thunar-sendto-email/Makefile
+config.status:1522: creating plugins/thunar-tpa/Makefile
+config.status:1522: creating plugins/thunar-uca/Makefile
+config.status:1522: creating plugins/thunar-wallpaper/Makefile
+config.status:1522: creating po/Makefile.in
+config.status:1522: creating thunar/Makefile
+config.status:1522: creating thunarx/Makefile
+config.status:1522: creating thunarx/thunarx-3.pc
+config.status:1522: creating thunarx/thunarx-config.h
+config.status:1522: creating config.h
+config.status:1703: config.h is unchanged
+config.status:1751: executing depfiles commands
+config.status:1828: cd examples/tex-open-terminal       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-apr       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-apr       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-sbr       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-sbr       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-sendto-email       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-sendto-email       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-tpa       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-tpa       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-uca       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-uca       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd plugins/thunar-wallpaper       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd plugins/thunar-wallpaper       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd thunar       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd thunar       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1829: cd thunarx       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+config.status:1833: $? = 0
+config.status:1828: cd thunarx       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
 make: Nothing to be done for 'am--depfiles'.
-config.status:1834: $? = 0
-config.status:1752: executing libtool commands
-config.status:1752: executing po/stamp-it commands
+config.status:1833: $? = 0
+config.status:1751: executing libtool commands
+config.status:1751: executing po/stamp-it commands
 configure:23974: WARNING: unrecognized options: --disable-malloc0returnsnull
 
 ## ---------------- ##
@@ -2612,7 +2651,7 @@ ac_cv_header_stdlib_h=yes
 ac_cv_header_string_h=yes
 ac_cv_header_strings_h=yes
 ac_cv_header_sys_mman_h=yes
-ac_cv_header_sys_param_h=yes
+ac_cv_header_sys_param_h=no
 ac_cv_header_sys_stat_h=yes
 ac_cv_header_sys_time_h=yes
 ac_cv_header_sys_types_h=yes
@@ -2754,10 +2793,10 @@ ENABLE_GTK_DOC_FALSE=''
 ENABLE_GTK_DOC_TRUE='#'
 ETAGS='etags'
 EXEEXT=''
-EXIF_CFLAGS=''
-EXIF_LIBS=''
-EXIF_REQUIRED_VERSION=''
-EXIF_VERSION=''
+EXIF_CFLAGS='-I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include '
+EXIF_LIBS='-L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lexif '
+EXIF_REQUIRED_VERSION='0.6.0'
+EXIF_VERSION='0.6.24'
 EXO_CFLAGS='-I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/exo-2 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gtk-3.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/pango/build-wasm-threads -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/pango -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/pango/build-wasm-threads/pango -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/pango/pango -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib/glib-2.0/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/fribidi -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/harfbuzz/build-wasm-threads -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/harfbuzz -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/harfbuzz/build-wasm-threads/src -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/harfbuzz/src -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/freetype2 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/cairo -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/pixman-1 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gdk-pixbuf-2.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gio-unix-2.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix/include -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/atk-1.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/at-spi2-atk/2.0 -I/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/xfce4 -pthread -DPCRE2_STATIC '
 EXO_LIBS='-L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/lib -lexo-2 -lgtk-3 -lgdk-3 -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/pango/build-wasm-threads/pango -lintl -L/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/harfbuzz/build-wasm-threads/src -lm -lpangocairo-1.0 -lintl -lm -lpangoft2-1.0 -lpango-1.0 -lintl -lm -lintl -lm -lintl -lfribidi -lharfbuzz -lm -lXft -lintl -lintl -lz -latk-1.0 -lcairo-gobject -lcairo -ldl -lz -lfontconfig -lexpat -lfreetype -lXext -lXrender -lX11 -lpixman-1 -lgdk_pixbuf-2.0 -lpng16 -lintl -lintl -lgio-2.0 -lgobject-2.0 -lffi -lgmodule-2.0 -lintl -lz -lxfce4util -lglib-2.0 -lintl -lm -pthread -lpcre2-8 '
 EXO_REQUIRED_VERSION='4.17.0'
@@ -2812,8 +2851,8 @@ GUDEV_CFLAGS=''
 GUDEV_LIBS=''
 GUDEV_REQUIRED_VERSION=''
 GUDEV_VERSION=''
-HAVE_EXIF_FALSE=''
-HAVE_EXIF_TRUE='#'
+HAVE_EXIF_FALSE='#'
+HAVE_EXIF_TRUE=''
 HAVE_GIO_UNIX_FALSE=''
 HAVE_GIO_UNIX_TRUE='#'
 HAVE_GTK_DOC_FALSE=''
@@ -3052,7 +3091,6 @@ xfconf_query_found='no'
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_UNISTD_H 1
 #define HAVE_WCHAR_H 1
-#define HAVE_SYS_PARAM_H 1
 #define STDC_HEADERS 1
 #define _ALL_SOURCE 1
 #define _DARWIN_C_SOURCE 1
@@ -3086,7 +3124,6 @@ xfconf_query_found='no'
 #define HAVE_STDLIB_H 1
 #define HAVE_STRING_H 1
 #define HAVE_SYS_MMAN_H 1
-#define HAVE_SYS_PARAM_H 1
 #define HAVE_SYS_STAT_H 1
 #define HAVE_SYS_TIME_H 1
 #define HAVE_SYS_TYPES_H 1
@@ -3111,6 +3148,7 @@ xfconf_query_found='no'
 #define GLIB_VERSION_MIN_REQUIRED GLIB_VERSION_2_66
 #define GLIB_VERSION_MAX_ALLOWED GLIB_VERSION_2_66
 #define HAVE_LIBSM 1
+#define HAVE_EXIF 1
 #define HAVE_PCRE2 1
 
 configure: exit 0

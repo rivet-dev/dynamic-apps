@@ -32,7 +32,7 @@
 #define HAVE_ERRNO_H 1
 
 /* Define if libexif >= 0.6.0 present */
-/* #undef HAVE_EXIF */
+#define HAVE_EXIF 1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
@@ -149,7 +149,7 @@
 #define HAVE_SYS_MMAN_H 1
 
 /* Define to 1 if you have the <sys/param.h> header file. */
-#define HAVE_SYS_PARAM_H 1
+/* #undef HAVE_SYS_PARAM_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
