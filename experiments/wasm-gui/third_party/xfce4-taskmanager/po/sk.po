@@ -1,0 +1,342 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Dušan Kazik <prescott66@gmail.com>, 2017,2020-2021
+# 785411ef824cced88d3e197f5af1b61a_da6a977 <e5fae5b35c0c625157d991b31e113de3_956341>, 2022
+# Slavko <linux@slavino.sk>, 2015,2017
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfce Apps\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-17 00:49+0200\n"
+"PO-Revision-Date: 2013-07-03 18:41+0000\n"
+"Last-Translator: 785411ef824cced88d3e197f5af1b61a_da6a977 <e5fae5b35c0c625157d991b31e113de3_956341>, 2022\n"
+"Language-Team: Slovak (http://app.transifex.com/xfce/xfce-apps/language/sk/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: sk\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);\n"
+
+#: ../xfce4-taskmanager.desktop.in.h:1 ../src/main.c:220
+#: ../src/process-tree-view.c:375 ../src/process-tree-view.c:390
+#: ../src/process-tree-view.c:420 ../src/process-window.ui.h:1
+#: ../src/settings-dialog.c:146
+msgid "Task Manager"
+msgstr "Správca úloh"
+
+#: ../xfce4-taskmanager.desktop.in.h:2
+msgid "Easy to use application to monitor system resources"
+msgstr "Aplikácia s jednoduchým používaním na sledovanie systémových prostriedkov"
+
+#: ../src/main.c:59
+msgid "Quit"
+msgstr "Ukončiť"
+
+#: ../src/main.c:169
+#, c-format
+msgid ""
+"<b>Processes:</b> %u\n"
+"<b>CPU:</b> %.0f%%\n"
+"<b>Memory:</b> %s\n"
+"<b>Swap:</b> %s"
+msgstr "<b>Procesy:</b> %u\n<b>CPU:</b> %.0f%%\n<b>Pamäť:</b> %s\n<b>Swap:</b> %s"
+
+#: ../src/main.c:253
+msgid "Xfce Notify Daemon"
+msgstr "Démon oznámení v Xfce"
+
+#: ../src/main.c:255
+msgid "Settings daemon is unavailable"
+msgstr "Nastavenia démona nie sú k dispozícii"
+
+#: ../src/process-statusbar.c:155 ../src/process-window.c:551
+#, c-format
+msgid "CPU: %s%%"
+msgstr "CPU: %s%%"
+
+#: ../src/process-statusbar.c:163 ../src/process-window.c:555
+#, c-format
+msgid "Memory: %s"
+msgstr "Pamäť: %s"
+
+#: ../src/process-statusbar.c:171
+#, c-format
+msgid "Swap: %s"
+msgstr "Swap: %s"
+
+#: ../src/process-statusbar.c:186
+#, c-format
+msgid "Processes: %d"
+msgstr "Procesy: %d"
+
+#: ../src/process-tree-view.c:135
+msgid "Task"
+msgstr "Uloha"
+
+#: ../src/process-tree-view.c:146 ../src/settings-dialog.ui.h:17
+msgid "PID"
+msgstr "PID"
+
+#: ../src/process-tree-view.c:154 ../src/settings-dialog.ui.h:18
+msgid "PPID"
+msgstr "PPID"
+
+#: ../src/process-tree-view.c:162 ../src/settings-dialog.ui.h:19
+msgid "State"
+msgstr "Stav"
+
+#: ../src/process-tree-view.c:171
+msgid "VSZ"
+msgstr "VSZ"
+
+#: ../src/process-tree-view.c:179
+msgid "RSS"
+msgstr "RSS"
+
+#: ../src/process-tree-view.c:187 ../src/settings-dialog.ui.h:22
+msgid "UID"
+msgstr "UID"
+
+#: ../src/process-tree-view.c:195 ../src/settings-dialog.ui.h:23
+msgid "CPU"
+msgstr "CPU"
+
+#. TRANSLATORS: “Prio.” is short for Priority, it appears in the tree view
+#. header.
+#: ../src/process-tree-view.c:204
+msgid "Prio."
+msgstr "Prio."
+
+#: ../src/process-tree-view.c:371
+msgid "Terminate task"
+msgstr "Ukončiť úlohu"
+
+#: ../src/process-tree-view.c:371
+msgid "Kill task"
+msgstr "Zabiť úlohu"
+
+#: ../src/process-tree-view.c:373
+#, c-format
+msgid "Are you sure you want to send the %s signal to the PID %d?"
+msgstr "Naozaj chcete odoslať signál %s do identifikátora PID %d?"
+
+#: ../src/process-tree-view.c:374
+msgid "terminate"
+msgstr "ukončiť"
+
+#: ../src/process-tree-view.c:374
+msgid "kill"
+msgstr "zabiť"
+
+#: ../src/process-tree-view.c:386
+msgid "Error sending signal"
+msgstr "Chyba  poslania signálu"
+
+#: ../src/process-tree-view.c:388
+#, c-format
+msgid ""
+"An error was encountered by sending a signal to the PID %d. It is likely you"
+" don't have the required privileges."
+msgstr "Pri posielaní signálu do PID %d nastala chyba. Je pravdepodobné, že nemáte dostatočné práva."
+
+#: ../src/process-tree-view.c:417
+msgid "Error setting priority"
+msgstr "Chyba nastavenia priority"
+
+#: ../src/process-tree-view.c:418
+#, c-format
+msgid ""
+"An error was encountered by setting a priority to the PID %d. It is likely "
+"you don't have the required privileges."
+msgstr "Pri nastavovaní priority PID %d nastala chyba. Je pravdepodobné, že nemáte dostatočné práva."
+
+#: ../src/process-tree-view.c:481 ../src/process-tree-view.c:624
+msgid "Stop"
+msgstr "Zastaviť"
+
+#: ../src/process-tree-view.c:488
+msgid "Continue"
+msgstr "Pokračovať"
+
+#: ../src/process-tree-view.c:494
+msgid "Terminate"
+msgstr "Ukončiť"
+
+#: ../src/process-tree-view.c:500
+msgid "Kill"
+msgstr "Zabiť"
+
+#: ../src/process-tree-view.c:507
+msgid "Very low"
+msgstr "Veľmi nízka"
+
+#: ../src/process-tree-view.c:512
+msgid "Low"
+msgstr "Nízka"
+
+#: ../src/process-tree-view.c:517
+msgid "Normal"
+msgstr "Normálna"
+
+#: ../src/process-tree-view.c:522
+msgid "High"
+msgstr "Vysoká"
+
+#: ../src/process-tree-view.c:527
+msgid "Very high"
+msgstr "Veľmi vysoká"
+
+#: ../src/process-tree-view.c:532 ../src/settings-dialog.ui.h:24
+msgid "Priority"
+msgstr "Priorita"
+
+#. Same trick as above
+#: ../src/process-tree-view.c:536 ../src/process-tree-view.c:635
+msgid "Copy command line"
+msgstr "Skopírovať príkazový riadok"
+
+#: ../src/process-window.c:171
+msgid "Bad Window"
+msgstr "Nesprávne okno"
+
+#: ../src/process-window.c:171
+#, c-format
+msgid "Window id 0x%lx does not exist!"
+msgstr "Okno id 0x%lx neexistuje!"
+
+#: ../src/process-window.c:174
+msgid "XGetWindowProperty failed"
+msgstr "XGetWindowProperty zlyhalo"
+
+#: ../src/process-window.c:174
+msgid "XGetWindowProperty failed!"
+msgstr "XGetWindowProperty zlyhalo!"
+
+#: ../src/process-window.c:181
+msgid "No PID found"
+msgstr "Nenašiel sa žiadny identifikátor PID"
+
+#: ../src/process-window.c:181
+#, c-format
+msgid "No PID found for window 0x%lx."
+msgstr "Nenašiel sa žiadny identifikátor PID pre okno 0x%lx."
+
+#: ../src/process-window.c:386
+msgid "Filter on process name"
+msgstr "Filtrovať mená procesov"
+
+#: ../src/process-window.c:390
+msgid "Starting task"
+msgstr ""
+
+#: ../src/process-window.c:390
+msgid "Changing task"
+msgstr ""
+
+#: ../src/process-window.c:390
+msgid "Terminating task"
+msgstr ""
+
+#: ../src/process-window.ui.h:2
+msgid "Settings"
+msgstr "Nastavenie"
+
+#: ../src/process-window.ui.h:3
+msgid "Identify an open window by clicking on it."
+msgstr "Identifikuje otvorené okno kliknutím naňho."
+
+#: ../src/process-window.ui.h:4
+msgid "You are using the root account, you may harm your system."
+msgstr "Používate účet správcu, čím môžete poškodiť váš systém."
+
+#: ../src/settings-dialog.c:150
+msgid "Easy to use task manager"
+msgstr "Správca úloh s jednoduchým používaním"
+
+#: ../src/settings-dialog.c:153
+msgid "translator-credits"
+msgstr "Slavko <linux@slavino.sk>"
+
+#: ../src/settings-dialog.ui.h:1
+msgid "Task Manager Settings"
+msgstr "Nastavenia správcu úloh"
+
+#: ../src/settings-dialog.ui.h:2
+msgid "_Help"
+msgstr "_Pomocník"
+
+#: ../src/settings-dialog.ui.h:3
+msgid "About"
+msgstr "O programe"
+
+#: ../src/settings-dialog.ui.h:4
+msgid "_Close"
+msgstr "_Zavrieť"
+
+#: ../src/settings-dialog.ui.h:5
+msgid "Show all processes"
+msgstr "Zobraziť všetky procesy"
+
+#: ../src/settings-dialog.ui.h:6
+msgid "Show application icons"
+msgstr "Zobraziť ikony aplikácií"
+
+#: ../src/settings-dialog.ui.h:7
+msgid "Show full command lines"
+msgstr "Zobraziť celý príkazový riadok"
+
+#: ../src/settings-dialog.ui.h:8
+msgid "Show processes as tree"
+msgstr "Zobraziť procesy ako strom"
+
+#: ../src/settings-dialog.ui.h:9
+msgid "Show legend"
+msgstr "Zobraziť legendu"
+
+#: ../src/settings-dialog.ui.h:10
+msgid "Show values with more precision"
+msgstr "Zobraziť hodnoty s vyššou presnosťou"
+
+#: ../src/settings-dialog.ui.h:11
+msgid "Refresh rate (ms):"
+msgstr "Rýchlosť obnovovania (ms):"
+
+#: ../src/settings-dialog.ui.h:12
+msgid "<b>Interface</b>"
+msgstr "<b>Rozhranie</b>"
+
+#: ../src/settings-dialog.ui.h:13
+msgid "Prompt for terminating tasks"
+msgstr "Potvrdiť ukončenie úloh"
+
+#: ../src/settings-dialog.ui.h:14
+msgid "Keep in the notification area"
+msgstr "Ponechať v oznamovacej oblasti"
+
+#: ../src/settings-dialog.ui.h:15
+msgid "<b>Miscellaneous</b>"
+msgstr "<b>Rôzne</b>"
+
+#: ../src/settings-dialog.ui.h:16
+msgid "General"
+msgstr "Všeobecné"
+
+#: ../src/settings-dialog.ui.h:20
+msgid "Virtual Bytes"
+msgstr "Virtuálne bajty"
+
+#: ../src/settings-dialog.ui.h:21
+msgid "Resident Bytes"
+msgstr "Rezidentné bajty"
+
+#: ../src/settings-dialog.ui.h:25
+msgid "Columns"
+msgstr "Stĺpce"
+
+#: ../src/task-manager.c:253
+#, c-format
+msgid "%s%%"
+msgstr "%s%%"

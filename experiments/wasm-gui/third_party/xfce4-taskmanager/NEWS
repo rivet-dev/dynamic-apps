@@ -1,0 +1,313 @@
+1.5.7 (2024-02-29)
+=====
+- Update copyright year
+- build: Fix -Wcast-align warning from clang
+- Fix UBSan errors
+- settings-dialog: Fix XtmRefreshRate memory leak
+- Dark mode for process-statusbar
+- Dark mode for process-monitor
+- Allow multiple instances via command line option.
+- Fix blurry app icons when UI scale > 1
+- Use symbolic window picker icon in toolbar
+- Fix broken "show-legend" setting sync
+- Translation Updates:
+  Catalan, Croatian, Estonian, Greek, Hebrew, Italian, Occitan (post
+  1500), Polish, Spanish, Swedish, Turkish
+
+1.5.6 (2023-10-02)
+=====
+- Update copyright year
+- Rounded legend icons
+- Reopen process window maximized when closed maximized
+- Properly finalize global objects in main
+- Add missing include
+- Fix more memory leaks
+- Fix memory leak
+- Fix CSS related deprecation warnings
+- Ignore GtkStatusIcon related deprecations
+- Make libx11 optional, guard x11 code paths
+- Change type so that memory values are correct (Fixes #65)
+- settings-dialog: Fix untranslated label
+- Add icons at missing sizes, clean up SVG metadata
+- Add minimal support for Wayland
+- Fix graph drop off on the right side
+- Change graph peak variable to double
+- Remove timeout before exiting main loop
+- build: Add GLib requirement
+- Do not treat missing swap as error on OpenBSD and NetBSD
+- Fix process filter crash caused by the use of an uninitialized 
+variable
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Asturian, Azerbaijani, Basque,
+  Belarusian, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian,
+  English (Australia), English (United Kingdom), Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Russian, Serbian,
+  Slovak, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+1.5.5 (2022-12-16)
+=====
+- Stick process view at the top in the absence of user action
+- Get rid of GtkHeaderBar
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Czech, Danish, Dutch, Estonian, French, Galician,
+  German, Greek, Hebrew, Indonesian, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Norwegian Bokmål, Occitan (post 1500), Persian (Iran),
+  Polish, Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak,
+  Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian
+
+1.5.4
+======
+- Update configure.ac.in syntax
+- Fix #53: taskmanager translations
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Czech, Danish, Dutch, Estonian, French, Galician,
+  German, Greek, Hebrew, Indonesian, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Norwegian Bokmål, Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovak, Spanish, Swedish, Thai, Turkish,
+  Ukrainian
+
+1.5.3
+======
+- Fix rendering bug (Fixes #44)
+- Fix rendering bug for swap graph (relates to #44)
+- Fix bindings related to the "show-legend" setting
+- Allow to copy full process command line (#33)
+- Rename Private to Resident Bytes (#7)
+- Avoid grabbing the filter entry if it is not realized
+- Fix intltool lock file problem during make distcheck
+- `uid_name` has been removed from `task` struct
+- Fix invalid casts for "About" and "Help" (Fixes #43)
+- Show localized website label
+- Update COPYING (Issue #49)
+- Updated copyright year, authors, and project links
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Asturian, Azerbaijani, Basque,
+  Belarusian, Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian,
+  English (Australia), English (United Kingdom), Estonian, Finnish,
+  French, Galician, German, Greek, Hebrew, Hungarian, Icelandic,
+  Indonesian, Interlingue, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Russian, Serbian,
+  Slovak, Spanish, Swedish, Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+1.5.2
+======
+- Fix restoring the window size (Fixes #39)
+- Improve wording of systray option (Fixes #19)
+- Translation Updates:
+  Italian
+
+1.5.1
+======
+- Fix erroneous binding of settings (Fixes #37)
+- Store column positions again
+- Store sort-column-id and sort-type (Fixes #36)
+- Also include swap in the memory graph
+- Reduce drawing code
+- Reduce borders of graphs
+- Replace GtkImageMenuItem with GtkMenuItem
+
+1.5.0
+======
+Please note that this is a development release
+- Port to xfconf
+- Move to Client-side decorations
+- Migrate all settings to the settings dialog
+- settings: Switch to XfceTitledDialog
+- Use infobar for root warning box
+- Drop exec button from toolbar
+- include stdlib.h because exit() is used
+- remove GLIB_CHECK_VERSION checks
+- statusbar: Use better color that works well with both light and dark 
+themes (!17)
+- Fix handling "show-legend" setting
+- Handle Esc key correctly with hidden filter
+- Drop unused var and sort copyright
+- Show/hide filterbar with Ctrl+f and clear with Esc
+- Properly close settings dialog
+- Remove GSourceFunc casts
+- Fix compilation warnings
+- Replace AC_PROG_LIBTOOL with IT_PROG_INTLTOOL
+- Simplify "query-tooltip" signal handler
+- Ellipsize memory and swap labels (Fixes #32)
+- Set window icon in glade file
+- Replace filter entry with GtkSearchBar
+- Fix doc links and bump dates
+- Simplify settings dialog code
+- Drop leftover function for toolbar style
+- Move about dialog to settings
+- Drop toolbar style setting
+- Fix typo
+- Fix tooltip markdown issue
+- Create notification area icon only if needed (Bug #25)
+- Translation Updates:
+  Basque, Belarusian, Chinese (China), Chinese (Taiwan), Czech, French,
+  Galician, Italian, Japanese, Lithuanian, Norwegian Bokmål,
+  Portuguese (Brazil), Serbian, Turkish
+
+1.4.0
+======
+- Drop Gtk2 support
+- Add support for MemAvailable (!10)
+- statusbar: Use color with better contrast for dark themes
+- Fix: some times processes are not removed from the list
+- Add tooltip to show full command
+- Add application icon (Issue #23)
+- Replace appfinder icon with edit-find (Fixes #23)
+- Replace old icon name with utilities-terminal #23
+- Replace old icon name with system-run #23
+- Always show memory usage in bytes and percent (Fixes #24)
+- Improve comment in desktop file (Fixes #20)
+- Add basic GitLab pipeline
+- Add README.md
+- Update libwnck and xmu deps in README
+- Remove GKSU leftovers
+- Remove unused url_hook_about_dialog function
+- Replace deprecated gtk_menu_popup
+- Fix GTimeVal deprecation warning
+- Fix indentation
+- Update .gitignore
+- AC_CONFIG_MACRO_DIR → AC_CONFIG_MACRO_DIRS
+- Bump minimal xdt version
+- Bug #16717: Move from exo-csource to xdt-csource
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Asturian, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, Eastern Armenian, English
+  (Australia), English (United Kingdom), Estonian, Finnish, French,
+  Galician, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian,
+  Interlingue, Italian, Japanese, Kazakh, Korean, Lithuanian, Malay,
+  Norwegian Bokmål, Occitan (post 1500), Polish, Portuguese,
+  Portuguese (Brazil), Russian, Serbian, Slovak, Spanish, Swedish,
+  Telugu, Thai, Turkish, Ukrainian, Uyghur
+
+1.2.3
+======
+- Improve settings saving (bug #15213)
+- Fix closing taskman with Esc (Bug #16656)
+- Move legend from tooltip to hide-able statusbar (Bug #14131)
+- Update copyright
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Asturian, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan), Croatian, Czech, Danish, Dutch, English (Australia), English
+  (United Kingdom), Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Icelandic, Indonesian, Italian, Japanese, Kazakh, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Spanish,
+  Swedish, Telugu, Thai, Turkish, Uighur, Ukrainian
+
+1.2.2
+
+- Default to build with Gtk3, Gtk2 still available but will be removed in the next release
+- Appease valgrind by properly calculating size when using memmove
+- Remove g_object_unref() calls at the end of main, were causing double-frees with Gtk3 on OpenBSD
+- Better utf-8 normalization (bug 14172)
+- Improve app search on close (bug 14466)
+- Many translation updates
+
+1.2.1
+
+- New Feature: add --start-hidden commandline argument (Bug #14343)
+- Fix incorrect UID reporting (Bug #12970)
+- Fix memory usage display (Bug #13371)
+- Fix various types/casts/initializations/leaks (Bug #14401, #14402, #14403)
+- Possible fix for a crash when lots of processes were spawned/disappeared
+- Dozens of translation updates (thanks to everyone!)
+
+1.2.0
+
+- New Feature: identify windows by clicking on them (Simon Steinbeiss, Florian Schüller)
+- Give the filter/search entry focus by default (Bug #11868)
+- Add delete and shift/delete keyboard shortcuts to the treeview
+- Improve kill and terminate dialog wording
+- Add Ctrl+q keyboard shortcut to close the taskmanager
+- Improve memory usage on FreeBSD system (Olivier Duchateau)
+- Lots and lots of translation updates (thanks to everyone!)
+
+1.1.0
+
+- Initial port to Gtk3, use --enable-gtk3 to test it (Gtk2 is still the default)
+- Stop using lots of deprecated Gtk2 API
+- Add a process treeview mode (Peter de Ridder)
+- General UI/graph overhaul (Simon Steinbeiss)
+- Various crash & correctness fixes on the bsd backend
+- Add a searchbox to filter on process names (Matias de Iellis #9856)
+- Make Escape key close the main window (Harald Judt #11343)
+- Fix window settings not properly saved (#10670)
+- Fix build issue on FreeBSD 8.0 (#8081)
+- Fix the refresh rate menu (Alistair Buxton)
+- Default the focus on the process list instead of the exec button (#10643)
+- Add an option to show memory/swap usage as bytes instead of % (#6503)
+- Add unique app behaviour (#8808)
+- Default to close the window instead of hiding in systray (#10941)
+- Fix type causing high cpu usage on ARM (#10417)
+- Tons of translation updates (thanks to all translators!)
+
+1.0.1
+
+- Add "Run Task Manager as root" item in "Execute" menu
+- Add a menu position function
+- Fix shell substitution for Korn Shell (ksh)
+- Set monitor's background box use the prelight state
+- Remove quit tool button
+- OpemBSD removed KERN_PROC2/KINFO_PROC2 some months ago.
+- Translation updates: Arabic, Belarusian, Bulgarian, Catalan
+  (Valencian), Czech, Danish, German, Greek, English (Australia),
+  English (United Kingdom), Spanish (Castilian), Basque, Finnish,
+  French, Galician, Hebrew, Croatian, Hungarian, Indonesian, Icelandic,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Dutch (Flemish),
+  Occitan (post 1500), Polish, Portuguese, Portuguese (Brazilian),
+  Russian, Slovak, Slovenian, Serbian, Swedish, Telugu, Turkish,
+  Uyghur, Ukrainian, Chinese (China), Chinese (Hong Kong), Chinese
+  (Taiwan).
+
+1.0.0
+
+- Replaced progress bars against monitors
+- Display window icons/names with libwnck (optional)
+- Display the tree view context menu on Menu key press
+- On tree view column click sort first by descending order
+- Context menu on the status icon to quit the application
+- Hide window on window close when the status icon is visible
+- Several fixes
+
+0.5.92 ~ 1.0.0 beta3
+
+- New settings “More precision,” “Full command line,” “Show status icon” and
+  “Refresh rate”
+- Swap usage is hidden from status bar when there is no swap present
+- Show a warning banner inside the window when running as root
+- Make default search function of tree view case insensitive and match key
+  within names (e.g. settings matches xfsettingsd and xfce4-settings-helper)
+- Highlight started/terminated tasks and tasks with changed state in color
+- Tree view columns are reorderable
+
+0.5.91 ~ 1.0.0 beta2
+
+- (Re)Add support for OpenSolaris, FreeBSD and OpenBSD
+
+0.5.90 ~ 1.0.0 beta1
+
+- Completely rewritten with GObjects and introduce a new interface
+
+0.4.1
+
+- Bug fix release and first non-Linux support (OpenBSD from Landry Breuil)
+
+0.4.0
+
+[ Mike Massonnet <mmassonnet@xfce.org> ]
+- 64bit archs fix (#4059)
+- Clean up and bug fixes
+- Update strings
+
+[ Johannes Zellner <webmaster@nebulon.de> ]
+- Priority setting
