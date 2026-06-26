@@ -19,10 +19,12 @@ bash scripts/stage-gschemas.sh /tmp/vmschemas >/dev/null 2>&1
 # ALWAYS regenerate the dbus session fixture (do NOT `[ -d ] ||` it) -- a stale dir from before the
 # auth_timeout=600s bump kept the 30s default, so slow guests lost their xfconf connection mid-construction.
 # Cheap to regenerate; staleness is a silent footgun. (NOTE: do NOT --vm-tree /tmp/vmthemes here -- mounting
-# /usr/share/themes makes xfce4-appearance-settings' Style tab enumerate themes, which traps the guest in wasm
-# at ~50s (silent, RuntimeError: unreachable; auth is NOT the cause -- 0 auth drops with the 600s fixture).
-# The theme dir-scan/preview path is the real gap; localizing it needs a SECURE_EXEC_KEEP_NAMES build + the
-# M8.6 symbolizer recipe. The dialog UI renders fine with an empty list, so theme enumeration stays a TODO.)
+# /usr/share/themes makes xfce4-appearance-settings' Style tab die at ~50s with a bare RuntimeError: unreachable.
+# ROOT-CAUSED (T46, via the address symbolizer): the frames are g_log_structured -> g_log_writer_default -> abort
+# = a GLib FATAL log, message "Failed to connect to xfconf daemon: Timeout was reached." So it is NOT a wasm
+# dir-scan/enumeration bug (my old guess); the heavier themes-mounted startup starves the xfconf connection past
+# its timeout = a Root-2 service-thread-starvation manifestation (the XU7 sign-off item), even at 3 guests. The
+# dialog renders fine with an empty list, so the populated theme list waits on the Root-2 multiplex.)
 bash scripts/prepare-dbus-fixtures.sh /tmp/vmxu5sess >/dev/null 2>&1
 # Stage a precompiled XKB keymap (/xkb/default.xkm) so the wasm X server's keyboard device activates --
 # without it every render logs "XKB: Couldn't open rules file" + "XTest keyboard not activated", and apps
