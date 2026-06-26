@@ -117,3 +117,25 @@ from the guest), satisfying the security model.
 Wire Phase 1 at the kernel-forwarded seam: where the sidecar currently decodes the base64 sync-RPC payload, read
 from the G->K ring via `SabRingReader`; where it encodes the response, write via `SabRingWriter`. Measure
 framebuffer-blit + X-socket round-trip cost before/after.
+
+### Precise Phase-1 wiring seam (located in code)
+The Rust host already gets raw byte access to a V8 (Shared)ArrayBuffer's backing store (crates/v8-runtime/src/
+bridge.rs:554-563 uses exactly this for CBOR Bytes today):
+```
+let bs = ab.get_backing_store();
+let ptr = bs.data().unwrap().as_ptr() as *mut u8;
+let slice = unsafe { std::slice::from_raw_parts_mut(ptr, len) }; // &mut [u8] over the (S)AB
+```
+`SabRingReader`/`SabRingWriter` take exactly `&[u8]`/`&mut [u8]`, so they plug directly onto that slice. Wiring:
+1. At runtime setup, allocate a per-guest ring SAB (a SharedArrayBuffer; `ring_size` KERNEL-chosen) alongside the
+   existing `AGENT_OS_NODE_SYNC_RPC_DATA_BYTES` SAB, and expose it to the runner as a global so the guest JS
+   `RingWriter`/`RingReader` (t1-ring/sab-ring.mjs) operate on a `Uint8Array` view of the same bytes.
+2. At the kernel-forwarded sync-RPC servicing point, take the ring SAB's backing-store slice (above), make
+   `SabRingReader::new(ring_size)` (kernel-owned size), `read_record` the request (already validated as HOSTILE),
+   service it, `SabRingWriter::write_record` the response onto the same backing store, then `publish_consumer`.
+3. The guest's existing synthetic-wait poll loop re-checks after the host responds — no new doorbell (Phase 2 only).
+
+Security: `get_backing_store` yields a raw slice, but `SabRingReader` already treats every guest-written field as
+hostile and never reads/writes outside `ring_size`, so a guest scribbling the shared SAB cannot push the host OOB.
+The only new `unsafe` is `from_raw_parts_mut` over the V8-owned backing store (valid for the SAB lifetime+len) —
+the same pattern the existing bridge already uses (bridge.rs:557-562). This keeps T1 "no new escape surface".
