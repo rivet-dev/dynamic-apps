@@ -64,3 +64,14 @@ shared workspace churns mid-build):
 RECOMMENDATION: finish this in a focused session -- iterate the thunar relink interactively (resolve #1 with a
 direct clang link, run the fpcast for #2), confirm the bulk-rename infobar clears, THEN generalize the shim's
 path-match + the static link to the xfce4-panel plugin family for XU3. The shim + wiring are committed and ready.
+
+## Direct-link investigation (2026-06-26 T63) -- confirms focused-session
+Probed the "direct non-libtool clang link" option: libtool does NOT emit the full clang link command to
+/tmp/make-thunar.log (only "CCLD thunar"), so it can't be lifted-and-modified from the log; and under
+`--enable-static --disable-shared` the thunar program objects are non-PIC scattered (`thunar/.libs/*.o` empty).
+Reconstructing the link by hand (objects + lib order) is exactly the interactive focused-session work.
+UNTRIED OPTION worth a shot in that session (simplest first): pass the SBR's individual `.o` files DIRECTLY in
+LIBS (not the `.a`) -- `thunar_sbr_la-*.o` -- since directly-listed objects are linked unconditionally where
+archive members are pulled-on-reference; pair with `-Wl,--no-gc-sections` or `-Wl,-u,thunar_extension_initialize`
+if wasm-ld still GCs them. If that fails, use `libtool --mode=link --dry-run`/`-n` to print the real clang
+command, then run it directly with a genuine `--whole-archive $SBR_A`.
