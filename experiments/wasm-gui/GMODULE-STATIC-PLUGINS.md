@@ -154,4 +154,4 @@ keep-shim/symwrap/sentinel were all unnecessary and are DELETED (gmodule-static-
 thunar-sbr-keep.c). The one shared-shim change is additive: __wrap_g_module_open accepts a path if the name is
 registered for xfce_panel_module_init/construct OR thunar_extension_initialize (the per-binary table makes these
 mutually exclusive -- no panel regression). Re-verified: thunar bulk-rename renamers load
-(xu5-thunar-sbr-consolidated.png); panel regression-verify in progress. One gmodule mechanism for both families.
+(xu5-thunar-sbr-consolidated.png); panel regression-verify PASSED (fresh 54MB binary, 0 undefined). One gmodule mechanism for both families.
