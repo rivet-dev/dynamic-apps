@@ -148,3 +148,30 @@ keep using the existing bulk dataBuffer SAB (the proven M8.6 memcpy path). RingC
 over-capacity request upfront with a clear error (instead of spin-stalling forever), so the caller routes large
 payloads to the bulk path. Validated: 2000-RPC realistic-load test (4 KiB ring, payloads 1B..ring-cap, tight
 wraps) + an over-capacity rejection test, both green (experiments/wasm-gui/t1-ring/sab-ring-rpc.test.mjs).
+
+## End-to-end wiring plan (2026-06-26) — handle-flow + servicing point pinned
+
+Servicing chain (mapped): guest emits `WasmExecutionEvent::SyncRpcRequest` (wasm.rs) -> mapped to
+`ActiveExecutionEvent::JavascriptSyncRpcRequest` (execution.rs:2682) -> serviced by the per-execution sync-RPC
+path in crates/sidecar/src/execution.rs (the request structs at execution.rs:916/937/969/981; service entry
+service_javascript_sync_rpc), NOT the top-level service.rs handle_javascript_sync_rpc_request. THIS resolves the
+earlier 0-lines traces: they were placed in service.rs; the embedded WASM kernel-forwarded RPCs go through
+execution.rs. Place the T1 wiring + any Root-2 trace HERE.
+
+Handle-flow (resolved): the ring SAB lives in the V8 isolate (v8-runtime); the servicing runs in the sidecar
+(execution.rs). A v8 `SharedRef<BackingStore>` is `Send`, so:
+1. v8-runtime, at guest setup (session.rs context setup, ~line 916): create a per-guest ring SAB
+   (`v8::SharedArrayBuffer`), expose it to the guest as a global (e.g. `__agentOsT1Ring`), and capture its
+   backing-store `SharedRef` (ptr+len).
+2. Hand that `SharedRef` (ptr/len) to the sidecar execution state once (via the execution handle / a setup event),
+   gated behind `SECURE_EXEC_T1_RING`.
+3. sidecar execution.rs, at the kernel-forwarded sync-RPC servicing: instead of decoding the base64 request, call
+   `SabRingEndpoint::service_from_raw(req_ptr, req_len, resp_ptr, resp_len, |req| service_kernel_rpc(req))` using
+   the held backing-store ptr/len. `read_request` validates every hostile field; the response is written to the
+   ring; the guest's existing synthetic-wait poll picks it up (Phase 1, no doorbell).
+4. guest runner (wasm.rs embedded JS): when `__agentOsT1Ring` is present, route the sync-RPC through the inlined
+   RingChannel (t1-ring/sab-ring.mjs logic) instead of the base64 path; else fall back (flag off).
+5. MEASURE: per-RPC servicing time at execution.rs before/after, + a multi-guest desktop render.
+
+Foundation status: data + protocol + host servicing (`service_from_raw`) all BUILT + TESTED (16/16 Rust, JS e2e +
+2000-RPC realistic load). The above 5 steps are the remaining mechanical wiring, now pinned to file:line.
