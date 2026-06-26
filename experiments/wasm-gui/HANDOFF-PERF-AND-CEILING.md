@@ -1,10 +1,10 @@
 # Xubuntu-on-wasm: handoff — two deep platform roots block the last milestones
 
-**Status (2026-06-25):** XU0–XU4 DONE; XU6 = three bundled apps render with verified real text
-(xfce4-appfinder, mousepad, ristretto) + the xfce4-notifyd daemon's full build + D-Bus chain works. The
-remaining items (XU5 Thunar, the notifyd popup, the xfce4-terminal, XU7 full session) are gated on **two
-deep, thoroughly-characterized platform roots**, both needing a focused effort / human sign-off — they
-are NOT app-side bugs and are NOT fixable by patching components (constraint #5).
+**Status (2026-06-25):** **XU0–XU5 DONE; XU6 = appfinder + mousepad + ristretto + the notifyd notification
+popup all RENDER** (verified screenshots, real text/icons, all wasm). Every single-guest desktop
+component works. The only remaining milestones are **xfce4-terminal** (blocked at VTE's hard `fork`
+requirement) and **XU7 full session** (4 guests at once). Both are gated on **deep platform/runtime
+decisions** needing human sign-off — NOT app-side bugs, NOT fixable by patching components (constraint #5).
 
 This document is the decision point. Everything below the line is reproducible from the committed repros
 (`guest-xclient/{popup-repro,pango-bench,xsync-bench,map-bench}.c`) and `M8-STATUS-LOG.md`.
