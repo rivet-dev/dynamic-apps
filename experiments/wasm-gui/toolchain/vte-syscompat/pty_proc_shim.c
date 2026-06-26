@@ -48,4 +48,3 @@ int cfsetospeed(struct termios *t, speed_t s) { (void)t; (void)s; return 0; }
 int cfsetspeed(struct termios *t, speed_t s) { (void)t; (void)s; return 0; }
 pid_t tcgetsid(int fd) { (void)fd; return getpid(); }
 int kill(pid_t p, int s) { (void)p; (void)s; return 0; }
-int dup2(int oldfd, int newfd) { if (oldfd == newfd) return newfd; return newfd; /* fork-child dups go via posix_spawn file_actions; placeholder */ }
