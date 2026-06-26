@@ -511,6 +511,7 @@ fn extension_interrupt_response(
                 | RequestPayload::SnapshotRootFilesystemRequest
                 | RequestPayload::ExecuteRequest(_)
                 | RequestPayload::WriteStdinRequest(_)
+                | RequestPayload::ResizePtyRequest(_)
                 | RequestPayload::CloseStdinRequest(_)
                 | RequestPayload::GetProcessSnapshotRequest
                 | RequestPayload::FindListenerRequest(_)
@@ -586,6 +587,7 @@ fn interrupted_extension_dispatch(
         | RequestPayload::SnapshotRootFilesystemRequest
         | RequestPayload::ExecuteRequest(_)
         | RequestPayload::WriteStdinRequest(_)
+        | RequestPayload::ResizePtyRequest(_)
         | RequestPayload::CloseStdinRequest(_)
         | RequestPayload::KillProcessRequest(_)
         | RequestPayload::GetProcessSnapshotRequest

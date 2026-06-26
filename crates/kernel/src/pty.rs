@@ -225,6 +225,7 @@ struct PtyState {
     path: String,
     input_buffer: VecDeque<Vec<u8>>,
     output_buffer: VecDeque<Vec<u8>>,
+    input_eof_pending: bool,
     closed_master: bool,
     closed_slave: bool,
     waiting_input_reads: VecDeque<u64>,
@@ -420,7 +421,9 @@ impl PtyManager {
                 }
             }
             PtyEndKind::Slave => {
-                if requested.intersects(POLLIN) && !pty.input_buffer.is_empty() {
+                if requested.intersects(POLLIN)
+                    && (pty.input_eof_pending || !pty.input_buffer.is_empty())
+                {
                     events |= POLLIN;
                 }
                 if pty.closed_master {
@@ -574,6 +577,15 @@ impl PtyManager {
                             }
                             self.notify_waiters_and_pollers();
                             return Ok(Some(result));
+                        }
+
+                        if pty.input_eof_pending {
+                            pty.input_eof_pending = false;
+                            if let Some(id) = waiter_id {
+                                state.waiters.remove(&id);
+                            }
+                            self.notify_waiters_and_pollers();
+                            return Ok(None);
                         }
 
                         if pty.closed_master {
@@ -790,6 +802,20 @@ impl PtyManager {
             .ok_or_else(|| PtyError::bad_file_descriptor("PTY not found"))
     }
 
+    pub fn window_size(&self, description_id: u64) -> PtyResult<PtyWindowSize> {
+        let state = lock_or_recover(&self.inner.state);
+        let pty_ref = state
+            .desc_to_pty
+            .get(&description_id)
+            .copied()
+            .ok_or_else(|| PtyError::bad_file_descriptor("not a PTY end"))?;
+        state
+            .ptys
+            .get(&pty_ref.pty_id)
+            .map(|pty| pty.window_size)
+            .ok_or_else(|| PtyError::bad_file_descriptor("PTY not found"))
+    }
+
     pub fn resize(&self, description_id: u64, cols: u16, rows: u16) -> PtyResult<Option<u32>> {
         let mut state = lock_or_recover(&self.inner.state);
         let pty_ref = state
@@ -911,7 +937,7 @@ fn process_input(
         if pty.termios.icanon {
             if byte == pty.termios.cc.veof {
                 if pty.line_buffer.is_empty() {
-                    deliver_input(pty, waiters, &[])?;
+                    deliver_input_eof(pty, waiters);
                 } else {
                     let line = pty.line_buffer.clone();
                     deliver_input(pty, waiters, &line)?;
@@ -1002,6 +1028,17 @@ fn deliver_input(
 
     pty.input_buffer.push_back(data.to_vec());
     Ok(())
+}
+
+fn deliver_input_eof(pty: &mut PtyState, waiters: &mut BTreeMap<u64, PendingRead>) {
+    if let Some(waiter_id) = pty.waiting_input_reads.pop_front() {
+        if let Some(waiter) = waiters.get_mut(&waiter_id) {
+            waiter.result = Some(None);
+            return;
+        }
+    }
+
+    pty.input_eof_pending = true;
 }
 
 fn deliver_output(

@@ -1,19 +1,72 @@
-diff -ruN '--exclude=*.orig' a/src/cursor/sys/wasi.rs src/cursor/sys/wasi.rs
+diff -ruN '--exclude=*.orig' a/src/cursor/sys/wasi.rs b/src/cursor/sys/wasi.rs
 --- a/src/cursor/sys/wasi.rs	1969-12-31 16:00:00.000000000 -0800
-+++ b/src/cursor/sys/wasi.rs	2026-03-21 16:45:39.940014592 -0700
-@@ -0,0 +1,9 @@
++++ b/src/cursor/sys/wasi.rs	2026-06-27 12:35:25.293090904 -0700
+@@ -0,0 +1,62 @@
 +//! WASI-specific cursor functions.
++//!
++//! The WasmVM PTY answers a DSR (`ESC[6n`) request with a real CPR reply, so
++//! the cursor position is read exactly like the Unix backend instead of being
++//! stubbed to `(0, 0)`. A correct cursor row is required by line editors such
++//! as reedline: it anchors the prompt's `prompt_start_row`, and a wrong anchor
++//! makes every repaint `MoveTo(0, 0)` + `Clear(FromCursorDown)`, wiping the
++//! whole screen on each keystroke and after every accepted line.
 +
-+use std::io;
++use std::io::{self, Error, ErrorKind, Write};
++use std::time::Duration;
++
++use crate::event::{filter::CursorPositionFilter, poll_internal, read_internal, InternalEvent};
++use crate::terminal::sys::is_raw_mode_enabled;
 +
 +/// Returns the cursor position (column, row).
-+/// On WASI, returns (0, 0) as a stub.
++///
++/// The top left cell is represented as `(0, 0)`.
 +pub fn position() -> io::Result<(u16, u16)> {
-+    Ok((0, 0))
++    if is_raw_mode_enabled() {
++        read_position_raw()
++    } else {
++        read_position()
++    }
 +}
-diff -ruN '--exclude=*.orig' a/src/cursor/sys.rs src/cursor/sys.rs
---- a/src/cursor/sys.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/cursor/sys.rs	2026-03-21 16:45:35.728014945 -0700
++
++fn read_position() -> io::Result<(u16, u16)> {
++    use crate::terminal::{disable_raw_mode, enable_raw_mode};
++
++    enable_raw_mode()?;
++    let pos = read_position_raw();
++    disable_raw_mode()?;
++    pos
++}
++
++fn read_position_raw() -> io::Result<(u16, u16)> {
++    // Request the cursor position with `ESC [ 6 n`. The reply (`ESC [ row ; col R`)
++    // arrives on stdin and is decoded by the shared event parser as
++    // `InternalEvent::CursorPosition`, exactly as on Unix.
++    let mut stdout = io::stdout();
++    stdout.write_all(b"\x1b[6n")?;
++    stdout.flush()?;
++
++    loop {
++        match poll_internal(Some(Duration::from_millis(2000)), &CursorPositionFilter) {
++            Ok(true) => {
++                if let Ok(InternalEvent::CursorPosition(x, y)) =
++                    read_internal(&CursorPositionFilter)
++                {
++                    return Ok((x, y));
++                }
++            }
++            Ok(false) => {
++                return Err(Error::new(
++                    ErrorKind::Other,
++                    "The cursor position could not be read within a normal duration",
++                ));
++            }
++            Err(_) => {}
++        }
++    }
++}
+diff -ruN '--exclude=*.orig' a/src/cursor/sys.rs b/src/cursor/sys.rs
+--- a/src/cursor/sys.rs	2026-06-27 12:35:25.289090903 -0700
++++ b/src/cursor/sys.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -6,6 +6,9 @@
  #[cfg(windows)]
  #[cfg(feature = "events")]
@@ -32,24 +85,38 @@ diff -ruN '--exclude=*.orig' a/src/cursor/sys.rs src/cursor/sys.rs
 +#[cfg(target_os = "wasi")]
 +#[cfg(feature = "events")]
 +pub(crate) mod wasi;
-diff -ruN '--exclude=*.orig' a/src/event/filter.rs src/event/filter.rs
---- a/src/event/filter.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/event/filter.rs	2026-03-21 16:44:15.332026002 -0700
-@@ -55,6 +55,11 @@
+diff -ruN '--exclude=*.orig' a/src/event/filter.rs b/src/event/filter.rs
+--- a/src/event/filter.rs	2026-06-27 12:35:25.289090903 -0700
++++ b/src/event/filter.rs	2026-06-27 12:35:25.293090904 -0700
+@@ -6,11 +6,11 @@
+     fn eval(&self, event: &InternalEvent) -> bool;
+ }
+ 
+-#[cfg(unix)]
++#[cfg(any(unix, target_os = "wasi"))]
+ #[derive(Debug, Clone)]
+ pub(crate) struct CursorPositionFilter;
+ 
+-#[cfg(unix)]
++#[cfg(any(unix, target_os = "wasi"))]
+ impl Filter for CursorPositionFilter {
+     fn eval(&self, event: &InternalEvent) -> bool {
+         matches!(*event, InternalEvent::CursorPosition(_, _))
+@@ -54,6 +54,11 @@
+     fn eval(&self, event: &InternalEvent) -> bool {
          matches!(*event, InternalEvent::Event(_))
      }
- 
++
 +    #[cfg(target_os = "wasi")]
 +    fn eval(&self, event: &InternalEvent) -> bool {
 +        matches!(*event, InternalEvent::Event(_))
 +    }
-+
+ 
      #[cfg(windows)]
      fn eval(&self, _: &InternalEvent) -> bool {
-         true
-diff -ruN '--exclude=*.orig' a/src/event/read.rs src/event/read.rs
---- a/src/event/read.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/event/read.rs	2026-03-21 16:45:02.056018546 -0700
+diff -ruN '--exclude=*.orig' a/src/event/read.rs b/src/event/read.rs
+--- a/src/event/read.rs	2026-06-27 12:35:25.289090903 -0700
++++ b/src/event/read.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -2,6 +2,8 @@
  
  #[cfg(unix)]
@@ -68,13 +135,14 @@ diff -ruN '--exclude=*.orig' a/src/event/read.rs src/event/read.rs
  
          let source = source.ok().map(|x| Box::new(x) as Box<dyn EventSource>);
  
-diff -ruN '--exclude=*.orig' a/src/event/source/wasi.rs src/event/source/wasi.rs
+diff -ruN '--exclude=*.orig' a/src/event/source/wasi.rs b/src/event/source/wasi.rs
 --- a/src/event/source/wasi.rs	1969-12-31 16:00:00.000000000 -0800
-+++ b/src/event/source/wasi.rs	2026-03-21 16:44:47.396020569 -0700
-@@ -0,0 +1,51 @@
++++ b/src/event/source/wasi.rs	2026-06-27 12:35:25.293090904 -0700
+@@ -0,0 +1,137 @@
 +//! WASI event source — reads raw bytes from stdin and parses ANSI escape sequences.
 +
-+use std::io::{self, Read};
++use std::collections::VecDeque;
++use std::io;
 +use std::time::Duration;
 +
 +#[cfg(feature = "event-stream")]
@@ -82,40 +150,61 @@ diff -ruN '--exclude=*.orig' a/src/event/source/wasi.rs src/event/source/wasi.rs
 +use super::{EventSource, InternalEvent};
 +use crate::event::sys::unix::parse::parse_event;
 +
++#[link(wasm_import_module = "host_tty")]
++unsafe extern "C" {
++    fn read(ptr: *mut u8, len: usize, timeout_ms: usize) -> usize;
++}
++
++const BLOCKING_TIMEOUT_MS: usize = usize::MAX;
++const CONTINUATION_TIMEOUT_MS: usize = 10;
++
++fn timeout_to_ms(timeout: Option<Duration>) -> usize {
++    match timeout {
++        None => BLOCKING_TIMEOUT_MS,
++        Some(timeout) => timeout.as_millis().min((BLOCKING_TIMEOUT_MS - 1) as u128) as usize,
++    }
++}
++
++/// WASI event source that reads from stdin and parses terminal input.
 +pub(crate) struct WasiEventSource {
-+    buffer: Vec<u8>,
++    parser: Parser,
 +}
 +
 +impl WasiEventSource {
 +    pub fn new() -> io::Result<Self> {
 +        Ok(Self {
-+            buffer: Vec::with_capacity(256),
++            parser: Parser::default(),
 +        })
 +    }
 +}
 +
 +impl EventSource for WasiEventSource {
-+    fn try_read(&mut self, _timeout: Option<Duration>) -> io::Result<Option<InternalEvent>> {
-+        let mut buf = [0u8; 64];
-+        let n = io::stdin().read(&mut buf)?;
++    fn try_read(&mut self, timeout: Option<Duration>) -> io::Result<Option<InternalEvent>> {
++        if let Some(event) = self.parser.next() {
++            return Ok(Some(event));
++        }
++
++        let mut buf = [0u8; 1];
++        let n = unsafe { read(buf.as_mut_ptr(), buf.len(), timeout_to_ms(timeout)) };
 +        if n == 0 {
 +            return Ok(None);
 +        }
 +
-+        self.buffer.extend_from_slice(&buf[..n]);
++        self.parser.advance(&buf[..n], true);
++        while self.parser.has_pending_prefix() {
++            if let Some(event) = self.parser.next() {
++                return Ok(Some(event));
++            }
 +
-+        let more_available = self.buffer.len() > 1;
-+        match parse_event(&self.buffer, more_available) {
-+            Ok(Some(event)) => {
-+                self.buffer.clear();
-+                Ok(Some(event))
++            let n = unsafe { read(buf.as_mut_ptr(), buf.len(), CONTINUATION_TIMEOUT_MS) };
++            if n == 0 {
++                self.parser.finish();
++                break;
 +            }
-+            Ok(None) => Ok(None),
-+            Err(_) => {
-+                self.buffer.clear();
-+                Ok(None)
-+            }
++            self.parser.advance(&buf[..n], true);
 +        }
++
++        Ok(self.parser.next())
 +    }
 +
 +    #[cfg(feature = "event-stream")]
@@ -123,9 +212,73 @@ diff -ruN '--exclude=*.orig' a/src/event/source/wasi.rs src/event/source/wasi.rs
 +        unimplemented!("event-stream not supported on WASI")
 +    }
 +}
-diff -ruN '--exclude=*.orig' a/src/event/source.rs src/event/source.rs
---- a/src/event/source.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/event/source.rs	2026-03-21 16:44:39.664021751 -0700
++
++#[derive(Debug)]
++struct Parser {
++    buffer: Vec<u8>,
++    internal_events: VecDeque<InternalEvent>,
++}
++
++impl Default for Parser {
++    fn default() -> Self {
++        Self {
++            buffer: Vec::with_capacity(256),
++            internal_events: VecDeque::with_capacity(128),
++        }
++    }
++}
++
++impl Parser {
++    fn has_pending_prefix(&self) -> bool {
++        !self.buffer.is_empty()
++    }
++
++    fn finish(&mut self) {
++        if self.buffer.is_empty() {
++            return;
++        }
++
++        match parse_event(&self.buffer, false) {
++            Ok(Some(event)) => {
++                self.internal_events.push_back(event);
++                self.buffer.clear();
++            }
++            Ok(None) | Err(_) => {
++                self.buffer.clear();
++            }
++        }
++    }
++
++    fn advance(&mut self, buffer: &[u8], more: bool) {
++        for (idx, byte) in buffer.iter().enumerate() {
++            let more = idx + 1 < buffer.len() || more;
++
++            self.buffer.push(*byte);
++
++            match parse_event(&self.buffer, more) {
++                Ok(Some(event)) => {
++                    self.internal_events.push_back(event);
++                    self.buffer.clear();
++                }
++                Ok(None) => {}
++                Err(_) => {
++                    self.buffer.clear();
++                }
++            }
++        }
++    }
++}
++
++impl Iterator for Parser {
++    type Item = InternalEvent;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        self.internal_events.pop_front()
++    }
++}
+diff -ruN '--exclude=*.orig' a/src/event/source.rs b/src/event/source.rs
+--- a/src/event/source.rs	2026-06-27 12:35:25.289090903 -0700
++++ b/src/event/source.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -6,6 +6,8 @@
  
  #[cfg(unix)]
@@ -135,9 +288,9 @@ diff -ruN '--exclude=*.orig' a/src/event/source.rs src/event/source.rs
  #[cfg(windows)]
  pub(crate) mod windows;
  
-diff -ruN '--exclude=*.orig' a/src/event/sys.rs src/event/sys.rs
---- a/src/event/sys.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/event/sys.rs	2026-03-21 16:45:06.960017933 -0700
+diff -ruN '--exclude=*.orig' a/src/event/sys.rs b/src/event/sys.rs
+--- a/src/event/sys.rs	2026-06-27 12:35:25.293090904 -0700
++++ b/src/event/sys.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -3,7 +3,7 @@
  #[cfg(all(windows, feature = "event-stream"))]
  pub(crate) use windows::waker::Waker;
@@ -147,9 +300,9 @@ diff -ruN '--exclude=*.orig' a/src/event/sys.rs src/event/sys.rs
  pub(crate) mod unix;
  #[cfg(windows)]
  pub(crate) mod windows;
-diff -ruN '--exclude=*.orig' a/src/event.rs src/event.rs
---- a/src/event.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/event.rs	2026-03-21 16:45:28.060015641 -0700
+diff -ruN '--exclude=*.orig' a/src/event.rs b/src/event.rs
+--- a/src/event.rs	2026-06-27 12:35:25.293090904 -0700
++++ b/src/event.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -247,7 +247,7 @@
  pub fn read() -> std::io::Result<Event> {
      match read_internal(&EventFilter)? {
@@ -185,10 +338,10 @@ diff -ruN '--exclude=*.orig' a/src/event.rs src/event.rs
      PrimaryDeviceAttributes,
  }
  
-diff -ruN '--exclude=*.orig' a/src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
+diff -ruN '--exclude=*.orig' a/src/terminal/sys/wasi.rs b/src/terminal/sys/wasi.rs
 --- a/src/terminal/sys/wasi.rs	1969-12-31 16:00:00.000000000 -0800
-+++ b/src/terminal/sys/wasi.rs	2026-03-21 16:44:33.460022756 -0700
-@@ -0,0 +1,49 @@
++++ b/src/terminal/sys/wasi.rs	2026-06-27 12:35:25.293090904 -0700
+@@ -0,0 +1,62 @@
 +//! WASI-specific terminal functions.
 +
 +use std::io;
@@ -198,16 +351,29 @@ diff -ruN '--exclude=*.orig' a/src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
 +
 +static RAW_MODE_ENABLED: AtomicBool = AtomicBool::new(false);
 +
++#[link(wasm_import_module = "host_tty")]
++unsafe extern "C" {
++    fn set_raw_mode(enabled: u32) -> u32;
++}
++
 +pub(crate) fn is_raw_mode_enabled() -> bool {
 +    RAW_MODE_ENABLED.load(Ordering::SeqCst)
 +}
 +
 +pub(crate) fn enable_raw_mode() -> io::Result<()> {
++    let errno = unsafe { set_raw_mode(1) };
++    if errno != 0 {
++        return Err(io::Error::from_raw_os_error(errno as i32));
++    }
 +    RAW_MODE_ENABLED.store(true, Ordering::SeqCst);
 +    Ok(())
 +}
 +
 +pub(crate) fn disable_raw_mode() -> io::Result<()> {
++    let errno = unsafe { set_raw_mode(0) };
++    if errno != 0 {
++        return Err(io::Error::from_raw_os_error(errno as i32));
++    }
 +    RAW_MODE_ENABLED.store(false, Ordering::SeqCst);
 +    Ok(())
 +}
@@ -235,12 +401,12 @@ diff -ruN '--exclude=*.orig' a/src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
 +}
 +
 +#[cfg(feature = "events")]
-+pub fn supports_keyboard_enhancement() -> bool {
-+    false
++pub fn supports_keyboard_enhancement() -> io::Result<bool> {
++    Ok(false)
 +}
-diff -ruN '--exclude=*.orig' a/src/terminal/sys.rs src/terminal/sys.rs
---- a/src/terminal/sys.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/terminal/sys.rs	2026-03-21 16:44:26.788023898 -0700
+diff -ruN '--exclude=*.orig' a/src/terminal/sys.rs b/src/terminal/sys.rs
+--- a/src/terminal/sys.rs	2026-06-27 12:35:25.293090904 -0700
++++ b/src/terminal/sys.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -18,6 +18,14 @@
      set_size, set_window_title, size, window_size,
  };
@@ -263,9 +429,9 @@ diff -ruN '--exclude=*.orig' a/src/terminal/sys.rs src/terminal/sys.rs
 +
 +#[cfg(target_os = "wasi")]
 +mod wasi;
-diff -ruN '--exclude=*.orig' a/src/terminal.rs src/terminal.rs
---- a/src/terminal.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/terminal.rs	2026-03-21 16:44:20.548025021 -0700
+diff -ruN '--exclude=*.orig' a/src/terminal.rs b/src/terminal.rs
+--- a/src/terminal.rs	2026-06-27 12:35:25.293090904 -0700
++++ b/src/terminal.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -114,6 +114,11 @@
      {
          sys::is_raw_mode_enabled()
@@ -278,9 +444,9 @@ diff -ruN '--exclude=*.orig' a/src/terminal.rs src/terminal.rs
  }
  
  /// Enables raw mode.
-diff -ruN '--exclude=*.orig' a/src/tty.rs src/tty.rs
---- a/src/tty.rs	2026-03-21 16:44:07.904027465 -0700
-+++ b/src/tty.rs	2026-03-21 16:45:45.828014137 -0700
+diff -ruN '--exclude=*.orig' a/src/tty.rs b/src/tty.rs
+--- a/src/tty.rs	2026-06-27 12:35:25.293090904 -0700
++++ b/src/tty.rs	2026-06-27 12:35:25.293090904 -0700
 @@ -52,3 +52,10 @@
          ok == 1
      }

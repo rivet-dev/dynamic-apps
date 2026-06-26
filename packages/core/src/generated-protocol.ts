@@ -1728,6 +1728,26 @@ export function writeWriteStdinRequest(bc: bare.ByteCursor, x: WriteStdinRequest
     bare.writeData(bc, x.chunk)
 }
 
+export type ResizePtyRequest = {
+    readonly processId: string
+    readonly cols: u16
+    readonly rows: u16
+}
+
+export function readResizePtyRequest(bc: bare.ByteCursor): ResizePtyRequest {
+    return {
+        processId: bare.readString(bc),
+        cols: bare.readU16(bc),
+        rows: bare.readU16(bc),
+    }
+}
+
+export function writeResizePtyRequest(bc: bare.ByteCursor, x: ResizePtyRequest): void {
+    bare.writeString(bc, x.processId)
+    bare.writeU16(bc, x.cols)
+    bare.writeU16(bc, x.rows)
+}
+
 export type CloseStdinRequest = {
     readonly processId: string
 }
@@ -1987,6 +2007,7 @@ export type RequestPayload =
     | { readonly tag: "SnapshotRootFilesystemRequest"; readonly val: SnapshotRootFilesystemRequest }
     | { readonly tag: "ExecuteRequest"; readonly val: ExecuteRequest }
     | { readonly tag: "WriteStdinRequest"; readonly val: WriteStdinRequest }
+    | { readonly tag: "ResizePtyRequest"; readonly val: ResizePtyRequest }
     | { readonly tag: "CloseStdinRequest"; readonly val: CloseStdinRequest }
     | { readonly tag: "KillProcessRequest"; readonly val: KillProcessRequest }
     | { readonly tag: "GetProcessSnapshotRequest"; readonly val: GetProcessSnapshotRequest }
@@ -2037,28 +2058,30 @@ export function readRequestPayload(bc: bare.ByteCursor): RequestPayload {
         case 15:
             return { tag: "WriteStdinRequest", val: readWriteStdinRequest(bc) }
         case 16:
-            return { tag: "CloseStdinRequest", val: readCloseStdinRequest(bc) }
+            return { tag: "ResizePtyRequest", val: readResizePtyRequest(bc) }
         case 17:
-            return { tag: "KillProcessRequest", val: readKillProcessRequest(bc) }
+            return { tag: "CloseStdinRequest", val: readCloseStdinRequest(bc) }
         case 18:
-            return { tag: "GetProcessSnapshotRequest", val: null }
+            return { tag: "KillProcessRequest", val: readKillProcessRequest(bc) }
         case 19:
-            return { tag: "FindListenerRequest", val: readFindListenerRequest(bc) }
+            return { tag: "GetProcessSnapshotRequest", val: null }
         case 20:
-            return { tag: "FindBoundUdpRequest", val: readFindBoundUdpRequest(bc) }
+            return { tag: "FindListenerRequest", val: readFindListenerRequest(bc) }
         case 21:
-            return { tag: "GetSignalStateRequest", val: readGetSignalStateRequest(bc) }
+            return { tag: "FindBoundUdpRequest", val: readFindBoundUdpRequest(bc) }
         case 22:
-            return { tag: "GetZombieTimerCountRequest", val: null }
+            return { tag: "GetSignalStateRequest", val: readGetSignalStateRequest(bc) }
         case 23:
-            return { tag: "HostFilesystemCallRequest", val: readHostFilesystemCallRequest(bc) }
+            return { tag: "GetZombieTimerCountRequest", val: null }
         case 24:
-            return { tag: "PersistenceLoadRequest", val: readPersistenceLoadRequest(bc) }
+            return { tag: "HostFilesystemCallRequest", val: readHostFilesystemCallRequest(bc) }
         case 25:
-            return { tag: "PersistenceFlushRequest", val: readPersistenceFlushRequest(bc) }
+            return { tag: "PersistenceLoadRequest", val: readPersistenceLoadRequest(bc) }
         case 26:
-            return { tag: "VmFetchRequest", val: readVmFetchRequest(bc) }
+            return { tag: "PersistenceFlushRequest", val: readPersistenceFlushRequest(bc) }
         case 27:
+            return { tag: "VmFetchRequest", val: readVmFetchRequest(bc) }
+        case 28:
             return { tag: "ExtEnvelope", val: readExtEnvelope(bc) }
         default: {
             bc.offset = offset
@@ -2147,61 +2170,66 @@ export function writeRequestPayload(bc: bare.ByteCursor, x: RequestPayload): voi
             writeWriteStdinRequest(bc, x.val)
             break
         }
-        case "CloseStdinRequest": {
+        case "ResizePtyRequest": {
             bare.writeU8(bc, 16)
+            writeResizePtyRequest(bc, x.val)
+            break
+        }
+        case "CloseStdinRequest": {
+            bare.writeU8(bc, 17)
             writeCloseStdinRequest(bc, x.val)
             break
         }
         case "KillProcessRequest": {
-            bare.writeU8(bc, 17)
+            bare.writeU8(bc, 18)
             writeKillProcessRequest(bc, x.val)
             break
         }
         case "GetProcessSnapshotRequest": {
-            bare.writeU8(bc, 18)
+            bare.writeU8(bc, 19)
             break
         }
         case "FindListenerRequest": {
-            bare.writeU8(bc, 19)
+            bare.writeU8(bc, 20)
             writeFindListenerRequest(bc, x.val)
             break
         }
         case "FindBoundUdpRequest": {
-            bare.writeU8(bc, 20)
+            bare.writeU8(bc, 21)
             writeFindBoundUdpRequest(bc, x.val)
             break
         }
         case "GetSignalStateRequest": {
-            bare.writeU8(bc, 21)
+            bare.writeU8(bc, 22)
             writeGetSignalStateRequest(bc, x.val)
             break
         }
         case "GetZombieTimerCountRequest": {
-            bare.writeU8(bc, 22)
+            bare.writeU8(bc, 23)
             break
         }
         case "HostFilesystemCallRequest": {
-            bare.writeU8(bc, 23)
+            bare.writeU8(bc, 24)
             writeHostFilesystemCallRequest(bc, x.val)
             break
         }
         case "PersistenceLoadRequest": {
-            bare.writeU8(bc, 24)
+            bare.writeU8(bc, 25)
             writePersistenceLoadRequest(bc, x.val)
             break
         }
         case "PersistenceFlushRequest": {
-            bare.writeU8(bc, 25)
+            bare.writeU8(bc, 26)
             writePersistenceFlushRequest(bc, x.val)
             break
         }
         case "VmFetchRequest": {
-            bare.writeU8(bc, 26)
+            bare.writeU8(bc, 27)
             writeVmFetchRequest(bc, x.val)
             break
         }
         case "ExtEnvelope": {
-            bare.writeU8(bc, 27)
+            bare.writeU8(bc, 28)
             writeExtEnvelope(bc, x.val)
             break
         }
@@ -2587,6 +2615,26 @@ export function readStdinWrittenResponse(bc: bare.ByteCursor): StdinWrittenRespo
 export function writeStdinWrittenResponse(bc: bare.ByteCursor, x: StdinWrittenResponse): void {
     bare.writeString(bc, x.processId)
     bare.writeU64(bc, x.acceptedBytes)
+}
+
+export type PtyResizedResponse = {
+    readonly processId: string
+    readonly cols: u16
+    readonly rows: u16
+}
+
+export function readPtyResizedResponse(bc: bare.ByteCursor): PtyResizedResponse {
+    return {
+        processId: bare.readString(bc),
+        cols: bare.readU16(bc),
+        rows: bare.readU16(bc),
+    }
+}
+
+export function writePtyResizedResponse(bc: bare.ByteCursor, x: PtyResizedResponse): void {
+    bare.writeString(bc, x.processId)
+    bare.writeU16(bc, x.cols)
+    bare.writeU16(bc, x.rows)
 }
 
 export type StdinClosedResponse = {
@@ -3043,6 +3091,7 @@ export type ResponsePayload =
     | { readonly tag: "RootFilesystemSnapshotResponse"; readonly val: RootFilesystemSnapshotResponse }
     | { readonly tag: "ProcessStartedResponse"; readonly val: ProcessStartedResponse }
     | { readonly tag: "StdinWrittenResponse"; readonly val: StdinWrittenResponse }
+    | { readonly tag: "PtyResizedResponse"; readonly val: PtyResizedResponse }
     | { readonly tag: "StdinClosedResponse"; readonly val: StdinClosedResponse }
     | { readonly tag: "ProcessKilledResponse"; readonly val: ProcessKilledResponse }
     | { readonly tag: "ProcessSnapshotResponse"; readonly val: ProcessSnapshotResponse }
@@ -3095,32 +3144,34 @@ export function readResponsePayload(bc: bare.ByteCursor): ResponsePayload {
         case 15:
             return { tag: "StdinWrittenResponse", val: readStdinWrittenResponse(bc) }
         case 16:
-            return { tag: "StdinClosedResponse", val: readStdinClosedResponse(bc) }
+            return { tag: "PtyResizedResponse", val: readPtyResizedResponse(bc) }
         case 17:
-            return { tag: "ProcessKilledResponse", val: readProcessKilledResponse(bc) }
+            return { tag: "StdinClosedResponse", val: readStdinClosedResponse(bc) }
         case 18:
-            return { tag: "ProcessSnapshotResponse", val: readProcessSnapshotResponse(bc) }
+            return { tag: "ProcessKilledResponse", val: readProcessKilledResponse(bc) }
         case 19:
-            return { tag: "ListenerSnapshotResponse", val: readListenerSnapshotResponse(bc) }
+            return { tag: "ProcessSnapshotResponse", val: readProcessSnapshotResponse(bc) }
         case 20:
-            return { tag: "BoundUdpSnapshotResponse", val: readBoundUdpSnapshotResponse(bc) }
+            return { tag: "ListenerSnapshotResponse", val: readListenerSnapshotResponse(bc) }
         case 21:
-            return { tag: "SignalStateResponse", val: readSignalStateResponse(bc) }
+            return { tag: "BoundUdpSnapshotResponse", val: readBoundUdpSnapshotResponse(bc) }
         case 22:
-            return { tag: "ZombieTimerCountResponse", val: readZombieTimerCountResponse(bc) }
+            return { tag: "SignalStateResponse", val: readSignalStateResponse(bc) }
         case 23:
-            return { tag: "FilesystemResultResponse", val: readFilesystemResultResponse(bc) }
+            return { tag: "ZombieTimerCountResponse", val: readZombieTimerCountResponse(bc) }
         case 24:
-            return { tag: "PermissionDecisionResponse", val: readPermissionDecisionResponse(bc) }
+            return { tag: "FilesystemResultResponse", val: readFilesystemResultResponse(bc) }
         case 25:
-            return { tag: "PersistenceStateResponse", val: readPersistenceStateResponse(bc) }
+            return { tag: "PermissionDecisionResponse", val: readPermissionDecisionResponse(bc) }
         case 26:
-            return { tag: "PersistenceFlushedResponse", val: readPersistenceFlushedResponse(bc) }
+            return { tag: "PersistenceStateResponse", val: readPersistenceStateResponse(bc) }
         case 27:
-            return { tag: "RejectedResponse", val: readRejectedResponse(bc) }
+            return { tag: "PersistenceFlushedResponse", val: readPersistenceFlushedResponse(bc) }
         case 28:
-            return { tag: "VmFetchResponse", val: readVmFetchResponse(bc) }
+            return { tag: "RejectedResponse", val: readRejectedResponse(bc) }
         case 29:
+            return { tag: "VmFetchResponse", val: readVmFetchResponse(bc) }
+        case 30:
             return { tag: "ExtEnvelope", val: readExtEnvelope(bc) }
         default: {
             bc.offset = offset
@@ -3211,73 +3262,78 @@ export function writeResponsePayload(bc: bare.ByteCursor, x: ResponsePayload): v
             writeStdinWrittenResponse(bc, x.val)
             break
         }
-        case "StdinClosedResponse": {
+        case "PtyResizedResponse": {
             bare.writeU8(bc, 16)
+            writePtyResizedResponse(bc, x.val)
+            break
+        }
+        case "StdinClosedResponse": {
+            bare.writeU8(bc, 17)
             writeStdinClosedResponse(bc, x.val)
             break
         }
         case "ProcessKilledResponse": {
-            bare.writeU8(bc, 17)
+            bare.writeU8(bc, 18)
             writeProcessKilledResponse(bc, x.val)
             break
         }
         case "ProcessSnapshotResponse": {
-            bare.writeU8(bc, 18)
+            bare.writeU8(bc, 19)
             writeProcessSnapshotResponse(bc, x.val)
             break
         }
         case "ListenerSnapshotResponse": {
-            bare.writeU8(bc, 19)
+            bare.writeU8(bc, 20)
             writeListenerSnapshotResponse(bc, x.val)
             break
         }
         case "BoundUdpSnapshotResponse": {
-            bare.writeU8(bc, 20)
+            bare.writeU8(bc, 21)
             writeBoundUdpSnapshotResponse(bc, x.val)
             break
         }
         case "SignalStateResponse": {
-            bare.writeU8(bc, 21)
+            bare.writeU8(bc, 22)
             writeSignalStateResponse(bc, x.val)
             break
         }
         case "ZombieTimerCountResponse": {
-            bare.writeU8(bc, 22)
+            bare.writeU8(bc, 23)
             writeZombieTimerCountResponse(bc, x.val)
             break
         }
         case "FilesystemResultResponse": {
-            bare.writeU8(bc, 23)
+            bare.writeU8(bc, 24)
             writeFilesystemResultResponse(bc, x.val)
             break
         }
         case "PermissionDecisionResponse": {
-            bare.writeU8(bc, 24)
+            bare.writeU8(bc, 25)
             writePermissionDecisionResponse(bc, x.val)
             break
         }
         case "PersistenceStateResponse": {
-            bare.writeU8(bc, 25)
+            bare.writeU8(bc, 26)
             writePersistenceStateResponse(bc, x.val)
             break
         }
         case "PersistenceFlushedResponse": {
-            bare.writeU8(bc, 26)
+            bare.writeU8(bc, 27)
             writePersistenceFlushedResponse(bc, x.val)
             break
         }
         case "RejectedResponse": {
-            bare.writeU8(bc, 27)
+            bare.writeU8(bc, 28)
             writeRejectedResponse(bc, x.val)
             break
         }
         case "VmFetchResponse": {
-            bare.writeU8(bc, 28)
+            bare.writeU8(bc, 29)
             writeVmFetchResponse(bc, x.val)
             break
         }
         case "ExtEnvelope": {
-            bare.writeU8(bc, 29)
+            bare.writeU8(bc, 30)
             writeExtEnvelope(bc, x.val)
             break
         }

@@ -16,7 +16,8 @@ use crate::protocol::{
     JavascriptNetReserveTcpPortRequest, KillProcessRequest, ListenerSnapshotResponse,
     OwnershipScope, ProcessExitedEvent, ProcessKilledResponse, ProcessOutputEvent,
     ProcessSnapshotEntry, ProcessSnapshotResponse, ProcessSnapshotStatus, ProcessStartedResponse,
-    RequestFrame, ResponseFrame, ResponsePayload, SidecarRequestPayload, SignalDispositionAction,
+    PtyResizedResponse, RequestFrame, ResizePtyRequest, ResponseFrame, ResponsePayload,
+    SidecarRequestPayload, SignalDispositionAction,
     SignalHandlerRegistration, SignalStateResponse, SocketStateEntry, StdinClosedResponse,
     StdinWrittenResponse, StreamChannel, VmFetchRequest, VmFetchResponse, WasmPermissionTier,
     WriteStdinRequest, ZombieTimerCountResponse,
@@ -206,6 +207,7 @@ const DEFAULT_ALLOWED_NODE_BUILTINS: &[&str] = &[
     "util",
     "zlib",
 ];
+const EXECUTION_REQUEST_TTY_ENV: &str = "AGENTOS_EXEC_TTY";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum JavascriptCryptoDigestAlgorithm {
@@ -3120,8 +3122,13 @@ where
             }
         }
 
+        let requested_tty = payload
+            .env
+            .get(EXECUTION_REQUEST_TTY_ENV)
+            .is_some_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
         let resolved = resolve_execute_request(vm, &payload)?;
         let mut env = resolved.env.clone();
+        env.remove(EXECUTION_REQUEST_TTY_ENV);
         let sandbox_root = normalize_host_path(&vm.cwd);
         env.insert(
             String::from(EXECUTION_SANDBOX_ROOT_ENV),
@@ -3151,6 +3158,32 @@ where
             )
             .map_err(kernel_error)?;
         let kernel_pid = kernel_handle.pid();
+        let tty_master_fd = if requested_tty {
+            let (master_fd, slave_fd, _) = vm
+                .kernel
+                .open_pty(EXECUTION_DRIVER_NAME, kernel_pid)
+                .map_err(kernel_error)?;
+            vm.kernel
+                .fd_dup2(EXECUTION_DRIVER_NAME, kernel_pid, slave_fd, 0)
+                .map_err(kernel_error)?;
+            vm.kernel
+                .fd_dup2(EXECUTION_DRIVER_NAME, kernel_pid, slave_fd, 1)
+                .map_err(kernel_error)?;
+            vm.kernel
+                .fd_dup2(EXECUTION_DRIVER_NAME, kernel_pid, slave_fd, 2)
+                .map_err(kernel_error)?;
+            vm.kernel
+                .pty_set_foreground_pgid(EXECUTION_DRIVER_NAME, kernel_pid, master_fd, kernel_pid)
+                .map_err(kernel_error)?;
+            if let Some((cols, rows)) = requested_pty_window_size(&env) {
+                vm.kernel
+                    .pty_resize(EXECUTION_DRIVER_NAME, kernel_pid, master_fd, cols, rows)
+                    .map_err(kernel_error)?;
+            }
+            Some(master_fd)
+        } else {
+            None
+        };
 
         let (execution, process_env) = match resolved.runtime {
             GuestRuntimeKind::JavaScript => {
@@ -3290,7 +3323,11 @@ where
             }
         };
         let child_pid = execution.child_pid();
-        let kernel_stdin_writer_fd = install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?;
+        let kernel_stdin_writer_fd = if let Some(master_fd) = tty_master_fd {
+            master_fd
+        } else {
+            install_kernel_stdin_pipe(&mut vm.kernel, kernel_pid)?
+        };
         vm.active_processes.insert(
             payload.process_id.clone(),
             ActiveProcess::new(kernel_pid, kernel_handle, resolved.runtime, execution)
@@ -3311,6 +3348,56 @@ where
                     } else {
                         child_pid
                     }),
+                }),
+            ),
+            events: Vec::new(),
+        })
+    }
+
+    pub(crate) async fn resize_pty(
+        &mut self,
+        request: &RequestFrame,
+        payload: ResizePtyRequest,
+    ) -> Result<DispatchResult, SidecarError> {
+        let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
+        self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
+
+        let vm = self
+            .vms
+            .get_mut(&vm_id)
+            .ok_or_else(|| missing_vm_error(&vm_id))?;
+        let process = vm
+            .active_processes
+            .get_mut(&payload.process_id)
+            .ok_or_else(|| {
+                SidecarError::InvalidState(format!(
+                    "VM {vm_id} has no active process {}",
+                    payload.process_id
+                ))
+            })?;
+        let Some(writer_fd) = process.kernel_stdin_writer_fd else {
+            return Err(SidecarError::InvalidState(format!(
+                "process {} does not have a PTY",
+                payload.process_id
+            )));
+        };
+        vm.kernel
+            .pty_resize(
+                EXECUTION_DRIVER_NAME,
+                process.kernel_pid,
+                writer_fd,
+                payload.cols,
+                payload.rows,
+            )
+            .map_err(kernel_error)?;
+
+        Ok(DispatchResult {
+            response: self.respond(
+                request,
+                ResponsePayload::PtyResized(PtyResizedResponse {
+                    process_id: payload.process_id,
+                    cols: payload.cols,
+                    rows: payload.rows,
                 }),
             ),
             events: Vec::new(),
@@ -13798,6 +13885,10 @@ where
         "__kernel_stdio_write" => {
             service_javascript_kernel_stdio_write_sync_rpc(kernel, process, request)
         }
+        "__kernel_isatty" => service_javascript_kernel_isatty_sync_rpc(kernel, process, request),
+        "__kernel_tty_size" => {
+            service_javascript_kernel_tty_size_sync_rpc(kernel, process, request)
+        }
         "__kernel_poll" => service_javascript_kernel_poll_sync_rpc(kernel, process, request),
         "__pty_set_raw_mode" => {
             service_javascript_pty_set_raw_mode_sync_rpc(kernel, process, request)
@@ -16282,6 +16373,33 @@ fn service_javascript_pty_set_raw_mode_sync_rpc(
     Ok(Value::Null)
 }
 
+fn service_javascript_kernel_isatty_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_isatty fd")?;
+    let is_tty = kernel
+        .isatty(EXECUTION_DRIVER_NAME, process.kernel_pid, fd)
+        .map_err(kernel_error)?;
+    Ok(json!(is_tty))
+}
+
+fn service_javascript_kernel_tty_size_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_tty_size fd")?;
+    let size = kernel
+        .pty_window_size(EXECUTION_DRIVER_NAME, process.kernel_pid, fd)
+        .map_err(kernel_error)?;
+    Ok(json!({
+        "cols": size.cols,
+        "rows": size.rows,
+    }))
+}
+
 fn service_javascript_kernel_stdio_write_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &mut ActiveProcess,
@@ -16354,7 +16472,6 @@ fn service_javascript_kernel_poll_sync_rpc(
             timeout_ms,
         )
         .map_err(kernel_error)?;
-
     Ok(json!({
         "readyCount": result.ready_count,
         "fds": result
@@ -16380,6 +16497,18 @@ fn install_kernel_stdin_pipe(kernel: &mut SidecarKernel, pid: u32) -> Result<u32
         .fd_close(EXECUTION_DRIVER_NAME, pid, read_fd)
         .map_err(kernel_error)?;
     Ok(write_fd)
+    }
+
+fn requested_pty_window_size(env: &BTreeMap<String, String>) -> Option<(u16, u16)> {
+    let cols = env
+        .get("COLUMNS")
+        .and_then(|value| value.parse::<u16>().ok())
+        .filter(|value| *value > 0)?;
+    let rows = env
+        .get("LINES")
+        .and_then(|value| value.parse::<u16>().ok())
+        .filter(|value| *value > 0)?;
+    Some((cols, rows))
 }
 
 fn javascript_child_process_stdin_mode(request: &JavascriptChildProcessSpawnRequest) -> &str {

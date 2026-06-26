@@ -27,7 +27,9 @@ use crate::process_table::{
     ProcessTableError, ProcessWaitResult, SigmaskHow, SignalSet, DEFAULT_PROCESS_UMASK, SIGCONT,
     SIGPIPE, SIGSTOP, SIGTSTP, SIGWINCH,
 };
-use crate::pty::{LineDisciplineConfig, PartialTermios, PtyError, PtyManager, Termios};
+use crate::pty::{
+    LineDisciplineConfig, PartialTermios, PtyError, PtyManager, PtyWindowSize, Termios,
+};
 use crate::resource_accounting::{
     measure_filesystem_usage, FileSystemUsage, ResourceAccountant, ResourceError, ResourceLimits,
     ResourceSnapshot, DEFAULT_MAX_OPEN_FDS,
@@ -2486,6 +2488,16 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
                 .ok_or_else(|| KernelError::bad_file_descriptor(fd))?
         };
         Ok(self.ptys.is_slave(entry.description.id()))
+    }
+
+    pub fn pty_window_size(
+        &self,
+        requester_driver: &str,
+        pid: u32,
+        fd: u32,
+    ) -> KernelResult<PtyWindowSize> {
+        let description = self.description_for_fd(requester_driver, pid, fd)?;
+        Ok(self.ptys.window_size(description.id())?)
     }
 
     pub fn pty_set_discipline(

@@ -3944,6 +3944,16 @@ var __bridge = (() => {
       rationale: "Host kernel poll bridge reference for multi-fd readiness waits."
     },
     {
+      name: "_kernelIsattyRaw",
+      classification: "hardened",
+      rationale: "Host kernel TTY detection bridge reference for WASM terminal commands."
+    },
+    {
+      name: "_kernelTtySizeRaw",
+      classification: "hardened",
+      rationale: "Host kernel TTY size bridge reference for WASM terminal commands."
+    },
+    {
       name: "_ptySetRawMode",
       classification: "hardened",
       rationale: "Host PTY bridge reference for stdin.setRawMode()."
@@ -6409,6 +6419,8 @@ var __bridge = (() => {
   var _processResourceUsage = createBridgeSyncFacade("process.resourceUsage");
   var _processVersions = createBridgeSyncFacade("process.versions");
   var _kernelPollRaw = createBridgeSyncFacade("_kernelPollRaw");
+  var _kernelIsattyRaw = createBridgeSyncFacade("_kernelIsattyRaw");
+  var _kernelTtySizeRaw = createBridgeSyncFacade("_kernelTtySizeRaw");
   function decodeBridgeJson(value) {
     return typeof value === "string" ? JSON.parse(value) : value;
   }

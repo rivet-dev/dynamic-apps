@@ -253,6 +253,46 @@ fn canonical_mode_buffers_until_newline_and_honors_backspace() {
 }
 
 #[test]
+fn canonical_mode_eof_on_empty_line_returns_hangup_once() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    manager
+        .write(pty.master.description.id(), [0x04])
+        .expect("write eof char");
+
+    let eof = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read eof marker");
+    assert_eq!(eof, None);
+
+    manager
+        .write(pty.master.description.id(), b"after\n")
+        .expect("write after eof marker");
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read line after eof")
+        .expect("line should be available");
+    assert_eq!(line, b"after\n");
+}
+
+#[test]
+fn canonical_mode_eof_after_pending_text_delivers_text_without_eof_byte() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    manager
+        .write(pty.master.description.id(), b"partial\x04")
+        .expect("write partial line followed by eof");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read partial line")
+        .expect("partial line should be delivered");
+    assert_eq!(line, b"partial");
+}
+
+#[test]
 fn control_characters_signal_the_foreground_process_group() {
     let signals = Arc::new(Mutex::new(Vec::new()));
     let signal_log = Arc::clone(&signals);
@@ -275,6 +315,25 @@ fn control_characters_signal_the_foreground_process_group() {
         *signals.lock().expect("signal log lock poisoned"),
         vec![(42, SIGINT)]
     );
+}
+
+#[test]
+fn window_size_reports_default_and_resize_updates() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    let initial = manager
+        .window_size(pty.slave.description.id())
+        .expect("read initial pty size");
+    assert_eq!((initial.cols, initial.rows), (80, 24));
+
+    manager
+        .resize(pty.master.description.id(), 100, 20)
+        .expect("resize pty");
+    let resized = manager
+        .window_size(pty.slave.description.id())
+        .expect("read resized pty size");
+    assert_eq!((resized.cols, resized.rows), (100, 20));
 }
 
 #[test]

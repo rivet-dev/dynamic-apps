@@ -1413,6 +1413,7 @@ where
             }
             RequestPayload::Execute(payload) => self.execute(&request, payload).await,
             RequestPayload::WriteStdin(payload) => self.write_stdin(&request, payload).await,
+            RequestPayload::ResizePty(payload) => self.resize_pty(&request, payload).await,
             RequestPayload::CloseStdin(payload) => self.close_stdin(&request, payload).await,
             RequestPayload::KillProcess(payload) => self.kill_process(&request, payload).await,
             RequestPayload::GetProcessSnapshot(payload) => {

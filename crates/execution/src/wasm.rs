@@ -2157,10 +2157,16 @@ fn build_wasm_internal_env(
         .filter(|(key, _)| key.starts_with("AGENTOS_"))
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect::<BTreeMap<_, _>>();
-
+    if let Some(value) = request.env.get("SECURE_EXEC_KEEP_STDIN_OPEN") {
+        internal_env.insert(String::from("SECURE_EXEC_KEEP_STDIN_OPEN"), value.clone());
+    }
     internal_env.insert(
         WASM_MODULE_PATH_ENV.to_string(),
         resolved_module.specifier.clone(),
+    );
+    internal_env.insert(
+        String::from("AGENTOS_FORWARD_KERNEL_STDIN_RPC"),
+        String::from("1"),
     );
     if let Ok(module_bytes) = fs::read(&resolved_module.resolved_path) {
         internal_env.insert(
@@ -2199,8 +2205,6 @@ fn build_wasm_internal_env(
     } else {
         internal_env.remove(WASM_PREWARM_ONLY_ENV);
     }
-    internal_env.remove("SECURE_EXEC_KEEP_STDIN_OPEN");
-
     internal_env
 }
 
@@ -2282,7 +2286,7 @@ const __agentOSRequireBuiltin = (specifier) => {{
   }}
   throw new Error(`secure-exec WASM bootstrap cannot load ${{specifier}}`);
 }};
-if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule === "undefined") {{
+if (typeof globalThis !== "undefined") {{
   const __agentOSFs = () => __agentOSRequireBuiltin("node:fs");
   const __agentOSPath = () => __agentOSRequireBuiltin("node:path");
   const __agentOSCrypto = () => __agentOSRequireBuiltin("node:crypto");
@@ -3444,7 +3448,7 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
           const sidecarManagedProcess =
             typeof process?.env?.AGENTOS_SANDBOX_ROOT === "string" &&
             process.env.AGENTOS_SANDBOX_ROOT.length > 0;
-          if (syncRpc && (sidecarManagedProcess || __agentOSKernelStdioSyncRpcEnabled())) {{
+          if (syncRpc) {{
             try {{
               let chunk = null;
               while (true) {{
@@ -4367,6 +4371,21 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSSyncRpc === 
             throw new Error("secure-exec WASM kernel poll bridge is unavailable");
           }}
           return _kernelPollRaw.applySync(void 0, args);
+        case "__kernel_isatty":
+          if (typeof _kernelIsattyRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel isatty bridge is unavailable");
+          }}
+          return _kernelIsattyRaw.applySync(void 0, args);
+        case "__kernel_tty_size":
+          if (typeof _kernelTtySizeRaw === "undefined") {{
+            throw new Error("secure-exec WASM kernel tty size bridge is unavailable");
+          }}
+          return _kernelTtySizeRaw.applySync(void 0, args);
+        case "__pty_set_raw_mode":
+          if (typeof _ptySetRawMode === "undefined") {{
+            throw new Error("secure-exec WASM PTY raw-mode bridge is unavailable");
+          }}
+          return _ptySetRawMode.applySync(void 0, args);
         case "child_process.spawn": {{
           if (typeof _childProcessSpawnStart === "undefined") {{
             throw new Error("secure-exec WASM child_process bridge is unavailable");

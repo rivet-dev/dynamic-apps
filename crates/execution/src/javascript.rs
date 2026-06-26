@@ -81,6 +81,7 @@ const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENTOS_V8_WALL_CLOCK_LIMIT_MS";
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
+const FORWARD_KERNEL_STDIN_RPC_ENV: &str = "AGENTOS_FORWARD_KERNEL_STDIN_RPC";
 // Defense-in-depth headroom: a transient burst of guest events (e.g. a chatty
 // tool/skill turn) should be absorbed by the buffer, so the producer only ever
 // hits backpressure under a genuinely stuck consumer rather than on every spike.
@@ -481,6 +482,7 @@ struct LocalBridgeState {
     next_timer_id: u64,
     timers: Arc<Mutex<HashMap<u64, LocalTimerEntry>>>,
     kernel_stdin: Arc<LocalKernelStdinBridge>,
+    forward_kernel_stdin_rpc: bool,
     v8_session: Option<V8SessionHandle>,
     /// Optional read-only reader over the mounted `node_modules` VFS, supplied by
     /// the sidecar. When present, the bridge thread resolves module-resolution
@@ -1888,6 +1890,10 @@ impl JavascriptExecutionEngine {
         local_bridge.v8_session = Some(v8_session.clone());
         local_bridge.module_reader = module_reader;
         local_bridge.module_resolution = GuestModuleResolution::from_env(&request.env);
+        local_bridge.forward_kernel_stdin_rpc = request
+            .env
+            .get(FORWARD_KERNEL_STDIN_RPC_ENV)
+            .is_some_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
         let events = spawn_v8_event_bridge(
             frame_receiver,
             pending_sync_rpc.clone(),
@@ -3031,6 +3037,7 @@ impl LocalBridgeState {
                     bytes[15],
                 ))))
             }
+            "_kernelStdinRead" | "_kernelStdinReadRaw" if self.forward_kernel_stdin_rpc => None,
             "_kernelStdinRead" | "_kernelStdinReadRaw" => Some(LocalBridgeCallResult::Immediate(
                 self.kernel_stdin.read(args),
             )),

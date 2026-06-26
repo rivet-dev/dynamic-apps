@@ -1012,6 +1012,32 @@ export class SidecarProcess {
 		}
 	}
 
+	async resizePty(
+		session: AuthenticatedSession,
+		vm: CreatedVm,
+		processId: string,
+		cols: number,
+		rows: number,
+	): Promise<void> {
+		const response = await this.sendRequest({
+			ownership: {
+				scope: "vm",
+				connection_id: session.connectionId,
+				session_id: session.sessionId,
+				vm_id: vm.vmId,
+			},
+			payload: {
+				type: "resize_pty",
+				process_id: processId,
+				cols,
+				rows,
+			},
+		});
+		if (response.payload.type !== "pty_resized") {
+			throw new Error(`unexpected resize_pty response: ${response.payload.type}`);
+		}
+	}
+
 	async closeStdin(
 		session: AuthenticatedSession,
 		vm: CreatedVm,

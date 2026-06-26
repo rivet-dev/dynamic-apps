@@ -111,6 +111,12 @@ export type LiveResponsePayload =
 			accepted_bytes: number;
 	  }
 	| {
+			type: "pty_resized";
+			process_id: string;
+			cols: number;
+			rows: number;
+	  }
+	| {
 			type: "stdin_closed";
 			process_id: string;
 	  }
@@ -265,6 +271,13 @@ export function fromGeneratedResponsePayload(
 					payload.val.acceptedBytes,
 					"stdin_written.accepted_bytes",
 				),
+			};
+		case "PtyResizedResponse":
+			return {
+				type: "pty_resized",
+				process_id: payload.val.processId,
+				cols: payload.val.cols,
+				rows: payload.val.rows,
 			};
 		case "StdinClosedResponse":
 			return { type: "stdin_closed", process_id: payload.val.processId };

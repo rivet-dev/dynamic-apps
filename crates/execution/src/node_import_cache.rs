@@ -17,7 +17,7 @@ const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
     "AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
-const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "71";
+const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "78";
 const NODE_IMPORT_CACHE_DIR_PREFIX: &str = "agentos-node-import-cache";
 const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYODIDE_DIST_DIR: &str = "pyodide-dist";
@@ -9228,17 +9228,24 @@ function decodeBase64ToUint8Array(value) {
   return bytes;
 }
 
-function readKernelStdinChunk(maxBytes) {
+function readKernelStdinChunk(maxBytes, timeoutMs = 10) {
   const requestedLength = Math.max(1, Number(maxBytes) >>> 0);
+  const numericTimeoutMs = Number(timeoutMs);
+  const blocking = !Number.isFinite(numericTimeoutMs) || numericTimeoutMs >= 0xffffffff;
+  const deadline = blocking ? 0 : Date.now() + Math.max(0, numericTimeoutMs);
   while (true) {
-    const response = callSyncRpc('__kernel_stdin_read', [requestedLength, 10]);
+    const waitMs = blocking ? 10 : Math.max(0, Math.min(10, deadline - Date.now()));
+    const response = callSyncRpc('__kernel_stdin_read', [requestedLength, waitMs]);
     if (response && typeof response.dataBase64 === 'string') {
       return Buffer.from(response.dataBase64, 'base64');
     }
     if (response && response.done === true) {
       return null;
     }
-    Atomics.wait(syntheticWaitArray, 0, 0, 10);
+    if (!blocking && Date.now() >= deadline) {
+      return Buffer.alloc(0);
+    }
+    Atomics.wait(syntheticWaitArray, 0, 0, blocking ? 10 : Math.max(0, Math.min(10, deadline - Date.now())));
   }
 }
 
@@ -12380,7 +12387,12 @@ const hostUserImport = {
   },
   isatty(fd, retBoolPtr) {
     const descriptor = Number(fd) >>> 0;
-    const isTerminal = descriptor <= 2 ? 0 : 0;
+    let isTerminal = 0;
+    try {
+      isTerminal = callSyncRpc('__kernel_isatty', [descriptor]) === true ? 1 : 0;
+    } catch {
+      isTerminal = 0;
+    }
     return writeGuestUint32(retBoolPtr, isTerminal);
   },
   getpwuid(uid, bufPtr, bufLen, retLenPtr) {
@@ -12390,6 +12402,67 @@ const hostUserImport = {
         ? `${VIRTUAL_OS_USER}:x:${VIRTUAL_UID}:${VIRTUAL_GID}::${VIRTUAL_OS_HOMEDIR}:${VIRTUAL_OS_SHELL}`
         : `user${numericUid}:x:${numericUid}:${numericUid}::/home/user${numericUid}:/bin/sh`;
     return writeGuestBytes(bufPtr, bufLen, encodeGuestBytes(passwdEntry), retLenPtr);
+  },
+};
+
+const hostTtyImport = {
+  isatty(fd) {
+    try {
+      const result = callSyncRpc('__kernel_isatty', [Number(fd) >>> 0]);
+      return result === true || result === 1 ? 1 : 0;
+    } catch (error) {
+      process?.stderr?.write?.(`WARN host_tty.isatty failed: ${error?.stack || error}\n`);
+      return 0;
+    }
+  },
+  get_size(fd, colsPtr, rowsPtr) {
+    try {
+      if (!(instanceMemory instanceof WebAssembly.Memory)) {
+        return WASI_ERRNO_FAULT;
+      }
+      const size = callSyncRpc('__kernel_tty_size', [Number(fd) >>> 0]);
+      if (!size || typeof size !== 'object') {
+        return WASI_ERRNO_FAULT;
+      }
+      const colsValue = Array.isArray(size) ? size[0] : size.cols;
+      const rowsValue = Array.isArray(size) ? size[1] : size.rows;
+      const cols = Math.max(0, Math.min(0xffff, Number(colsValue) >>> 0));
+      const rows = Math.max(0, Math.min(0xffff, Number(rowsValue) >>> 0));
+      const view = new DataView(instanceMemory.buffer);
+      view.setUint16(Number(colsPtr) >>> 0, cols, true);
+      view.setUint16(Number(rowsPtr) >>> 0, rows, true);
+      return WASI_ERRNO_SUCCESS;
+    } catch (error) {
+      process?.stderr?.write?.(`WARN host_tty.get_size failed: ${error?.stack || error}\n`);
+      return WASI_ERRNO_FAULT;
+    }
+  },
+  set_raw_mode(enabled) {
+    try {
+      callSyncRpc('__pty_set_raw_mode', [Number(enabled) !== 0]);
+      return WASI_ERRNO_SUCCESS;
+    } catch (error) {
+      process?.stderr?.write?.(`WARN host_tty.set_raw_mode failed: ${error?.stack || error}\n`);
+      return WASI_ERRNO_FAULT;
+    }
+  },
+  read(ptr, len, timeoutMs = 10) {
+    try {
+      if (!(instanceMemory instanceof WebAssembly.Memory)) {
+        return 0;
+      }
+      const requestedLength = Math.max(1, Number(len) >>> 0);
+      const chunk = readKernelStdinChunk(requestedLength, Number(timeoutMs) >>> 0);
+      if (!chunk || chunk.length === 0) {
+        return 0;
+      }
+      const written = Math.min(chunk.length, requestedLength);
+      new Uint8Array(instanceMemory.buffer).set(chunk.subarray(0, written), Number(ptr) >>> 0);
+      return written >>> 0;
+    } catch (error) {
+      process?.stderr?.write?.(`WARN host_tty.read failed: ${error?.stack || error}\n`);
+      return 0;
+    }
   },
 };
 
@@ -12874,7 +12947,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
     const sidecarManagedProcess =
       typeof process?.env?.AGENTOS_SANDBOX_ROOT === 'string' &&
       process.env.AGENTOS_SANDBOX_ROOT.length > 0;
-    if (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC) {
+    if (typeof callSyncRpc === 'function') {
       try {
         const requestedLength = (() => {
           if (!(instanceMemory instanceof WebAssembly.Memory)) {
@@ -12888,7 +12961,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
           }
           return total >>> 0;
         })();
-        const chunk = readKernelStdinChunk(requestedLength);
+        const chunk = readKernelStdinChunk(requestedLength, 0xffffffff);
         if (!chunk || chunk.length === 0) {
           return writeGuestUint32(nreadPtr, 0);
         }
@@ -13637,6 +13710,7 @@ const instance = new WebAssembly.Instance(module, {
         : limitedHostProcessImport,
   host_net: permissionTier === 'full' ? hostNetImport : undefined,
   host_user: hostUserImport,
+  host_tty: hostTtyImport,
   host_fs: hostFsImport,
 });
 

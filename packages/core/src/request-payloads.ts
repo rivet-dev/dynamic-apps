@@ -153,6 +153,12 @@ export type LiveRequestPayload =
 			chunk: Uint8Array;
 	  }
 	| {
+			type: "resize_pty";
+			process_id: string;
+			cols: number;
+			rows: number;
+	  }
+	| {
 			type: "close_stdin";
 			process_id: string;
 	  }
@@ -379,6 +385,15 @@ export function toGeneratedRequestPayload(
 				val: {
 					processId: payload.process_id,
 					chunk: toExactArrayBuffer(payload.chunk),
+				},
+			};
+		case "resize_pty":
+			return {
+				tag: "ResizePtyRequest",
+				val: {
+					processId: payload.process_id,
+					cols: payload.cols,
+					rows: payload.rows,
 				},
 			};
 		case "close_stdin":

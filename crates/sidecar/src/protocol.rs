@@ -429,6 +429,9 @@ fn to_generated_request_payload(
         RequestPayload::WriteStdin(inner) => {
             generated_protocol::RequestPayload::WriteStdinRequest(inner.clone())
         }
+        RequestPayload::ResizePty(inner) => {
+            generated_protocol::RequestPayload::ResizePtyRequest(inner.clone())
+        }
         RequestPayload::CloseStdin(inner) => {
             generated_protocol::RequestPayload::CloseStdinRequest(inner.clone())
         }
@@ -525,6 +528,9 @@ fn from_generated_request_payload(
         generated_protocol::RequestPayload::ExecuteRequest(inner) => RequestPayload::Execute(inner),
         generated_protocol::RequestPayload::WriteStdinRequest(inner) => {
             RequestPayload::WriteStdin(inner)
+        }
+        generated_protocol::RequestPayload::ResizePtyRequest(inner) => {
+            RequestPayload::ResizePty(inner)
         }
         generated_protocol::RequestPayload::CloseStdinRequest(inner) => {
             RequestPayload::CloseStdin(inner)
@@ -641,6 +647,9 @@ fn to_generated_response_payload(
         }
         ResponsePayload::StdinWritten(inner) => {
             generated_protocol::ResponsePayload::StdinWrittenResponse(inner.clone())
+        }
+        ResponsePayload::PtyResized(inner) => {
+            generated_protocol::ResponsePayload::PtyResizedResponse(inner.clone())
         }
         ResponsePayload::StdinClosed(inner) => {
             generated_protocol::ResponsePayload::StdinClosedResponse(inner.clone())
@@ -773,6 +782,9 @@ fn from_generated_response_payload(
         }
         generated_protocol::ResponsePayload::StdinWrittenResponse(inner) => {
             ResponsePayload::StdinWritten(inner)
+        }
+        generated_protocol::ResponsePayload::PtyResizedResponse(inner) => {
+            ResponsePayload::PtyResized(inner)
         }
         generated_protocol::ResponsePayload::StdinClosedResponse(inner) => {
             ResponsePayload::StdinClosed(inner)
@@ -1179,6 +1191,7 @@ pub enum RequestPayload {
     SnapshotRootFilesystem(SnapshotRootFilesystemRequest),
     Execute(ExecuteRequest),
     WriteStdin(WriteStdinRequest),
+    ResizePty(ResizePtyRequest),
     CloseStdin(CloseStdinRequest),
     KillProcess(KillProcessRequest),
     GetProcessSnapshot(GetProcessSnapshotRequest),
@@ -1211,6 +1224,7 @@ pub enum ResponsePayload {
     RootFilesystemSnapshot(RootFilesystemSnapshotResponse),
     ProcessStarted(ProcessStartedResponse),
     StdinWritten(StdinWrittenResponse),
+    PtyResized(PtyResizedResponse),
     StdinClosed(StdinClosedResponse),
     ProcessKilled(ProcessKilledResponse),
     ProcessSnapshot(ProcessSnapshotResponse),
@@ -1411,6 +1425,10 @@ pub type ProcessStartedResponse = crate::wire::ProcessStartedResponse;
 
 pub type StdinWrittenResponse = crate::wire::StdinWrittenResponse;
 
+pub type ResizePtyRequest = crate::wire::ResizePtyRequest;
+
+pub type PtyResizedResponse = crate::wire::PtyResizedResponse;
+
 pub type StdinClosedResponse = crate::wire::StdinClosedResponse;
 
 pub type ProcessKilledResponse = crate::wire::ProcessKilledResponse;
@@ -1493,18 +1511,19 @@ impl_bare_newtype_union_enum!(
         SnapshotRootFilesystem(SnapshotRootFilesystemRequest) = 13,
         Execute(ExecuteRequest) = 14,
         WriteStdin(WriteStdinRequest) = 15,
-        CloseStdin(CloseStdinRequest) = 16,
-        KillProcess(KillProcessRequest) = 17,
-        GetProcessSnapshot(GetProcessSnapshotRequest) = 18,
-        FindListener(FindListenerRequest) = 19,
-        FindBoundUdp(FindBoundUdpRequest) = 20,
-        GetSignalState(GetSignalStateRequest) = 21,
-        GetZombieTimerCount(GetZombieTimerCountRequest) = 22,
-        HostFilesystemCall(HostFilesystemCallRequest) = 23,
-        PersistenceLoad(PersistenceLoadRequest) = 24,
-        PersistenceFlush(PersistenceFlushRequest) = 25,
-        VmFetch(VmFetchRequest) = 26,
-        Ext(ExtEnvelope) = 27,
+        ResizePty(ResizePtyRequest) = 16,
+        CloseStdin(CloseStdinRequest) = 17,
+        KillProcess(KillProcessRequest) = 18,
+        GetProcessSnapshot(GetProcessSnapshotRequest) = 19,
+        FindListener(FindListenerRequest) = 20,
+        FindBoundUdp(FindBoundUdpRequest) = 21,
+        GetSignalState(GetSignalStateRequest) = 22,
+        GetZombieTimerCount(GetZombieTimerCountRequest) = 23,
+        HostFilesystemCall(HostFilesystemCallRequest) = 24,
+        PersistenceLoad(PersistenceLoadRequest) = 25,
+        PersistenceFlush(PersistenceFlushRequest) = 26,
+        VmFetch(VmFetchRequest) = 27,
+        Ext(ExtEnvelope) = 28,
     }
 );
 
@@ -1529,20 +1548,21 @@ impl_bare_newtype_union_enum!(
         RootFilesystemSnapshot(RootFilesystemSnapshotResponse) = 13,
         ProcessStarted(ProcessStartedResponse) = 14,
         StdinWritten(StdinWrittenResponse) = 15,
-        StdinClosed(StdinClosedResponse) = 16,
-        ProcessKilled(ProcessKilledResponse) = 17,
-        ProcessSnapshot(ProcessSnapshotResponse) = 18,
-        ListenerSnapshot(ListenerSnapshotResponse) = 19,
-        BoundUdpSnapshot(BoundUdpSnapshotResponse) = 20,
-        SignalState(SignalStateResponse) = 21,
-        ZombieTimerCount(ZombieTimerCountResponse) = 22,
-        FilesystemResult(FilesystemResultResponse) = 23,
-        PermissionDecision(PermissionDecisionResponse) = 24,
-        PersistenceState(PersistenceStateResponse) = 25,
-        PersistenceFlushed(PersistenceFlushedResponse) = 26,
-        Rejected(RejectedResponse) = 27,
-        VmFetchResult(VmFetchResponse) = 28,
-        ExtResult(ExtEnvelope) = 29,
+        PtyResized(PtyResizedResponse) = 16,
+        StdinClosed(StdinClosedResponse) = 17,
+        ProcessKilled(ProcessKilledResponse) = 18,
+        ProcessSnapshot(ProcessSnapshotResponse) = 19,
+        ListenerSnapshot(ListenerSnapshotResponse) = 20,
+        BoundUdpSnapshot(BoundUdpSnapshotResponse) = 21,
+        SignalState(SignalStateResponse) = 22,
+        ZombieTimerCount(ZombieTimerCountResponse) = 23,
+        FilesystemResult(FilesystemResultResponse) = 24,
+        PermissionDecision(PermissionDecisionResponse) = 25,
+        PersistenceState(PersistenceStateResponse) = 26,
+        PersistenceFlushed(PersistenceFlushedResponse) = 27,
+        Rejected(RejectedResponse) = 28,
+        VmFetchResult(VmFetchResponse) = 29,
+        ExtResult(ExtEnvelope) = 30,
     }
 );
 
@@ -2103,6 +2123,7 @@ enum ExpectedResponseKind {
     RootFilesystemSnapshot,
     ProcessStarted,
     StdinWritten,
+    PtyResized,
     StdinClosed,
     ProcessKilled,
     ProcessSnapshot,
@@ -2147,6 +2168,7 @@ impl ExpectedResponseKind {
             Self::RootFilesystemSnapshot => "root_filesystem_snapshot",
             Self::ProcessStarted => "process_started",
             Self::StdinWritten => "stdin_written",
+            Self::PtyResized => "pty_resized",
             Self::StdinClosed => "stdin_closed",
             Self::ProcessKilled => "process_killed",
             Self::ProcessSnapshot => "process_snapshot",
@@ -2205,6 +2227,7 @@ impl RequestPayload {
             | Self::SnapshotRootFilesystem(_)
             | Self::Execute(_)
             | Self::WriteStdin(_)
+            | Self::ResizePty(_)
             | Self::CloseStdin(_)
             | Self::KillProcess(_)
             | Self::GetProcessSnapshot(_)
@@ -2236,6 +2259,7 @@ impl RequestPayload {
             Self::SnapshotRootFilesystem(_) => ExpectedResponseKind::RootFilesystemSnapshot,
             Self::Execute(_) => ExpectedResponseKind::ProcessStarted,
             Self::WriteStdin(_) => ExpectedResponseKind::StdinWritten,
+            Self::ResizePty(_) => ExpectedResponseKind::PtyResized,
             Self::CloseStdin(_) => ExpectedResponseKind::StdinClosed,
             Self::KillProcess(_) => ExpectedResponseKind::ProcessKilled,
             Self::GetProcessSnapshot(_) => ExpectedResponseKind::ProcessSnapshot,
@@ -2287,6 +2311,7 @@ impl ResponsePayload {
             | Self::RootFilesystemSnapshot(_)
             | Self::ProcessStarted(_)
             | Self::StdinWritten(_)
+            | Self::PtyResized(_)
             | Self::StdinClosed(_)
             | Self::ProcessKilled(_)
             | Self::ProcessSnapshot(_)
@@ -2319,6 +2344,7 @@ impl ResponsePayload {
             Self::RootFilesystemSnapshot(_) => "root_filesystem_snapshot",
             Self::ProcessStarted(_) => "process_started",
             Self::StdinWritten(_) => "stdin_written",
+            Self::PtyResized(_) => "pty_resized",
             Self::StdinClosed(_) => "stdin_closed",
             Self::ProcessKilled(_) => "process_killed",
             Self::ProcessSnapshot(_) => "process_snapshot",

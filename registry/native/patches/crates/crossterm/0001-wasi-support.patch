@@ -72,10 +72,11 @@ diff -ruN '--exclude=*.orig' src/event/read.rs src/event/read.rs
 diff -ruN '--exclude=*.orig' src/event/source/wasi.rs src/event/source/wasi.rs
 --- a/src/event/source/wasi.rs	1969-12-31 16:00:00.000000000 -0800
 +++ b/src/event/source/wasi.rs	2026-03-20 11:48:21.468925937 -0700
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,139 @@
 +//! WASI event source — reads raw bytes from stdin and parses ANSI escape sequences.
 +
-+use std::io::{self, Read};
++use std::collections::VecDeque;
++use std::io;
 +use std::time::Duration;
 +
 +#[cfg(feature = "event-stream")]
@@ -83,52 +84,132 @@ diff -ruN '--exclude=*.orig' src/event/source/wasi.rs src/event/source/wasi.rs
 +use super::{EventSource, InternalEvent};
 +use crate::event::sys::unix::parse::parse_event;
 +
++#[link(wasm_import_module = "host_tty")]
++unsafe extern "C" {
++    fn read(ptr: *mut u8, len: usize, timeout_ms: usize) -> usize;
++}
++
++const BLOCKING_TIMEOUT_MS: usize = usize::MAX;
++const CONTINUATION_TIMEOUT_MS: usize = 10;
++
++fn timeout_to_ms(timeout: Option<Duration>) -> usize {
++    match timeout {
++        None => BLOCKING_TIMEOUT_MS,
++        Some(timeout) => timeout
++            .as_millis()
++            .min((BLOCKING_TIMEOUT_MS - 1) as u128) as usize,
++    }
++}
++
 +/// WASI event source that reads from stdin and parses terminal input.
 +pub(crate) struct WasiEventSource {
-+    buffer: Vec<u8>,
++    parser: Parser,
 +}
 +
 +impl WasiEventSource {
 +    pub fn new() -> io::Result<Self> {
 +        Ok(Self {
-+            buffer: Vec::with_capacity(256),
++            parser: Parser::default(),
 +        })
 +    }
 +}
 +
 +impl EventSource for WasiEventSource {
-+    fn try_read(&mut self, _timeout: Option<Duration>) -> io::Result<Option<InternalEvent>> {
-+        // Read available bytes from stdin
-+        let mut buf = [0u8; 64];
-+        let n = io::stdin().read(&mut buf)?;
++    fn try_read(&mut self, timeout: Option<Duration>) -> io::Result<Option<InternalEvent>> {
++        if let Some(event) = self.parser.next() {
++            return Ok(Some(event));
++        }
++
++        let mut buf = [0u8; 1];
++        let n = unsafe { read(buf.as_mut_ptr(), buf.len(), timeout_to_ms(timeout)) };
 +        if n == 0 {
 +            return Ok(None);
 +        }
 +
-+        self.buffer.extend_from_slice(&buf[..n]);
++        self.parser.advance(&buf[..n], true);
++        while self.parser.has_pending_prefix() {
++            if let Some(event) = self.parser.next() {
++                return Ok(Some(event));
++            }
 +
-+        // Try to parse buffered bytes into an event
-+        let more_available = self.buffer.len() > 1;
-+        match parse_event(&self.buffer, more_available) {
-+            Ok(Some(event)) => {
-+                self.buffer.clear();
-+                Ok(Some(event))
++            let n = unsafe { read(buf.as_mut_ptr(), buf.len(), CONTINUATION_TIMEOUT_MS) };
++            if n == 0 {
++                self.parser.finish();
++                break;
 +            }
-+            Ok(None) => {
-+                // Need more bytes — return None and try again next call
-+                Ok(None)
-+            }
-+            Err(_) => {
-+                // Failed to parse — clear buffer and continue
-+                self.buffer.clear();
-+                Ok(None)
-+            }
++            self.parser.advance(&buf[..n], true);
 +        }
++
++        Ok(self.parser.next())
 +    }
 +
 +    #[cfg(feature = "event-stream")]
 +    fn waker(&self) -> Waker {
 +        unimplemented!("event-stream not supported on WASI")
++    }
++}
++
++#[derive(Debug)]
++struct Parser {
++    buffer: Vec<u8>,
++    internal_events: VecDeque<InternalEvent>,
++}
++
++impl Default for Parser {
++    fn default() -> Self {
++        Self {
++            buffer: Vec::with_capacity(256),
++            internal_events: VecDeque::with_capacity(128),
++        }
++    }
++}
++
++impl Parser {
++    fn has_pending_prefix(&self) -> bool {
++        !self.buffer.is_empty()
++    }
++
++    fn finish(&mut self) {
++        if self.buffer.is_empty() {
++            return;
++        }
++
++        match parse_event(&self.buffer, false) {
++            Ok(Some(event)) => {
++                self.internal_events.push_back(event);
++                self.buffer.clear();
++            }
++            Ok(None) | Err(_) => {
++                self.buffer.clear();
++            }
++        }
++    }
++
++    fn advance(&mut self, buffer: &[u8], more: bool) {
++        for (idx, byte) in buffer.iter().enumerate() {
++            let more = idx + 1 < buffer.len() || more;
++
++            self.buffer.push(*byte);
++
++            match parse_event(&self.buffer, more) {
++                Ok(Some(event)) => {
++                    self.internal_events.push_back(event);
++                    self.buffer.clear();
++                }
++                Ok(None) => {}
++                Err(_) => {
++                    self.buffer.clear();
++                }
++            }
++        }
++    }
++}
++
++impl Iterator for Parser {
++    type Item = InternalEvent;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        self.internal_events.pop_front()
 +    }
 +}
 diff -ruN '--exclude=*.orig' src/event/source.rs src/event/source.rs
@@ -196,7 +277,7 @@ diff -ruN '--exclude=*.orig' src/event.rs src/event.rs
 diff -ruN '--exclude=*.orig' src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
 --- a/src/terminal/sys/wasi.rs	1969-12-31 16:00:00.000000000 -0800
 +++ b/src/terminal/sys/wasi.rs	2026-03-20 11:47:29.268842595 -0700
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,66 @@
 +//! WASI-specific terminal functions.
 +//!
 +//! On WASI, the terminal is accessed through the WasmVM PTY.
@@ -210,16 +291,29 @@ diff -ruN '--exclude=*.orig' src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
 +
 +static RAW_MODE_ENABLED: AtomicBool = AtomicBool::new(false);
 +
++#[link(wasm_import_module = "host_tty")]
++unsafe extern "C" {
++    fn set_raw_mode(enabled: u32) -> u32;
++}
++
 +pub(crate) fn is_raw_mode_enabled() -> bool {
 +    RAW_MODE_ENABLED.load(Ordering::SeqCst)
 +}
 +
 +pub(crate) fn enable_raw_mode() -> io::Result<()> {
++    let errno = unsafe { set_raw_mode(1) };
++    if errno != 0 {
++        return Err(io::Error::from_raw_os_error(errno as i32));
++    }
 +    RAW_MODE_ENABLED.store(true, Ordering::SeqCst);
 +    Ok(())
 +}
 +
 +pub(crate) fn disable_raw_mode() -> io::Result<()> {
++    let errno = unsafe { set_raw_mode(0) };
++    if errno != 0 {
++        return Err(io::Error::from_raw_os_error(errno as i32));
++    }
 +    RAW_MODE_ENABLED.store(false, Ordering::SeqCst);
 +    Ok(())
 +}
@@ -247,8 +341,8 @@ diff -ruN '--exclude=*.orig' src/terminal/sys/wasi.rs src/terminal/sys/wasi.rs
 +}
 +
 +#[cfg(feature = "events")]
-+pub fn supports_keyboard_enhancement() -> bool {
-+    false
++pub fn supports_keyboard_enhancement() -> io::Result<bool> {
++    Ok(false)
 +}
 diff -ruN '--exclude=*.orig' src/terminal/sys.rs src/terminal/sys.rs
 --- a/src/terminal/sys.rs	1973-11-29 13:33:09.000000000 -0800

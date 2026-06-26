@@ -287,6 +287,8 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
         "_kernelStdinReadRaw" => ("__kernel_stdin_read", false),
         "_kernelStdioWriteRaw" => ("__kernel_stdio_write", false),
         "_kernelPollRaw" => ("__kernel_poll", false),
+        "_kernelIsattyRaw" => ("__kernel_isatty", false),
+        "_kernelTtySizeRaw" => ("__kernel_tty_size", false),
 
         // Network operations
         "_networkHttpServerListenRaw" => ("net.http_listen", false),
@@ -577,6 +579,7 @@ mod tests {
             "_netSocketSetNoDelayRaw",
             "_kernelStdioWriteRaw",
             "_kernelPollRaw",
+            "_kernelTtySizeRaw",
             "_netSocketUpgradeTlsRaw",
             "_tlsGetCiphersRaw",
             "_dgramSocketAddressRaw",

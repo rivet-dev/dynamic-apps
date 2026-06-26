@@ -1,0 +1,179 @@
+diff -ruN '--exclude=*.orig' a/src/sys/mod.rs b/src/sys/mod.rs
+--- a/src/sys/mod.rs	2026-06-27 14:11:52.511433635 -0700
++++ b/src/sys/mod.rs	2026-06-27 14:11:52.511433635 -0700
+@@ -13,6 +13,5 @@
+     } else {
+         mod unsupported;
+         pub use unsupported::*;
+-        pub(crate) use std::os::fd::AsFd as AsOpenFile;
+     }
+ }
+diff -ruN '--exclude=*.orig' a/src/sys/unsupported/mod.rs b/src/sys/unsupported/mod.rs
+--- a/src/sys/unsupported/mod.rs	2026-06-27 14:11:52.511433635 -0700
++++ b/src/sys/unsupported/mod.rs	2026-06-27 14:11:52.515433634 -0700
+@@ -2,8 +2,10 @@
+ mod rw_lock;
+ mod write_guard;
+ 
+-pub(crate) mod utils;
+-
+ pub use read_guard::RwLockReadGuard;
+ pub use rw_lock::RwLock;
+ pub use write_guard::RwLockWriteGuard;
++
++pub(crate) trait AsOpenFile {}
++
++impl<T> AsOpenFile for T {}
+diff -ruN '--exclude=*.orig' a/src/sys/unsupported/read_guard.rs b/src/sys/unsupported/read_guard.rs
+--- a/src/sys/unsupported/read_guard.rs	2026-06-27 14:11:52.511433635 -0700
++++ b/src/sys/unsupported/read_guard.rs	2026-06-27 14:11:52.515433634 -0700
+@@ -1,31 +1,28 @@
+ use std::ops;
+-use std::os::fd::AsFd;
+ 
+-use super::RwLock;
++use super::{AsOpenFile, RwLock};
+ 
+ #[derive(Debug)]
+-pub struct RwLockReadGuard<'lock, T: AsFd> {
++pub struct RwLockReadGuard<'lock, T: AsOpenFile> {
+     lock: &'lock RwLock<T>,
+ }
+ 
+-impl<'lock, T: AsFd> RwLockReadGuard<'lock, T> {
++impl<'lock, T: AsOpenFile> RwLockReadGuard<'lock, T> {
+     pub(crate) fn new(lock: &'lock RwLock<T>) -> Self {
+-        panic!("target unsupported")
++        Self { lock }
+     }
+ }
+ 
+-impl<T: AsFd> ops::Deref for RwLockReadGuard<'_, T> {
++impl<T: AsOpenFile> ops::Deref for RwLockReadGuard<'_, T> {
+     type Target = T;
+ 
+     #[inline]
+     fn deref(&self) -> &Self::Target {
+-        panic!("target unsupported")
++        &self.lock.inner
+     }
+ }
+ 
+-impl<T: AsFd> Drop for RwLockReadGuard<'_, T> {
++impl<T: AsOpenFile> Drop for RwLockReadGuard<'_, T> {
+     #[inline]
+-    fn drop(&mut self) {
+-        panic!("target unsupported")
+-    }
++    fn drop(&mut self) {}
+ }
+diff -ruN '--exclude=*.orig' a/src/sys/unsupported/rw_lock.rs b/src/sys/unsupported/rw_lock.rs
+--- a/src/sys/unsupported/rw_lock.rs	2026-06-27 14:11:52.511433635 -0700
++++ b/src/sys/unsupported/rw_lock.rs	2026-06-27 14:11:52.515433634 -0700
+@@ -1,37 +1,36 @@
+-use std::io::{self, Error, ErrorKind};
+-use std::os::fd::AsFd;
++use std::io::{self, Error};
+ 
+-use super::{RwLockReadGuard, RwLockWriteGuard};
++use super::{AsOpenFile, RwLockReadGuard, RwLockWriteGuard};
+ 
+ #[derive(Debug)]
+-pub struct RwLock<T: AsFd> {
++pub struct RwLock<T: AsOpenFile> {
+     pub(crate) inner: T,
+ }
+ 
+-impl<T: AsFd> RwLock<T> {
++impl<T: AsOpenFile> RwLock<T> {
+     #[inline]
+     pub fn new(inner: T) -> Self {
+-        panic!("target unsupported")
++        RwLock { inner }
+     }
+ 
+     #[inline]
+     pub fn write(&mut self) -> io::Result<RwLockWriteGuard<'_, T>> {
+-        panic!("target unsupported")
++        Ok(RwLockWriteGuard::new(self))
+     }
+ 
+     #[inline]
+     pub fn try_write(&mut self) -> Result<RwLockWriteGuard<'_, T>, Error> {
+-        panic!("target unsupported")
++        Ok(RwLockWriteGuard::new(self))
+     }
+ 
+     #[inline]
+     pub fn read(&self) -> io::Result<RwLockReadGuard<'_, T>> {
+-        panic!("target unsupported")
++        Ok(RwLockReadGuard::new(self))
+     }
+ 
+     #[inline]
+     pub fn try_read(&self) -> Result<RwLockReadGuard<'_, T>, Error> {
+-        panic!("target unsupported")
++        Ok(RwLockReadGuard::new(self))
+     }
+ 
+     #[inline]
+@@ -39,6 +38,6 @@
+     where
+         T: Sized,
+     {
+-        panic!("target unsupported")
++        self.inner
+     }
+ }
+diff -ruN '--exclude=*.orig' a/src/sys/unsupported/write_guard.rs b/src/sys/unsupported/write_guard.rs
+--- a/src/sys/unsupported/write_guard.rs	2026-06-27 14:11:52.511433635 -0700
++++ b/src/sys/unsupported/write_guard.rs	2026-06-27 14:11:52.515433634 -0700
+@@ -1,38 +1,35 @@
+ use std::ops;
+-use std::os::fd::AsFd;
+ 
+-use super::RwLock;
++use super::{AsOpenFile, RwLock};
+ 
+ #[derive(Debug)]
+-pub struct RwLockWriteGuard<'lock, T: AsFd> {
++pub struct RwLockWriteGuard<'lock, T: AsOpenFile> {
+     lock: &'lock mut RwLock<T>,
+ }
+ 
+-impl<'lock, T: AsFd> RwLockWriteGuard<'lock, T> {
++impl<'lock, T: AsOpenFile> RwLockWriteGuard<'lock, T> {
+     pub(crate) fn new(lock: &'lock mut RwLock<T>) -> Self {
+-        panic!("target unsupported")
++        Self { lock }
+     }
+ }
+ 
+-impl<T: AsFd> ops::Deref for RwLockWriteGuard<'_, T> {
++impl<T: AsOpenFile> ops::Deref for RwLockWriteGuard<'_, T> {
+     type Target = T;
+ 
+     #[inline]
+     fn deref(&self) -> &Self::Target {
+-        panic!("target unsupported")
++        &self.lock.inner
+     }
+ }
+ 
+-impl<T: AsFd> ops::DerefMut for RwLockWriteGuard<'_, T> {
++impl<T: AsOpenFile> ops::DerefMut for RwLockWriteGuard<'_, T> {
+     #[inline]
+     fn deref_mut(&mut self) -> &mut Self::Target {
+-        panic!("target unsupported")
++        &mut self.lock.inner
+     }
+ }
+ 
+-impl<T: AsFd> Drop for RwLockWriteGuard<'_, T> {
++impl<T: AsOpenFile> Drop for RwLockWriteGuard<'_, T> {
+     #[inline]
+-    fn drop(&mut self) {
+-        panic!("target unsupported")
+-    }
++    fn drop(&mut self) {}
+ }

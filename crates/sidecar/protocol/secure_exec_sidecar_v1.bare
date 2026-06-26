@@ -317,6 +317,12 @@ type WriteStdinRequest struct {
   chunk: data
 }
 
+type ResizePtyRequest struct {
+  processId: str
+  cols: u16
+  rows: u16
+}
+
 type CloseStdinRequest struct {
   processId: str
 }
@@ -395,6 +401,7 @@ type RequestPayload union {
   SnapshotRootFilesystemRequest |
   ExecuteRequest |
   WriteStdinRequest |
+  ResizePtyRequest |
   CloseStdinRequest |
   KillProcessRequest |
   GetProcessSnapshotRequest |
@@ -513,6 +520,12 @@ type StdinWrittenResponse struct {
   acceptedBytes: u64
 }
 
+type PtyResizedResponse struct {
+  processId: str
+  cols: u16
+  rows: u16
+}
+
 type StdinClosedResponse struct {
   processId: str
 }
@@ -629,6 +642,7 @@ type ResponsePayload union {
   RootFilesystemSnapshotResponse |
   ProcessStartedResponse |
   StdinWrittenResponse |
+  PtyResizedResponse |
   StdinClosedResponse |
   ProcessKilledResponse |
   ProcessSnapshotResponse |
