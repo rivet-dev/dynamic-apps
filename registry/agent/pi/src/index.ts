@@ -8,7 +8,11 @@ const pi = {
 	name: "pi",
 	type: "agent" as const,
 	packageDir,
-	requires: ["@agentos-software/pi", "@mariozechner/pi-coding-agent"],
+	requires: [
+		"@agentclientprotocol/sdk",
+		"@agentos-software/pi",
+		"@mariozechner/pi-coding-agent",
+	],
 	agent: {
 		id: "pi",
 		acpAdapter: "@agentos-software/pi",

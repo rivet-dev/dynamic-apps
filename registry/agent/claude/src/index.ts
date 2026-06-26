@@ -8,7 +8,7 @@ const claude = {
 	name: "claude",
 	type: "agent" as const,
 	packageDir,
-	requires: ["@anthropic-ai/claude-agent-sdk"],
+	requires: ["@agentclientprotocol/sdk", "@anthropic-ai/claude-agent-sdk"],
 	agent: {
 		id: "claude",
 		acpAdapter: "@agentos-software/claude-code",
