@@ -23,8 +23,8 @@ timeout 220 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-
   --fonts-dir /tmp/vmfonts --locale-dir /tmp/vmlocale \
   --vm-tree /tmp/vmxu5sess --vm-tree /tmp/vmicons --vm-tree /tmp/vmxft --vm-tree /tmp/vmschemas \
   --fb-out "$FB" --sidecar "$SIDECAR" -- :0 -screen 0 ${W}x${H}x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data \
-  > /tmp/render-app.log 2>&1 || true
-FCERR=$(grep -aic 'Fontconfig error' /tmp/render-app.log)
+  > "${RENDER_LOG:-/tmp/render-app.log}" 2>&1 || true
+FCERR=$(grep -aic 'Fontconfig error' "${RENDER_LOG:-/tmp/render-app.log}")
 echo "fontconfig errors: $FCERR  (MUST be 0 -- nonzero => tofu squares, not real text)"
 [ -s "$FB" ] && python3 scripts/fb2png.py "$FB" "$PNG" "$W" "$H" 2>&1 | tail -1
 echo "PNG: $PNG"

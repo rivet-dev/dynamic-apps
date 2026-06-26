@@ -96,6 +96,9 @@ PA_ARG="-pa max-func-params@128"; [ -n "${SECURE_EXEC_FPCAST_NO_PA:-}" ] && PA_A
 # breaking exact-signature vtable dispatch (GVfs/GFile) -- if g_file_new_for_path works without it, the
 # fpcast pass is the culprit, not a genuine signature mismatch needing emulation.
 FPCAST_ARG="--fpcast-emu $PA_ARG"; [ -n "${SECURE_EXEC_NO_FPCAST:-}" ] && FPCAST_ARG=""
+# DIAGNOSTIC: keep the pre-fpcast linked bin so the fpcast pass (e.g. a different max-func-params) can be
+# re-run without the slow GTK+X relink.
+[ -n "${SECURE_EXEC_KEEP_PREFPCAST:-}" ] && cp -f "$OUT" "$OUT.prefpcast"
 wasm-opt $FPCAST_ARG $OPTFEAT $PASS1_DBG -O0 "$OUT" -o "$OUT.1"
 if [ -n "${SECURE_EXEC_FPCAST0_ONLY:-}" ]; then
   # DIAGNOSTIC: skip the -Oz pass to test whether -Oz introduces the fpcast-emu GFile trap.
