@@ -28,14 +28,23 @@ Start with Root-1:
 1. **Root-1 — typed-function-references.** Replace `--fpcast-emu` for GObject's mismatched-signature function
    pointers. Cuts the ~13s GObject construction cascade (the per-guest compute root); speeds every guest AND
    relieves Root-2. No new attack surface. *(Start here.)*
-2. **T1 — SAB ring transport.** Replace `postMessage`+base64 syscall RPC with a guest↔kernel SharedArrayBuffer
-   ring + `Atomics.wait/notify`. Biggest raw-throughput win. **Security:** the ring is guest-written /
-   kernel-read, a new sidecar↔executor surface — the kernel must validate every offset/length/seq/TOCTOU as
-   hostile input (security design note first).
+2. **T1 — in-process serialization elimination** *(was "SAB ring transport"; DEMOTED/REFRAMED by the ultracode
+   analysis — see `PERF-FINDINGS.md`)*. **postMessage is BROWSER-ONLY**; the native production path (what the
+   desktop runs on) is fully in-process (V8 isolate ↔ Rust kernel share one address space) — **no postMessage, no
+   base64 on the native hot path**. So for native, T1 = remove the in-process clones / base64 round-trips
+   (`javascript.rs:1073` CBOR arg-tree clone; `v8_runtime.rs:433/504` base64). The browser request-side SAB ring
+   is a smaller, browser-only win (and even there it removes only the clone, not the event-loop hop). Autonomous.
 3. **Brokered shared segments** for pipe / X11 / framebuffer / shm — zero-copy hot paths, MIT-SHM-style X11
-   pixmaps. Generalizes the proven M8.6 framebuffer `dataBuffer` fix.
+   pixmaps. Generalizes the proven M8.6 framebuffer `dataBuffer` fix. Most valuable for the browser path +
+   cross-guest IPC; lower native priority than the autonomous clone-elimination wins below.
 4. **Root-2 — thread-safe kernel + service-thread multiplex** + bounded (~#cores) isolate pool. The parallelism
-   wall for the full DE. Deepest TCB change; do after T1/Root-1 lower per-thread load.
+   wall for the full DE. Deepest TCB change; do after Root-1 lowers per-thread load.
+
+**Plus — cheap AUTONOMOUS wins surfaced by the ultracode analysis** (full list + file:line in `PERF-FINDINGS.md`),
+grab alongside Root-1 (several hit the framebuffer/desktop hot path): per-session timer thread (kill per-arm
+`thread::spawn`, `javascript.rs:3065`); in-place `pwrite` (kill the O(filesize) framebuffer clone, `kernel.rs:2300`);
+TextEncoder/Decoder ASCII fast path; single-iov fast path (`wasm.rs:2478`); batch `child_process.poll`; nextTick
+O(n²)→O(n); build-time V8 snapshot. MEASURE each (constraint #4).
 
 **Also approved:** **proc_spawn** (intercept VTE fork→exec onto the sandboxed-guest-spawn seam + a shell guest =
 the **xfce4-terminal**, last XU6 app); **real in-VM `ps`/`top`/`strace`** product CLIs (measurement + product
