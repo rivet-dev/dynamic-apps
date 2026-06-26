@@ -53,6 +53,19 @@ if [ -d "$SRC_HICOLOR" ]; then
   cp "$SRC_HICOLOR/index.theme" "$DST_HICOLOR/" 2>/dev/null || true
 fi
 
+# Stage xfce4-settings' own org.xfce.settings.* app icons into hicolor/{size}/apps so the Settings Manager grid
+# and the settings dialogs show REAL icons instead of the missing-icon placeholder. PNG only (GTK builtin loader);
+# the host hicolor index.theme (copied above) already lists the {size}/apps dirs.
+SETTINGS_ICONS="$(dirname "$0")/../third_party/xfce4-settings/icons"
+if [ -d "$SETTINGS_ICONS" ] && [ -d "$OUT/usr/share/icons/hicolor" ]; then
+  si=0
+  for szdir in "$SETTINGS_ICONS"/*x*/; do
+    [ -d "$szdir" ] || continue; sz=$(basename "$szdir"); mkdir -p "$OUT/usr/share/icons/hicolor/$sz/apps"
+    for f in "$szdir"org.xfce.*.png; do [ -f "$f" ] && { cp "$f" "$OUT/usr/share/icons/hicolor/$sz/apps/"; si=$((si+1)); }; done
+  done
+  echo "staged $si xfce4-settings app icons into hicolor"
+fi
+
 # GTK reads the user settings.ini for the icon theme; pin Adwaita explicitly (belt-and-suspenders,
 # since the built-in default is already Adwaita).
 mkdir -p "$OUT/root/.config/gtk-3.0"
