@@ -221,54 +221,6 @@ impl SabRingEndpoint {
     pub(crate) fn write_response(&mut self, resp_sab: &mut [u8], payload: &[u8]) -> Result<bool, RingError> {
         self.response_writer.write_record(resp_sab, payload)
     }
-
-    /// Service one pending request directly over raw (Shared)ArrayBuffer backing-store pointers, as obtained from
-    /// V8 `get_backing_store()` (the bridge.rs:554-563 pattern). This centralizes + tests the single `unsafe` slice
-    /// construction so the V8 integration layer stays a thin caller. Returns `Ok(true)` if a request was serviced
-    /// and a response written, `Ok(false)` if no request was pending or the response ring was full (backpressure).
-    ///
-    /// # Safety
-    /// `req_ptr`/`resp_ptr` must each be valid for reads+writes of `req_len`/`resp_len` bytes for the duration of
-    /// the call, and not aliased by other live references. V8 backing stores satisfy this for the synchronous
-    /// lifetime of the servicing call (the SAB outlives it). The guest may concurrently mutate the request SAB,
-    /// which is exactly why `read_request` copies-out-then-validates every hostile field.
-    pub(crate) unsafe fn service_from_raw(
-        &mut self,
-        req_ptr: *mut u8,
-        req_len: usize,
-        resp_ptr: *mut u8,
-        resp_len: usize,
-        service: impl FnOnce(&[u8]) -> Vec<u8>,
-    ) -> Result<bool, RingError> {
-        let req_sab = std::slice::from_raw_parts_mut(req_ptr, req_len);
-        let Some(request) = self.read_request(req_sab)? else {
-            return Ok(false);
-        };
-        let response = service(&request);
-        let resp_sab = std::slice::from_raw_parts_mut(resp_ptr, resp_len);
-        self.write_response(resp_sab, &response)
-    }
-
-    /// Drain ALL currently-pending requests in one pump turn: service each and write its response. Returns the
-    /// count serviced. Stops when no request is pending or the response ring backpressures (full). This is the
-    /// per-turn batch the sidecar servicing loop calls. Same `unsafe` pointer contract as `service_from_raw`.
-    ///
-    /// # Safety
-    /// See `service_from_raw`: `req_ptr`/`resp_ptr` valid for `req_len`/`resp_len` bytes for the call's duration.
-    pub(crate) unsafe fn drain_all(
-        &mut self,
-        req_ptr: *mut u8,
-        req_len: usize,
-        resp_ptr: *mut u8,
-        resp_len: usize,
-        mut service: impl FnMut(&[u8]) -> Vec<u8>,
-    ) -> Result<usize, RingError> {
-        let mut count = 0;
-        while self.service_from_raw(req_ptr, req_len, resp_ptr, resp_len, &mut service)? {
-            count += 1;
-        }
-        Ok(count)
-    }
 }
 
 #[cfg(test)]
@@ -452,64 +404,6 @@ mod tests {
             // guest publishes its consumer so the kernel's response writer sees freed space (backpressure).
             guest_reader.publish_consumer(&mut resp_sab);
         }
-    }
-
-    #[test]
-    fn service_from_raw_roundtrips_over_pointers() {
-        // The host-side servicing entry over raw backing-store pointers (what V8 get_backing_store yields).
-        let mut req = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
-        let mut resp = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
-        let mut guest_writer = SabRingWriter::new(RING).unwrap();
-        let mut guest_reader = SabRingReader::new(RING).unwrap();
-        let mut endpoint = SabRingEndpoint::new(RING).unwrap();
-        assert!(guest_writer.write_record(&mut req, b"hi").unwrap());
-        let (rp, rl) = (req.as_mut_ptr(), req.len());
-        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
-        let serviced = unsafe {
-            endpoint.service_from_raw(rp, rl, sp, sl, |r| {
-                let mut v = b"got:".to_vec();
-                v.extend_from_slice(r);
-                v
-            })
-        }
-        .unwrap();
-        assert!(serviced);
-        assert_eq!(guest_reader.read_record(&resp).unwrap(), Some(b"got:hi".to_vec()));
-        // No request pending now -> Ok(false) (not an error, not a hang).
-        let (rp, rl) = (req.as_mut_ptr(), req.len());
-        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
-        let again = unsafe { endpoint.service_from_raw(rp, rl, sp, sl, |r| r.to_vec()) }.unwrap();
-        assert!(!again);
-    }
-
-    #[test]
-    fn drain_all_services_every_pending_request() {
-        let mut req = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
-        let mut resp = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
-        let mut gw = SabRingWriter::new(RING).unwrap();
-        let mut gr = SabRingReader::new(RING).unwrap();
-        let mut ep = SabRingEndpoint::new(RING).unwrap();
-        assert!(gw.write_record(&mut req, b"a").unwrap());
-        assert!(gw.write_record(&mut req, b"b").unwrap());
-        assert!(gw.write_record(&mut req, b"c").unwrap());
-        let (rp, rl) = (req.as_mut_ptr(), req.len());
-        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
-        let n = unsafe {
-            ep.drain_all(rp, rl, sp, sl, |r| {
-                let mut v = r.to_vec();
-                v.push(b'!');
-                v
-            })
-        }
-        .unwrap();
-        assert_eq!(n, 3);
-        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"a!".to_vec()));
-        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"b!".to_vec()));
-        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"c!".to_vec()));
-        gr.publish_consumer(&mut resp);
-        let (rp, rl) = (req.as_mut_ptr(), req.len());
-        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
-        assert_eq!(unsafe { ep.drain_all(rp, rl, sp, sl, |r| r.to_vec()) }.unwrap(), 0);
     }
 
     // Deterministic LCG so the fuzz is reproducible without a rand dependency.

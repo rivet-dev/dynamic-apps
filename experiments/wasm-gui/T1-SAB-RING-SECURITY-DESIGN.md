@@ -175,3 +175,14 @@ Handle-flow (resolved): the ring SAB lives in the V8 isolate (v8-runtime); the s
 
 Foundation status: data + protocol + host servicing (`service_from_raw`) all BUILT + TESTED (16/16 Rust, JS e2e +
 2000-RPC realistic load). The above 5 steps are the remaining mechanical wiring, now pinned to file:line.
+
+### Correction (2026-06-26): the sidecar crate is `#![forbid(unsafe_code)]`
+In-crate compilation (edition 2024) revealed crates/sidecar/src/lib.rs has `#![forbid(unsafe_code)]` (the
+edition-2021 standalone tests masked it). So the unsafe raw-pointer servicing (`service_from_raw`/`drain_all`,
+which call `slice::from_raw_parts_mut` over the V8 backing store) CANNOT live in the sidecar. Removed them. The
+sidecar's sab_ring is now purely SAFE (slice-based: SabRingReader/Writer/SabRingEndpoint with read_request/
+write_response/publish_consumer over `&mut [u8]`) -- 15/15 in-crate tests pass. The unsafe `from_raw_parts_mut`
+boundary belongs in the v8-runtime crate (which already does `get_backing_store()` + `from_raw_parts` and allows
+unsafe). Revised wiring: v8-runtime gets the ring SAB's backing-store slice (unsafe, there) and calls the SAFE
+sidecar `SabRingEndpoint::read_request`/`write_response`. This is cleaner (the unsafe stays in the one crate that
+owns raw V8 memory; the sidecar TCB logic stays unsafe-free).
