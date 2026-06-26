@@ -47,3 +47,13 @@ int kill(pid_t, int);
 int killpg(pid_t, int);
 #endif /* SECURE_EXEC_WASM_THREADS */
 #endif /* WASM_COMPAT_SIGNAL_H */
+#ifndef SE_PTHREAD_SIGMASK_DECLARED
+#define SE_PTHREAD_SIGMASK_DECLARED
+#ifdef __cplusplus
+extern "C" {
+#endif
+int pthread_sigmask(int, const void *, void *);
+#ifdef __cplusplus
+}
+#endif
+#endif

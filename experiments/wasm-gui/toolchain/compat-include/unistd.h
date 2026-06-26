@@ -34,3 +34,23 @@ int dup2(int, int);
 }
 #endif
 #endif
+#ifndef SE_PROC_DECLARED
+#define SE_PROC_DECLARED
+#ifdef __cplusplus
+extern "C" {
+#endif
+int execv(const char *, char *const[]);
+int execve(const char *, char *const[], char *const[]);
+int execvp(const char *, char *const[]);
+int execvpe(const char *, char *const[], char *const[]);
+pid_t getpgid(pid_t);
+pid_t getppid(void);
+pid_t setsid(void);
+int setpgid(pid_t, pid_t);
+uid_t getuid(void);
+uid_t geteuid(void);
+gid_t getgid(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
