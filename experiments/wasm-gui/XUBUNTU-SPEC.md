@@ -514,7 +514,13 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   module scan fails soft. Symbolization still blocked (lib funcs absent from the name section; DWARF low_pc
   zeroed). Trail in M8-STATUS-LOG.md (2026-06-25T17c..18h).
   </details>
-- **XU6 — bundled apps.** 🟡 THREE APPS RENDER with verified REAL text (all wasm): **xfce4-appfinder** 4.18.0,
+- **XU6 — bundled apps.** 🟡 CURRENT (2026-06-26): **5 bundled apps** (appfinder, mousepad, ristretto, notifyd, screenshooter)
+  + **4 xfce4-settings dialogs** (appearance, accessibility, display, mouse) + the **Settings Manager hub window** all RENDER,
+  all wasm; **3 interactive paths proven** (mousepad keyboard typing end-to-end, appfinder live search-filter, mousepad
+  menu popups). The only remaining XU6 item is **xfce4-terminal** (VTE links + reaches the spawn; gated on the
+  `host_process.proc_spawn` TCB sign-off). Known-deeper/blocked (documented, not chased): keyboard-settings traps on the
+  XKB query, xfce4-about is build-blocked in the non-threaded libxfce4ui tree, the Settings Manager grid-population is a
+  garcon/manager code-path detail. ---- DETAILED HISTORY (earlier): THREE APPS RENDERED with verified REAL text (all wasm): **xfce4-appfinder** 4.18.0,
   **mousepad** 0.6.1 (the Xubuntu text editor -- "File Edit Search View Document Help" menu, root-warning, editor),
   and **ristretto** 0.13.2 (the Xubuntu image viewer -- "File Edit View Go Help" menu, toolbar icons, "Press open
   to select an image"). Proofs: gui-progress/2026-06-25T20/{xu6-appfinder-fonts,xu7-wm-mousepad,xu6-ristretto}.png.
