@@ -25,9 +25,14 @@ needed**. (Still do the security work correctly: write the hostile-input securit
 kernel validates all guest-written ring data — and treat the concurrency refactor with TCB-grade care. The
 never-self-approve list — D-Bus-to-host, host-fd, GPU, host-network — is unchanged and still needs sign-off.)
 Start with Root-1:
-1. **Root-1 — typed-function-references.** Replace `--fpcast-emu` for GObject's mismatched-signature function
-   pointers. Cuts the ~13s GObject construction cascade (the per-guest compute root); speeds every guest AND
-   relieves Root-2. No new attack surface. *(Start here.)*
+1. **Root-1 — fpcast arity tuning + per-signature marshallers** *(was "typed-function-references" — feasibility
+   research proved that WRONG: `call_ref` type-checks like `call_indirect`, so it can't run GObject's UB casts any
+   faster; the real cost is binaryen fpcast-emu's uniform max-arity padding, not the opcode. See `PERF-FINDINGS.md`)*.
+   The ~13s GObject cascade is fpcast-emu padding every indirect call to one wide uniform arity. **Quick win
+   (hours):** `link-xapp.sh:24` uses BARE `--fpcast-emu` (binaryen default arity) — add
+   `--pass-arg=max-func-params@<measured-true-max>` (GObject closures are 1–4 ptr args). **Root cause (days):**
+   force per-signature C marshallers to kill `g_cclosure_marshal_generic`, then drop/scope `--fpcast-emu`. Speeds
+   every guest AND relieves Root-2. No new attack surface. *(Start here.)*
 2. **T1 — in-process serialization elimination** *(was "SAB ring transport"; DEMOTED/REFRAMED by the ultracode
    analysis — see `PERF-FINDINGS.md`)*. **postMessage is BROWSER-ONLY**; the native production path (what the
    desktop runs on) is fully in-process (V8 isolate ↔ Rust kernel share one address space) — **no postMessage, no

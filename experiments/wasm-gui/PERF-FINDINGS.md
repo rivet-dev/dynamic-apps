@@ -58,7 +58,7 @@ real near-term native wins are the autonomous findings here; the big structural 
 
 ## Relation to the B roadmap
 
-- **Root-1 (typed-function-references)** — confirmed: the ~13.4s GObject CSS cascade is indirect-call density
+- **Root-1 (fpcast arity tuning + per-signature marshallers)** — the ~13.4s GObject CSS cascade is fpcast-emu uniform-arity padding (NOT the call opcode; typed-func-refs was disproven — see the Root-1 CORRECTION below). Biggest single-guest win. KEEP, start here.
   under `--fpcast-emu`. Biggest single-guest win. KEEP, start here.
 - **Root-2 (thread-safe kernel + multiplex)** — the parallelism wall. KEEP.
 - **T1 (postMessage→SAB)** — DEMOTED for native (see above). The serialization wins on native are #5/#6/#9.
@@ -71,3 +71,33 @@ Grab the cheap autonomous framebuffer/throughput wins (#2 pwrite, #6 iov, #1 tim
 **Root-1** investigation; they're quick, measurable, and hit the desktop hot path — then **Root-2** for the
 multi-guest parallelism. T1's SAB-ring work is reframed as in-process clone/base64 elimination (#5/#9), not a
 postMessage replacement, and only the browser executor benefits from a request-side ring.
+
+## ★★ Root-1 CORRECTION (2026-06-26): typed-function-references is the WRONG fix
+
+A deep feasibility agent (read the toolchain + V8 runtime) found the named approach does not work:
+- **`call_ref` type-checks exactly like `call_indirect`** — a GObject cast mismatch still traps. Typed
+  function references / wasm-GC do NOT remove the mismatched-signature cost; they just move it. There is no wasm
+  typing feature that lets one call site dispatch to genuinely-different runtime signatures without per-signature
+  adaptation (true in MVP and GC).
+- **The real cost is fpcast-emu's UNIFORM max-arity padding + per-call trampoline**, not the call opcode.
+  binaryen's `FuncCastEmulation` pads EVERY indirect-callable function + EVERY call site to one wide uniform
+  signature (all params → i64, fixed arity), so every GObject closure/marshal/vfunc call shuffles the full padded
+  arity. Cost ≈ (#indirect-calls) × (arity coercions + extra dispatch). GObject is almost all indirect calls.
+- **V8-here CAN run GC-wasm** (V8 130, GC + typed-func-refs default-on, no flags set — `isolate.rs:102-109`), so
+  the approach is not blocked by the runtime; it's just aimed at the wrong layer. NOT the fix.
+- **Correction to the prior framing:** there is NO `max-func-params@128` tuning anywhere in-repo. `link-xapp.sh:24`
+  uses BARE `--fpcast-emu` → binaryen's DEFAULT arity. So we're paying the default padding on every call.
+
+### The ACTUAL Root-1 fix (cheapest-first)
+1. **QUICK WIN (hours, one line):** `--fpcast-emu --pass-arg=max-func-params@<measured-true-max>` at
+   `link-xapp.sh:24`. The padding cost scales with the fixed arity; GObject closures are mostly 1–4 pointer args,
+   so lowering from binaryen's default to the measured true max should remove a large fraction of the ~12s.
+   **Risk:** a genuinely-indirect function with more params than N breaks → MEASURE the true max, keep an
+   app-still-runs assertion. Highest value-per-effort; do FIRST.
+2. **ROOT CAUSE (days):** kill the generic-marshaller path. The UB-cast traffic is GObject's *generic* marshaller
+   (`g_cclosure_marshal_generic`, libffi-style arbitrary-signature). Force per-signature C marshallers
+   (`g_cclosure_marshal_VOID__*`) for the signals `show_all` exercises → correctly-typed `call_indirect`, no
+   emulation → drop/scope `--fpcast-emu` narrowly. Biggest structural win.
+3. (weeks) per-arity trampoline tables (custom binaryen). Only if 1+2 insufficient.
+
+So Root-1's roadmap entry becomes "fpcast arity tuning + per-signature marshallers", NOT typed-function-references.
