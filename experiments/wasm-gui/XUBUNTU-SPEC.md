@@ -539,10 +539,24 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   the show window. With the theme staged the synchronous Notify COMPLETES ("notification sent (try 4)") and the
   popup paints. Scripts: build-libnotify.sh, build-notifyd.sh. Remaining XU6: **xfce4-terminal** (its VTE needs
   fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready sans icu/gnutls + the TIOCGWINSZ shim).
-- **XU7 — full Xubuntu session = ACCEPTANCE.** ⬜ One screenshot shows the FULL live Xubuntu desktop
+- **XU7 — full Xubuntu session = ACCEPTANCE.** 🟡 One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
   Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal
   run. Visually indistinguishable from a real Xubuntu 24.04 session. (The Xubuntu analogue of M8.6.)
+  **STATUS (2026-06-26): every component renders individually (XU0-XU6 all green: xfwm4 decoration,
+  xfce4-panel, xfdesktop wallpaper, Thunar real listing, notifyd popup, 3 bundled apps -- all single-guest).
+  The FULL session (4 heavy guests at once) is the ONE remaining milestone and is gated on a
+  DEFINITIVELY-CHARACTERIZED runtime-architecture root, NOT a build/fixture issue: the single sidecar
+  sync-RPC service thread saturates under concurrent heavy guests. PROVEN by experiment: a single heavy
+  guest (thunar) survives to 350s+ and captures (63% render), but the multi-heavy-guest session collapses
+  at ~211-251s -- saturation, not a configurable limit (the runtime wall-clock limit is off by default;
+  there is no cap to raise). The launch-RPC starvation IS fixed (a 35s inter-guest settle launches all
+  guests cleanly), but staggered construction (~245s for 3 guests, ~345s for 4) EXCEEDS the ~240s collapse,
+  and no in-harness or config knob (settle, screen, concurrent-vs-staggered, timeout) bridges the gap.
+  XU7 requires the sidecar service-thread MULTIPLEX (Root 2) OR the perf-root TYPED-FUNCTION-REFERENCES
+  (Root 1, which cuts the syscall flood that saturates the thread) -- both surfaced for human sign-off in
+  HANDOFF-PERF-AND-CEILING.md (the decision doc). Reusable harnesses: scripts/test-xu7-full.sh (4-guest),
+  scripts/test-xu7-shell.sh (3-guest).**
 
 ---
 
