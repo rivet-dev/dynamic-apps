@@ -63,6 +63,19 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
 <div class="log">
   <div class="entry">
     <div class="date">2026-06-26 (PST)</div>
+    <span class="done">gmodule static-plugin support — diagnosed to the last link (XU3 panel-plugin path).</span>
+    The real XU3 blocker (and the Thunar renamers) is loading gmodule <code>.so</code> plugins in a static
+    no-dlopen build. Built the mechanism end-to-end on the simplest case (thunar-sbr): a constructor-keep shim
+    defeats wasm-ld <code>--gc-sections</code> so the statically-linked plugin survives, the entry points export,
+    a marker <code>.so</code> triggers the factory dir-scan, and <code>--wrap=g_module_open</code> returns the
+    main module — all proven working. The one remaining link is <code>g_module_symbol</code> (the runtime's
+    main-module dlsym doesn't read wasm exports); the wrap that fixes it is written but
+    <strong>libtool's link strips the extra <code>-Wl</code> flags</strong>. The fix is a direct non-libtool
+    clang link (applies every flag at once), which closes the chain — a focused-session step, fully specified in
+    <code>GMODULE-STATIC-PLUGINS.md</code>. Generalizes to the xfce4-panel plugin family for XU3.
+  </div>
+  <div class="entry">
+    <div class="date">2026-06-26 (PST)</div>
     <span class="done">XU6 settings + dialog suite.</span> The full xfce4-settings tool set renders all-wasm: 5 dialogs
     (appearance, accessibility, display, mouse, keyboard) + the <strong>settings-editor</strong> (xfconf registry) + the
     <strong>MIME / Default-Applications</strong> editor, all reachable from the <strong>Settings Manager</strong>'s complete
