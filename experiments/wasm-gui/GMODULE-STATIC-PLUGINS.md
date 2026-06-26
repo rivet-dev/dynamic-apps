@@ -75,3 +75,22 @@ LIBS (not the `.a`) -- `thunar_sbr_la-*.o` -- since directly-listed objects are 
 archive members are pulled-on-reference; pair with `-Wl,--no-gc-sections` or `-Wl,-u,thunar_extension_initialize`
 if wasm-ld still GCs them. If that fails, use `libtool --mode=link --dry-run`/`-n` to print the real clang
 command, then run it directly with a genuine `--whole-archive $SBR_A`.
+
+## Full chain status + CONFIRMED root cause (2026-06-26 T64) -- focused session needed
+Pushed the thunar-sbr proof case far. PROVEN WORKING (committed shims + wiring in build-thunar.sh):
+- SBR builds + statically LINKS: toolchain/thunar-sbr-keep.c (a constructor referencing the entry points)
+  defeats wasm-ld --gc-sections (the breakthrough; --whole-archive/-u/direct-objects all failed to GC-survive).
+  Surfaced the SBR's libexif dep -> added -lexif. The binary links clean and renders the dialog.
+- All 3 entry points EXPORT (objdump confirms thunar_extension_initialize/shutdown/list_types as global CODE).
+- The marker .so (/tmp/vmthunarx at THUNARX_DIRECTORY=<prefix>/lib/thunarx-3) is FOUND by the factory dir-scan.
+- -Wl,--wrap=g_module_open FIRES (6 hits) and returns the main module.
+BLOCKED at the LAST link: thunarx_provider_module_load asserts list_types==NULL, i.e. g_module_symbol(main,
+"thunar_extension_*") returns NULL -- the runtime's main-module dlsym does not resolve the wasm export table.
+The fix (a --wrap=g_module_symbol shim returning the addresses directly, toolchain/thunar-sbr-symwrap.c) is
+written and wired, BUT confirmed NOT APPLIED: __wrap_g_module_symbol / __real_g_module_symbol are 0 in the
+binary. ROOT CAUSE (now certain): **libtool's `make -C thunar` link strips/ignores the extra linker flags** --
+it dropped --whole-archive, -u, and now --wrap=g_module_symbol (only --wrap=g_module_open, passed via the make's
+own LDFLAGS path, took). THE FIX is the already-documented DIRECT non-libtool clang link of thunar: do the final
+link by hand (objects + libs + ALL the -Wl wraps/exports), which applies every flag at once. Then the chain
+completes (symwrap resolves the symbols -> renamers register -> infobar clears). All shims are committed and
+correct; only the libtool->direct-link swap remains, and it closes the whole chain at once.

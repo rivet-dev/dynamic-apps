@@ -89,10 +89,17 @@ EMPTYSHIM="$EXP/toolchain/wasi-empty-path-shim.o"
 GMODSHIM="$EXP/toolchain/gmodule-static-shim.o"
 "$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
   -c "$EXP/toolchain/gmodule-static-shim.c" -o "$GMODSHIM"
+# Keep-shim: a constructor that references thunar_extension_initialize so wasm-ld --gc-sections doesn't strip
+# the runtime-only-looked-up plugin entry (the fix --whole-archive/-u/direct-objects couldn't achieve).
+KEEPSHIM="$EXP/toolchain/thunar-sbr-keep.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread \
+  -c "$EXP/toolchain/thunar-sbr-keep.c" -o "$KEEPSHIM"
+SYMWRAP="$EXP/toolchain/thunar-sbr-symwrap.o"
+"$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 -pthread -c "$EXP/toolchain/thunar-sbr-symwrap.c" -o "$SYMWRAP"
 # The thunar-sbr renamer plugin, statically linked (whole-archive keeps all renamer GTypes, not just the init).
 SBR_A="$SRC/plugins/thunar-sbr/.libs/libthunar-sbr.a"
-GTKTRANS="$RESO $WNCKRESO $VFSSHIM $EMPTYSHIM $GMODSHIM -lxfce4ui-2 -lexo-2 -lwnck-3 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,--wrap=g_module_open -Wl,-z,stack-size=8388608"
+GTKTRANS="$RESO $WNCKRESO $VFSSHIM $EMPTYSHIM $GMODSHIM $KEEPSHIM $SYMWRAP -lxfce4ui-2 -lexo-2 -lwnck-3 -lexif -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,--wrap=g_module_open -Wl,--wrap=g_module_symbol -Wl,--export=thunar_extension_initialize -Wl,--export=thunar_extension_list_types -Wl,--export=thunar_extension_shutdown -Wl,-z,stack-size=8388608"
 echo "== building thunarx (extension lib) =="
 make -j4 -C thunarx LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 # Build the thunar-sbr renamer plugin here (the shared workspace churns away a prior standalone build), so
@@ -100,10 +107,14 @@ make -j4 -C thunarx LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 echo "== building thunar-sbr (renamer plugin, statically linked via the gmodule shim) =="
 make -j4 -C plugins/thunar-sbr LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 [ -f "$SBR_A" ] || echo "WARN: SBR_A still missing after make: $SBR_A"
+# Static-plugin link via DIRECT objects (not the .a): directly-listed objects are linked unconditionally where
+# archive members are only pulled on reference, and libtool preserves a list of .o better than --whole-archive.
+SBR_OBJS="$(ls "$SRC"/plugins/thunar-sbr/thunar_sbr_la-*.o 2>/dev/null | tr '\n' ' ')"
+echo "SBR direct objects: $(echo $SBR_OBJS | wc -w)"
 echo "== building thunar binary =="
 rm -f "$SRC/thunar/thunar"
 # Thunar links thunarx + libxfce4kbd-private-3 (keyboard shortcuts) on top of the GTK stack.
-make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 $SBR_A $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
+make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 -Wl,--whole-archive $SBR_A -Wl,--no-whole-archive $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
 RC=$?
 echo "thunar make rc=$RC"
 find . -path "*/thunar/thunar" -type f -not -path "*.deps*" 2>/dev/null | while read f; do echo "  $(stat -c%s "$f") $f"; done
