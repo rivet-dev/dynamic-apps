@@ -24,3 +24,13 @@ int close_range(unsigned int, unsigned int, int);
 }
 #endif
 #endif
+#ifndef SE_DUP2_DECLARED
+#define SE_DUP2_DECLARED
+#ifdef __cplusplus
+extern "C" {
+#endif
+int dup2(int, int);
+#ifdef __cplusplus
+}
+#endif
+#endif

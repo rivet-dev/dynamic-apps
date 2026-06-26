@@ -5,6 +5,9 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."; EXP="$(pwd)"
 export SECURE_EXEC_WASM_THREADS=1; source "$EXP/toolchain/cross-env.sh"
+# VTE is C++ and REQUIRES exceptions (try/throw). Inject -fwasm-exceptions into the cross-file's cpp_args
+# (append, not override, so the compat-include -I + -matomics etc. are kept). Platform layer, not VTE.
+sed -i "s/'-fno-exceptions', //g; s/^\(cpp_args = \[.*\)\]/\1, '-fwasm-exceptions']/" "$CROSS_INI"
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 TP="$EXP/third_party"; PREFIX="$TP/wasm-prefix-threads"; PCDIR="$PREFIX/lib/pkgconfig"; BD="build-wasm-threads"
 SRC="$TP/vte"; [ -d "$SRC" ] || { echo "FATAL: vte not fetched"; exit 1; }
