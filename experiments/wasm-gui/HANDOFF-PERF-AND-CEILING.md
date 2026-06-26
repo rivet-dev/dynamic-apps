@@ -51,11 +51,38 @@ mismatched-signature function pointers — wasm **typed-function-references / GC
 support + the cross-env build) and speeds up **every** GTK guest. It is in-scope per constraint #5
 (toolchain layer) but is a multi-day effort, not a 5-minute-cron change.
 
-## Root 2 — concurrent-guest scheduling ceiling (gates XU7 full session)
+## Root 2 — the single sidecar sync-RPC service thread saturates under concurrent heavy guests (gates XU7)
 
-The full Xubuntu session needs xfwm4 + xfce4-panel + xfdesktop + Thunar + apps as 4+ concurrent heavy
-guests. A 4th heavy guest starves (the host scheduler favors the busy guest). This is a separate runtime
-scheduling/TCB item, surfaced earlier (see `M8-STATUS-LOG.md`). Independent of Root 1.
+**UPDATE (precise root found, 2026-06-25).** The vague "scheduling ceiling" is now pinned. The sidecar
+has ONE service thread that processes ALL guests' syscalls (the sync-RPC bridge) AND the host's control
+RPCs. `host/src/main.rs:1340` documents it: "while the X server and its clients are alive they keep the
+single sidecar service thread busy, so a wire readback gets starved and never returns."
+
+The full Xubuntu session (xfwm4 + xfce4-panel + xfdesktop + Thunar = 4 heavy guests) saturates that one
+thread, manifesting two ways — both empirically observed:
+- **Staggered launch** (each guest gated on the previous going idle): the host's `execute_env` control
+  RPC to spawn the next guest STARVES behind a still-busy guest → the host blocks at ~114s, never
+  launching the 3rd guest, then the outer timeout SIGKILLs it (no error, no FB).
+- **Concurrent launch** (`--concurrent`, all up front): no launch-RPC starvation, but under sustained
+  3-heavy-guest load the single thread saturates (X traffic + framebuffer writes + the Root-1 perf
+  cascade's syscall flood) → the session collapses at ~211s, still before the slow guests render.
+
+Ruled out as causes (with evidence): CPU/fuel limit (xserver+clients+services all set
+`AGENT_OS_V8_CPU_TIME_LIMIT_MS=0`), OOM (`cgroup oom_kill=0`, no memory.max), per-process limits (ulimit
+threads 255k / fds 1M / mem unlimited), and the system-bus connect (returns ENOENT, handled fine).
+Single-guest sessions are stable to 240s+ and capture fine — this is strictly a MULTI-heavy-guest issue.
+
+**Root 1 COMPOUNDS Root 2:** the perf cascade is what floods the single thread with syscalls, so even
+the concurrent workaround can't finish rendering before ~211s. The two are entangled for XU7.
+
+**Fix space (sign-off, runtime/architecture):** multiplex the sidecar service thread / a per-guest
+service thread / off-thread control-RPC handling. Same family as the M8.6 single-thread framebuffer
+bottleneck. The in-harness workarounds (stagger settle tuning, `--concurrent`, capture-timing) are all
+exhausted and ruled out.
+
+**Note:** XU5 Thunar and the XU6 notifyd popup, once thought blocked, now BOTH RENDER (they were just
+slow from Root 1, not deadlocked) — see the spec. So Root 1 no longer *blocks* those; it now governs
+SPEED and, via the syscall flood, compounds Root 2 for the full session.
 
 ## xfce4-terminal — process-spawn (separate, surfaced)
 
@@ -66,10 +93,16 @@ no icu/gnutls + the TIOCGWINSZ shim).
 
 ## Decision needed
 
-1. **Undertake the typed-function-references toolchain/runtime change** (Root 1) — unblocks XU5 + the
-   notifyd popup and accelerates all GTK guests; or accept the ~13s first-widget cost.
-2. **Address the concurrent-guest scheduling ceiling** (Root 2) — unblocks XU7.
-3. **Sign off the process-spawn bridge** for xfce4-terminal.
+Status: **XU0–XU5 DONE; XU6 = appfinder + mousepad + ristretto + notifyd notification all RENDER**
+(verified screenshots). The only remaining milestones are XU6's terminal and XU7's full session.
 
-None of these are self-approvable (they are toolchain/runtime/TCB architecture decisions). The app-side
-work that does not require them is complete.
+1. **Multiplex the sidecar sync-RPC service thread** (Root 2) — the direct blocker for XU7's full
+   session; one service thread cannot carry 4 concurrent heavy GTK guests + the host's control RPCs.
+2. **Undertake the typed-function-references toolchain change** (Root 1) — cuts the ~13s GTK first-widget
+   cost; on its own it speeds everything up, and it RELIEVES Root 2 (less syscall flood per guest). XU5 +
+   notifyd already render slowly without it, so it is now a speed/XU7-enabler, not a hard blocker.
+3. **Sign off the process-spawn bridge** for xfce4-terminal (VTE fork → wasi-spawn).
+
+None are self-approvable (toolchain/runtime/TCB architecture decisions). Everything achievable from the
+harness/build/fixture layer is done: XU0–XU6 single-guest components all render with real text/icons.
+XU7 (4 guests at once) is the one milestone that fundamentally needs the runtime concurrency change.
