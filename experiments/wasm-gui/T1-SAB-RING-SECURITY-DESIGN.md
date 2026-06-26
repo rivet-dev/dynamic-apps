@@ -79,3 +79,41 @@ it "possibly autonomous" (arch doc §"transport fix"), as long as this validatio
 3. Guest-side writer (the runner) behind a flag; keep the fd path until parity is proven (then remove, per the
    versionless-lockstep rule — no permanent fallback).
 4. MEASURE (constraint #4): per-syscall latency + a multi-guest desktop render, before/after.
+
+---
+
+## Integration design (2026-06-26) — phased; the doorbell is NOT needed for the main win
+
+Read the existing native sync-RPC signaling (crates/execution/src/wasm.rs):
+- `respond_sync_rpc_success`/`_error` (wasm.rs:433/450 -> javascript.rs) = the response-delivery seam.
+- `DeferredSyncRpcResponder` (wasm.rs:446) = sync-RPC responses can already be completed CROSS-THREAD (used for
+  off-thread net.poll_wait). So async/threaded completion is already supported.
+- `Atomics.wait(syntheticWaitArray, 0, 0, waitMs)` (wasm.rs:4244) = the guest's poll-loop SLEEP, not a real
+  cross-thread doorbell. Nothing `Atomics.notify`s it; it just times out and re-polls.
+- The kernel-forwarded RPCs are the ones where `handle_internal_wasm_sync_rpc_request` returns `Ok(false)`
+  (wasm.rs:980) and the sidecar services them. T1 targets exactly these (framebuffer/X-socket/DNS/perm).
+
+### Phase 1 (the main win, no new doorbell): swap the PAYLOAD transport
+Keep the existing request-dispatch + `respond_sync_rpc_success` signaling. Change only WHERE the bytes ride:
+- Guest request: instead of marshalling args+binary through cbor->json->**base64** (v8_runtime.rs:433), the guest
+  writes the request record into the G->K ring (JS `RingWriter`, t1-ring/sab-ring.mjs).
+- Kernel: read it from the G->K ring (Rust `SabRingReader`, validated/hostile), service it, write the response
+  record into the K->G ring (Rust `SabRingWriter`); call `respond_sync_rpc_success` to signal as today.
+- Guest response: read the record from the K->G ring (JS `RingReader`) instead of decoding base64.
+This eliminates the base64 hop for binary payloads (the Root-3 cost on the kernel-forwarded framebuffer/X-socket
+traffic) while reusing all existing control flow. Lower-risk; ships the throughput win first.
+
+### Phase 2 (optional, only if measured): the real Atomics doorbell
+Replace the synthetic-wait poll + event dispatch with a real `Atomics.notify` on the header doorbell word so the
+servicing thread wakes directly (skips the poll-loop turn) for the full sub-us per-call latency. This is the
+architecture-doc T1 vision; do it only if Phase-1 measurement shows the event-dispatch turn dominates.
+
+### Allocation
+The rings are per-guest, allocated alongside the existing `AGENT_OS_NODE_SYNC_RPC_DATA_BYTES` SAB (default 4 MiB);
+the ring header + two ring regions can live in that same SAB. `ring_size` is kernel-chosen (kernel-owned, never
+from the guest), satisfying the security model.
+
+### Next concrete step
+Wire Phase 1 at the kernel-forwarded seam: where the sidecar currently decodes the base64 sync-RPC payload, read
+from the G->K ring via `SabRingReader`; where it encodes the response, write via `SabRingWriter`. Measure
+framebuffer-blit + X-socket round-trip cost before/after.
