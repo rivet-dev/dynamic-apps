@@ -103,8 +103,17 @@ make -j4 -C plugins/thunar-sbr LDFLAGS="$LINK" >> /tmp/make-thunar.log 2>&1
 echo "== building thunar binary =="
 rm -f "$SRC/thunar/thunar"
 # Thunar links thunarx + libxfce4kbd-private-3 (keyboard shortcuts) on top of the GTK stack.
-make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 -Wl,--whole-archive $SBR_A -Wl,--no-whole-archive $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
+make -j4 -C thunar LDFLAGS="$LINK" LIBS="-lthunarx-3 -lxfce4kbd-private-3 $SBR_A $GTKTRANS $SETJMP" >> /tmp/make-thunar.log 2>&1
 RC=$?
 echo "thunar make rc=$RC"
 find . -path "*/thunar/thunar" -type f -not -path "*.deps*" 2>/dev/null | while read f; do echo "  $(stat -c%s "$f") $f"; done
 if [ $RC -ne 0 ]; then echo "(link incomplete; tail:)"; tail -30 /tmp/make-thunar.log; fi
+# Verify the SBR statically linked (-u thunar_extension_initialize should keep it past GC), then fpcast -> thunar.wasm.
+if [ $RC -eq 0 ] && [ -f "$SRC/thunar/thunar" ]; then
+  echo "SBR thunar_extension_initialize in binary: $("$WSDK/bin/llvm-nm" "$SRC/thunar/thunar" 2>/dev/null | grep -acwE 'thunar_extension_initialize') (want >=1)"
+  echo "== fpcast-emu + -Oz -> thunar.wasm =="
+  export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+  wasm-opt --fpcast-emu -pa max-func-params@${SECURE_EXEC_FPCAST_MAXP:-64} --enable-bulk-memory --enable-threads -O0 "$SRC/thunar/thunar" -o "$EXP/thunar.wasm.1"
+  wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads "$EXP/thunar.wasm.1" -o "$EXP/thunar.wasm"; rm -f "$EXP/thunar.wasm.1"
+  echo "built thunar.wasm ($(stat -c%s "$EXP/thunar.wasm") bytes)"
+fi
