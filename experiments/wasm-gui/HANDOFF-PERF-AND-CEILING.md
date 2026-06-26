@@ -72,6 +72,16 @@ Ruled out as causes (with evidence): CPU/fuel limit (xserver+clients+services al
 threads 255k / fds 1M / mem unlimited), and the system-bus connect (returns ENOENT, handled fine).
 Single-guest sessions are stable to 240s+ and capture fine — this is strictly a MULTI-heavy-guest issue.
 
+**Launch-RPC starvation FIXED (in-harness), but the timing wall remains.** A long (35s) inter-guest
+settle -- launch the next guest only after the previous goes truly IDLE -- makes all guests launch
+cleanly (the 18s settle launched mid-cascade, starving the launch RPC -> ~114s block). But the session
+still collapses at ~237-251s (load-dependent; a smaller screen does not help -- the framebuffer is already
+delta-optimized). Concrete numbers: each heavy guest takes ~100s to construct (perf cascade + X
+round-trips on the one thread), so 3-guest STAGGERED construction is ~245s and 4-guest ~345s -- both
+EXCEED the ~237s session-life. There is no launch window (earlier = panel-still-busy starvation; later =
+no time before the death). So no in-harness knob (settle, screen, concurrent-vs-staggered) bridges the
+gap; XU7 needs the session to live longer (Root 2 fix) OR the guests to construct faster (Root 1 fix).
+
 **Root 1 COMPOUNDS Root 2:** the perf cascade is what floods the single thread with syscalls, so even
 the concurrent workaround can't finish rendering before ~211s. The two are entangled for XU7.
 

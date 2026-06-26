@@ -40,7 +40,7 @@ cat > "$CHDIR/xfce4-desktop.xml" <<'X'
   </property></property></property></property>
 </channel>
 X
-W=800; H=600
+W=${W:-800}; H=${H:-600}
 FB="$(mktemp /tmp/xu7-full-fb.XXXXXX.bin)"
 OUT="${OUT:-/tmp/xu7-full.log}"
 PNG="${PNG:-$HOME/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/xu7-shell-session.png}"; mkdir -p "$(dirname "$PNG")"
