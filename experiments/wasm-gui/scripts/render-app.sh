@@ -16,7 +16,14 @@ find /tmp/vmfonts -name '*.ttf' 2>/dev/null | grep -q . || bash scripts/prepare-
 bash scripts/prepare-xftfonts.sh /tmp/vmxft >/dev/null 2>&1
 [ -d /tmp/vmlocale ] || bash scripts/prepare-locale.sh /tmp/vmlocale >/dev/null 2>&1
 bash scripts/stage-gschemas.sh /tmp/vmschemas >/dev/null 2>&1
-[ -d /tmp/vmxu5sess ] || bash scripts/prepare-dbus-fixtures.sh /tmp/vmxu5sess >/dev/null 2>&1
+# ALWAYS regenerate the dbus session fixture (do NOT `[ -d ] ||` it) -- a stale dir from before the
+# auth_timeout=600s bump kept the 30s default, so slow guests lost their xfconf connection mid-construction.
+# Cheap to regenerate; staleness is a silent footgun. (NOTE: do NOT --vm-tree /tmp/vmthemes here -- mounting
+# /usr/share/themes makes xfce4-appearance-settings' Style tab enumerate themes, which traps the guest in wasm
+# at ~50s (silent, RuntimeError: unreachable; auth is NOT the cause -- 0 auth drops with the 600s fixture).
+# The theme dir-scan/preview path is the real gap; localizing it needs a SECURE_EXEC_KEEP_NAMES build + the
+# M8.6 symbolizer recipe. The dialog UI renders fine with an empty list, so theme enumeration stays a TODO.)
+bash scripts/prepare-dbus-fixtures.sh /tmp/vmxu5sess >/dev/null 2>&1
 FB="$(mktemp /tmp/render-fb.XXXXXX.bin)"
 timeout 220 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" --dbus "$EXP/dbus-daemon.wasm" --dbus-service "$EXP/xfconfd.wasm" --client "$APP" \
