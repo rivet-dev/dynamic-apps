@@ -198,6 +198,45 @@ impl SharedSidecarRequestClient {
     }
 }
 
+/// Fire-and-forget live event sink. Lets an extension emit a `session/update`
+/// (or any other) event frame to the host *mid-dispatch*, instead of having to
+/// return it from the dispatch and wait for the whole request to resolve before
+/// the stdio loop flushes it. Mirrors `SidecarRequestTransport`, but events have
+/// no response, no request id, and no timeout — they are written to the same
+/// outbound stdout channel the batch path uses.
+pub trait EventSinkTransport: Send + Sync {
+    fn emit_event(&self, event: crate::wire::EventFrame) -> Result<(), SidecarError>;
+}
+
+#[derive(Clone, Default)]
+pub(crate) struct SharedEventSink {
+    transport: Option<Arc<dyn EventSinkTransport>>,
+}
+
+impl SharedEventSink {
+    pub(crate) fn set_transport(&mut self, transport: Arc<dyn EventSinkTransport>) {
+        self.transport = Some(transport);
+    }
+
+    /// Emit `event` live if a transport is configured (the stdio path). Returns
+    /// `Ok(None)` when the event was handed to the live transport, or
+    /// `Ok(Some(event))` when no transport is configured (e.g. an in-process
+    /// `NativeSidecar` with no stdout loop) so the caller can fall back to the
+    /// batch path and still deliver the event when the dispatch resolves.
+    pub(crate) fn try_emit(
+        &self,
+        event: crate::wire::EventFrame,
+    ) -> Result<Option<crate::wire::EventFrame>, SidecarError> {
+        match self.transport.as_ref() {
+            Some(transport) => {
+                transport.emit_event(event)?;
+                Ok(None)
+            }
+            None => Ok(Some(event)),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Bridge wrapper
 // ---------------------------------------------------------------------------

@@ -42,7 +42,8 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 
 ## Project Boundaries
 
-- Keep this repo Agent OS-agnostic: no ACP, agents, sessions, `agentos-protocol`, `agentos-client`, or `agentos-sidecar` dependencies in secure-exec code.
+- Keep the secure-exec runtime Agent OS-agnostic: no ACP, sessions, `agentos-protocol`, `agentos-client`, or `agentos-sidecar` dependencies in runtime code.
+- Packaged agent definitions/adapters live in `registry/agent/*`; generic VM software lives in `registry/software/*`.
 - `crates/bridge/` is the browser/native portability seam. Shared contracts belong there.
 - `crates/vfs/` is generic filesystem infrastructure: POSIX-style in-memory/overlay/mount/root engines plus generic chunked/object engines and in-memory stores. It must stay free of secure-exec sidecar, bridge, S3, SQLite, and host-disk coupling.
 - `crates/secure-exec-vfs/` contains concrete secure-exec filesystem backends: S3 adapters, host-disk SQLite/file stores, and bridge/callback-backed metadata stores. Policy decisions, config validation, and mount descriptor parsing stay in sidecar plugins.
@@ -80,6 +81,12 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 
 ## Development
 
+### Release Tracks
+
+- **secure-exec runtime** — `@secure-exec/*` npm packages and `secure-exec-*` crates; releases keep npm/crates in sync, previews are npm-only. See "Preview-publishing" and "Publishing" for details.
+- **`@agentos-software/*` registry packages** — generic VM software from secure-exec `registry/software/*` plus agent adapters from secure-exec `registry/agent/*`; versioned independently of secure-exec runtime packages.
+- **agent-os product/API** — `@rivet-dev/agentos*`, AgentOs APIs, sidecar wrapper, docs, quickstarts, and examples; see agent-os `CLAUDE.md` for its pinning workflow.
+
 ### Preview-publishing
 
 Dispatch `.github/workflows/publish.yaml` (workflow_dispatch) with no version input to cut a **preview** (debug sidecar build, npm-only, dist-tag = sanitized branch name) — for handing a build to a downstream (agent-os) or external project. **Preview-publish is for previews ONLY; never cut a release with it.** Caveats: WASM-bearing packages (`@secure-exec/core`, `@agentos-software/*`) publish MANUALLY (see Publishing), and the crates.io job is skipped on preview — a *crate* change only reaches consumers locally (path dep / `[patch]`) or via a real release.
@@ -91,7 +98,7 @@ Dispatch `.github/workflows/publish.yaml` (workflow_dispatch) with no version in
 
 ## Publishing
 
-- **The `@secure-exec/*` npm packages and the `secure-exec-*` Cargo crates are always published at the same version** (npm and crates stay in sync), so a downstream pins both to one `<v>`. The `@agentos-software/*` registry software packages are on a **separate** version track.
+- **The `@secure-exec/*` npm packages and the `secure-exec-*` Cargo crates are always published at the same version** (npm and crates stay in sync), so a downstream pins both to one `<v>`. See "Release Tracks" for how this differs from `@agentos-software/*` and agent-os releases.
 - CI (`.github/workflows/publish.yaml`) does NOT build or publish the WASM command binaries. There is no `build-commands` job and nothing restores a `wasm-commands` artifact — the workflow only builds/publishes the sidecar binary and the pure-TS packages.
 - WASM-bearing packages are ALWAYS published MANUALLY: `@secure-exec/core` (which vendors `registry/native` commands into `packages/core/commands` via `copy-wasm-commands.mjs`, guarded by its `prepack --require`) and the `@agentos-software/*` registry software. `@secure-exec/core` is in `EXCLUDED` in `scripts/publish/src/lib/packages.ts`, so CI never publishes it.
 - Manual core flow: build the commands locally (`make -C registry/native wasm`), then `npm publish` (not `pnpm publish`) `@secure-exec/core` at the **same version** CI used for that release so dependents resolving `@secure-exec/core@<version>` succeed. `prepack` vendors the commands and fails loud if they are absent.

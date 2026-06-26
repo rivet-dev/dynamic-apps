@@ -28,6 +28,7 @@ pub use extension::{
     ExtensionInterruptResponse, ExtensionResponse,
 };
 pub use service::{DispatchResult, NativeSidecar, NativeSidecarConfig, SidecarError};
+pub use state::EventSinkTransport;
 pub use state::SidecarRequestTransport;
 
 use wire::{DEFAULT_MAX_FRAME_BYTES, PROTOCOL_NAME, PROTOCOL_VERSION};

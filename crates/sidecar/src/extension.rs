@@ -8,7 +8,7 @@ use crate::protocol::{
     ProcessKilledResponse, ProcessStartedResponse, SidecarRequestPayload, SidecarResponsePayload,
     StdinClosedResponse, StdinWrittenResponse, WriteStdinRequest,
 };
-use crate::state::{SharedSidecarRequestClient, SidecarError};
+use crate::state::{SharedEventSink, SharedSidecarRequestClient, SidecarError};
 
 pub type ExtensionFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, SidecarError>> + 'a>>;
 
@@ -151,6 +151,7 @@ pub struct ExtensionSnapshot {
     namespace: String,
     ownership: OwnershipScope,
     sidecar_requests: SharedSidecarRequestClient,
+    event_sink: SharedEventSink,
 }
 
 pub struct ExtensionContext<'a> {
@@ -163,11 +164,13 @@ impl ExtensionSnapshot {
         namespace: String,
         ownership: OwnershipScope,
         sidecar_requests: SharedSidecarRequestClient,
+        event_sink: SharedEventSink,
     ) -> Self {
         Self {
             namespace,
             ownership,
             sidecar_requests,
+            event_sink,
         }
     }
 
@@ -194,6 +197,28 @@ impl ExtensionSnapshot {
         payload: Vec<u8>,
     ) -> Result<crate::wire::EventFrame, SidecarError> {
         crate::wire::event_frame_from_compat(self.ext_event(payload)).map_err(wire_protocol_error)
+    }
+
+    /// Emit a wire event frame to the host the instant it is produced, rather
+    /// than collecting it into the dispatch result and waiting for the whole
+    /// request to resolve. Returns `Ok(None)` when delivered live, or
+    /// `Ok(Some(event))` when no live sink is configured (in-process sidecar) so
+    /// the caller can fall back to returning it in the dispatch's batch.
+    pub fn emit_event_wire(
+        &self,
+        event: crate::wire::EventFrame,
+    ) -> Result<Option<crate::wire::EventFrame>, SidecarError> {
+        self.event_sink.try_emit(event)
+    }
+
+    /// Build a namespaced ext-event from `payload` and emit it live (see
+    /// [`Self::emit_event_wire`]).
+    pub fn emit_ext_event(
+        &self,
+        payload: Vec<u8>,
+    ) -> Result<Option<crate::wire::EventFrame>, SidecarError> {
+        let event = self.ext_event_wire(payload)?;
+        self.emit_event_wire(event)
     }
 
     pub fn invoke_callback(
@@ -239,6 +264,24 @@ impl<'a> ExtensionContext<'a> {
         payload: Vec<u8>,
     ) -> Result<crate::wire::EventFrame, SidecarError> {
         self.snapshot.ext_event_wire(payload)
+    }
+
+    /// Emit a wire event frame to the host live (see
+    /// [`ExtensionSnapshot::emit_event_wire`]).
+    pub fn emit_event_wire(
+        &self,
+        event: crate::wire::EventFrame,
+    ) -> Result<Option<crate::wire::EventFrame>, SidecarError> {
+        self.snapshot.emit_event_wire(event)
+    }
+
+    /// Build a namespaced ext-event from `payload` and emit it live (see
+    /// [`ExtensionSnapshot::emit_ext_event`]).
+    pub fn emit_ext_event(
+        &self,
+        payload: Vec<u8>,
+    ) -> Result<Option<crate::wire::EventFrame>, SidecarError> {
+        self.snapshot.emit_ext_event(payload)
     }
 
     pub fn invoke_callback(
@@ -599,5 +642,86 @@ pub trait Extension: Send + Sync {
 
     fn on_dispose<'a>(&'a self) -> ExtensionFuture<'a, ()> {
         Box::pin(async { Ok(()) })
+    }
+}
+
+#[cfg(test)]
+mod live_event_tests {
+    use super::*;
+    use crate::state::EventSinkTransport;
+    use std::sync::{Arc, Mutex};
+
+    /// Records every event handed to the live sink, standing in for the stdio
+    /// `FrameEventTransport` that writes `ProtocolFrame::EventFrame`s to stdout.
+    #[derive(Default)]
+    struct RecordingEventSink {
+        events: Arc<Mutex<Vec<crate::wire::EventFrame>>>,
+    }
+
+    impl EventSinkTransport for RecordingEventSink {
+        fn emit_event(&self, event: crate::wire::EventFrame) -> Result<(), SidecarError> {
+            self.events.lock().unwrap().push(event);
+            Ok(())
+        }
+    }
+
+    fn snapshot_with_sink(event_sink: SharedEventSink) -> ExtensionSnapshot {
+        ExtensionSnapshot::new(
+            String::from("dev.rivet.test.live-event"),
+            OwnershipScope::session("conn-live", "sess-live"),
+            SharedSidecarRequestClient::default(),
+            event_sink,
+        )
+    }
+
+    // With a transport configured (the stdio path), an ext event is emitted live
+    // and `emit_ext_event` reports nothing left to batch.
+    #[test]
+    fn emit_ext_event_streams_live_when_sink_configured() {
+        let recorded = Arc::new(Mutex::new(Vec::new()));
+        let mut sink = SharedEventSink::default();
+        sink.set_transport(Arc::new(RecordingEventSink {
+            events: recorded.clone(),
+        }));
+
+        let snapshot = snapshot_with_sink(sink);
+        let leftover = snapshot
+            .emit_ext_event(b"live-update".to_vec())
+            .expect("emit must succeed");
+
+        assert!(
+            leftover.is_none(),
+            "a configured sink consumes the event live, leaving nothing to batch"
+        );
+        let recorded = recorded.lock().unwrap();
+        assert_eq!(recorded.len(), 1, "the event must reach the live transport");
+        // The live frame round-trips back to the namespaced ext payload.
+        let compat = crate::wire::event_frame_to_compat(recorded[0].clone())
+            .expect("recorded frame converts back to compat");
+        match compat.payload {
+            EventPayload::Ext(envelope) => {
+                assert_eq!(envelope.namespace, "dev.rivet.test.live-event");
+                assert_eq!(envelope.payload, b"live-update");
+            }
+            other => panic!("unexpected live event payload: {other:?}"),
+        }
+    }
+
+    // With no transport (an in-process sidecar), the event is handed back so the
+    // caller can fall back to the dispatch-result batch — preserving delivery.
+    #[test]
+    fn emit_ext_event_falls_back_to_batch_without_sink() {
+        let snapshot = snapshot_with_sink(SharedEventSink::default());
+        let leftover = snapshot
+            .emit_ext_event(b"batched-update".to_vec())
+            .expect("emit must succeed");
+
+        let frame = leftover.expect("without a sink the event is returned for batching");
+        let compat = crate::wire::event_frame_to_compat(frame)
+            .expect("returned frame converts back to compat");
+        match compat.payload {
+            EventPayload::Ext(envelope) => assert_eq!(envelope.payload, b"batched-update"),
+            other => panic!("unexpected batched event payload: {other:?}"),
+        }
     }
 }

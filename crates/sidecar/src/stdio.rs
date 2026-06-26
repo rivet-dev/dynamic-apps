@@ -4,8 +4,8 @@ use crate::wire::{
     SidecarResponseFrame, WireDispatchResult, WireFrameCodec,
 };
 use crate::{
-    Extension, ExtensionInterruptRequest, NativeSidecar, NativeSidecarConfig, SidecarError,
-    SidecarRequestTransport,
+    EventSinkTransport, Extension, ExtensionInterruptRequest, NativeSidecar, NativeSidecarConfig,
+    SidecarError, SidecarRequestTransport,
 };
 use secure_exec_bridge::queue_tracker::{tracked_sync_channel, TrackedLimit, TrackedSyncSender};
 use secure_exec_bridge::{
@@ -155,6 +155,12 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
     }));
     let callback_transport = Arc::new(FrameSidecarRequestTransport::new(write_tx.clone()));
     sidecar.set_sidecar_request_transport(callback_transport.clone());
+    // Live event sink: lets an extension stream `session/update` (and other)
+    // events to stdout mid-dispatch instead of batching them until the request
+    // resolves. Shares the same outbound `write_tx` channel as the batch path, so
+    // ordering and backpressure are identical.
+    let event_transport = Arc::new(FrameEventTransport::new(write_tx.clone()));
+    sidecar.set_event_transport(event_transport);
     let mut event_pump = time::interval(EVENT_PUMP_INTERVAL);
     let writer_codec = codec.clone();
     let reader_codec = codec.clone();
@@ -1378,6 +1384,28 @@ impl SessionScope {
 
     fn compat_ownership_scope(&self) -> crate::protocol::OwnershipScope {
         wire::ownership_scope_to_compat(self.ownership_scope())
+    }
+}
+
+/// Live event sink backed by the outbound stdout channel. Writes each event as a
+/// `ProtocolFrame::EventFrame` immediately, using the same blocking
+/// backpressure semantics as the batch event path (`send_output_frame`): a full
+/// queue parks the producer until the writer thread drains stdout rather than
+/// tearing down the process.
+struct FrameEventTransport {
+    writer: TrackedSyncSender<ProtocolFrame>,
+}
+
+impl FrameEventTransport {
+    fn new(writer: TrackedSyncSender<ProtocolFrame>) -> Self {
+        Self { writer }
+    }
+}
+
+impl EventSinkTransport for FrameEventTransport {
+    fn emit_event(&self, event: crate::wire::EventFrame) -> Result<(), SidecarError> {
+        send_output_frame(&self.writer, ProtocolFrame::EventFrame(event))
+            .map_err(|error| SidecarError::Bridge(error.to_string()))
     }
 }
 

@@ -30,8 +30,8 @@ use crate::protocol::{
     VmLifecycleState, WriteStdinRequest,
 };
 use crate::state::{
-    ActiveExecutionEvent, BridgeError, ConnectionState, JavascriptSocketFamily,
-    JavascriptSocketPathContext, ProcessEventEnvelope, SessionState, SharedBridge,
+    ActiveExecutionEvent, BridgeError, ConnectionState, EventSinkTransport, JavascriptSocketFamily,
+    JavascriptSocketPathContext, ProcessEventEnvelope, SessionState, SharedBridge, SharedEventSink,
     SharedSidecarRequestClient, SidecarRequestTransport, VmState, EXECUTION_DRIVER_NAME,
 };
 use crate::tools::register_host_callbacks;
@@ -870,6 +870,7 @@ pub struct NativeSidecar<B> {
     pub(crate) pending_sidecar_responses_gauge: Arc<QueueGauge>,
     pub(crate) outbound_sidecar_requests_gauge: Arc<QueueGauge>,
     pub(crate) sidecar_requests: SharedSidecarRequestClient,
+    pub(crate) event_sink: SharedEventSink,
     pub(crate) extensions: BTreeMap<String, Arc<dyn Extension>>,
     pub(crate) extension_sessions: BTreeMap<(String, String), ExtensionSessionResources>,
     pub(crate) extension_process_output_buffers:
@@ -980,6 +981,7 @@ where
                 MAX_OUTBOUND_SIDECAR_REQUESTS,
             ),
             sidecar_requests: SharedSidecarRequestClient::default(),
+            event_sink: SharedEventSink::default(),
             extensions: BTreeMap::new(),
             extension_sessions: BTreeMap::new(),
             extension_process_output_buffers: BTreeMap::new(),
@@ -1160,6 +1162,10 @@ where
 
     pub fn set_sidecar_request_transport(&mut self, transport: Arc<dyn SidecarRequestTransport>) {
         self.sidecar_requests.set_transport(transport);
+    }
+
+    pub fn set_event_transport(&mut self, transport: Arc<dyn EventSinkTransport>) {
+        self.event_sink.set_transport(transport);
     }
 
     pub fn register_extension(
@@ -1488,6 +1494,7 @@ where
             namespace.clone(),
             request.ownership.clone(),
             self.sidecar_requests.clone(),
+            self.event_sink.clone(),
         );
         let ctx = ExtensionContext::new(snapshot, self);
         let response = extension.handle_request(ctx, envelope.payload).await?;
@@ -1898,6 +1905,7 @@ where
                 extension.namespace().to_owned(),
                 ownership.clone(),
                 self.sidecar_requests.clone(),
+                self.event_sink.clone(),
             );
             if let Err(error) = extension.on_session_disposed(snapshot).await {
                 if first_error.is_none() {
