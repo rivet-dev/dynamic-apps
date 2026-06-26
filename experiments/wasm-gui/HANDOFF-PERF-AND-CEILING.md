@@ -72,6 +72,14 @@ Ruled out as causes (with evidence): CPU/fuel limit (xserver+clients+services al
 threads 255k / fds 1M / mem unlimited), and the system-bus connect (returns ENOENT, handled fine).
 Single-guest sessions are stable to 240s+ and capture fine — this is strictly a MULTI-heavy-guest issue.
 
+**DEFINITIVE proof it is saturation, not a raisable limit (2026-06-26).** The runtime has a
+`wall_clock_limit_ms` but it is OFF by default and the host never sets it (only `CPU_TIME_LIMIT_MS=0`),
+so there is NO configured VM-lifetime cap. Decisive test: a SINGLE heavy guest (thunar) run directly via
+the host at `--timeout 350` (outer 400) SURVIVED to 350s and captured (1.9MB FB, 63% = full Thunar
+window). A single guest lives indefinitely; only the MULTI-heavy-guest session collapses at ~211-251s.
+So the death is the single-thread saturation under concurrent load, with NO config knob to raise. (My
+earlier "single guest dies ~240s" was an artifact of render-app.sh's hardcoded `timeout 220` outer.)
+
 **Launch-RPC starvation FIXED (in-harness), but the timing wall remains.** A long (35s) inter-guest
 settle -- launch the next guest only after the previous goes truly IDLE -- makes all guests launch
 cleanly (the 18s settle launched mid-cascade, starving the launch RPC -> ~114s block). But the session
