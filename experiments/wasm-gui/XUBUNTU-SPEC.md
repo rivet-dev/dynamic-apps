@@ -2,6 +2,58 @@
 
 Living spec (**DRAFT v1**, 2026-06-24). Status legend: ⬜ todo · 🟡 in progress · ✅ done · ❌ blocked.
 
+---
+
+## ⚡ DIRECTION (2026-06-26): performance-first → a HIGH-PERFORMANCE full Xubuntu desktop running multiple apps
+
+**THE MILESTONE (the one that matters — XU7 acceptance):** a **high-performance, genuinely usable Xubuntu
+desktop** running **multiple real applications simultaneously**. Concretely: xfwm4 + xfce4-panel + xfdesktop +
+Thunar **PLUS several apps at once** (e.g. xfce4-terminal + mousepad + an image viewer + the file manager), all
+live in one session, decorated by the WM and arranged on the panel/desktop, and **responsive enough to actually
+interact with** (type, click, switch windows) — NOT a single static screenshot that took minutes to paint. The
+components already render individually (XU0–XU6 done; gmodule SOLVED + consolidated); the remaining gap is
+**performance** (the runtime can't currently schedule that many heavy guests fast enough), not more components.
+So the work now leads with performance, and "done" = the multi-app desktop is fast and usable.
+
+**Where the work happens:** the **main repo** (`/home/nathan/secure-exec`) — sidecar / kernel / toolchain. This
+wasm-gui desktop is the **benchmark / proving ground**, not where the perf code lives.
+
+**Roadmap** (the "B" memory/concurrency direction — see `docs/memory-and-concurrency-architecture.mdx` — plus a
+generic ultracode perf analysis). **All four levers + proc_spawn + ps/top/strace are APPROVED** — the two TCB
+sign-offs were granted 2026-06-26 and the user **trusts the implementation, so no further per-change review is
+needed**. (Still do the security work correctly: write the hostile-input security design for the SAB ring — the
+kernel validates all guest-written ring data — and treat the concurrency refactor with TCB-grade care. The
+never-self-approve list — D-Bus-to-host, host-fd, GPU, host-network — is unchanged and still needs sign-off.)
+Start with Root-1:
+1. **Root-1 — typed-function-references.** Replace `--fpcast-emu` for GObject's mismatched-signature function
+   pointers. Cuts the ~13s GObject construction cascade (the per-guest compute root); speeds every guest AND
+   relieves Root-2. No new attack surface. *(Start here.)*
+2. **T1 — SAB ring transport.** Replace `postMessage`+base64 syscall RPC with a guest↔kernel SharedArrayBuffer
+   ring + `Atomics.wait/notify`. Biggest raw-throughput win. **Security:** the ring is guest-written /
+   kernel-read, a new sidecar↔executor surface — the kernel must validate every offset/length/seq/TOCTOU as
+   hostile input (security design note first).
+3. **Brokered shared segments** for pipe / X11 / framebuffer / shm — zero-copy hot paths, MIT-SHM-style X11
+   pixmaps. Generalizes the proven M8.6 framebuffer `dataBuffer` fix.
+4. **Root-2 — thread-safe kernel + service-thread multiplex** + bounded (~#cores) isolate pool. The parallelism
+   wall for the full DE. Deepest TCB change; do after T1/Root-1 lower per-thread load.
+
+**Also approved:** **proc_spawn** (intercept VTE fork→exec onto the sandboxed-guest-spawn seam + a shell guest =
+the **xfce4-terminal**, last XU6 app); **real in-VM `ps`/`top`/`strace`** product CLIs (measurement + product
+conformance).
+
+**Three roots of slowness (don't conflate):** Root-1 = in-guest compute (indirect calls) → typed-func-refs only;
+Root-2 = single-service-thread serialization → T1 + multiplex; Root-3 = byte-copy throughput → T1 + shared
+segments. **MEASURE before/after every change** (constraint #4).
+
+**Deliberate out-of-scope** (record, don't re-investigate): GL passthrough (software raster is the one data
+path); the "C" single shared-address-space VM + a wasm PIC dynamic linker (revisit only when a guest needs real
+`fork()`-without-`exec()` or globally-valid cross-process pointers); general `fork()` (`exec`/`posix_spawn`
+covers the 99% case).
+
+> The §2 stances below ("avoid shared memory", "no MIT-SHM") are **superseded for performance** by this section:
+> shared memory is now **adopted intra-VM, brokered** (never cross-VM — different VMs = different machines =
+> network only); `dlopen` / a real dynamic linker stays **avoided** (the static-plugin shim covers it).
+
 **Relationship to the existing specs (read these first):**
 - [`SPEC.md`](./SPEC.md) — the original DE spec. Milestones M1–M8 took the runtime from a
   software-rendered frame to a **live LXDE desktop** (openbox + lxpanel + pcmanfm), all wasm. **This
@@ -45,9 +97,12 @@ requirement** — a hardware/driver concern orthogonal to ABI compatibility, del
 ## 2. Inherited architecture constraints (from SPEC.md)
 
 - **Software rasterization → framebuffer → host blits.** No GL/EGL/GPU in the guest.
-- **X11 over a socket.** Core X11 + `XPutImage` fallback (no MIT-SHM).
-- **Avoid `dlopen` and shared memory.** Static-link everything; build loadable plugins **static**
-  (the lxpanel `--disable-plugins-loading` pattern — no dlopen in the sandbox).
+- **X11 over a socket.** Core X11 + `XPutImage` today. **(Perf pivot: MIT-SHM-style shared pixmaps are now
+  IN scope** as a brokered-shared-segment optimization — see the Direction banner.)
+- **`dlopen`: still AVOIDED** — build loadable plugins **static** and fake the dlopen surface with the
+  static-plugin shim (`toolchain/gmodule-shim.c`; the lxpanel `--disable-plugins-loading` pattern). A real wasm
+  dynamic linker stays out of scope. **Shared memory: now ADOPTED — intra-VM, kernel-brokered** (the perf
+  pivot; SAB rings + shared segments). Never cross-VM (different VMs = different machines = network only).
 - **Constraint #5 (overriding):** components build/run from unmodified upstream; fix breakage in the
   **native/platform layer** (runtime / sidecar / VFS / X-server / toolchain sysroot+shim), never by
   patching a component's source. Repay any per-lib patches into the libc/sysroot layer.
@@ -548,10 +603,15 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   the show window. With the theme staged the synchronous Notify COMPLETES ("notification sent (try 4)") and the
   popup paints. Scripts: build-libnotify.sh, build-notifyd.sh. Remaining XU6: **xfce4-terminal** -- ★ the wasm-EH typed-catch blocker is RESOLVED (TLS __wasm_lpad_context consistency; all-threads libwasmeh) so VTE now links+constructs+reaches vte_terminal_spawn_async (openpt rc=0); the remaining crash is a direct trap at proc_spawn (the /bin/sh launch): VTE runs openpt rc=0 -> grantpt -> unlockpt -> TIOCSWINSZ cleanly, then traps because host_process.proc_spawn has NO sidecar handler (unlike __pty_open). Wiring __proc_spawn/__proc_waitpid + a shell guest IS the surfaced fork/process-spawn TCB decision. Its VTE needs
   fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready sans icu/gnutls + the TIOCGWINSZ shim).
-- **XU7 — full Xubuntu session = ACCEPTANCE.** 🟡 One screenshot shows the FULL live Xubuntu desktop
-  working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
-  Whisker menu, an xfwm4-decorated Thunar showing a real listing, all interactive, captured in a normal
-  run. Visually indistinguishable from a real Xubuntu 24.04 session. (The Xubuntu analogue of M8.6.)
+- **XU7 — HIGH-PERFORMANCE full Xubuntu desktop with MULTIPLE APPS = ACCEPTANCE.** 🟡 The deliverable is a
+  **fast, genuinely usable** full Xubuntu desktop running **several real apps at once**: Greybird-themed,
+  elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel + Whisker menu, and xfwm4 decorating
+  **multiple app windows simultaneously** (e.g. xfce4-terminal + mousepad + an image viewer + Thunar showing a
+  real listing), all live and **responsive enough to actually interact with** — type, click, switch windows — in
+  a normal run. NOT a single static frame that took minutes to paint. Visually indistinguishable from, and as
+  usable as, a real Xubuntu 24.04 session. (The Xubuntu analogue of M8.6, raised to a performance bar.) The
+  performance roadmap that gets here (Root-1 / T1 / shared segments / Root-2) is the Direction banner at top;
+  the two TCB sign-offs it needs are now **APPROVED** (2026-06-26).
   **STATUS (2026-06-26): every component renders individually (XU0-XU6 all green: xfwm4 decoration,
   xfce4-panel, xfdesktop wallpaper, Thunar real listing, notifyd popup, 3 bundled apps -- all single-guest).
   The FULL session (4 heavy guests at once) is the ONE remaining milestone and is gated on a

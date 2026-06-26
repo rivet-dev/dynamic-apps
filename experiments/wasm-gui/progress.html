@@ -63,6 +63,20 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
 <div class="log">
   <div class="entry">
     <div class="date">2026-06-26 (PST)</div>
+    <span class="done">⚡ DIRECTION PIVOT: performance-first → a full, performant Xubuntu desktop.</span>
+    The components all render (XU0–XU6 done; gmodule SOLVED + functional). The gap to XU7 (the full 4–5-guest
+    desktop in one frame) is <strong>performance</strong>, not more components. User approved all four perf
+    levers + proc_spawn + ps/top/strace. Roadmap (start with Root-1): <strong>Root-1</strong> typed-function-refs
+    (replace <code>--fpcast-emu</code>, cut the ~13s GObject cascade) → <strong>T1</strong> SAB ring transport
+    (replace postMessage+base64; kernel validates the guest-written ring as hostile) → <strong>brokered shared
+    segments</strong> (pipe/X11/framebuffer/shm, MIT-SHM-style) → <strong>Root-2</strong> thread-safe kernel +
+    service-thread multiplex. Plus proc_spawn (terminal) + in-VM ps/top/strace. Work moves to the
+    <strong>main repo</strong> (sidecar/kernel/toolchain); this desktop is the benchmark. A multi-agent
+    <em>ultracode</em> perf analysis (postMessage-vs-SAB + generic levers) is running to surface additional wins
+    before implementation begins. Spec updated with the new direction; /loop cron re-pointed at the perf goal.
+  </div>
+  <div class="entry">
+    <div class="date">2026-06-26 (PST)</div>
     <span class="done">Thunar bulk-rename renamers (XU5) now load — and an honest correction.</span>
     The thunar-sbr renamer plugin now loads all-wasm: the bulk-rename dialog shows live rule controls
     (Insert/Overwrite, Name only, Insert/Text/At-position) instead of the "No renamer modules" infobar (proof:
