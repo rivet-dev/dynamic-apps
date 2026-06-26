@@ -189,6 +189,40 @@ impl SabRingWriter {
     }
 }
 
+/// Kernel-side sync-RPC endpoint over the two T1 rings: reads requests from the guest->kernel ring and writes
+/// responses into the kernel->guest ring. The Rust counterpart to the guest-side JS `RingChannel`. Holds both ring
+/// indices, so it is persistent -- one `SabRingEndpoint` per guest, created at guest setup (NOT per syscall).
+pub(crate) struct SabRingEndpoint {
+    request_reader: SabRingReader,  // guest -> kernel (the kernel consumes)
+    response_writer: SabRingWriter, // kernel -> guest (the kernel produces)
+}
+
+impl SabRingEndpoint {
+    pub(crate) fn new(ring_size: u32) -> Result<Self, RingError> {
+        Ok(Self {
+            request_reader: SabRingReader::new(ring_size)?,
+            response_writer: SabRingWriter::new(ring_size)?,
+        })
+    }
+
+    /// Read the next pending request from the request ring (every guest-written field validated as HOSTILE), then
+    /// publish the kernel consumer index so the guest's request writer can compute backpressure. `req_sab` is the
+    /// request ring's (Shared)ArrayBuffer backing store. `Ok(None)` = no complete request pending.
+    pub(crate) fn read_request(&mut self, req_sab: &mut [u8]) -> Result<Option<Vec<u8>>, RingError> {
+        let record = self.request_reader.read_record(req_sab)?;
+        if record.is_some() {
+            self.request_reader.publish_consumer(req_sab);
+        }
+        Ok(record)
+    }
+
+    /// Write a response into the response ring's backing store. `Ok(false)` = ring full (backpressure; retry after
+    /// the guest drains). `payload` is kernel-trusted, capped at `MAX_RECORD_BYTES`.
+    pub(crate) fn write_response(&mut self, resp_sab: &mut [u8], payload: &[u8]) -> Result<bool, RingError> {
+        self.response_writer.write_record(resp_sab, payload)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -348,6 +382,28 @@ mod tests {
         sab[CONSUMER_INDEX_OFFSET..CONSUMER_INDEX_OFFSET + 4].copy_from_slice(&u32::MAX.to_le_bytes());
         let mut w = SabRingWriter::new(RING).unwrap();
         let _ = w.write_record(&mut sab, b"x").unwrap(); // must not panic
+    }
+
+    #[test]
+    fn endpoint_roundtrips_request_response() {
+        // Guest writes a request into the G->K ring; the kernel endpoint reads it (publishing its consumer) and
+        // writes a response into the K->G ring; the guest reads the response (publishing ITS consumer). In-crate
+        // mirror of the JS t1-ring end-to-end test: 200 sequential round-trips, forcing wrap-around both ways.
+        let mut req_sab = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
+        let mut resp_sab = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
+        let mut guest_writer = SabRingWriter::new(RING).unwrap(); // guest produces requests
+        let mut guest_reader = SabRingReader::new(RING).unwrap(); // guest consumes responses
+        let mut endpoint = SabRingEndpoint::new(RING).unwrap();
+        for i in 0..200u32 {
+            let req = format!("req-{i}");
+            assert!(guest_writer.write_record(&mut req_sab, req.as_bytes()).unwrap(), "req {i} write");
+            assert_eq!(endpoint.read_request(&mut req_sab).unwrap(), Some(req.into_bytes()));
+            let resp = format!("resp-{i}");
+            assert!(endpoint.write_response(&mut resp_sab, resp.as_bytes()).unwrap(), "resp {i} write");
+            assert_eq!(guest_reader.read_record(&resp_sab).unwrap(), Some(resp.into_bytes()));
+            // guest publishes its consumer so the kernel's response writer sees freed space (backpressure).
+            guest_reader.publish_consumer(&mut resp_sab);
+        }
     }
 
     // Deterministic LCG so the fuzz is reproducible without a rand dependency.
