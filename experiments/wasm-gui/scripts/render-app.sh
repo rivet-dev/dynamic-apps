@@ -24,11 +24,16 @@ bash scripts/stage-gschemas.sh /tmp/vmschemas >/dev/null 2>&1
 # The theme dir-scan/preview path is the real gap; localizing it needs a SECURE_EXEC_KEEP_NAMES build + the
 # M8.6 symbolizer recipe. The dialog UI renders fine with an empty list, so theme enumeration stays a TODO.)
 bash scripts/prepare-dbus-fixtures.sh /tmp/vmxu5sess >/dev/null 2>&1
+# Stage a precompiled XKB keymap (/xkb/default.xkm) so the wasm X server's keyboard device activates --
+# without it every render logs "XKB: Couldn't open rules file" + "XTest keyboard not activated", and apps
+# that query the keymap (xfce4-keyboard-settings) trap. The server loads the .xkm directly (patched
+# XkbCompileKeymap + fmemopen, no xkbcomp exec). Cheap; harmless for apps that don't touch the keyboard.
+[ -f /tmp/vmxkb/xkb/default.xkm ] || bash scripts/prepare-xkb.sh /tmp/vmxkb >/dev/null 2>&1
 FB="$(mktemp /tmp/render-fb.XXXXXX.bin)"
 timeout 220 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" --dbus "$EXP/dbus-daemon.wasm" --dbus-service "$EXP/xfconfd.wasm" --client "$APP" \
   --fonts-dir /tmp/vmfonts --locale-dir /tmp/vmlocale \
-  --vm-tree /tmp/vmxu5sess --vm-tree /tmp/vmicons --vm-tree /tmp/vmxft --vm-tree /tmp/vmschemas \
+  --vm-tree /tmp/vmxu5sess --vm-tree /tmp/vmicons --vm-tree /tmp/vmxft --vm-tree /tmp/vmschemas --vm-tree /tmp/vmxkb \
   --fb-out "$FB" --sidecar "$SIDECAR" -- :0 -screen 0 ${W}x${H}x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data \
   > "${RENDER_LOG:-/tmp/render-app.log}" 2>&1 || true
 FCERR=$(grep -aic 'Fontconfig error' "${RENDER_LOG:-/tmp/render-app.log}")
