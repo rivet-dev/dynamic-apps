@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Xubuntu-on-wasm (secure-exec) — progress</title>
+<style>
+  body { font: 14px/1.5 -apple-system, system-ui, sans-serif; max-width: 980px; margin: 24px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { font-size: 20px; } h2 { font-size: 16px; margin-top: 28px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .todo { background: #f7f7f9; border: 1px solid #e2e2e8; border-radius: 8px; padding: 12px 16px; }
+  .eta { font-weight: 600; color: #b35900; }
+  code { background: #f0f0f3; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .log { margin-top: 8px; } .entry { border-left: 3px solid #ccc; padding: 2px 0 2px 14px; margin: 14px 0; }
+  .entry.big { border-left-color: #1a9e4b; }
+  .date { color: #777; font-size: 12.5px; }
+  .done { color: #1a9e4b; font-weight: 600; } .gate { color: #b35900; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Xubuntu 24.04 desktop shell, all-wasm in secure-exec — progress</h1>
+<p>Goal: a faithful default-Xubuntu (Xfce 4.18, X11, software-rendered) running entirely as wasm guests inside the
+secure-exec sandbox, from <strong>unmodified upstream</strong> components (constraint #5). Milestones XU0–XU7.</p>
+
+<div class="todo">
+  <strong>TODO + ETA</strong> &nbsp;·&nbsp; <span class="eta">ETA: blocked on 2 human TCB/architecture sign-offs</span>
+  <ul style="margin:8px 0 0">
+    <li><span class="gate">⏸ XU6 terminal</span> — wasm-EH <em>resolved</em>; VTE reaches the spawn; only gate is wiring
+        <code>host_process.proc_spawn</code> + a <code>/bin/sh</code> guest = the <strong>fork/process-spawn TCB decision</strong> (sign-off).</li>
+    <li><span class="gate">⏸ XU7 full session</span> — every component renders solo; the 4-guest session needs the
+        <strong>sidecar service-thread multiplex</strong> (Root 2) = an <strong>architecture decision</strong> (sign-off).</li>
+    <li>Everything else (XU0–XU5, 4 of 5 XU6 apps) is <span class="done">DONE</span>.</li>
+  </ul>
+</div>
+
+<h2>Pipeline status</h2>
+<svg viewBox="0 0 940 150" width="100%" role="img" aria-label="XU0-XU7 pipeline status">
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#999"/></marker></defs>
+  <style>
+    .box{rx:7;ry:7;height:46} .done{fill:#e6f6ec;stroke:#1a9e4b} .gate{fill:#fdf0e0;stroke:#b35900}
+    .lbl{font:11px sans-serif;fill:#1a1a1a;text-anchor:middle} .sub{font:9px sans-serif;fill:#666;text-anchor:middle}
+    .arr{stroke:#999;stroke-width:1.4;marker-end:url(#a)}
+  </style>
+  <!-- row of 8 -->
+  <g>
+    <rect class="box done" x="6"   y="40" width="104" height="46"/><text class="lbl" x="58"  y="60">XU0 D-Bus</text><text class="sub" x="58"  y="76">✓ session bus</text>
+    <rect class="box done" x="122" y="40" width="104" height="46"/><text class="lbl" x="174" y="60">XU1 xfconf</text><text class="sub" x="174" y="76">✓ +xfsettingsd</text>
+    <rect class="box done" x="238" y="40" width="104" height="46"/><text class="lbl" x="290" y="60">XU2 xfwm4</text><text class="sub" x="290" y="76">✓ decoration</text>
+    <rect class="box done" x="354" y="40" width="104" height="46"/><text class="lbl" x="406" y="60">XU3 panel</text><text class="sub" x="406" y="76">✓ +whisker</text>
+    <rect class="box done" x="470" y="40" width="104" height="46"/><text class="lbl" x="522" y="60">XU4 xfdesktop</text><text class="sub" x="522" y="76">✓ wallpaper+icons</text>
+    <rect class="box done" x="586" y="40" width="104" height="46"/><text class="lbl" x="638" y="60">XU5 Thunar</text><text class="sub" x="638" y="76">✓ file mgr</text>
+    <rect class="box gate" x="702" y="40" width="104" height="46"/><text class="lbl" x="754" y="58">XU6 apps</text><text class="sub" x="754" y="72">4✓ · terminal=TCB</text>
+    <rect class="box gate" x="818" y="40" width="104" height="46"/><text class="lbl" x="870" y="58">XU7 session</text><text class="sub" x="870" y="72">solo✓ · multiplex=TCB</text>
+  </g>
+  <g class="arr"><line x1="110" y1="63" x2="120" y2="63"/><line x1="226" y1="63" x2="236" y2="63"/><line x1="342" y1="63" x2="352" y2="63"/><line x1="458" y1="63" x2="468" y2="63"/><line x1="574" y1="63" x2="584" y2="63"/><line x1="690" y1="63" x2="700" y2="63"/><line x1="806" y1="63" x2="816" y2="63"/></g>
+  <text x="6" y="120" style="font:11px sans-serif;fill:#1a9e4b">■ done</text>
+  <text x="70" y="120" style="font:11px sans-serif;fill:#b35900">■ gated on a human TCB/architecture sign-off (never self-approve)</text>
+</svg>
+
+<h2>Recent log (latest first)</h2>
+<div class="log">
+  <div class="entry big">
+    <div class="date">2026-06-26 (PST)</div>
+    <strong class="done">★ The multi-session wasm-EH blocker is RESOLVED — the terminal reaches the spawn.</strong>
+    Unmodified <strong>VTE</strong> (the xfce4-terminal engine) now links, renders, constructs the terminal widget, opens the pty
+    (<code>openpt rc=0</code>), runs the full pty setup (grantpt/unlockpt/TIOCSWINSZ), and reaches
+    <code>vte_terminal_spawn_async</code> — all wasm.
+    <br>Root cause (after a long mis-diagnosis as "type_info won't link"): a <strong>TLS-consistency</strong> issue with
+    libunwind's <code>__wasm_lpad_context</code>. clang <code>-fwasm-exceptions</code> emits TLS access for it in threaded
+    TUs, so the EH runtime must be built <strong>all-threads</strong> (one non-threads object demotes the whole TLS segment →
+    <code>lsda=0</code> → typed catches escape → terminate). Codified in <code>toolchain/build-libwasmeh.sh</code>; proven on a
+    minimal threaded <code>catch(int)</code> (<code>lsda=0x480</code>, catches).
+    <br>The only remaining terminal gate is now <span class="gate">wiring <code>host_process.proc_spawn</code></span> (the actual
+    <code>/bin/sh</code> launch) — the surfaced <strong>fork/process-spawn TCB decision</strong>.
+  </div>
+  <div class="entry">
+    <div class="date">2026-06-25 (PST)</div>
+    <span class="done">XU6 apps:</span> xfce4-appfinder, mousepad (text editor), ristretto (image viewer), and the
+    xfce4-notifyd notification popup all render with real text/icons, all wasm.
+    <span class="done">XU5 Thunar</span> renders a full file-manager window; <span class="done">XU4 xfdesktop</span>
+    draws wallpaper + desktop icons; <span class="done">XU3</span> the panel + Whisker menu.
+  </div>
+  <div class="entry">
+    <div class="date">earlier (PST)</div>
+    <span class="done">XU0–XU2:</span> unmodified <code>dbus-daemon</code> session bus; the full
+    xfconf → xfsettingsd → X-XSETTINGS → GTK theming chain; xfwm4 decorating a window with the Greybird theme.
+  </div>
+</div>
+
+<p class="date">Detailed engineering log: <code>experiments/wasm-gui/M8-STATUS-LOG.md</code> · DoD checklist:
+<code>experiments/wasm-gui/XUBUNTU-SPEC.md</code> · screenshots: <code>~/tmp/gui-progress/</code></p>
+</body>
+</html>
