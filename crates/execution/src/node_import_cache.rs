@@ -12835,7 +12835,24 @@ const hostProcessImport = {
           }
         },
         pty_open(retMasterFdPtr, retSlaveFdPtr) {
-          return WASI_ERRNO_FAULT;
+          // Back the guest pty with a real KERNEL pty pair (kernel.open_pty), same model as fd_pipe:
+          // the master/slave kernel fds are range-encoded (KERNEL_PIPE_FD_BASE + kernelFd) so
+          // fd_read/fd_write/fd_close/poll_oneoff route them to the kernel pty discipline.
+          try {
+            const result = callSyncRpc('__pty_open', []);
+            const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+            if (!parsed || parsed.masterFd == null || parsed.slaveFd == null) {
+              return WASI_ERRNO_FAULT;
+            }
+            const masterFd = KERNEL_PIPE_FD_BASE + (Number(parsed.masterFd) >>> 0);
+            const slaveFd = KERNEL_PIPE_FD_BASE + (Number(parsed.slaveFd) >>> 0);
+            if (writeGuestUint32(retMasterFdPtr, masterFd) !== WASI_ERRNO_SUCCESS) {
+              return WASI_ERRNO_FAULT;
+            }
+            return writeGuestUint32(retSlaveFdPtr, slaveFd);
+          } catch {
+            return WASI_ERRNO_FAULT;
+          }
         },
         proc_sigaction(signal, action, maskLo, maskHi, flags) {
           if (permissionTier !== 'full') {

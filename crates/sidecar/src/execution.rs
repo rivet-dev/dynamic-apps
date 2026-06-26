@@ -13872,6 +13872,7 @@ where
         "__pty_set_raw_mode" => {
             service_javascript_pty_set_raw_mode_sync_rpc(kernel, process, request)
         }
+        "__pty_open" => service_javascript_pty_open_sync_rpc(kernel, process, request),
         "__pty_read" => service_javascript_pty_read_sync_rpc(kernel, process, request),
         "__pty_write" => service_javascript_pty_write_sync_rpc(kernel, process, request),
         "crypto.hashDigest"
@@ -16521,6 +16522,20 @@ fn service_javascript_kernel_pipe_sync_rpc(
         .open_pipe(EXECUTION_DRIVER_NAME, process.kernel_pid)
         .map_err(kernel_error)?;
     Ok(json!({ "readFd": read_fd, "writeFd": write_fd }))
+}
+
+/// Allocate a kernel pty pair for the guest (VTE / posix_openpt -> host_process.pty_open). Returns the
+/// master/slave kernel fds; the WASM runner range-encodes them so fd_read/fd_write/poll route to the
+/// kernel pty discipline. Same kernel-fd model as `__kernel_pipe`.
+fn service_javascript_pty_open_sync_rpc(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    _request: &JavascriptSyncRpcRequest,
+) -> Result<Value, SidecarError> {
+    let (master_fd, slave_fd, _pty_path) = kernel
+        .open_pty(EXECUTION_DRIVER_NAME, process.kernel_pid)
+        .map_err(kernel_error)?;
+    Ok(json!({ "masterFd": master_fd, "slaveFd": slave_fd }))
 }
 
 /// Non-blocking read of a guest kernel fd (the kernel-pipe read end). Returns `{ dataBase64 }` for
