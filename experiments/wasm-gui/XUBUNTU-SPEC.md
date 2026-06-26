@@ -95,7 +95,7 @@ bundled apps**, NOT the heavy app payload (see §7). Versions = Xfce 4.18 / Xubu
 | mousepad | text editor (GTK3) | https://gitlab.xfce.org/apps/mousepad |
 | ristretto | image viewer | https://gitlab.xfce.org/apps/ristretto |
 | catfish | file search | https://gitlab.xfce.org/apps/catfish |
-| xfce4-screenshooter | screenshots | https://gitlab.xfce.org/apps/xfce4-screenshooter |
+| xfce4-screenshooter | screenshots | https://gitlab.xfce.org/apps/xfce4-screenshooter | 🟢 (XU6: UNMODIFIED 1.11.1 cross-compiled to wasm via the proven app recipe; the capture dialog RENDERS with real text -- "Region to capture" (Entire screen/Active window/Select a region), "Delay before capturing" spinner, "Capture the mouse pointer/window border" checkboxes, Help/Preferences/Cancel/OK, Greybird-themed, 0 fontconfig errors, all wasm. Proof gui-progress/2026-06-26T08/xu6-screenshooter.png. Built via scripts/build-screenshooter.sh (top-level non-recursive automake, -k skips the optional panel-plugin which needs unstaged libxfce4panel headers). The actual screen-capture (XGetImage) is untested but the app + UI run) |
 | VTE | terminal widget (xfce4-terminal dep) | https://gitlab.gnome.org/GNOME/vte |
 
 ### 3.4 Theming & data — **stage as fixtures, no code** (highest feel-per-effort)

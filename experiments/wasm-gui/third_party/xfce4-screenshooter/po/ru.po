@@ -1,0 +1,433 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Xfce
+# This file is distributed under the same license as the xfce-apps.xfce4-screenshooter package.
+# 
+# Translators:
+# Aleksandr P, 2013
+# Andrei Stepanov, 2022-2024
+# Denis Koryavov <dkoryavov@yandex.ru>, 2009
+# Igor <f2404@yandex.ru>, 2018-2019
+# Igor Vornovskii, 2022
+# Kyrill Detinov <lazy.kent@opensuse.org>, 2015
+# Sergey Alyoshin <alyoshin.s@gmail.com>, 2014-2015
+# AlexanderFilev, 2020
+# Темак, 2022
+# Victor, 2022
+# Евгений Кольцов <scheugen86@gmail.com>, 2021
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfce Apps\n"
+"Report-Msgid-Bugs-To: https://gitlab.xfce.org/\n"
+"POT-Creation-Date: 2024-06-06 00:51+0200\n"
+"PO-Revision-Date: 2013-07-03 18:40+0000\n"
+"Last-Translator: Andrei Stepanov, 2022-2024\n"
+"Language-Team: Russian (http://app.transifex.com/xfce/xfce-apps/language/ru/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: lib/screenshooter-dialogs.c:503
+#, c-format
+msgid "%.2fKb of %.2fKb"
+msgstr "%.2fкБ из %.2fкБ"
+
+#: lib/screenshooter-dialogs.c:606
+msgid "Transfer"
+msgstr "Передача"
+
+#: lib/screenshooter-dialogs.c:627
+msgid ""
+"<span weight=\"bold\" stretch=\"semiexpanded\">The screenshot is being "
+"transferred to:</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Снимок экрана будет перемещен в:</span>"
+
+#: lib/screenshooter-dialogs.c:867 lib/screenshooter-dialogs.c:876
+#: lib/screenshooter-dialogs.c:1128 lib/screenshooter-utils.c:133
+#: lib/screenshooter-utils.c:175 src/xfce4-screenshooter.desktop.in:4
+#: panel-plugin/screenshooter.desktop.in:4
+msgid "Screenshot"
+msgstr "Снимок экрана"
+
+#: lib/screenshooter-dialogs.c:869 lib/screenshooter-dialogs.c:879
+msgid "_Preferences"
+msgstr "_Настройки"
+
+#: lib/screenshooter-dialogs.c:870 lib/screenshooter-dialogs.c:878
+#: lib/screenshooter-dialogs.c:1130
+msgid "_Help"
+msgstr "_Справка"
+
+#: lib/screenshooter-dialogs.c:871 lib/screenshooter-dialogs.c:1463
+msgid "_Close"
+msgstr "_Закрыть"
+
+#: lib/screenshooter-dialogs.c:880 lib/screenshooter-dialogs.c:1132
+msgid "_Cancel"
+msgstr "О_тмена"
+
+#: lib/screenshooter-dialogs.c:881 lib/screenshooter-dialogs.c:1133
+msgid "_OK"
+msgstr "_ОК"
+
+#: lib/screenshooter-dialogs.c:914
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Region to capture</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Область захвата</span>"
+
+#: lib/screenshooter-dialogs.c:936
+msgid "Entire screen"
+msgstr "Весь экран"
+
+#: lib/screenshooter-dialogs.c:941 src/main.c:61
+#: panel-plugin/screenshooter-plugin.c:332
+msgid "Take a screenshot of the entire screen"
+msgstr "Сделать снимок всего экрана"
+
+#: lib/screenshooter-dialogs.c:950
+msgid "Active window"
+msgstr "Активное окно"
+
+#: lib/screenshooter-dialogs.c:953 src/main.c:103
+#: panel-plugin/screenshooter-plugin.c:337
+msgid "Take a screenshot of the active window"
+msgstr "Сделать снимок активного окна"
+
+#: lib/screenshooter-dialogs.c:962 lib/screenshooter-dialogs.c:989
+msgid "Not supported in Wayland"
+msgstr "Не поддерживается в Wayland"
+
+#: lib/screenshooter-dialogs.c:973
+msgid "Select a region"
+msgstr "Выделить область"
+
+#: lib/screenshooter-dialogs.c:976
+msgid ""
+"Select a region to be captured by clicking a point of the screen without releasing the mouse button, dragging your mouse to the other corner of the region, and releasing the mouse button.\n"
+"\n"
+"Press Ctrl while dragging to move the region."
+msgstr "Выберите область для захвата: щелкните по точке экрана и не отпуская кнопку мыши, перетащите мышь в другой угол, отпустив кнопку мыши.\n\nДля перемещения области нажмите Ctrl во время перетаскивания."
+
+#: lib/screenshooter-dialogs.c:1000
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Options</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Настройки</span>"
+
+#: lib/screenshooter-dialogs.c:1020
+msgid "Capture the mouse pointer"
+msgstr "Захватывать курсор мыши"
+
+#: lib/screenshooter-dialogs.c:1024
+msgid "Display the mouse pointer on the screenshot"
+msgstr "Отображать курсор мыши на снимке экрана"
+
+#: lib/screenshooter-dialogs.c:1031
+msgid "Capture the window border"
+msgstr "Захватывать границы окна"
+
+#: lib/screenshooter-dialogs.c:1036
+msgid ""
+"Display the window border on the screenshot.\n"
+"Disabling this option has no effect for CSD windows."
+msgstr "Отображать границу окна на снимке экрана.\nОтключение этого параметра не повлияет на окна с декорированием на стороне клиента."
+
+#: lib/screenshooter-dialogs.c:1060
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Delay before capturing</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Задержка перед снимком</span>"
+
+#: lib/screenshooter-dialogs.c:1084
+msgid "Delay in seconds before the screenshot is taken"
+msgstr "Задержка в секундах перед выполнением снимка экрана"
+
+#: lib/screenshooter-dialogs.c:1087
+msgid "seconds"
+msgstr "с"
+
+#: lib/screenshooter-dialogs.c:1131
+msgid "_Back"
+msgstr "_Назад"
+
+#: lib/screenshooter-dialogs.c:1171
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Action</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Действие</span>"
+
+#. Save option radio button
+#: lib/screenshooter-dialogs.c:1186
+msgid "Save"
+msgstr "Сохранить"
+
+#: lib/screenshooter-dialogs.c:1192
+msgid "Save the screenshot to a file"
+msgstr "Сохранить снимок экрана в файл"
+
+#. Show in folder checkbox
+#: lib/screenshooter-dialogs.c:1196
+msgid "Show in Folder"
+msgstr "Показать в папке"
+
+#: lib/screenshooter-dialogs.c:1203
+msgid "Shows the saved file in the folder"
+msgstr "Показывает сохранённый файл в папке"
+
+#: lib/screenshooter-dialogs.c:1211
+msgid "Copy to the clipboard"
+msgstr "Копировать в буфер обмена"
+
+#: lib/screenshooter-dialogs.c:1213
+msgid "Copy the screenshot to the clipboard so that it can be pasted later"
+msgstr "Копировать снимок экрана в буфер обмена для использования его в дальнейшем"
+
+#: lib/screenshooter-dialogs.c:1227
+msgid "Open with:"
+msgstr "Открыть в:"
+
+#: lib/screenshooter-dialogs.c:1235
+msgid "Open the screenshot with the chosen application"
+msgstr "Открыть снимок экрана с помощью выбранного приложения"
+
+#: lib/screenshooter-dialogs.c:1254 src/main.c:76
+msgid "Application to open the screenshot"
+msgstr "Приложение для просмотра снимка экрана"
+
+#: lib/screenshooter-dialogs.c:1268
+msgid "Custom Action:"
+msgstr "Пользовательское действие:"
+
+#: lib/screenshooter-dialogs.c:1276
+msgid "Execute the selected custom action"
+msgstr "Выполнить выбранное пользовательское действие"
+
+#: lib/screenshooter-dialogs.c:1288
+msgid "Custom action to execute"
+msgstr "Пользовательское действие для выполнения"
+
+#: lib/screenshooter-dialogs.c:1311
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Preview</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Предварительный просмотр</span>"
+
+#: lib/screenshooter-dialogs.c:1372
+msgid "Save screenshot as..."
+msgstr "Сохранить снимок как..."
+
+#: lib/screenshooter-dialogs.c:1461
+msgid "Preferences"
+msgstr "Параметры"
+
+#: lib/screenshooter-dialogs.c:1486
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Custom Actions</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Пользовательские действия</span>"
+
+#: lib/screenshooter-dialogs.c:1505
+msgid ""
+"You can configure custom actions that will be available to handle "
+"screenshots after they are captured."
+msgstr "Вы можете настроить пользовательские действия, которые будут доступны для обработки снимков экрана после их захвата."
+
+#: lib/screenshooter-dialogs.c:1535
+msgid "Custom Action"
+msgstr "Пользовательское действие"
+
+#: lib/screenshooter-dialogs.c:1548
+msgid "Add custom action"
+msgstr "Добавить пользовательское действие"
+
+#: lib/screenshooter-dialogs.c:1555
+msgid "Remove selected custom action"
+msgstr "Убрать выбранное пользовательское действие"
+
+#. Add custom action name
+#: lib/screenshooter-dialogs.c:1577
+msgid "Name"
+msgstr "Название"
+
+#: lib/screenshooter-dialogs.c:1578
+msgid "Name of the action that will be displayed in Actions dialog"
+msgstr "Название действия, которое будет отображаться в диалоговом окне Действия"
+
+#. Add custom action command
+#: lib/screenshooter-dialogs.c:1587
+msgid "Command"
+msgstr "Команда"
+
+#: lib/screenshooter-dialogs.c:1588
+msgid "Command that will be executed for this custom action"
+msgstr "Команда, которая будет выполняться этим пользовательским действием"
+
+#: lib/screenshooter-dialogs.c:1595
+#, c-format
+msgid "Use %f as a placeholder for location of the screenshot captured"
+msgstr "Используйте %f в качестве заполнителя для местоположения снятого снимка экрана"
+
+#: lib/screenshooter-custom-actions.c:183
+msgid "Host on Imgur™"
+msgstr "Разместить в Imgur™"
+
+#: lib/screenshooter-custom-actions.c:211
+msgid "Unable to execute the custom action"
+msgstr "Не удалось выполнить пользовательское действие"
+
+#: lib/screenshooter-custom-actions.c:211
+msgid "Invalid custom action selected"
+msgstr "Выбрано недопустимое пользовательское действие"
+
+#: lib/screenshooter-custom-actions.c:237
+#, c-format
+msgid "Failed to run the custom action %s"
+msgstr "Не удалось запустить пользовательское действие %s"
+
+#: lib/screenshooter-format.c:31
+msgid "PNG File"
+msgstr "Файл PNG"
+
+#: lib/screenshooter-format.c:32
+msgid "JPEG File"
+msgstr "Файл JPEG"
+
+#: lib/screenshooter-format.c:33
+msgid "BMP File"
+msgstr "Файл BMP"
+
+#: lib/screenshooter-format.c:34
+msgid "WebP File"
+msgstr "Файл WebP"
+
+#: lib/screenshooter-format.c:35
+msgid "JPEG XL File"
+msgstr "Файл JPEG XL"
+
+#: lib/screenshooter-format.c:36
+msgid "AVIF File"
+msgstr "Файл AVIF"
+
+#: lib/screenshooter-utils.c:322
+#, c-format
+msgid ""
+"<b>The application could not be launched.</b>\n"
+"%s"
+msgstr "<b>Приложение не может быть запущено.</b>\n%s"
+
+#: lib/screenshooter-utils.c:399
+msgid "Error"
+msgstr "Ошибка"
+
+#: lib/screenshooter-capture-wayland.c:164
+msgid "Failed to capture screencopy frame"
+msgstr "Не удалось захватить кадр копирования экрана"
+
+#: lib/screenshooter-capture-wayland.c:194
+msgid "Failed to create file descriptor"
+msgstr "Не удалось создать дескриптор файла"
+
+#: lib/screenshooter-capture-wayland.c:203
+msgid "Failed to map memory"
+msgstr "Не удалось отобразить в память"
+
+#: lib/screenshooter-capture-wayland.c:243
+msgid "Required Wayland interfaces are missing"
+msgstr "Необходимые интерфейсы Wayland отсутствуют"
+
+#: lib/screenshooter-capture-wayland.c:248
+msgid "Compositor is missing wl_shm"
+msgstr "Композитор не нашёл wl_shm"
+
+#: lib/screenshooter-capture-wayland.c:253
+msgid "Compositor does not support wlr-screencopy-unstable-v1"
+msgstr "Композитор не поддерживает wlr-screencopy-unstable-v1"
+
+#: lib/screenshooter-capture-wayland.c:311
+#, c-format
+msgid "Unsupported pixel format: %d"
+msgstr "Неподдерживаемый формат пикселей: %d"
+
+#: lib/screenshooter-capture-wayland.c:386
+msgid "The selected mode is not supported in Wayland"
+msgstr "Выбранный режим не поддерживается в Wayland"
+
+#: lib/screenshooter-capture-wayland.c:442
+msgid "Failed to capture"
+msgstr "Не удалось захватить"
+
+#: src/main.c:51
+msgid "Copy the screenshot to the clipboard"
+msgstr "Скопировать снимок в буфер обмена"
+
+#: src/main.c:56
+msgid "Delay in seconds before taking the screenshot"
+msgstr "Задержка в секундах перед выполнением снимка"
+
+#: src/main.c:66
+msgid "Display the mouse on the screenshot"
+msgstr "Отображать курсор мыши на снимке экрана"
+
+#: src/main.c:71
+msgid "Removes the window border from the screenshot"
+msgstr "Убирает рамку окна из снимка экрана"
+
+#: src/main.c:81 panel-plugin/screenshooter-plugin.c:342
+msgid ""
+"Select a region to be captured by clicking a point of the screen without "
+"releasing the mouse button, dragging your mouse to the other corner of the "
+"region, and releasing the mouse button."
+msgstr "Укажите область экрана, которая будет захвачена. С помощью левой кнопки мыши укажите верхний угол захватываемой области и, не отпуская кнопки мыши, укажите нижний угол. Отпустите кнопку мыши."
+
+#: src/main.c:88
+msgid ""
+"File path or directory where the screenshot will be saved, accepts png, jpg "
+"and bmp extensions. webp, jxl and avif are only supported if their "
+"respective pixbuf loaders are installed."
+msgstr "Путь к файлу или каталогу, по которому будет сохранён снимок экрана, принимаются расширения png, jpg и bmp. Webp, jxl и avif поддерживаются, только если установлены соответствующие загрузчики pixbuf."
+
+#: src/main.c:93
+msgid "Show the saved file in the folder."
+msgstr "Показать сохранённый файл в папке."
+
+#: src/main.c:98
+msgid "Version information"
+msgstr "Информация о версии"
+
+#: src/main.c:108
+msgid ""
+"Lists supported image formats, results can vary depending on installed "
+"pixbuf loaders"
+msgstr "Вывести список поддерживаемых форматов изображений, результаты могут отличаться в зависимости от установленных загрузчиков pixbuf"
+
+#: src/main.c:144
+#, c-format
+msgid "Conflicting options: --%s and --%s cannot be used at the same time.\n"
+msgstr "Конфликт параметров: --%s и --%s не могут быть использованы одновременно.\n"
+
+#: src/main.c:146
+#, c-format
+msgid ""
+"The --%s option is only used when --fullscreen, --window or --region is "
+"given. It will be ignored.\n"
+msgstr "Параметр --%s используется только с параметрами --fullscreen, --window или --region. Он будет проигнорирован.\n"
+
+#: src/main.c:157
+#, c-format
+msgid ""
+"%s: %s\n"
+"Try %s --help to see a full list of available command line options.\n"
+msgstr "%s: %s\nЗапустите программу с параметром %s --help для того, чтобы увидеть весь список параметров.\n"
+
+#: src/xfce4-screenshooter.desktop.in:5
+#: panel-plugin/screenshooter.desktop.in:5
+msgid ""
+"Take screenshots of the entire screen, of the active window or of a region"
+msgstr "Выполнить снимок всего экрана, активного окна или региона"
+
+#: src/xfce4-screenshooter.appdata.xml.in:10
+msgid "xfce4-screenshooter"
+msgstr "xfce4-screenshooter"
+
+#: src/xfce4-screenshooter.appdata.xml.in:11
+msgid "Application and panel plugin to take screenshots"
+msgstr "Приложение и модуль панели для создания снимков экрана"
+
+#: src/xfce4-screenshooter.appdata.xml.in:14
+msgid ""
+"Allows you to capture the entire screen, the active window or a selected "
+"region. You can set the delay that elapses before the screenshot is taken "
+"and the action that will be done with the screenshot: save it to a file, "
+"copy it to the clipboard, open it using another application, or use your "
+"creativity with custom actions."
+msgstr ""

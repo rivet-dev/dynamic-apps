@@ -47,7 +47,7 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
     <rect class="box done" x="354" y="40" width="104" height="46"/><text class="lbl" x="406" y="60">XU3 panel</text><text class="sub" x="406" y="76">✓ +whisker</text>
     <rect class="box done" x="470" y="40" width="104" height="46"/><text class="lbl" x="522" y="60">XU4 xfdesktop</text><text class="sub" x="522" y="76">✓ wallpaper+icons</text>
     <rect class="box done" x="586" y="40" width="104" height="46"/><text class="lbl" x="638" y="60">XU5 Thunar</text><text class="sub" x="638" y="76">✓ file mgr</text>
-    <rect class="box gate" x="702" y="40" width="104" height="46"/><text class="lbl" x="754" y="58">XU6 apps</text><text class="sub" x="754" y="72">4✓ · terminal=TCB</text>
+    <rect class="box gate" x="702" y="40" width="104" height="46"/><text class="lbl" x="754" y="58">XU6 apps</text><text class="sub" x="754" y="72">5✓ · terminal=TCB</text>
     <rect class="box gate" x="818" y="40" width="104" height="46"/><text class="lbl" x="870" y="58">XU7 session</text><text class="sub" x="870" y="72">solo✓ · multiplex=TCB</text>
   </g>
   <g class="arr"><line x1="110" y1="63" x2="120" y2="63"/><line x1="226" y1="63" x2="236" y2="63"/><line x1="342" y1="63" x2="352" y2="63"/><line x1="458" y1="63" x2="468" y2="63"/><line x1="574" y1="63" x2="584" y2="63"/><line x1="690" y1="63" x2="700" y2="63"/><line x1="806" y1="63" x2="816" y2="63"/></g>
@@ -57,6 +57,15 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
 
 <h2>Recent log (latest first)</h2>
 <div class="log">
+  <div class="entry">
+    <div class="date">2026-06-26 (PST)</div>
+    <span class="done">XU6 5th app — xfce4-screenshooter renders.</span> Unmodified xfce4-screenshooter 1.11.1
+    cross-compiled to wasm via the proven app recipe; the capture dialog draws with real text (Region to
+    capture: Entire screen / Active window / Select a region; Delay spinner; Capture mouse-pointer / window-border
+    checkboxes; Help / Preferences / Cancel / OK), Greybird-themed, 0 fontconfig errors, all wasm. Proof
+    <code>gui-progress/2026-06-26T08/xu6-screenshooter.png</code>. (Found by checking the spec's app list while the
+    two remaining gates — terminal proc_spawn, XU7 multiplex — wait on human sign-off.)
+  </div>
   <div class="entry big">
     <div class="date">2026-06-26 (PST)</div>
     <strong class="done">★ The multi-session wasm-EH blocker is RESOLVED — the terminal reaches the spawn.</strong>

@@ -1,0 +1,425 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Xfce
+# This file is distributed under the same license as the xfce-apps.xfce4-screenshooter package.
+# 
+# Translators:
+# Algimantas Margevičius <margevicius.algimantas@gmail.com>, 2012
+# Moo, 2015-2022
+# Moo, 2023-2024
+msgid ""
+msgstr ""
+"Project-Id-Version: Xfce Apps\n"
+"Report-Msgid-Bugs-To: https://gitlab.xfce.org/\n"
+"POT-Creation-Date: 2024-06-06 00:51+0200\n"
+"PO-Revision-Date: 2013-07-03 18:40+0000\n"
+"Last-Translator: Moo, 2023-2024\n"
+"Language-Team: Lithuanian (http://app.transifex.com/xfce/xfce-apps/language/lt/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: lt\n"
+"Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);\n"
+
+#: lib/screenshooter-dialogs.c:503
+#, c-format
+msgid "%.2fKb of %.2fKb"
+msgstr "%.2fKb iš %.2fKb"
+
+#: lib/screenshooter-dialogs.c:606
+msgid "Transfer"
+msgstr "Persiuntimas"
+
+#: lib/screenshooter-dialogs.c:627
+msgid ""
+"<span weight=\"bold\" stretch=\"semiexpanded\">The screenshot is being "
+"transferred to:</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Ši ekrano kopija persiunčiama į:</span>"
+
+#: lib/screenshooter-dialogs.c:867 lib/screenshooter-dialogs.c:876
+#: lib/screenshooter-dialogs.c:1128 lib/screenshooter-utils.c:133
+#: lib/screenshooter-utils.c:175 src/xfce4-screenshooter.desktop.in:4
+#: panel-plugin/screenshooter.desktop.in:4
+msgid "Screenshot"
+msgstr "Ekrano kopija"
+
+#: lib/screenshooter-dialogs.c:869 lib/screenshooter-dialogs.c:879
+msgid "_Preferences"
+msgstr "_Nuostatos"
+
+#: lib/screenshooter-dialogs.c:870 lib/screenshooter-dialogs.c:878
+#: lib/screenshooter-dialogs.c:1130
+msgid "_Help"
+msgstr "Ž_inynas"
+
+#: lib/screenshooter-dialogs.c:871 lib/screenshooter-dialogs.c:1463
+msgid "_Close"
+msgstr "_Užverti"
+
+#: lib/screenshooter-dialogs.c:880 lib/screenshooter-dialogs.c:1132
+msgid "_Cancel"
+msgstr "_Atsisakyti"
+
+#: lib/screenshooter-dialogs.c:881 lib/screenshooter-dialogs.c:1133
+msgid "_OK"
+msgstr "_Gerai"
+
+#: lib/screenshooter-dialogs.c:914
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Region to capture</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Ekrano kopijos sritis</span>"
+
+#: lib/screenshooter-dialogs.c:936
+msgid "Entire screen"
+msgstr "Visas ekranas"
+
+#: lib/screenshooter-dialogs.c:941 src/main.c:61
+#: panel-plugin/screenshooter-plugin.c:332
+msgid "Take a screenshot of the entire screen"
+msgstr "Padaryti viso ekrano ekrano kopiją"
+
+#: lib/screenshooter-dialogs.c:950
+msgid "Active window"
+msgstr "Aktyvus langas"
+
+#: lib/screenshooter-dialogs.c:953 src/main.c:103
+#: panel-plugin/screenshooter-plugin.c:337
+msgid "Take a screenshot of the active window"
+msgstr "Padaryti aktyvaus lango ekrano kopiją"
+
+#: lib/screenshooter-dialogs.c:962 lib/screenshooter-dialogs.c:989
+msgid "Not supported in Wayland"
+msgstr "Nepalaikoma Wayland aplinkoje"
+
+#: lib/screenshooter-dialogs.c:973
+msgid "Select a region"
+msgstr "Pasirinkti sritį"
+
+#: lib/screenshooter-dialogs.c:976
+msgid ""
+"Select a region to be captured by clicking a point of the screen without releasing the mouse button, dragging your mouse to the other corner of the region, and releasing the mouse button.\n"
+"\n"
+"Press Ctrl while dragging to move the region."
+msgstr "Pasirinkite sritį, kurios ekrano kopiją darysite, paspausdami ant pradžios taško ir vilkdami pelę neatleisdami pelės mygtuko iki tol, kol pasieksite kitą norimos srities kraštą ir atleisdami pelės mygtuką.\n\nNorėdami perkelti sritį, vilkdami paspauskite Vald klavišą"
+
+#: lib/screenshooter-dialogs.c:1000
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Options</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Parinktys</span>"
+
+#: lib/screenshooter-dialogs.c:1020
+msgid "Capture the mouse pointer"
+msgstr "Įtraukti pelės žymeklį"
+
+#: lib/screenshooter-dialogs.c:1024
+msgid "Display the mouse pointer on the screenshot"
+msgstr "Ekrano kopijoje rodyti pelės žymeklį"
+
+#: lib/screenshooter-dialogs.c:1031
+msgid "Capture the window border"
+msgstr "Įtraukti lango rėmelį"
+
+#: lib/screenshooter-dialogs.c:1036
+msgid ""
+"Display the window border on the screenshot.\n"
+"Disabling this option has no effect for CSD windows."
+msgstr "Rodyti ekrano kopijoje lango rėmelį.\nŠios parinkties išjungimas nedaro jokios įtakos CSD langams."
+
+#: lib/screenshooter-dialogs.c:1060
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Delay before capturing</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Delsa prieš fotografavimą</span>"
+
+#: lib/screenshooter-dialogs.c:1084
+msgid "Delay in seconds before the screenshot is taken"
+msgstr "Delsa, sekundėmis, prieš darant ekrano kopiją"
+
+#: lib/screenshooter-dialogs.c:1087
+msgid "seconds"
+msgstr "sek."
+
+#: lib/screenshooter-dialogs.c:1131
+msgid "_Back"
+msgstr "At_gal"
+
+#: lib/screenshooter-dialogs.c:1171
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Action</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Veiksmas</span>"
+
+#. Save option radio button
+#: lib/screenshooter-dialogs.c:1186
+msgid "Save"
+msgstr "Įrašyti"
+
+#: lib/screenshooter-dialogs.c:1192
+msgid "Save the screenshot to a file"
+msgstr "Įrašyti ekrano kopiją į failą"
+
+#. Show in folder checkbox
+#: lib/screenshooter-dialogs.c:1196
+msgid "Show in Folder"
+msgstr "Rodyti aplanke"
+
+#: lib/screenshooter-dialogs.c:1203
+msgid "Shows the saved file in the folder"
+msgstr "Parodo įrašytą failą aplanke"
+
+#: lib/screenshooter-dialogs.c:1211
+msgid "Copy to the clipboard"
+msgstr "Kopijuoti į iškarpinę"
+
+#: lib/screenshooter-dialogs.c:1213
+msgid "Copy the screenshot to the clipboard so that it can be pasted later"
+msgstr "Kopijuoti ekrano kopiją į iškarpinę, kad tokiu būdu ji vėliau galės būti įdėta"
+
+#: lib/screenshooter-dialogs.c:1227
+msgid "Open with:"
+msgstr "Atverti naudojant:"
+
+#: lib/screenshooter-dialogs.c:1235
+msgid "Open the screenshot with the chosen application"
+msgstr "Atverti ekrano kopija naudojant pasirinktą programą"
+
+#: lib/screenshooter-dialogs.c:1254 src/main.c:76
+msgid "Application to open the screenshot"
+msgstr "Programa ekrano kopijos atvėrimui"
+
+#: lib/screenshooter-dialogs.c:1268
+msgid "Custom Action:"
+msgstr "Tinkintas veiksmas:"
+
+#: lib/screenshooter-dialogs.c:1276
+msgid "Execute the selected custom action"
+msgstr "Vykdyti pasirinktą tinkintą veiksmą"
+
+#: lib/screenshooter-dialogs.c:1288
+msgid "Custom action to execute"
+msgstr "Tinkintas veiksmas, kurį vykdyti"
+
+#: lib/screenshooter-dialogs.c:1311
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Preview</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Peržiūra</span>"
+
+#: lib/screenshooter-dialogs.c:1372
+msgid "Save screenshot as..."
+msgstr "Įrašyti ekrano kopiją kaip..."
+
+#: lib/screenshooter-dialogs.c:1461
+msgid "Preferences"
+msgstr "Nuostatos"
+
+#: lib/screenshooter-dialogs.c:1486
+msgid "<span weight=\"bold\" stretch=\"semiexpanded\">Custom Actions</span>"
+msgstr "<span weight=\"bold\" stretch=\"semiexpanded\">Tinkinti veiksmai</span>"
+
+#: lib/screenshooter-dialogs.c:1505
+msgid ""
+"You can configure custom actions that will be available to handle "
+"screenshots after they are captured."
+msgstr "Galite sukonfigūruoti tinkintus veiksmus, kurie padarius ekrano kopiją, bus prieinami ekrano kopijų apdorojimui."
+
+#: lib/screenshooter-dialogs.c:1535
+msgid "Custom Action"
+msgstr "Tinkintas veiksmas"
+
+#: lib/screenshooter-dialogs.c:1548
+msgid "Add custom action"
+msgstr "Pridėti tinkintą veiksmą"
+
+#: lib/screenshooter-dialogs.c:1555
+msgid "Remove selected custom action"
+msgstr "Šalinti pasirinktą tinkintą veiksmą"
+
+#. Add custom action name
+#: lib/screenshooter-dialogs.c:1577
+msgid "Name"
+msgstr "Pavadinimas"
+
+#: lib/screenshooter-dialogs.c:1578
+msgid "Name of the action that will be displayed in Actions dialog"
+msgstr "Veiksmo, kuris bus rodomas veiksmų dialoge, pavadinimas"
+
+#. Add custom action command
+#: lib/screenshooter-dialogs.c:1587
+msgid "Command"
+msgstr "Komanda"
+
+#: lib/screenshooter-dialogs.c:1588
+msgid "Command that will be executed for this custom action"
+msgstr "Komanda, kuri bus vykdoma šiam tinkintam veiksmui"
+
+#: lib/screenshooter-dialogs.c:1595
+#, c-format
+msgid "Use %f as a placeholder for location of the screenshot captured"
+msgstr "Naudokite %f kaip vietos, kurioje saugoma padaryta ekrano kopija, vietaženklį"
+
+#: lib/screenshooter-custom-actions.c:183
+msgid "Host on Imgur™"
+msgstr "Talpinti į Imgur™"
+
+#: lib/screenshooter-custom-actions.c:211
+msgid "Unable to execute the custom action"
+msgstr "Nepavyko įvykdyti tinkinto veiksmo"
+
+#: lib/screenshooter-custom-actions.c:211
+msgid "Invalid custom action selected"
+msgstr "Pasirinktas neteisingas tinkintas veiksmas"
+
+#: lib/screenshooter-custom-actions.c:237
+#, c-format
+msgid "Failed to run the custom action %s"
+msgstr "Nepavyko paleisti tinkinto veiksmo %s"
+
+#: lib/screenshooter-format.c:31
+msgid "PNG File"
+msgstr "PNG failas"
+
+#: lib/screenshooter-format.c:32
+msgid "JPEG File"
+msgstr "JPEG failas"
+
+#: lib/screenshooter-format.c:33
+msgid "BMP File"
+msgstr "BMP failas"
+
+#: lib/screenshooter-format.c:34
+msgid "WebP File"
+msgstr "WebP failas"
+
+#: lib/screenshooter-format.c:35
+msgid "JPEG XL File"
+msgstr "JPEG XL failas"
+
+#: lib/screenshooter-format.c:36
+msgid "AVIF File"
+msgstr "AVIF failas"
+
+#: lib/screenshooter-utils.c:322
+#, c-format
+msgid ""
+"<b>The application could not be launched.</b>\n"
+"%s"
+msgstr "<b>Nepavyko paleisti programos.</b>\n%s"
+
+#: lib/screenshooter-utils.c:399
+msgid "Error"
+msgstr "Klaida"
+
+#: lib/screenshooter-capture-wayland.c:164
+msgid "Failed to capture screencopy frame"
+msgstr "Nepavyko nufotografuoti ekrano kopijos kadro"
+
+#: lib/screenshooter-capture-wayland.c:194
+msgid "Failed to create file descriptor"
+msgstr "Nepavyko sukurti failo deskriptoriaus"
+
+#: lib/screenshooter-capture-wayland.c:203
+msgid "Failed to map memory"
+msgstr "Nepavyko parinkti atminties atvaizdavimo"
+
+#: lib/screenshooter-capture-wayland.c:243
+msgid "Required Wayland interfaces are missing"
+msgstr "Trūksta reikiamų Wayland sąsajų"
+
+#: lib/screenshooter-capture-wayland.c:248
+msgid "Compositor is missing wl_shm"
+msgstr "Kompozitoriui trūksta wl_shm"
+
+#: lib/screenshooter-capture-wayland.c:253
+msgid "Compositor does not support wlr-screencopy-unstable-v1"
+msgstr "Kompozitorius nepalaiko wlr-screencopy-unstable-v1"
+
+#: lib/screenshooter-capture-wayland.c:311
+#, c-format
+msgid "Unsupported pixel format: %d"
+msgstr "Nepalaikomas pikselių formatas: %d"
+
+#: lib/screenshooter-capture-wayland.c:386
+msgid "The selected mode is not supported in Wayland"
+msgstr "Pasirinkta veiksena nepalaikoma Wayland aplinkoje"
+
+#: lib/screenshooter-capture-wayland.c:442
+msgid "Failed to capture"
+msgstr "Nepavyko nufotografuoti"
+
+#: src/main.c:51
+msgid "Copy the screenshot to the clipboard"
+msgstr "Kopijuoti ekrano kopiją į iškarpinę"
+
+#: src/main.c:56
+msgid "Delay in seconds before taking the screenshot"
+msgstr "Delsa, sekundėmis, prieš darant ekrano kopiją"
+
+#: src/main.c:66
+msgid "Display the mouse on the screenshot"
+msgstr "Rodyti ekrano kopijoje pelės žymeklį"
+
+#: src/main.c:71
+msgid "Removes the window border from the screenshot"
+msgstr "Pašalina lango rėmelį iš ekrano kopijos"
+
+#: src/main.c:81 panel-plugin/screenshooter-plugin.c:342
+msgid ""
+"Select a region to be captured by clicking a point of the screen without "
+"releasing the mouse button, dragging your mouse to the other corner of the "
+"region, and releasing the mouse button."
+msgstr "Pasirinkite sritį, kurios ekrano kopiją darysite, paspausdami ant pradžios taško ir vilkdami pelę neatleisdami pelės mygtuko iki tol, kol pasieksite kitą norimos srities kraštą ir atleisdami pelės mygtuką."
+
+#: src/main.c:88
+msgid ""
+"File path or directory where the screenshot will be saved, accepts png, jpg "
+"and bmp extensions. webp, jxl and avif are only supported if their "
+"respective pixbuf loaders are installed."
+msgstr "Failo kelias arba katalogas, į kurį bus įrašyta ekrano kopija. Priima png, jpg ir bmp prievardžius. Webp, jxl ir avif yra palaikomi tik tuo atveju, jeigu yra įdiegti atitinkami jų pixbuf įkėlikliai."
+
+#: src/main.c:93
+msgid "Show the saved file in the folder."
+msgstr "Rodyti įrašytą failą aplanke."
+
+#: src/main.c:98
+msgid "Version information"
+msgstr "Versijos informacija"
+
+#: src/main.c:108
+msgid ""
+"Lists supported image formats, results can vary depending on installed "
+"pixbuf loaders"
+msgstr "Išvardija palaikomus paveikslų formatus. Rezultatai gali skirtis, priklausomai nuo įdiegtų pixbuf įkėliklių."
+
+#: src/main.c:144
+#, c-format
+msgid "Conflicting options: --%s and --%s cannot be used at the same time.\n"
+msgstr "Konfliktuojantys parametrai: --%s ir --%s neturėtų būti naudojami tuo pačiu metu.\n"
+
+#: src/main.c:146
+#, c-format
+msgid ""
+"The --%s option is only used when --fullscreen, --window or --region is "
+"given. It will be ignored.\n"
+msgstr "Parametras --%s naudojamas tik su --fullscreen, --window arba --region. Jo bus nepaisoma.\n"
+
+#: src/main.c:157
+#, c-format
+msgid ""
+"%s: %s\n"
+"Try %s --help to see a full list of available command line options.\n"
+msgstr "%s: %s\nNorėdami pamatyti komandų eilutės parametrų sąrašą, paleiskite „%s --help“.\n"
+
+#: src/xfce4-screenshooter.desktop.in:5
+#: panel-plugin/screenshooter.desktop.in:5
+msgid ""
+"Take screenshots of the entire screen, of the active window or of a region"
+msgstr "Darykite viso ekrano, aktyvaus lango ar pasirinktos srities ekrano kopiją"
+
+#: src/xfce4-screenshooter.appdata.xml.in:10
+msgid "xfce4-screenshooter"
+msgstr "xfce4-screenshooter"
+
+#: src/xfce4-screenshooter.appdata.xml.in:11
+msgid "Application and panel plugin to take screenshots"
+msgstr "Programa ir skydelio įskiepis, skirti daryti ekrano kopijas"
+
+#: src/xfce4-screenshooter.appdata.xml.in:14
+msgid ""
+"Allows you to capture the entire screen, the active window or a selected "
+"region. You can set the delay that elapses before the screenshot is taken "
+"and the action that will be done with the screenshot: save it to a file, "
+"copy it to the clipboard, open it using another application, or use your "
+"creativity with custom actions."
+msgstr "Leidžia jums daryti viso ekrano, aktyvaus lango ar pasirinktos srities ekrano kopijas. Galite nustatyti delsą, po kurios bus padaryta ekrano kopija ir su ekrano kopija atliekamas veiksmas: įrašyti į failą, kopijuoti į iškarpinę, atverti naudojant kitą programą, arba išreikškite savo kūrybingumą naudodami tinkintus veiksmus."

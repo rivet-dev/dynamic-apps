@@ -1,0 +1,630 @@
+1.11.1 (2024-07-30)
+======
+- Drop unnecessary libxml dependency
+- Translation Updates:
+  Czech, Serbian
+
+1.11.0 (2024-07-25)
+======
+- Drop built-in support for imgur
+- Drop jobs-related code
+- Drop libsoup dependency
+- Use XDG_DATA_HOME in imgur-upload.sh
+- Make sure screenshot is copied to clipboard before closing (!56)
+- Add more tests
+- build: clang: Silence -Wcast-align
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Croatian, Czech, Danish, Dutch, English (United
+  Kingdom), Estonian, Finnish, French, Galician, German, Greek, Hebrew,
+  Hungarian, Indonesian, Italian, Japanese, Korean, Lithuanian, Malay,
+  Norwegian Bokmål, Occitan (post 1500), Persian (Iran), Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Thai, Turkish, Ukrainian
+
+1.10.6 (2024-05-28)
+======
+- build: Switch from intltool to gettext
+- Preliminary Wayland support
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Korean, Lithuanian, Malay, Norwegian Bokmål,
+  Occitan (post 1500), Persian (Iran), Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish, Swedish,
+  Thai, Turkish, Ukrainian
+
+1.10.5 (2024-02-04)
+======
+- Add imgur support as custom action (!51)
+- Translation Updates:
+  Albanian, Basque, Bulgarian, Catalan, Chinese (China), Chinese
+  (Taiwan), Danish, Dutch, English (United Kingdom), Estonian, French,
+  German, Greek, Hebrew, Italian, Japanese, Lithuanian, Norwegian
+  Bokmål, Occitan (post 1500), Polish, Portuguese, Portuguese
+  (Brazil), Russian, Serbian, Slovenian, Spanish, Swedish, Turkish,
+  Ukrainian
+
+1.10.4 (2023-05-14)
+======
+- Fix warning about checking file permissions
+- Refactor supported image formats handling (!49)
+- Add support to AVIF (#109)
+- Add support to JPEG XL (#108)
+- Check if the pixbuf-loader supports writing
+- Restrict file permission if not saved in a user-owned directory (#2)
+- Save preferences when plugin finalizes screenshot (#96)
+- Fix screenshot finalize behavior for plugin
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian
+  Bokmål, Occitan (post 1500), Persian (Iran), Polish, Portuguese,
+  Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian
+
+1.10.3 (2023-01-12)
+======
+- Lower minimal Xfce dependecies back to 4.16
+- Remove fallback code
+
+
+1.10.2 (2023-01-02)
+======
+- Fix capture of CSD windows
+- Fix active window and region capture modes
+- Consider scale factor while capturing screenshots with cairo (#95)
+- Support libsoup2 and 3 simultaneously (#97)
+- save dialog: show preview of selected file (#94)
+- Save preferences of panel plugin (#96)
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), Estonian, Finnish,
+  French, Galician, Georgian, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Russian, Serbian,
+  Slovak, Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian
+
+1.10.1 (2022-12-21)
+======
+- Fixes capture of screenshots after first time (#89)
+- libsoup: Migrate to 3.0 (#88)
+- Fix typo in NEWS file
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), Estonian, Finnish,
+  French, Galician, Georgian, German, Greek, Hebrew, Hungarian,
+  Icelandic, Indonesian, Interlingue, Italian, Japanese, Korean,
+  Lithuanian, Malay, Norwegian Bokmål, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Russian, Serbian,
+  Slovak, Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian
+
+1.10.0 (2022-11-15)
+======
+- Introduce custom actions (!37)
+- Bump dependencies
+- Replace deprecated functions
+- Added writability check to screenshot_dir (#84)
+- Include "config.h" before GLib include files
+- Revert icon name translation
+- Drop subtitles
+- Add version check for libxi (#79)
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Kazakh, Korean, Lithuanian, Malay, Norwegian
+  Bokmål, Occitan (post 1500), Persian (Iran), Polish, Portuguese,
+  Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Ukrainian
+
+1.9.11 (2022-08-08)
+======
+- Add support to WebP (#76)
+- Fix window capture in HiDPI mode (#73)
+- Fix intltool lock file problem during make distcheck
+- Add option to Show in File Manager when saving (#47)
+- Do not quit after dismissing dialog if invoked from plugin (#71)
+- Update COPYING (Issue #70)
+- Translation Updates:
+  Albanian, Basque, Belarusian, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Czech, Danish, Dutch, Estonian, Finnish, French,
+  Galician, German, Greek, Hebrew, Indonesian, Italian, Japanese,
+  Korean, Lithuanian, Malay, Norwegian Bokmål, Persian (Iran), Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Slovak, Slovenian,
+  Spanish, Swedish, Thai, Turkish, Ukrainian
+
+1.9.10 (2022-03-06)
+======
+- Use symbolic icons
+- Bump Xfce dependencies to 4.14
+- _NET_FRAME_EXTENTS support
+- Add back button to take new screenshot (!29)
+- Fix Imgur upload via CLI (!26)
+- Set up ScreenshotData after commandline parsing
+- Fix compile warning (#62)
+- Update to description and addition of donate and translate links
+- Replace link to bugzilla with gitlab (!25)
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Korean, Latvian, Lithuanian, Malay, Norwegian
+  Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian (Iran),
+  Polish, Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian,
+  Slovak, Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Uyghur
+
+1.9.9
+======
+- Add link to Imgur ToS (#54)
+- Add notice about imgur (#53)
+- Add launchable tag to appdata.xml
+- Update help message for --save option
+- Add combobox with file extensions (#6)
+- Add option to capture window border or not (#4)
+- Preserve last used extension
+- Save screenshots according to the extension (#6)
+- Avoid save dialog loop if action was specified from CLI (#41)
+- Respect windows scaling (!18)
+- Fix compilation warnings
+- Add version check for pango
+- Correctly calculate dimensions of size window (#37)
+- Add option to disable Imgur upload (#20)
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Persian
+  (Iran), Polish, Portuguese, Portuguese (Brazil), Romanian, Russian,
+  Serbian, Slovak, Slovenian, Spanish, Swedish, Thai, Turkish,
+  Ukrainian, Urdu, Urdu (Pakistan), Uyghur, Vietnamese
+
+1.9.8
+======
+- Fix dialog icons and add title to error dialog
+- Go back to actions dialog if image upload fails (#12)
+- Go back to actions dialog if GtkFileChooser is dismissed (#33)
+- Make radio buttons execute actions on enter/space press
+- Exclude shadow borders from CSD windows (!10)
+- Capture mouse cursor in rectangle selection (#30)
+- Region size should show updated size (!9)
+- Add info about Ctrl to "Select region" tooltip
+- Replace AC_CONFIG_MACRO_DIR with AC_CONFIG_MACRO_DIRS (!4)
+- Added 24px and 32px icons
+- Fix screenshot capture when scale > 1
+- Add new App icon and switch to rDNS icon name
+- Switch to README.md and foreign automake mode
+- Bug #16717: Move from exo-csource to xdt-csource
+- Update homepage link at appdata.xml
+- Translation Updates:
+  Albanian, Arabic, Armenian (Armenia), Basque, Belarusian, Bulgarian,
+  Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech, Danish,
+  Dutch, Eastern Armenian, English (Australia), English (United
+  Kingdom), Estonian, Finnish, French, Galician, Georgian, German,
+  Greek, Hebrew, Hungarian, Icelandic, Indonesian, Interlingue,
+  Italian, Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay,
+  Norwegian Bokmål, Norwegian Nynorsk, Occitan (post 1500), Polish,
+  Portuguese, Portuguese (Brazil), Romanian, Russian, Serbian, Slovak,
+  Slovenian, Spanish, Swedish, Thai, Turkish, Ukrainian, Urdu, Urdu
+  (Pakistan), Uyghur, Vietnamese
+
+1.9.7
+======
+- Add warning notice to imgur upload option (Bug #15347)
+- Fix cursor capture when near screen edge (Bug #9262)
+- Improve wording (Bug #15429)
+- Allow compilation with panel 4.15
+- Restore libxfce4ui 4.12 compatibility
+- Translation Updates: Basque, Bulgarian, Catalan, Chinese (China),
+  Chinese (Taiwan), Danish, Dutch, English (United Kingdom), French, German,
+  Greek, Hungarian, Korean, Lithuanian, Malay, Norwegian Bokmål, Polish,
+  Portuguese, Portuguese (Brazil), Russian, Serbian, Spanish, Turkish
+
+1.9.6
+======
+- Do not show translation info on --help output (Bug #15883)
+- Avoid destroying size window twice (Bug #15792)
+- Replace GtkStock buttons
+- Add missing NULL as last parameter of
+  xfce_titled_dialog_new_with_buttons() (Bug #14973)
+- Do not use root coordinates for region capture (Bug #15406)
+- Install AppData into metainfo
+- Update AppData file
+- Try to grab seat more than once (Bug #15320)
+- Use new xfce_gdk_screen_get_geometry if available
+- Make screenshooter-imgur-dialog.ui translatable (Bug #15254)
+- Translation Updates: Albanian, Arabic, Asturian, Basque, Belarusian,
+  Bulgarian, Catalan, Chinese (China), Chinese (Taiwan), Croatian, Czech,
+  Danish, Dutch, English (Australia), English (United Kingdom), Finnish, French,
+  Galician, German, Greek, Hebrew, Hungarian, Icelandic, Indonesian, Italian,
+  Japanese, Kazakh, Korean, Latvian, Lithuanian, Malay, Norwegian Bokmål,
+  Norwegian Nynorsk, Occitan (post 1500), Polish, Portuguese,
+  Portuguese (Brazil), Romanian, Russian, Serbian, Slovak, Slovenian, Spanish,
+  Swedish, Thai, Turkish, Uighur, Ukrainian, Urdu, Urdu (Pakistan), Vietnamese
+
+=== Version 1.9.5 ===
+  * Bugs fixed:
+    - Panel plugin: allow it to save files (bug #15187)
+
+=== Version 1.9.4 ===
+  * Enhancements:
+    - Extended save function to also take files (bug #14156, thanks to Arthur Jansen)
+    - Show width and height of selection area (bug #12664, thanks to Simon)
+    - Improved imgur dialog (bug #14973, thanks to Arthur Jansen)
+    - Don't save region/delay/show_mouse if region was specified from CLI
+
+  * Bugs fixed:
+    - React to core X input events when XInput is not available (bug #15166)
+    - Fix crash and properly handle cursors on HiDPI (thanks to Viktor Odintsev)
+    - Delay in panel plugin does not work (bug #14604)
+
+=== Version 1.9.3 ===
+  * Enhancements:
+    - Allow user to move selection rectangle (bug #14365)
+    - Allow and remember 0sec delay for all regions (bug #13763)
+
+  * Bugs fixed:
+    - Fix clipboard action handling (bug #14513)
+
+=== Version 1.9.2 ===
+  * Remove zimagez support (bug #14283)
+
+  * Enhancements:
+    - Use g_app_info_launch() for command launching (bug #13886)
+    - Dismiss the progress dialog after upload (bug #12519)
+    - Improve thumbnail size clamping
+    - Allow --clipboard option to be used with the others (bug #14120)
+
+  * Bugs fixed:
+    - Handle device grab failure (bug #10259)
+
+=== Version 1.9.1 ===
+
+  * Enhancements:
+    - Get rid of a dead assignment
+  * Bugs fixed:
+    - Fix crash on program exit after image upload (bug #13415)
+
+=== Version 1.9.0 ===
+
+  * Enhancements:
+    - Downgrade xfce4-panel dependency to 4.12
+    - Updated translations (thanks to translators!)
+
+  * Bugs fixed:
+    - Use HTTPS for imgur (bug #13415)
+
+=== Version 1.8.99 ===
+
+  * Enhancements:
+    - Port to GTK+3
+    - Updated translations (thanks to translators!)
+
+  * Bugs fixed:
+    - Fix appdata description
+    - Fix crash in GValueArray handling (bug #11879)
+    - Use while instead of when in strings (bug #12157)
+    - Fix gray overlay in region mode screenshots (bug #11922)
+    - Fix crash when uploading to zimagez (bug #11879)
+
+=== Version 1.8.2 ===
+
+  * Enhancements:
+    - Add imgur.com as possible upload option (bug #6899)
+    - Add appdate file (bug #11202)
+    - Make region selection with compositing on more usable on darker
+      backgrounds (bug #9592).
+    - Updated translations (thanks to translators!)
+
+  * Bugs fixed:
+    - Fix keyboard navigation between choices (bug #11325)
+    - Fix build with automake 1.13 (bug #10030)
+    - Use filename-friendly date format for saved files (bug #8445)
+
+=== Version 1.8.1 ===
+
+  * Enhancements:
+    - Adapting the panel plugin to xfce4-panel 4.9+. Andrzej.
+    - Add a clipboard CLI option (bug #8483). Tom Hope.
+    - Panel plugin is now built as a library.
+
+  * Bugs fixed:
+    - Fix crash with some window managers (bug #8080). Bruno Ramos.
+    - Fix crash with NULL save path (bug #8443).
+    - Install documentation to new location (bug #8116).
+    - Drop AC_PROG_LIBTOOL in favor of LT_PREREQ and LT_INIT.
+    - Add explicit -lm link to LIBADD (bug #8230).
+    - Plugin installation location compatible with xfce4-panel 4.9+.
+    - Update outdated man page.
+
+  * Updated translations: Arabic, Brazilian, Bulgarian, Chinese, Czech,
+    Dutch, German, Icelandic, Japanese, Korean, Lithuanian, Portuguese,
+    Turkish, Ukrainian, Uyghur.
+
+
+=== Version 1.8.0 ===
+
+  * Gtk 2.16, libxfce4ui and exo are now required.
+  * Xfce4 Screenshooter does not depend anymore on libxfcegui4.
+
+  * Enhancements:
+    - Capture the cursor using XFIXES (bug #7567).
+    - Add default responses for the dialogs (bug #6880).
+
+
+  * Bugs fixed:
+    - Fix build with Xfce's master branch.
+    - Remove obsolote 'hide' CLI option from the manpage.
+    - Use new GtkLabel link instead of SexyUrlLabel.
+    - Plug massive leak when cancelling in actions dialog.
+    - Link to X11 libs, fixes linking with gold.
+    - Fix a crash when the config file does not exist yet (bug #6460).
+    - Clean the build system for the new panel library.
+    - Fix BBCode, it cannot contain new lines and spaces.
+
+  * Translation updates: Arabic, Brazilian, Catalan, Croatian, Dutch,
+    French, Galician, Greek, Indonesian, Italian, Japanese, Kazakh,
+    Norwegian Bokmal, Polish, Portuguese, Punjabi, Romanian, Russian,
+    Slovak, Sinhala, Swedish, Turkish, Ukrainian and Uyghur.
+
+=== Version 1.7.9 ===
+
+  * The XMLRPC-C dependency has been replaced by libsoup.
+  * Gtk 2.14 is now required to compile.
+  * Switch to a non-recursive Makefile.am. This reduces the build time
+    and centralizes the build information.
+
+  * New features:
+    - Scrolling the panel plugin button changes the area to be captured.
+    - When compositing is on, use a nice partially transparent rubber-banding,
+      still needs some polishing.
+    - F1 opens the help page.
+    - Automatically fill the title and comment fields in the ZimageZ upload
+      information dialog.
+    - Make enter validate the upload in the ZimageZ upload information dialog.
+    - Use the XDG image directory as the default directory for saving
+      screenshots. If it does not exist, fallback to $HOME.
+    - Major interface rethinking:
+      + This new interface is based on a suggestion by Yves-Alexis Pérez. The
+        former main dialog is split into two dialogs: one for selecting the
+        region to be captured and the delay, while the second one displays a
+        preview of the screenshot and lists the available actions.
+      + The main application shows the first dialog, then the second one. If
+        one of the region CLI options is given, the screenshot is taken
+        accordingly and the second dialog is displayed.
+      + The panel plugin uses the first dialog as a configuration dialog. When
+        you click the plugin, the screenshot is taken and the second dialog is
+        shown.
+    - Allow drag and dropping of the preview to other applications in order to
+      paste the screenshot (Mike Massonnet).
+
+  * Bugs fixed:
+    - UTF-8 characters in user name or password caused a login failure.
+    - Fix all warnings triggered by running autogen.sh.
+    - Fix the ZimageZ upload when behind a proxy.
+    - Fix copying of links in the ZimageZ upload finished dialog.
+    - Fix 100% CPU usage when selecting a region in a non composited
+      environment (spotted by Gauvain Pocentek).
+    - When capturing a window with rounded corners, don't capture the
+      background of the window but make the screenshot transparent instead.
+    - Make sure the save folder in the panel plugin preferences is valid.
+    - Don't show the copy to clipboard option in the application if no
+      clipboard manager is running as the screenshot won't be preserved
+      after closing the application anyway in that case.
+    - Allow xfce4-screenshooter -r to be used as a command for a keybinding.
+    - Allow silent build.
+    - Fix most pre-build warnings.
+    - Escape screenshots path when opening them with an application.
+    - Plug some leaks in the application and in the panel plugin.
+    - Do not accept conflicting CLI options. Warn the user when he uses
+      CLI options which are not coherent.
+    - Correctly save preferences, even if the rc file does not exist
+      (Mike Massonnet).
+    - One second is now the minimal delay when using the interactive
+      mode. This caused the screenshooter dialog to be partially displayed
+      on the screenshot in some cases.
+
+  * A lot of updated translations for the application, the panel plugin and the
+    documentation. Thanks to the Xfce translation team!
+
+=== Version 1.6.0 ===
+
+  Gtk+ 2.12 and Glib 2.16 are now required to build the application
+  and the panel plugin. Xml-rpc and libcurl are now optionnal dependencies,
+  they should be replaced by libsoup in the future.
+
+  * Bugs fixed:
+    - The cursor was missplaced when taking a screenshot of a window (Bug #5204).
+
+  * Enhancements:
+    - Add an optional action to host screenshots on ZimageZ, a free online image
+      hosting solution.
+    - Add an option in the user interface to hide the mouse pointer on screenshots.
+    - Add an option in the application which allows the user to choose
+      whether the application should be closed after taking a screenshot. This
+      allows the user to take several screenshots in a row.
+    - New user interface based on Fabrice Viale's review. The dialog now has a
+      two column layout which makes it more appealing and more usable.
+    - Add a CLI option to hide the mouse pointer on screenshots.
+    - When selecting a region to be screenshooted, you can now use the Escape
+      keyboard key to cancel the operation.
+    - Screenshots can now be saved to remote locations that are connected using
+      gvfs-connect or Gigolo.
+    - Updated translations for the application and the documentation.
+
+=== Version 1.5.1 ===
+
+  * Bugfixes:
+    - fix a problem in the po file header which was displayed in
+      --help on OpenBSD.
+    - do not respawn the application after taking a screenshot, it can
+      be annoying.
+    - fix build without Gio (#4894).
+    - do not use a verb for the desktop file title (#4914).
+    - set the correct folder in the filechooser when using the -s CLI
+      option. Thanks to Enrico Tröger.
+    - fix a crash of the panel plugin involving the "Open with" list (#4971).
+    - also take the mouse pointer when taking a screenshot.
+    - plug a remaining leak.
+
+  * Translations updates.
+
+=== Version 1.5.0 ===
+
+  * Bugfixes:
+    - Fix some compiler warnings.
+    - Fix in typo in the desktop file for the application and the
+      plugin.
+    - Plug some leaks when saving a screenshot and when saving
+      preferences in the panel plugin.
+
+  * Enhancements:
+    - Updated translations.
+    - Indonesian documentation.
+
+=== Version 1.4.90 ===
+
+  The application is now named "Xfce4 Screenshooter", the adress of the
+  SVN trunk has changed and the one of the website too. See the README
+  file. xfce4-panel dependency has been bumped to >= 4.4.
+
+  * Bugfixes:
+    - correctly grab active windows. In particular, menus are grabbed
+      now (bug #4611).
+    - correctly save the preferences, even if ~/.config/xfce4 does
+      not exist. Thanks to Nick Schermer for the explanations.
+    - when saving the screenshot fails, show an error dialog
+      explaning why it failed.
+    - fix some remaining crashes when taking a screenshot of the active
+      window.
+    - only read the preferences file once when opening the application.
+    - don't automatically set filenames in the file chooser, as user set
+      ones are overriden (bug #4748).
+
+  * Enhancements:
+    - Use -V for the version CLI option.
+    - Add possibility to copy the screenshot to the clipboard, thanks to
+      David Collins.
+    - Add possibility to define region to be captured using the mouse,
+      thanks to David Collins.
+    - Add CLI options for the region selection and to open the
+      screenshot with an application.
+    - The dialog for the plugin preferences and the application has been
+      totally rewritten to improve the user interface: it should look
+      cleaner and tooltips have been added. Work started by David
+      Collins.
+    - When using delay, detect the area to screenshot after the delay,
+      and not before, as it caused weird results in some cases.
+    - Add a documentation accessible from the application and the panel
+      plugin.
+
+=== Version 1.4.0 ===
+
+  * Fix build with --disable-maintainer-mode on some configurations.
+
+=== Version 1.3.9.3 ===
+
+  * Fix build on some configurations.
+
+=== Version 1.3.9.2 ===
+
+  * Hopefully fix bug 4601, crash with "BadWindow" X error.
+  * Fix bug 4571.
+  * Translations:
+    Basque (Piarres Beobide), German (Fabian Nowak), Spanish (Abel Martín),
+    Indonesian (Andhika Padmawan), Japanese (Nobuhiro Iwamatsu),
+    Dutch (Vincent Tunru), European Portuguese (Nuno Miguel).
+
+=== Version 1.3.9.1 ===
+
+  * Apply a patch by Enrico Tröger to fix a crash.
+  * Plug some additionnal leaks.
+  * If no application is selected to open the screenshots, show the save dialog
+    as usual. If an application is selected, save the screenshot in /tmp without
+    showing the save dialog, and open it with the application. The user will
+    then be able to do what he wants to do with the picture, and to save it
+    where he wants using the application.
+  * Fallback to "exec" icon in the "open with" combo box.
+  * Updated or new translations:
+    Basque (Piarres Beobide e), Brazilian Portuguese (Og Maciel),
+    Catalan (Carles Muñoz Gorriz), Czech (Michal Várady),
+    Dutch (Stephan Arts), Finnish (Elias Julkunen), French,
+    Norwegian Bokmål (Terje Uriansrud), Turkish (Gökmen Görgen),
+
+=== Version 1.3.9.0 ===
+
+  * Add a dialog to set the screenshot options and take a screenshot when no
+    CLI option is given to the executable, add a menu entry for the application.
+  * Add options to open the screenshot with an application after taking it. This
+    depends on GIO.
+  * Use applets-screenshooter icon for preferences dialog and save dialog.
+  * Add some default icons taken from the Rodent icon theme to make sure the
+    applet has an icon.
+  * BUGFIX: Plug some remaining leaks and remove some useless code in main.
+  * BUGFIX: Fix a crash when using the screenshooter to take a screenshot of the
+    desktop when xfdesktop is set up not to display any icons.
+  * New and updated translations, thanks to the fabulous translation team.
+  * New CLI option to take a screenshot of the desktop.
+
+
+=== Version 1.3.2 ===
+
+  * BUGFIX: plug some stupid leaks.
+  * BUGFIX: when the active window is the desktop, instead of returning a
+    corrupted snapshot of the background image, return the whole desktop view.
+  * Code cleanup using libgdk functions.
+  * Use tooltips for panel plugin when compiled with gtk >= 2.12.
+  * Fix all compiler warnings.
+  * Comment the code and make it more readable.
+  * IMPROVEMENT: now, the name of the screenshot is updated while browsing in
+    the file chooser to set its save location.
+
+=== Version 1.3.1 ===
+
+  * BUGFIX: Fix -s switch with relative path.
+
+=== Version 1.3.0 ===
+
+  * Code cleanup, remove deprecated code.
+  * Reduce code duplication between the executable and the plugin.
+  * New CLI option to save screenshots without showing a save dialog.
+  * New CLI option to set the save directory.
+  * New CLI option to set a default save directory, saved in a rc file.
+  * BUGFIX: generate file names correctly, screenshots should now be
+    saved in the correct place, whatever mode is being used.
+  * A lot of updated/new translations.
+
+=== Version 1.2.0 ===
+
+  * Fix gcc warnings.
+  * Add manpage taken from Debian package.
+  * Cleaned the preferences dialog to make it look like the ones of
+    others panel plugins. Use frames to separate different options.
+  * Added default save location to the plugin.
+  * BUGFIX: the executable sometimes opened the save dialog in weird places,
+    now it shows the home directory by default.
+  * Some others code cleanups.
+
+=== Version 1.1.0 ===
+
+  * Delay now works.
+  * Canceling save now works.
+  * Executable to take screenshots from cli or with a keybinding.
+  * Many code improvements.
+  * Updated Brasilian, Croatian, Dutch, French and German translations.
