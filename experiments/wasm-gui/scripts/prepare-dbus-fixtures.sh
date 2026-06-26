@@ -15,6 +15,13 @@ cat > "$OUT/etc/dbus-1/session.conf" <<'XML'
   <auth>EXTERNAL</auth>
   <auth>ANONYMOUS</auth>
   <allow_anonymous/>
+  <!-- The wasm session is far slower than native: under concurrent multi-guest load the single sidecar
+       service thread starves each guest's D-Bus auth handshake well past the 30s default, so dbus-daemon
+       drops the connection ("not authenticated soon enough") and the guest fails to init xfconf -> blank
+       render. Raise the auth + pending-fd timeouts to accommodate the slow environment (config, not a
+       dbus-daemon patch). -->
+  <limit name="auth_timeout">600000</limit>
+  <limit name="pending_fd_timeout">600000</limit>
   <policy context="default">
     <allow send_destination="*" eavesdrop="true"/>
     <allow eavesdrop="true"/>
