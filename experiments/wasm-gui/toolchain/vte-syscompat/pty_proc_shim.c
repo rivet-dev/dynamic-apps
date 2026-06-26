@@ -8,26 +8,49 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 #define WASM_IMPORT(mod,fn) __attribute__((__import_module__(mod), __import_name__(fn)))
 WASM_IMPORT("host_process","pty_open") int __se_pty_open(unsigned *m, unsigned *s);
 
-static int __pty_slave_for_master[1024];
+/* master->slave fd map. The kernel pty fds are range-encoded (huge), so use a small linear map keyed by
+ * the master fd, NOT an array indexed by fd. VTE opens one pty per terminal; 16 is ample. */
+static int __pty_master_tbl[16], __pty_slave_tbl[16];
+static int __pty_count = 0;
+static int __pty_slave_for(int master) {
+  for (int i = 0; i < __pty_count; i++) if (__pty_master_tbl[i] == master) return __pty_slave_tbl[i];
+  return -1;
+}
 int posix_openpt(int flags) {
   (void)flags; unsigned m = 0, s = 0;
   int e = __se_pty_open(&m, &s);
   if (e) { errno = e; return -1; }
-  if (m < 1024) __pty_slave_for_master[m] = (int)s;
+  if (__pty_count < 16) { __pty_master_tbl[__pty_count] = (int)m; __pty_slave_tbl[__pty_count] = (int)s; __pty_count++; }
   return (int)m;
 }
 int grantpt(int fd) { (void)fd; return 0; }
 int unlockpt(int fd) { (void)fd; return 0; }
 char *ptsname(int fd) {
   static char buf[40];
-  int s = (fd >= 0 && fd < 1024) ? __pty_slave_for_master[fd] : -1;
-  snprintf(buf, sizeof buf, "/dev/pts/%d", s);
+  snprintf(buf, sizeof buf, "/dev/pts/%d", __pty_slave_for(fd));
   return buf;
 }
 int ptsname_r(int fd, char *b, size_t n) { char *p = ptsname(fd); if (!p) return EINVAL; strncpy(b, p, n); return 0; }
+/* TIOCGPTPEER: VTE (pty.cc:110) calls ioctl(master, TIOCGPTPEER, flags) to get the slave fd directly,
+ * BEFORE the ptsname+open fallback. Return the stashed slave fd so VTE never hits the broken fallback;
+ * delegate every other ioctl to the real one. */
+#ifndef TIOCGPTPEER
+#define TIOCGPTPEER 0x5441
+#endif
+extern int __real_ioctl(int fd, int request, ...);
+int __wrap_ioctl(int fd, int request, ...) {
+  va_list ap; va_start(ap, request); void *arg = va_arg(ap, void *); va_end(ap);
+  if (request == TIOCGPTPEER) {
+    int s = __pty_slave_for(fd);
+    if (s >= 0) return s;
+    errno = EINVAL; return -1;
+  }
+  return __real_ioctl(fd, request, arg);
+}
 /* process-model stubs (single-process kernel) */
 pid_t __wrap_setsid(void) { return getpid(); }
 pid_t __wrap_getpgid(pid_t p) { (void)p; return getpid(); }
