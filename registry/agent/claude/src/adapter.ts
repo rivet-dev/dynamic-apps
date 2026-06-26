@@ -326,7 +326,9 @@ type PendingTurn = {
 	sawToolCall: boolean;
 };
 
-class ClaudeQuerySession {
+// Exported for unit tests (the constructor takes an injectable `queryFactory`,
+// so the SDK can be faked). Not part of the package's public API.
+export class ClaudeQuerySession {
 	private promptQueue = new AsyncQueue<SDKUserMessage>();
 	private query: Query;
 	private readyPromise: Promise<void>;
@@ -338,6 +340,11 @@ class ClaudeQuerySession {
 		string,
 		{ toolName: string; rawInput?: Record<string, unknown> }
 	>();
+	// Maps a streaming content-block `index` -> toolUseId for the current turn.
+	// `content_block_delta` (input_json_delta) events reference the tool call by
+	// its content-block index, NOT by tool-call ordinal — any text/thinking block
+	// before a tool_use shifts that index. Cleared on each turn terminus.
+	private toolUseBlockIndex = new Map<number, string>();
 	private reader: Promise<void>;
 	private closed = false;
 	private cancelled = false;
@@ -688,9 +695,15 @@ class ClaudeQuerySession {
 			}
 		} finally {
 			traceAdapter(`consume_finally session=${this.sessionId}`);
+			// The reader loop has exited — the SDK query stream is done (cleanly or
+			// via error), so this session can never produce another result. Mark it
+			// closed so a subsequent prompt() fails fast via the guard in prompt()
+			// instead of queueing onto a dead reader and hanging to the ACP method
+			// timeout (a zombie session).
+			this.closed = true;
 			if (this.pendingTurn) {
 				this.pendingTurn.reject(
-					new Error("Claude query ended before producing a result"),
+					new Error("Claude session ended before producing a result"),
 				);
 				this.pendingTurn = null;
 			}
@@ -793,6 +806,12 @@ class ClaudeQuerySession {
 			const toolName = String(block.name ?? "tool");
 			const rawInput = isRecord(block.input) ? block.input : undefined;
 			this.activeToolCalls.set(toolUseId, { toolName, rawInput });
+			// Remember this tool_use block's content-block index so subsequent
+			// input_json_delta events (which reference the block by index) are
+			// attributed to the right tool call.
+			if (typeof event.index === "number") {
+				this.toolUseBlockIndex.set(Number(event.index), toolUseId);
+			}
 			if (this.pendingTurn) this.pendingTurn.sawToolCall = true;
 
 			await this.emit({
@@ -892,6 +911,7 @@ class ClaudeQuerySession {
 			});
 		}
 		this.activeToolCalls.clear();
+		this.toolUseBlockIndex.clear();
 
 		await this.lastEmit;
 
@@ -921,7 +941,16 @@ class ClaudeQuerySession {
 					update,
 				}),
 			)
-			.catch(() => {});
+			// The catch is load-bearing: lastEmit is awaited at turn end and a
+			// rejected chain would halt all later updates and surface as a spurious
+			// prompt failure. But never swallow silently — a dropped session/update
+			// (host disconnect / broken pipe) must be host-visible, so write it to
+			// stderr (the onAgentStderr channel).
+			.catch((error) => {
+				process.stderr.write(
+					`[claude-acp] failed to deliver session/update: ${formatError(error)}\n`,
+				);
+			});
 		return this.lastEmit;
 	}
 
@@ -960,26 +989,13 @@ class ClaudeQuerySession {
 					toolCallId: options.toolUseID,
 				},
 			};
-			const permissionFallbackMs = Number.parseInt(
-				process.env.CLAUDE_CODE_PERMISSION_FALLBACK_MS ?? "2000",
-				10,
-			);
-			const response = await Promise.race([
-				this.conn.requestPermission(request),
-				new Promise<RequestPermissionResponse>((resolve) => {
-					setTimeout(() => {
-						traceAdapter(
-							`permission_request_fallback session=${this.sessionId} tool=${toolName} toolUseId=${options.toolUseID}`,
-						);
-						resolve({
-							outcome: {
-								outcome: "selected",
-								optionId: "allow_once",
-							},
-						});
-					}, Number.isFinite(permissionFallbackMs) ? permissionFallbackMs : 2000);
-				}),
-			]);
+			// The host's permission handler is authoritative: never auto-resolve
+			// the request on a timer. A timer-based fallback here would either
+			// fail OPEN (auto-allow — the untrusted guest's tool runs without host
+			// consent) or fail closed early (deny a legitimate slow approval). If
+			// the host never answers, the request fails via the bounded ACP method
+			// timeout, which surfaces to the host rather than silently granting.
+			const response = await this.conn.requestPermission(request);
 			traceAdapter(
 				`permission_request_done session=${this.sessionId} tool=${toolName} toolUseId=${options.toolUseID}`,
 			);
@@ -997,9 +1013,14 @@ class ClaudeQuerySession {
 		toolName: string;
 		rawInput?: Record<string, unknown>;
 	} | null {
-		const entry = [...this.activeToolCalls.entries()][index];
-		if (!entry) return null;
-		const [toolUseId, value] = entry;
+		// `index` is the streaming content-block index, not a tool-call ordinal —
+		// resolve it through the per-turn block-index map so the partial input is
+		// attributed to the correct tool call even when text/thinking blocks
+		// precede the tool_use block.
+		const toolUseId = this.toolUseBlockIndex.get(index);
+		if (!toolUseId) return null;
+		const value = this.activeToolCalls.get(toolUseId);
+		if (!value) return null;
 		return { toolUseId, toolName: value.toolName, rawInput: value.rawInput };
 	}
 }

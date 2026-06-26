@@ -763,7 +763,9 @@ for (let i = 0; i < argv.length; i++) {
 
 // ── Agent implementation ────────────────────────────────────────────
 
-class PiSdkAgent implements Agent {
+// Exported for unit tests (drive the translation handlers with a mock
+// connection + a fake session). Not part of the package's public API.
+export class PiSdkAgent implements Agent {
 	private conn: AgentSideConnection;
 	private session: PiSessionLike | null = null;
 	private sessionId = "";
@@ -779,9 +781,30 @@ class PiSdkAgent implements Agent {
 		{ path: string; oldText: string }
 	>();
 	private lastEmit: Promise<void> = Promise.resolve();
+	private unsubscribe: (() => void) | null = null;
+	private disposed = false;
 
 	constructor(conn: AgentSideConnection) {
 		this.conn = conn;
+		// The ACP connection ending is the only unconditional teardown signal for
+		// this adapter (there is no SDK-invoked close hook). Drop the live Pi event
+		// subscription on connection close so a closed connection doesn't leave a
+		// listener — and the session it closes over — alive. Defer to the next tick:
+		// AgentSideConnection invokes this agent factory mid-construction, so
+		// `conn.closed` is not yet readable synchronously here (matches the claude
+		// adapter's pattern).
+		setTimeout(() => {
+			void this.conn.closed.then(() => this.dispose());
+		}, 0);
+	}
+
+	private dispose(): void {
+		this.disposed = true;
+		if (this.unsubscribe) {
+			this.unsubscribe();
+			this.unsubscribe = null;
+		}
+		this.session = null;
 	}
 
 	async initialize(
@@ -866,11 +889,20 @@ class PiSdkAgent implements Agent {
 		);
 		__trace.flush();
 
+		// Replacing the session: drop the previous session's subscription so its
+		// listener (and the session it closes over) doesn't leak or fire against
+		// stale state.
+		if (this.unsubscribe) {
+			this.unsubscribe();
+			this.unsubscribe = null;
+		}
 		this.session = session;
 		this.sessionId = session.sessionId;
 
-		// Subscribe to Pi SDK events and translate to ACP notifications
-		session.subscribe((event) => this.handlePiEvent(event));
+		// Subscribe to Pi SDK events and translate to ACP notifications. Keep the
+		// disposer so the subscription is torn down on session replace / connection
+		// close (`subscribe` returns an unsubscribe function).
+		this.unsubscribe = session.subscribe((event) => this.handlePiEvent(event));
 
 		// Build thinking modes
 		const thinkingLevels = session.getAvailableThinkingLevels();
@@ -899,6 +931,11 @@ class PiSdkAgent implements Agent {
 		this.emittedAssistantText = false;
 		this.pendingUpdates = [];
 		this.streamedTextContent.clear();
+		// Pre-edit snapshots are per-tool-call, captured at tool_execution_start and
+		// consumed at tool_execution_end. If a tool never reaches `end` (cancel /
+		// crash / abort) the entry would otherwise leak across turns — reset here so
+		// the map can't grow unbounded.
+		this.editSnapshots.clear();
 
 		// Extract text from prompt parts
 		const promptParts = params.prompt ?? [];
@@ -939,6 +976,11 @@ class PiSdkAgent implements Agent {
 
 	async cancel(_params: CancelNotification): Promise<void> {
 		this.cancelRequested = true;
+		// A cancelled turn may abort tools mid-execution before their
+		// tool_execution_end fires; clear the per-tool maps so their entries don't
+		// leak (prompt() also resets these at the next turn's start).
+		this.currentToolCalls.clear();
+		this.editSnapshots.clear();
 		await this.session?.abort();
 	}
 
@@ -981,7 +1023,19 @@ class PiSdkAgent implements Agent {
 					update,
 				}),
 			)
-			.catch(() => {});
+			// The catch is load-bearing: `lastEmit` is awaited at turn end and a
+			// rejected chain would halt all later updates and surface as a spurious
+			// prompt failure (plus an unhandled rejection on detached emit callers).
+			// But never swallow silently — a dropped session/update (host disconnect
+			// / broken pipe) must be host-visible, so log it to stderr (the
+			// onAgentStderr channel).
+			.catch((error) => {
+				console.warn(
+					`[pi-sdk-acp] failed to deliver session/update: ${
+						error instanceof Error ? error.message : String(error)
+					}`,
+				);
+			});
 		return this.lastEmit;
 	}
 
