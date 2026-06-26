@@ -248,6 +248,27 @@ impl SabRingEndpoint {
         let resp_sab = std::slice::from_raw_parts_mut(resp_ptr, resp_len);
         self.write_response(resp_sab, &response)
     }
+
+    /// Drain ALL currently-pending requests in one pump turn: service each and write its response. Returns the
+    /// count serviced. Stops when no request is pending or the response ring backpressures (full). This is the
+    /// per-turn batch the sidecar servicing loop calls. Same `unsafe` pointer contract as `service_from_raw`.
+    ///
+    /// # Safety
+    /// See `service_from_raw`: `req_ptr`/`resp_ptr` valid for `req_len`/`resp_len` bytes for the call's duration.
+    pub(crate) unsafe fn drain_all(
+        &mut self,
+        req_ptr: *mut u8,
+        req_len: usize,
+        resp_ptr: *mut u8,
+        resp_len: usize,
+        mut service: impl FnMut(&[u8]) -> Vec<u8>,
+    ) -> Result<usize, RingError> {
+        let mut count = 0;
+        while self.service_from_raw(req_ptr, req_len, resp_ptr, resp_len, &mut service)? {
+            count += 1;
+        }
+        Ok(count)
+    }
 }
 
 #[cfg(test)]
@@ -459,6 +480,36 @@ mod tests {
         let (sp, sl) = (resp.as_mut_ptr(), resp.len());
         let again = unsafe { endpoint.service_from_raw(rp, rl, sp, sl, |r| r.to_vec()) }.unwrap();
         assert!(!again);
+    }
+
+    #[test]
+    fn drain_all_services_every_pending_request() {
+        let mut req = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
+        let mut resp = vec![0u8; SAB_RING_HEADER_LEN + RING as usize];
+        let mut gw = SabRingWriter::new(RING).unwrap();
+        let mut gr = SabRingReader::new(RING).unwrap();
+        let mut ep = SabRingEndpoint::new(RING).unwrap();
+        assert!(gw.write_record(&mut req, b"a").unwrap());
+        assert!(gw.write_record(&mut req, b"b").unwrap());
+        assert!(gw.write_record(&mut req, b"c").unwrap());
+        let (rp, rl) = (req.as_mut_ptr(), req.len());
+        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
+        let n = unsafe {
+            ep.drain_all(rp, rl, sp, sl, |r| {
+                let mut v = r.to_vec();
+                v.push(b'!');
+                v
+            })
+        }
+        .unwrap();
+        assert_eq!(n, 3);
+        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"a!".to_vec()));
+        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"b!".to_vec()));
+        assert_eq!(gr.read_record(&resp).unwrap(), Some(b"c!".to_vec()));
+        gr.publish_consumer(&mut resp);
+        let (rp, rl) = (req.as_mut_ptr(), req.len());
+        let (sp, sl) = (resp.as_mut_ptr(), resp.len());
+        assert_eq!(unsafe { ep.drain_all(rp, rl, sp, sl, |r| r.to_vec()) }.unwrap(), 0);
     }
 
     // Deterministic LCG so the fuzz is reproducible without a rand dependency.
