@@ -145,3 +145,13 @@ Unify thunar-sbr onto the existing `gmodule-shim.c`:
    _list_types} (the existing `panel_static_plugin_lookup(name, symbol)` is already generic over the symbol).
 3. Link `gmodule-shim.c` + the thunar table into thunar; DROP `gmodule-static-shim.c` + `thunar-sbr-symwrap.c`.
 4. Re-verify BOTH the panel (regression) and the thunar bulk-rename render. One shim, one mechanism.
+
+## ✅ CONSOLIDATED (2026-06-26 T67) -- one shim, no duplication
+Done: thunar-sbr now loads through the EXISTING shared `toolchain/gmodule-shim.c` + a generated table
+(`gmodule-plugins-thunar.gen.c`, emitted by build-thunar.sh), the SAME mechanism the xfce4-panel plugins use.
+The table's references to the 3 entry points pull the SBR from its archive and keep it past --gc-sections, so the
+keep-shim/symwrap/sentinel were all unnecessary and are DELETED (gmodule-static-shim.c, thunar-sbr-symwrap.c,
+thunar-sbr-keep.c). The one shared-shim change is additive: __wrap_g_module_open accepts a path if the name is
+registered for xfce_panel_module_init/construct OR thunar_extension_initialize (the per-binary table makes these
+mutually exclusive -- no panel regression). Re-verified: thunar bulk-rename renamers load
+(xu5-thunar-sbr-consolidated.png); panel regression-verify in progress. One gmodule mechanism for both families.

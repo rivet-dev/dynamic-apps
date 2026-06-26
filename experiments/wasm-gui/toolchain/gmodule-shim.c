@@ -55,9 +55,13 @@ void *__wrap_g_module_open(const char *file_name, int flags) {
     return NULL; /* g_module_open(NULL)="this program"; xfce4-panel always passes a path */
   }
   plugin_name_from_path(file_name, h0.name, sizeof h0.name);
-  /* Accept the open only if the plugin is statically registered (either entry style). */
+  /* Accept the open only if the plugin is statically registered. Panel plugins export
+   * xfce_panel_module_init/construct; thunarx providers (thunar-sbr) export thunar_extension_initialize.
+   * The lookup table is per-binary, so a name registered for one entry style is never present for the
+   * other -- these checks are mutually exclusive and additive (no regression to the panel). */
   if (!panel_static_plugin_lookup(h0.name, "xfce_panel_module_init")
-      && !panel_static_plugin_lookup(h0.name, "xfce_panel_module_construct"))
+      && !panel_static_plugin_lookup(h0.name, "xfce_panel_module_construct")
+      && !panel_static_plugin_lookup(h0.name, "thunar_extension_initialize"))
     return NULL;
   shimlog("open", h0.name);
   struct shim_handle *h = (struct shim_handle *) malloc(sizeof *h);
