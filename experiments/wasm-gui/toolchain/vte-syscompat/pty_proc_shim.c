@@ -43,6 +43,15 @@ int ptsname_r(int fd, char *b, size_t n) { char *p = ptsname(fd); if (!p) return
 #ifndef TIOCGPTPEER
 #define TIOCGPTPEER 0x5441
 #endif
+#ifndef TIOCPKT
+#define TIOCPKT 0x5420
+#endif
+struct __se_ws { unsigned short r, c, x, y; };
+static int __pty_is_known(int fd) {
+  for (int i = 0; i < __pty_count; i++)
+    if (__pty_master_tbl[i] == fd || __pty_slave_tbl[i] == fd) return 1;
+  return 0;
+}
 extern int __real_ioctl(int fd, int request, ...);
 int __wrap_ioctl(int fd, int request, ...) {
   va_list ap; va_start(ap, request); void *arg = va_arg(ap, void *); va_end(ap);
@@ -50,6 +59,15 @@ int __wrap_ioctl(int fd, int request, ...) {
     int s = __pty_slave_for(fd);
     if (s >= 0) return s;
     errno = EINVAL; return -1;
+  }
+  /* The kernel pty fds are range-encoded and have NO real ioctl in the WASM runner (an unhandled ioctl
+   * there traps the guest). Handle terminal ioctls on those fds locally: TIOCGWINSZ fills a default size,
+   * TIOCPKT/TIOCSWINSZ/etc. are success no-ops (the kernel pty line discipline owns real modes). */
+  if (__pty_is_known(fd)) {
+    if (request == TIOCGWINSZ && arg) {
+      struct __se_ws *w = (struct __se_ws *)arg; w->r = 24; w->c = 80; w->x = 0; w->y = 0;
+    }
+    return 0;
   }
   return __real_ioctl(fd, request, arg);
 }
