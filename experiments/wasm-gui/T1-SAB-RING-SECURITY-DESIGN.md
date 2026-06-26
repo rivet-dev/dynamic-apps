@@ -139,3 +139,12 @@ Security: `get_backing_store` yields a raw slice, but `SabRingReader` already tr
 hostile and never reads/writes outside `ring_size`, so a guest scribbling the shared SAB cannot push the host OOB.
 The only new `unsafe` is `from_raw_parts_mut` over the V8-owned backing store (valid for the SAB lifetime+len) —
 the same pattern the existing bridge already uses (bridge.rs:557-562). This keeps T1 "no new escape surface".
+
+### Ring vs bulk dataBuffer — the size-split (2026-06-26)
+The control ring carries records up to `ring_size - 5` bytes (ring_size - 1 reserved - 4 len prefix). The
+kernel-forwarded RPCs the ring targets (X-socket writes, DNS, permission checks, small/medium fs) fit comfortably
+in a few-KiB ring. LARGER payloads (the framebuffer blit ~1.2 MiB, big X11 requests) do NOT go on the ring — they
+keep using the existing bulk dataBuffer SAB (the proven M8.6 memcpy path). RingChannel.rpc now REJECTS an
+over-capacity request upfront with a clear error (instead of spin-stalling forever), so the caller routes large
+payloads to the bulk path. Validated: 2000-RPC realistic-load test (4 KiB ring, payloads 1B..ring-cap, tight
+wraps) + an over-capacity rejection test, both green (experiments/wasm-gui/t1-ring/sab-ring-rpc.test.mjs).

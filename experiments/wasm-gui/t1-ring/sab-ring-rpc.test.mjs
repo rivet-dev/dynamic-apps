@@ -50,4 +50,34 @@ function pair(transform) {
   assert.deepStrictEqual([...chan.rpc(big, serviceHost)], [...big]);
 }
 
-console.log('sab-ring-rpc: round-trip + 200 sequential + large-payload passed (end-to-end T1 ring protocol)');
+// 4. Realistic load: a 4 KiB control ring, 2000 RPCs with payloads 1B..near-capacity, varied each time to force
+//    tight wrap-arounds + backpressure -- validates the ring at realistic kernel-forwarded RPC sizes.
+{
+  const BIGRING = 4096;
+  const reqSab = new SharedArrayBuffer(HEADER_LEN + BIGRING);
+  const respSab = new SharedArrayBuffer(HEADER_LEN + BIGRING);
+  const chan = new RingChannel(reqSab, respSab, BIGRING);
+  const hr = new RingReader(reqSab, BIGRING);
+  const hw = new RingWriter(respSab, BIGRING);
+  const host = () => { let q; while ((q = hr.read()) !== null) { while (!hw.write(q)) { /* echo */ } } };
+  let state = 12345;
+  const rnd = () => (state = (state * 1103515245 + 12345) & 0x7fffffff);
+  for (let i = 0; i < 2000; i++) {
+    const len = 1 + (rnd() % chan.maxPayload());
+    const msg = new Uint8Array(len);
+    for (let j = 0; j < len; j++) msg[j] = (i + j) & 0xff;
+    const got = chan.rpc(msg, host);
+    assert.strictEqual(got.length, len, `RPC ${i} length`);
+    assert.strictEqual(got[0], msg[0], `RPC ${i} first byte`);
+    assert.strictEqual(got[len - 1], msg[len - 1], `RPC ${i} last byte`);
+  }
+}
+
+// 5. Over-capacity request is rejected UPFRONT (the ring/dataBuffer size-split), not spun into a hang.
+{
+  const { chan, serviceHost } = pair((req) => req);
+  const tooBig = new Uint8Array(RING); // RING(64) > maxPayload (RING-5=59)
+  assert.throws(() => chan.rpc(tooBig, serviceHost), /exceeds ring capacity/, 'over-capacity must reject upfront');
+}
+
+console.log('sab-ring-rpc: round-trip + 200 seq + large + 2000 realistic-load + size-split-guard passed (T1 ring)');

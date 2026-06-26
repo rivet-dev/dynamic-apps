@@ -15,8 +15,21 @@ export class RingChannel {
     this.reader = new RingReader(respSab, ringSize); // persistent consumer index
   }
 
-  // Blocking request/response. Returns the response payload Uint8Array.
+  // Largest payload a single record can ever hold in this ring: ring_size - 1 (the reserved empty/full byte) - 4
+  // (the u32 length prefix). Payloads above this go on the bulk dataBuffer SAB path, not the control ring.
+  maxPayload() {
+    return this.writer.ringSize - 5;
+  }
+
+  // Blocking request/response. Returns the response payload Uint8Array. Rejects an over-capacity request UPFRONT
+  // (it could never fit, so spinning would hang) -- callers route large payloads through the bulk dataBuffer path.
   rpc(requestBytes, serviceHost, maxSpins = 1_000_000) {
+    if (requestBytes.length > this.maxPayload()) {
+      throw new Error(
+        `T1 ring: request ${requestBytes.length}B exceeds ring capacity ${this.maxPayload()}B ` +
+          `(use the bulk dataBuffer path for large payloads)`,
+      );
+    }
     let spins = 0;
     while (!this.writer.write(requestBytes)) {
       serviceHost();
