@@ -3954,6 +3954,11 @@ var __bridge = (() => {
       rationale: "Host PTY bridge reference for writing a terminal's PTY master fd (__pty_write)."
     },
     {
+      name: "_ptyOpenRaw",
+      classification: "hardened",
+      rationale: "Host PTY bridge reference for allocating a terminal's PTY pair (__pty_open)."
+    },
+    {
       name: "require",
       classification: "hardened",
       rationale: "Runtime-owned global require shim entrypoint."
@@ -6416,6 +6421,7 @@ var __bridge = (() => {
   var _kernelPollRaw = createBridgeSyncFacade("_kernelPollRaw");
   var _ptyReadRaw = createBridgeSyncFacade("_ptyReadRaw");
   var _ptyWriteRaw = createBridgeSyncFacade("_ptyWriteRaw");
+  var _ptyOpenRaw = createBridgeSyncFacade("_ptyOpenRaw");
   function decodeBridgeJson(value) {
     return typeof value === "string" ? JSON.parse(value) : value;
   }

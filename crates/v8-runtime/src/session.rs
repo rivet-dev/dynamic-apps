@@ -1630,6 +1630,7 @@ pub(crate) const SYNC_BRIDGE_FNS: &[&str] = &[
     "_ptySetRawMode",
     "_ptyReadRaw",
     "_ptyWriteRaw",
+    "_ptyOpenRaw",
 ];
 
 pub(crate) const ASYNC_BRIDGE_FNS: &[&str] = &[
