@@ -537,7 +537,7 @@ Everything here is in the runtime/sidecar/VFS/toolchain, NOT in the components (
   ~40s perf-root construction slowness (the GTK first-text cascade); (3) the notification EXPIRING before the
   framebuffer capture (default timeout) -- fixed by NOTIFY_EXPIRES_NEVER in the test sender + capturing during
   the show window. With the theme staged the synchronous Notify COMPLETES ("notification sent (try 4)") and the
-  popup paints. Scripts: build-libnotify.sh, build-notifyd.sh. Remaining XU6: **xfce4-terminal** -- ★ the wasm-EH typed-catch blocker is RESOLVED (TLS __wasm_lpad_context consistency; all-threads libwasmeh) so VTE now links+constructs+reaches vte_terminal_spawn_async (openpt rc=0); the remaining crash is a direct pty-setup trap (NOT EH, 0 personality calls), at the fork/process-spawn boundary. Its VTE needs
+  popup paints. Scripts: build-libnotify.sh, build-notifyd.sh. Remaining XU6: **xfce4-terminal** -- ★ the wasm-EH typed-catch blocker is RESOLVED (TLS __wasm_lpad_context consistency; all-threads libwasmeh) so VTE now links+constructs+reaches vte_terminal_spawn_async (openpt rc=0); the remaining crash is a direct trap at proc_spawn (the /bin/sh launch): VTE runs openpt rc=0 -> grantpt -> unlockpt -> TIOCSWINSZ cleanly, then traps because host_process.proc_spawn has NO sidecar handler (unlike __pty_open). Wiring __proc_spawn/__proc_waitpid + a shell guest IS the surfaced fork/process-spawn TCB decision. Its VTE needs
   fork/process-spawn -> a TCB decision, surfaced; build-vte.sh ready sans icu/gnutls + the TIOCGWINSZ shim).
 - **XU7 — full Xubuntu session = ACCEPTANCE.** 🟡 One screenshot shows the FULL live Xubuntu desktop
   working together: Greybird-themed, elementary-xfce icons, xfdesktop wallpaper + icons, xfce4-panel +
