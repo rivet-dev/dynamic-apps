@@ -1,5 +1,5 @@
 /* __wrap_fork()+exec -> posix_spawn DEFERRED transform for VTE (no real __wrap_fork in wasm).
- * __wrap_fork(): setjmp + return 0 (pretend child); the caller runs its child-setup (dup2/close), which we
+ * __wrap_fork(): setjmp + return 0 (pretend child); the caller runs its child-setup (__wrap_dup2/close), which we
  * RECORD into a posix_spawn_file_actions instead of applying; __wrap_execve(): posix_spawn(recorded) + longjmp
  * back to __wrap_fork() returning the child pid. Platform layer (constraint #5), VTE untouched. */
 #include <setjmp.h>
@@ -46,8 +46,8 @@ int __wrap_execve(const char *path, char *const argv[], char *const envp[]) {
 int __wrap_execv(const char *path, char *const argv[]) { return __wrap_execve(path, argv, environ); }
 int __wrap_execvp(const char *file, char *const argv[]) { return __wrap_execve(file, argv, environ); }
 int execvpe(const char *file, char *const argv[], char *const envp[]) { return __wrap_execve(file, argv, envp); }
-/* dup2: record into file_actions if inside the deferred-__wrap_fork child; else best-effort */
-int dup2(int oldfd, int newfd) {
+/* __wrap_dup2: record into file_actions if inside the deferred-__wrap_fork child; else best-effort */
+int __wrap_dup2(int oldfd, int newfd) {
   if (__fk_in_child) { posix_spawn_file_actions_adddup2(&__fk_acts, oldfd, newfd); return newfd; }
   return newfd;
 }
