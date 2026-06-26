@@ -1323,7 +1323,13 @@ async fn run_xdemo(
                             // buttondn -> motion -> buttonup sequence spaced out, not instantaneous).
                             tokio::time::sleep(std::time::Duration::from_millis(120)).await;
                         }
-                        tokio::time::sleep(std::time::Duration::from_millis(800)).await;
+                        // After the last inject, wait POST_INJECT_DELAY_MS (default 800) before the capture
+                        // so anything the inject popped has time to construct + paint. A right-click root
+                        // menu / context menu is a fresh GTK widget tree and needs real build time before it
+                        // is on the framebuffer; 800ms captures an empty desktop. Tunable for menu/dialog tests.
+                        let post_delay = std::env::var("POST_INJECT_DELAY_MS")
+                            .ok().and_then(|v| v.parse().ok()).unwrap_or(800);
+                        tokio::time::sleep(std::time::Duration::from_millis(post_delay)).await;
                     }
                     Err(e) => eprintln!("secure-exec: XTEST connect failed: {e}"),
                 }
