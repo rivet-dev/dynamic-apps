@@ -91,7 +91,12 @@ OPTFEAT="--enable-bulk-memory${SECURE_EXEC_WASM_THREADS:+ --enable-threads}"
 # (without it, fpcast keeps only its own byn$fpcast-emu$N thunk names). KEEP_NAMES then -Oz with
 # --debuginfo (size + names kept) so the binary still reproduces the same behaviour as release.
 PASS1_DBG=""; [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ] && PASS1_DBG="--debuginfo"
-PA_ARG="-pa max-func-params@128"; [ -n "${SECURE_EXEC_FPCAST_NO_PA:-}" ] && PA_ARG=""
+# max-func-params: MEASURED max across the GTK function-type surface is 25 (gtk-hello, mousepad, xfwm4,
+# xfce4-panel, xfdesktop, thunar all max at 25). @128 was ~5x over-provisioned -> every indirect call padded
+# ~100 dead args; the GObject/CSS cascade is indirect-call-dense, so this DOMINATED construction. Lowering to
+# @64 (2.5x margin over the real max) cuts GTK first-widget construction ~3.7x (15.3s -> 4.1s, verified, 0-pixel
+# render diff, smaller binary) with no correctness change. Override with SECURE_EXEC_FPCAST_MAXP.
+PA_ARG="-pa max-func-params@${SECURE_EXEC_FPCAST_MAXP:-64}"; [ -n "${SECURE_EXEC_FPCAST_NO_PA:-}" ] && PA_ARG=""
 # DIAGNOSTIC: SECURE_EXEC_NO_FPCAST=1 drops --fpcast-emu entirely. Tests whether --fpcast-emu is itself
 # breaking exact-signature vtable dispatch (GVfs/GFile) -- if g_file_new_for_path works without it, the
 # fpcast pass is the culprit, not a genuine signature mismatch needing emulation.
