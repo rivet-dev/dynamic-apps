@@ -28,8 +28,8 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
     <li><span class="gate">⏸ XU7 full session</span> — every component renders solo; the 4-guest session needs the
         <strong>sidecar service-thread multiplex</strong> (Root 2) = an <strong>architecture decision</strong> (sign-off).</li>
     <li>Everything else is <span class="done">DONE</span>: XU0–XU5, all 5 XU6 bundled apps (appfinder, mousepad,
-        ristretto, notifyd, screenshooter), 4 xfce4-settings dialogs (appearance, accessibility, display, mouse)
-        + the Settings Manager hub window, and
+        ristretto, notifyd, screenshooter), 5 xfce4-settings dialogs (appearance, accessibility, display, mouse,
+        keyboard) + the Settings Manager hub window, and
         <strong>real interactive input</strong> — keyboard typing into mousepad + live app-launcher search.</li>
   </ul>
 </div>
@@ -60,6 +60,23 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
 
 <h2>Recent log (latest first)</h2>
 <div class="log">
+  <div class="entry big">
+    <div class="date">2026-06-26 (PST)</div>
+    <strong class="done">★ Built a trap symbolizer → fixed the keyboard dialog (5th settings dialog).</strong>
+    The "silent trap" class (apps that died with a bare <code>RuntimeError: unreachable</code>) was opaque only for
+    lack of a symbolizer — the in-binary names approach bloats big GTK guests past the 64&nbsp;MB frame cap. Key
+    observation: the runtime <em>does</em> print trap frames as <code>wasm-function[N]</code>. So an
+    <strong>address-based symbol map</strong> works: re-fpcast a KEEP_NAMES binary just to extract
+    <code>--symbolmap</code> (never run it), then strip <em>only</em> the name section (indices preserved) to get a
+    runnable index-matched binary. That resolved <strong>xfce4-keyboard-settings</strong>'s trap to a GLib fatal log:
+    <code>Invalid object type 'XfceTitledDialog'</code> — the libxfce4ui dialog base type wasn't registered (the 3
+    rendering dialogs force-register it; the keyboard doesn't, and the static no-dlopen build doesn't auto-register).
+    Fixed in the <strong>platform layer</strong> (constraint #5): a build-linked shim that wraps
+    <code>gtk_init_with_args</code> to ensure the type — keyboard source untouched. The dialog now renders fully
+    (Behavior / Application&nbsp;Shortcuts / Layout tabs, repeat sliders, Test area), exit&nbsp;0. The symbolizer is
+    <strong>reusable</strong> for the remaining silent traps (the settings grid, theme enumeration). Proof:
+    <code>gui-progress/2026-06-26T12/xu6-keyboard.png</code>.
+  </div>
   <div class="entry big">
     <div class="date">2026-06-26 (PST)</div>
     <strong class="done">★ Real interactive input + 3 settings dialogs.</strong>
