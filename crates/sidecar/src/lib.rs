@@ -12,6 +12,7 @@ pub mod generated_protocol;
 pub(crate) mod json_rpc;
 pub mod limits;
 pub(crate) mod plugins;
+pub(crate) mod sab_ring;
 pub mod protocol;
 pub(crate) mod rpc_trace;
 pub mod service;
