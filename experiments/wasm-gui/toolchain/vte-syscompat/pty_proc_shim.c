@@ -46,6 +46,9 @@ int ptsname_r(int fd, char *b, size_t n) { char *p = ptsname(fd); if (!p) return
 #ifndef TIOCPKT
 #define TIOCPKT 0x5420
 #endif
+#ifndef TIOCGWINSZ
+#define TIOCGWINSZ 0x5413
+#endif
 struct __se_ws { unsigned short r, c, x, y; };
 static int __pty_is_known(int fd) {
   for (int i = 0; i < __pty_count; i++)
