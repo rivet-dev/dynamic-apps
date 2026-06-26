@@ -109,11 +109,6 @@ pub fn init_v8_platform() {
                 "--prof --no-logfile-per-isolate --logfile=/tmp/secure-exec-v8.log --prof-sampling-interval=200",
             );
         }
-        // wasm exception-handling: node 24's V8 needs the new exnref EH model enabled for C++/wasm-EH
-        // guests (VTE/libvte and any -fwasm-exceptions component). The legacy Phase-3 try/catch model
-        // still loads but its catch landing pads are a silent no-op -> every throw reaches std::terminate.
-        // Pair this with `wasm-opt --emit-exnref` in the guest fpcast pipeline.
-        v8::V8::set_flags_from_string("--experimental-wasm-exnref");
         v8::icu::set_common_data_74(&ICU_COMMON_DATA.0)
             .expect("failed to initialize V8 ICU common data");
         let platform = v8::new_default_platform(0, false).make_shared();
