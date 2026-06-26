@@ -1095,6 +1095,10 @@ async fn run_xdemo(
                 cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // The guests are an Xfce session: advertise it so freedesktop OnlyShowIn=XFCE / NotShowIn
+                // filters resolve correctly (e.g. xfce4-settings-manager's grid, which loads the settings
+                // .desktop via garcon -- they carry OnlyShowIn=XFCE and are hidden otherwise).
+                cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
                 // Desktop-session bus address for GDBus clients (xfconfd/xfsettingsd/panel) when a
                 // dbus-daemon is running (--dbus). Set so GDBus connects directly instead of trying to
                 // autolaunch a bus (which needs a machine-id and fails in the sandbox).
@@ -1173,6 +1177,10 @@ async fn run_xdemo(
                 cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                 cenv.insert("DISPLAY".to_string(), ":0".to_string());
                 cenv.insert("HOME".to_string(), "/root".to_string());
+                // The guests are an Xfce session: advertise it so freedesktop OnlyShowIn=XFCE / NotShowIn
+                // filters resolve correctly (e.g. xfce4-settings-manager's grid, which loads the settings
+                // .desktop via garcon -- they carry OnlyShowIn=XFCE and are hidden otherwise).
+                cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
                 // Desktop-session bus address for GDBus clients (xfconfd/xfsettingsd/panel) when a
                 // dbus-daemon is running (--dbus). Set so GDBus connects directly instead of trying to
                 // autolaunch a bus (which needs a machine-id and fails in the sandbox).
@@ -1983,6 +1991,10 @@ mod window {
                             cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                             cenv.insert("DISPLAY".to_string(), ":0".to_string());
                             cenv.insert("HOME".to_string(), "/root".to_string());
+                // The guests are an Xfce session: advertise it so freedesktop OnlyShowIn=XFCE / NotShowIn
+                // filters resolve correctly (e.g. xfce4-settings-manager's grid, which loads the settings
+                // .desktop via garcon -- they carry OnlyShowIn=XFCE and are hidden otherwise).
+                cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
                             cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
                             let id = format!("xclient{launched}");
                             let _ = s_launch.execute_env(&id, &path_abs, &argv, cenv).await;
