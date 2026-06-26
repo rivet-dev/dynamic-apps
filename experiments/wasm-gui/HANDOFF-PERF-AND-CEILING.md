@@ -86,8 +86,13 @@ SPEED and, via the syscall flood, compounds Root 2 for the full session.
 
 ## xfce4-terminal — process-spawn (separate, surfaced)
 
-VTE needs `fork`/process-spawn → a host wasi-spawn bridge decision (TCB). Build is ready (`build-vte.sh`,
-no icu/gnutls + the TIOCGWINSZ shim).
+VTE 0.70.6 configures past every check EXCEPT `meson.build:442` which HARD-ASSERTS "fork not found"
+(`Checking if 'fork' compiles: NO`). wasi-libc has no `fork()` (no process duplication in the wasm
+model). Constraint #5 forbids patching VTE, so the fix is platform-layer: declare `fork()` so the
+compile check passes, then intercept the fork+exec PATTERN (VTE's child does setsid/dup2/exec) and map
+it to the EXISTING wasi-spawn bridge (spawn a sandboxed shell guest, e.g. `pty-shell.wasm`, via the
+wasi-pty seam). A deep fork/spawn-sequence intercept = the process-spawn architecture decision. Does NOT
+unblock 100% (XU7 does); parked behind this decision.
 
 ---
 
