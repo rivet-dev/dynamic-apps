@@ -16532,10 +16532,16 @@ fn service_javascript_pty_open_sync_rpc(
     process: &ActiveProcess,
     _request: &JavascriptSyncRpcRequest,
 ) -> Result<Value, SidecarError> {
-    let (master_fd, slave_fd, _pty_path) = kernel
-        .open_pty(EXECUTION_DRIVER_NAME, process.kernel_pid)
-        .map_err(kernel_error)?;
-    Ok(json!({ "masterFd": master_fd, "slaveFd": slave_fd }))
+    match kernel.open_pty(EXECUTION_DRIVER_NAME, process.kernel_pid) {
+        Ok((master_fd, slave_fd, _pty_path)) => {
+            eprintln!("PTY_OPEN_RPC: ok master={master_fd} slave={slave_fd}");
+            Ok(json!({ "masterFd": master_fd, "slaveFd": slave_fd }))
+        }
+        Err(error) => {
+            eprintln!("PTY_OPEN_RPC: kernel.open_pty failed: {error}");
+            Err(kernel_error(error))
+        }
+    }
 }
 
 /// Non-blocking read of a guest kernel fd (the kernel-pipe read end). Returns `{ dataBase64 }` for
