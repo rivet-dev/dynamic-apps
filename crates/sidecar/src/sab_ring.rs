@@ -112,6 +112,16 @@ impl SabRingReader {
         self.consumer_index = (consumer + 4 + len) % self.ring_size;
         Ok(Some(payload))
     }
+
+    /// Publish the kernel-owned consumer index into the SAB header so the guest (the ring's producer) can compute
+    /// free space for backpressure. Write-only: the authoritative consumer stays in this struct and is NEVER read
+    /// back from the SAB (the guest could corrupt it). Call after draining a batch of records.
+    pub(crate) fn publish_consumer(&self, sab: &mut [u8]) {
+        if sab.len() >= SAB_RING_HEADER_LEN {
+            sab[CONSUMER_INDEX_OFFSET..CONSUMER_INDEX_OFFSET + 4]
+                .copy_from_slice(&self.consumer_index.to_le_bytes());
+        }
+    }
 }
 
 /// Kernel-side WRITER for the kernel->guest response ring. The kernel owns `producer_index` (here, authoritative)
@@ -209,6 +219,24 @@ mod tests {
         assert_eq!(r.read_record(&sab).unwrap(), Some(b"hello".to_vec()));
         // consumer advanced; next read sees nothing.
         assert_eq!(r.read_record(&sab).unwrap(), None);
+    }
+
+    #[test]
+    fn reader_publishes_consumer_for_guest_backpressure() {
+        // After draining, the reader publishes its consumer index into the SAB header so the guest producer can
+        // compute free space. The published value must equal the advanced consumer (here 9 = 4-byte len + "hello").
+        let rec = record(b"hello");
+        let mut sab = sab_with(rec.len() as u32, &rec);
+        let mut r = SabRingReader::new(RING).unwrap();
+        assert_eq!(r.read_record(&sab).unwrap(), Some(b"hello".to_vec()));
+        r.publish_consumer(&mut sab);
+        let published = u32::from_le_bytes([
+            sab[CONSUMER_INDEX_OFFSET],
+            sab[CONSUMER_INDEX_OFFSET + 1],
+            sab[CONSUMER_INDEX_OFFSET + 2],
+            sab[CONSUMER_INDEX_OFFSET + 3],
+        ]);
+        assert_eq!(published, 9);
     }
 
     #[test]
