@@ -1,8 +1,21 @@
 <!-- Scoping brief for the gmodule/no-dlopen static-plugin blocker. Written 2026-06-26 after the Thunar
-     bulk-rename render surfaced it concretely. This is the cron's flagged XU3 blocker AND the highest-value
-     remaining AUTONOMOUS work (a platform/toolchain fix, NOT a TCB sign-off). Substantial + multi-turn, so it
-     is scoped here rather than started casually in a 5-minute cron fire. -->
+     bulk-rename render surfaced it concretely. STATUS: ✅ SOLVED + CONSOLIDATED 2026-06-26 (see the banner below).
+     This is NO LONGER held-off/blocked work and was never a TCB sign-off. The "highest-value remaining autonomous
+     work" framing below is OBSOLETE -- the work is done (thunar-sbr renamers load+function; panel was already
+     done). Kept for history; trust the SOLVED banner, not the original framing. -->
 # gmodule static-plugin support (the XU3 / Thunar-renamer blocker)
+
+> ## ✅ SOLVED + CONSOLIDATED (2026-06-26). READ THIS FIRST.
+> This whole blocker is **closed**. The middle sections below (T63/T64) record a diagnostic journey that reached a
+> **WRONG** root cause ("libtool strips `--whole-archive`/the `-Wl` flags") — **ignore that theory**; it was
+> disproven by adding SHIMLOG observability (constraint #4). The real bug was `g_module_open(NULL)` returning 0
+> (the runtime has no self/main-module handle), fixed with a non-NULL sentinel handle, then **consolidated** onto
+> the existing shared `toolchain/gmodule-shim.c` + a generated table.
+> - **XU3 panel plugins**: were already done 2026-06-25 (the existing `gmodule-shim.c`). This session did NOT block on them.
+> - **Thunar-sbr renamers (XU5)**: now LOAD and FUNCTION all-wasm — the bulk-rename dialog shows live rule controls
+>   AND live New Name previews on input (proof: `xu5-thunar-sbr-functional.png`). Panel regression-verified clean.
+> - **Not held-off work; not a sign-off.** See the `✅ SOLVED (T65)`, `✅ CONSOLIDATED (T67)`, and `⚠ CORRECTION (T66)`
+>   sections at the BOTTOM for the accurate final state. Status log: T65–T68.
 
 ## What it blocks (one root cause, several visible symptoms)
 - **XU3 xfce4-panel**: the default panel plugins (clock, tasklist, systray, separator, whiskermenu, ...) are
