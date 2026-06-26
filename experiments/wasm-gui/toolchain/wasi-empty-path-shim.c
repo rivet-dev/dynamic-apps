@@ -25,6 +25,8 @@ static int empty(const char *p) { return p != NULL && p[0] == '\0'; }
 
 int __wrap_open(const char *path, int flags, ...) {
   if (empty(path)) { errno = ENOENT; return -1; }
+  if (path && path[0] == '/' && path[1] == 'd' && path[2] == 'e' && path[3] == 'v')
+    fprintf(stderr, "PTYDIAG __wrap_open dev path=%s\n", path);
   /* VTE's pty peer (pty.cc, non-__linux__ path): it opens ptsname(master)="/dev/pts/<slave_fd>". The
    * kernel pty slave fd is ALREADY open (returned by host_process.pty_open), so return it directly
    * instead of a real filesystem open. The number is the (range-encoded) slave fd. Platform shim. */
@@ -32,6 +34,7 @@ int __wrap_open(const char *path, int flags, ...) {
       path[4] == '/' && path[5] == 'p' && path[6] == 't' && path[7] == 's' && path[8] == '/') {
     long fd = 0; const char *p = path + 9;
     while (*p >= '0' && *p <= '9') { fd = fd * 10 + (*p - '0'); p++; }
+    fprintf(stderr, "PTYDIAG __wrap_open pts=%s parsed=%ld\n", path, fd);
     if (*p == '\0' && fd > 0) return (int) fd;
     errno = ENOENT; return -1;
   }

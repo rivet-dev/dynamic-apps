@@ -23,6 +23,7 @@ static int __pty_slave_for(int master) {
 int posix_openpt(int flags) {
   (void)flags; unsigned m = 0, s = 0;
   int e = __se_pty_open(&m, &s);
+  fprintf(stderr, "PTYDIAG openpt rc=%d master=%u slave=%u\n", e, m, s);
   if (e) { errno = e; return -1; }
   if (__pty_count < 16) { __pty_master_tbl[__pty_count] = (int)m; __pty_slave_tbl[__pty_count] = (int)s; __pty_count++; }
   return (int)m;
@@ -32,6 +33,7 @@ int unlockpt(int fd) { (void)fd; return 0; }
 char *ptsname(int fd) {
   static char buf[40];
   snprintf(buf, sizeof buf, "/dev/pts/%d", __pty_slave_for(fd));
+  fprintf(stderr, "PTYDIAG ptsname(%d) -> %s\n", fd, buf);
   return buf;
 }
 int ptsname_r(int fd, char *b, size_t n) { char *p = ptsname(fd); if (!p) return EINVAL; strncpy(b, p, n); return 0; }

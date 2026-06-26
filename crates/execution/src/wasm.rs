@@ -4406,6 +4406,8 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             throw new Error("secure-exec WASM pty write bridge is unavailable");
           }}
           return _ptyWriteRaw.applySync(void 0, args);
+        case "__pty_open":
+          return __agentOsCallGenericSyncRpc(method, args);
         case "child_process.spawn": {{
           if (typeof _childProcessSpawnStart === "undefined") {{
             throw new Error("secure-exec WASM child_process bridge is unavailable");
