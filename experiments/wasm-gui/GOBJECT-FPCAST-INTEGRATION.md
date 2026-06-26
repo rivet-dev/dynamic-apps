@@ -217,3 +217,44 @@ exercises → those become correctly-typed `call_indirect`, needing no emulation
   `PERF-FINDINGS.md` (Root-1 correction; V8 130 wasm-gc default-on, isolate.rs:102-109).
 </content>
 </invoke>
+
+---
+
+## 6. Feasibility finding (2026-06-26) — Lever B needs binaryen-from-source; Lever A is marginal
+
+Investigated the toolchain (non-thrash, code-reading):
+- `wasm-opt` is a **prebuilt binary**: `/home/nathan/.cargo/bin/wasm-opt`, **version 116** (cargo-installed). There
+  is **no `third_party/binaryen` source checkout** and no binaryen build step. `build-gtk-app.sh:107/112/114` and
+  `link-xapp.sh:24` invoke that prebuilt `wasm-opt`.
+
+### Implications
+- **Lever A (arity)** is a one-line/script change against the prebuilt wasm-opt — trivially feasible — but it is
+  **marginal**: my earlier measurement `@64→@28 ≈ 2.6%`, and §1c's floor (real-arg coerce + thunk hop) survives any
+  `N`. So A buys only the last sliver. Do NOT spend build+measure churn cycles iterating A; if banked at all, set a
+  tighter default (`@32`) or run the per-app probe opportunistically during a build that is happening anyway.
+- **Lever B (the real lever)** is NOT a wasm-opt flag. It requires: (1) **vendor + build binaryen from source** at a
+  version with stable wasm-gc / `ref.test` / `call_ref` (post-v116 line), a new heavy C++ toolchain dependency;
+  (2) write a custom pass `SelectiveFpcastEmulation` (leave matching `call_indirect` as `call_ref`; rewrite only
+  signature-mismatch sites to a `ref.test`-dispatched per-signature trampoline); (3) swap that custom `wasm-opt`
+  into `build-gtk-app.sh` behind `SECURE_EXEC_SELECTIVE_FPCAST=1`, keeping the prebuilt `--fpcast-emu @<true-max>`
+  path as the verified fallback; (4) verify with the existing render-diff (expect 0-pixel) + before/after
+  construction timing.
+
+### Concrete Lever B build plan (focused-session)
+1. Vendor binaryen source under `registry/native/third_party/binaryen` (or a pinned git submodule), build `wasm-opt`
+   (cmake + ninja), confirm `--version` > 116 and wasm-gc enabled.
+2. Add `src/passes/SelectiveFpcastEmulation.cpp` modeled on `FuncCastEmulation.cpp` but: for each `call_indirect`,
+   compare the site's declared heap type to the candidate target type via `ref.test`; emit `call_ref` on match;
+   only on mismatch emit the arity-adapting trampoline (drop extra / zero-fill missing) for the few real signatures.
+3. Register the pass; invoke it from `build-gtk-app.sh` as the pass-1 replacement for `--fpcast-emu`.
+4. Verify: render-diff 0-pixel on gtk-hello/xfwm4/panel; construction timing before/after; binary-size delta.
+
+### Go/no-go (strategic — flag to the user, do not silently commit a binaryen-source build)
+- **B is the only lever that removes the §1c per-call floor** and is plausibly another large win (the floor is
+  what's left after the `@64` padding win). It is the right Root-1 endpoint.
+- **But B is weeks of compiler work + a from-source binaryen build added to the toolchain** — a real infrastructure
+  commitment. That dependency decision deserves an explicit go-ahead, not a silent fragment action.
+- **Recommendation:** treat B as a dedicated focused-session project (plan above is ready). Meanwhile do NOT burn
+  cron fires on marginal Lever A; the higher-ROI fragment-and-focused work is **T1 SAB transport** (design+security
+  done, reader built+tested) which the architecture doc ranks first and which is lower-risk than both B and the
+  Root-2 multiplex.
