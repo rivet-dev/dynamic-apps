@@ -25,3 +25,14 @@ Constraint #4: scoped before building. Findings from crates/kernel/src/kernel.rs
 ## Bottom line
 - `ps`/`top`: unblocked at the kernel; needs one wasm-command-build session.
 - `strace`: needs a kernel syscall-trace capability (shareable with Root-2 instrumentation) — focused-session.
+
+## UPDATE (2026-06-26): strace per-RPC trace ALREADY EXISTS — and it's the Root-2 measurement tool
+crates/sidecar/src/execution.rs:13757-13812 already implements `SECURE_EXEC_TRACE=1`: a per-guest, per-sync-RPC
+trace at the CORRECT servicing point (`service_javascript_sync_rpc`, execution.rs:13837/14082), logging
+`[rpc-trace +Nms] pid=P -> method arg0` / `<- method ok (Nus)`. This IS the "wasm strace" (constraint #4) AND the
+Root-2 per-RPC measurement: it gives per-pid, per-method servicing time + cross-process liveness (the comment notes
+one pid looping net.poll while a sibling starves = a scheduling deadlock, i.e. the Root-2 wall, directly visible).
+There is also a watchdog half (crate::rpc_trace, rpc_trace.rs). My 4 earlier mis-located Root-2 traces were
+reinventing this. The host did NOT forward `SECURE_EXEC_TRACE` (only FD/ROOT2_TRACE) -- FIXED here (added to the
+host env allowlist). Root-2 measurement is now: run a multi-guest session with SECURE_EXEC_TRACE=1, aggregate the
+[rpc-trace] lines (sum us per method, count per pid). strace product CLI = surface this trace in-VM (largely done).
