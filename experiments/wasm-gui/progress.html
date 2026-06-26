@@ -27,7 +27,9 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
         <code>host_process.proc_spawn</code> + a <code>/bin/sh</code> guest = the <strong>fork/process-spawn TCB decision</strong> (sign-off).</li>
     <li><span class="gate">⏸ XU7 full session</span> — every component renders solo; the 4-guest session needs the
         <strong>sidecar service-thread multiplex</strong> (Root 2) = an <strong>architecture decision</strong> (sign-off).</li>
-    <li>Everything else (XU0–XU5, 4 of 5 XU6 apps) is <span class="done">DONE</span>.</li>
+    <li>Everything else is <span class="done">DONE</span>: XU0–XU5, all 5 XU6 bundled apps (appfinder, mousepad,
+        ristretto, notifyd, screenshooter), 3 xfce4-settings dialogs (appearance, accessibility, display), and
+        <strong>real interactive input</strong> — keyboard typing into mousepad + live app-launcher search.</li>
   </ul>
 </div>
 
@@ -57,6 +59,18 @@ secure-exec sandbox, from <strong>unmodified upstream</strong> components (const
 
 <h2>Recent log (latest first)</h2>
 <div class="log">
+  <div class="entry big">
+    <div class="date">2026-06-26 (PST)</div>
+    <strong class="done">★ Real interactive input + 3 settings dialogs.</strong>
+    <span class="done">Keyboard input works end-to-end</span> — staged a precompiled XKB keymap (the wasm X server
+    has no fork/exec for xkbcomp), which activates the keyboard device; then XTEST drives real keystrokes.
+    <strong>mousepad</strong> renders a full typed sentence (caret and all); <strong>xfce4-appfinder</strong>'s
+    launcher filters its app list live as you type ("te" → Terminal / Text Editor). Also rendered 3
+    <strong>xfce4-settings dialogs</strong> from unmodified upstream — <strong>appearance</strong> (Style/Icons/Fonts
+    tabs), <strong>accessibility</strong> (Assistive Technologies), and <strong>display</strong> (reads the real Xvfb
+    800×600, with a live monitor preview). Proofs: <code>gui-progress/2026-06-26T{09,10}/</code>. Plus reusable infra
+    fixes: dbus-fixture staleness, <code>POST_INJECT_DELAY_MS</code>, and the XKB keymap (all renders).
+  </div>
   <div class="entry">
     <div class="date">2026-06-26 (PST)</div>
     <span class="done">XU6 5th app — xfce4-screenshooter renders.</span> Unmodified xfce4-screenshooter 1.11.1
