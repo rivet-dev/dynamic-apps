@@ -94,3 +94,54 @@ own LDFLAGS path, took). THE FIX is the already-documented DIRECT non-libtool cl
 link by hand (objects + libs + ALL the -Wl wraps/exports), which applies every flag at once. Then the chain
 completes (symwrap resolves the symbols -> renamers register -> infobar clears). All shims are committed and
 correct; only the libtool->direct-link swap remains, and it closes the whole chain at once.
+
+## ✅ SOLVED (2026-06-26 T65) -- gmodule static plugins work end-to-end
+The thunar-sbr renamer loads and registers; the bulk-rename dialog shows the live renamer-rule controls
+("Insert / Overwrite", "Name only", Insert/Text/At-position) instead of the "No renamer modules" infobar.
+Proof: `~/tmp/gui-progress/2026-06-26T17/xu3-thunar-sbr-static.png`.
+
+THE REAL ROOT CAUSE (the T63/T64 "libtool strips the link flags" diagnosis was WRONG -- corrected by adding
+SHIMLOG fprintf observability to the wraps, per constraint #4). The captured SHIMLOG showed:
+- BOTH `--wrap=g_module_open` AND `--wrap=g_module_symbol` DO fire (the nm "0 __wrap_*" checks were unreliable
+  on wasm; libtool's dry-run confirmed it KEEPS every flag -- the strip theory was a red herring).
+- The actual bug: `__wrap_g_module_open(thunar-sbr.so)` did `__real_g_module_open(NULL)` and got back
+  **`-> main module = 0`**. The runtime has no self/main-module handle (glib `_g_module_self()` returns NULL
+  here), so g_module_open(NULL) is NULL -> thunarx bailed "unknown dl-error" before ever calling g_module_symbol.
+
+THE FIX (toolchain/gmodule-static-shim.c): for a plugin path, return a non-NULL **sentinel** handle (the address
+of a static int) instead of `g_module_open(NULL)`. The companion symwrap (toolchain/thunar-sbr-symwrap.c)
+resolves the 3 SBR entry points BY NAME, ignoring the handle, so the sentinel never needs to be a real module;
+GTypeModules are use-counted and never unloaded, so it is never passed to g_module_close.
+
+The complete proven mechanism (generalizes to the xfce4-panel plugin family for XU3):
+1. keep-shim constructor (thunar-sbr-keep.c) -> defeats wasm-ld --gc-sections, keeps the statically-linked init.
+2. -Wl,--export=<entry points> -> the symbols are real exports.
+3. -Wl,--wrap=g_module_open -> SENTINEL non-NULL handle for plugin paths.
+4. -Wl,--wrap=g_module_symbol -> resolve the plugin entry points by name (the addresses).
+5. marker .so staged at the THUNARX_DIRECTORY path -> the factory dir-scan enumerates it and calls g_module_open.
+NEXT for XU3: generalize the path-match (already covers xfce4/panel, panel-plugins) + the symwrap name-map to the
+xfce4-panel plugin entry points (xfce_panel_module_init / construct), link each panel plugin's objects + keep-shim.
+
+## ⚠ CORRECTION (2026-06-26 T66) -- scope + duplication, read before trusting T65 above
+The T65 "SOLVED -- XU3 core blocker" framing OVERCLAIMED. Accurate picture:
+- **XU3 (xfce4-panel + plugins) was already DONE 2026-06-25** via the EXISTING `toolchain/gmodule-shim.c`
+  (named-handle from the .so path + generated `gmodule-plugins.gen.c` table + `--wrap=g_module_open/open_full/symbol`).
+  The cron seed's "XU3 blocked on gmodule" is STALE. This session did NOT unblock XU3.
+- What this session actually did: made the **thunar-sbr renamers (XU5 Thunar)** load -- a DIFFERENT plugin family
+  (thunarx providers, 3 entry points: initialize/shutdown/list_types) not covered by the panel shim. Real result
+  (the bulk-rename "No renamer modules" infobar clears), but it is an XU5 enhancement, not the XU3 blocker.
+- **My `gmodule-static-shim.c` (sentinel handle) + `thunar-sbr-symwrap.c` (hardcoded names) DUPLICATE the existing
+  `gmodule-shim.c` mechanism, worse.** The existing shim already returns a name-carrying handle (so it never hits
+  g_module_open(NULL)=0 -- the thing I spent ~12 fires "discovering") and resolves via a TABLE (general, no
+  hardcoded symbol names). The proper implementation is to EXTEND the existing shim, not add a parallel one.
+- LESSON (own it): I did not read the existing gmodule-shim.c or re-read the authoritative spec (XU3 🟢) before a
+  long build effort. constraint #4 is "observe before guessing" -- that includes observing existing solutions.
+
+## FOLLOW-UP (the right consolidation, hard work, do next)
+Unify thunar-sbr onto the existing `gmodule-shim.c`:
+1. Generalize `__wrap_g_module_open`'s accept-check: accept the open if the parsed name is in the table for ANY
+   registered symbol (today it hard-checks `xfce_panel_module_init/construct`), so thunarx names pass.
+2. Have build-thunar.sh generate a table entry: thunar-sbr -> {thunar_extension_initialize, _shutdown,
+   _list_types} (the existing `panel_static_plugin_lookup(name, symbol)` is already generic over the symbol).
+3. Link `gmodule-shim.c` + the thunar table into thunar; DROP `gmodule-static-shim.c` + `thunar-sbr-symwrap.c`.
+4. Re-verify BOTH the panel (regression) and the thunar bulk-rename render. One shim, one mechanism.
