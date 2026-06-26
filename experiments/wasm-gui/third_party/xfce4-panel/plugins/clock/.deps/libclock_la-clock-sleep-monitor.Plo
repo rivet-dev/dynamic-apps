@@ -1,6 +1,7 @@
 libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h \
   ../../config.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h \
@@ -15,6 +16,7 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timespec.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_iovec.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/strings.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h \
@@ -28,6 +30,15 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdint.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/stdint.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/posix.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h \
+  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giotypes.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenums.h \
@@ -47,8 +58,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversionmacros.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-visibility.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/time.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_time.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_tm.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/garray.h \
@@ -66,6 +75,7 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/stdlib.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h \
@@ -74,7 +84,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/signal.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/signal.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/signal.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbase64.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbitlock.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbookmarkfile.h \
@@ -151,12 +160,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gmain.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/grel.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gthread.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h \
-  /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/pthread.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sched.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-autocleanups.h \
@@ -357,6 +360,7 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
   ../../common/panel-debug.h clock-sleep-monitor.h
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h:
 ../../config.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h:
@@ -371,6 +375,7 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_timespec.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_iovec.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/strings.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h:
@@ -384,6 +389,15 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdint.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/stdint.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/posix.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h:
+/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gio.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/giotypes.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gioenums.h:
@@ -403,8 +417,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gversionmacros.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-visibility.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/time.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clockid_t.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_clock_t.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_time.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__struct_tm.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/garray.h:
@@ -422,6 +434,7 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/stdlib.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h:
@@ -430,7 +443,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/signal.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/signal.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/bits/signal.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_sigset_t.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbase64.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbitlock.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gbookmarkfile.h:
@@ -507,12 +519,6 @@ libclock_la-clock-sleep-monitor.lo: clock-sleep-monitor.c \
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gmain.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/grel.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/deprecated/gthread.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/types.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/endian.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sys/select.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__fd_set.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__typedef_fd_set.h:
-/home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__macro_FD_SETSIZE.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/pthread.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/sched.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/glib-autocleanups.h:

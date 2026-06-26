@@ -1,6 +1,7 @@
 libsystray_la-sn-util.lo: sn-util.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h \
   ../../config.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h \
@@ -61,6 +62,7 @@ libsystray_la-sn-util.lo: sn-util.c \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/stdlib.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h \
@@ -208,6 +210,7 @@ libsystray_la-sn-util.lo: sn-util.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverterinputstream.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverteroutputstream.h \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcredentials.h \
+  /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h \
   /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h \
@@ -737,6 +740,7 @@ libsystray_la-sn-util.lo: sn-util.c \
   /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/gtk-3.0/gtk/gtk-autocleanups.h
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/wasi-compat.h:
 ../../config.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_string.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/stddef.h:
@@ -797,6 +801,7 @@ sn-util.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/lib/clang/19/include/__stdarg_va_copy.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gquark.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/glib/gutils.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/stdlib.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/stdlib.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__functions_malloc.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_stdlib.h:
@@ -944,6 +949,7 @@ sn-util.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverterinputstream.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gconverteroutputstream.h:
 /home/nathan/secure-exec-wasmgui/experiments/wasm-gui/third_party/wasm-prefix-threads/include/glib-2.0/gio/gcredentials.h:
+/home/nathan/secure-exec-wasmgui/experiments/wasm-gui/toolchain/compat-include/unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__header_unistd.h:
 /home/nathan/secure-exec/registry/native/c/vendor/wasi-sdk/share/wasi-sysroot/include/wasm32-wasip1-threads/__seek.h:

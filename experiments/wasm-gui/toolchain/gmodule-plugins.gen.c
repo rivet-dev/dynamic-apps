@@ -5,13 +5,11 @@ extern void *clock_module_entry(void);
 extern void *tasklist_module_entry(void);
 extern void *systray_module_entry(void);
 extern void *applicationsmenu_module_entry(void);
-extern void *whiskermenu_module_entry(void);
 void *panel_static_plugin_lookup(const char *name, const char *symbol) {
   if (strcmp(name, "separator") == 0 && strcmp(symbol, "xfce_panel_module_init") == 0) return (void *) separator_module_entry;
   if (strcmp(name, "clock") == 0 && strcmp(symbol, "xfce_panel_module_init") == 0) return (void *) clock_module_entry;
   if (strcmp(name, "tasklist") == 0 && strcmp(symbol, "xfce_panel_module_init") == 0) return (void *) tasklist_module_entry;
   if (strcmp(name, "systray") == 0 && strcmp(symbol, "xfce_panel_module_init") == 0) return (void *) systray_module_entry;
   if (strcmp(name, "applicationsmenu") == 0 && strcmp(symbol, "xfce_panel_module_init") == 0) return (void *) applicationsmenu_module_entry;
-  if (strcmp(name, "whiskermenu") == 0 && strcmp(symbol, "xfce_panel_module_construct") == 0) return (void *) whiskermenu_module_entry;
   return 0;
 }
