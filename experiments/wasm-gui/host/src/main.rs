@@ -1121,6 +1121,7 @@ async fn run_xdemo(
                     "SECURE_EXEC_NET_TRACE",
                     "SECURE_EXEC_POLL_TRACE",
                     "SECURE_EXEC_FD_TRACE",
+                    "SECURE_EXEC_ROOT2_TRACE",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {
@@ -1203,6 +1204,7 @@ async fn run_xdemo(
                     "SECURE_EXEC_NET_TRACE",
                     "SECURE_EXEC_POLL_TRACE",
                     "SECURE_EXEC_FD_TRACE",
+                    "SECURE_EXEC_ROOT2_TRACE",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {

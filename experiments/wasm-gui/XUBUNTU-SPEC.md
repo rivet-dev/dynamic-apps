@@ -87,6 +87,15 @@ covers the 99% case).
 Progress log + proof: `~/tmp/gui-progress/progress.html`. Proof for every closed item goes in
 `~/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/` (screenshots for visual milestones, logs otherwise).
 
+**Linux-support ledger (living doc — maintain it).** Keep `experiments/wasm-gui/LINUX-SUPPORT-LEDGER.md` current:
+a running internal catalog of EVERY native/platform-layer change made so that UNMODIFIED Linux software runs in
+the wasm sandbox — libc/wasi-libc shims, X11/GTK/glib platform fixes, networking/sockets, fs/procfs//dev, D-Bus,
+performance levers (e.g. the GObject `--fpcast-emu` handling, Root-2 serialization, framebuffer/RPC byte-copy,
+the T1 SAB ring), and toolchain. Each entry: {Linux behavior expected · what broke under wasm/secure-exec · the
+native-layer fix · where it lives}. It is auto-seeded from history (commit log + progress.html + status logs +
+memories) and **appended whenever a new Linux-compatibility fix lands** — treat it as a required progress
+artifact alongside progress.html.
+
 ---
 
 ## 1. North star
