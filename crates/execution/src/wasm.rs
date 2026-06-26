@@ -969,11 +969,26 @@ fn map_javascript_error(error: JavascriptExecutionError) -> WasmExecutionError {
     }
 }
 
+// SECURE_EXEC_TRACE coverage for the EXECUTOR-INTERNAL WASM sync-RPC path (the JS-side
+// service_javascript_sync_rpc trace in the sidecar does NOT see these -- they are handled here in the executor,
+// which is why a SECURE_EXEC_TRACE=1 desktop run showed 0 lines. Pure instrumentation, no behavior change.
+fn wasm_internal_rpc_trace_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_TRACE")
+            .map(|v| !v.is_empty() && v != "0")
+            .unwrap_or(false)
+    })
+}
+
 fn handle_internal_wasm_sync_rpc_request(
     execution: &mut JavascriptExecution,
     internal_sync_rpc: &mut WasmInternalSyncRpc,
     request: &JavascriptSyncRpcRequest,
 ) -> Result<bool, WasmExecutionError> {
+    if wasm_internal_rpc_trace_enabled() {
+        eprintln!("[rpc-trace-wasm-internal] -> {}", request.method);
+    }
     // Module-resolution sync RPCs (the wasm runner imports node builtins +
     // its own ESM) are serviced host-directly via the execution's own
     // translator; the prewarm has no kernel/service loop.
