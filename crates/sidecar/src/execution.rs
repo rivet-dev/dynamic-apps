@@ -12622,8 +12622,16 @@ fn xtrace_dump(path: Option<&str>, dir: &str, bytes: &[u8]) {
         .map(|b| format!("{b:02x}"))
         .collect::<Vec<_>>()
         .join("");
+    // Cross-process wall clock (epoch micros) so an offline decoder can window the X stream to the
+    // host's `[ir-mark] inject/detect wall=` marks and count the round-trips of ONE keypress redraw
+    // (D1). SystemTime is comparable across the host + sidecar processes; only emitted when XTRACE is
+    // already enabled, so zero cost on the default path.
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_micros())
+        .unwrap_or(0);
     eprintln!(
-        "[xtrace] {dir} {} len={} {head}",
+        "[xtrace] ts={ts} {dir} {} len={} {head}",
         path.unwrap_or("?"),
         bytes.len()
     );

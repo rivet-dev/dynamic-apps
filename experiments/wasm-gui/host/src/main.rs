@@ -1442,7 +1442,11 @@ async fn run_xdemo(
                     let frameprof = std::env::var("SECURE_EXEC_FRAMEPROF").is_ok();
                     let t = std::time::Instant::now();
                     if frameprof {
-                        eprintln!("[ir-mark] inject perf={}", secure_exec_bridge::perf_now_micros());
+                        let wall = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_micros())
+                            .unwrap_or(0);
+                        eprintln!("[ir-mark] inject perf={} wall={wall}", secure_exec_bridge::perf_now_micros());
                     }
                     if let Err(e) = xi.run("type HELLO") {
                         eprintln!("secure-exec: input-latency type failed: {e}");
@@ -1452,7 +1456,11 @@ async fn run_xdemo(
                         if fingerprint(&fbpath) != base {
                             resp = Some(t.elapsed().as_millis());
                             if frameprof {
-                                eprintln!("[ir-mark] detect perf={}", secure_exec_bridge::perf_now_micros());
+                                let wall = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .map(|d| d.as_micros())
+                                    .unwrap_or(0);
+                                eprintln!("[ir-mark] detect perf={} wall={wall}", secure_exec_bridge::perf_now_micros());
                             }
                             break;
                         }
