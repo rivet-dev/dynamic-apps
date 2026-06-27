@@ -369,6 +369,9 @@ impl ActiveProcess {
             unix_inline_registry: std::sync::Arc::new(std::sync::Mutex::new(
                 std::collections::HashMap::new(),
             )),
+            unix_listener_fd_registry: std::sync::Arc::new(std::sync::Mutex::new(
+                std::collections::HashMap::new(),
+            )),
         }
     }
 
@@ -381,6 +384,47 @@ impl ActiveProcess {
     ) -> Self {
         self.unix_inline_registry = registry;
         self
+    }
+
+    /// Override the inline-accept listener-fd registry with the one shared into
+    /// this process's event-bridge thread (so both sides reference the same map).
+    /// Set at spawn time, before the first unix listener is created.
+    pub(crate) fn with_unix_listener_fd_registry(
+        mut self,
+        registry: crate::state::UnixListenerFdRegistry,
+    ) -> Self {
+        self.unix_listener_fd_registry = registry;
+        self
+    }
+
+    /// Mirror a newly created unix listener's host fd into the inline-accept
+    /// registry so this process's event-bridge thread can readiness-check it
+    /// (T-accept) without the service loop. Call AFTER binding, with the listener
+    /// still owning the fd. The fd stays valid until the listener is removed (which
+    /// must call [`Self::deregister_inline_unix_listener`] first).
+    pub(crate) fn register_inline_unix_listener(
+        &self,
+        listener_id: &str,
+        listener: &ActiveUnixListener,
+    ) {
+        // Store an owned dup of the listener so the bridge thread polls a handle it
+        // owns (safe `as_fd()`; immune to fd reuse). If the dup fails, skip — the
+        // accept simply falls through to the service loop, never wrong.
+        if let Ok(clone) = listener.listener.try_clone() {
+            if let Ok(mut registry) = self.unix_listener_fd_registry.lock() {
+                registry.insert(listener_id.to_owned(), clone);
+            }
+        }
+    }
+
+    /// Drop a unix listener from the inline-accept registry. Call BEFORE removing
+    /// the listener from `unix_listeners` (which drops the `UnixListener` and closes
+    /// the fd) so the bridge thread never readiness-checks a stale/reused fd; after
+    /// this an inline accept of that id falls through to the service loop.
+    pub(crate) fn deregister_inline_unix_listener(&self, listener_id: &str) {
+        if let Ok(mut registry) = self.unix_listener_fd_registry.lock() {
+            registry.remove(listener_id);
+        }
     }
 
     /// Mirror a newly created unix socket into the inline-net-drain registry so
@@ -3145,7 +3189,8 @@ where
         } else {
             None
         };
-        let (unix_inline_registry, unix_inline_drain) = new_unix_inline_drain(fd_poll_handle);
+        let (unix_inline_registry, unix_listener_fd_registry, unix_inline_drain) =
+            new_unix_inline_drain(fd_poll_handle);
         let net_drain_arg = if inline_dispatch {
             Some(unix_inline_drain)
         } else {
@@ -3295,7 +3340,8 @@ where
                 .with_guest_cwd(resolved.guest_cwd.clone())
                 .with_env(process_env)
                 .with_host_cwd(resolved.host_cwd.clone())
-                .with_unix_inline_registry(unix_inline_registry),
+                .with_unix_inline_registry(unix_inline_registry)
+                .with_unix_listener_fd_registry(unix_listener_fd_registry),
         );
         self.bridge.emit_lifecycle(&vm_id, LifecycleState::Busy)?;
 
@@ -5700,7 +5746,15 @@ where
             }
         }
 
-        let (parent_kernel_pid, parent_handle, parent_env, parent_guest_cwd, parent_host_cwd, thread_id) = {
+        let (
+            parent_kernel_pid,
+            parent_handle,
+            parent_env,
+            parent_guest_cwd,
+            parent_host_cwd,
+            parent_listener_fd_registry,
+            thread_id,
+        ) = {
             let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
             let parent = vm
                 .active_processes
@@ -5712,6 +5766,7 @@ where
                 parent.env.clone(),
                 parent.guest_cwd.clone(),
                 parent.host_cwd.clone(),
+                parent.unix_listener_fd_registry.clone(),
                 parent.allocate_child_process_id(),
             )
         };
@@ -5733,11 +5788,16 @@ where
         // net.poll still routes to the service loop). Worker threads, not the main
         // process, drive the hot X connection-fd polling, so without this the
         // dominant `__kernel_fd_poll` hops never leave the service-loop funnel.
+        // T-accept: share the PARENT's listener-fd registry so a worker bridge
+        // thread (which may drive the X server's accept loop) can readiness-check
+        // the parent-owned UNIX listener inline. registry = None (net.poll still
+        // routes to the service loop for workers, as before).
         let thread_net_drain: Option<std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>> =
             if inline_dispatch_enabled() {
                 Some(std::sync::Arc::new(UnixInlineNetDrain::new(
                     None,
                     Some((vm.kernel.poll_handle(), parent_kernel_pid)),
+                    Some(parent_listener_fd_registry.clone()),
                 )))
             } else {
                 None
@@ -5783,6 +5843,9 @@ where
             .with_guest_cwd(parent_guest_cwd)
             .with_env(parent_env)
             .with_host_cwd(parent_host_cwd)
+            // Share the parent's listener-fd registry so a listener bound from this
+            // worker registers into the same map the parent + sibling workers read.
+            .with_unix_listener_fd_registry(parent_listener_fd_registry)
             .with_thread(true),
         );
 
@@ -12846,6 +12909,7 @@ fn terminate_child_process_tree(kernel: &mut SidecarKernel, process: &mut Active
 
     let unix_listener_ids = process.unix_listeners.keys().cloned().collect::<Vec<_>>();
     for listener_id in unix_listener_ids {
+        process.deregister_inline_unix_listener(&listener_id);
         if let Some(listener) = process.unix_listeners.remove(&listener_id) {
             let _ = listener.close();
         }
@@ -13955,14 +14019,25 @@ pub(crate) struct UnixInlineNetDrain {
     /// `__kernel_fd_poll` fast-path. `None` keeps every `__kernel_fd_poll` on the
     /// service loop (e.g. when the inline-dispatch gate is off).
     fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
+    /// Inline-accept listener-fd registry (T-accept). Maps `listener_id` → the host
+    /// `UnixListener`'s raw fd; the `Arc` is shared with the owning process (and its
+    /// worker threads) so this drain can readiness-check a listener for the inline
+    /// `net.server_accept` "nothing pending" fast-path. `None` keeps every
+    /// `net.server_accept` on the service loop.
+    accept_listeners: Option<crate::state::UnixListenerFdRegistry>,
 }
 
 impl UnixInlineNetDrain {
     pub(crate) fn new(
         registry: Option<crate::state::UnixInlineRegistry>,
         fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
+        accept_listeners: Option<crate::state::UnixListenerFdRegistry>,
     ) -> Self {
-        Self { registry, fd_poll }
+        Self {
+            registry,
+            fd_poll,
+            accept_listeners,
+        }
     }
 }
 
@@ -13976,13 +14051,19 @@ fn new_unix_inline_drain(
     fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
 ) -> (
     crate::state::UnixInlineRegistry,
+    crate::state::UnixListenerFdRegistry,
     std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>,
 ) {
     let registry: crate::state::UnixInlineRegistry =
         std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
-    let drain = std::sync::Arc::new(UnixInlineNetDrain::new(Some(registry.clone()), fd_poll))
-        as std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>;
-    (registry, drain)
+    let accept_listeners: crate::state::UnixListenerFdRegistry =
+        std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
+    let drain = std::sync::Arc::new(UnixInlineNetDrain::new(
+        Some(registry.clone()),
+        fd_poll,
+        Some(accept_listeners.clone()),
+    )) as std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>;
+    (registry, accept_listeners, drain)
 }
 
 /// Process-wide gate for the C-lite / lever-A inline-dispatch fast-paths
@@ -14115,6 +14196,38 @@ impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
             }
         };
         Some(json!(kernel_fd_poll_revents(&result)))
+    }
+
+    fn try_accept(&self, listener_id: &str) -> Option<Value> {
+        use std::os::fd::AsFd;
+        // No accept registry (e.g. gate off) => every accept routes to the service
+        // loop.
+        let listeners = self.accept_listeners.as_ref()?;
+        // Hold the registry lock only for the (very fast, non-blocking) readiness
+        // poll. The map owns the dup'd listener, so its fd cannot be closed under
+        // us while we hold the entry. NON-CONSUMING: `poll()` reports readiness but
+        // does not accept the pending connection, so the real accept still runs on
+        // the service loop with `&mut kernel`. Unknown id => fall through (the
+        // service loop surfaces the typed "unknown listener" error).
+        let map = listeners.lock().ok()?;
+        let listener = map.get(listener_id)?;
+        let mut fds = [nix::poll::PollFd::new(
+            listener.as_fd(),
+            nix::poll::PollFlags::POLLIN,
+        )];
+        // timeout 0 = non-blocking: accept callers expect non-blocking semantics,
+        // so this returns immediately and never adds a wait (the guest's own accept
+        // loop paces the spin exactly as before; we only make each empty check
+        // cheaper).
+        match nix::poll::poll(&mut fds, nix::poll::PollTimeout::ZERO) {
+            // 0 ready fds: nothing pending. Return the EXACT no-connection value the
+            // service loop returns (the net-timeout sentinel), serviced inline.
+            Ok(0) => Some(javascript_net_timeout_value()),
+            // A connection is pending (POLLIN) / the fd reported an error or hangup,
+            // or poll() itself failed: fall through to the service loop, which
+            // performs the real accept (needs `&mut kernel`) or surfaces the error.
+            _ => None,
+        }
     }
 }
 
@@ -20651,6 +20764,9 @@ where
                         .map_err(kernel_error)?;
                 }
                 let listener_id = process.allocate_unix_listener_id();
+                // T-accept: mirror the listener's host fd into the inline-accept
+                // registry (shared with the bridge thread) BEFORE the move-insert.
+                process.register_inline_unix_listener(&listener_id, &listener);
                 process.unix_listeners.insert(listener_id.clone(), listener);
                 Ok(json!({
                     "serverId": listener_id,
@@ -21482,6 +21598,10 @@ where
                 listener.close(kernel, process.kernel_pid)?;
                 Ok(Value::Null)
             } else {
+                // T-accept: drop the listener fd from the inline-accept registry
+                // BEFORE removing+closing it so the bridge thread never readiness-
+                // checks a stale/reused fd.
+                process.deregister_inline_unix_listener(listener_id);
                 let listener = process.unix_listeners.remove(listener_id).ok_or_else(|| {
                     SidecarError::InvalidState(format!("unknown net listener {listener_id}"))
                 })?;

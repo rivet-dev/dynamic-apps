@@ -440,6 +440,71 @@ pub trait ModuleFsReader {
     fn path_exists(&mut self, guest_path: &str) -> bool;
 }
 
+/// Inline fast-path for the hot non-blocking unix `net.poll` drain
+/// (`_netSocketPollRaw` with wait==0). Supplied by the sidecar so the
+/// per-session event-bridge thread can service the drain DIRECTLY — looking up
+/// the socket's event channel and `try_recv`-ing it — instead of forwarding a
+/// SyncRpcRequest to the single shared `select!` service task. The single task
+/// serializes EVERY guest's sync RPCs plus framebuffer frames plus wire I/O, so
+/// for the interactive-render ping-pong the dominant per-hop latency is the wait
+/// to be *picked up* by that task (D16: ~636µs of a ~742µs hop). The bridge
+/// threads run in parallel per guest, so handling the drain here removes that
+/// funnel. Safe because the underlying receiver is a std `mpsc::Receiver` with
+/// no kernel/global-lock involvement, and a guest blocks on each applySync (its
+/// calls are strictly serial) so intra-guest ordering is preserved; only sockets
+/// it can fully service without process-state mutation are handled inline.
+pub trait InlineNetDrain: Send + Sync {
+    /// Service a NON-BLOCKING unix `net.poll` drain inline. `socket_ids` is the
+    /// arg0 list (one element for the single-socket form). `single` is true for
+    /// the single-socket form (the result is the bare event Value) and false for
+    /// the batch/array form (the result is a `Value::Array` of per-socket events).
+    ///
+    /// Returns `Some(value)` = the EXACT serde_json::Value the service loop's
+    /// `net.poll` handler would return (the caller then applies the same
+    /// legacy→v8 translation + CBOR encoding the service loop's response path
+    /// applies, and writes it as the bridge response). Returns `None` = fall
+    /// through to the service loop (unknown id in the single form, a `Close`
+    /// event that needs socket removal, a tcp socket, or anything it can't safely
+    /// handle inline).
+    fn try_poll(&self, socket_ids: &[String], single: bool) -> Option<serde_json::Value>;
+
+    /// Service a NON-BLOCKING kernel `__kernel_fd_poll` (timeout 0) inline, off
+    /// the single shared service task. `fds` is the arg0 list of kernel fd
+    /// numbers. Returns `Some(value)` = the EXACT `serde_json::Value` the service
+    /// loop's `__kernel_fd_poll` handler would return (a `Value::Array` of per-fd
+    /// revent bitmasks). Returns `None` = fall through to the service loop
+    /// (no inline fd-poll handle wired, or a kernel error the service path should
+    /// surface). Unlike `try_poll`, this path reads only Arc-shared kernel
+    /// managers via a [`KernelPollHandle`], so it runs concurrently with the
+    /// service task with no `&mut` kernel access. When nothing is ready it does a
+    /// BOUNDED, event-driven wait on the kernel poll notifier before returning so
+    /// the guest's poll(0)+retry spin-wait stays event-paced (no busy-spin).
+    ///
+    /// Default `None`: an `InlineNetDrain` impl that does not wire an fd-poll
+    /// handle keeps every `__kernel_fd_poll` on the service loop.
+    fn try_fd_poll(&self, _fds: &[u32]) -> Option<serde_json::Value> {
+        None
+    }
+
+    /// Service the NON-BLOCKING `net.server_accept` "nothing pending" case inline,
+    /// off the single shared service task. `listener_id` is arg0. The real accept
+    /// needs `&mut kernel`/the socket table, so this path does only a
+    /// NON-CONSUMING readiness check on the listener fd: if a connection is pending
+    /// (the listener is readable) it returns `None` to fall through to the service
+    /// loop, which performs the actual accept; if NOTHING is pending it returns
+    /// `Some(value)` = the EXACT no-connection value the service loop returns (the
+    /// net-timeout sentinel). The X server spin-calls non-blocking accept on its
+    /// UNIX listener and gets "nothing pending" ~99% of the time, so taking that
+    /// empty case off the funnel removes the dispatch-funnel latency for those
+    /// hops. Returns `None` when no accept handle is wired or the listener id is
+    /// unknown (falls through to the service loop). Non-blocking semantics: no wait
+    /// when empty — the empty check returns immediately and the guest's own accept
+    /// loop paces itself exactly as before.
+    fn try_accept(&self, _listener_id: &str) -> Option<serde_json::Value> {
+        None
+    }
+}
+
 /// Guest JavaScript module-resolution mode (the `moduleResolution` axis of
 /// `jsRuntime`). Defaults to full Node.js resolution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -483,6 +548,11 @@ struct LocalBridgeState {
     /// `None` means "route module resolution to the service loop" (the kernel-VFS
     /// fallback for callers that supply no reader).
     module_reader: Option<Box<dyn ModuleFsReader + Send>>,
+    /// Optional inline servicer for the hot non-blocking unix `net.poll` drain,
+    /// supplied by the sidecar. When present, the bridge thread services
+    /// `_netSocketPollRaw` (wait==0) directly off the single service loop (see
+    /// [`InlineNetDrain`]). `None` routes every net.poll to the service loop.
+    net_drain: Option<Arc<dyn InlineNetDrain>>,
 }
 
 #[derive(Debug, Default)]
@@ -1722,7 +1792,7 @@ impl JavascriptExecutionEngine {
         &mut self,
         request: StartJavascriptExecutionRequest,
     ) -> Result<JavascriptExecution, JavascriptExecutionError> {
-        self.start_execution_with_module_reader(request, None)
+        self.start_execution_with_bridges(request, None, None)
     }
 
     /// Like [`start_execution`](Self::start_execution) but with an optional
@@ -1735,6 +1805,20 @@ impl JavascriptExecutionEngine {
         &mut self,
         request: StartJavascriptExecutionRequest,
         module_reader: Option<Box<dyn ModuleFsReader + Send>>,
+    ) -> Result<JavascriptExecution, JavascriptExecutionError> {
+        self.start_execution_with_bridges(request, module_reader, None)
+    }
+
+    /// Like [`start_execution_with_module_reader`](Self::start_execution_with_module_reader)
+    /// but additionally accepts an optional [`InlineNetDrain`] so the bridge
+    /// thread can service the hot non-blocking unix `net.poll` drain inline (off
+    /// the single sidecar service loop). The drain is supplied by the sidecar,
+    /// which owns the socket event channels.
+    pub fn start_execution_with_bridges(
+        &mut self,
+        request: StartJavascriptExecutionRequest,
+        module_reader: Option<Box<dyn ModuleFsReader + Send>>,
+        net_drain: Option<Arc<dyn InlineNetDrain>>,
     ) -> Result<JavascriptExecution, JavascriptExecutionError> {
         let context = self
             .contexts
@@ -1879,6 +1963,7 @@ impl JavascriptExecutionEngine {
                 kernel_stdin: kernel_stdin.clone(),
                 v8_session: Some(v8_session.clone()),
                 module_reader,
+                net_drain,
                 module_resolution: GuestModuleResolution::from_env(&request.env),
                 ..Default::default()
             },
@@ -2787,6 +2872,120 @@ fn spawn_v8_event_bridge(
                             }
                         }
                         continue;
+                    }
+
+                    // F10-INLINE: service the hot non-blocking unix `net.poll`
+                    // drain INLINE on this per-session bridge thread, bypassing
+                    // the single shared `select!` service task. D16 proved the
+                    // dominant per-hop latency (~80-85%) is the wait to be picked
+                    // up by that single task; bridge threads run in parallel per
+                    // guest, so handling the drain here removes that funnel for
+                    // `_netSocketPollRaw` (the single biggest contributor). Only
+                    // the wait==0 form is eligible (wait>0 needs the service
+                    // loop's blocking/readiness machinery); the `InlineNetDrain`
+                    // falls through (returns None) for anything it can't safely
+                    // service inline (unknown id, a Close needing socket removal,
+                    // tcp). Inline-handled hops never stamp the hopsplit points.
+                    if method == "_netSocketPollRaw" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            let wait_zero = match args.get(1) {
+                                None | Some(Value::Null) => true,
+                                Some(value) => {
+                                    value.as_u64() == Some(0) || value.as_f64() == Some(0.0)
+                                }
+                            };
+                            if wait_zero {
+                                let ids_form = match args.first() {
+                                    Some(Value::String(id)) => Some((vec![id.clone()], true)),
+                                    Some(Value::Array(items)) => Some((
+                                        items
+                                            .iter()
+                                            .filter_map(|v| v.as_str().map(String::from))
+                                            .collect::<Vec<_>>(),
+                                        false,
+                                    )),
+                                    _ => None,
+                                };
+                                if let Some((ids, single)) = ids_form {
+                                    if let Some(value) = net_drain.try_poll(&ids, single) {
+                                        // Mirror the service loop's response path
+                                        // (`respond_sync_rpc_success`): apply the
+                                        // legacy→v8 value translation BEFORE CBOR
+                                        // so the guest sees the identical shape
+                                        // (e.g. data bytes as a `Buffer`).
+                                        let payload =
+                                            translate_legacy_bridge_value_to_v8(&value);
+                                        let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                            .unwrap_or_default();
+                                        let _ = v8_session
+                                            .send_bridge_response(call_id, 0, cbor);
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // C-lite: service the hot NON-BLOCKING kernel `__kernel_fd_poll`
+                    // (`_kernelFdPollRaw`, timeout 0) INLINE on this per-session
+                    // bridge thread, bypassing the single shared `select!` task
+                    // (D16's `d12` floor). After lever A removed unix `net.poll`,
+                    // this is the dominant ir hop (~9000/run, ~99.7% empty — the X
+                    // event loop spin-polls its connection fd). The injected
+                    // `InlineNetDrain::try_fd_poll` answers it via a lock-free
+                    // `KernelPollHandle` (Arc-shared kernel managers, no `&mut`
+                    // kernel), with a bounded event-driven wait when empty so the
+                    // guest stays event-paced. `None` (no handle wired / kernel
+                    // error) falls through to the service loop. Inline-handled hops
+                    // never stamp the hopsplit points.
+                    if method == "_kernelFdPollRaw" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            let fds: Option<Vec<u32>> = match args.first() {
+                                Some(Value::Array(items)) => Some(
+                                    items
+                                        .iter()
+                                        .filter_map(|v| v.as_u64().map(|fd| fd as u32))
+                                        .collect::<Vec<_>>(),
+                                ),
+                                _ => None,
+                            };
+                            if let Some(fds) = fds {
+                                if let Some(value) = net_drain.try_fd_poll(&fds) {
+                                    let payload = translate_legacy_bridge_value_to_v8(&value);
+                                    let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                        .unwrap_or_default();
+                                    let _ = v8_session.send_bridge_response(call_id, 0, cbor);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    // T-accept: service the hot NON-BLOCKING `net.server_accept`
+                    // "nothing pending" case INLINE on this per-session bridge
+                    // thread, bypassing the single shared `select!` task. The X
+                    // server spin-calls non-blocking accept on its UNIX listener
+                    // (~4400 hops/run) and gets "nothing pending" ~99% of the time;
+                    // each empty check otherwise pays the dispatch-funnel latency
+                    // (D16 `d12`). `try_accept` does a NON-CONSUMING readiness check
+                    // on the listener fd: not readable => returns the same
+                    // no-connection sentinel the service loop returns (handled
+                    // inline); readable (a real connection pending) => returns None
+                    // so this falls through to the service loop, which performs the
+                    // actual accept (needs `&mut kernel`). Inline-handled hops never
+                    // stamp the hopsplit points.
+                    if method == "_netServerAcceptRaw" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            if let Some(Value::String(listener_id)) = args.first() {
+                                if let Some(value) = net_drain.try_accept(listener_id) {
+                                    let payload = translate_legacy_bridge_value_to_v8(&value);
+                                    let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                        .unwrap_or_default();
+                                    let _ = v8_session.send_bridge_response(call_id, 0, cbor);
+                                    continue;
+                                }
+                            }
+                        }
                     }
 
                     // Map the bridge method name to the sidecar sync RPC method name

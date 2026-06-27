@@ -1024,6 +1024,17 @@ pub(crate) struct ActiveProcess {
     /// Shared "some socket became readable" signal; cloned into each TCP/unix socket reader thread so
     /// a blocked guest `net.poll_wait` wakes the instant any of this process's sockets has data.
     pub(crate) socket_readiness: std::sync::Arc<SocketReadiness>,
+    /// Inline-net-drain registry mirroring `unix_sockets`, shared with this
+    /// process's event-bridge thread so it can service the hot non-blocking
+    /// `net.poll` drain off the single service loop (F10-INLINE). Populated on
+    /// every unix-socket insert and cleared on every remove.
+    pub(crate) unix_inline_registry: UnixInlineRegistry,
+    /// Inline-accept registry mapping this process's unix `listener_id` → the host
+    /// listener's raw fd, shared with this process's event-bridge thread (and its
+    /// worker threads) so the non-blocking `net.server_accept` "nothing pending"
+    /// case is serviced off the single service loop (T-accept). Populated on every
+    /// unix-listener insert and cleared on every remove.
+    pub(crate) unix_listener_fd_registry: UnixListenerFdRegistry,
 }
 
 pub(crate) struct ActiveMappedHostFd {
@@ -1419,7 +1430,13 @@ pub(crate) struct PendingUnixSocket {
 #[derive(Debug)]
 pub(crate) struct ActiveUnixSocket {
     pub(crate) stream: Arc<Mutex<UnixStream>>,
-    pub(crate) events: Receiver<JavascriptTcpSocketEvent>,
+    /// Wrapped in `Arc<Mutex<..>>` so the per-session V8/wasm event-bridge thread
+    /// can `try_recv` it INLINE (the F10-INLINE net.poll fast path) in parallel
+    /// with the single sidecar service loop. A std `mpsc::Receiver` is neither
+    /// `Clone` nor `Sync`, so the `Mutex` is what lets two threads reach it; only
+    /// one ever holds the lock at a time, and `poll`/`try_poll` each take it only
+    /// for the duration of a single `try_recv`/`recv_timeout`.
+    pub(crate) events: Arc<Mutex<Receiver<JavascriptTcpSocketEvent>>>,
     pub(crate) event_sender: Sender<JavascriptTcpSocketEvent>,
     pub(crate) listener_id: Option<String>,
     pub(crate) local_path: Option<String>,
@@ -1428,6 +1445,41 @@ pub(crate) struct ActiveUnixSocket {
     pub(crate) saw_remote_end: Arc<AtomicBool>,
     pub(crate) close_notified: Arc<AtomicBool>,
 }
+
+/// One entry in a process's inline-net-drain registry: just enough of an
+/// [`ActiveUnixSocket`] for the event-bridge thread to service a non-blocking
+/// `net.poll` drain WITHOUT reaching into sidecar process state. The select!
+/// task (which owns socket lifecycle) registers an entry on every unix-socket
+/// insert and removes it on every unix-socket remove, so the registry mirrors
+/// `ActiveProcess::unix_sockets`. The bridge thread only ever `try_recv`s the
+/// shared receiver and, on a terminal `Close`, re-queues it via `event_sender`
+/// and falls back to the service loop (which owns the actual socket removal).
+#[derive(Debug, Clone)]
+pub(crate) struct InlineSock {
+    pub(crate) events: Arc<Mutex<Receiver<JavascriptTcpSocketEvent>>>,
+    pub(crate) event_sender: Sender<JavascriptTcpSocketEvent>,
+    pub(crate) remote_path: Option<String>,
+}
+
+/// Per-process registry of inline-drainable unix sockets, keyed by the
+/// process-local socket id. Shared (`Arc`) between the select! task that
+/// populates it and the [`InlineNetDrain`](secure_exec_execution::InlineNetDrain)
+/// handed to that process's event-bridge thread.
+pub(crate) type UnixInlineRegistry =
+    Arc<Mutex<std::collections::HashMap<String, InlineSock>>>;
+
+/// Per-process map of unix `listener_id` → a `try_clone`'d (dup'd) handle to the
+/// host `UnixListener`, shared with this process's event-bridge thread (and its
+/// worker threads) so the inline `net.server_accept` fast-path (T-accept) can do a
+/// NON-CONSUMING readiness check (`poll(POLLIN, 0)`) on the listener directly, off
+/// the single shared service loop. Storing an owned dup (rather than a bare raw
+/// fd) keeps the poll fully safe (`as_fd()` → `BorrowedFd`, no `unsafe`) and
+/// immune to fd-number reuse: the dup is closed only when removed from this map.
+/// Populated when a unix listener is created and cleared when it is removed. The
+/// same `Arc` is shared between a process and its worker threads so whichever
+/// bridge thread services the accept can resolve the listener.
+pub(crate) type UnixListenerFdRegistry =
+    Arc<Mutex<std::collections::HashMap<String, UnixListener>>>;
 
 #[derive(Debug)]
 pub(crate) struct ActiveUnixListener {
