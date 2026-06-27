@@ -242,9 +242,11 @@ The `/goal` references this section for detail; keep it current.
 **Targets (2026-06-30, ir<10ms goal):** primary **single-keystroke input→response (ir) < 10ms** (≥3 runs,
 render green). fp tracked (~2.08s) but NOT gating under this goal. The 50ms target is retired; ir is measured
 HONESTLY now (single keystroke, no pacing artifact). Native ref ~6ms.
-**Current true baseline (pacing-stripped, 2026-06-30):** ir **~25ms** (clean runs 23-28ms; ~2/6 runs spike to
-~100ms = box noise) — render green. Need ~2.5× down. **Dispatch levers A/C-lite are KNOWN-NULL for ir** (see
-the REFUTED block); this is now a RENDER-PATH + MEASUREMENT-PRECISION problem.
+**Current committed baseline (TRUSTWORTHY metric, inline-dispatch default-ON, 2026-06-30):** ir **~70ms**
+(59-74ms), render green, fp ~2.08s. Was ~98ms before the inline-dispatch win. Need ~7× more to <10ms.
+**Dispatch levers A/C-lite are a REAL WIN after all** (~98→70ms) — the earlier "null/refuted" was a confounded
+metric; now landed default-ON. Next: decompose the remaining ~70ms render path (xtrace + FRAMEPROF on the
+honest inject→glyph window) and find the next lever.
 
 **★★★ RESOLVED → TRUSTWORTHY ir BASELINE = ~98ms (2026-06-30); ALL PRIOR LEVER RESULTS ARE INVALID ★★★**
 Built a trustworthy glyph-render metric (now the `bench-ir.sh` default): warm keystroke (`IR_WARMUP=Hello`)
