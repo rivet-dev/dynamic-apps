@@ -275,3 +275,26 @@ Some(rb), with_ring_backing_slices(&rb.req,&rb.resp, |req,resp| serve via SabRin
 This is the one genuinely deep cross-crate edit left; do it with fresh context + verify which site the desktop hits
 (add a temporary count at each site under SECURE_EXEC_TRACE, OR follow the WasmExecutionEvent mapping precisely).
 Then step 5 (guest runner routing) + re-measure.
+
+## Step 4 servicing site narrowed 10 -> 2 (2026-06-27, part 6)
+service_javascript_sync_rpc has EXACTLY 2 call sites (grep-confirmed): 6576 (in
+poll_descendant_javascript_child_process -- the descendant/child execution path) and 17021 (in
+wait_for_loopback_http_response). The measurement proved the desktop's 225k RPCs all flow through
+service_javascript_sync_rpc, so the desktop uses ONE of these two. The other 8 ActiveExecutionEvent::
+JavascriptSyncRpcRequest sites do NOT call service_javascript_sync_rpc (they handle it inline / differently) and
+are not the kernel-forwarded chokepoint.
+
+NEXT-FIRE PLAN (clean, fresh-context):
+1. EMPIRICAL: add `if rpc_trace_enabled() { eprintln!("[t1-site] 6576 m={}", request.method); }` before the 6576
+   call and `[t1-site] 17021` before the 17021 call; build sidecar (isolated CARGO_HOME) + run test-xu7-wm-app.sh
+   with SECURE_EXEC_TRACE=1; grep /tmp/xu7-session.log for [t1-site] -> definitively identifies the desktop's site.
+   (Likely 6576: the wasm-gui host launches xfwm4/mousepad as descendant executions.)
+2. At the identified site: it already has `process` (the child/execution handle). Thread an EmbeddedV8Runtime
+   handle (or the handoff Arc) to it -- check whether `process`/the enclosing fn can reach the runtime; if not, the
+   handoff Arc must be carried on the per-execution state. Then: `let h = runtime.t1_handoff(); if let Some(rb) =
+   t1_handoff_get(&h, session_id) { let resp = with_ring_backing_slices(&rb.req,&rb.resp, |req,resp| serve_one(req)
+   into resp via SabRing); ... }` BEFORE/instead of the event-decoded base64 dispatch. Keep sidecar forbid-unsafe.
+3. Remove the [t1-site] markers. Then step 5 (guest runner routing via makeSyncRpcRouter) + re-measure.
+
+This is the one remaining deep cross-crate TCB edit; doing it on a definitively-resolved site (not a guess) is the
+"read architecture first" discipline. v8-runtime side is fully done + verified.
