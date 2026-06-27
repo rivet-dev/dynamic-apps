@@ -223,6 +223,22 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
+> ## ★★★ RESOLUTION (2026-06-30): the "ir ~88ms" was a MEASUREMENT ARTIFACT — true single-keystroke ir is ~33ms (<50ms, target MET) ★★★
+> The ir probe (`host/src/main.rs` ~1447-1472) types **"HELLO" (5 chars)** and the typist-pacing sleep is
+> **15ms AFTER EACH char** (`xinput::type`, main.rs:522). That `xi.run("type HELLO")` is **synchronous and
+> runs BEFORE the detect loop starts** — so ~75ms of pacing sleeps are baked into the measured ir before the
+> code ever looks at the framebuffer. ir therefore **structurally cannot read below ~75ms regardless of render
+> speed.** Made the typed string env-configurable (`SECURE_EXEC_IR_TEXT`, default "HELLO" for continuity) and
+> measured: **`SECURE_EXEC_IR_TEXT=H` (one keystroke) → ir 27/35/140/38/27/32ms, median ~33ms, render green
+> (5/6 runs 27-38ms; the 140 is the recurring box-noise spike).** PROOF it's the real glyph render and not a
+> blink/artifact: **ir scales with char count** (1 char ~33ms, 5 chars ~88ms; delta = the 4 extra pacing
+> sleeps) — a blink would be char-count-independent. Net: **the runtime's single-keystroke input→response is
+> ~33ms (~18ms render + the one 15ms pacing sleep), already under 50ms.** This is WHY every dispatch lever
+> (A/C-lite) was ir-null — they optimized the ~18ms render that is invisible under the fixed 75ms harness
+> delay. ACTION NEEDED (user ratify): redefine the acceptance metric to single-keystroke render
+> (`bench-ir.sh` default → `SECURE_EXEC_IR_TEXT=H`, or measure inject→render with no pacing). Do NOT keep
+> chasing the 5-char number; it measures typing cadence, not input→response. Levers A + C-lite stay gated-off.
+
 **Targets (ir is the FOCUS):** primary **input→response (ir) < 50ms**; secondary (also required, but ir
 leads) **first-paint (fp) < 2000ms** — each best/median of ≥3 runs, render gate green. The dispatch-floor
 levers that fix ir also pull fp down, so attack ir first. Native ref ~6ms / ~110ms.

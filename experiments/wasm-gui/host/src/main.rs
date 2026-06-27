@@ -1452,7 +1452,13 @@ async fn run_xdemo(
                             .unwrap_or(0);
                         eprintln!("[ir-mark] inject perf={} wall={wall}", secure_exec_bridge::perf_now_micros());
                     }
-                    if let Err(e) = xi.run("type HELLO") {
+                    // The typed string is env-configurable so the ir probe can measure the TRUE
+                    // single-keystroke render latency. Each char carries a 15ms human-typist pacing
+                    // sleep (xinput::type), which for a multi-char string is added to the measured ir
+                    // BEFORE the detect loop starts — so "HELLO" bakes ~75ms of pacing into ir. Default
+                    // stays "HELLO" for continuity; SECURE_EXEC_IR_TEXT=H measures one keystroke.
+                    let ir_text = std::env::var("SECURE_EXEC_IR_TEXT").unwrap_or_else(|_| "HELLO".into());
+                    if let Err(e) = xi.run(&format!("type {ir_text}")) {
                         eprintln!("secure-exec: input-latency type failed: {e}");
                     }
                     let mut resp = None;
