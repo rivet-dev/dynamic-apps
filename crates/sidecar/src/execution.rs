@@ -13836,6 +13836,12 @@ where
     let __rpc_pid = process.kernel_pid;
     let __rpc_method = request.method.clone();
     let (__rpc_t0, __rpc_seq) = rpc_trace_enter(__rpc_pid, &__rpc_method, &request.args);
+    if pipe_trace_enabled() {
+        eprintln!(
+            "[rpc-thr] pid={} thread={} method={}",
+            __rpc_pid, process.is_thread, __rpc_method
+        );
+    }
     let __rpc_result = match request.method.as_str() {
         // Module resolution / loading / format detection read the kernel VFS so
         // the resolver sees exactly what the guest and `kernel.readFile()` see.

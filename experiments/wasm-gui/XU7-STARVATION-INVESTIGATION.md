@@ -254,6 +254,17 @@ This doc is **recursive**: investigation creates new theories.
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — ★★ ROOT CONFIRMED: per-isolate socket-table gap (wasi-thread worker can't see the
+  connection socket).** Thread-tagged op breakdown of the bare-GDBus repro: the **GDBus worker isolate
+  does ZERO socket ops** (`net.poll`=0, `net.connect`/`write`/`accept`=0) — it only polls kernel pipes
+  (`__kernel_fd_poll`=11222) + `net.poll_wait`. MAIN holds the socket (`net.connect`, `net.poll`=10612).
+  So a wasi-thread worker isolate gets its **own empty `hostNetSockets`** (unlike Linux threads, which
+  share the fd table), so GDBus's worker — whose job IS the connection I/O — **can't read/write/poll the
+  socket** → spins on its wakeup pipe; the socket never drains → main also spins seeing it readable.
+  This is the documented per-isolate gap (INTERNAL-TOOLING.md ~line 77). **FIX:** give wasi-thread
+  worker isolates access to sockets the parent opened (share/inherit the socket table, or resolve socket
+  fd ops pid-keyed via the sidecar — the kernel side is already pid-shared). Matches the invariant: a
+  Linux thread shares the fd table; we don't, so it's our runtime gap. Artifact: `/tmp/rpcthr.log`.
 - **2026-06-27 — ★ TIGHTEST REPRO: bare GDBus worker thread spins (1 guest).** `xfconfd` alone
   (dbus-daemon + xfconfd, no X) spins identically (54k polls, 0 reads, both threads) → minimal 2-guest
   repro. Then `gdbus-loop-probe` (a bare GDBus client: `g_bus_get_sync` + persistent `g_main_loop_run`,
