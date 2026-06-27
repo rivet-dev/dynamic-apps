@@ -268,23 +268,28 @@ lever** — taking the hot net/poll drains off the single task onto the per-sess
 in parallel per guest) eliminates d12 for those hops; ~742µs→~100µs/hop ⇒ ir ~88ms→~15-20ms projected.
 
 **REMAINING LEVER MENU — attack the per-hop FLOOR (hits all ~46 hops) over count reduction:**
-- **A [TOP — best risk-adjusted] F10-INLINE:** service `net.poll`/drain INLINE on the event-bridge thread,
-  skipping the shared-loop hop (module/log calls already do this via `handle_internal_bridge_call`). Only
-  blocker: the drain touches per-process `ActiveProcess` socket maps owned by the main loop — but the drain
-  is just an `mpsc try_recv` (`ActiveUnixSocket::poll`, no kernel), so add **per-process locking** to
-  unblock. Cuts the 570µs for every net hop.
+- **A [TOP — CONFIRMED by D16; the lever d12 demands] F10-INLINE:** service the non-blocking unix `net.poll`
+  drain INLINE on the per-session event-bridge thread, off the single `select!` task (module/log already do
+  this via `handle_internal_bridge_call` + `v8_session.send_bridge_response`). `ActiveUnixSocket::poll`
+  (`execution.rs:1849`) is just `self.events.try_recv()` — **no kernel, no global lock** — so the unix drain
+  is the surgical inline candidate (tcp `poll` needs `kernel`; leave it on the task). **Precise design:**
+  (1) `ActiveUnixSocket.events` is a **std `mpsc::Receiver` (NOT crossbeam — not Clone/Sync)**; wrap it
+  `Arc<Mutex<Receiver>>` so two threads can lock+`try_recv`. (2) Add a per-process shared registry
+  `Arc<Mutex<HashMap<String, InlineSock>>>` where `InlineSock { events: Arc<Mutex<Receiver>>, remote_path,
+  saw_remote_end, close_notified }` (the close-state already Arc<AtomicBool>); populate on socket
+  create/accept, remove on close — owned by the select! task, cloned-Arc handed to the bridge thread via
+  `LocalBridgeState`/`spawn_v8_event_bridge`. (3) In the bridge thread intercept `_netSocketPollRaw` with
+  **wait==0 only** (single-id + array forms): look up entries, `try_recv`, build the SAME response Value via
+  a SHARED helper (extract the per-event→Value builder so the inline + select! paths can't diverge), then
+  `send_bridge_response(call_id, 0, cbor)` directly. Fall through (emit SyncRpcRequest) for wait>0 / unknown
+  id / tcp / close-removal. RISK: intra-guest ordering is safe (a guest blocks on each applySync, so its
+  calls are strictly serial); Close can't remove from `process.unix_sockets` inline — mark + lazy cleanup on
+  the task. Verify render gate green. Projected: d12 ~636µs→~0 for `_netSocketPollRaw` (8600 hops).
 - **B F3-DEFERRED (reader-carry):** the off-thread socket reader (`spawn_unix_socket_reader` +
   `poll_waiter_loop`) drains the bytes and carries them INTO the `poll_wait` completion (which today returns
-  only `{generation}`, forcing a separate drain hop). Removes ~half the hops. Concurrency/protocol redesign.
-  **★ ENABLER (verified 2026-06-29):** `ActiveUnixSocket.events` (`state.rs:1422`) is a **crossbeam MPMC
-  `Receiver` (Clone, multi-consumer)** fed by the reader's `event_sender`. So the off-thread completion (or
-  the inline event-bridge drain for A) CAN drain it without owning `&mut ActiveProcess` — give the
-  PollWaiter/registration a CLONE of the awaited fds' `events` receivers (+ their readiness gens) at
-  `net.poll_wait` registration time (main loop, where `process.unix_sockets` is in hand), then the
-  `poll_waiter_loop` worker `try_recv`s + returns the events in the wake response. The guest's `net_poll`
-  applies the carried events and skips its separate `net.poll` drain. RISK (heed the F12 regression): the
-  `net.poll_wait([0,0])` snapshot hop is load-bearing for event SEQUENCING — the carried events must be
-  exactly what the separate drain would have returned, in order; verify the render gate stays green.
+  only `{generation}`, forcing a separate drain hop). Removes ~half the hops. Same `Arc<Mutex<Receiver>>`
+  enabler as A. RISK (heed the F12 regression): the `net.poll_wait([0,0])` snapshot hop is load-bearing for
+  event SEQUENCING — carried events must be exactly what the separate drain would return, in order.
 - **C multi-thread the dispatch loop:** per-session/per-VM dispatch so guests don't serialize on one
   `&mut self`. Removes the contention entirely; large core refactor.
 - **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
