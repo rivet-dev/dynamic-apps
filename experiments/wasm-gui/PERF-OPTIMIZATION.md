@@ -312,8 +312,10 @@ render green). fp tracked (~2.08s) but NOT gating under this goal. The 50ms targ
 HONESTLY now (single keystroke, no pacing artifact). **Native ref = ~10ms** (trustworthy, same method,
 Docker `scratchpad/native-ir/`; the old "~6ms" was the confounded cursor artifact). Wasm ~64ms ⇒ ~54ms is
 RUNTIME overhead and <10ms is reachable in CORE — the "floor" was retracted.
-**Current committed baseline (TRUSTWORTHY metric, inline-dispatch default-ON, 2026-06-30):** ir **~70ms**
-(59-74ms), render green, fp ~2.08s. Was ~98ms before the inline-dispatch win. Need ~7× more to <10ms.
+**Current committed baseline (TRUSTWORTHY metric, inline-dispatch default-ON, 2026-06-30):** ir **~56ms**
+(47-70ms), render green, fp ~2.08s. Was ~98ms before the inline family (net.poll + fd.poll + accept +
+**now poll_wait fast-path** = the #1 method). Native ref ~10ms. Remaining: the GENUINE blocking poll_waits
+(cross-guest round-trip turnaround) — the cheap fast-path/dispatch inlines are now ALL done. Need ~7× more to <10ms.
 **Dispatch levers A/C-lite are a REAL WIN after all** (~98→70ms) — the earlier "null/refuted" was a confounded
 metric; now landed default-ON. Next: decompose the remaining ~70ms render path (xtrace + FRAMEPROF on the
 honest inject→glyph window) and find the next lever.
