@@ -55,7 +55,20 @@ The per-cause split is currently a *hypothesis*. These two artifacts replace the
   guardrail in §7. (`crates/execution/src/node_import_cache.rs` `callSyncRpc`, `__rpcprof`.)
 - **P2 — V8 CPU profile of the guest isolate.** Capture the isolate self-time split (wasm exec vs JS
   shims vs `ffi_call`/GObject vs encoders vs the RPC bridge). The *only* thing that captures the
-  GObject/JS-side cost. (V8 Inspector / `--cpu-prof`-style; reuse the debugger seam if present.)
+  GObject/JS-side cost. **BUILD NOTE (verified 2026-06-27):** rusty_v8 v130 does **NOT** expose
+  `v8::CpuProfiler` (no `cpu_profiler.rs`); only `inspector.rs` exists. So P2 must drive the **V8
+  Inspector `Profiler` domain** (Profiler.enable / setSamplingInterval / start / stop over an
+  `InspectorSession` in `crates/v8-runtime/`, then parse the returned CPU-profile JSON) — a substantial
+  build, not a quick attach. Alternative cheaper-but-narrower probe: instrument the `ffi_call` host
+  import directly (count + time, like P1-guest) to size GObject dispatch (L-B) without a full profile —
+  but it needs the guest-side env gate fixed first (see below).
+  - **Guest-env-gate gap (blocker for guest-side probes):** `SECURE_EXEC_*` debug vars set
+    `globalThis.__rpcprof`/`__pollstat` in the runner (node_import_cache.rs ~8817), but they did NOT
+    activate for **X-client** guests even after adding them to the host cenv allowlist + rebuilding —
+    `__pollstat` never fired. The host-side `[rpcprof-host]` aggregator works (it reads the RPC stream
+    host-side), which is why the RPC numbers exist. Fix the guest `process.env` plumbing for X clients
+    (or lower the dump thresholds + add a startup "[gate] enabled" confirmation to diagnose) before
+    relying on guest-side counters.
 
 **The first number to get: service-thread-wait vs isolate-compute.** It decides RPC-bound vs
 CPU-bound, which picks the first lever. Adding targeted logs to get more info is fine.
