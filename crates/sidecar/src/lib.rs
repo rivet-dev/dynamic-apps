@@ -13,6 +13,8 @@ pub(crate) mod json_rpc;
 pub mod limits;
 pub(crate) mod plugins;
 pub(crate) mod sab_ring;
+#[allow(dead_code)]
+pub(crate) mod shm_registry;
 pub mod protocol;
 pub(crate) mod rpc_trace;
 pub mod service;
