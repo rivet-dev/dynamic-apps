@@ -543,6 +543,31 @@ TLS is load-bearing). This is the one piece that blocks measuring ANY genuinely-
 
 ### Verdict log (newest first)
 
+- **2026-06-29 — ★★★★ THE 86× IS DISTRIBUTED, NOT ONE FUNCTION → pivot to RUNTIME loading/I-O levers
+  (toolchain track ABANDONED).** Calibrated every candidate subsystem native-vs-wasm:
+  - GObject new+unref: **~2.8×** (native 0.248 µs / wasm 0.69 µs). pango text shaping: **~1.0×** (native
+    162 ms / wasm 102 ms — wasm even faster). Native mousepad cold first-paint (fresh container):
+    ~110–225 ms. **Individual GTK subsystems are ~1–3× native — none is the 86× villain.**
+  - **The 86× is therefore DISTRIBUTED, not a single pathological function.** And profiling the
+    GTK-compute phase is BLOCKED: every profile (Inspector cpuprofile + V8PROF tick) is dominated by
+    MODULE LOADING — `AsyncModuleEvaluate` ~40%, `decodeBase64ToUint8Array`/`StringAdd` (decoding the
+    ~23 MB base64 module) — so the on-CPU "hot function 14120" reading is loading-contaminated, not a real
+    GObject/pango hotspot.
+  - **Reframed model of the 9.5 s:** normal wasm overhead (~1.5–3×) across the whole COLD GTK init, PLUS
+    cold-start work native skips: module **base64-decode + V8 compile (~1–2 s)**, cold **fontconfig/icon
+    scans** (~1500 `fs.stat` sync-RPCs @ ~0.5 ms ≈ 0.7 s; ~2.4 s total in imports). No single fat hop.
+  - **NEW lever ledger (RUNTIME / CORE — no toolchain rebuild, fits the original scope):**
+    - **L-W: binary module transfer.** Pass the wasm module to the guest as BINARY via the 4 MB SAB
+      dataBuffer (the M8.6 framebuffer pattern), not base64 in `AGENT_OS_WASM_MODULE_BASE64` — kills the
+      ~23 MB in-JS base64 decode (`decodeBase64ToUint8Array`) seen at the top of every profile. ~0.5–1.5 s.
+    - **L-X: persist/cache the V8-compiled module** across launches (V8 wasm code cache / serialize) so
+      the ~0.9 s per-guest compile is paid once. ~0.5–1 s.
+    - **L-Y: cut cold fs-scan sync-RPC count** — batch fontconfig/icon `fs.stat`/`readdir` (1500 calls @
+      ~0.5 ms). ~0.5–0.7 s.
+    None alone reaches < 2 s, but they are real, CORE-scoped, and stack. **fpcast/toolchain track:
+    ABANDONED** (GObject 2.8× not 23×; transparent fix infeasible). Artifact:
+    `2026-06-29-subsystem-calibration-and-loading.txt`.
+
 - **2026-06-29 — ★★★★★ PHASE-2 PREMISE UNDERMINED TWICE: fpcast-emu is NOT the villain (native
   calibration), AND the transparent fix is infeasible (research). PIVOT needed.** Two findings on the
   same day kill the "kill fpcast-emu via toolchain" plan:
