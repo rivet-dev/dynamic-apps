@@ -104,11 +104,14 @@ isolate thread — you cannot "pause A and run B" in one thread without stack-sw
 currently built with it; or (b) a **fiber/coroutine** mechanism for the runner. This is the real cost of Path B
 (not the socket short-circuit, which is comparatively easy once scheduling exists). Evaluate (a) vs (b) first.
 
-**Hybrid worth considering:** keep guests on their own threads (today's model, real concurrency) but short-circuit
-the *intra-VM loopback socket* path in the kernel so a client↔Xvfb round-trip completes with the **fewest possible
-cross-thread hops** (the reader-direct change is a first step). This doesn't reach in-process speed but avoids the
-Asyncify/fiber problem and may lift the multi-client ceiling enough to matter. Measure it before committing to full
-co-location.
+**Hybrid (kernel-side loopback short-circuit) — likely INSUFFICIENT, here's why:** the intra-VM unix-socket X
+round-trip latency is the **cross-thread WAKE**, not the socket *delivery* (delivery = a fast buffer copy). Waking
+Xvfb's blocked poll requires the chain: kernel notify → deferred responder → response-pipe write → Xvfb's worker
+`readSync` → `Atomics.notify` → Xvfb main thread. The one reducible hop (the poll-waiter-pool) is **already**
+removed by the committed `SECURE_EXEC_POLL_DIRECT` reader-direct change; the remaining hops are **V8-constrained**
+(`Atomics.wait` is isolate-internal, so Rust cannot skip the pipe+worker). So a further loopback short-circuit
+buys little. **Only co-location removes the wake entirely** (in-process call, no cross-thread hop). Don't expect
+the hybrid to reach the multi-client ceiling; it's a measure-and-confirm step, not the fix.
 
 ## The 5th component — thunar
 
