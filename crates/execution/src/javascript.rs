@@ -523,6 +523,20 @@ pub trait InlineNetDrain: Send + Sync {
     fn try_poll_wait(&self, _last_seen: u64, _timeout_ms: u64) -> Option<serde_json::Value> {
         None
     }
+
+    /// L-opcount: service the NON-BLOCKING poll "scan" phase — drain the host-net sockets, poll the
+    /// kernel-pipe fds, and snapshot the readiness generation — in ONE inline round-trip, collapsing the
+    /// guest net_poll's per-iteration `net.poll_wait[0,0]` (gen) + `net.poll` (drain) + `__kernel_fd_poll`
+    /// (pipes) into a single op. Returns `{ events, pipeRevents, generation }` (the exact shapes the three
+    /// separate handlers return) or `None` to fall through to the service loop (e.g. a socket in the set
+    /// needs a `Close`-driven removal only the service loop can do, or no drain/fd-poll handle is wired).
+    fn try_poll_scan(
+        &self,
+        _socket_ids: &[String],
+        _pipe_fds: &[u32],
+    ) -> Option<serde_json::Value> {
+        None
+    }
 }
 
 /// Guest JavaScript module-resolution mode (the `moduleResolution` axis of
@@ -3064,6 +3078,37 @@ fn spawn_v8_event_bridge(
                                     let _ = v8_session.send_bridge_response(call_id, 0, cbor);
                                     continue;
                                 }
+                            }
+                        }
+                    }
+
+                    // L-opcount: service the collapsed non-blocking poll "scan" (drain + pipe-poll + gen
+                    // snapshot) INLINE in ONE round-trip. Args: arg0 = socket ids (string array), arg1 =
+                    // kernel-pipe fds (number array). `try_poll_scan` returns the combined result or
+                    // `None` to fall through to the service loop's `net.poll_scan` handler (unknown/closing
+                    // socket, or no handle wired). Collapses 3 guest RPCs/iteration into 1.
+                    if method == "_netPollScanRaw" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            let socket_ids: Vec<String> = match args.first() {
+                                Some(Value::Array(items)) => items
+                                    .iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect(),
+                                _ => Vec::new(),
+                            };
+                            let pipe_fds: Vec<u32> = match args.get(1) {
+                                Some(Value::Array(items)) => items
+                                    .iter()
+                                    .filter_map(|v| v.as_u64().map(|fd| fd as u32))
+                                    .collect(),
+                                _ => Vec::new(),
+                            };
+                            if let Some(value) = net_drain.try_poll_scan(&socket_ids, &pipe_fds) {
+                                let payload = translate_legacy_bridge_value_to_v8(&value);
+                                let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                    .unwrap_or_default();
+                                let _ = v8_session.send_bridge_response(call_id, 0, cbor);
+                                continue;
                             }
                         }
                     }

@@ -2247,3 +2247,26 @@ headroom to the 3× target, and the op-count / per-op-dispatch lever is the path
 Decomposition holds: ~11ms my op processing + ~20ms peerWait (= the PEER's op processing, small compute) =
 ~145+ round-trips at ~80µs each. Halving ops (both guests) ≈ ir → ~14-18ms ≈ 3-4× — plausibly under 3× if
 per-op cost also drops. IMPLEMENTING the op-count collapse (unified poll RPC) next.
+
+## §7-LEVER-4 (2026-06-30): op-count collapse (net.poll_scan) IMPLEMENTED — marginal (~1ms, within noise)
+
+Implemented the op-count lever the goal names: a `net.poll_scan` sync-RPC that collapses the guest
+net_poll's per-iteration `readReadyGen` (poll_wait[0,0]) + `net.poll` (drain) + `__kernel_fd_poll` (pipes)
+— 3 round-trips — into ONE inline call returning `{events, pipeRevents, generation}` (gen snapshotted
+BEFORE the drain = same lost-wakeup guard). Gated `SECURE_EXEC_POLL_SCAN=1`, default-OFF. 6 layers wired:
+try_poll_scan trait+impl (composes the existing lock-free try_poll/try_fd_poll + snapshot), inline
+interception (`_netPollScanRaw`), map_bridge_method + SYNC_BRIDGE_FNS + bridge-contract.json +
+wasm.rs case + guest net_poll restructure. Builds, engages (8 `_netPollScanRaw`/render window), render-green.
+
+**Result: MARGINAL, within noise.** default 26 26 26 26 26 28 28 29 (median 26) vs POLL_SCAN 24 24 25 25 26
+26 28 28 (median 25.5) — ~1ms, below the ±3-5ms noise floor. **Why: op-count and tighter-wake are
+SUBSTITUTES.** Tighter-wake already drove each op's park/unpark floor to ~µs (spin catches the response), so
+collapsing 3 ops→1 removes ~µs×2, not the old ~80µs×2. The per-op COST was the lever; the op COUNT on top
+of cheap ops is redundant. Gated (default-off) as a marginal-null.
+
+**This firmly localizes the remaining ~26ms:** NOT op dispatch (tighter-wake fixed) and NOT op count
+(poll_scan null) — it is the per-exchange PEER TURNAROUND (~18 exchanges × ~1.4ms = the cross-guest
+scheduling/production wall). That is the structural limit of the two-guest host-socket architecture; only
+lever D (in-memory guest↔guest transport, if the turnaround is transport-bound) or fewer guest round-trips
+(Constraint #5) moves it. SESSION: ir 61→~26ms (17×→~5.9× native median 4.4ms). Committed wins: fd-poll
+bound, tighter-wake. Gated: fd-scoped wakeups, poll_scan (both correct, ir-marginal/null).

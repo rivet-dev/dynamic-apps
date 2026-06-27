@@ -14255,6 +14255,30 @@ impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
         Some(json!(kernel_fd_poll_revents(&result)))
     }
 
+    fn try_poll_scan(&self, socket_ids: &[String], pipe_fds: &[u32]) -> Option<Value> {
+        // Compose the three existing lock-free inline handlers into ONE round-trip. If any component
+        // must fall through (unknown/closing socket, no fd-poll handle, no readiness wired), return None
+        // so the whole scan routes to the service loop — never a partial/lost result.
+        //
+        // Snapshot the generation BEFORE the drain (the lost-wakeup guard, exactly as the guest's
+        // `readReadyGen` did): the guest blocks on this generation, so any data landing AFTER the drain
+        // must advance it past this value. Snapshotting after the drain would strand data that arrived in
+        // the drain→snapshot window (drained=no, generation already bumped → block sleeps through it).
+        let readiness = self.socket_readiness.as_ref()?;
+        let generation = readiness.snapshot();
+        let events = self.try_poll(socket_ids, false)?;
+        let pipe_revents = if pipe_fds.is_empty() {
+            Value::Array(Vec::new())
+        } else {
+            self.try_fd_poll(pipe_fds)?
+        };
+        Some(json!({
+            "events": events,
+            "pipeRevents": pipe_revents,
+            "generation": generation,
+        }))
+    }
+
     fn try_accept(&self, listener_id: &str) -> Option<Value> {
         use std::os::fd::AsFd;
         // No accept registry (e.g. gate off) => every accept routes to the service
@@ -21049,6 +21073,70 @@ where
                     Ok(javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null))
                 }
             }
+        }
+        // L-opcount: service-loop fallback for the collapsed non-blocking poll scan (drain + pipe-poll +
+        // gen). The inline `try_poll_scan` handles the render hot path; this arm only runs when it bailed
+        // (a socket in the set is closing — needs service-loop removal). Snapshot the generation BEFORE
+        // draining (lost-wakeup guard), then drain each socket non-blocking + poll the pipe fds. Args:
+        // [socketIds (string[]), pipeKernelFds (u32[])].
+        "net.poll_scan" => {
+            let socket_ids: Vec<String> = request
+                .args
+                .first()
+                .and_then(|v| v.as_array())
+                .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                .unwrap_or_default();
+            let pipe_fds: Vec<u32> = request
+                .args
+                .get(1)
+                .and_then(|v| v.as_array())
+                .map(|a| a.iter().filter_map(|v| v.as_u64().map(|f| f as u32)).collect())
+                .unwrap_or_default();
+            let generation = process.socket_readiness.snapshot();
+            let mut events: Vec<Value> = Vec::with_capacity(socket_ids.len());
+            for id in &socket_ids {
+                let event = if let Some(socket) = process.tcp_sockets.get_mut(id) {
+                    socket.poll(kernel, process.kernel_pid, Duration::ZERO)?
+                } else if let Some(socket) = process.unix_sockets.get_mut(id) {
+                    socket.poll(Duration::ZERO)?
+                } else {
+                    events.push(Value::Null);
+                    continue;
+                };
+                if matches!(&event, Some(JavascriptTcpSocketEvent::Close { .. })) {
+                    // Mirror the net.poll Close path's socket teardown (release any listener slot).
+                    if let Some(socket) = process.tcp_sockets.remove(id) {
+                        if let Some(listener_id) = socket.listener_id.as_deref() {
+                            if let Some(listener) = process.tcp_listeners.get_mut(listener_id) {
+                                listener.release_connection(id);
+                            }
+                        }
+                    } else if let Some(socket) = process.unix_sockets.remove(id) {
+                        if let Some(listener_id) = socket.listener_id.as_deref() {
+                            if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
+                                listener.release_connection(id);
+                            }
+                        }
+                    }
+                    process.deregister_inline_unix_socket(id);
+                }
+                events.push(javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null));
+            }
+            let pipe_revents = if pipe_fds.is_empty() {
+                json!([])
+            } else {
+                let poll_fds: Vec<PollFd> =
+                    pipe_fds.iter().map(|&fd| PollFd::new(fd, POLLIN)).collect();
+                let result = kernel
+                    .poll_fds(EXECUTION_DRIVER_NAME, process.kernel_pid, poll_fds, 0)
+                    .map_err(kernel_error)?;
+                json!(kernel_fd_poll_revents(&result))
+            };
+            Ok(json!({
+                "events": events,
+                "pipeRevents": pipe_revents,
+                "generation": generation,
+            }))
         }
         // Wait until ANY of this process's sockets becomes readable (or the timeout elapses), so a
         // guest poll() that found no fd ready waits on all its fds at once instead of round-robin

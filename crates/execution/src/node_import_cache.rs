@@ -8891,6 +8891,9 @@ try { if (process.env.SECURE_EXEC_FD_TRACE === '1') globalThis.__fdtrace = true;
 function fdTrace(msg) { if (globalThis.__fdtrace) { try { process.stderr.write('FDTRACE ' + msg + '\n'); } catch (_e) {} } }
 try { if (process.env.SECURE_EXEC_POLL_TRACE === '1') globalThis.__polltrace = true; } catch (_e) {}
 function pollTrace(msg) { if (globalThis.__polltrace) { try { process.stderr.write('POLLTRACE ' + msg + '\n'); } catch (_e) {} } }
+// L-opcount (SECURE_EXEC_POLL_SCAN=1, default-OFF): collapse net_poll's per-iteration drain + pipe-poll +
+// gen-snapshot (3 sync-RPCs) into ONE net.poll_scan round-trip. Reduces the per-render op count ~1.5-2x.
+try { if (process.env.SECURE_EXEC_POLL_SCAN === '1') globalThis.__pollScan = true; } catch (_e) {}
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -11738,7 +11741,9 @@ const hostNetImport = {
     // multi-client wasm X server polls almost exclusively with timeout 0 (it has buffered work), so this
     // removes one net.poll_wait round-trip from every such poll. The blocking path still snapshots the
     // generation before the drain/scan (the lost-wakeup guard) below.
-    let readyGen = t === 0 ? 0 : readReadyGen();
+    // When poll_scan is on, the generation snapshot rides along inside each net.poll_scan (taken BEFORE
+    // its drain, same lost-wakeup guard), so skip the standalone readReadyGen round-trip entirely.
+    let readyGen = (t === 0 || globalThis.__pollScan) ? 0 : readReadyGen();
     // L-L evidence (SECURE_EXEC_POLLSTAT): per-outer-call, count inner poll_wait blocks and how many
     // woke with NOTHING ready (spurious cross-fd wakeups). __blockedPrev tracks "the previous loop
     // iteration blocked in poll_wait", so a re-scan finding ready==0 is a confirmed spurious wake.
@@ -11756,28 +11761,12 @@ const hostNetImport = {
           const s = getHostNetSocket(vDrain.getInt32(base0 + i * 8, true));
           if (s && s.socketId && !s.serverId && !s.closed) drainSockets.push(s);
         }
-        if (drainSockets.length === 1) {
-          pollHostNetSocket(drainSockets[0], 0);
-        } else if (drainSockets.length > 1) {
-          const __dpb0 = globalThis.__drainprof ? callSyncRpc('__perf_now', []) : 0;
-          const events = callSyncRpc('net.poll', [drainSockets.map((s) => s.socketId), 0]);
-          if (__dpb0) { let firstData = null; if (Array.isArray(events)) { for (const e of events) { if (e && e.type === 'data') { firstData = e; break; } } } drainprofRecord(callSyncRpc('__perf_now', []) - __dpb0, firstData); }
-          if (Array.isArray(events)) {
-            for (let k = 0; k < drainSockets.length; k++) {
-              applyHostNetEvent(drainSockets[k], events[k]);
-            }
-          }
-        }
-        // Kernel-pipe fds (e.g. a GMainContext GWakeup pipe) are not host_net sockets, so the socket
-        // scan below leaves them revents=0. Poll their readability via the kernel (non-consuming) in
-        // ONE batched __kernel_fd_poll round-trip so GLib's cross-thread wakeup (worker writes the
-        // GWakeup pipe -> a blocked g_main_loop_run on a wakeup-only context must observe POLLIN) works.
+        // Gather the kernel-pipe fds in the poll set up-front (used by both the poll_scan and legacy paths).
         const pipeRevents = new Map();
-        let pollSetHasPipes = false;
+        const pipeKernelFds = [];
+        const pipeGuestFds = [];
         {
           const vPipe = new DataView(instanceMemory.buffer);
-          const pipeKernelFds = [];
-          const pipeGuestFds = [];
           for (let i = 0; i < n; i++) {
             const pfd = vPipe.getInt32(base0 + i * 8, true);
             const pev = vPipe.getUint16(base0 + i * 8 + 4, true);
@@ -11786,7 +11775,35 @@ const hostNetImport = {
               pipeGuestFds.push(pfd >>> 0);
             }
           }
-          pollSetHasPipes = pipeKernelFds.length > 0;
+        }
+        const pollSetHasPipes = pipeKernelFds.length > 0;
+        if (globalThis.__pollScan) {
+          // L-opcount: ONE round-trip does { drain the sockets, poll the pipe fds, snapshot the gen }.
+          const scan = callSyncRpc('net.poll_scan', [drainSockets.map((s) => s.socketId), pipeKernelFds]);
+          if (scan && Array.isArray(scan.events)) {
+            for (let k = 0; k < drainSockets.length; k++) applyHostNetEvent(drainSockets[k], scan.events[k]);
+          }
+          if (scan && Array.isArray(scan.pipeRevents)) {
+            for (let k = 0; k < pipeGuestFds.length; k++) pipeRevents.set(pipeGuestFds[k], Number(scan.pipeRevents[k]) >>> 0);
+          }
+          if (scan && typeof scan.generation === 'number') readyGen = scan.generation;
+        } else {
+          // Legacy path: separate drain (batched) + pipe poll.
+          if (drainSockets.length === 1) {
+            pollHostNetSocket(drainSockets[0], 0);
+          } else if (drainSockets.length > 1) {
+            const __dpb0 = globalThis.__drainprof ? callSyncRpc('__perf_now', []) : 0;
+            const events = callSyncRpc('net.poll', [drainSockets.map((s) => s.socketId), 0]);
+            if (__dpb0) { let firstData = null; if (Array.isArray(events)) { for (const e of events) { if (e && e.type === 'data') { firstData = e; break; } } } drainprofRecord(callSyncRpc('__perf_now', []) - __dpb0, firstData); }
+            if (Array.isArray(events)) {
+              for (let k = 0; k < drainSockets.length; k++) {
+                applyHostNetEvent(drainSockets[k], events[k]);
+              }
+            }
+          }
+          // Kernel-pipe fds (e.g. a GMainContext GWakeup pipe) are not host_net sockets, so the socket
+          // scan below leaves them revents=0. Poll their readability via the kernel (non-consuming) in
+          // ONE batched __kernel_fd_poll round-trip so GLib's cross-thread wakeup works.
           if (pipeKernelFds.length > 0) {
             try {
               const rev = callSyncRpc('__kernel_fd_poll', [pipeKernelFds]);

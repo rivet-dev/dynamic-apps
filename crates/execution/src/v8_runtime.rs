@@ -336,6 +336,7 @@ pub fn map_bridge_method(method: &str) -> (&str, bool) {
         "_netSetGuestFdNonblockRaw" => ("net.set_guest_fd_nonblock", false),
         "_netSocketPollRaw" => ("net.poll", false),
         "_netSocketPollWaitRaw" => ("net.poll_wait", false),
+        "_netPollScanRaw" => ("net.poll_scan", false),
         "_netSocketWaitConnectRaw" => ("net.socket_wait_connect", false),
         "_netSocketReadRaw" => ("net.socket_read", false),
         "_netSocketSetNoDelayRaw" => ("net.socket_set_no_delay", false),
