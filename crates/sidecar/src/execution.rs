@@ -16629,6 +16629,14 @@ fn service_javascript_kernel_fd_write_sync_rpc(
     let written = kernel
         .fd_write(EXECUTION_DRIVER_NAME, process.kernel_pid, fd, &chunk)
         .map_err(kernel_error)?;
+    // Wake a poll blocked on this process's readiness (e.g. a main thread parked in net.poll_wait on a
+    // GMainContext GWakeup pipe that a worker thread just wrote to). The kernel-pipe doc claimed this
+    // already happened, but the write path never notified -- so cross-thread GWakeups only landed via the
+    // guest poll loop's 10ms pipe-rescan cap. Notifying here drops that wakeup latency from <=10ms to
+    // immediate (the cap stays as a fallback). A spurious notify is harmless: a woken poll just rescans.
+    if written > 0 {
+        process.socket_readiness.notify();
+    }
     Ok(json!(written))
 }
 
