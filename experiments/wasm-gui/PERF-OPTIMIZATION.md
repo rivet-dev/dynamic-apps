@@ -2191,3 +2191,21 @@ structural cross-guest transport: mousepad↔Xvfb data goes through a HOST AF_UN
 notify + pool per exchange (~20 exchanges × ~1.4ms). Lever D = route GUEST↔GUEST unix connections through an
 in-memory kernel path (no host round-trip / reader thread) while host↔guest (XTEST) stays host-backed. That
 is the remaining CORE lever and it is architectural (socket/connection-layer change).
+
+## §7-DECOMP2 (2026-06-30): render at ~28-32ms is now architectural (no more per-op anomaly)
+
+Post-tighter-wake render window (32ms run, 145 ops): ~18 cross-guest wait-gaps totalling **~20.5ms**
+(peerWaits ~1.1ms each, one 3.5ms = the heavy rasterize step) + **~11ms op processing (~80µs/op)**.
+- The ~20ms peerWait gaps = the host-AF_UNIX + reader-thread + notify transport per exchange + peer wasm
+  compute. Reducible only by **lever D** (in-memory guest↔guest routing) for the transport half, and the
+  wasm/toolchain floor for the compute half.
+- The ~11ms op processing = ~80µs/op of V8-serialize (15µs) + CBOR convert + bridge-thread handle +
+  response, per the 145 ops. Tighter-wake removed the isolate PARK (the big win); this residual is
+  fine-grained serialization/dispatch tuning (leaner encoding or same-thread dispatch), each op worth
+  ~tens of µs — BELOW the ±15ms run-to-run noise floor, not a single 15ms anomaly.
+
+CONCLUSION: the tractable per-op levers are exhausted this session (fd-poll bound + tighter-wake took ir
+61→28.5ms, ~6.5×→ from ~17×). Native median = 4.4ms (rigorous), so strict 3× = ~13ms; the remaining ~15ms
+is architectural (lever D transport + same-thread/leaner-encoding dispatch) — a socket/bridge-layer redesign,
+surfaced for decision. No further per-op anomaly exists to chase; the remaining wins require dedicated
+architectural efforts, not tail-of-session edits.
