@@ -79,6 +79,36 @@ CPU-bound, which picks the first lever. Adding targeted logs to get more info is
 > guest-reachable object, and is bound **only** when the opt-in `SECURE_EXEC_RPCPROF` debug flag is set.
 > So the guest cannot read a real clock by default; exposing one is a deliberate, debug-only opt-in.
 
+## 4b. PRIMARY method: top-down print-timing (host-timestamped) — the sampler is blind to wasm
+
+**Why prints, not the V8 sampler:** P2 (`--prof`) captures ticks, but V8 logs wasm frames as
+`wasm-function[N]` *index* names (verified — even with `SECURE_EXEC_KEEP_NAMES`), not C symbols. So the
+sampler CANNOT attribute the ~178s to a named subsystem (fontconfig / pango / cairo / layout) — we were
+profiling blind. Print-timing gives **named, %-attributable** phase timing.
+
+**Mechanism (host-timestamped):** the host prefixes every guest stderr line with elapsed `[+Nms]` (the
+guest clock is frozen, but the HOST clock is real and reliable). So `fprintf(stderr, "T:<phase>\n")` at
+a phase boundary is a named, host-timestamped marker; the delta between consecutive markers = that
+phase's wall time. css-bench already proved this works: `[+11365ms] gtk_init done` ⇒ gtk_init = 11.4s.
+
+**Instrumentation = temporary build patches** (inline edits to the app/probe + the library source under
+`third_party/`, or a `patches/` entry), applied at build, **reverted before commit** — exactly like the
+T-J `gwakeup.c`/`gmain.c` probes. Constraint #5: only the FIX and the timing REPORTS are committed,
+never the instrumentation patches. Keep each minimal (a few `fprintf(stderr,"T:...")` + `fflush`).
+
+**Process — top-down, drill into the biggest:**
+1. **High level:** bracket the macro-phases — `gtk_init` vs widget construction vs first-paint — get the
+   % split (which macro-phase dominates the ~178s).
+2. **Drill:** patch the dominant phase's library with finer markers (e.g. inside `gtk_init`:
+   type-init / default-theme CSS load / icon theme / fontconfig `FcInit` / pango fontmap), re-run, find
+   the dominant sub-phase.
+3. Repeat until the cost is a specific named operation — that is the lever.
+
+**Track reports (load-bearing):** save each run's marker deltas as a timing-report artifact
+(`~/progress/secure-exec/2026-06-27-perf-optimization/timing-<scope>-<before|after>.txt`) with the %
+breakdown, so EVERY optimization has a measured before/after. This is the "clear percentage view" — the
+loop below is driven by these reports, never optimized blind.
+
 ## 5. Optimization loop (profile-guided, one lever at a time)
 
 1. Run B0-B3 → record baselines (+ a profile).
@@ -153,6 +183,17 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — P2 (V8 --prof) is BLIND to wasm subsystems → PIVOT to print-timing (§4b, user
+  direction).** P2 works (captured 323-515k ticks of css-bench gtk_init), and the compute is confirmed
+  in-wasm — but V8 logs wasm frames as `wasm-function[N]` *index* names (e.g. `wasm-function[5780]`),
+  NOT C symbols, even with `SECURE_EXEC_KEEP_NAMES=1`. So `v8prof-top.py` top-of-stack is empty (1
+  tick); only the JS↔wasm wrappers are named (INCLUSIVE: JSToWasmWrapper ~70%, WasmToJsWrapperCSA ~56%
+  of ticks = heavy boundary traffic, but no subsystem attribution). **We were profiling blind.** New
+  PRIMARY method (§4b): **host-timestamped print-timing via temporary build patches** — top-down phase
+  markers (`fprintf(stderr,"T:<phase>")`, host-tagged `[+Nms]`), drill into the biggest, track a %
+  before/after report per optimization. Artifacts: `/tmp/secure-exec-v8.log` (106MB), the two
+  `bpen7b4rv`/`bmyw5ruii` profile dumps.
 
 - **2026-06-27 — Standalone subsystem probe (subsys-bench) BLOCKED: wasm-ld segfaults on the full-GTK
   link (2× consistent).** Wrote `subsys-bench.c` (time FcInit / pango fontmap / first-layout-shape /
