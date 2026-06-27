@@ -2038,3 +2038,37 @@ the RPC/deferred-response DELIVERY path (poll_wait pool completion → deferred 
 stdio select loop → isolate resume), possibly gated by the 250µs event-pump tick — NOT the spurious-wake
 count. Next lever = drive down the per-productive-exchange delivery latency (or RPCs-per-exchange / a
 shared-memory inter-guest ring), targeting the ~1.3ms/exchange. fd-scoped stays gated (CPU win, ir-null).
+
+---
+
+## §7-LEVER-1 ADDENDUM (2026-06-30): why fd-scoping was ir-null + the per-exchange decomposition
+
+Two facts pin the remaining gap to a fork the incremental CORE levers can't clear:
+
+1. **fd-scoping doesn't engage for the X SERVER.** It only scopes a poll set that is purely host-net data
+   sockets. Xvfb always polls a listener + client sockets, so its waits stay on the global generation. The
+   render's critical peer (Xvfb's turnaround) is therefore untouched — and single-client B2 has few
+   spurious server wakes anyway. So the client-side spurious reduction (59%→35%) doesn't move ir.
+
+2. **The guest is WAIT-bound, not CPU-bound (B2 V8 CPU profile).** 98.4% of mousepad samples are parked in
+   the wasm poll/wait loop. The guest barely computes on its own thread; ir is the sum of ~20 productive
+   cross-guest exchanges, each gated by the PEER's wall-clock turnaround (peerWait ≈ 1.3ms, gaptrace).
+
+### Per-productive-exchange decomposition (gaptrace, measured)
+- peerWait (register→notify = the peer producing the reply) ≈ **1305µs**
+- wakeLag (notify→resume) = **11µs** + resp (channel-send) = **27µs** ⇒ **runtime overhead ≈ 38µs/exchange (~3%)**
+- The inline-dispatch family + fd-scoped have driven the per-op runtime overhead to ~that ~38µs floor.
+
+The ~1.26ms peer turnaround is the peer's own (compute + poll-cycle); the part a per-op CORE lever can
+still shave is ~38µs/exchange (~3%). Closing 1.3ms → ~0.3ms/exchange (the 4× needed for 3× native) is NOT
+in that 3%.
+
+### BLOCKER (goal stop-clause) — a genuine fork, surfaced for decision
+Reaching ir < 3× native (~10.5ms) from 59ms requires cutting the per-exchange peer turnaround ~4×. The
+~20 exchange COUNT is guest-fixed (X protocol, Constraint #5). The per-exchange ~1.3ms is peer-work, of
+which only ~3% is the runtime overhead incremental CORE op-levers touch. So the remaining win needs ONE of:
+  (a) faster peer wasm compute — TOOLCHAIN/build-opt (the goal's explicit out-of-scope "beat the 2.9× floor"), or
+  (b) eliminate the per-exchange round-trip structure — a shared-memory inter-guest ring (lever D), a
+      major architectural redesign BEYOND the incremental CORE levers.
+The incremental CORE levers (inline family + fd-scoped) are exhausted. Per the goal's "no exhaustion
+escape" clause, this is surfaced as the specific blocker for a decision, not a claim of done.
