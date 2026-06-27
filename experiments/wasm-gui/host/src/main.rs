@@ -1808,6 +1808,20 @@ async fn main() {
         });
         #[cfg(feature = "window")]
         {
+            // Derive the window size from the guest X server's `-screen 0 WxHxD` geometry so the winit
+            // window matches the framebuffer exactly (else the blit reads the wrong stride). Falls back
+            // to 640x480 if no `-screen` geometry is present.
+            let (win_w, win_h) = args
+                .exec_args
+                .iter()
+                .find_map(|tok| {
+                    let mut it = tok.split('x');
+                    let w = it.next()?.parse::<u32>().ok()?;
+                    let h = it.next()?.parse::<u32>().ok()?;
+                    (w >= 1 && h >= 1 && w <= 8192 && h <= 8192).then_some((w, h))
+                })
+                .unwrap_or((640, 480));
+            eprintln!("secure-exec: interactive window {win_w}x{win_h} (from -screen geometry)");
             if let Err(e) = window::run_desktop(
                 args.sidecar.clone(),
                 server,
@@ -1816,8 +1830,8 @@ async fn main() {
                 args.fonts_dir.clone(),
                 args.locale_dir.clone(),
                 args.vm_trees.clone(),
-                640,
-                480,
+                win_w,
+                win_h,
             )
             .await
             {
@@ -2183,6 +2197,7 @@ mod window {
         let (input_tx, mut input_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
         let s_launch = s.clone();
         let clients_owned = clients.clone();
+        let demo_start = tokio::time::Instant::now();
         tokio::spawn(async move {
             let mut server_ready = false;
             let mut wm_ready = false;
