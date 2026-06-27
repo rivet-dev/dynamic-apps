@@ -19746,6 +19746,14 @@ fn async_poll_wait_enabled() -> bool {
     })
 }
 
+/// SECURE_EXEC_POLL_DIRECT=1 (default OFF): let the socket-reader thread complete a deferred
+/// `net.poll_wait` directly on data, skipping the poll-waiter-pool scheduler hop. Off => the legacy
+/// pool-only completion path, byte-for-byte unchanged.
+fn poll_direct_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_POLL_DIRECT").map(|v| v == "1").unwrap_or(false))
+}
+
 pub(crate) fn clamp_javascript_net_poll_wait(wait_ms: u64) -> Duration {
     // WASM net.poll runs on the sidecar's sync-RPC main thread. Guest-controlled waits
     // must stay bounded so one VM cannot stall dispose/shutdown or unrelated VM work.
@@ -20309,12 +20317,39 @@ where
                 poll_deferred,
                 process.execution.deferred_sync_rpc_responder(),
             ) {
+                if poll_direct_enabled() {
+                    // Direct path: register on the readiness so a reader thread completes this inline on
+                    // data (one fewer scheduler hop); the pool entry below serves only the deadline. The
+                    // register call is atomic w.r.t. notify(): if the generation already advanced past the
+                    // guest's scan, answer inline and register nothing (no lost wakeup, no leak).
+                    let claimed =
+                        std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+                    if let Some(generation) = readiness.register_direct_or_current(
+                        responder.clone(),
+                        request.id,
+                        std::sync::Arc::clone(&claimed),
+                        last_seen,
+                    ) {
+                        return Ok(json!({ "generation": generation }));
+                    }
+                    pool.register(crate::state::PendingPollWait {
+                        responder,
+                        call_id: request.id,
+                        readiness: std::sync::Arc::clone(&readiness),
+                        last_seen,
+                        deadline: std::time::Instant::now() + wait,
+                        claimed: Some(claimed),
+                    });
+                    deferred.set(true);
+                    return Ok(Value::Null);
+                }
                 pool.register(crate::state::PendingPollWait {
                     responder,
                     call_id: request.id,
                     readiness: std::sync::Arc::clone(&readiness),
                     last_seen,
                     deadline: std::time::Instant::now() + wait,
+                    claimed: None,
                 });
                 deferred.set(true);
                 return Ok(Value::Null);

@@ -411,10 +411,29 @@ impl Default for VmListenPolicy {
 /// between the scan and the wait is never missed (no lost wakeup). This lets the guest's `net_poll`
 /// block on ALL its fds at once (wake-on-any-ready) instead of round-robin-blocking each fd in turn —
 /// the round-robin otherwise serializes a multi-client X server's poll and stalls cross-VM rendering.
+/// A `net.poll_wait` registered for DATA-driven completion directly by the reader thread (the
+/// `SECURE_EXEC_POLL_DIRECT` path). On data, `notify()` completes these inline instead of waking a
+/// poll-waiter-pool thread first, removing one scheduler hop from the per-wakeup latency chain. A
+/// matching pool entry still handles the deadline; the shared `claimed` flag guarantees exactly one
+/// completer (reader OR deadline) fires.
+struct DirectPollWaiter {
+    responder: DeferredSyncRpcResponder,
+    call_id: u64,
+    claimed: Arc<std::sync::atomic::AtomicBool>,
+}
+
 #[derive(Debug)]
 pub(crate) struct SocketReadiness {
     generation: std::sync::Mutex<u64>,
     signal: std::sync::Condvar,
+    /// Direct-completion registry (SECURE_EXEC_POLL_DIRECT). Empty/unused on the default path.
+    direct: Mutex<Vec<DirectPollWaiter>>,
+}
+
+impl std::fmt::Debug for DirectPollWaiter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DirectPollWaiter").field("call_id", &self.call_id).finish()
+    }
 }
 
 impl SocketReadiness {
@@ -422,15 +441,80 @@ impl SocketReadiness {
         Self {
             generation: std::sync::Mutex::new(0),
             signal: std::sync::Condvar::new(),
+            direct: Mutex::new(Vec::new()),
         }
     }
 
-    /// A reader delivered an event: advance the generation and wake any blocked `wait_changed`.
+    /// A reader delivered an event: advance the generation and wake any blocked `wait_changed`. On the
+    /// direct path, also complete every registered direct waiter inline (the generation just advanced, so
+    /// each waiter's `last_seen` differs — same semantics as `wait_changed` returning on any change). The
+    /// `claimed` CAS makes this race-safe against the deadline path; responses are sent after the locks
+    /// drop so the response delivery never runs under the readiness lock.
     pub(crate) fn notify(&self) {
-        if let Ok(mut generation) = self.generation.lock() {
+        let new_generation = {
+            let mut generation = match self.generation.lock() {
+                Ok(generation) => generation,
+                Err(_) => return,
+            };
             *generation = generation.wrapping_add(1);
             self.signal.notify_all();
+            *generation
+        };
+        // Fast exit when the direct path is unused (default): no allocation, no extra lock contention.
+        let to_complete: Vec<(DeferredSyncRpcResponder, u64)> = {
+            let mut direct = match self.direct.lock() {
+                Ok(direct) => direct,
+                Err(_) => return,
+            };
+            if direct.is_empty() {
+                return;
+            }
+            let drained = std::mem::take(&mut *direct);
+            drained
+                .into_iter()
+                .filter(|w| {
+                    w.claimed
+                        .compare_exchange(
+                            false,
+                            true,
+                            std::sync::atomic::Ordering::AcqRel,
+                            std::sync::atomic::Ordering::Acquire,
+                        )
+                        .is_ok()
+                })
+                .map(|w| (w.responder, w.call_id))
+                .collect()
+        };
+        for (responder, call_id) in to_complete {
+            let _ = responder
+                .respond_success(call_id, serde_json::json!({ "generation": new_generation }));
         }
+    }
+
+    /// Direct path: atomically (w.r.t. `notify`) either observe that the generation already advanced past
+    /// `last_seen` (returns `Some(current)` — the caller answers inline, nothing registered), or register
+    /// `waiter` for reader-driven completion (returns `None`). Closes the scan→register lost-wakeup race
+    /// because the same `generation` lock that `notify` advances under is held here. Also sweeps already-
+    /// claimed (deadline-completed) entries so the registry stays bounded.
+    pub(crate) fn register_direct_or_current(
+        &self,
+        responder: DeferredSyncRpcResponder,
+        call_id: u64,
+        claimed: Arc<std::sync::atomic::AtomicBool>,
+        last_seen: u64,
+    ) -> Option<u64> {
+        let generation = match self.generation.lock() {
+            Ok(generation) => generation,
+            Err(_) => return Some(last_seen),
+        };
+        if *generation != last_seen {
+            return Some(*generation);
+        }
+        if let Ok(mut direct) = self.direct.lock() {
+            direct.retain(|w| !w.claimed.load(std::sync::atomic::Ordering::Acquire));
+            direct.push(DirectPollWaiter { responder, call_id, claimed });
+        }
+        None
     }
 
     /// Non-blocking read of the current readiness generation (e.g. to decide, on the sync-RPC main
@@ -470,6 +554,11 @@ pub(crate) struct PendingPollWait {
     pub(crate) last_seen: u64,
     /// Hard deadline: complete with the current generation no later than this (the poll clamp).
     pub(crate) deadline: Instant,
+    /// SECURE_EXEC_POLL_DIRECT: shared single-completer flag. `Some` => the reader thread may complete
+    /// this wait directly (data path); the pool worker here only serves the deadline/fallback and must
+    /// CAS-win `claimed` before responding so exactly one of {reader, pool} fires. `None` => legacy path
+    /// (the pool always completes), byte-for-byte unchanged.
+    pub(crate) claimed: Option<Arc<std::sync::atomic::AtomicBool>>,
 }
 
 /// Thread pool that owns the *blocking* part of `net.poll_wait`. The sidecar's single sync-RPC main
@@ -542,6 +631,21 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
         };
         let remaining = wait.deadline.saturating_duration_since(Instant::now());
         let generation = wait.readiness.wait_changed(wait.last_seen, remaining);
+        // Direct path: the reader thread may have already completed this wait on data. CAS-claim before
+        // responding so we never double-complete; if we lost, the reader served it — skip silently.
+        if let Some(claimed) = &wait.claimed {
+            if claimed
+                .compare_exchange(
+                    false,
+                    true,
+                    std::sync::atomic::Ordering::AcqRel,
+                    std::sync::atomic::Ordering::Acquire,
+                )
+                .is_err()
+            {
+                continue;
+            }
+        }
         // Best-effort: a torn-down guest just no-ops inside the responder.
         let _ = wait
             .responder
