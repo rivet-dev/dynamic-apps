@@ -247,6 +247,15 @@ notify → then the guests block truly (0% idle, native-like), the clamp + pump 
 per-render op-count drops (fewer spin re-polls), and the cross-guest churn shrinks. First step needs finding
 the missed-notify edges (the events only the clamp/pump catch — a default-off "missed-wake detector", task
 #27) OR a user-space CPU profiler to name the always-ready future (none available in this sandbox).
+**MEASURED idle op-emit rates (OPTRACE, 3s idle window, per guest thread):** the guests emit ~2700 sync-RPCs/s
+while idle (native ≈ 0). Biggest single: **mousepad `fs.stat` ~536/s** (forwarded → pokes the notify; likely a
+GTK GFileMonitor poll-fallback because the VM lacks inotify — a CONCRETE, possibly-single-fix lead: provide
+inotify / a real file-change notify so mousepad stops stat-polling). Rest: Xvfb net.poll/poll_wait/accept
+~270/s each + mousepad/worker poll/fd_poll/poll_wait ~160-210/s (the empty-poll spin). NOTE: the idle fs.stat
+spin is largely an IDLE phenomenon (the render is X-protocol, little fs); the render's ~38ms "churn" between
+the ~18ms of peer-waits is the poll/fd_poll/poll_wait spin, which IS reducible by completing the notify graph.
+So completing the notify graph attacks BOTH the idle invariant AND the render churn — but it is multi-source
+(fs inotify + true blocking poll for net/fd) = substantial, multi-step work.
 - `PUMP_INTERVAL_US=2000` → ir WORSE (~75ms + a 730ms spike) — the 250µs pump IS load-bearing for ir (some
   events reach the guest only via the pump, not the F1 notify). Don't slow it. (This finding stands.)
 
