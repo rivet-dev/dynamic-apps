@@ -1064,8 +1064,23 @@ pub fn execute_module(
         };
 
         let mut source = v8::script_compiler::Source::new(v8_source, Some(&origin));
+        // L-Z compile-time probe (default-OFF): the guest entry MODULE (the whole runner source) is
+        // compiled cold here every launch, with no code-cache (unlike the script path). Time it to decide
+        // whether the ~0.9s bootstrap is compile-bound (snapshot/code-cache helps) or exec-bound.
+        let __lz_prof = std::env::var("SECURE_EXEC_COMPILE_PROF").is_ok();
+        let __lz_t0 = std::time::Instant::now();
+        let __lz_len = effective_user_code.len();
         let module = match v8::script_compiler::compile_module(tc, &mut source) {
-            Some(m) => m,
+            Some(m) => {
+                if __lz_prof {
+                    eprintln!(
+                        "[compile-prof] compile_module = {}ms ({} src bytes)",
+                        __lz_t0.elapsed().as_millis(),
+                        __lz_len
+                    );
+                }
+                m
+            }
             None => {
                 clear_module_state();
                 return match tc.exception() {
@@ -1090,10 +1105,18 @@ pub fn execute_module(
         // Batch-prefetch static imports (BFS) to reduce IPC round-trips.
         // Each level collects uncached specifiers and resolves+loads them in one batch call.
         // The resolve callback then finds everything pre-cached during instantiation.
+        let __lz_t_pf = std::time::Instant::now();
         prefetch_module_imports(tc, bridge_ctx, module, resource_name_str);
+        if __lz_prof {
+            eprintln!("[compile-prof] prefetch_imports = {}ms", __lz_t_pf.elapsed().as_millis());
+        }
 
         // Instantiate (calls resolve callback for each import — mostly cache hits now)
+        let __lz_t_inst = std::time::Instant::now();
         let inst_result = module.instantiate_module(tc, module_resolve_callback);
+        if __lz_prof {
+            eprintln!("[compile-prof] instantiate_module = {}ms", __lz_t_inst.elapsed().as_millis());
+        }
         if inst_result.is_none() {
             clear_module_state();
             return match tc.exception() {
@@ -1106,7 +1129,11 @@ pub fn execute_module(
         }
 
         // Evaluate
+        let __lz_t_eval = std::time::Instant::now();
         let eval_result = module.evaluate(tc);
+        if __lz_prof {
+            eprintln!("[compile-prof] evaluate(sync portion) = {}ms", __lz_t_eval.elapsed().as_millis());
+        }
         if eval_result.is_none() {
             clear_module_state();
             return match tc.exception() {

@@ -219,6 +219,16 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **L-Z (runner-bootstrap code-cache / snapshot) — REFUTED by measurement (2026-06-29).** User chose the
+  strict-CORE path, so I measured the bootstrap split Rust-side (`SECURE_EXEC_COMPILE_PROF`, new
+  `[compile-prof]` probe at the guest entry-module compile in `execution.rs`): **`compile_module` = 3ms**
+  (308KB runner source) · `prefetch_imports` = 0ms · `instantiate_module` = 0ms (imports already cached) ·
+  **sync `evaluate` = 109ms**. So the runner SOURCE compile is NOT the cost — V8 code-caching/snapshotting
+  it (the canonical L-Z lever) would save ~3ms = NULL. The ~900ms spawn→`[moduleload]` bootstrap is the
+  ASYNC portion AFTER the 109ms sync-eval (top-level awaits / microtasks / setup sync-RPCs / scheduling),
+  which has no code-cache fix. Pivot: the only way the bootstrap async gap is attackable is if it's
+  sync-RPC-round-trip-bound → the T1 ring (faster sync-RPC transport) — the remaining CORE direction.
+
 - **★★ STRATEGIC FINDING (2026-06-29): the CORE-scoped path to <2s is FLATTENED — the dominant remaining
   costs are OUT of CORE scope.** After L-W (10.0s→4.0s, re-verified ≥3 runs: fp 4755/3971/4164, ir
   212/237/253, render green), the precise cold-init timeline (`SECURE_EXEC_PATHOPENPROF` `[pathopen-exec]`
