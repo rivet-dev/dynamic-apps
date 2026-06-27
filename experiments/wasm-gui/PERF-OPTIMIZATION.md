@@ -95,10 +95,18 @@ CPU-bound, which picks the first lever. Adding targeted logs to get more info is
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
-- **L-B — Guest isolate compute (GObject `ffi_call` / wasm / JS shims). [TOP — profiled compute-bound]**
+- **L-B — Guest isolate compute, prime suspect = INDIRECT-CALL / `fpcast-emu` overhead. [TOP]**
   Single-app startup is **96% isolate compute** (178s/185s); RPCs (~1s) + service thread (~5s) are
-  noise. The dominant sub-cost — `ffi_call` (GObject dispatch) vs wasm exec vs the JS poll-loop
-  machinery — needs **P2** to split. _status: TOP; P2 to break down (B1 isolates ffi_call)._
+  noise. **Sharpened hypothesis (strong convergent evidence, not yet directly measured):** GObject/GTK
+  is overwhelmingly *indirect-call*-based (vtables / signals / closures), and every guest `.wasm` is
+  built with `wasm-opt --fpcast-emu` (in ALL build scripts) — which routes every function-pointer call
+  through a signature-emulation shim, taxing each indirect call. Plus `g_cclosure_marshal_generic`
+  dispatches via the `host_net.ffi_call` host import (`ffi-spike.c`). `css-bench.c`'s own note: "the
+  ~12s first-widget cost is the cascade (indirect-call-heavy = fpcast-emu)". This is the summary's
+  "Root-1 GObject fpcast". **Confirm:** run `css-bench` (cascade≫parse ⇒ indirect-call-bound) or the
+  Inspector P2. **Fix direction (core/toolchain):** reduce/replace `fpcast-emu` (native typed-funcref /
+  correct call_indirect signatures) so GObject/GTK indirect calls don't pay the emulation tax.
+  _status: TOP; css-bench run in flight to confirm._
 - **L-F — Main-loop busy-poll. [NEW, from baseline #1]** 640k poll iterations during startup;
   `net.poll_wait` returns immediately (~1µs, not blocking) = the glib loops spinning. Unknown how much
   of the 178s is loop machinery vs real GTK compute (P2 splits it). If it's a spin, fixing it (à la
@@ -143,6 +151,17 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — css-bench: CSS cascade/parse REFUTED as the cost; it is `gtk_init` + widget
+  construction.** css-bench (minimal GTK app): **`gtk_init` = 11.4s**; CSS parse 4000 rules = 1398ms
+  (0.35ms/rule, fine); **first-label cascade = 1ms (fast)**. So the CSS cascade (the `css-bench.c`
+  author's hypothesis) is NOT the bottleneck. The startup cost is **`gtk_init` (~11s: GObject type
+  registration + theme/icon load)** plus, for a real app like mousepad (~90-120s), **~80-110s of WIDGET
+  CONSTRUCTION** (building the UI tree). fpcast-emu / indirect-call (L-B) stays the prime suspect for
+  BOTH (type-reg + widget construction are indirect-call-heavy), but css-bench has ~no widgets so it
+  did NOT exercise widget construction → still unconfirmed. **Next decisive test:** a
+  widget-construction benchmark (build N GtkWidgets, time) OR a `fpcast-emu` A/B (rebuild a guest
+  WITHOUT `--fpcast-emu`, compare `gtk_init`/widget time). Artifact: `/tmp/cssbench.log`.
 
 - **2026-06-27 — L-F (loop iterations), from existing host-side data.** The glib main loops iterate
   **~168k times in 185s (~900/sec — busy, NOT blocking)** (≈ the `net.poll_wait` count). With the 178s
