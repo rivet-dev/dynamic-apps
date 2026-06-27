@@ -244,3 +244,18 @@ wire path simply never sets it (T1 is an in-process optimization; out-of-process
 keeps RuntimeEvent's wire serialization intact and the sidecar forbid-unsafe (servicing calls
 with_ring_backing_slices). v8-runtime building blocks COMPLETE + verified: allocate_t1_ring_sab,
 with_ring_backing_slices, RingBacking. Next: the Arc<Mutex> side-channel + session set + sidecar read/service + runner route.
+
+## Threading plan pinned (2026-06-27, part 4) — every wiring point located
+v8-runtime building blocks ALL verified (cargo rc=0, isolated CARGO_HOME): allocate_t1_ring_sab,
+with_ring_backing_slices, RingBacking, t1_handoff_new/set/get (T1RingHandoff = Arc<Mutex<HashMap<session_id,
+RingBacking>>>). Remaining threading, by file:line:
+1. embedded_runtime.rs:51-57 (EmbeddedV8Runtime::new): `let t1 = t1_handoff_new();` -> store as a field on
+   EmbeddedV8Runtime AND pass `t1.clone()` into SessionManager::new.
+2. SessionManager (session.rs:~struct + ::new at 55): add a `t1_handoff: T1RingHandoff` field + ::new param.
+3. session loop (session.rs ~944, after inject_globals): when SECURE_EXEC_T1_RING set, allocate_t1_ring_sab x2
+   (req+resp) + t1_handoff_set(&self.t1_handoff, &session_id, RingBacking{req,resp}).
+4. sidecar servicing (execution.rs:17013): t1_handoff_get(&embedded.t1, session_id) -> if Some(rb),
+   with_ring_backing_slices(&rb.req,&rb.resp, |req,resp| drain_all-style serve) BEFORE the base64 path. Needs the
+   sidecar to reach EmbeddedV8Runtime's handoff (expose a getter on EmbeddedV8Runtime).
+5. guest runner (wasm.rs embedded JS): if globalThis.__secure_exec_t1_req present, route via makeSyncRpcRouter.
+Then MEASURE vs the ~70k-poll baseline.

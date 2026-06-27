@@ -2067,6 +2067,35 @@ impl PartialEq for RingBacking {
     }
 }
 
+/// In-process side-channel for the T1 ring handoff (EMBEDDED path only). The wire `RuntimeEvent` serializes to a
+/// `BinaryFrame`, so the `Send` `SharedRef`s cannot ride it; instead the embedded execution driver creates a
+/// `T1RingHandoff`, the session loop inserts the per-session `RingBacking` right after `allocate_t1_ring_sab`, and
+/// the sidecar servicing loop takes it to drive `with_ring_backing_slices`. Out-of-process runtimes never populate
+/// it and keep the base64 transport.
+pub(crate) type T1RingHandoff =
+    std::sync::Arc<std::sync::Mutex<std::collections::HashMap<String, RingBacking>>>;
+
+#[allow(dead_code)]
+pub(crate) fn t1_handoff_new() -> T1RingHandoff {
+    std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()))
+}
+
+/// Session loop: publish the per-session ring handles after allocation. Poisoned-lock = drop (T1 is best-effort;
+/// the runner falls back to base64 if no ring is present).
+#[allow(dead_code)]
+pub(crate) fn t1_handoff_set(handoff: &T1RingHandoff, session_id: &str, backing: RingBacking) {
+    if let Ok(mut map) = handoff.lock() {
+        map.insert(session_id.to_string(), backing);
+    }
+}
+
+/// Sidecar servicing: fetch a session's ring handles (a clone -- SharedRef is Clone and shares the same backing
+/// store), or None if T1 is not active for this session.
+#[allow(dead_code)]
+pub(crate) fn t1_handoff_get(handoff: &T1RingHandoff, session_id: &str) -> Option<RingBacking> {
+    handoff.lock().ok().and_then(|map| map.get(session_id).cloned())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
