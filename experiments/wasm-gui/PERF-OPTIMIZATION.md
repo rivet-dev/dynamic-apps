@@ -2093,3 +2093,17 @@ Change: `crates/kernel/src/kernel.rs` `KERNEL_POLL_INLINE_BOUND_DEFAULT_US` 2000
 
 Lever map: the per-op floor IS reducible and on the render path (refutes "exhausted"). Next: the drain
 (_netSocketPollRaw 104µs) and the net.poll_wait delivery still have headroom; keep cutting per-op floor.
+
+## §7-LEVER-2 follow-ups (2026-06-30): nulls after the fd-poll win (bound=200 default)
+
+Post fd-poll fix (ir ~46ms), swept the obvious follow-ups — all NULL (within ±10ms variance, render-green):
+- **fd-scoped + bound=0** (hypothesis: fd-scoped removes the spurious-wake spin that forced bound>0):
+  45ms median (24/50/65/37/45) — NOT better than the bound=200 default. Synergy unconfirmed; the fd-poll
+  win is fully captured at 200µs, lower is lost in noise. (No 170ms outlier this run — bound=0's earlier
+  instability is intermittent, not fd-scoped-fixable here.)
+- **fd-scoped + bound=50**: 50ms median — null.
+- **clamp=1 (vs 3)**: 46.5ms median vs default 49ms — null now (pre-fd-poll-fix it looked like ~10ms, that
+  was the fd-poll mis-park, not the clamp). So render poll_waits are NOT clamp/missed-notify bound.
+Conclusion: the per-op *bound* levers are exhausted at the fd-poll fix. Remaining cost is the per-exchange
+peer turnaround (~20 exchanges × ~2.3ms). Next: fresh render-window decomposition to find the new dominant
+per-hop cost (fd-poll is out of the way), else lever D (shared-mem ring) for the structural round-trips.
