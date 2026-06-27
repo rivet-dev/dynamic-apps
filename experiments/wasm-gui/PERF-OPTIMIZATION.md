@@ -95,7 +95,10 @@ CPU-bound, which picks the first lever. Adding targeted logs to get more info is
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
-- **L-B — Guest isolate compute, prime suspect = INDIRECT-CALL / `fpcast-emu` overhead. [TOP]**
+- **L-B — GObject `ffi_call` / `fpcast-emu` dispatch. [REFUTED by B1 — GObject is ~native: 0.17-0.73 µs/op]**
+  Was the prime suspect; B1 shows GObject dispatch (incl. the generic marshaler → `ffi_call`) is
+  near-native, so it is NOT the cost. New top suspects = GTK non-GObject subsystems (L-G fontconfig /
+  L-H pango / L-I cairo+layout), TBD by profile. Original detail below for the record:
   Single-app startup is **96% isolate compute** (178s/185s); RPCs (~1s) + service thread (~5s) are
   noise. **Sharpened hypothesis (strong convergent evidence, not yet directly measured):** GObject/GTK
   is overwhelmingly *indirect-call*-based (vtables / signals / closures), and every guest `.wasm` is
@@ -151,6 +154,19 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — ★ B1 REFUTES L-B: GObject dispatch is ~NATIVE speed (fpcast-emu is NOT the cost).**
+  B1 (pure-GObject bench, no GTK/X/D-Bus): `g_object_new`+unref = **0.73 µs/op**; `g_signal_emit`
+  (generic marshaler → `ffi_call`) = **0.17 µs/op**; `g_object_set`+get = **0.60 µs/op** (n=100k each)
+  — all **~1-2× native**. So GObject dispatch, *including* the `ffi_call` generic-marshaler path, has
+  **no meaningful wasm penalty**, and `fpcast-emu` does NOT tax it. This **REFUTES L-B and the
+  summary's assumed "Root-1 GObject fpcast"** (would have been a wasted major effort). **⇒ The compute
+  cost (gtk_init ~11s; mousepad widget construction ~80-110s) is in GTK's NON-GObject subsystems:**
+  fontconfig (font enumeration), pango (text shaping/layout), cairo (rendering/rasterization), and/or
+  GTK layout (size-allocate/measure). **Next:** profile gtk_init internals — the Inspector-based P2,
+  OR the existing subsystem probes (`fcprobe`=fontconfig, `cairomask-test`/`cairoxlib`=cairo,
+  `css-bench`=CSS). New ledger leads L-G (fontconfig), L-H (pango), L-I (cairo/layout) — TBD by profile.
+  Artifact: `/tmp/b1-gobject.log`.
 
 - **2026-06-27 — css-bench: CSS cascade/parse REFUTED as the cost; it is `gtk_init` + widget
   construction.** css-bench (minimal GTK app): **`gtk_init` = 11.4s**; CSS parse 4000 rules = 1398ms
