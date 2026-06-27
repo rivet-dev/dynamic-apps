@@ -13401,6 +13401,7 @@ function kernelPipeFdWrite(fd, iovs, iovsLen, nwrittenPtr) {
 function kernelPipeFdRead(fd, iovs, iovsLen, nreadPtr) {
   try {
     const requestedLength = kernelPipeIovTotal(iovs, iovsLen);
+    if (globalThis.__nettrace) netTrace('kpipe_read ATTEMPT fd=' + fd + ' req=' + requestedLength);
     if (requestedLength === 0) {
       return writeGuestUint32(nreadPtr, 0);
     }
@@ -13423,7 +13424,8 @@ function kernelPipeFdRead(fd, iovs, iovsLen, nreadPtr) {
     }
     const written = writeBytesToGuestIovs(iovs, iovsLen, chunk);
     return writeGuestUint32(nreadPtr, written);
-  } catch {
+  } catch (e) {
+    if (globalThis.__nettrace) netTrace('kpipe_read THREW fd=' + fd + ' err=' + (e && e.message ? e.message : e));
     return WASI_ERRNO_FAULT;
   }
 }

@@ -16542,6 +16542,14 @@ fn service_javascript_pty_open_sync_rpc(
 /// Non-blocking read of a guest kernel fd (the kernel-pipe read end). Returns `{ dataBase64 }` for
 /// data, `Null` for would-block (EAGAIN; glib drains the wakeup pipe until EAGAIN), and `{ done }`
 /// when all write ends have closed (EOF).
+/// SECURE_EXEC_PIPE_TRACE=1: log every kernel-pipe poll/read/write with the calling guest's kernel_pid
+/// and fd, so a cross-isolate (main vs wasi-threads worker) GWakeup-pipe drain/deadlock is visible
+/// sidecar-side (the guest-side NET_TRACE only sees the calling isolate). Default-off, zero-cost.
+fn pipe_trace_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_PIPE_TRACE").map(|v| v == "1").unwrap_or(false))
+}
+
 fn service_javascript_kernel_fd_read_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &ActiveProcess,
@@ -16553,16 +16561,26 @@ fn service_javascript_kernel_fd_read_sync_rpc(
             .map(|value| value.clamp(1, DEFAULT_KERNEL_STDIN_READ_MAX_BYTES as u64) as usize)
             .unwrap_or(DEFAULT_KERNEL_STDIN_READ_MAX_BYTES);
 
-    match kernel
-        .fd_read_with_timeout_result(
-            EXECUTION_DRIVER_NAME,
-            process.kernel_pid,
-            fd,
-            max_bytes,
-            Some(Duration::ZERO),
-        )
-        .map_err(kernel_error)
-    {
+    let read_result = kernel.fd_read_with_timeout_result(
+        EXECUTION_DRIVER_NAME,
+        process.kernel_pid,
+        fd,
+        max_bytes,
+        Some(Duration::ZERO),
+    );
+    if pipe_trace_enabled() {
+        let desc = match &read_result {
+            Ok(Some(chunk)) if !chunk.is_empty() => format!("{}B", chunk.len()),
+            Ok(Some(_)) => String::from("EAGAIN"),
+            Ok(None) => String::from("EOF"),
+            Err(error) => format!("ERR({error})"),
+        };
+        eprintln!(
+            "[pipetrace] pid={} thread={} read  fd={} -> {}",
+            process.kernel_pid, process.is_thread, fd, desc
+        );
+    }
+    match read_result.map_err(kernel_error) {
         Ok(Some(chunk)) if !chunk.is_empty() => Ok(json!({
             "dataBase64": base64::engine::general_purpose::STANDARD.encode(chunk),
         })),
@@ -16616,6 +16634,12 @@ fn service_javascript_kernel_fd_poll_sync_rpc(
             bits
         })
         .collect();
+    if pipe_trace_enabled() && revents.iter().any(|&r| r != 0) {
+        eprintln!(
+            "[pipetrace] pid={} thread={} poll  fds={:?} -> revents={:?}",
+            process.kernel_pid, process.is_thread, fd_list, revents
+        );
+    }
     Ok(json!(revents))
 }
 
@@ -16637,6 +16661,12 @@ fn service_javascript_kernel_fd_write_sync_rpc(
     // immediate (the cap stays as a fallback). A spurious notify is harmless: a woken poll just rescans.
     if written > 0 {
         process.socket_readiness.notify();
+    }
+    if pipe_trace_enabled() {
+        eprintln!(
+            "[pipetrace] pid={} thread={} write fd={} <- {} bytes",
+            process.kernel_pid, process.is_thread, fd, written
+        );
     }
     Ok(json!(written))
 }
