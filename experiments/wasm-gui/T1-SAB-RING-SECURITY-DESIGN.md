@@ -186,3 +186,31 @@ boundary belongs in the v8-runtime crate (which already does `get_backing_store(
 unsafe). Revised wiring: v8-runtime gets the ring SAB's backing-store slice (unsafe, there) and calls the SAFE
 sidecar `SabRingEndpoint::read_request`/`write_response`. This is cleaner (the unsafe stays in the one crate that
 owns raw V8 memory; the sidecar TCB logic stays unsafe-free).
+
+## Handoff design (2026-06-27) — the precise cross-crate wiring, mapped
+
+Flow today: guest emits sync-RPC -> ActiveExecutionEvent::JavascriptSyncRpcRequest (base64 payload) consumed by the
+sidecar servicing loop (crates/sidecar/src/execution.rs:17013+) -> service_javascript_sync_rpc -> response back via
+wasm.rs:433 respond_sync_rpc_success (base64). The v8-runtime session loop (crates/v8-runtime/src/session.rs) runs
+the guest + emits these events; the sidecar execution.rs is the driver that services them over the
+JavascriptExecution handle.
+
+T1 wiring (Phase 1, no doorbell):
+1. v8-runtime session setup (session.rs, after inject_globals ~:944): when SECURE_EXEC_T1_RING is set, call
+   allocate_t1_ring_sab(scope, "__secure_exec_t1_req", REQ_BYTES) + a second for "__secure_exec_t1_resp". Hold the
+   two backing-store SharedRefs (Send) in the session state.
+2. Handoff: send the two SharedRefs to the sidecar ONCE at execution start -- add an ActiveExecutionEvent::
+   T1RingReady { req: SharedRef<BackingStore>, resp: SharedRef<BackingStore> } (SharedRef is Send) OR a field on the
+   execution-start handshake. The sidecar stores them in the per-execution state alongside `process`.
+3. Sidecar servicing loop (execution.rs:17013): when the T1 rings are present, BEFORE/INSTEAD OF the base64 path,
+   call SabRingEndpoint::drain_all(req_ptr,req_len, resp_ptr,resp_len, |req_bytes| service_one(req_bytes)) using the
+   stored backing stores' data() ptr/len -- the unsafe from_raw_parts lives in a v8-runtime helper (sidecar is
+   forbid-unsafe), so expose a `fn service_ring(req_bs, resp_bs, service_fn)` in v8-runtime that the sidecar calls.
+4. Guest runner (wasm.rs embedded JS): when globalThis.__secure_exec_t1_req exists, route sync-RPCs through
+   makeSyncRpcRouter(RingChannel(...)) instead of the base64 path; the serviceHost spin reuses the existing
+   synthetic-wait poll (no new doorbell).
+5. MEASURE: re-run SECURE_EXEC_TRACE=1; compare the ~70k poll round-trip wall-time before/after.
+
+Key constraint: the unsafe slice construction (from_raw_parts over the backing store) stays in v8-runtime
+(allocate_t1_ring_sab is already there); the sidecar only ever sees safe &[u8]/&mut [u8] via a v8-runtime shim that
+wraps SabRingEndpoint. This keeps the sidecar #![forbid(unsafe_code)] intact.
