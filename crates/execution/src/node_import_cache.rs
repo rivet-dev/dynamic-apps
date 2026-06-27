@@ -8832,6 +8832,7 @@ const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PA
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_RTPROBE === '1') globalThis.__rtprobe = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_DRAINPROF === '1') globalThis.__drainprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_POLLSTAT === '1') globalThis.__pollstat = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_PATHOPENPROF === '1') globalThis.__pathopenprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
@@ -11332,8 +11333,24 @@ function pollHostNetSocket(socket, waitMs) {
     return null;
   }
 
+  // D8 (SECURE_EXEC_DRAINPROF, default-OFF): size the guest-observed net.poll DRAIN round-trip — the
+  // hop F3 would fold into the poll_wait wake. This is the dominant drain site (libxcb recv() on the
+  // O_NONBLOCK X socket), not the net_poll loop. __perf_now is answered locally (cheap).
+  const __dp0 = globalThis.__drainprof ? callSyncRpc('__perf_now', []) : 0;
   const event = callSyncRpc('net.poll', [socket.socketId, Math.max(0, Number(waitMs) >>> 0)]);
+  if (__dp0) drainprofRecord(callSyncRpc('__perf_now', []) - __dp0, event);
   return applyHostNetEvent(socket, event);
+}
+
+// D8 accumulator: per-drain round-trip µs, split by whether the drain returned data (the productive
+// drains F3 actually removes) vs an empty probe. Prints every 100 drains to guest stderr.
+function drainprofRecord(durUs, event) {
+  const D = (globalThis.__dpD = globalThis.__dpD || { n: 0, us: 0, max: 0, dN: 0, dUs: 0, dMax: 0 });
+  D.n++; D.us += durUs; if (durUs > D.max) D.max = durUs;
+  if (event && event.type === 'data') { D.dN++; D.dUs += durUs; if (durUs > D.dMax) D.dMax = durUs; }
+  if (D.n % 100 === 0) {
+    try { process.stderr.write('[drainprof] drains=' + D.n + ' avgUs=' + (D.us / D.n).toFixed(0) + ' maxUs=' + D.max.toFixed(0) + ' | withData=' + D.dN + ' dataAvgUs=' + (D.dN ? (D.dUs / D.dN).toFixed(0) : 0) + ' dataMaxUs=' + D.dMax.toFixed(0) + '\n'); } catch (_e) {}
+  }
 }
 
 function parseHostNetAddress(raw) {
@@ -11668,7 +11685,9 @@ const hostNetImport = {
         if (drainSockets.length === 1) {
           pollHostNetSocket(drainSockets[0], 0);
         } else if (drainSockets.length > 1) {
+          const __dpb0 = globalThis.__drainprof ? callSyncRpc('__perf_now', []) : 0;
           const events = callSyncRpc('net.poll', [drainSockets.map((s) => s.socketId), 0]);
+          if (__dpb0) { let firstData = null; if (Array.isArray(events)) { for (const e of events) { if (e && e.type === 'data') { firstData = e; break; } } } drainprofRecord(callSyncRpc('__perf_now', []) - __dpb0, firstData); }
           if (Array.isArray(events)) {
             for (let k = 0; k < drainSockets.length; k++) {
               applyHostNetEvent(drainSockets[k], events[k]);

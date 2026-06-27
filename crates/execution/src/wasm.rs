@@ -2401,6 +2401,8 @@ fn build_wasm_internal_env(
         "SECURE_EXEC_RPC_PROFILE",
         "SECURE_EXEC_RPC_PROFILE_EVERY",
         "SECURE_EXEC_WAKEPROF",
+        "SECURE_EXEC_RTPROBE",
+        "SECURE_EXEC_DRAINPROF",
     ] {
         if let Ok(value) = std::env::var(key) {
             internal_env.insert(key.to_string(), value);
