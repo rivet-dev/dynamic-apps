@@ -5,6 +5,22 @@ Status: 4 of 5 Xubuntu components render **individually** in secure-exec (proof 
 xfdesktop (wallpaper + icons). The **only** unmet XU7 criterion is running them **simultaneously, live,
 responsive**. This doc is the precise spec for the remaining work.
 
+## ★★★ DO THIS FIRST — re-test multi-app on a QUIET (dedicated) box before building anything
+
+All measurements here were taken on a **shared box at load ~10** (20 cores, but ~half busy with other sessions).
+The per-round-trip cost (~180µs) is **3–4 thread-scheduler wakeups** (kernel notify → deferred responder →
+response-pipe → guest worker `readSync` → `Atomics.notify` → guest main). Under load-10 those wakeups wait for a
+free core; on a **quiet** box each drops ~6–10× (~5–10µs), so a round-trip could be ~30µs instead of ~180µs —
+**~6× faster**. The X server (Xvfb) is throughput-limited by exactly this, so 6× could be the difference between the
+2nd guest starving and the whole desktop running. Corroborating: an earlier focused re-measure found the "120s"
+single-app baseline was **measurement contamination** — clean single-app render is ~45–60s.
+
+**So: the multi-app desktop may already work (or nearly) on a dedicated box, with NONE of the deep refactors below.**
+Before investing days in co-location/Asyncify, run on a quiet box:
+`bash experiments/wasm-gui/scripts/test-xu7-full.sh` (full 5-client) and `XU7_ONLY="xfce4-panel xfdesktop"` with a
+generous `TIMEOUT`, and check whether 2+ components paint together. Only if it still fails under genuinely quiet
+load is the deep work (below) warranted. This is the highest-value, lowest-cost next step.
+
 ## Empirically-established root cause (not assumption)
 
 - Each component renders **solo** (xfwm4 + that one component) at 100%.
