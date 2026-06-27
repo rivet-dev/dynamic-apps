@@ -219,6 +219,30 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★ POST-L-W re-profile of the new ~4.0s first-paint (2026-06-28) — re-ranks every remaining lever.**
+  Measured split (host `[+Nms]` frame + `[moduleload]` + `SECURE_EXEC_RPC_PROFILE`):
+  - **~1.0–1.5s wasm-runner isolate bootstrap** (spawn→`[moduleload]`): V8 compile of the large shared
+    runner source + execution of its top-level setup (WASI polyfill, node-stdlib, RingChannel), per guest.
+    CORE + systemic. Note: V8 code-caching needs the runner SOURCE to be STABLE across launches — today the
+    per-launch `__agentOsWasmInternalEnv` is baked INTO the source, busting any cache. Stabilizing the
+    source (pass per-launch config out-of-band) is the enabling sub-lever. **[next CORE lever: L-Z]**
+  - **~0.55s module read** (`readFileSync` of the 17MB host module): the runner's `node:fs` is the
+    kernel-VFS/bridge-backed fs, and `fs.readFileSync` marshals the whole file as `{__agentOsType:'bytes',
+    base64}` (Rust base64-encode + 23MB JSON serialize + transport + V8 JSON.parse + `Buffer.from`). A raw
+    host `fs::read` of the same file is **6.7ms** → ~82× bridge overhead. Fix = a host→guest **bulk-SAB
+    read** (memcpy via `__secure_exec_t1_bulk`, the existing 8MB write-side SAB, read direction added),
+    chunked for >8MB; module load is single-threaded at startup (before any `thread_spawn`) so the
+    single-slot SAB is collision-free there. **[next CORE lever: L-W.3]**
+  - **~2.4s mousepad GTK cold-init→paint** = guest COMPUTE, NOT bridge I/O. Proof: total sidecar RPC
+    service time across the whole run is only ~177ms; guest file reads go through WASI `fd_read`→kernel
+    (in-process), never the base64 sync-RPC path. The chunk is **fontconfig REBUILDING its cache every cold
+    start** (`[pathopen-exec]` shows `*.cache-8.TMP/.NEW` writes) + icon-theme scans + pango/GTK setup. The
+    only CORE angle is cache PERSISTENCE/`mtime`-fidelity (does the VFS report font-dir mtimes faithfully so
+    a shipped fc-cache is honored?) — needs its own investigation; pre-building a cache is provisioning, not
+    CORE. **[investigate: L-Y]**
+  - Confirms again: **latency/RPC levers stay dead** (service time tiny). The path to <2s is L-Z (bootstrap)
+    + L-W.3 (module read) + L-Y (fontconfig) STACKED — no single one reaches <2s.
+
 - **L-W.1 — Module base64 decode used a hand-rolled JS `atob`+charCodeAt loop. [★ LANDED 2026-06-28 —
   PROVEN]** The 17MB guest module is delivered as ~23M-char base64 (baked into the runner source, merged
   into `process.env`, see L-W.2). The runner decoded it with `decodeBase64ToUint8Array` — `atob()` then a
