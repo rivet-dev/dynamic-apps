@@ -290,6 +290,9 @@ one lands, ir is unmeasurable to the precision the goal requires — SURFACED fo
 | T-meas2 | box noise spikes (~100ms, 2/6 runs) will swamp small wins; need many runs / a quiet-window filter | OPEN |
 | T-render1 | the ~21ms after detect-overhead is the keypress→glyph path: X KeyPress delivery + GTK key handler + render requests + Xvfb draw + fb write. Decompose with FRAMEPROF ir-marks + xtrace --rt windowed to the inject | OPEN — needs the precise probe first |
 | T-render2 | guest GTK render compute is ~2.9× native (B1) — partial floor; toolchain-bound (out-of-CORE) if it dominates | OPEN — only after T-render1 attributes how much is guest compute vs runtime |
+| T-render3 | **xtrace of the honest ~70ms window shows ~7 recurring ~6-9ms GAPS between X exchanges (~50ms total) with NO X traffic** — the bulk of ir. Either guest compute per step OR a pacing wait | OPEN — attribute with HOPSPLIT (poll_wait wake-latency fills gaps?) + check for a timer/frame-clock cadence |
+| T-render4 | the regular ~6-9ms gap cadence smells like GTK's frame clock (~16ms/60fps redraw pacing) or a coarse timer granularity in the runtime backing GTK's redraw scheduling | OPEN — if a runtime timer/frame-tick is the pacer, tightening it is a CORE lever; if intrinsic GTK 60fps pacing, it's a floor |
+| WIN-inline | inline-dispatch (A+C-lite) default-ON: ~98→70ms vs the trustworthy metric, render green | LANDED 2026-06-30 |
 **Done when both hold (≥3 runs, render green). NO exhaustion escape:** if a lever proves a target needs
 out-of-scope work (provisioning, a never-self-approve change) or a redesign beyond CORE, STOP and surface
 the specific blocker for a decision — do not declare done on lever exhaustion.
