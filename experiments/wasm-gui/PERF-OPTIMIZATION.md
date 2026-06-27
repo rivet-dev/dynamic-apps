@@ -279,6 +279,38 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★★ B3 (MULTI-APP DESKTOP) BUILT + BASELINED + <30s TARGET MET; P2 STATUS.**
+  Added B3 to `scripts/bench-suite.sh`: X server + twm (WM) + mousepad + xclock + gtk-hello, first-paint
+  via the `SECURE_EXEC_FIRSTPAINT` probe + the `[milestone +Nms]` launch timeline.
+  - **B3 baseline + the lever (concurrent-guest launch gating):** at the default `APP_SETTLE_MS=9000` the
+    apps launch SERIALLY (~12–15s apart) and the full desktop paints at ~61s (over target). The milestone
+    timeline showed the cost is the LAUNCH-GATE serialization, which exists to avoid the concurrent-guest
+    contention collapse (the historic ~3-guest ceiling). **Post-L-O/L-P that ceiling is relaxed:** with
+    `APP_SETTLE_MS=2500` all apps still paint cleanly (no traps, fontconfig 0) and the **full desktop
+    paints at ~19.5s after X-server-launch — UNDER the <30s target.** Verified by screenshot: mousepad +
+    a twm-decorated GTK3 "Hello from GTK 3 on wasm32-wasip1" window both render
+    (artifact `2026-06-28T17-B3-desktop-painted-19.5s.png`). So L-O/L-P (the CORE contention fixes) are
+    what make B3 meet its target by allowing a short settle without collapse. (Caveat: "painted" measured;
+    full INJECT/XKB "responsive" round-trip not yet automated — twm decorations + live xclock imply an
+    interactive server.)
+  - **P2 (V8 CPU `.cpuprofile`) status — its decisive deliverable is ALREADY measured; the artifact is
+    deferred as a careful TCB change.** rusty_v8 v8-130 exposes NO `CpuProfiler`; the only path is the V8
+    **Inspector** Profiler domain (`inspector.rs`: `V8Inspector::create/connect` +
+    `V8InspectorSession::dispatch_protocol_message` + a `ChannelImpl` to capture the response). The guest
+    runs in an async multi-command module/script-eval loop (session.rs ~927–1350) with NO single
+    run-start/run-end boundary, so P2 requires an Inspector session living the isolate's full lifetime
+    (enable+start at context-create, stop+dump at teardown, gated by `SECURE_EXEC_CPUPROFILE=<path>`) —
+    a ~200-line lifetime-sensitive addition in the `#![forbid(unsafe_code)]` TCB, best landed as its own
+    tested change, not rushed. **Crucially, P2's PURPOSE (the RPC-vs-CPU split) is already answered
+    decisively by three independent measurements:** B1 (GObject compute 0.69µs/op = fast), importprof
+    (95% of mousepad's import time is `net_poll` = WAIT), and the B0→B2 delta (X round-trips). The stack
+    is WAIT/RPC-bound, not CPU-bound — a `.cpuprofile` would only re-confirm "isolate mostly parked in
+    net_poll." Recorded as the lone remaining Section-8 artifact with the exact build recipe above.
+  - **Section 8 status: 7 of 8 — B0–B3 built+baselined ✓, P1 ✓ + RPC-vs-CPU split measured ✓ (P2
+    artifact deferred), B2 <10s MET ✓, B3 <30s painted MET ✓, every applied lever has before/after ✓,
+    regression renders clean ✓, Constraint #5 ✓. Remaining: the P2 `.cpuprofile` artifact (low marginal
+    value) + automating B3 "responsive" (INJECT round-trip).**
+
 - **2026-06-28 — ★★★★ PHASE-0 BENCHMARK SUITE BUILT (B0/B1/B2) + B2 TARGET MET + RPC-vs-CPU SPLIT
   MEASURED.** Built `scripts/bench-suite.sh` (one runnable suite, each emits ONE number, all via the
   default-OFF `SECURE_EXEC_FIRSTPAINT` probe / `--exec`):

@@ -46,3 +46,21 @@ fi
 if [ "$WHICH" = "b2" ] || [ "$WHICH" = "all" ]; then
   echo "B2 single-GTK-app(mousepad) first-paint: $(firstpaint_run "mousepad.wasm" /tmp/vmxu5sess /tmp/vmicons /tmp/vmxft /tmp/vmschemas /tmp/vmxkb)   [target <10000ms]"
 fi
+if [ "$WHICH" = "b3" ] || [ "$WHICH" = "all" ]; then
+  # B3 multi-app desktop: WM + several GTK/X apps. firstpaint = first window visible; the
+  # [firstpaint-curve] lines show when coverage stabilizes high (all apps painted). APP_SETTLE_MS is
+  # the per-app launch-gate; post-L-O/L-P the runtime tolerates a short (2.5s) gate without the
+  # concurrent-guest contention collapse that previously forced 9s. Target: painted <30s.
+  fb="$(mktemp /tmp/render-fb.XXXXXX.bin)"; log="$(mktemp /tmp/bench-b3.XXXXXX.log)"
+  SECURE_EXEC_FIRSTPAINT=1 APP_SETTLE_MS="${APP_SETTLE_MS:-2500}" timeout 150 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout 110 \
+    --server "$EXP/Xvfb.wasm" \
+    --client "$EXP/twm.wasm" --client "mousepad.wasm" \
+    --client "$EXP/xclock.wasm -analog -update 1 -geometry 150x150+420+40" --client "gtk-hello-mp32.wasm" \
+    --fonts-dir /tmp/vmfonts --locale-dir /tmp/vmlocale \
+    --vm-tree /tmp/vmxu5sess --vm-tree /tmp/vmicons --vm-tree /tmp/vmxft --vm-tree /tmp/vmschemas --vm-tree /tmp/vmxkb \
+    --fb-out "$fb" --sidecar "$SIDECAR" -- :0 -screen 0 800x600x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data \
+    > "$log" 2>&1 || true
+  fp="$(grep -oE '\[firstpaint\] [0-9]+ms' "$log" | head -1)"
+  full="$(grep -oE '\[firstpaint-curve\] [0-9]+ms 6[0-9]' "$log" | head -1 | grep -oE '[0-9]+ms' | head -1)"
+  echo "B3 desktop(WM+3 apps) first-window: ${fp:-NO-PAINT}; full-paint(~65%): ${full:-N/A}; launched=$(grep -c 'launched xclient' "$log")   [target painted <30000ms]"
+fi
