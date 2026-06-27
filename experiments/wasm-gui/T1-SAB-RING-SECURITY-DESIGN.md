@@ -259,3 +259,19 @@ RingBacking>>>). Remaining threading, by file:line:
    sidecar to reach EmbeddedV8Runtime's handoff (expose a getter on EmbeddedV8Runtime).
 5. guest runner (wasm.rs embedded JS): if globalThis.__secure_exec_t1_req present, route via makeSyncRpcRouter.
 Then MEASURE vs the ~70k-poll baseline.
+
+## Step 4 status (2026-06-27, part 5) — exposure done; servicing-site mapping is the remaining deep part
+DONE: EmbeddedV8Runtime::t1_handoff() getter exposes a clone of the shared handoff Arc (embedded_runtime.rs, after
+is_alive). The v8-runtime side is now fully exposed.
+
+REMAINING (needs careful fresh-context mapping, NOT to be rushed in the TCB): there are 10
+`ActiveExecutionEvent::JavascriptSyncRpcRequest(...)` consumption sites in crates/sidecar/src/execution.rs (2682,
+2705, 2722, 2758, 2780, 2796, 4130, 4375, 6524, 17019). The desktop WASM guests' kernel-forwarded sync-RPCs go
+through ONE of these (the wasm path: WasmExecutionEvent::SyncRpcRequest -> ActiveExecutionEvent::
+JavascriptSyncRpcRequest mapping at ~2682). Step 4 needs: (a) identify the exact site the desktop path uses, (b)
+confirm that servicing fn can reach an EmbeddedV8Runtime handle (the sidecar does not reference EmbeddedV8Runtime
+directly today -- the access path must be traced/threaded), (c) at that site, t1_handoff_get(&h, session_id) -> if
+Some(rb), with_ring_backing_slices(&rb.req,&rb.resp, |req,resp| serve via SabRingEndpoint) BEFORE the base64 path.
+This is the one genuinely deep cross-crate edit left; do it with fresh context + verify which site the desktop hits
+(add a temporary count at each site under SECURE_EXEC_TRACE, OR follow the WasmExecutionEvent mapping precisely).
+Then step 5 (guest runner routing) + re-measure.

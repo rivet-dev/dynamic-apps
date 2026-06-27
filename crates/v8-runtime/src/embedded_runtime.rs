@@ -103,6 +103,20 @@ impl EmbeddedV8Runtime {
         self.alive.load(Ordering::Acquire)
     }
 
+    /// T1 ring handoff (embedded path): a clone of the shared `Arc` the session loop publishes per-session
+    /// [`crate::session::RingBacking`] into. The sidecar servicing side calls this once, then
+    /// `crate::session::t1_handoff_get(&h, session_id)` to fetch a session's ring handles and drive
+    /// `crate::session::with_ring_backing_slices` (keeping the sidecar `forbid-unsafe`).
+    #[allow(dead_code)]
+    pub fn t1_handoff(&self) -> crate::session::T1RingHandoff {
+        crate::session::T1RingHandoff::clone(
+            self.session_mgr
+                .lock()
+                .expect("session manager lock poisoned")
+                .t1_handoff(),
+        )
+    }
+
     pub fn register_session(&self, session_id: &str) -> io::Result<mpsc::Receiver<RuntimeEvent>> {
         self.register_session_with_output_registration(session_id)
             .map(|(receiver, _registration)| receiver)
