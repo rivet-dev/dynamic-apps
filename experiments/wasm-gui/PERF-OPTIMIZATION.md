@@ -1980,3 +1980,36 @@ render-ir is **97% guest wasm compute / 3% runtime**. CORE runtime optimization 
 cheap levers and is structurally capped at the ~3% it can touch. Reaching ir < 3× native requires
 out-of-scope work (toolchain to beat the wasm compute floor) or a forbidden guest change (cut the X
 round-trip count). **Surfacing per the goal's explicit stop clause, not declaring done on exhaustion.**
+
+---
+
+## §7-CORRECTION (2026-06-30, same session) — RETRACTING the "compute floor" conclusion above
+
+§7's "render is 97% compute, CORE exhausted" was WRONG on two counts:
+1. **Stale native baseline.** §7 used ~5.6ms from memory. **Re-measured native this session via the Docker
+   harness (required): median 3.5ms** (min 3.3, rows 53-69 = glyph). Target 3× ≈ **10.5ms**. wasm 59ms = **~17× native.**
+2. **Over-extrapolated single-hop split.** The "peerWait = 1305µs = 97% compute" was measured at ONE hop
+   level. peerWait (register→notify) is the peer's WALL-CLOCK turnaround — which recursively contains the
+   peer's OWN runtime overhead (its poll RPCs, its spurious wakes, scheduling), NOT pure leaf compute.
+   The compute floor (2.9× native) ≈ 10ms; wasm is 59ms ⇒ **~49ms (83%) is runtime overhead, not compute.**
+   There is NO compute floor at 59ms. The headroom is real.
+
+### The measured lever (POLLSTAT, render): 59% SPURIOUS WAKES
+- `net_poll` (the guest glib-loop poll, in `node_import_cache.rs:11701`) blocks on the **per-process**
+  `socket_readiness` generation. avgNfds=1.1 (guest polls ~1 fd) but ANY socket event in the process bumps
+  the generation and wakes it.
+- **innerBlocks=181, spuriousWakes=107 → spin%=59%:** 59% of blocking wakes find NOTHING ready for the
+  guest's fd → wasted iteration (drain + re-block), wasted CPU, scheduling churn that delays the productive
+  turnaround and starves the peer guest.
+- The per-fd drain is ALREADY batched (one `net.poll` over the fd array); the remaining op-count is ~4
+  RPCs × ~45 glib iterations/render, and the iteration count is inflated by the spurious wakes.
+
+### The lever = fd-scoped poll_wait wakeups (task #32, UNATTEMPTED)
+Make `net.poll_wait` wake only when one of the guest's AWAITED sockets actually becomes readable, not on
+any process-wide generation bump. Requires: guest `net_poll` passes the awaited socket-ids; SocketReadiness
+tracks which socket fired (per-socket gen or fired-set); the poll_wait handler + pool worker scope the wake
+to the awaited set. Expected: eliminate the 59% spurious iterations ⇒ cut render op-count/CPU ⇒ ir down.
+This is in-scope CORE (the readiness model + the runtime's `net_poll` shim, NOT the guest binaries).
+
+### VERDICT
+NOT a compute floor. The target is blocked only by unattempted CORE work (fd-scoped wakeups). Implementing.
