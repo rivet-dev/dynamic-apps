@@ -1,0 +1,6 @@
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xvfb mousepad python3 fonts-dejavu-core x11-apps xdotool \
+    && rm -rf /var/lib/apt/lists/*
+COPY docker-firstpaint.sh /firstpaint.sh
+RUN chmod +x /firstpaint.sh

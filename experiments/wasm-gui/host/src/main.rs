@@ -1396,6 +1396,56 @@ async fn run_xdemo(
         client_specs.len()
     );
 
+    // Input→response latency probe (SECURE_EXEC_INPUTLATENCY=1, default-OFF): after the apps have
+    // painted + settled, inject a keystroke via XTEST and measure wall-clock until the X framebuffer
+    // changes (the "responsive" half of the B3 target). Mirrors the native xdotool baseline. Best with
+    // a single focused app. Runs here (after the main loop) while the X server + clients are alive.
+    if std::env::var("SECURE_EXEC_INPUTLATENCY").map(|v| v == "1").unwrap_or(false) {
+        if let Some(dir) = s.shadow_dir.as_ref() {
+            let fbpath = dir.join("data/Xvfb_screen0");
+            let fingerprint = |p: &std::path::Path| -> u64 {
+                match std::fs::read(p) {
+                    Ok(b) => {
+                        let mut h = 1469598103934665603u64;
+                        let mut i = 0usize;
+                        while i < b.len() {
+                            h = (h ^ b[i] as u64).wrapping_mul(1099511628211);
+                            i += 1031; // strided fingerprint (cheap content hash)
+                        }
+                        h
+                    }
+                    Err(_) => 0,
+                }
+            };
+            let sock = xinput::server_socket(dir);
+            match xinput::XInput::connect(&sock) {
+                Ok(mut xi) => {
+                    tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+                    let _ = xi.run("focus");
+                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                    let base = fingerprint(&fbpath);
+                    let t = std::time::Instant::now();
+                    if let Err(e) = xi.run("type HELLO") {
+                        eprintln!("secure-exec: input-latency type failed: {e}");
+                    }
+                    let mut resp = None;
+                    while t.elapsed() < std::time::Duration::from_secs(8) {
+                        if fingerprint(&fbpath) != base {
+                            resp = Some(t.elapsed().as_millis());
+                            break;
+                        }
+                        tokio::time::sleep(std::time::Duration::from_millis(2)).await;
+                    }
+                    match resp {
+                        Some(ms) => eprintln!("[input-response] {ms}ms"),
+                        None => eprintln!("[input-response] TIMEOUT"),
+                    }
+                }
+                Err(e) => eprintln!("secure-exec: input-latency XTEST connect failed: {e}"),
+            }
+        }
+    }
+
     // Host-driven input injection (SPEC M6.1): the host connects DIRECTLY to the X server's
     // host-backed AF_UNIX socket and injects via XTEST. This is the working path (host->guest stdin /
     // file delivery does not propagate live data). The `pid` of each --inject entry is ignored.
