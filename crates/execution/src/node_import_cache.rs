@@ -2904,9 +2904,25 @@ function callFsRpc(method, args = []) {
 
 function callFsRpcSync(method, args = []) {
   emitPythonWarmupFsDebug(`${method}:start`);
+  // L-Y fs-bridge profiler (default-OFF): the [rpc-profile] guest-side profiler only counts the SAB-ring
+  // callSyncRpc, NOT this fs bridge — so fontconfig/icon openSync/statSync/readdir RPC volume is otherwise
+  // invisible. Counts calls + wall-ms per method; periodic dump shows whether batching these is a real lever.
+  const __fsprof = globalThis.__pathopenprof;
+  const __fs_t0 = __fsprof ? Date.now() : 0;
   try {
     const result = requireFsSyncRpcBridge().callSync(method, args);
     emitPythonWarmupFsDebug(`${method}:ok`);
+    if (__fsprof) {
+      const M = (globalThis.__fsRpcM = globalThis.__fsRpcM || {});
+      const m = (M[method] = M[method] || { n: 0, ms: 0 });
+      m.n += 1; m.ms += (Date.now() - __fs_t0);
+      const T = (globalThis.__fsRpcT = (globalThis.__fsRpcT || 0) + 1);
+      if (T % 5 === 0) {
+        let tn = 0, tms = 0; for (const k in M) { tn += M[k].n; tms += M[k].ms; }
+        const top = Object.entries(M).sort((a,b)=>b[1].n-a[1].n).slice(0,8).map(([k,v])=>`${k}(n=${v.n},ms=${v.ms})`).join(' ');
+        try { process.stderr.write('[fsrpc] totalN=' + tn + ' totalMs=' + tms + ' | ' + top + '\n'); } catch (_e) {}
+      }
+    }
     return result;
   } catch (error) {
     emitPythonWarmupFsDebug(

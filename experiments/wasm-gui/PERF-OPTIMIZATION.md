@@ -219,6 +219,25 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★ L-X and L-Y — the two remaining ranked levers, now MEASURED + REFUTED (2026-06-29).** The hook
+  correctly flagged these were ranked but not directly measured. Both are now closed by measurement:
+  - **L-X (persist/cache the V8-compiled WASM MODULE across launches)** — distinct from L-Z (which was the
+    runner-SOURCE compile). Measured the actual `new WebAssembly.Module` compile (`[wasmcompile]` probe):
+    **14ms** for the 17MB module. So a cross-launch wasm code cache saves ~14ms = NULL. The ranked premise
+    ("~0.9s compile paid once") is FALSE — the wasm compile is 14ms, not 0.9s (the 0.9s was the OLD base64
+    *decode*+load, already killed by L-W). bench-gobject unaffected (compute, not compile). Refuted.
+  - **L-Y (batch the ~1500 cold fontconfig/icon `fs.stat`/`readdir` sync-RPCs as a kernel-side batch)** —
+    measured the fs-RPC volume across BOTH transports (the `[rpc-profile]` SAB-ring profiler does NOT count
+    the fs bridge, so I added a default-off `[fsrpc]` profiler to `callFsRpcSync`). Result: mousepad makes
+    **< 5** fs-bridge calls total, and the SAB-ring `[rpc-profile]` shows **ZERO** `fs.stat`/`fs.readdir`/
+    `fs.openSync` (only 3 `fs.writeFileSync` + 3 `fs.existsSync`, 0 ms each). Total `[pathopen-exec]` opens =
+    74 across ALL isolates (server+mousepad+workers), not 1500. **The "~1500 fs.stat/readdir RPCs" premise
+    is definitively FALSE** — there is essentially no fs-metadata RPC volume to batch; fontconfig/icon
+    stat/readdir resolve in-process (WASI, kernel-direct) and the ~1.4s is scan/hash COMPUTE, not round-trip
+    latency (confirmed: total sidecar service time ~280ms across the whole run, dominated by net/poll WAIT).
+    A kernel-side batch RPC would save ~0ms. Refuted. **Every ranked lever (L-W/L-X/L-Y) + L-Z + L-W.3 is now
+    closed by direct measurement.**
+
 - **★★★ L-W CONTROLLED BEFORE/AFTER — same-session, full metric suite (2026-06-29).** The applied change
   (L-W, the only committed code change that moved the metrics) carries a true controlled pair: restored the
   two module-delivery files to the pre-L-W commit (`qwsmxool`, base64-in-source delivery), built, and
