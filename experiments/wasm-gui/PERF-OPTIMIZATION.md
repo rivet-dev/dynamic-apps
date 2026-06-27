@@ -73,7 +73,15 @@ clamp (L-Q ~0.5s/7%), poll-direct (L-S null), lazy-compile (L-U null), tiering (
 before/after + profile artifact. The ONLY remaining lever (guest wasm codegen speed) is outside the
 goal's CORE list and Constraint #5 — it needs the toolchain track.
 
-### ★ Phase-2 objective (the ACTIVE contract — 2026-06-29): kill `fpcast-emu` via the toolchain
+### ⚠⚠ Phase-2 premise ALSO undermined (2026-06-29, same day) — read the verdict log top entry
+Native GObject is **0.248 µs/op** (measured, not assumed), so wasm GObject is only **~2.8×** native = the
+fpcast-emu cost is NORMAL wasm overhead, NOT the ~23× this section claims. AND the transparent fpcast fix
+is infeasible (PR #153168 unmerged + GLib-insufficient). **The toolchain/fpcast track below is NOT
+supported by the evidence** — the real ~86× lever is mousepad's unidentified hot function (cpuprofile
+node 14120), which is NOT GObject ops. SYMBOLIZE 14120 before any toolchain/runtime work. The objective
+(targets) stands; the *lever* does not.
+
+### ~~Phase-2 objective (the ACTIVE contract — 2026-06-29): kill `fpcast-emu` via the toolchain~~ (lever disproven)
 Targets unchanged (**mousepad first-paint < 2 s AND input→response < 50 ms**; stretch < 1 s / < 20 ms),
 but the lever is now the PROVEN root: the guest wasm's per-op compute, dominated by Binaryen's
 `fpcast-emu` emulated indirect-call thunks (~23× on GObject `new+unref`). Build-flag tweaks are exhausted
@@ -534,6 +542,29 @@ TLS is load-bearing). This is the one piece that blocks measuring ANY genuinely-
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-29 — ★★★★★ PHASE-2 PREMISE UNDERMINED TWICE: fpcast-emu is NOT the villain (native
+  calibration), AND the transparent fix is infeasible (research). PIVOT needed.** Two findings on the
+  same day kill the "kill fpcast-emu via toolchain" plan:
+  1. **Native GObject calibration (measured, Docker debian -O2 — I had ASSUMED ~0.03µs, never measured):**
+     GObject new+unref is **native 0.248 µs/op** vs wasm 0.69 µs = **~2.8×**; emit 1.8×; set+get ~7×.
+     So GObject ops in wasm are **~2–7× native = NORMAL wasm overhead, NOT the ~23× I claimed.** fpcast-emu
+     is therefore NOT a large multiplier. And **B1 (bench-gobject) is NOT representative of mousepad** —
+     its ops are ~3× while mousepad first-paint is ~86×, so the mousepad bottleneck is something B1 does
+     not exercise.
+  2. **Toolchain feasibility (research):** LLVM PR #153168 (the GLib-motivated transparent fpcast killer)
+     is UNMERGED and the WebAssembly maintainer states it **won't make GLib work** ("plenty of casts in
+     glib are runtime casts, not compile-time"). The only shipped path (`ref.test` builtin, wasi-sdk-28+/
+     LLVM 21+) needs **per-call-site source patching of GLib** — a multi-week project, not a rebuild.
+  - **Net: do NOT pursue the toolchain/fpcast track.** It targets a ~2.8× cost (not the 86× gap) and is
+    infeasible transparently anyway. The Phase-2 spike-gate (B1 must collapse) is moot — B1 was the wrong
+    proxy. **The REAL lever is mousepad's actual hot function (cpuprofile node 14120, ~7 s on-CPU, the
+    thing that is genuinely ~86× native), which is STILL UNIDENTIFIED.** Symbolization has been blocked
+    (named build is 59 MB → won't load; the Inspector cpuprofile shows indices not names). Next: get a
+    loadable symbolized profile (KEEP_NAMES name-section + V8PROF `--prof` tick profiler, or raise the
+    frame limit for a one-off named-build profile) to find what 14120 IS — it is NOT GObject ops. Until
+    then, the lever is unknown and any toolchain/runtime fix is speculation. Artifact:
+    `2026-06-29-native-gobject-calibration.txt`.
 
 - **2026-06-29 — INPUT→RESPONSE baselined across benchmarks + PHASE-2 direction set (toolchain).** Both
   metrics are now first-class (they are different workloads, ~40× apart, but share the fpcast-emu root):
