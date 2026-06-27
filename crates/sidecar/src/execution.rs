@@ -397,6 +397,19 @@ impl ActiveProcess {
         self
     }
 
+    /// Override this process's socket-readiness with the `Arc` shared into its
+    /// event-bridge thread's inline net-drain (T-pollwait-inline), so the inline
+    /// `net.poll_wait` fast path and the service-loop handler (plus the reader
+    /// threads that `notify()`) all reference the same generation counter. Set at
+    /// spawn time, before any socket is created against `socket_readiness`.
+    pub(crate) fn with_socket_readiness(
+        mut self,
+        socket_readiness: std::sync::Arc<crate::state::SocketReadiness>,
+    ) -> Self {
+        self.socket_readiness = socket_readiness;
+        self
+    }
+
     /// Mirror a newly created unix listener's host fd into the inline-accept
     /// registry so this process's event-bridge thread can readiness-check it
     /// (T-accept) without the service loop. Call AFTER binding, with the listener
@@ -3189,8 +3202,12 @@ where
         } else {
             None
         };
-        let (unix_inline_registry, unix_listener_fd_registry, unix_inline_drain) =
-            new_unix_inline_drain(fd_poll_handle);
+        let (
+            unix_inline_registry,
+            unix_listener_fd_registry,
+            unix_inline_socket_readiness,
+            unix_inline_drain,
+        ) = new_unix_inline_drain(fd_poll_handle);
         let net_drain_arg = if inline_dispatch {
             Some(unix_inline_drain)
         } else {
@@ -3341,7 +3358,8 @@ where
                 .with_env(process_env)
                 .with_host_cwd(resolved.host_cwd.clone())
                 .with_unix_inline_registry(unix_inline_registry)
-                .with_unix_listener_fd_registry(unix_listener_fd_registry),
+                .with_unix_listener_fd_registry(unix_listener_fd_registry)
+                .with_socket_readiness(unix_inline_socket_readiness),
         );
         self.bridge.emit_lifecycle(&vm_id, LifecycleState::Busy)?;
 
@@ -5753,6 +5771,7 @@ where
             parent_guest_cwd,
             parent_host_cwd,
             parent_listener_fd_registry,
+            parent_socket_readiness,
             thread_id,
         ) = {
             let vm = self.vms.get_mut(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
@@ -5767,6 +5786,7 @@ where
                 parent.guest_cwd.clone(),
                 parent.host_cwd.clone(),
                 parent.unix_listener_fd_registry.clone(),
+                std::sync::Arc::clone(&parent.socket_readiness),
                 parent.allocate_child_process_id(),
             )
         };
@@ -5792,12 +5812,19 @@ where
         // thread (which may drive the X server's accept loop) can readiness-check
         // the parent-owned UNIX listener inline. registry = None (net.poll still
         // routes to the service loop for workers, as before).
+        // T-pollwait-inline: share the PARENT's socket-readiness so the worker's
+        // inline `net.poll_wait` fast path observes the SAME generation the
+        // service-loop handler reads for this worker (it uses the owning process's
+        // readiness, `owner_socket_readiness`, which is the parent's), and that the
+        // reader threads advance via `notify()`. A worker reading its own fresh
+        // readiness would never see the parent's wakes.
         let thread_net_drain: Option<std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>> =
             if inline_dispatch_enabled() {
                 Some(std::sync::Arc::new(UnixInlineNetDrain::new(
                     None,
                     Some((vm.kernel.poll_handle(), parent_kernel_pid)),
                     Some(parent_listener_fd_registry.clone()),
+                    Some(std::sync::Arc::clone(&parent_socket_readiness)),
                 )))
             } else {
                 None
@@ -14025,6 +14052,12 @@ pub(crate) struct UnixInlineNetDrain {
     /// `net.server_accept` "nothing pending" fast-path. `None` keeps every
     /// `net.server_accept` on the service loop.
     accept_listeners: Option<crate::state::UnixListenerFdRegistry>,
+    /// The OWNING process's socket-readiness generation counter (T-pollwait-inline).
+    /// Shared `Arc` with the process the service-loop `net.poll_wait` handler reads
+    /// (`owner_socket_readiness` for a worker thread, else `process.socket_readiness`)
+    /// so the inline FAST PATH observes the exact same generation the reader threads
+    /// advance via `notify()`. `None` keeps every `net.poll_wait` on the service loop.
+    socket_readiness: Option<std::sync::Arc<crate::state::SocketReadiness>>,
 }
 
 impl UnixInlineNetDrain {
@@ -14032,11 +14065,13 @@ impl UnixInlineNetDrain {
         registry: Option<crate::state::UnixInlineRegistry>,
         fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
         accept_listeners: Option<crate::state::UnixListenerFdRegistry>,
+        socket_readiness: Option<std::sync::Arc<crate::state::SocketReadiness>>,
     ) -> Self {
         Self {
             registry,
             fd_poll,
             accept_listeners,
+            socket_readiness,
         }
     }
 }
@@ -14052,18 +14087,25 @@ fn new_unix_inline_drain(
 ) -> (
     crate::state::UnixInlineRegistry,
     crate::state::UnixListenerFdRegistry,
+    std::sync::Arc<crate::state::SocketReadiness>,
     std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>,
 ) {
     let registry: crate::state::UnixInlineRegistry =
         std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
     let accept_listeners: crate::state::UnixListenerFdRegistry =
         std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
+    // T-pollwait-inline: the readiness is created HERE and shared into BOTH the
+    // drain and (via `with_socket_readiness`) the `ActiveProcess`, so the inline
+    // `net.poll_wait` fast path and the service-loop handler read the same
+    // generation counter the reader threads advance.
+    let socket_readiness = std::sync::Arc::new(crate::state::SocketReadiness::new());
     let drain = std::sync::Arc::new(UnixInlineNetDrain::new(
         Some(registry.clone()),
         fd_poll,
         Some(accept_listeners.clone()),
+        Some(std::sync::Arc::clone(&socket_readiness)),
     )) as std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>;
-    (registry, accept_listeners, drain)
+    (registry, accept_listeners, socket_readiness, drain)
 }
 
 /// Process-wide gate for the C-lite / lever-A inline-dispatch fast-paths
@@ -14228,6 +14270,26 @@ impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
             // performs the real accept (needs `&mut kernel`) or surfaces the error.
             _ => None,
         }
+    }
+
+    fn try_poll_wait(&self, last_seen: u64, timeout_ms: u64) -> Option<Value> {
+        // No readiness wired (e.g. the inline-dispatch gate is off) => every
+        // net.poll_wait routes to the service loop.
+        let readiness = self.socket_readiness.as_ref()?;
+        // Mirror the service-loop handler's FAST PATH exactly. `clamp_javascript_net_poll_wait`
+        // returns a zero duration IFF `timeout_ms == 0`, so `wait.is_zero()` ⟺ `timeout_ms == 0`.
+        // The snapshot is read under the same generation lock `notify()` advances, so this is
+        // race-free with the handler (no lost wakeup). When the requested wait is zero, or the
+        // generation already advanced past the guest's last scan, answer inline with the exact
+        // `{ "generation": current }` value the handler returns.
+        let current = readiness.snapshot();
+        if timeout_ms == 0 || current != last_seen {
+            return Some(json!({ "generation": current }));
+        }
+        // Genuine BLOCKING case (wait > 0 AND generation unchanged): fall through to the service
+        // loop's deferred PollWaiterPool. Inlining the block on the bridge thread would serialize
+        // it and risk a lost wakeup.
+        None
     }
 }
 

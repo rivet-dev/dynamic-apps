@@ -503,6 +503,26 @@ pub trait InlineNetDrain: Send + Sync {
     fn try_accept(&self, _listener_id: &str) -> Option<serde_json::Value> {
         None
     }
+
+    /// Service the `net.poll_wait` FAST PATH inline, off the single shared
+    /// service task. `net.poll_wait` is the #1 sync-RPC method by call count; its
+    /// fast path needs only a non-blocking read of the owning process's socket
+    /// readiness generation. `last_seen` is the guest's last-observed generation
+    /// (arg0); `timeout_ms` is the requested wait (arg1). Returns `Some(value)` =
+    /// the EXACT `{ "generation": current }` value the service loop returns when
+    /// it can answer immediately — i.e. when the requested wait is zero
+    /// (`timeout_ms == 0`) OR the readiness generation already advanced past
+    /// `last_seen`. Returns `None` for the genuine BLOCKING case (wait > 0 AND the
+    /// generation is unchanged), which must fall through to the deferred
+    /// `PollWaiterPool` on the service loop — inlining the block would serialize
+    /// the bridge thread and risk a lost wakeup. Also `None` when no readiness is
+    /// wired (e.g. the inline-dispatch gate is off).
+    ///
+    /// Lost-wakeup safety: the snapshot is read under the same generation lock
+    /// that `notify()` advances, so the fast path is race-free with the handler.
+    fn try_poll_wait(&self, _last_seen: u64, _timeout_ms: u64) -> Option<serde_json::Value> {
+        None
+    }
 }
 
 /// Guest JavaScript module-resolution mode (the `moduleResolution` axis of
@@ -2978,6 +2998,51 @@ fn spawn_v8_event_bridge(
                         if let Some(net_drain) = local_bridge.net_drain.clone() {
                             if let Some(Value::String(listener_id)) = args.first() {
                                 if let Some(value) = net_drain.try_accept(listener_id) {
+                                    let payload = translate_legacy_bridge_value_to_v8(&value);
+                                    let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                        .unwrap_or_default();
+                                    let _ = v8_session.send_bridge_response(call_id, 0, cbor);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    // T-pollwait-inline: service the `net.poll_wait` FAST PATH
+                    // INLINE on this per-session bridge thread, bypassing the
+                    // single shared `select!` task. `net.poll_wait` is the #1
+                    // sync-RPC method by call count (~25k/run); the vast majority
+                    // of calls are zero-wait probes or already-advanced returns
+                    // that need only a non-blocking readiness snapshot — exactly
+                    // the C-lite shape. `try_poll_wait` answers those inline; it
+                    // returns `None` for the genuine BLOCKING case (wait > 0 AND
+                    // generation unchanged), which falls through to the service
+                    // loop's deferred PollWaiterPool (inlining the block would
+                    // serialize the bridge thread and risk a lost wakeup). Args:
+                    // arg0 = last_seen generation, arg1 = timeout ms (both
+                    // optional; absent/null => 0, mirroring the handler's
+                    // `javascript_sync_rpc_arg_u64_optional`). A non-numeric arg is
+                    // ambiguous => fall through (never guess on a wake path).
+                    // Inline-handled hops never stamp the hopsplit points.
+                    if method == "_netSocketPollWaitRaw" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            let parse_u64 = |value: Option<&Value>| -> Option<u64> {
+                                match value {
+                                    None | Some(Value::Null) => Some(0),
+                                    Some(value) => value.as_u64().or_else(|| {
+                                        value
+                                            .as_f64()
+                                            .filter(|n| n.is_finite() && *n >= 0.0)
+                                            .map(|n| n as u64)
+                                    }),
+                                }
+                            };
+                            if let (Some(last_seen), Some(timeout_ms)) =
+                                (parse_u64(args.first()), parse_u64(args.get(1)))
+                            {
+                                if let Some(value) =
+                                    net_drain.try_poll_wait(last_seen, timeout_ms)
+                                {
                                     let payload = translate_legacy_bridge_value_to_v8(&value);
                                     let cbor = v8_runtime::json_to_cbor_payload(&payload)
                                         .unwrap_or_default();
