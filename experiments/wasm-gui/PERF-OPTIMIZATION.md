@@ -223,8 +223,12 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
-**Targets:** mousepad B2 **input→response (ir) < 50ms AND first-paint (fp) < 2000ms** (each best/median of
-≥3 runs, render gate green). Native ref ~6ms / ~110ms.
+**Targets (ir is the FOCUS):** primary **input→response (ir) < 50ms**; secondary (also required, but ir
+leads) **first-paint (fp) < 2000ms** — each best/median of ≥3 runs, render gate green. The dispatch-floor
+levers that fix ir also pull fp down, so attack ir first. Native ref ~6ms / ~110ms.
+**Done when both hold (≥3 runs, render green). NO exhaustion escape:** if a lever proves a target needs
+out-of-scope work (provisioning, a never-self-approve change) or a redesign beyond CORE, STOP and surface
+the specific blocker for a decision — do not declare done on lever exhaustion.
 **Current committed default (perf-pivot-work):** **ir ~88ms, fp ~2.5s**, render green. Stable.
 
 **Wins already landed (do not redo):** L-W module delivery (fp 9→4s); F1b cold-boot-windowed event-ingest
@@ -254,6 +258,15 @@ tune it; below regresses, above is flat).
 - **B F3-DEFERRED (reader-carry):** the off-thread socket reader (`spawn_unix_socket_reader` +
   `poll_waiter_loop`) drains the bytes and carries them INTO the `poll_wait` completion (which today returns
   only `{generation}`, forcing a separate drain hop). Removes ~half the hops. Concurrency/protocol redesign.
+  **★ ENABLER (verified 2026-06-29):** `ActiveUnixSocket.events` (`state.rs:1422`) is a **crossbeam MPMC
+  `Receiver` (Clone, multi-consumer)** fed by the reader's `event_sender`. So the off-thread completion (or
+  the inline event-bridge drain for A) CAN drain it without owning `&mut ActiveProcess` — give the
+  PollWaiter/registration a CLONE of the awaited fds' `events` receivers (+ their readiness gens) at
+  `net.poll_wait` registration time (main loop, where `process.unix_sockets` is in hand), then the
+  `poll_waiter_loop` worker `try_recv`s + returns the events in the wake response. The guest's `net_poll`
+  applies the carried events and skips its separate `net.poll` drain. RISK (heed the F12 regression): the
+  `net.poll_wait([0,0])` snapshot hop is load-bearing for event SEQUENCING — the carried events must be
+  exactly what the separate drain would have returned, in order; verify the render gate stays green.
 - **C multi-thread the dispatch loop:** per-session/per-VM dispatch so guests don't serialize on one
   `&mut self`. Removes the contention entirely; large core refactor.
 - **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
