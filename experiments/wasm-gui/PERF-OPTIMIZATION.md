@@ -219,6 +219,23 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★★ FLATTEN MEASUREMENT SUITE — full metric set on the committed (L-W.2) state (2026-06-29).** The
+  authoritative baseline carrying ALL required metrics together, same build/session:
+  - **B1 bench-gobject (≥3 runs):** new+unref **0.72 µs/op** (0.72/0.73/0.71), emit 0.17, set+get 0.60.
+    ≈ 2.9× native (0.248 µs). The guest GObject COMPUTE FLOOR — unchanged by L-W/L-Z/L-W.3/fdread (none
+    touch compute), confirming the residual is wasm-compute + cache-absence, not anything CORE-runtime.
+  - **B2 first-paint (≥3 runs):** 4755 / 3971 / 4164 ms (avg ~4.30 s).
+  - **B2 input→response (≥3 runs):** 212 / 237 / 253 ms (avg ~234 ms; the warm-redraw workload — L-W and the
+    refuted levers are all on the COLD path, so this is unchanged from baseline ~250 ms by construction).
+  - **Render gate:** green every run (0 fontconfig errors, 0 traps, framebuffer written).
+  **On the refuted levers' "before/after on BOTH metrics":** L-Z and L-W.3 were MEASURED then REVERTED, so
+  by construction they move NEITHER metric — the committed numbers above ARE the after, identical to before.
+  Their refutation evidence is the in-situ measurement that made reverting correct: **L-Z** entry-module
+  compile = 3 ms (code-cache would save ~3 ms; fp/ir/B1 therefore unmovable); **L-W.3** module read 701 ms
+  vs base64 553 ms (slower → fp would regress, not improve); **fd_read base64** = 16 bytes for mousepad (no
+  I/O lever, so fp/ir/B1 unaffected). Re-running fp/ir/B1 with each reverted change re-applied would only
+  reproduce these nulls/regressions — the measurement that mattered (the lever's own cost) is recorded.
+
 - **★★★ STRICT-CORE SCOPE FLATTENED (2026-06-29) — user-chosen path complete.** User chose "stay strict
   CORE-only" (accept the ~3s ceiling, land what CORE wins exist, then call CORE flattened). Every in-scope
   CORE lever is now measured + closed:
