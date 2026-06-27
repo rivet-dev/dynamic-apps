@@ -2828,6 +2828,21 @@ fn spawn_v8_event_bridge(
                     // Convert CBOR payload to JSON args
                     let args = v8_runtime::cbor_payload_to_json_args(&payload).unwrap_or_default();
 
+                    // OPTRACE (SECURE_EXEC_OPTRACE=1, default-OFF): log EVERY guest sync-RPC method on the
+                    // bridge thread (inlined OR forwarded) with an epoch stamp, so an offline decoder can
+                    // window the stream to the [ir-mark] inject and count the per-render op sequence
+                    // (wasm fans one native poll/read into several RPCs; native does ~23 syscalls/render).
+                    if std::env::var("SECURE_EXEC_OPTRACE").as_deref() == Ok("1") {
+                        let ep = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_micros())
+                            .unwrap_or(0);
+                        // thread id distinguishes the two guests (each has its own bridge thread) so a
+                        // decoder can tell a cross-guest round-trip (alternating tid) from single-guest
+                        // compute (same tid) — the difference between "too many round-trips" and "toolchain".
+                        eprintln!("[optrace] epoch={ep} tid={:?} {method}", std::thread::current().id());
+                    }
+
                     // Module resolution / loading must read the mounted
                     // `node_modules` VFS, not host files directly. When the
                     // sidecar supplied a read-only VFS module reader, resolve

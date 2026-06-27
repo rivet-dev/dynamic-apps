@@ -223,6 +223,27 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
+#### ★★★ OP-COUNT + CROSS-GUEST SPLIT (2026-07-01, SECURE_EXEC_OPTRACE) — the render is 73% cross-guest, 27% compute ★★★
+`SECURE_EXEC_OPTRACE=1` (default-OFF) logs every guest sync-RPC on the bridge thread with an epoch stamp +
+guest thread-id. Windowed to the keystroke (ir ~64ms):
+- **Op-count: ~160 sync-RPCs/render vs native's ~23 syscalls (~7×).** Breakdown: net.poll(drain) 67, poll_wait
+  41, fd_poll 27, write 15, accept 6. (Most are inlined now, ~µs each → the op COUNT is ~1ms of wall; it is
+  NOT the bottleneck by itself.)
+- **The render wall-time is in the GAPS between ops, split by thread-id:**
+  **CROSS-guest gaps (op from guest A → next op from guest B) = ~50ms / 73%** (82 transitions × ~610µs);
+  **SAME-guest gaps (a guest computing between its own ops) = ~19ms / 27%.**
+- ⇒ **The bottleneck is the cross-guest ROUND-TRIP path (~82 transitions × ~610µs), NOT toolchain compute**
+  (only 27%). Native pipelines the same X protocol into one ~2ms burst with µs transitions. THREE guest
+  bridge threads: tid=Xvfb (spin-accepts) + tid×2=mousepad(main+worker); Xvfb's accept-spin interleave likely
+  inflates the transition count.
+- **⇒ The lever (CORE, the goal's target): cut per-transition cost (~610µs → native µs) and/or transition
+  COUNT.** Candidates: (a) shorten the write→peer-wake delivery (fewer thread hops: guest write → peer reader
+  thread → notify → peer poll_wait → peer isolate scheduled → peer's next op), (b) pipeline the X transport so
+  the guest sends multiple requests without a round-trip each (native does this), (c) kill the Xvfb accept-spin
+  so that thread stops competing for scheduling, (d) shared-memory inter-guest ring (lever D). The ~610µs
+  per-transition still needs attribution (delivery+notify vs peer-isolate-scheduling vs peer-compute-to-next-op)
+  to pick the sharpest of these.
+
 #### ★★★ THE "8ms" DEFINITIVELY EXPLAINED (2026-06-30, GAPTRACE per-event window) ★★★
 Built a per-event `SECURE_EXEC_GAPTRACE` probe (default-OFF; needs `SECURE_EXEC_PERFCLOCK=1` for the notify
 stamp) that logs each blocking poll_wait's segments and windows them to the `[ir-mark]` inject. Result for
