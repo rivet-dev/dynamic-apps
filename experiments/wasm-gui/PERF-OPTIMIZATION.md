@@ -277,9 +277,32 @@ serviced inline on the per-session bridge thread). It WORKS — hopsplit confirm
 guests poll their connection fd via `_kernelFdPollRaw` (POSIX fd API), so it is ON the critical path and
 CANNOT be inlined the way the unix-socket `net.poll` drain can. **The arithmetic still says the target is
 reachable** (inline ALL hot hops ⇒ floor d01+d23+d34 ≈ ~70µs/hop ⇒ ir ~8-15ms), but the LAST inline-able
-method is done; the remaining ones are kernel-bound. **Implication: ir<50ms now requires a major CORE
-refactor to get the kernel-bound `_kernelFdPollRaw` off the single serialized dispatch task — NOT another
-small lever.** Two candidate redesigns (a DECISION, see lever menu C / C-lite below).
+method is done; the remaining ones are kernel-bound.
+
+**★★ THE INLINE-DISPATCH FAMILY IS REFUTED (2026-06-30, C-lite BUILT + MEASURED — do NOT re-chase) ★★**
+C-lite was then implemented (gated `SECURE_EXEC_INLINE_DISPATCH`): a `KernelPollHandle` (Arc-clones of the
+kernel's already-shared poll managers) services non-blocking `__kernel_fd_poll` inline on the per-session
+bridge thread (incl. the worker-thread path that actually drives the X fd polling), event-driven
+`poll_notifier` busy-spin guard. It WORKS — hopsplit confirms `_kernelFdPollRaw` left the service loop
+entirely; render green; no CPU-spin; **but ir is FLAT (~88ms) AND bound-insensitive (200µs ≡ 2ms wait).**
+Removing the TWO biggest funnel methods (net.poll via A, fd.poll via C-lite) just promoted the next
+(`_netServerAcceptRaw`) and ir never moved — the same whack-a-mole both times. **The `d12 = funnel
+contention` premise is WRONG.** Corroborating evidence (all measured):
+- **rpc-profile:** total service work is **only 572ms over the whole ~20s run** (~3% of one core); the single
+  task is NOT CPU-bound on RPC service (`__kernel_fd_poll` avg 28.6µs, `net.poll` 9.6µs). So d12's ~575µs is
+  NOT "queued behind work" — the task is ~idle service-wise.
+- **box is idle** (load ~1.3 / 20 cores), so d12 is not OS-contention either — yet the task still pegs ~100%
+  of ONE core on something that is NOT rpc-service (suspect: framebuffer event-frame draining on the
+  `event_ready` branch, cf. [[wasm-gui-m8.6-futex-storm-rootcause]]; unconfirmed — no `perf` in sandbox).
+- **ir is WAIT-bound, not work-bound:** 11871 `net.poll_wait` calls; HOPPROF `peerWait` ~1620µs/exchange —
+  ir ≈ ~46 exchanges × peer-TURNAROUND, not × dispatch. Guest compute is only ~2.9× native (B1 bench), so
+  ~88ms (≈15× native) is NOT pure compute either; the extra is per-exchange peer-turnaround latency.
+**Implication: STOP attacking dispatch (A/C-lite/C all target the wrong thing). The real next step is NOT a
+lever — it is a CRITICAL-PATH TRACE of ONE keystroke→render interaction (`xtrace --rt` + ir-marks) to see
+where the ~1620µs/exchange goes (peer compute vs poll_wait wake-path handoffs vs fb-drain), since per-method
+aggregates have now mis-pointed TWICE. Candidate levers AFTER that trace: (B) poll_wait WAKE/turnaround path
+(reader-carry — the thing actually on the ir critical path), or decouple the fb event-frame drain from RPC
+servicing. Levers A + C-lite stay GATED-OFF (correct, render-green, ir-null) as the off-task-servicing seam.**
 
 **REMAINING LEVER MENU — attack the per-hop FLOOR (hits all ~46 hops) over count reduction:**
 - **A [TOP — CONFIRMED by D16; the lever d12 demands] F10-INLINE:** service the non-blocking unix `net.poll`
