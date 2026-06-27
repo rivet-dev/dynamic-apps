@@ -365,7 +365,25 @@ The per-round-trip latency premise was DISPROVEN (compute-bound, not wait-bound;
 ~2.4 s in imports vs ~7 s on-CPU). Surgical latency levers all null (clamp/poll-direct/lazy-compile/tiering)
 with before/after + artifacts. Superseded by Phase-2 (the real root: guest wasm compute / fpcast-emu).
 
-### Phase-2 bar — ACTIVE (toolchain modernization, §11)
+### Phase-2 (toolchain) bar — CLOSED via the OR clause: lever ROI FLATTENED, documented (2026-06-29)
+The toolchain/fpcast lever's ROI is flattened with documented diminishing returns per remaining sub-lever:
+- **(a) transparent fpcast elimination — INFEASIBLE + premise FALSE.** Premise disproven: native GObject
+  is 0.248 µs (measured), so wasm GObject is ~2.8× (not ~23×); B1 was the wrong proxy. Feasibility: LLVM
+  PR #153168 is UNMERGED and the WebAssembly maintainer states it won't make GLib work (runtime casts);
+  the only shipped path (`ref.test` builtin, wasi-sdk-28+) needs multi-week per-call-site GLib source
+  patching. No transparent rebuild exists. (The `__wasi_init_tp` blocker was never reached — moot.)
+- **(b) rusty_v8 bump — FEASIBLE-but-RISKY and INSUFFICIENT.** Feasible: newer rusty_v8 (current pin v8
+  130.0.7) ships prebuilts for the 4 publish targets, but it is a meaningful API-drift change against the
+  pinned-prebuilt setup. Insufficient: the new-V8 wins (trap-handler bounds checks ~25–30% on
+  memory-bound code; speculative `call_indirect` inlining on HOT/TurboFan code) do NOT target this
+  workload's actual dominant costs — which are DISTRIBUTED loading + cold-init + I/O (module base64-decode
+  in JS, V8 compile, ~1500 cold `fs.stat` sync-RPCs), none of them wasm-memory-bound and none hot (cold
+  single-pass Liftoff). Expected ~10–25%, not the ~5× needed for < 2 s. Not worth the bump risk for this.
+- **Verdict: the toolchain lever cannot reach the targets.** Targets remain UNMET (~9.77 s / ~250 ms).
+  The REAL path is the RUNTIME loading/I-O levers L-W/L-X/L-Y (see verdict log 2026-06-29 top) — a new,
+  CORE-scoped direction, not the toolchain. ⇒ retarget Phase-2 to those (new objective/goal).
+
+### Phase-2 (toolchain) bar — original intent (kept for record)
 DONE when:
 1. **mousepad first-paint < 2 s** AND **input→response < 50 ms** hold (≥3 runs each) — OR the toolchain
    lever's ROI is flattened with documented diminishing returns (e.g. the (a) spike comes back null and
