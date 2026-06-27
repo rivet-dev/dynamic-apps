@@ -207,6 +207,9 @@ pub struct SessionManager {
     shared_call_id: SharedCallIdCounter,
     /// Shared snapshot cache for fast isolate creation from pre-compiled bridge code
     snapshot_cache: Arc<SnapshotCache>,
+    /// T1 in-process ring handoff (embedded path): the session loop publishes a per-session [`RingBacking`] here
+    /// after allocating the ring SAB; the sidecar servicing loop takes it. Empty when T1 is inactive.
+    t1_handoff: T1RingHandoff,
 }
 
 impl SessionManager {
@@ -224,7 +227,16 @@ impl SessionManager {
             call_id_router,
             shared_call_id: Arc::new(AtomicU64::new(1)),
             snapshot_cache,
+            t1_handoff: t1_handoff_new(),
         }
+    }
+
+    /// Shared T1 ring handoff (embedded path). The session loop sets per-session entries after allocating the ring
+    /// SAB; the embedded driver exposes this to the sidecar servicing loop, which takes the [`RingBacking`] to drive
+    /// [`with_ring_backing_slices`]. Clone the `Arc` to share.
+    #[allow(dead_code)]
+    pub(crate) fn t1_handoff(&self) -> &T1RingHandoff {
+        &self.t1_handoff
     }
 
     /// Get the snapshot cache for pre-warming from WarmSnapshot messages.
