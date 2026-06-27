@@ -2,10 +2,11 @@ use crate::common::{
     encode_json_string, encode_json_string_array, encode_json_string_map, frozen_time_ms,
 };
 use crate::javascript::{
-    CreateJavascriptContextRequest, GuestRuntimeConfig, JavascriptExecution,
+    CreateJavascriptContextRequest, GuestRuntimeConfig, InlineNetDrain, JavascriptExecution,
     JavascriptExecutionEngine, JavascriptExecutionError, JavascriptExecutionEvent,
     JavascriptExecutionLimits, JavascriptSyncRpcRequest, StartJavascriptExecutionRequest,
 };
+use std::sync::Arc;
 use crate::node_import_cache::NodeImportCache;
 use crate::runtime_support::{env_flag_enabled, file_fingerprint, warmup_marker_path};
 use crate::signal::{NodeSignalDispositionAction, NodeSignalHandlerRegistration};
@@ -845,6 +846,18 @@ impl WasmExecutionEngine {
         &mut self,
         request: StartWasmExecutionRequest,
     ) -> Result<WasmExecution, WasmExecutionError> {
+        self.start_execution_with_net_drain(request, None)
+    }
+
+    /// Like [`start_execution`](Self::start_execution) but with an optional
+    /// [`InlineNetDrain`] threaded into the underlying JavaScript runner so the
+    /// WASM guest's hot non-blocking unix `net.poll` drain is serviced inline on
+    /// the per-session bridge thread (off the single sidecar service loop).
+    pub fn start_execution_with_net_drain(
+        &mut self,
+        request: StartWasmExecutionRequest,
+        net_drain: Option<Arc<dyn InlineNetDrain>>,
+    ) -> Result<WasmExecution, WasmExecutionError> {
         let context = self
             .contexts
             .get(&request.context_id)
@@ -920,6 +933,7 @@ impl WasmExecutionEngine {
                 prewarm_only: false,
                 warmup_metrics: warmup_metrics.as_deref(),
             },
+            net_drain,
         )?;
         let child_pid = javascript_execution.child_pid();
         let guest_path_mappings = wasm_guest_path_mappings(&request);
@@ -2293,6 +2307,7 @@ fn start_wasm_javascript_execution(
     resolved_module: &ResolvedWasmModule,
     request: &StartWasmExecutionRequest,
     options: WasmJavascriptExecutionOptions<'_>,
+    net_drain: Option<Arc<dyn InlineNetDrain>>,
 ) -> Result<JavascriptExecution, WasmExecutionError> {
     let internal_env = build_wasm_internal_env(
         resolved_module,
@@ -2311,7 +2326,8 @@ fn start_wasm_javascript_execution(
     );
 
     javascript_engine
-        .start_execution(StartJavascriptExecutionRequest {
+        .start_execution_with_bridges(
+            StartJavascriptExecutionRequest {
             vm_id: request.vm_id.clone(),
             context_id: javascript_context_id.to_owned(),
             argv: vec![String::from(WASM_INLINE_RUNNER_ENTRYPOINT)],
@@ -2325,7 +2341,10 @@ fn start_wasm_javascript_execution(
             // process.* from typed config rather than env.
             guest_runtime: request.guest_runtime.clone(),
             inline_code: Some(inline_code),
-        })
+            },
+            None,
+            net_drain,
+        )
         .map_err(map_javascript_error)
 }
 
@@ -4871,6 +4890,7 @@ fn prewarm_wasm_path(
             prewarm_only: true,
             warmup_metrics: None,
         },
+        None,
     )
     .map_err(|error| match error {
         WasmExecutionError::Spawn(err) => WasmExecutionError::WarmupSpawn(err),

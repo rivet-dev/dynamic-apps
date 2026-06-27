@@ -20,7 +20,8 @@ pub mod wasm;
 pub use javascript::{
     process_event_drain_pending, process_event_notify, CreateJavascriptContextRequest,
     DeferredSyncRpcResponder,
-    GuestRuntimeConfig, JavascriptContext, JavascriptExecution, JavascriptExecutionEngine,
+    GuestRuntimeConfig, InlineNetDrain, JavascriptContext, JavascriptExecution,
+    JavascriptExecutionEngine,
     JavascriptExecutionError, JavascriptExecutionEvent, JavascriptExecutionLimits,
     JavascriptExecutionResult, JavascriptSyncRpcRequest, LocalModuleResolutionCache,
     LocalResolvedModuleFormat, ModuleFsReader, ModuleResolveMode, ModuleResolver,

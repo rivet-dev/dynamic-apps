@@ -355,6 +355,202 @@ fn dispose_kernel_vm_resources<F>(kernel: &mut KernelVm<F>) {
     kernel.terminated = true;
 }
 
+/// Per-fd readiness for a single open file description. Shared by the kernel's
+/// own poll path ([`KernelVm::poll_entry`]) and the inline
+/// [`KernelPollHandle`] so the two cannot diverge.
+fn fd_entry_readiness(
+    pipes: &PipeManager,
+    ptys: &PtyManager,
+    terminated: bool,
+    entry: &crate::fd_table::FdEntry,
+    requested: PollEvents,
+) -> KernelResult<PollEvents> {
+    if pipes.is_pipe(entry.description.id()) {
+        return Ok(pipes.poll(entry.description.id(), requested)?);
+    }
+
+    if ptys.is_pty(entry.description.id()) {
+        return Ok(ptys.poll(entry.description.id(), requested)?);
+    }
+
+    let access_mode = entry.description.flags() & 0b11;
+    let mut events = PollEvents::empty();
+    if requested.intersects(POLLIN) && access_mode != crate::fd_table::O_WRONLY {
+        events |= POLLIN;
+    }
+    if requested.intersects(POLLOUT) && access_mode != crate::fd_table::O_RDONLY {
+        events |= POLLOUT;
+    }
+    if entry.filetype == FILETYPE_DIRECTORY && requested.intersects(POLLOUT) {
+        events |= POLLERR;
+    }
+    if terminated {
+        events |= POLLHUP;
+    }
+    Ok(events)
+}
+
+/// Per-fd readiness for an fd number: look up the fd in the process table, then
+/// compute readiness via [`fd_entry_readiness`]. POLLNVAL for a closed/unknown
+/// fd. Shared by [`KernelVm::poll_target_entry`] (Fd targets) and the inline
+/// [`KernelPollHandle`].
+#[allow(clippy::too_many_arguments)]
+fn fd_target_readiness(
+    fd_tables: &Mutex<FdTableManager>,
+    pipes: &PipeManager,
+    ptys: &PtyManager,
+    terminated: bool,
+    pid: u32,
+    fd: u32,
+    requested: PollEvents,
+) -> KernelResult<PollEvents> {
+    let entry = {
+        let tables = lock_or_recover(fd_tables);
+        tables
+            .get(pid)
+            .ok_or_else(|| KernelError::no_such_process(pid))?
+            .get(fd)
+            .cloned()
+    };
+    if let Some(entry) = entry {
+        fd_entry_readiness(pipes, ptys, terminated, &entry, requested)
+    } else {
+        Ok(POLLNVAL)
+    }
+}
+
+/// Driver-ownership check shared by [`KernelVm::assert_driver_owns`] and the
+/// inline [`KernelPollHandle`].
+fn assert_driver_owns_pids(
+    driver_pids: &Mutex<BTreeMap<String, BTreeSet<u32>>>,
+    requester_driver: &str,
+    pid: u32,
+) -> KernelResult<()> {
+    let driver_pids = lock_or_recover(driver_pids);
+    if driver_pids
+        .get(requester_driver)
+        .map(|pids| pids.contains(&pid))
+        .unwrap_or(false)
+    {
+        return Ok(());
+    }
+
+    if driver_pids.values().any(|pids| pids.contains(&pid)) {
+        return Err(KernelError::permission_denied(format!(
+            "driver \"{requester_driver}\" does not own PID {pid}"
+        )));
+    }
+
+    Err(KernelError::no_such_process(pid))
+}
+
+/// Bounded, event-driven wait the inline non-blocking poll applies when nothing
+/// is ready, so the guest's `poll(0)+retry` spin-wait is paced on the kernel's
+/// `PollNotifier` (the SAME primitive the blocking kernel poll uses) instead of
+/// busy-spinning. NOT a sleep and NOT a resource cap: it bounds how long the
+/// per-session bridge thread parks before re-checking readiness, so the guest
+/// notices new data within this bound while CPU stays idle while parked.
+const KERNEL_POLL_INLINE_BOUND_DEFAULT_US: u64 = 2000;
+
+/// Resolve [`KERNEL_POLL_INLINE_BOUND`], allowing a sweep override
+/// (`SECURE_EXEC_INLINE_POLL_BOUND_US`) for tuning experiments; defaults to
+/// [`KERNEL_POLL_INLINE_BOUND_DEFAULT_US`].
+fn kernel_poll_inline_bound() -> Duration {
+    static B: std::sync::OnceLock<Duration> = std::sync::OnceLock::new();
+    *B.get_or_init(|| {
+        let us = std::env::var("SECURE_EXEC_INLINE_POLL_BOUND_US")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(KERNEL_POLL_INLINE_BOUND_DEFAULT_US);
+        Duration::from_micros(us)
+    })
+}
+
+/// Lock-free (Arc-shared) read-only handle over exactly the kernel managers the
+/// fd-poll readiness path touches (fd table, pipes, ptys, poll notifier, driver
+/// ownership). Cloned from a live [`KernelVm`] via [`KernelVm::poll_handle`] and
+/// handed to a guest's event-bridge thread so a NON-BLOCKING `__kernel_fd_poll`
+/// (timeout 0) can be serviced inline, concurrently with the single shared
+/// service task, without `&mut KernelVm`. All synchronization is via the
+/// managers' existing internal Mutexes; readiness is computed by the SAME free
+/// [`fd_target_readiness`] the kernel's own poll path calls, so the inline answer
+/// can never diverge from the service-loop answer.
+#[derive(Clone)]
+pub struct KernelPollHandle {
+    fd_tables: Arc<Mutex<FdTableManager>>,
+    pipes: PipeManager,
+    ptys: PtyManager,
+    poll_notifier: PollNotifier,
+    driver_pids: Arc<Mutex<BTreeMap<String, BTreeSet<u32>>>>,
+}
+
+impl KernelPollHandle {
+    /// Service a NON-BLOCKING `poll` (timeout 0) inline. Computes per-fd
+    /// readiness exactly as [`KernelVm::poll_fds`] would; if NOTHING is ready,
+    /// parks on the `PollNotifier` for up to [`KERNEL_POLL_INLINE_BOUND`] (the
+    /// busy-spin guard) and re-checks once readiness changes or the bound
+    /// elapses, then returns. The handle has no live view of kernel disposal, so
+    /// `terminated` is treated as `false`: the kernel-wide POLLHUP-on-disposal
+    /// only matters during teardown, when the bridge channel is closing anyway;
+    /// peer-close HUP for pipes/ptys is captured by their own `poll`.
+    pub fn poll_fds_nonblocking(
+        &self,
+        requester_driver: &str,
+        pid: u32,
+        fds: Vec<PollFd>,
+    ) -> KernelResult<PollResult> {
+        assert_driver_owns_pids(&self.driver_pids, requester_driver, pid)?;
+
+        let mut entries = fds;
+        let deadline = Instant::now() + kernel_poll_inline_bound();
+        loop {
+            let observed_generation = self.poll_notifier.snapshot();
+            let mut ready_count = 0usize;
+            for poll_fd in entries.iter_mut() {
+                poll_fd.revents = fd_target_readiness(
+                    &self.fd_tables,
+                    &self.pipes,
+                    &self.ptys,
+                    false,
+                    pid,
+                    poll_fd.fd,
+                    poll_fd.events,
+                )?;
+                if !poll_fd.revents.is_empty() {
+                    ready_count += 1;
+                }
+            }
+            if ready_count > 0 {
+                return Ok(PollResult {
+                    ready_count,
+                    fds: entries,
+                });
+            }
+
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            if remaining.is_zero() {
+                return Ok(PollResult {
+                    ready_count: 0,
+                    fds: entries,
+                });
+            }
+
+            // Event-driven park (not a sleep): returns the instant readiness
+            // changes, or after `remaining`. Either way we loop to re-check, and
+            // the `remaining.is_zero()` guard caps total latency at the bound.
+            if !self
+                .poll_notifier
+                .wait_for_change(observed_generation, Some(remaining))
+            {
+                return Ok(PollResult {
+                    ready_count: 0,
+                    fds: entries,
+                });
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 type CleanupProcessResourcesHook = Arc<dyn Fn() + Send + Sync + 'static>;
 
@@ -2989,21 +3185,15 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
         requested: PollEvents,
     ) -> KernelResult<PollEvents> {
         match target {
-            PollTarget::Fd(fd) => {
-                let entry = {
-                    let tables = lock_or_recover(&self.fd_tables);
-                    tables
-                        .get(pid)
-                        .ok_or_else(|| KernelError::no_such_process(pid))?
-                        .get(fd)
-                        .cloned()
-                };
-                if let Some(entry) = entry {
-                    self.poll_entry(&entry, requested)
-                } else {
-                    Ok(POLLNVAL)
-                }
-            }
+            PollTarget::Fd(fd) => fd_target_readiness(
+                &self.fd_tables,
+                &self.pipes,
+                &self.ptys,
+                self.terminated,
+                pid,
+                fd,
+                requested,
+            ),
             PollTarget::Socket(socket_id) => {
                 let socket = self.sockets.get(socket_id);
                 if let Some(socket) = socket {
@@ -3055,29 +3245,7 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
         entry: &crate::fd_table::FdEntry,
         requested: PollEvents,
     ) -> KernelResult<PollEvents> {
-        if self.pipes.is_pipe(entry.description.id()) {
-            return Ok(self.pipes.poll(entry.description.id(), requested)?);
-        }
-
-        if self.ptys.is_pty(entry.description.id()) {
-            return Ok(self.ptys.poll(entry.description.id(), requested)?);
-        }
-
-        let access_mode = entry.description.flags() & 0b11;
-        let mut events = PollEvents::empty();
-        if requested.intersects(POLLIN) && access_mode != crate::fd_table::O_WRONLY {
-            events |= POLLIN;
-        }
-        if requested.intersects(POLLOUT) && access_mode != crate::fd_table::O_RDONLY {
-            events |= POLLOUT;
-        }
-        if entry.filetype == FILETYPE_DIRECTORY && requested.intersects(POLLOUT) {
-            events |= POLLERR;
-        }
-        if self.terminated {
-            events |= POLLHUP;
-        }
-        Ok(events)
+        fd_entry_readiness(&self.pipes, &self.ptys, self.terminated, entry, requested)
     }
 
     fn description_for_fd(
@@ -3103,22 +3271,22 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
     }
 
     fn assert_driver_owns(&self, requester_driver: &str, pid: u32) -> KernelResult<()> {
-        let driver_pids = lock_or_recover(&self.driver_pids);
-        if driver_pids
-            .get(requester_driver)
-            .map(|pids| pids.contains(&pid))
-            .unwrap_or(false)
-        {
-            return Ok(());
-        }
+        assert_driver_owns_pids(&self.driver_pids, requester_driver, pid)
+    }
 
-        if driver_pids.values().any(|pids| pids.contains(&pid)) {
-            return Err(KernelError::permission_denied(format!(
-                "driver \"{requester_driver}\" does not own PID {pid}"
-            )));
+    /// Clone a lock-free, read-only [`KernelPollHandle`] over exactly the managers
+    /// the fd-poll readiness path touches. Lets a guest's event-bridge thread
+    /// service a NON-BLOCKING `__kernel_fd_poll` inline (off the single shared
+    /// service task) without `&mut self`; every field is Arc-shared so the handle
+    /// and the kernel observe the same state.
+    pub fn poll_handle(&self) -> KernelPollHandle {
+        KernelPollHandle {
+            fd_tables: Arc::clone(&self.fd_tables),
+            pipes: self.pipes.clone(),
+            ptys: self.ptys.clone(),
+            poll_notifier: self.poll_notifier.clone(),
+            driver_pids: Arc::clone(&self.driver_pids),
         }
-
-        Err(KernelError::no_such_process(pid))
     }
 
     fn cleanup_process_resources(&self, pid: u32) {
