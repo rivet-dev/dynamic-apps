@@ -278,7 +278,28 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 }
                 flush_sidecar_requests(&mut sidecar, &write_tx)?;
             }
+            _ = secure_exec_execution::process_event_notify().notified() => {
+                // F1 event-driven ingest: the V8/wasm event-bridge thread poked the
+                // global notify the instant a guest sync-RPC (or stdout/exit) landed,
+                // so drain it now instead of waiting for the next event_pump.tick().
+                // This removes up to one timer interval of latency per guest RPC and
+                // is what closes the first-paint ingest gate without over-pumping ir.
+                // Clear the coalescing flag FIRST so events that arrive during this drain
+                // re-arm a fresh wake (no lost notifications); the drain below empties the
+                // whole queue so a burst collapses into one pass.
+                secure_exec_execution::process_event_drain_pending()
+                    .store(false, std::sync::atomic::Ordering::Release);
+                for session in active_sessions.iter().cloned().collect::<Vec<_>>() {
+                    if sidecar.pump_process_events(&session.compat_ownership_scope()).await? {
+                        let _ = event_ready_tx.try_send(());
+                    }
+                }
+                flush_sidecar_requests(&mut sidecar, &write_tx)?;
+            }
             _ = event_pump.tick() => {
+                // Slow safety-net for any event source that does not poke the notify
+                // above (e.g. deferred/internal sync-RPC completions). The notify is
+                // the hot path; this timer just guarantees liveness.
                 for session in active_sessions.iter().cloned().collect::<Vec<_>>() {
                     if sidecar.pump_process_events(&session.compat_ownership_scope()).await? {
                         let _ = event_ready_tx.try_send(());

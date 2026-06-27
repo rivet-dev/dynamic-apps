@@ -2871,6 +2871,50 @@ fn spawn_v8_event_bridge(
     receiver
 }
 
+/// Process-global wake signal for event-driven sync-RPC ingest (F1).
+///
+/// The V8/wasm event-bridge thread ([`spawn_v8_event_bridge`]) feeds guest
+/// sync-RPC requests (and stdout/stderr/exit) into a per-process tokio channel
+/// that the sidecar drains in `pump_process_events`. Historically the sidecar
+/// only drained that channel on a 250µs timer, so a blocked guest call waited up
+/// to one timer interval before the host even looked. This Notify lets the
+/// producer poke the sidecar's select! the instant an event lands, so an RPC
+/// dispatches immediately instead of after the ingest-gate delay. The sidecar
+/// keeps the timer as a slow safety-net for any event source that does not poke
+/// this signal. `notify_one` coalesces bursts into a single permit with no lost
+/// wakeups (the drain loop empties everything per wake), so it is safe to call
+/// on every event regardless of whether a waiter is currently parked.
+pub fn process_event_notify() -> &'static tokio::sync::Notify {
+    static NOTIFY: std::sync::OnceLock<tokio::sync::Notify> = std::sync::OnceLock::new();
+    NOTIFY.get_or_init(tokio::sync::Notify::new)
+}
+
+/// Coalescing flag for [`process_event_notify`]. Set by the producer before it notifies; cleared by the
+/// sidecar drain at the top of its notify branch. A BURST of events (the X-redraw exchange fans out many
+/// events in a few ms) thus collapses into ONE wake + drain instead of one wake per event — the drain
+/// already empties the whole queue. Without this, the busy warm-redraw path paid redundant all-session
+/// drains and regressed input→response ~93→~128ms while still winning first-paint; coalescing keeps the
+/// ~1.3s first-paint win without the ir cost.
+pub fn process_event_drain_pending() -> &'static std::sync::atomic::AtomicBool {
+    static PENDING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    &PENDING
+}
+
+/// F1 event-driven ingest is OFF by default (the global notify never fires, so the sidecar falls back to
+/// the 250µs `event_pump` timer — original behaviour, byte-for-byte). `SECURE_EXEC_EVENT_INGEST=1` turns it
+/// ON. MEASURED: ON cuts first-paint ~4.0s→~2.66s (cold init is throughput-bound) but REGRESSES
+/// input→response ~93→~131ms (the warm-redraw ping-pong is latency-bound and the aggressive per-event drain
+/// adds dispatch-thread contention). Kept gated until a form is found that wins fp without the ir cost
+/// (per-session drain / queue-depth-adaptive aggressiveness / cold-init-only). Diagnostic knob.
+fn event_ingest_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_EVENT_INGEST")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    })
+}
+
 fn send_javascript_event(
     sender: &tokio::sync::mpsc::Sender<JavascriptExecutionEvent>,
     v8_session: &V8SessionHandle,
@@ -2882,7 +2926,17 @@ fn send_javascript_event(
     }
 
     match sender.try_send(event) {
-        Ok(()) => true,
+        Ok(()) => {
+            // Coalesce: only wake the sidecar drain if one is not already pending (the drain empties the
+            // whole queue, so a single wake per burst suffices). Avoids per-event drain contention on the
+            // single dispatch thread during the X-redraw event burst. Gated OFF by default (timer fallback).
+            if event_ingest_enabled()
+                && !process_event_drain_pending().swap(true, std::sync::atomic::Ordering::AcqRel)
+            {
+                process_event_notify().notify_one();
+            }
+            true
+        }
         Err(TokioTrySendError::Full(_)) => {
             let _ = v8_session.destroy();
             false

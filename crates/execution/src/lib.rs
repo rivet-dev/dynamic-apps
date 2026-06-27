@@ -18,11 +18,13 @@ pub mod python;
 pub mod wasm;
 
 pub use javascript::{
-    CreateJavascriptContextRequest, DeferredSyncRpcResponder, GuestRuntimeConfig, JavascriptContext,
-    JavascriptExecution, JavascriptExecutionEngine, JavascriptExecutionError,
-    JavascriptExecutionEvent, JavascriptExecutionLimits, JavascriptExecutionResult,
-    JavascriptSyncRpcRequest, LocalModuleResolutionCache, LocalResolvedModuleFormat, ModuleFsReader,
-    ModuleResolveMode, ModuleResolver, StartJavascriptExecutionRequest,
+    process_event_drain_pending, process_event_notify, CreateJavascriptContextRequest,
+    DeferredSyncRpcResponder,
+    GuestRuntimeConfig, JavascriptContext, JavascriptExecution, JavascriptExecutionEngine,
+    JavascriptExecutionError, JavascriptExecutionEvent, JavascriptExecutionLimits,
+    JavascriptExecutionResult, JavascriptSyncRpcRequest, LocalModuleResolutionCache,
+    LocalResolvedModuleFormat, ModuleFsReader, ModuleResolveMode, ModuleResolver,
+    StartJavascriptExecutionRequest,
 };
 pub use python::{
     CreatePythonContextRequest, PythonContext, PythonExecution, PythonExecutionEngine,
