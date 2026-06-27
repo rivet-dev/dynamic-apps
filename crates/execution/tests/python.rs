@@ -712,6 +712,14 @@ export async function loadPyodide(options) {
                             },
                         )
                         .expect("respond to read_dir"),
+                    PythonVfsRpcMethod::Unlink
+                    | PythonVfsRpcMethod::Rmdir
+                    | PythonVfsRpcMethod::Rename => {
+                        panic!(
+                            "unexpected mutating-FS Python RPC in this test: {:?}",
+                            request.method
+                        )
+                    }
                     PythonVfsRpcMethod::HttpRequest
                     | PythonVfsRpcMethod::DnsLookup
                     | PythonVfsRpcMethod::SubprocessRun => {
