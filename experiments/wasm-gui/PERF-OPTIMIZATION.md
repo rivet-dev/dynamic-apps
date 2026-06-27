@@ -461,6 +461,30 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 
 ### Verdict log (newest first)
 
+- **2026-06-29 — BUILD-FLAG track tested: `-O3` vs `-Oz` is NULL, `fpcast-emu` is REQUIRED + is the root.**
+  The user opted into the toolchain/build track. Tested the build-flag levers on B1 (bench-gobject, which
+  directly measures GObject op cost and avoids mousepad's threading/link issues):
+  - **wasm-opt `-O3` (speed) vs `-Oz` (size): NULL** — GObject new+unref 0.69 µs (Oz) vs 0.72 µs (O3),
+    set+get 0.57 vs 0.57, emit 0.16 vs 0.16. The optimization LEVEL does not matter. (Same on mousepad:
+    re-optimizing the working `-Oz` binary with `-O3` gave 10.0/9.8/10.5s ≈ baseline; the `-Oz` size
+    transforms are already applied and `-O3` can't recover them.)
+  - **Dropping `--fpcast-emu`: BREAKS** — `RuntimeError: null function or function signature mismatch`.
+    GObject genuinely casts function pointers across signatures, so fpcast-emu is REQUIRED; it can't be
+    removed at the build-flag level. And because the fpcast thunks are opaque, they also BLOCK wasm-opt's
+    inlining — which is why `-O3` is null.
+  - **Conclusion: `fpcast-emu` is the root of the ~23× GObject overhead AND is non-removable via flags.**
+    The fix is a TOOLCHAIN UPGRADE, not a flag: a clang new enough to carry **LLVM PR #153168** (per-call-
+    site function-pointer cast trampolines for the wasm target, motivated by exactly GLib's casting ABI —
+    needed only when *building GLib*, not when linking it) eliminates the whole-program fpcast-emu pass.
+    Alternatively the typed-function-references / `call_ref` path (WasmGC, shipped in V8) lets mismatched
+    casts be checked natively (~1 pointer compare). Both require rebuilding GLib/GObject/GTK with a newer
+    wasi-sdk/clang — a real project, but the ONLY path to the 20–80× compute collapse. (Background research
+    report saved: `2026-06-29-wasm-perf-research.md`.) Other levers checked: V8 trap-handler bounds checks
+    (~25–30%, but rusty_v8 v8-130 does NOT expose `EnableWebAssemblyTrapHandler` — blocked); V8 inlining
+    flags (single-pass init stays in Liftoff, so they don't help first-paint); `-flto` (likely also blocked
+    by the opaque fpcast thunks — untested, heavy rebuild). Frame-limit raise (256 MB) was test-only,
+    reverted.
+
 - **2026-06-29 — ★★★★★ MAJOR REDIAGNOSIS: mousepad first-paint is COMPUTE-BOUND, not wait-bound. The
   goal's premise ("98.6% parked in the poll loop = pure waiting") was a V8-profiler MISREAD.** Two
   independent measurements prove it:
