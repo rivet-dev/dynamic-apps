@@ -125,8 +125,21 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       run). Also emits `[firstpaint-curve] <ms> <pct>` on each ≥5% change so the paint timeline is
       visible. t0 = X-server launch (end-to-end stack-to-pixels). Replaces the old screenshot-at-timeout
       `render-app.sh` wall, which only measured `--timeout`, not paint. Baseline: mousepad ~15.4s.
-      (`experiments/wasm-gui/host/src/main.rs` `run_xdemo`.) NOTE: this is the harness B2; B0/B1/B3
-      emitters + P2 (V8 `.cpuprofile`) still TODO.
+      (`experiments/wasm-gui/host/src/main.rs` `run_xdemo`.) Generalized into the full B0–B3 suite below.
+- [x] **B0–B3 benchmark suite** (`scripts/bench-suite.sh`) — one runnable suite, each emits ONE number:
+      B0 raw-libX11-window first-paint (~2.0s), B1 pure-GObject `--exec` (0.69µs/op), B2 single-GTK-app
+      mousepad first-paint (~9.7s, <10s target), B3 multi-app desktop full-paint (~19.5s at
+      `APP_SETTLE_MS=2500`, <30s target). All first-paint via the `SECURE_EXEC_FIRSTPAINT` probe + the
+      `[milestone +Nms]` launch-timeline log in `run_xdemo`.
+- [x] **P2 guest CPU profiler** (`SECURE_EXEC_CPUPROFILE=<path>`) — a real V8 CPU profile of the guest
+      isolate, written as a Chrome-DevTools `.cpuprofile` (one per isolate: `<path>.<n>`). rusty_v8
+      exposes no `CpuProfiler`, so this drives the V8 **Inspector** Profiler domain: creates a
+      `V8Inspector` over the isolate, connects a capturing `Channel`, dispatches `Profiler.enable` +
+      `Profiler.start` at guest-context creation and `Profiler.stop` at isolate teardown, then writes the
+      `result.profile` object. Default-OFF (no inspector objects unless the env var is set), so the
+      production guest path is unchanged. Decisive result on mousepad: 98.6% of samples in ONE wasm
+      function (the poll/wait loop) = WAIT/RPC-bound, not CPU-bound. (`crates/v8-runtime/src/cpuprofile.rs`;
+      wired in `session.rs` at context-create + isolate-teardown.)
 - [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
       `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
       line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it

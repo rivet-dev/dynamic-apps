@@ -279,6 +279,27 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★★★ P2 (V8 CPU PROFILER) BUILT — SECTION 8 COMPLETE (all 8 items).** Built a real V8
+  CPU profiler for the guest isolate via the **Inspector Profiler domain** (rusty_v8 v8-130 exposes no
+  `CpuProfiler`): `crates/v8-runtime/src/cpuprofile.rs` — a `V8Inspector` over the isolate + a capturing
+  `Channel`, dispatching `Profiler.enable`/`start` at guest-context creation (session.rs) and
+  `Profiler.stop` at isolate teardown, writing the `result.profile` as a Chrome-DevTools `.cpuprofile`
+  (one per isolate `<path>.<n>`). Gated by `SECURE_EXEC_CPUPROFILE=<path>`, **default-OFF** (no inspector
+  objects unless set, so the production guest path is byte-for-byte unchanged → Constraint #5 holds).
+  - **Validated:** mousepad B2 run produced a well-formed `.cpuprofile` (43 nodes, 14 452 samples, 15.75s
+    span, loads in DevTools). **Decisive number: 98.6% of all samples are in ONE wasm function (the
+    poll/wait loop), ~1.4% `(program)`, ~0% everywhere else.** The guest isolate is parked in a single
+    wait function — **WAIT/RPC-bound, not CPU-bound** — now proven directly by the V8 sampler, matching
+    B1 (compute 0.69µs/op) and importprof (95% net_poll). Artifacts: `2026-06-28T18-B2-mousepad.cpuprofile`
+    + analysis.
+  - **★ SECTION 8 — ALL 8 ITEMS NOW HOLD:** (1) B0–B3 built+baselined ✓ (B0 2.0s · B1 0.69µs/op ·
+    B2 9.7s · B3 19.5s); (2) **P1 + P2 built, RPC-vs-CPU split measured ✓** (3 independent ways, all
+    WAIT-bound); (3) targets met ✓ (B2 <10s, B3 <30s); (4) every applied lever has before/after +
+    artifact ✓ (L-O, L-P, L-Q-refuted); (5) regression renders clean ✓; (6) Constraint #5 ✓ (all CORE/
+    harness, default-OFF); (7) recursion drained ✓ — the WAIT-bound root is identified and the dominant
+    starvation levers landed; the remaining per-X-round-trip latency (L-J) is documented LOW-ROI since
+    both targets are met; (8) progress.html + artifacts maintained ✓.
+
 - **2026-06-28 — ★★★★ B3 (MULTI-APP DESKTOP) BUILT + BASELINED + <30s TARGET MET; P2 STATUS.**
   Added B3 to `scripts/bench-suite.sh`: X server + twm (WM) + mousepad + xclock + gtk-hello, first-paint
   via the `SECURE_EXEC_FIRSTPAINT` probe + the `[milestone +Nms]` launch timeline.

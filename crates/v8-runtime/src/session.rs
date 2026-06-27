@@ -770,6 +770,10 @@ fn session_thread(
     let mut v8_isolate: Option<v8::OwnedIsolate> = None;
     #[cfg(not(test))]
     let mut _v8_context: Option<v8::Global<v8::Context>> = None;
+    // P2 guest CPU profiler (SECURE_EXEC_CPUPROFILE=<path>, default-OFF). Started on the first guest
+    // context creation; stopped + written at isolate teardown. None unless the env var is set.
+    #[cfg(not(test))]
+    let mut cpu_profiler: Option<crate::cpuprofile::GuestCpuProfiler> = None;
 
     // Whether the isolate was created from a context snapshot.
     // When true, Execute uses the snapshot's default context (bridge IIFE
@@ -874,6 +878,12 @@ fn session_thread(
                             *isolate_handle
                                 .lock()
                                 .expect("session isolate handle lock poisoned") = None;
+                            // P2: flush the profile before this isolate is torn down for reconfigure.
+                            if let Some(profiler) = cpu_profiler.take() {
+                                if let Some(iso) = v8_isolate.as_mut() {
+                                    profiler.stop_and_write(iso);
+                                }
+                            }
                             drop(_v8_context.take());
                             drop(v8_isolate.take());
                             from_snapshot = false;
@@ -929,6 +939,13 @@ fn session_thread(
                         // (bridge IIFE already executed, all infrastructure set up).
                         // On a non-snapshot isolate, this gives a blank context.
                         let exec_context = isolate::create_context(iso);
+
+                        // P2: begin CPU profiling on the first guest context (default-OFF; no-op unless
+                        // SECURE_EXEC_CPUPROFILE is set). Captures the whole guest run until teardown.
+                        if cpu_profiler.is_none() {
+                            cpu_profiler =
+                                crate::cpuprofile::GuestCpuProfiler::start(iso, &exec_context);
+                        }
 
                         // Inject globals from last InjectGlobals payload
                         if let Some(ref payload) = last_globals_payload {
@@ -1480,6 +1497,12 @@ fn session_thread(
         *isolate_handle
             .lock()
             .expect("session isolate handle lock poisoned") = None;
+        // P2: stop profiling + write the .cpuprofile while the isolate is still alive (default-OFF).
+        if let Some(profiler) = cpu_profiler.take() {
+            if let Some(iso) = v8_isolate.as_mut() {
+                profiler.stop_and_write(iso);
+            }
+        }
         drop(_v8_context.take());
         drop(v8_isolate.take());
     }

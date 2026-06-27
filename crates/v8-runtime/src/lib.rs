@@ -1,4 +1,5 @@
 pub mod bridge;
+pub mod cpuprofile;
 pub mod embedded_runtime;
 pub mod execution;
 pub mod host_call;
