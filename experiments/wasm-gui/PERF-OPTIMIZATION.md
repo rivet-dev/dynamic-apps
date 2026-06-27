@@ -316,6 +316,13 @@ small lever.** Two candidate redesigns (a DECISION, see lever menu C / C-lite be
   `&mut kernel`; productive/blocking polls fall through. Reuses the lever-A `InlineNetDrain` seam. MEDIUM
   refactor (hooks kernel fd lifecycle to maintain the shadow map); narrower + lower-risk than full C, but
   only covers the non-blocking poll case. This is the natural extension of the landed lever-A groundwork.
+  **★ ASSUMPTION VALIDATED (2026-06-30, pipe-trace + hopsplit):** `_kernelFdPollRaw` is **99.7% EMPTY** —
+  only ~29 of ~9000 polls/run return any readiness (the X event loop spin-polls its connection fd). So a
+  C-lite inline fast-path answers ~all 9000 off-task; only ~29 productive polls fall through to `&mut
+  kernel`. The empty-poll d12 (~413-575µs) is the latency the peer pays to notice new data (it sees it only
+  on its NEXT poll), so cutting it cuts the cross-guest round-trip. RISK to design for: instant inline
+  empty-polls must NOT become a guest busy-spin — honor the poll timeout / preserve event-driven pacing (the
+  "wakeups event-driven, never timer-polled" constraint), else CPU burns with no ir gain.
 - **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
   (extend the existing T1-ring substrate, `SECURE_EXEC_T1_RING`); data becomes direct memory, host only
   *wakes* the peer (~31µs). Deepest, highest ceiling, biggest change.
