@@ -219,6 +219,76 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+---
+### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
+The `/goal` references this section for detail; keep it current.
+
+**Targets:** mousepad B2 **input→response (ir) < 50ms AND first-paint (fp) < 2000ms** (each best/median of
+≥3 runs, render gate green). Native ref ~6ms / ~110ms.
+**Current committed default (perf-pivot-work):** **ir ~88ms, fp ~2.5s**, render green. Stable.
+
+**Wins already landed (do not redo):** L-W module delivery (fp 9→4s); F1b cold-boot-windowed event-ingest
+default-on (fp 4.3→2.5s, no ir cost); the **fingerprint fix** (host fb-change probe now hashes EVERY byte —
+`SECURE_EXEC_FB_STRIDE`, default 1 — so ir reads its true ~88ms; the old 1031-stride missed the small
+single-glyph damage and over-reported ~234ms); a stack of default-off diagnostic probes
+(`HOPPROF`/`DRAINPROF`/`HOPSPLIT`/`SYNCSPLIT`/`WAKETRACE`/`xtrace --rt`; guest probes REQUIRE
+`SECURE_EXEC_PERFCLOCK=1`; env forwarding to the guest was fixed mid-effort).
+
+**DEFINITIVE ir DIAGNOSIS (don't re-derive):** ir = **~46 causally-serial cross-guest sync-RPC hops** — the
+X client (mousepad) and server (Xvfb) alternate, each waiting on the other (intrinsic interactive-X
+causality; the count can't drop by parallelizing). Each hop's **~570µs floor is the single-threaded shared
+dispatch loop** (tokio current-thread holding `&mut self` over the whole sidecar), reached via **3 thread
+handoffs**: guest isolate → per-session event-bridge thread → shared service loop → kernel → respond →
+guest unpark. Seam: `__agentOsWasmSyncRpc` (`crates/execution/src/wasm.rs` switch →
+`_netSocketPollWaitRaw.applySync` @~4677) → `sync_bridge_callback` (`crates/v8-runtime/src/bridge.rs`) →
+`ctx.sync_call` (`host_call.rs`). Host service is ~3µs and bridge plumbing ~31µs — the 570µs is **dispatch
+latency/contention, not host work or wake latency** (the 250µs pump is at the joint ir/fp optimum — DO NOT
+tune it; below regresses, above is flat).
+
+**REMAINING LEVER MENU — attack the per-hop FLOOR (hits all ~46 hops) over count reduction:**
+- **A [TOP — best risk-adjusted] F10-INLINE:** service `net.poll`/drain INLINE on the event-bridge thread,
+  skipping the shared-loop hop (module/log calls already do this via `handle_internal_bridge_call`). Only
+  blocker: the drain touches per-process `ActiveProcess` socket maps owned by the main loop — but the drain
+  is just an `mpsc try_recv` (`ActiveUnixSocket::poll`, no kernel), so add **per-process locking** to
+  unblock. Cuts the 570µs for every net hop.
+- **B F3-DEFERRED (reader-carry):** the off-thread socket reader (`spawn_unix_socket_reader` +
+  `poll_waiter_loop`) drains the bytes and carries them INTO the `poll_wait` completion (which today returns
+  only `{generation}`, forcing a separate drain hop). Removes ~half the hops. Concurrency/protocol redesign.
+- **C multi-thread the dispatch loop:** per-session/per-VM dispatch so guests don't serialize on one
+  `&mut self`. Removes the contention entirely; large core refactor.
+- **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
+  (extend the existing T1-ring substrate, `SECURE_EXEC_T1_RING`); data becomes direct memory, host only
+  *wakes* the peer (~31µs). Deepest, highest ceiling, biggest change.
+- **fp residual (~0.5s to <2s):** A/C/D help boot too (same chain). The fontconfig/icon cache rebuild
+  (~1.4s) is the other big fp chunk but is **fixture/base-FS provisioning, NOT CORE** — needs explicit
+  scope-OK before pursuing.
+
+**KNOWN-NULL / DISPROVEN for ir — do NOT re-chase (each cost rounds):** F2 atom/reply caching (only 2–5
+reply-bearing X round-trips/keypress); F4 `POLL_DIRECT`; F5 X-round-trip-count reduction (causality
+intrinsic); F6/F7 empty-drain skip; F8 event coalescing (events are causally serial, ≤1 buffered/drain);
+cheap-inline F3 (productive wakes are deferred OFF-thread, no `&mut` to drain); F9 raw-bridge micro-opt
+(~31µs); F10 consumer-spin (`SECURE_EXEC_SYNCSPIN`); pump-interval tuning (250µs is the optimum);
+**F12-POLLGEN REGRESSED** (the `net.poll_wait([0,0])` snapshot hop is load-bearing for input-event
+sequencing — removing it breaks render delivery); worker-bridge instrumentation (wasm-gui has no worker
+thread on this path); F1-eager-warm (regresses ir via contention). Prior known-null still holds:
+toolchain/fpcast (GObject ~2.8× native); V8 inlining; bulk-SAB module read (slower 701>553ms);
+module/runner code-cache (compile 3–14ms); fontconfig/icon caches = provisioning.
+
+**LOOP DISCIPLINE & MECHANISM:** SERIAL ONLY (single X `:0`, one build dir, one deployed binary — never two
+benchmarks at once; no parallel builds, the box spikes to load ~90). Measure with
+`bash experiments/wasm-gui/scripts/bench-ir.sh "<EXTRA_ENV>" 3` (full-byte fingerprint, prints ir/fp/render
+per run). Cycle: pick the top lever/unblocking-diagnostic → implement in CORE → build
+(`CARGO_HOME=/home/nathan/sx-wg-cargo cargo build -p secure-exec-sidecar -p wasm-gui-host --target-dir
+/home/nathan/sx-wg-target`) → `cp` both binaries to `target/debug/` → bench ≥3 runs BOTH metrics → render
+green → a clean win (clears noise on ≥3 runs, no regression) commits to `perf-pivot-work`; a null/regress
+REVERTS (`jj restore --from perf-pivot-work <files>`); a fix that wins one metric but regresses the other is
+**gated behind a default-off env flag (like F1) and committed gated**, never as a default regression →
+record verdict + numbers → re-rank. May run via the ultracode `frame-budget-loop` workflow (serial,
+re-invocable; if a round dies on a transient API rate-limit, finish/relaunch manually). Diagnostics stay
+default-OFF. Constraint #5: CORE only (`crates/{sidecar,execution,v8-runtime,bridge,secure-exec-kernel}`),
+NO guest binary edits; pause for never-self-approve items (host-fd, host-network, GPU, D-Bus-to-host).
+---
+
 - **★★★★★ BREAKTHROUGH (2026-06-29, subagent-assisted) — prior "unreachable/exhausted" verdict was WRONG.**
   Two discoveries overturn it:
   1. **input→response was MIS-MEASURED: real ir ≈ 93ms, not 234ms.** The host fb-change probe hashed only
