@@ -48,12 +48,24 @@ The per-cause split is currently a *hypothesis*. These two artifacts replace the
 - **P1 — sidecar per-method service-time accumulator.** Accumulate µs per RPC method on the service
   thread and dump a histogram at exit (**accumulate, do NOT `eprintln` per-call** — avoid the
   observer effect). Answers: which syscalls dominate the RPC wait, and total time-in-service-thread.
+- **P1-guest — guest-side RPC time** (`SECURE_EXEC_RPCPROF`, default-OFF). Per-method (count,
+  blocking-µs) of `callSyncRpc` measured *guest-side*, dumped every 20k calls with per-isolate
+  attribution. The DELTA vs P1 (sidecar service time) = bridge/marshaling overhead; total guest-RPC-µs
+  vs wall = round-trip-bound vs compute-bound. Uses the real clock **only** under the determinism
+  guardrail in §7. (`crates/execution/src/node_import_cache.rs` `callSyncRpc`, `__rpcprof`.)
 - **P2 — V8 CPU profile of the guest isolate.** Capture the isolate self-time split (wasm exec vs JS
   shims vs `ffi_call`/GObject vs encoders vs the RPC bridge). The *only* thing that captures the
   GObject/JS-side cost. (V8 Inspector / `--cpu-prof`-style; reuse the debugger seam if present.)
 
 **The first number to get: service-thread-wait vs isolate-compute.** It decides RPC-bound vs
 CPU-bound, which picks the first lever. Adding targeted logs to get more info is fine.
+
+> **Determinism guardrail (verified):** profiling MUST NOT weaken guest determinism/isolation. The
+> guest-facing clock stays frozen by default — `globalThis.performance.now() === 0`, and
+> `Date`/`process.hrtime` are virtualized. The real monotonic clock (`originalPerformance`, captured
+> once before the freeze) is **module-scope**, is **never placed on `globalThis`** or any
+> guest-reachable object, and is bound **only** when the opt-in `SECURE_EXEC_RPCPROF` debug flag is set.
+> So the guest cannot read a real clock by default; exposing one is a deliberate, debug-only opt-in.
 
 ## 5. Optimization loop (profile-guided, one lever at a time)
 
@@ -95,6 +107,9 @@ levers as profiling surfaces new costs (recursion).
 - **Regression gate green every iteration.** A fixed smoke suite (the GUI render tests + the GWakeup
   probe + a conformance subset) must stay green after each lever.
 - **Default-OFF diagnostics**, committed on `perf-pivot-work`, cataloged in `INTERNAL-TOOLING.md`.
+- **Profiling never weakens guest determinism/isolation** (see the §4 guardrail): the real clock
+  (`originalPerformance`) stays module-scope, never on `globalThis`/any guest-reachable object, bound
+  only under the opt-in `SECURE_EXEC_RPCPROF` flag; the default guest clock stays frozen.
 - **Never-self-approve** (require explicit sign-off): D-Bus-to-host, host-fd, GPU, host-network.
 
 ## 8. Completion bar (DONE only when ALL hold)
@@ -110,4 +125,17 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
-_(empty — seed Phase 0: build B0-B3 + P1/P2, then baseline.)_
+- **2026-06-27 — Baseline #1 (mousepad startup+run, ~185s wall, 3 guests, P1): the service thread is
+  NOT the bottleneck.** 456,000 RPCs total; `total_service_ms` = **4985ms (~5s)** → the single kernel
+  service thread is **~97% idle**. Startup is **NOT RPC-work-bound** (refutes the T-H "service thread
+  saturated" hypothesis *for single-app startup*; T-H may still bite the 5-app case via contention).
+  **~99.8% of RPCs are POLLING:** `__kernel_fd_poll` 146k (38%), `net.poll_wait` 168k (31%), `net.poll`
+  98k (13%), `net.server_accept` 42k (12%, the dbus-daemon accept loop). Real work RPCs are tiny: 157
+  `__kernel_fd_read`, 500 `net.write`, 6 `fs.*` — **~30ms total**. `net.poll_wait` avg **9.2µs** =
+  immediate return → a **busy-poll signature** (polls keep finding something ready, guest re-polls).
+  `net.listen`: 2 calls, 263ms (131ms each — slow setup, minor). **Verdict: the ~120s is ISOLATE-SIDE**
+  — guest compute (GObject `ffi_call` / wasm / JS) and/or the round-trip overhead of 456k poll RPCs
+  (at ~100-200µs guest round-trip each, the polls alone are ~45-90s). **Next: P2 — split
+  guest-RPC-blocked-time vs guest-compute-time** (decides poll-reduction vs compute-optimization).
+  Artifact: `/tmp/p1-mousepad.log`. (Caveat: includes dbus-daemon + xfconfd; ~42k polls are the dbus
+  accept loop — per-pid attribution + a clean single-app B2 will sharpen this.)

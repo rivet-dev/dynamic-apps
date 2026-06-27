@@ -11115,6 +11115,11 @@ function readSyncRpcLine() {
   }
 }
 
+// Real monotonic clock for the OPT-IN RPC profiler ONLY (SECURE_EXEC_RPCPROF). SECURITY/DETERMINISM:
+// the guest-facing `globalThis.performance.now` is frozen to `() => 0` (above) and the guest NEVER sees
+// the real clock by default. This reference is module-scope (NOT on globalThis or any guest-reachable
+// object) and stays `null` unless the profiler flag is set, so enabling it is a deliberate debug action.
+let __rpcProfNow = null;
 function callSyncRpc(method, args = []) {
   if (
     globalThis.__agentOsSyncRpc &&
@@ -11123,7 +11128,10 @@ function callSyncRpc(method, args = []) {
     // Optional sync-RPC profiler (off unless globalThis.__rpcprof is set): count + blocking-time by
     // method, logged every 5s. Used to find the dominant round-trip cost when tuning toward native speed.
     if (globalThis.__rpcprof) {
-      const _np = (globalThis.__rpcNow || (globalThis.__rpcNow = (typeof performance === 'object' && performance.now ? () => performance.now() : () => Date.now())));
+      // Bind the REAL clock (originalPerformance, saved before the guest performance.now was frozen to
+      // () => 0) lazily, only now that the opt-in profiler is active, into a module-scope ref that is
+      // never exposed on globalThis. Plain performance.now() here would read the frozen stub (0ms).
+      const _np = (__rpcProfNow || (__rpcProfNow = ((typeof originalPerformance === 'object' && originalPerformance && typeof originalPerformance.now === 'function') ? originalPerformance.now.bind(originalPerformance) : () => Date.now())));
       const _t0 = _np();
       const _r = globalThis.__agentOsSyncRpc.callSync(method, args);
       const _dt = _np() - _t0;
