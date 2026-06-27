@@ -4,8 +4,13 @@
 # target/debug/{secure-exec-sidecar,wasm-gui-host}. Prints one line per run:
 #   RUN <i>: ir=<ms> fp=<ms> render=<fc>fc/<traps>traps/<ok|MISS>
 # input→response uses the FULL-BYTE fingerprint (accurate; the old strided default over-reported ~2.6x).
+# ir measures a SINGLE keystroke (SECURE_EXEC_IR_TEXT=H) — the true input→response. The old default typed
+# "HELLO" (5 chars) and the 15ms-per-char typist pacing sleep runs synchronously BEFORE the detect loop, so
+# it baked ~75ms of pacing into ir and could never read below ~75ms regardless of render speed (the "88ms"
+# artifact). Override SECURE_EXEC_IR_TEXT to measure a multi-char typing scenario. See §6 RESOLUTION.
 # Build+deploy is the CALLER's job (edit code -> cargo build -> cp to target/debug). This only measures.
 set -u
+export SECURE_EXEC_IR_TEXT="${SECURE_EXEC_IR_TEXT:-H}"
 EXP=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui
 REPO=/home/nathan/secure-exec-wasmgui
 HOST="$REPO/target/debug/wasm-gui-host"

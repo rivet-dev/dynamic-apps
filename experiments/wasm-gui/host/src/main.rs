@@ -496,7 +496,15 @@ mod xinput {
             let map = self.keysym_map()?;
             // Shift_L keysym = 0xffe1.
             let shift_kc = map.get(&0xffe1).map(|&(kc, _)| kc);
-            for ch in text.chars() {
+            for (i, ch) in text.chars().enumerate() {
+                // Pace BETWEEN keystrokes (before every char after the first) like a human typist so a
+                // burst doesn't outrun the guest's read/redraw cycle — but with NO trailing sleep after
+                // the last keystroke. The old code slept 15ms AFTER every char incl. the last, which the
+                // ir probe (it injects then measures inject→render) counted as latency: for a single
+                // keystroke that added a spurious 15ms, and for "HELLO" ~75ms (the measurement artifact).
+                if i > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(15));
+                }
                 // ASCII printables map keysym==codepoint; a couple of control chars map to named keysyms.
                 let ks: u32 = match ch {
                     '\n' => 0xff0d, // Return
@@ -517,9 +525,6 @@ mod xinput {
                         self.key(sk, false)?;
                     }
                 }
-                // Pace keystrokes like a human typist so the terminal's polling loop drains each one
-                // (a zero-delay burst can outrun the guest's read/redraw cycle).
-                std::thread::sleep(std::time::Duration::from_millis(15));
             }
             Ok(())
         }

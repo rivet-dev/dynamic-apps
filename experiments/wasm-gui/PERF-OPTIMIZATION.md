@@ -239,9 +239,20 @@ The `/goal` references this section for detail; keep it current.
 > (`bench-ir.sh` default → `SECURE_EXEC_IR_TEXT=H`, or measure inject→render with no pacing). Do NOT keep
 > chasing the 5-char number; it measures typing cadence, not input→response. Levers A + C-lite stay gated-off.
 
-**Targets (ir is the FOCUS):** primary **input→response (ir) < 50ms**; secondary (also required, but ir
-leads) **first-paint (fp) < 2000ms** — each best/median of ≥3 runs, render gate green. The dispatch-floor
-levers that fix ir also pull fp down, so attack ir first. Native ref ~6ms / ~110ms.
+**Targets (2026-06-30, ir<10ms goal):** primary **single-keystroke input→response (ir) < 10ms** (≥3 runs,
+render green). fp tracked (~2.08s) but NOT gating under this goal. The 50ms target is retired; ir is measured
+HONESTLY now (single keystroke, no pacing artifact). Native ref ~6ms.
+**Current true baseline (pacing-stripped, 2026-06-30):** ir **~25ms** (clean runs 23-28ms; ~2/6 runs spike to
+~100ms = box noise) — render green. Need ~2.5× down. **Dispatch levers A/C-lite are KNOWN-NULL for ir** (see
+the REFUTED block); this is now a RENDER-PATH + MEASUREMENT-PRECISION problem.
+
+**★ DIAGNOSTICS-GAPS + THEORIES TABLE (live; recursive loop — update every round):**
+| # | theory / gap | status |
+|---|---|---|
+| T-meas1 | detect loop polls every 2ms AND FNV-hashes the whole 1.4MB fb each poll (~2-4ms) → ~4-6ms measurement floor baked into ir; matters at a 10ms target | OPEN — quantify + build a precise inject→fb-write probe (sidecar timestamps the fb `__kernel_fd_write`, host timestamps inject, both SystemTime epoch = comparable) |
+| T-meas2 | box noise spikes (~100ms, 2/6 runs) will swamp small wins; need many runs / a quiet-window filter | OPEN |
+| T-render1 | the ~21ms after detect-overhead is the keypress→glyph path: X KeyPress delivery + GTK key handler + render requests + Xvfb draw + fb write. Decompose with FRAMEPROF ir-marks + xtrace --rt windowed to the inject | OPEN — needs the precise probe first |
+| T-render2 | guest GTK render compute is ~2.9× native (B1) — partial floor; toolchain-bound (out-of-CORE) if it dominates | OPEN — only after T-render1 attributes how much is guest compute vs runtime |
 **Done when both hold (≥3 runs, render green). NO exhaustion escape:** if a lever proves a target needs
 out-of-scope work (provisioning, a never-self-approve change) or a redesign beyond CORE, STOP and surface
 the specific blocker for a decision — do not declare done on lever exhaustion.
