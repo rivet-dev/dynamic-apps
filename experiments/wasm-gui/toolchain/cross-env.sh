@@ -24,7 +24,11 @@ if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   THREADS_SYSROOT="$WSDK/share/wasi-sysroot"
   PREFIX="$EXP/third_party/wasm-prefix-threads"
   THREADS_MEM_MAX=$((512*1024*1024))
-  THREADS_FLAGS="-pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL"
+  # -D_REENTRANT: the wasi-sdk wasm32-wasip1-threads <pthread.h> declares the real pthread_* prototypes
+  # only under `_WASI_EMULATED_PTHREAD || _REENTRANT`; clang's -pthread does NOT define _REENTRANT for
+  # this target, so without it gthread-posix.c hits a static_assert ("threads not enabled"). Real
+  # threads here = the wasm32-wasip1-threads runtime, not the emulated-pthread stubs.
+  THREADS_FLAGS="-pthread -matomics -mbulk-memory -DSECURE_EXEC_WASM_THREADS -D_WASI_EMULATED_SIGNAL -D_REENTRANT"
   # --no-check-features: libtool-built C libs (expat, the Xlib stack) lose -matomics/-mbulk-memory
   # (libtool filters them), so their objects lack the shared-memory target feature. They use no atomics
   # themselves, so allow mixing them into a --shared-memory link (matches the final guest-app link).
@@ -61,7 +65,7 @@ CROSS_INI="$EXP/toolchain/wasi-sdk-cross.gen.ini"
 if [ "${SECURE_EXEC_WASM_THREADS:-0}" = "1" ]; then
   MESON_SYSROOT="$THREADS_SYSROOT"
   MESON_LIBSUBDIR="wasm32-wasip1-threads"
-  MESON_C_THREADS="'-pthread', '-matomics', '-mbulk-memory', '-DSECURE_EXEC_WASM_THREADS', '-D_WASI_EMULATED_SIGNAL', "
+  MESON_C_THREADS="'-pthread', '-matomics', '-mbulk-memory', '-DSECURE_EXEC_WASM_THREADS', '-D_WASI_EMULATED_SIGNAL', '-D_REENTRANT', "
   MESON_C_EMUL_PTHREAD=""
   # NOTE: --export=wasi_thread_start is intentionally NOT here — as a global link arg it fails every
   # meson cc.links() probe (the probe program has no such symbol to export), breaking dependency

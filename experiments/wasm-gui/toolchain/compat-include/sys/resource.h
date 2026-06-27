@@ -17,7 +17,11 @@ typedef unsigned long long rlim_t;
 #define RLIMIT_MEMLOCK 8
 #define RLIMIT_AS 9
 #define RLIM_NLIMITS 16
+/* wasi-compat.h (force-included first) defines struct rlimit + SE_HAVE_RLIMIT; avoid redefining it
+ * here when both are in scope (the wasi-sdk's sys/param.h now pulls this header in). */
+#ifndef SE_HAVE_RLIMIT
 struct rlimit { rlim_t rlim_cur, rlim_max; };
+#endif
 #define RUSAGE_SELF 0
 #define RUSAGE_CHILDREN (-1)
 struct rusage { struct timeval ru_utime, ru_stime; long ru_maxrss, ru_ixrss, ru_idrss, ru_isrss; };

@@ -45,6 +45,7 @@ unsigned getegid(void);
 #ifndef RLIMIT_CORE
 typedef unsigned long long rlim_t;
 struct rlimit { rlim_t rlim_cur; rlim_t rlim_max; };
+#define SE_HAVE_RLIMIT 1
 #define RLIMIT_CORE   4
 #define RLIMIT_NOFILE 7
 #define RLIMIT_DATA   2
