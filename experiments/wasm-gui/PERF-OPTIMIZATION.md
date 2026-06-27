@@ -219,6 +219,21 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★★ L-W CONTROLLED BEFORE/AFTER — same-session, full metric suite (2026-06-29).** The applied change
+  (L-W, the only committed code change that moved the metrics) carries a true controlled pair: restored the
+  two module-delivery files to the pre-L-W commit (`qwsmxool`, base64-in-source delivery), built, and
+  measured; then restored to the committed L-W state and measured. Identical harness/build/session:
+  | metric (≥3 runs) | BEFORE (pre-L-W) | AFTER (L-W) | Δ |
+  | --- | --- | --- | --- |
+  | B2 first-paint | 9627 / 9735 / 9781 ms (~9.71 s) | 4755 / 3971 / 4164 ms (~4.30 s) | **−5.4 s, 2.26×** |
+  | B2 input→response | 253 / 243 / 222 ms (~239) | 212 / 237 / 253 ms (~234) | unchanged (L-W is on the COLD path) |
+  | B1 bench-gobject new+unref | 0.70 / 0.69 / 0.72 µs/op | 0.72 / 0.73 / 0.71 µs/op | unchanged (L-W is delivery, not compute) |
+  | render gate | green (0 fc, 0 traps, fb ok) | green | green |
+  This is the controlled before/after on BOTH metrics + the bench-gobject number + render-gate-green for the
+  applied lever, gathered in-session (not historical references). first-paint moves 2.26×; input→response
+  and B1 are flat by construction (cold-path delivery change). The remaining refuted/closed levers carry
+  their own in-situ measurements (below); the FLATTEN MEASUREMENT SUITE is the AFTER column above.
+
 - **★★★ FLATTEN MEASUREMENT SUITE — full metric set on the committed (L-W.2) state (2026-06-29).** The
   authoritative baseline carrying ALL required metrics together, same build/session:
   - **B1 bench-gobject (≥3 runs):** new+unref **0.72 µs/op** (0.72/0.73/0.71), emit 0.17, set+get 0.60.
