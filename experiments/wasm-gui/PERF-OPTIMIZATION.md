@@ -219,6 +219,22 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★★ STRICT-CORE SCOPE FLATTENED (2026-06-29) — user-chosen path complete.** User chose "stay strict
+  CORE-only" (accept the ~3s ceiling, land what CORE wins exist, then call CORE flattened). Every in-scope
+  CORE lever is now measured + closed:
+  - **L-W — LANDED:** first-paint **~10.0s → ~4.0s (2.5×)**, ≥3 runs, render green. The one big CORE win.
+  - **L-Z (bootstrap code-cache/snapshot) — REFUTED:** entry-module compile = 3ms, sync-eval = 109ms; the
+    bootstrap is not compile-bound, so code-cache saves ~3ms = null.
+  - **L-W.3 (module read via bulk-SAB) — REFUTED:** works under T1 (the "hangs" were load-92 contention)
+    but 701ms vs base64 553ms = ~150ms SLOWER. base64 (post-L-W.1 native decode) is the better path.
+  - **fontconfig + icon caches (~1.4s) — OUT OF CORE SCOPE:** no cache shipped → cold rebuild every run;
+    only fix is provisioning (`fc-cache`/`gtk-update-icon-cache` in the fixtures/base-FS), not
+    sidecar/kernel/runtime. The "batch fs.stat RPCs" premise is false (RPC service ~177ms, in-process
+    `fd_read`).
+  - **guest GTK/GSettings compute (~0.5s) — toolchain-dead** (prior; GObject ~2.8× native, fpcast infeasible).
+  **Conclusion: <2s is unreachable within CORE-only; the CORE ceiling is ~4.0s as delivered. Reaching <2s
+  requires widening scope (provision the caches ≈ ~1.4s, the biggest lever) — the user's call when ready.**
+
 - **L-Z (runner-bootstrap code-cache / snapshot) — REFUTED by measurement (2026-06-29).** User chose the
   strict-CORE path, so I measured the bootstrap split Rust-side (`SECURE_EXEC_COMPILE_PROF`, new
   `[compile-prof]` probe at the guest entry-module compile in `execution.rs`): **`compile_module` = 3ms**
@@ -243,8 +259,13 @@ levers as profiling surfaces new costs (recursion).
     `gtk-update-icon-cache` at fixture-build time in `scripts/prepare-{xftfonts,icons}.sh`). That is
     FIXTURE PROVISIONING — not sidecar/kernel/v8-runtime/bridge — i.e. **outside Constraint #5's CORE
     scope** (legitimate "ship like real Linux", but not a runtime fix).
-  - **~0.55s module read** = blocked on the off-by-default, unstable **T1 ring** (see L-W.3). Stabilizing
-    the whole opt-in transport for a one-time 0.55s is disproportionate.
+  - **~0.55s module read** = **lever CLOSED by measurement (2026-06-29).** Re-applied L-W.3 (bulk-SAB read)
+    + ran with `SECURE_EXEC_T1_RING=1` at normal load: it WORKS (`[lw3] ok 17427304`, renders clean — the
+    earlier "hangs" were purely load-92 contention, now disproven) but is **701ms vs the L-W.2 base64
+    `readFileSync` 553ms — ~150ms SLOWER**. Chunked `readSync` + SAB memcpy + double-copy beats the base64
+    path (already cheap post-L-W.1 native decode). The "82× overhead" premise was wrong (it compared a raw
+    host read to the full base64 pipeline; the bulk path is bridge round-trips + extra copies, not a raw
+    read). Reverted; L-W.2 base64 is the better path. No CORE win here.
   - **~0.9s runner bootstrap** = the only sizable IN-SCOPE CORE lever left, but needs a large V8 code-cache
     + runner-source-stabilization refactor, and even fully reclaimed lands at ~3.1s — **>2s by itself**.
   - ~0.5s guest GTK/GSettings compute = toolchain-dead.
