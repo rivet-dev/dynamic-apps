@@ -270,6 +270,12 @@ const FS_ALLOW: &[&str] = &[
     "crates/execution/src/javascript.rs",
     "crates/execution/src/node_import_cache.rs",
     "crates/execution/src/runtime_support.rs",
+    // Host-side V8 diagnostics: module-trace and sync-RPC latency profilers
+    // write to an operator-provided file path, and snapshot bootstrap reads the
+    // userland bundle from PI_SNAPSHOT_BUNDLE_PATH. Host-only, not guest-reachable.
+    "crates/v8-runtime/src/execution.rs",
+    "crates/v8-runtime/src/host_call.rs",
+    "crates/v8-runtime/src/snapshot.rs",
 ];
 
 /// net: host network access.
@@ -323,6 +329,14 @@ const ENV_ALLOW: &[&str] = &[
     "crates/v8-runtime/src/bridge.rs",
     "crates/sidecar/src/execution.rs",
     "crates/sidecar/src/plugins/s3_common.rs",
+    // Host-process startup log-level knob, read before any VM exists.
+    "crates/sidecar/src/main.rs",
+    // Host-side V8 diagnostics toggles (module-trace + sync-RPC latency
+    // profiling + snapshot-bundle path), read at runtime init from operator
+    // env. Not guest-reachable.
+    "crates/v8-runtime/src/execution.rs",
+    "crates/v8-runtime/src/host_call.rs",
+    "crates/v8-runtime/src/snapshot.rs",
 ];
 
 fn fs_class() -> BannedClass {
