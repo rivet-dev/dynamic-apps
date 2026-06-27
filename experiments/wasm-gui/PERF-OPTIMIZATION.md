@@ -134,6 +134,14 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **L-O — Thread-exit full-tree filesystem sync-back. [★ LANDED 2026-06-28 — was the dominant 20s
+  stall]** Every wasi-thread child exit ran `sync_process_host_writes_to_kernel` (full host-shadow-tree
+  walk) on the single stdio `select!` task, ~20s each, starving the event pump that services all guests'
+  sync RPCs. FIX: skip the sync for `is_thread` (shares the leader's fs; leader syncs on its own exit) +
+  `MAX_EVENT_DRAIN_PASSES`/`DRAIN_BLOCKING_HARD_BUDGET` fairness bounds. Result: total pump-starvation
+  56.9s→16.9s, max stall 20.03s→1.37s, 20s-blocks 2→0. See verdict log for the full drill. Residual
+  16.9s is `JsSyncRpc` per-call cost (different, smaller lever).
+
 - **L-L — Spurious intra-process poll wakeups (thundering herd). [NEW TOP — revealed by lever #1's
   measurement]** A `net_poll` outer call averages ~159ms = ~22 internal blocking-loop iterations, each a
   `net.poll_wait` round-trip (~7ms) that woke because the process readiness generation advanced for
@@ -264,6 +272,48 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★★ LEVER L-O LANDED: thread-exit filesystem sync-back was the 20s stall. FIXED in CORE.**
+  Using the perf clock, drilled the 20s startup stall through the full stack to its exact source —
+  each step a measurement (all probes default-OFF, `SECURE_EXEC_PERFCLOCK=1`):
+  1. `[pump-gap]` (inter-pass timer on `pump_process_events`, stdio.rs): the sidecar's pump ran every
+     250µs normally but showed a **19.94s gap** ending exactly when the guest's `settings.conf` open
+     completed (`donePerfUs`) — the sidecar async task was *starved*, not busy (P1 total service ≈1.3s).
+  2. `[pump-block]`: NO single `poll_event(ZERO)` in the pump blocked >1s → stall is ABOVE the executor.
+  3. `[select-block]`: the sidecar runs ONE `tokio::select!` (stdin / event_ready / event_pump.tick /
+     write_error). The **`event_ready` drain branch held the task 20.3s** — head-of-line blocking the
+     `event_pump.tick()` branch that services every guest's sync RPC.
+  4. `[wire-block]`: a SINGLE `poll_event_wire(ZERO)` call blocked 20s (not many fast passes — so a
+     per-notification batch cap alone, `MAX_EVENT_DRAIN_PASSES`, did NOT fix it).
+  5. `[poll_event-spin]`: zero spin → `poll_event` did NOT loop millions of times → the 20s is ONE
+     synchronous `handle_process_event_envelope` call.
+  6. `[handle-block]`: that call blocked 20s on an **`Exited`** event (a wasi-thread child exiting:
+     `xclient0~thread~child-…`, `dbussvc0~thread~child-…`, both exit code 0).
+  7. `[exit-block]` drill: `handle_execution_event(Exited)` → `finish_active_process_exit` →
+     **`sync_process_host_writes_to_kernel`** = the 20s. That fn walks the ENTIRE host shadow
+     filesystem tree and syncs it to the kernel VFS, and it ran on EVERY process exit *before* the
+     `is_thread` check — so every wasi-thread child exit triggered a full-tree sync (~20s each), on
+     the single select! task, starving all other guests.
+  - **FIX (CORE, execution.rs `finish_active_process_exit`):** skip `sync_process_host_writes_to_kernel`
+    for `process.is_thread` — a thread shares the leader's kernel process AND filesystem state, so the
+    sync is redundant (the leader syncs on its own exit) and was catastrophically slow per-thread.
+    Moved the call into the existing non-thread `else` branch.
+  - **BEFORE/AFTER (mousepad B2, perf-clock starvation metric, noise-independent of wall-clock which
+    swings 74–144s on this shared box):** total pump-starvation **56.9s → 16.9s**; max single stall
+    **20.03s → 1.37s**; 20s `Exited` blocks **2 → 0**. ~40s of cumulative starvation removed; the 20s
+    stall class is eliminated. Renders clean (PNG, 0 fontconfig errors) → thread writes still propagate
+    (global shadow sync still fires on every non-thread exit).
+  - **Defense-in-depth added (same root, secondary):** (a) `MAX_EVENT_DRAIN_PASSES=64` fairness cap on
+    the `event_ready` drain branch (yields back to select! + re-arms if events remain); (b)
+    `DRAIN_BLOCKING_HARD_BUDGET=250ms` absolute ceiling on `drain_process_events_blocking_with_limit`
+    (its per-event 150ms deadline reset made it effectively unbounded). Both default-on, cheap, and
+    bound the single-select! task regardless of producer rate. `MAX_EVENT_DRAIN_PASSES` cataloged in
+    limits-inventory.json (invariant).
+  - **Residual (next lever):** 16.9s total starvation remains, max 1.37s, in `JsSyncRpc` handling — a
+    smaller, different lever (per-RPC service cost), NOT the thread-exit class. Re-rank from here.
+  - **Constraint #5:** all changes in CORE sidecar (execution.rs/service.rs/stdio.rs); zero
+    Xubuntu/glib/GTK/guest edits. Lib builds clean; integration test harness is pre-broken by another
+    session's uncommitted churn (`rpc_trace`/`poll_waiter` symbol drift in tests/), unrelated to this fix.
+
 - **2026-06-28 — ★★★ CROSS-BOUNDARY PERF CLOCK (new API, per user request) PINS the 20s to EXECUTOR-PUMP
   INTAKE, not delivery.** Built `SECURE_EXEC_PERFCLOCK` (default-OFF): `secure_exec_bridge::perf_now_micros()`
   = µs since one process-wide monotonic `Instant` origin, exposed in-guest via the `_perfNowRaw` bridge
@@ -304,6 +354,18 @@ levers as profiling surfaces new costs (recursion).
     give each guest's BridgeCall its own wakeable completion path. Validate via the perf clock
     (issue→service gap) before/after. This is the actual lever toward the targets; it is a focused
     v8-runtime/sidecar scheduling change for a fresh pass.
+  - **CORRECTION (code-read): the sidecar pump is NOT a slow timer.** `pump_process_events` is driven on a
+    **250µs** timer (`EVENT_PUMP_INTERVAL`, stdio.rs:42) and polls EVERY `vm.active_processes` entry's
+    `execution.poll_event(Duration::ZERO)` each tick — so a registered guest's RPC is normally seen within
+    ~250µs, and the pump cadence is NOT the 20s. So the real gap is one of: (a) the `BridgeCall` (sent via
+    `ctx.sync_call`→`send_event`) is not DELIVERED into the executor's `inner` event queue (so
+    `inner.poll_event(ZERO)` keeps returning None for it) for ~20s — i.e. the embedded_runtime's
+    RuntimeEvent routing/delivery to the session is stalled; or (b) mousepad's process is not yet in
+    `vm.active_processes` (or is `detached`) so the pump SKIPS it for ~20s. **Decisive next probe (one
+    build): in `pump_process_events`, perf-stamp (i) whether mousepad's process_id is in the polled set
+    each pass and (ii) the gap between a BridgeCall send and its surfacing as a SyncRpcRequest** — that
+    splits (a) routing-delivery vs (b) not-registered. Then fix the guilty layer. The perf clock + the
+    `[pump]` probe make this the last measurement before the fix.
 
 - **2026-06-27 — ★★★ path_open's 21s = ONE `/dev/urandom` open blocked ~20s, and it is BRIDGE-DELIVERY /
   THREAD-SCHEDULING latency, NOT kernel work.** Built a `path_open` drill (`SECURE_EXEC_PATHOPENPROF`,

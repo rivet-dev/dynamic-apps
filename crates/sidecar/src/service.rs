@@ -1452,6 +1452,8 @@ where
         timeout: Duration,
     ) -> Result<Option<EventFrame>, SidecarError> {
         let deadline = Instant::now() + timeout;
+        let __pe_start = secure_exec_bridge::perf_clock_enabled()
+            .then(secure_exec_bridge::perf_now_micros);
         loop {
             if let Some(index) = self
                 .pending_process_events
@@ -1461,7 +1463,23 @@ where
                 let Some(envelope) = self.pending_process_events.remove(index) else {
                     continue;
                 };
-                if let Some(frame) = self.handle_process_event_envelope(envelope)? {
+                let __he = __pe_start.map(|_| {
+                    let lbl = if matches!(&envelope.event, ActiveExecutionEvent::JavascriptSyncRpcRequest(..)) { "JsSyncRpc" }
+                        else if matches!(&envelope.event, ActiveExecutionEvent::PythonVfsRpcRequest(..)) { "PyVfsRpc" }
+                        else if matches!(&envelope.event, ActiveExecutionEvent::Stdout(..)) { "Stdout" }
+                        else if matches!(&envelope.event, ActiveExecutionEvent::Stderr(..)) { "Stderr" }
+                        else if matches!(&envelope.event, ActiveExecutionEvent::Exited(..)) { "Exited" }
+                        else { "Other" };
+                    (secure_exec_bridge::perf_now_micros(), lbl)
+                });
+                let __frame = self.handle_process_event_envelope(envelope)?;
+                if let Some((start, lbl)) = __he {
+                    let took = secure_exec_bridge::perf_now_micros().saturating_sub(start);
+                    if took > 1_000_000 {
+                        eprintln!("[handle-block] handle_process_event_envelope blocked {}us on {}", took, lbl);
+                    }
+                }
+                if let Some(frame) = __frame {
                     return Ok(Some(frame));
                 }
                 continue;

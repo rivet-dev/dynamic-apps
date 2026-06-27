@@ -688,6 +688,12 @@
 		"rationale": "Stdio pump channel capacity; internal flow control."
 	},
 	{
+		"name": "MAX_EVENT_DRAIN_PASSES",
+		"path": "crates/sidecar/src/stdio.rs",
+		"class": "invariant",
+		"rationale": "Scheduling-fairness batch size for the event_ready drain branch; bounds how long that branch holds the stdio select! task before yielding to the event pump. Not an operator resource cap."
+	},
+	{
 		"name": "MAX_STDIN_FRAME_QUEUE",
 		"path": "crates/sidecar/src/stdio.rs",
 		"class": "invariant",

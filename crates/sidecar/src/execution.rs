@@ -149,6 +149,11 @@ const JAVASCRIPT_NET_TIMEOUT_SENTINEL: &str = "__secure_exec_net_timeout__";
 const PYTHON_PYODIDE_GUEST_ROOT: &str = "/__agent_os_pyodide";
 const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agent_os_pyodide_cache";
 const TCP_SOCKET_POLL_TIMEOUT: Duration = Duration::from_millis(100);
+// Absolute wall-clock ceiling for the synchronous trailing-event drain on process exit
+// (drain_process_events_blocking_with_limit). Bounds how long that drain can hold the single
+// stdio select! task; without it a process streaming events at exit starves the event pump that
+// services other guests' sync RPCs. Uncollected trailing events stay queued for the normal pump.
+const DRAIN_BLOCKING_HARD_BUDGET: Duration = Duration::from_millis(250);
 const TLS_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP_LOOPBACK_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 pub(crate) const MAX_PER_PROCESS_STATE_HANDLES: usize = 1024;
@@ -3735,6 +3740,27 @@ where
         &mut self,
         ownership: &OwnershipScope,
     ) -> Result<bool, SidecarError> {
+        // [pump-gap] default-off probe (SECURE_EXEC_PATHOPENPROF=1): detects whether the sidecar's
+        // own async task is starved. The pump is driven on a 250us timer (EVENT_PUMP_INTERVAL); if the
+        // observed wall-clock gap between consecutive pump entries is >> that, the tokio runtime is not
+        // scheduling the pump (some other task holds the executor), which is the "sidecar idle but a
+        // guest's BridgeCall waits 20s" symptom. Uses the shared perf-clock origin so it correlates with
+        // the guest issuePerfUs/donePerfUs stamps.
+        if secure_exec_bridge::perf_clock_enabled() {
+            use std::sync::atomic::{AtomicU64, Ordering};
+            static LAST_PUMP_US: AtomicU64 = AtomicU64::new(0);
+            let now_us = secure_exec_bridge::perf_now_micros();
+            let prev = LAST_PUMP_US.swap(now_us, Ordering::Relaxed);
+            if prev != 0 {
+                let gap_us = now_us.saturating_sub(prev);
+                if gap_us > 50_000 {
+                    eprintln!(
+                        "[pump-gap] {}us gap between pump passes (entry at perf {}us) — sidecar async task starved",
+                        gap_us, now_us
+                    );
+                }
+            }
+        }
         let mut emitted_any = false;
 
         let mut queued_envelopes = Vec::new();
@@ -4491,12 +4517,16 @@ where
                 });
         }
         let detached_children = Self::adopt_detached_child_processes(process_id, &mut process);
-        sync_process_host_writes_to_kernel(vm, &process)?;
         if process.is_thread {
-            // A worker thread shares the leader's kernel process; ending its session must NOT finish or
-            // reap that shared kernel pid (it would kill the leader + sibling threads). Just drop the
-            // worker's session/handle clone and remove its active_process entry (already removed above).
+            // A worker thread shares the leader's kernel process AND filesystem state. Its exit must
+            // NOT finish/reap the shared kernel pid (that would kill the leader + sibling threads),
+            // and it must NOT trigger a host->kernel filesystem sync-back: that sync walks the entire
+            // host shadow tree, the leader still owns it and will sync on its own exit, so doing it on
+            // every thread exit is pure redundant work that cost ~20s each and starved the event pump
+            // (the single stdio select! task) that services all other guests' sync RPCs. Just drop the
+            // worker's session/handle clone (its active_process entry was already removed above).
         } else {
+            sync_process_host_writes_to_kernel(vm, &process)?;
             terminate_child_process_tree(&mut vm.kernel, &mut process);
             process.kernel_handle.finish(exit_code);
             let _ = vm.kernel.wait_and_reap(process.kernel_pid);
@@ -4525,9 +4555,20 @@ where
             return Ok(events);
         }
         let mut deadline = Instant::now() + Duration::from_millis(150);
+        // Absolute wall-clock ceiling on this synchronous drain. The per-event `deadline` resets
+        // every time a trailing event arrives, so a process that streams events faster than 150ms
+        // apart (e.g. a wasi-thread child sharing the app's event stream at exit) makes this loop
+        // run until `max_events` — up to ~20s — while it holds the single select! task and starves
+        // the event pump that services every other guest's sync RPCs. Cap the total time spent here;
+        // any trailing events not collected within the budget remain queued and are delivered by the
+        // normal pump afterwards.
+        let hard_deadline = Instant::now() + DRAIN_BLOCKING_HARD_BUDGET;
 
         loop {
             if events.len() >= max_events {
+                break;
+            }
+            if Instant::now() >= hard_deadline {
                 break;
             }
             let event = {
@@ -4552,7 +4593,9 @@ where
                 if Instant::now() >= deadline {
                     break;
                 }
-                let blocking_wait = deadline.saturating_duration_since(Instant::now());
+                let blocking_wait = deadline
+                    .min(hard_deadline)
+                    .saturating_duration_since(Instant::now());
                 if blocking_wait.is_zero() {
                     break;
                 }

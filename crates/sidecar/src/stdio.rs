@@ -40,6 +40,11 @@ use tokio::time;
 // pumps are cheap no-ops (try_recv + zero-timeout poll), so the higher cadence
 // costs negligible CPU when no guest is issuing RPCs.
 const EVENT_PUMP_INTERVAL: Duration = Duration::from_micros(250);
+// Fairness batch size for the event_ready drain branch: max event-poll passes per ready
+// notification before yielding back to the select! so the event_pump.tick() branch (which
+// services other guests' sync BridgeCalls) is not starved by a high-rate event producer.
+// This is a scheduling-fairness batch, not an operator resource cap (see limits-inventory.json).
+const MAX_EVENT_DRAIN_PASSES: usize = 64;
 const MAX_STDIN_FRAME_QUEUE: usize = 128;
 const MAX_EVENT_READY_QUEUE: usize = 1;
 const MAX_STDOUT_FRAME_QUEUE: usize = 128;
@@ -199,6 +204,8 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 let Some(frame) = frame.map_err(io::Error::other)? else {
                     break;
                 };
+                let __bp = secure_exec_bridge::perf_clock_enabled()
+                    .then(|| (secure_exec_bridge::perf_now_micros(), frame_probe_label(&frame)));
                 handle_protocol_frame(
                     frame,
                     &mut sidecar,
@@ -208,11 +215,26 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                     &mut active_sessions,
                     &mut active_connections,
                 ).await?;
+                if let Some((start, label)) = __bp {
+                    let took = secure_exec_bridge::perf_now_micros().saturating_sub(start);
+                    if took > 1_000_000 {
+                        eprintln!("[select-block] stdin/request branch held {}us ({})", took, label);
+                    }
+                }
             }
             maybe_ready = event_ready_rx.recv() => {
                 let Some(()) = maybe_ready else {
                     break;
                 };
+                let __bp = secure_exec_bridge::perf_clock_enabled()
+                    .then(secure_exec_bridge::perf_now_micros);
+                // Fairness bound: this branch shares one select! task with event_pump.tick()
+                // (which services other guests' sync BridgeCalls). An unbounded drain let a
+                // high-rate event producer (e.g. an X server streaming framebuffer writes during
+                // boot) keep emitting frames forever, monopolizing the task and starving the pump
+                // for ~20s. Cap the passes per notification; if events remain, re-arm the ready
+                // signal and return to select! so the pump and stdin branches get a fair turn.
+                let mut drain_passes = 0usize;
                 loop {
                     let mut emitted_frame = false;
                     for session in active_sessions.iter().cloned().collect::<Vec<_>>() {
@@ -227,6 +249,19 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
 
                     if !emitted_frame {
                         break;
+                    }
+
+                    drain_passes += 1;
+                    if drain_passes >= MAX_EVENT_DRAIN_PASSES {
+                        // More events pending; yield to select! and pick up where we left off.
+                        let _ = event_ready_tx.try_send(());
+                        break;
+                    }
+                }
+                if let Some(start) = __bp {
+                    let took = secure_exec_bridge::perf_now_micros().saturating_sub(start);
+                    if took > 1_000_000 {
+                        eprintln!("[select-block] event_ready drain loop held {}us", took);
                     }
                 }
                 flush_sidecar_requests(&mut sidecar, &write_tx)?;
@@ -249,6 +284,21 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
 
     cleanup_connections(&mut sidecar, &active_connections).await;
     Ok(())
+}
+
+// [select-block] probe helper: coarse label for which wire frame held the single select! task.
+fn frame_probe_label(frame: &ProtocolFrame) -> String {
+    match frame {
+        ProtocolFrame::RequestFrame(req) => {
+            let dbg = format!("{:?}", req.payload);
+            let head: String = dbg.chars().take_while(|c| c.is_alphanumeric()).collect();
+            format!("Request::{}", head)
+        }
+        ProtocolFrame::SidecarResponseFrame(_) => String::from("SidecarResponse"),
+        ProtocolFrame::EventFrame(_) => String::from("Event"),
+        ProtocolFrame::ResponseFrame(_) => String::from("Response"),
+        other => format!("{:?}", std::mem::discriminant(other)),
+    }
 }
 
 async fn handle_protocol_frame(
