@@ -41,7 +41,7 @@ cat > "$CHDIR/xfwm4.xml" <<'XML'
 <property name="use_compositing" type="bool" value="false"/></property></channel>
 XML
 
-W=800; H=600
+W=${W:-800}; H=${H:-600}
 FB="$(mktemp /tmp/xu3-sess-fb.XXXXXX.bin)"
 OUT="${OUT:-/tmp/xu7-session.log}"
 PNG="${PNG:-$HOME/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/xu7-session.png}"
