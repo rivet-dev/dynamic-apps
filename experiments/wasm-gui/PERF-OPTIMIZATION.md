@@ -219,6 +219,18 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **L-W.1 — Module base64 decode used a hand-rolled JS `atob`+charCodeAt loop. [★ LANDED 2026-06-28 —
+  PROVEN]** The 17MB guest module is delivered as ~23M-char base64 (baked into the runner source, merged
+  into `process.env`, see L-W.2). The runner decoded it with `decodeBase64ToUint8Array` — `atob()` then a
+  per-char `charCodeAt` JS loop — measured (`SECURE_EXEC_PATHOPENPROF` → new `[moduleload]` probe) at
+  **1490ms** for mousepad + **243ms** for the X server = ~1.73s on the cold first-paint critical path.
+  FIX (CORE runner JS, `node_import_cache.rs`): decode with native `Buffer.from(src,'base64')` (one C++
+  pass; already used elsewhere in the runner), fall back to the JS loop only if `Buffer` is absent.
+  Before/after (≥3 runs B2): module decode mousepad **1490→~161ms**, server **243→~39ms** (~1.53s saved);
+  first-paint **~10.0s→~9.0s**; input→response ~240→~218ms (unchanged — warm redraw doesn't reload the
+  module, as expected); render gate green (0 fc-errs, 0 traps). Next: L-W.2 removes the 31MB base64 from
+  the JS *source* entirely (kills the per-launch V8 source-parse of the baked string).
+
 - **L-P — Worker-thread module base64 re-encode. [★ LANDED 2026-06-28]** Every `wasm.thread_spawn` ran
   `fs::read`+base64 of the tens-of-MB module into `AGENT_OS_WASM_MODULE_BASE64` (~0.8s) on the select!
   task, but workers reuse the parent's compiled module from the registry by token and never read it. FIX:

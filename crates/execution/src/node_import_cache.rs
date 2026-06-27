@@ -9394,14 +9394,23 @@ if (wasmThreadToken != null) {
   module = globalThis.__threadMod;
   guestSharedMemory = globalThis.__threadMem;
 } else {
+  const __mlT0 = globalThis.__pathopenprof ? Date.now() : 0;
   const moduleSource =
     typeof moduleBase64 === 'string' && moduleBase64.length > 0
       ? moduleBase64
       : fsModule.readFileSync(resolveModulePath(modulePath));
+  const __mlT1 = globalThis.__pathopenprof ? Date.now() : 0;
   const moduleBytes =
     typeof moduleSource === 'string'
-      ? decodeBase64ToUint8Array(moduleSource)
+      // Native Buffer.from('base64') decodes in one C++ pass; the hand-rolled atob+charCodeAt
+      // JS loop (decodeBase64ToUint8Array) was ~1.5s on the 17MB guest module (L-W).
+      ? (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function'
+          ? Buffer.from(moduleSource, 'base64')
+          : decodeBase64ToUint8Array(moduleSource))
       : moduleSource;
+  if (globalThis.__pathopenprof) {
+    try { process.stderr.write('[moduleload] src=' + (typeof moduleSource === 'string' ? 'base64-env(' + moduleSource.length + 'ch)' : 'readFileSync(' + (moduleSource.byteLength||moduleSource.length) + 'b)') + ' read=' + (__mlT1 - __mlT0) + 'ms decode=' + (Date.now() - __mlT1) + 'ms\n'); } catch (_e) {}
+  }
   const wasmThreadInfo = parseWasmThreadInfo(moduleBytes);
   // A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
   // memory section) is a no-op for it; sizing happens on the host-created shared memory below.
