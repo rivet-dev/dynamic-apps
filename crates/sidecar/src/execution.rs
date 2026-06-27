@@ -19891,13 +19891,28 @@ fn poll_direct_enabled() -> bool {
     *EN.get_or_init(|| std::env::var("SECURE_EXEC_POLL_DIRECT").map(|v| v == "1").unwrap_or(false))
 }
 
+/// The blocking-poll ceiling. Default `JAVASCRIPT_NET_POLL_MAX_WAIT` (3ms); overridable via
+/// `SECURE_EXEC_POLL_MAX_WAIT_MS` for the L-M experiment (does a higher ceiling cut the per-guest
+/// 3ms-poll storm / service-thread contention, or just add latency?). Diagnostic knob, default-OFF.
+fn poll_max_wait() -> Duration {
+    static D: std::sync::OnceLock<Duration> = std::sync::OnceLock::new();
+    *D.get_or_init(|| {
+        std::env::var("SECURE_EXEC_POLL_MAX_WAIT_MS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .filter(|&ms| ms > 0)
+            .map(Duration::from_millis)
+            .unwrap_or(JAVASCRIPT_NET_POLL_MAX_WAIT)
+    })
+}
+
 pub(crate) fn clamp_javascript_net_poll_wait(wait_ms: u64) -> Duration {
     // WASM net.poll runs on the sidecar's sync-RPC main thread. Guest-controlled waits
     // must stay bounded so one VM cannot stall dispose/shutdown or unrelated VM work.
     if wait_ms == 0 {
         Duration::ZERO
     } else {
-        Duration::from_millis(wait_ms).min(JAVASCRIPT_NET_POLL_MAX_WAIT)
+        Duration::from_millis(wait_ms).min(poll_max_wait())
     }
 }
 

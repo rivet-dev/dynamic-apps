@@ -86,9 +86,10 @@ Linux parallel: **`perf record`** plus a flamegraph.
 
 - Profiles every isolate and writes a V8 log to `/tmp`; the hot wasm call chain shows up as a sustained sample run.
 - Surfaces a busy-spin hotspot (for example a GLib source that dispatches without polling).
+- Build with `SECURE_EXEC_KEEP_NAMES=1` so frames are named instead of bare `wasm-function[N]`. The legacy text log this flag writes does not symbolize wasm on its own, so for a named, DevTools-grade flamegraph prefer a V8 Inspector CPU profile (`.cpuprofile`) or a `perf` jitdump over the text log.
 
 ```bash
-SECURE_EXEC_V8PROF=1 <run your workload>
+SECURE_EXEC_V8PROF=1 SECURE_EXEC_KEEP_NAMES=1 <run your workload>
 # then symbolize the top frames with the helper script
 python3 experiments/wasm-gui/scripts/v8prof-top.py /tmp/secure-exec-v8.log
 ```

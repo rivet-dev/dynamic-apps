@@ -264,6 +264,86 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — ★★★ path_open's 21s = ONE `/dev/urandom` open blocked ~20s, and it is BRIDGE-DELIVERY /
+  THREAD-SCHEDULING latency, NOT kernel work.** Built a `path_open` drill (`SECURE_EXEC_PATHOPENPROF`,
+  default-OFF: times resolve vs impl per open, logs the slow ones with the guest path). It localized the
+  entire 21s to a SINGLE open: `[pathopen] total=19778ms resolve=0ms impl=19778ms /dev/urandom`.
+  Drilled the chain: guest `fsModule.openSync` → `callSync('fs.openSync')` (ONE sync-RPC) → sidecar
+  `fs.openSync` → `kernel.fd_open` (cheap: `prepare_fd_open` only `stat`s — device_stat size:0; NO
+  content read, NO getrandom at open; `read_stream_device` is read-only and just 4096 bytes). **The
+  sidecar-side RPC profiler is decisive: `total_service_ms=1307` over 144000 calls — the main thread is
+  ~idle, every method services in µs.** So the open is serviced in µs but its RESPONSE is not delivered
+  to the guest for ~20s = the sync-RPC bridge's response-delivery path (the guest's worker thread doing
+  the blocking `readSync` on the response pipe, then the SAB/Atomics handoff to the main isolate thread)
+  is **starved ~20s** during the boot storm (Xvfb+dbus+xfconfd+mousepad = many threads). Consistent ~20s
+  across runs = the boot-storm duration. **This unifies with the earlier findings:** the cost is NOT any
+  single subsystem's work — it is **scheduling/delivery latency under a thread-saturated boot** (the
+  ~3.3ms/RPC, the 3ms-deadline polling, and now the 20s open are all the same root: the guest threads
+  don't get scheduled promptly to send/receive across the bridge). **Next lever (L-N): reduce the
+  sync-RPC response-delivery latency / thread-scheduling pressure** — e.g. deliver the response straight
+  from the sidecar into the SAB + Atomics.notify the main isolate thread (remove the worker-`readSync`
+  hop), and/or cut the number of always-running threads during boot. Drill committed (default-OFF).
+  **L-N transport FULLY MAPPED (next-turn target):** response path = `respond_sync_rpc_success` → mpsc
+  channel → a dedicated SIDECAR response-writer thread (`spawn_javascript_sync_rpc_response_writer`,
+  javascript.rs ~2141) → the response PIPE (`BufWriter` on `NODE_SYNC_RPC_RESPONSE_FD`) → a dedicated
+  GUEST worker thread (`new Worker`, node_import_cache.rs ~8068) blocking-`readSync`ing that pipe → SAB
+  write + `Atomics.notify(STATE_RESPONSE_READY)` → guest main `Atomics.wait` wakes. TWO dedicated
+  threads + a channel + a pipe per response; the cold-start first RPC eats ~20s when those threads
+  aren't scheduled under the boot thread-storm. **Fix:** sidecar writes the response payload+status
+  DIRECTLY into the guest signal/data SAB and `Atomics.notify`s the main thread's signal index —
+  removing BOTH the sidecar writer thread and the guest worker thread from the response path. Needs the
+  sidecar to hold a handle to the guest `SharedArrayBuffer` backing stores; that SAB-sharing is the crux
+  + the risk, so it is a careful focused pass. Attacks the common root (cold-start 20s + ~3.3ms/RPC +
+  3ms-deadline polling all share it). Artifact: `/tmp/mp-po.log` (`/dev/urandom` 19778ms),
+  `/tmp/mp-svc.log` (service 1.3s total).
+  - **REFINED (deeper trace): the wasm guest uses the DIRECT sync-RPC** (`writeSync(req)` +
+    `readSyncRpcLine()` on the main thread, node_import_cache.rs ~11168 — NO guest worker thread). The
+    response comes via `send_bridge_response` → `runtime.dispatch(RuntimeCommand::SendToSession{BridgeResponse})`
+    (embedded_runtime.rs ~301) → the embedded V8 runtime's COMMAND QUEUE (shared dispatch, processed by a
+    runtime thread) → delivered to the session → guest `readSyncRpcLine`. So the cold-start ~20s is the
+    runtime command-dispatch / delivery thread starved during boot. **This points at a BROADER root than a
+    single inline write: boot-time CPU saturation** — 4 large wasm modules (Xvfb/dbus/xfconfd/mousepad,
+    10-70MB) compile + initialize simultaneously, saturating cores for ~20s and starving every cross-thread
+    hop. **Candidate fixes (next session, pick by measurement):** (a) wasm compile caching (V8 code cache;
+    `NativeSidecarConfig.compile_cache_root` — verify it's enabled for these runs; if guests recompile from
+    scratch every boot, caching cuts the saturation); (b) stagger/serialize guest launch so compiles don't
+    all land at once; (c) inline/collapse the response-delivery hops so the runtime command queue isn't on
+    the sync-RPC critical path. **First step next session: measure wasm compile time per guest at boot**
+    (is the ~20s saturation compilation?) — that disambiguates (a)/(b) from (c).
+  - **★ MEASURED (boot-timing probe, `SECURE_EXEC_PATHOPENPROF`): NOT compilation, NOT CPU saturation.**
+    `new WebAssembly.Module` is FAST: mousepad 17MB = **12ms**, Xvfb 2ms, dbusd 1ms; instantiate ≤4ms.
+    So candidate (a)/(b) [compile caching / stagger] are REFUTED — compilation is negligible. AND the box
+    is NOT saturated: 20 cores, load avg 7.25 (~13 free), so it is NOT external/CPU starvation either.
+    **The 20s is a non-CPU-bound delivery latency in the runtime command-dispatch path during a ~14-34s
+    boot WINDOW** that hits WHATEVER RPC lands in it (run 1: `/dev/urandom` open; run 2:
+    `settings.conf` open — different files, same window). Corroboration: `xclient0~thread~child-4`
+    instantiates at +34705ms, a 22s gap after child-3 (+12761ms) — a new isolate thread that could NOT
+    proceed for 22s WITH cores free. So the window is a logical block/wait in the embedded-runtime
+    command dispatch / cross-isolate handoff, not contention. **Next (fresh session): locate + instrument
+    the PRODUCTION embedded-runtime command-dispatch loop** (the consumer of `runtime.dispatch`'s
+    `RuntimeCommand` queue + `session.rs` `run_event_loop` — NOTE the `recv_timeout(100ms)` refs at
+    ~863/956 are TEST code, not the production loop; find the real `RuntimeCommand` consumer) to see
+    whether the BridgeResponse is QUEUED ~20s behind other commands vs the dispatch thread BLOCKED ~20s
+    inside one command — that pins the fix (collapse the dispatch hop / remove a blocking wait),
+    candidate (c). Boot-timing probe committed (default-OFF).
+    Artifact: `/tmp/mp-wc.log` (compile 12ms; settings.conf open 20550ms; child-4 +34705ms).
+
+- **2026-06-27 — ★★★ CEILING SWEEP REFUTES L-M: net_poll is GENUINE idle-wait, NOT ceiling/contention-bound.
+  → The surviving lever is `path_open` (21s).** Made the poll ceiling env-tunable
+  (`SECURE_EXEC_POLL_MAX_WAIT_MS`) and swept 3→20→50ms. **net_poll total is FLAT: 44.7s / 42.2s / 42.6s,
+  renders cleanly at every ceiling.** If waits ended at the ceiling, raising it would lengthen them — it
+  didn't, so the ceiling only changes idle re-check GRANULARITY, not the total. The main thread has ~43s
+  of GENUINE idle-waiting (chopped into many 3ms blocks at the default — hence wakeprof's 94% deadline —
+  or fewer longer blocks at 50ms, same total). So: NOT contention-bound (L-M refuted), NOT thundering-herd
+  (L-L refuted), NOT redundant-probes (L-K refuted). **The main thread is waiting on WORK happening
+  elsewhere — and the biggest concrete serial cost is `path_open` = 21s (~683ms/call for the first ~31
+  opens, then fast).** That early-only slowness + the genuine-idle main thread point at startup-phase work
+  (font/config/icon file opens on a worker, or a slow fs-bridge open) — NOT a sync-RPC (RPCPROF never
+  showed an fs.open row, so path_open's 683ms is JS-side resolution or a non-callSyncRpc fs-bridge call).
+  **Next: DRILL path_open** — instrument the `path_open` import handler (resolvePathOpenGuestPath vs
+  delegatePathOpen vs the fs-bridge open) to localize the 683ms; it is the largest un-refuted concrete
+  cost. Ceiling knob kept (default-OFF diagnostic). Artifacts: `/tmp/mp-ceil20.log`, `/tmp/mp-ceil50.log`.
+
 - **2026-06-27 — ★★★ L-L IMPLEMENTED + MEASURED + REVERTED (null): the cost is 3ms-ceiling idle-polling,
   NOT a thundering herd.** Built full socket-scoped completion (notify_socket(id), DirectPollWaiter.awaited,
   pool deadline-only, guest awaited-ids) behind `SECURE_EXEC_POLL_DIRECT`; compiles + renders (scoping is

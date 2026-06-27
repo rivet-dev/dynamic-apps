@@ -145,6 +145,22 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       build that keeps a name section (`SECURE_EXEC_KEEP_NAMES=1`) names just the `byn$fpcast-emu$N`
       thunks — `--fpcast-emu` (required for GTK's cross-signature fn-ptr casts) erases the C names. So
       the exact GSource is not named via `--prof`.
+      - **★ TOOLING-CHOICE LESSON (2026-06-27) — "`--prof` is wasm-blind" is a TOOL choice, not a wasm
+        limitation. READ THIS BEFORE DEBUGGING WASM WITH A PROFILER.** V8's legacy `--prof` text log is
+        the ONE V8 profiler that does not symbolize wasm from the name section (hence bare
+        `wasm-function[N]`). wasm IS fully profilable; two preconditions, both ours: (1) the `.wasm`
+        carries its name section (`SECURE_EXEC_KEEP_NAMES=1`; default/release strips it → 0 symbols);
+        (2) use a reader that consumes that section. Proper options, best first:
+        **(a) V8 Inspector `Profiler` domain → `.cpuprofile`** (the engine Chrome DevTools uses): drive
+        `Profiler.enable/start/stop` over an inspector session in the rusty_v8 embed; the JSON names wasm
+        frames automatically with self-time and opens in DevTools / speedscope as a flamegraph (`node
+        --cpu-prof` is the same machinery). **(b) `--perf-prof` jitdump + Linux `perf`** — a whole-stack
+        flamegraph including BOTH the wasm guest and our C++/JS import handlers (good for attributing
+        sync-RPC latency end-to-end). **(c) Quick unblock for an existing `--prof` log:**
+        `wasm-dis app.wasm | grep '(func $name'` → an index→name map, rewrite `wasm-function[N]` in
+        `/tmp/secure-exec-v8.log`, wire into `v8prof-top.py` (validate `[N]` includes imports). General
+        rule on this project: when a profiler "can't see wasm," suspect the profiler/strip step first,
+        not wasm — the default P2 should be the Inspector `.cpuprofile`, not the `--prof` text log.
 - [ ] **P1 DWARF line-symbolizer off the pre-fpcast binary** — map `wasm-function[N]`/byte-offset to
       `func:file:line` using the DWARF in the guest `.wasm` *before* the fpcast-emu pass (reuse
       `llvm-symbolizer`/`gimli`, host-side). The way around the fpcast-emu name wall. ≈ `addr2line`.

@@ -41,7 +41,11 @@ Two corollaries that are easy to get wrong:
 
 Guests run as wasm in V8 isolates, so the native toolkit can't reach guest semantics; we build
 host-side parallels (all off by default, zero cost unless enabled). Roadmap/catalog:
-`experiments/wasm-gui/INTERNAL-TOOLING.md`. Available now:
+`experiments/wasm-gui/INTERNAL-TOOLING.md`. **Before debugging anything wasm-related (profiling,
+symbolizing, stack/CPU sampling), read that doc first** — it records which tool to reach for and the
+hard-won tooling-choice lessons (e.g. V8 `--prof` is wasm-blind by tool choice, not limitation; use a
+name-section build + the Inspector `.cpuprofile`/`perf` jitdump). Default to learning from it rather
+than rediscovering. Available now:
 
 - `SECURE_EXEC_TRACE=1` — per-process guest↔sidecar sync-RPC stream with timing. ≈ `strace`.
 - `SECURE_EXEC_STACKDUMP_AFTER_MS=N` (+ `SECURE_EXEC_STACKDUMP_SAMPLES`, `_INTERVAL_MS`) — watchdog

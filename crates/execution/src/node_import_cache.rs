@@ -8816,6 +8816,7 @@ const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PA
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_POLLSTAT === '1') globalThis.__pollstat = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_PATHOPENPROF === '1') globalThis.__pathopenprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
 function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
 try { if (process.env.SECURE_EXEC_FD_TRACE === '1') globalThis.__fdtrace = true; } catch (_e) {}
@@ -9404,7 +9405,14 @@ if (wasmThreadToken != null) {
   // A threaded guest imports its memory, so enforceMemoryLimit (which only rewrites the *defined*
   // memory section) is a no-op for it; sizing happens on the host-created shared memory below.
   const moduleBinary = enforceMemoryLimit(moduleBytes, maxMemoryPages);
+  // L-N boot-saturation probe (SECURE_EXEC_PATHOPENPROF): time the SYNCHRONOUS, eager wasm compile.
+  // 4 large guests compiling new WebAssembly.Module at once on their own threads is the leading
+  // cold-start CPU-saturation candidate; the host [+Nms] prefix shows WHEN each guest compiles.
+  const __wcT0 = globalThis.__pathopenprof ? Date.now() : 0;
   module = new WebAssembly.Module(moduleBinary);
+  if (globalThis.__pathopenprof) {
+    try { process.stderr.write('[wasmcompile] new WebAssembly.Module = ' + (Date.now() - __wcT0) + 'ms (' + (moduleBinary.length || moduleBinary.byteLength || 0) + ' bytes)\n'); } catch (_e) {}
+  }
 
   // wasi-threads: the host owns the single shared linear memory and supplies it to every isolate-
   // thread (env.memory). Create it here, sized from the module's imported-memory limits, clamped to
@@ -13144,7 +13152,7 @@ wasiImport.clock_res_get = (clockId, resultPtr) => {
 };
 
 if (delegatePathOpen) {
-  wasiImport.path_open = (
+  const __pathOpenImpl = (
     fd,
     dirflags,
     pathPtr,
@@ -13247,6 +13255,23 @@ if (delegatePathOpen) {
 
     if (result === WASI_ERRNO_SUCCESS) {
       return retainPathOpenDelegateFd(openedFdPtr, guestPath);
+    }
+    return result;
+  };
+  // path_open drill (SECURE_EXEC_PATHOPENPROF, default-OFF): the import profiler showed path_open ~683ms
+  // for the first ~31 opens (21s total). This shim times each open (resolve vs impl) and logs the slow
+  // ones (≥30ms) WITH the guest path, to localize the cost (which files? resolution vs the fs-bridge
+  // open?). Date.now() = real ms in the wasm runner; the dominant opens are ms-scale.
+  wasiImport.path_open = (...args) => {
+    if (!globalThis.__pathopenprof) return __pathOpenImpl(...args);
+    const t0 = Date.now();
+    let guestPath = '?';
+    try { guestPath = resolvePathOpenGuestPath(args[0], args[2], args[3]); } catch (_e) {}
+    const t1 = Date.now();
+    const result = __pathOpenImpl(...args);
+    const t2 = Date.now();
+    if (t2 - t0 >= 30) {
+      try { process.stderr.write('[pathopen] total=' + (t2 - t0) + 'ms resolve=' + (t1 - t0) + 'ms impl=' + (t2 - t1) + 'ms oflags=' + Number(args[4]) + ' ' + guestPath + '\n'); } catch (_e) {}
     }
     return result;
   };
@@ -14579,7 +14604,11 @@ if (importProfEnabled) {
   // clock-derived state off any guest-reachable object. The periodic in-loop dump is sufficient.
 }
 
+const __wiT0 = globalThis.__pathopenprof ? Date.now() : 0;
 const instance = new WebAssembly.Instance(module, wasmImportObject);
+if (globalThis.__pathopenprof) {
+  try { process.stderr.write('[wasmcompile] new WebAssembly.Instance = ' + (Date.now() - __wiT0) + 'ms\n'); } catch (_e) {}
+}
 
 if (instance.exports.memory instanceof WebAssembly.Memory) {
   instanceMemory = instance.exports.memory;
