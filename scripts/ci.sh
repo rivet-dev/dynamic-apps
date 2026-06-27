@@ -26,6 +26,8 @@ run_step pnpm build
 run_step pnpm check-types
 run_step node --test scripts/check-secure-exec-boundary.test.mjs
 run_step node scripts/check-secure-exec-boundary.mjs
+run_step node --test scripts/check-no-escaping-local-deps.test.mjs
+run_step node scripts/check-no-escaping-local-deps.mjs
 run_step pnpm --dir scripts/publish run check-types
 run_step pnpm --dir scripts/publish test
 run_step cargo fmt --check

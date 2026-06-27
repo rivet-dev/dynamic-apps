@@ -51,6 +51,21 @@ test('rejects Agent OS package dependencies', () => {
 	});
 });
 
+test('ignores forbidden specifiers inside boundary-check test fixtures', () => {
+	withFixture((root) => {
+		writeJson(root, 'package.json', { name: 'secure-exec-workspace' });
+		const testPath = join(root, 'scripts/check-registry-test-runtime-boundary.test.mjs');
+		mkdirSync(dirname(testPath), { recursive: true });
+		// A boundary-check test legitimately embeds a forbidden import as a
+		// string fixture; it must not be treated as a real violation.
+		writeFileSync(
+			testPath,
+			'const fixture = \'import { x } from "@rivet-dev/agentos-core/test/runtime";\\n\';\n',
+		);
+		execFileSync(process.execPath, [scriptPath, '--root', root], { stdio: 'pipe' });
+	});
+});
+
 test('rejects Agent OS Rust crate references', () => {
 	withFixture((root) => {
 		writeJson(root, 'package.json', { name: 'secure-exec-workspace' });

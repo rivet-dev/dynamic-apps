@@ -58,9 +58,16 @@ function readJson(path) {
 	return JSON.parse(readFileSync(path, 'utf8'));
 }
 
+// Boundary-check scripts and their tests legitimately embed forbidden package
+// names and import specifiers as fixtures (the test files literally assert that
+// such imports are rejected). Scanning them would flag those fixtures as real
+// violations, so skip the boundary script itself and any boundary-check
+// `scripts/check-*.test.mjs` file.
+const boundaryCheckTestPattern = /^scripts[\\/]check-[\w.-]+\.test\.mjs$/;
+
 function shouldSkipFile(relPath) {
 	return relPath === 'scripts/check-secure-exec-boundary.mjs' ||
-		relPath === 'scripts/check-secure-exec-boundary.test.mjs';
+		boundaryCheckTestPattern.test(relPath);
 }
 
 function collectImportSpecifiers(source) {
