@@ -1579,6 +1579,18 @@ fn handle_local_bridge_call<'s>(
         "_vmCreateContext" => vm_create_context_value(scope, args).map(Some),
         "_vmRunInContext" => vm_run_in_context_value(scope, args).map(Some),
         "_vmRunInThisContext" => vm_run_in_this_context_value(scope, args).map(Some),
+        // Cross-boundary monotonic perf clock (SECURE_EXEC_PERFCLOCK=1, default-OFF). Handled LOCALLY in
+        // the v8-runtime (same process + same shared `Instant` origin as the sidecar), so the guest reads
+        // the SAME number as `secure_exec_bridge::perf_now_micros()` with no sidecar round-trip. Returns
+        // µs (0 unless the gate is set, so the guest cannot read a real clock by default — determinism).
+        "_perfNowRaw" => {
+            let us = if secure_exec_bridge::perf_clock_enabled() {
+                secure_exec_bridge::perf_now_micros()
+            } else {
+                0
+            };
+            Ok(Some(v8::Number::new(scope, us as f64).into()))
+        }
         _ => Ok(None),
     }
 }

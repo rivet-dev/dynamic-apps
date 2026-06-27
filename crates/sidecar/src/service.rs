@@ -1805,6 +1805,15 @@ where
         let poll_waiter = std::sync::Arc::clone(&self.poll_waiter);
 
         let response: Result<Value, SidecarError> = match request.method.as_str() {
+            // Cross-boundary monotonic perf clock (SECURE_EXEC_PERFCLOCK=1, default-OFF): the guest's
+            // callSyncRpc can route here, so __perf_now is answered in this dispatch layer too.
+            "__perf_now" => {
+                if secure_exec_bridge::perf_clock_enabled() {
+                    Ok(serde_json::json!(secure_exec_bridge::perf_now_micros()))
+                } else {
+                    Ok(serde_json::json!(0))
+                }
+            }
             "child_process.spawn" => {
                 let Some(vm) = self.vms.get(vm_id) else {
                     log_stale_process_event(

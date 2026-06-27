@@ -109,6 +109,15 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       iterations) bucketed by requested timeout (zero-wait / timed / blocking) + avg fd-set size.
       Distinguishes a busy-spinning loop from a blocking one; with the wall clock gives per-iteration
       cost. Counters only, no per-call print. (`node_import_cache.rs` `net_poll`.)
+- [x] **P1 cross-boundary perf clock** (`SECURE_EXEC_PERFCLOCK`) — a monotonic clock that returns the
+      SAME number inside the guest (the `__perf_now` sync-RPC) and in the sidecar
+      (`secure_exec_bridge::perf_now_micros()`), µs since ONE process-wide `Instant` origin. Built on
+      `Instant`/`Duration::elapsed`, NOT wall-clock `Date.now` (which is frozen/virtualized in the guest),
+      so guest-side and sidecar-side timestamps for the SAME event can be correlated on one timeline —
+      the missing piece for splitting an RPC's latency into intake / service / delivery across the
+      sidecar↔isolate boundary. Default-OFF + gated so the guest cannot read a real clock by default
+      (determinism). (`crates/bridge/src/lib.rs` `perf_now_micros`; sidecar `__perf_now` dispatch;
+      guest `callSyncRpc('__perf_now')`.)
 - [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
       `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
       line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it

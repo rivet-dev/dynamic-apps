@@ -1659,6 +1659,7 @@ pub(crate) const SYNC_BRIDGE_FNS: &[&str] = &[
     "_kernelFdPollRaw",
     "_kernelFdWriteRaw",
     "_kernelFdCloseRaw",
+    "_perfNowRaw",
     "_ptySetRawMode",
     "_ptyReadRaw",
     "_ptyWriteRaw",

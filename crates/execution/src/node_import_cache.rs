@@ -13265,13 +13265,18 @@ if (delegatePathOpen) {
   wasiImport.path_open = (...args) => {
     if (!globalThis.__pathopenprof) return __pathOpenImpl(...args);
     const t0 = Date.now();
+    // Shared cross-boundary perf clock (µs since the sidecar's monotonic origin), captured just before
+    // the open so it can be correlated with the sidecar's [pathopen-sidecar] svc timestamp on ONE
+    // timeline. Returns 0 unless SECURE_EXEC_PERFCLOCK=1.
+    let issuePerfUs = 0; try { issuePerfUs = callSyncRpc('__perf_now', []); } catch (_e) {}
     let guestPath = '?';
     try { guestPath = resolvePathOpenGuestPath(args[0], args[2], args[3]); } catch (_e) {}
     const t1 = Date.now();
     const result = __pathOpenImpl(...args);
     const t2 = Date.now();
+    let donePerfUs = 0; try { donePerfUs = callSyncRpc('__perf_now', []); } catch (_e) {}
     if (t2 - t0 >= 30) {
-      try { process.stderr.write('[pathopen] total=' + (t2 - t0) + 'ms resolve=' + (t1 - t0) + 'ms impl=' + (t2 - t1) + 'ms oflags=' + Number(args[4]) + ' ' + guestPath + '\n'); } catch (_e) {}
+      try { process.stderr.write('[pathopen] total=' + (t2 - t0) + 'ms resolve=' + (t1 - t0) + 'ms impl=' + (t2 - t1) + 'ms issuePerfUs=' + issuePerfUs + ' donePerfUs=' + donePerfUs + ' oflags=' + Number(args[4]) + ' ' + guestPath + '\n'); } catch (_e) {}
     }
     return result;
   };

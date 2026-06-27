@@ -264,6 +264,22 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★ CROSS-BOUNDARY PERF CLOCK (new API, per user request) PINS the 20s to EXECUTOR-PUMP
+  INTAKE, not delivery.** Built `SECURE_EXEC_PERFCLOCK` (default-OFF): `secure_exec_bridge::perf_now_micros()`
+  = µs since one process-wide monotonic `Instant` origin, exposed in-guest via the `_perfNowRaw` bridge
+  fn / `__perf_now` (handled locally in v8-runtime — same process, same origin, no round-trip). So a guest
+  timestamp and a sidecar/executor timestamp are on ONE timeline (replaces the un-correlatable frozen
+  `Date.now`). **Decisive correlation for the 20s `settings.conf` open:** guest ISSUED at perf 20.49s →
+  executor SERVICED at 40.63s → guest DONE at 40.63s. So the ~20s is ISSUE→SERVICE (**intake**); service→done
+  is instant (delivery is NOT the cost). And the executor `[pathopen-exec]` log serviced NOTHING between
+  19.72s and 40.63s — **the guest's executor sync-RPC PUMP was stalled ~21s** (request sat unread). This
+  narrows the root from "somewhere in the multi-hop delivery chain" to a specific, named layer: the wasm
+  EXECUTOR's poll_event / bridge-event-intake loop is blocked ~21s during the boot window, so the guest's
+  next sync-RPC isn't picked up. **Next: instrument the executor poll_event loop** (`crates/execution/src/wasm.rs`
+  poll_event / `inner.poll_event`) — what is it blocked on from ~19.7s to ~40.6s (a long inner.poll_event
+  wait? a blocking op on the session thread?). The perf clock now makes that a one-measurement question.
+  Render gate green. Artifacts: `/tmp/mp-final.log`, `2026-06-28-intake-stall-perfclock.txt`.
+
 - **2026-06-27 — ★★★ path_open's 21s = ONE `/dev/urandom` open blocked ~20s, and it is BRIDGE-DELIVERY /
   THREAD-SCHEDULING latency, NOT kernel work.** Built a `path_open` drill (`SECURE_EXEC_PATHOPENPROF`,
   default-OFF: times resolve vs impl per open, logs the slow ones with the guest path). It localized the

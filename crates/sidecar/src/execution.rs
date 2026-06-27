@@ -13950,6 +13950,16 @@ where
         "__kernel_stdio_write" => {
             service_javascript_kernel_stdio_write_sync_rpc(kernel, process, request)
         }
+        // Cross-boundary monotonic perf clock (SECURE_EXEC_PERFCLOCK=1, default-OFF): returns µs since
+        // the shared `Instant` origin so guest-side and sidecar-side timestamps land on one timeline.
+        // Gated so the guest cannot read a real clock by default (determinism).
+        "__perf_now" => {
+            if secure_exec_bridge::perf_clock_enabled() {
+                Ok(serde_json::json!(secure_exec_bridge::perf_now_micros()))
+            } else {
+                Ok(serde_json::json!(0))
+            }
+        }
         "__kernel_poll" => service_javascript_kernel_poll_sync_rpc(kernel, process, request),
         "__kernel_pipe" => service_javascript_kernel_pipe_sync_rpc(kernel, process, request),
         "__kernel_fd_read" => service_javascript_kernel_fd_read_sync_rpc(kernel, process, request),

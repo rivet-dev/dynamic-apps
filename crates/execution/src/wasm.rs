@@ -1086,6 +1086,21 @@ fn handle_internal_wasm_sync_rpc_request(
                 "missing fs.openSync path",
             )));
         };
+        // L-N intake probe (SECURE_EXEC_PATHOPENPROF): wall-clock perf-µs when the EXECUTOR services this
+        // open. Correlate with the guest drill's issuePerfUs: if this lags ~20s behind the guest's issue,
+        // the executor's sync-RPC PUMP was stalled (the request sat unread); if it matches, intake is fast.
+        {
+            use std::sync::OnceLock;
+            static G: OnceLock<bool> = OnceLock::new();
+            if *G.get_or_init(|| {
+                std::env::var("SECURE_EXEC_PATHOPENPROF").map(|v| v == "1").unwrap_or(false)
+            }) {
+                eprintln!(
+                    "[pathopen-exec] svc fs.openSync svcPerfUs={} path={path}",
+                    secure_exec_bridge::perf_now_micros()
+                );
+            }
+        }
         // Synthesize the standard /dev character devices (the kernel device_layer is not on this
         // host-backed guest fs path). Programs like dbus-daemon open /dev/null + /dev/urandom at start.
         if let Some(device) = wasm_char_device_for_path(path) {
@@ -4717,6 +4732,11 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOsSyncRpc === 
             flags,
           ]);
         }}
+        case "__perf_now":
+          if (typeof _perfNowRaw === "undefined") {{
+            throw new Error("secure-exec WASM perf-clock bridge is unavailable");
+          }}
+          return _perfNowRaw.applySync(void 0, args);
         default:
           throw new Error(`secure-exec WASM sync RPC method not implemented in V8 runtime: ${{method}}`);
       }}

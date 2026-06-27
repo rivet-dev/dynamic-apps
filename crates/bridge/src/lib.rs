@@ -4,9 +4,28 @@
 
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration, Instant, SystemTime};
 
 use serde::Deserialize;
+
+/// Cross-boundary monotonic perf clock (default-OFF, `SECURE_EXEC_PERFCLOCK=1`). Returns microseconds
+/// since ONE process-wide monotonic origin (`Instant`), so the SAME number is observable inside the
+/// guest (via the `__perf_now` sync-RPC) and in the sidecar (calling [`perf_now_micros`] directly) —
+/// letting timestamps from both sides be correlated on a single timeline. Built on `Instant` /
+/// `Duration::elapsed` (NOT wall-clock `Date.now`), so it is immune to guest clock
+/// virtualization/freezing. Gated so the guest cannot read a real clock by default (preserves
+/// determinism); enable only for cross-boundary perf measurement.
+pub fn perf_clock_enabled() -> bool {
+    static EN: OnceLock<bool> = OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_PERFCLOCK").map(|v| v == "1").unwrap_or(false))
+}
+
+/// Microseconds since the shared monotonic origin (initialized on first call; both sides read this
+/// same static, so their readings are on one timeline).
+pub fn perf_now_micros() -> u64 {
+    static ORIGIN: OnceLock<Instant> = OnceLock::new();
+    ORIGIN.get_or_init(Instant::now).elapsed().as_micros() as u64
+}
 
 /// Shared associated types for bridge implementations.
 pub trait BridgeTypes {

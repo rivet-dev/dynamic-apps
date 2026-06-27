@@ -972,6 +972,21 @@ pub(crate) fn service_javascript_fs_sync_rpc(
     match request.method.as_str() {
         "fs.open" | "fs.openSync" => {
             let path = javascript_sync_rpc_arg_str(&request.args, 0, "filesystem open path")?;
+            // L-N intake-vs-delivery probe (SECURE_EXEC_PATHOPENPROF): wall-clock epoch-ms when the
+            // sidecar SERVICES this open. Correlate with the guest drill's issuedAtEpochMs: if they match,
+            // intake+service is fast and the ~20s is RESPONSE DELIVERY; if this lags ~20s, intake is slow.
+            {
+                use std::sync::OnceLock;
+                static G: OnceLock<bool> = OnceLock::new();
+                if *G.get_or_init(|| {
+                    std::env::var("SECURE_EXEC_PATHOPENPROF").map(|v| v == "1").unwrap_or(false)
+                }) {
+                    // Shared cross-boundary perf clock (µs since the same monotonic origin the guest's
+                    // __perf_now reads) — directly comparable to the guest [pathopen] issuePerfUs/donePerfUs.
+                    let svc_us = secure_exec_bridge::perf_now_micros();
+                    eprintln!("[pathopen-sidecar] svc fs.openSync svcPerfUs={svc_us} path={path}");
+                }
+            }
             let flags = javascript_sync_rpc_arg_u32(&request.args, 1, "filesystem open flags")?;
             let mode =
                 javascript_sync_rpc_arg_u32_optional(&request.args, 2, "filesystem open mode")?;
