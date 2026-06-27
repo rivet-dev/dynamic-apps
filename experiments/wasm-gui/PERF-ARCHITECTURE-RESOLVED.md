@@ -27,3 +27,26 @@ Exactly which fraction of the live multi-app desktop's hot RPCs are kernel-forwa
 per-call cost of each, requires tracing the running session at BOTH `wasm.rs:933` (internal) and the
 kernel-forwarded handler. That is the focused-session measurement (the architecture is now understood enough to
 place both probes correctly); fragment-guessing a single probe is what thrashed before.
+
+## ROOT-2 BASELINE MEASURED (2026-06-27) — the 0-trace mystery solved + the result
+
+The SECURE_EXEC_TRACE rpc-trace finally captured (the trace lands in the harness's $OUT = /tmp/xu7-session.log via
+the host's `> "$OUT" 2>&1`, NOT a caller redirect — that was the entire 0-trace mystery across ~10 fires). A
+multi-guest xfwm4+mousepad session (PARTIAL) produced 225,656 trace lines.
+
+RESULT — the desktop hot path is POLLING sync-RPCs, kernel-forwarded (single-thread serialized via
+service_javascript_sync_rpc), by total servicing us:
+- __kernel_fd_poll  ~223 ms (28,092 calls, avg 7us)
+- net.poll          ~132 ms (12,176 calls, avg 10us)
+- net.poll_wait     ~75 ms  (30,345 calls, avg 2us)
+- net.server_accept ~44 ms  (4,240 calls)
+- net.listen        ~241 ms (2 calls, blocking)
+TOTAL kernel-forwarded servicing = 721539 us
+
+~70k poll RPCs dominate. Per-RPC servicing is CHEAP (2-10us); the cost is COUNT x round-trip overhead (base64 +
+postMessage + synthetic-wait). CONCLUSION:
+1. T1 SAB ring is the CONFIRMED primary lever — it cuts the round-trip overhead across 70k kernel-forwarded polls.
+2. Secondary lever: the busy-poll COUNT itself (the X event loop spins ~70k polls). net.poll_wait is already
+   off-thread (task #13); investigate whether fewer/longer-blocking wakeups are possible without touching X/GTK.
+3. Root-2 multiplex helps too (parallelize the single kernel thread), but T1 is lower-risk + directly targets the
+   measured cost, so T1 wiring is next.
