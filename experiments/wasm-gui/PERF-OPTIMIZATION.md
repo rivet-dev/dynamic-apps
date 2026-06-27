@@ -323,6 +323,18 @@ small lever.** Two candidate redesigns (a DECISION, see lever menu C / C-lite be
   on its NEXT poll), so cutting it cuts the cross-guest round-trip. RISK to design for: instant inline
   empty-polls must NOT become a guest busy-spin — honor the poll timeout / preserve event-driven pacing (the
   "wakeups event-driven, never timer-polled" constraint), else CPU burns with no ir gain.
+  **★ DESIGN-A FEASIBILITY CONFIRMED (2026-06-30):** the kernel poll path is `&self` (`poll_targets`/
+  `poll_target_entry`/`poll_entry`, kernel.rs:2180+) and reads ONLY Arc-internally-shared managers —
+  `fd_tables: Arc<Mutex<FdTableManager>>`, `PipeManager{inner: Arc<…>}`, `PtyManager{inner: Arc<…>}`,
+  `SocketTable`, `PollNotifier`. So NO shadow map: extract a `KernelPollHandle` (Arc-clones of those fields)
+  with a read-only non-blocking `poll_fds(pid, fds, 0)`, hand it to the bridge thread via the lever-A
+  `InlineNetDrain` seam, and service `__kernel_fd_poll` (timeout 0) inline concurrently with the main task —
+  all sync is via the managers' existing internal Mutexes. BUSY-SPIN GUARD: 9000 of the polls are the guest's
+  spin-wait (runtime decomposes blocking poll into poll(0)+retry); making poll(0) instant risks 100% CPU —
+  when the inline poll finds nothing ready, do a BOUNDED event-driven wait on `poll_notifier.wait_for_change`
+  (the existing primitive, not a sleep) before returning, preserving pacing + noticing readiness instantly.
+  Gate `SECURE_EXEC_INLINE_DISPATCH` (default-OFF; also gates lever A) so the committed default is unchanged;
+  flip ON only on a clean ir win + render-green + no CPU-spin regression. STATUS: IMPLEMENTING (serial).
 - **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
   (extend the existing T1-ring substrate, `SECURE_EXEC_T1_RING`); data becomes direct memory, host only
   *wakes* the peer (~31µs). Deepest, highest ceiling, biggest change.
