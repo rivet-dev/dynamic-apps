@@ -12637,6 +12637,30 @@ fn xtrace_dump(path: Option<&str>, dir: &str, bytes: &[u8]) {
     );
 }
 
+// D11 (SECURE_EXEC_WAKETRACE=1, default-OFF): sizes F8 (warm-path event-delivery coalescing). Logs
+// every guest DRAIN — a net.poll / net.socket_read call that pulls bytes out of a socket channel —
+// with an epoch-MICROS wall clock (the same clock + unit as the host's `[ir-mark] inject/detect wall=`
+// marks) and the chunk byte count. Windowing the drains to the inject..detect interval answers the
+// load-bearing F8 question: do a keypress's X events reach the guest as MANY tiny recvs (trickle ->
+// F8 has headroom to coalesce) or a FEW fat chunks (the channel already batches -> F8 is null)? Zero
+// cost on the default path (single OnceLock bool check); never alters behavior. See FRAME-BUDGET D11.
+fn waketrace_drain(path: Option<&str>, bytes: usize) {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    if !*EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_WAKETRACE").map(|v| v == "1").unwrap_or(false)
+    }) {
+        return;
+    }
+    if bytes == 0 {
+        return;
+    }
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_micros())
+        .unwrap_or(0);
+    eprintln!("[waketrace] wall={ts} drain={bytes} sock={}", path.unwrap_or("?"));
+}
+
 fn spawn_unix_socket_reader(
     stream: UnixStream,
     sender: Sender<JavascriptTcpSocketEvent>,
@@ -20410,6 +20434,7 @@ where
                     let ev = match event {
                         Some(JavascriptTcpSocketEvent::Data(chunk)) => {
                             xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                            waketrace_drain(drain_path.as_deref(), chunk.len());
                             json!({ "type": "data", "data": javascript_sync_rpc_bytes_value(&chunk) })
                         }
                         Some(JavascriptTcpSocketEvent::End) => json!({ "type": "end" }),
@@ -20469,6 +20494,7 @@ where
             match event {
                 Some(JavascriptTcpSocketEvent::Data(chunk)) => {
                     xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                    waketrace_drain(drain_path.as_deref(), chunk.len());
                     Ok(json!({
                         "type": "data",
                         "data": javascript_sync_rpc_bytes_value(&chunk),
@@ -20630,18 +20656,20 @@ where
         "net.socket_read" => {
             let socket_id =
                 javascript_sync_rpc_arg_str(&request.args, 0, "net.socket_read socket id")?;
-            if let Some(socket) = process.tcp_sockets.get_mut(socket_id) {
-                javascript_net_read_value(socket.poll(
-                    kernel,
-                    process.kernel_pid,
-                    Duration::ZERO,
-                )?)
+            let drain_path: Option<String> =
+                process.unix_sockets.get(socket_id).and_then(|s| s.remote_path.clone());
+            let event = if let Some(socket) = process.tcp_sockets.get_mut(socket_id) {
+                socket.poll(kernel, process.kernel_pid, Duration::ZERO)?
             } else {
                 let socket = process.unix_sockets.get_mut(socket_id).ok_or_else(|| {
                     SidecarError::InvalidState(format!("unknown net socket {socket_id}"))
                 })?;
-                javascript_net_read_value(socket.poll(Duration::ZERO)?)
+                socket.poll(Duration::ZERO)?
+            };
+            if let Some(JavascriptTcpSocketEvent::Data(chunk)) = &event {
+                waketrace_drain(drain_path.as_deref(), chunk.len());
             }
+            javascript_net_read_value(event)
         }
         "net.socket_set_no_delay" => {
             let socket_id =
