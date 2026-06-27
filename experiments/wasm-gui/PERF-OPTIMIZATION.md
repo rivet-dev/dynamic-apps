@@ -238,16 +238,34 @@ single-glyph damage and over-reported ~234ms); a stack of default-off diagnostic
 (`HOPPROF`/`DRAINPROF`/`HOPSPLIT`/`SYNCSPLIT`/`WAKETRACE`/`xtrace --rt`; guest probes REQUIRE
 `SECURE_EXEC_PERFCLOCK=1`; env forwarding to the guest was fixed mid-effort).
 
-**DEFINITIVE ir DIAGNOSIS (don't re-derive):** ir = **~46 causally-serial cross-guest sync-RPC hops** — the
-X client (mousepad) and server (Xvfb) alternate, each waiting on the other (intrinsic interactive-X
-causality; the count can't drop by parallelizing). Each hop's **~570µs floor is the single-threaded shared
-dispatch loop** (tokio current-thread holding `&mut self` over the whole sidecar), reached via **3 thread
-handoffs**: guest isolate → per-session event-bridge thread → shared service loop → kernel → respond →
-guest unpark. Seam: `__agentOsWasmSyncRpc` (`crates/execution/src/wasm.rs` switch →
-`_netSocketPollWaitRaw.applySync` @~4677) → `sync_bridge_callback` (`crates/v8-runtime/src/bridge.rs`) →
-`ctx.sync_call` (`host_call.rs`). Host service is ~3µs and bridge plumbing ~31µs — the 570µs is **dispatch
-latency/contention, not host work or wake latency** (the 250µs pump is at the joint ir/fp optimum — DO NOT
-tune it; below regresses, above is flat).
+**DEFINITIVE ir DIAGNOSIS (D16 HOPSPLIT, 2026-06-30 — measured, not derived):** ir = **~46 causally-serial
+cross-guest sync-RPC hops** — the X client (mousepad) and server (Xvfb) alternate, each waiting on the other
+(intrinsic interactive-X causality; the count can't drop by parallelizing). `SECURE_EXEC_HOPSPLIT=1` keys a
+monotonic clock by `call_id` across the 5 handoff points and decomposes the per-hop wall. **Result (avg µs
+over thousands of hops): the floor is `d12` — the handoff from the per-session event-bridge thread to the
+single shared `select!` service task in `crates/sidecar/src/stdio.rs` — at ~80-85% of EVERY hop:**
+
+| method | hops | avgTotal | d01 fwd-wake | **d12 svc-wake** | d23 svc-span | d34 deliver-wake |
+|---|---|---|---|---|---|---|
+| `_netSocketPollRaw` (drain) | 8600 | 742µs | 60 | **636** | 14 | 29 |
+| `_kernelFdPollRaw` | 8200 | 709µs | 64 | **575** | 33 | 33 |
+| `_netServerAcceptRaw` | 3800 | 655µs | 51 | **549** | 26 | 26 |
+| `_netSocketPollWaitRaw` | 400 | 259µs | 33 | **198** | 6 | 19 |
+
+The host probes corroborate: `HOPPROF` wakeLag (condvar notify→resume) **11µs**, respond **35µs**;
+`DRAINHOSTPROF` drain hostSvc **5µs** (and **8600 drains : only ~300 with data — 28:1 empty re-scans**).
+So host service, condvar wake, and respond are ALL tiny. **The cost is purely getting DISPATCHED**: every
+guest's every sync RPC funnels through ONE `select!` task (stdio.rs:211) that also drains framebuffer
+event-frames and wire I/O, so during the mousepad↔Xvfb ping-pong each RPC waits ~575-636µs to be *picked up
+and serviced*. This is the single-shared-task serialization (`d23` proves it is NOT service contention, NOT
+peer compute, NOT condvar/thread-wake — d01/d34 are ~30-60µs immediate notifies; only d12 is fat). Seam:
+`__agentOsWasmSyncRpc` (`wasm.rs` switch) → `sync_bridge_callback` (`v8-runtime/src/bridge.rs`) →
+`ctx.sync_call` (`host_call.rs`, blocks on `recv_response`) → event-bridge thread emits SyncRpcRequest →
+**the single stdio `select!` task** (`pump_process_events` → `service_javascript_sync_rpc`) → respond. The
+250µs pump is at the joint ir/fp optimum — DO NOT tune it; the fat d12 is task contention, not pump cadence
+(575µs > 250µs because the one task is saturated). **Implication: A/F10-INLINE is now the CONFIRMED top
+lever** — taking the hot net/poll drains off the single task onto the per-session bridge thread (which runs
+in parallel per guest) eliminates d12 for those hops; ~742µs→~100µs/hop ⇒ ir ~88ms→~15-20ms projected.
 
 **REMAINING LEVER MENU — attack the per-hop FLOOR (hits all ~46 hops) over count reduction:**
 - **A [TOP — best risk-adjusted] F10-INLINE:** service `net.poll`/drain INLINE on the event-bridge thread,
