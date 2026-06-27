@@ -223,6 +223,59 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
+#### ★ COMPLETE MEASUREMENTS LOG (2026-06-30) — every ir number we recorded, with how it was measured
+All B2 = Xvfb (800x600x24, -fbdir) + mousepad, single guest. ir = inject→framebuffer-change wall time.
+**The metric evolved as we found confounds — numbers are only comparable WITHIN the same metric row.**
+
+| measurement | metric / method | result | notes |
+|---|---|---|---|
+| original "ir" | type **"HELLO"** (5 char), 15ms pacing sleep AFTER each char, whole-fb strided hash, detect after typing | **~88ms** (87-98) | ARTIFACT: ~75ms is the 5×15ms pacing baked in before the detect loop even starts |
+| single-key, pacing kept | type "H", 15ms trailing sleep, whole-fb hash | **~33ms** (27-38; noise spikes ~100-140) | still ~15ms pacing + CONFOUNDED (caught pointer, not glyph) |
+| single-key, pacing stripped | type "H", pace BETWEEN keys only, whole-fb hash | **~25ms** (23-28) | CONFOUNDED — whole-fb caught a change at **rows 392-410** (mouse-cursor sprite), NOT the glyph (row ~70) |
+| damage localization | as above + `[ir-damage]` | first change **rows 392-410, ~84 bytes** @ ~20ms; glyph (rows 70-92) later | proved the ~20-25ms was the cursor sprite, not the text |
+| **TRUSTWORTHY (the real metric)** | warm (`IR_WARMUP=Hello`) + caret-blink OFF (fixture) + glyph-region detect (top 200 rows, excludes cursor) + tight poll; `[ir-damage]` CONFIRMS rows 70-92 = glyph every run | **~98ms** (88-125) | the true warm single-keystroke glyph-render BEFORE the inline levers |
+| + inline net.poll (lever A) | trustworthy metric | (folded into below) | A alone: measured null vs the OLD confounded metric — that measurement was INVALID |
+| + inline net.poll + fd.poll (A + C-lite, gate ON) | trustworthy | **~70ms** (65-74) | vs gate OFF ~105ms — the ~34ms win that the confounded metric hid |
+| + inline accept (T-accept) | trustworthy | **~66ms** (52-76) | accept off the funnel; ~4ms more (parallel-spin relief) |
+| **committed default (all 3 levers ON)** | trustworthy, `bench-ir.sh "" 3` | **~64ms** (63/69/64; 5-run 59-74) | render green every run |
+| inline-dispatch fully OFF | trustworthy, `SECURE_EXEC_INLINE_DISPATCH=0` | **~105ms** (82-106) | confirms the inline family is worth ~40ms |
+| poll clamp sweep | trustworthy, `SECURE_EXEC_POLL_MAX_WAIT_MS=1/3/10` | **~60 / 62 / 67ms** | clamp is only a ~2ms margin — NOT the gap cause |
+| gtk-enable-animations=false | trustworthy, settings.ini | **~68ms** (null) | the ~7 redraw steps are NOT animations |
+| first-paint (fp), all above | `SECURE_EXEC_FIRSTPAINT` | **~2.07-2.30s** | tracked, not gating under the <10ms goal |
+| **native ref (NOT comparable!)** | `native-baseline.sh`: real mousepad on Xvfb, `xdotool type HELLO --delay 0`, **strided `hash(b[::997])`**, first-change | **~6ms** | ⚠ CONFOUNDED the SAME way the old wasm numbers were (strided hash + first-change = likely catches the cursor sprite, NOT the glyph). NOT a valid glyph-render baseline. Re-measure native with the trustworthy method before comparing. |
+
+**Per-hop / decomposition numbers (trustworthy-metric era):**
+- One-keystroke xtrace timeline: **every C>S→S>C in ~60µs** (server replies instantly); **~7 client-side gaps of ~6-9ms** (≈50ms total) where mousepad waits between requests.
+- `[pwprof]` poll_wait requested-timeout histogram: **97% request 100+ms** (guest blocks ~indefinitely; woken ~8ms later by an internal event, not the X server).
+- `[pipetrace]`: ~11 kernel-pipe writes/run total (the ~8ms wake is NOT a pipe write).
+- HOPSPLIT d12 (dispatch-queue) pre-inline: `_netSocketPollRaw` 636µs, `_kernelFdPollRaw` 575µs, `_netServerAcceptRaw` 549-664µs, `_netSocketPollWaitRaw` 198-231µs. HOPPROF wakeLag 11µs, respond 35µs. DRAINHOSTPROF drain hostSvc 5µs, 28:1 empty:productive. rpc-profile total service work **572ms over a ~20s run** (~3% of one core).
+
+#### ★★★ NATIVE COMPARISON RESOLVED (2026-06-30) — the floor was FALSE; the ~54ms is RUNTIME overhead, <10ms IS a CORE problem ★★★
+Built a Docker native baseline (`debian + mousepad + Xvfb + xdotool`) and measured native with the SAME
+trustworthy method as wasm (warm `HelloWorld`, caret-blink OFF, top-200-row glyph region, PointerRoot focus
+handled by clicking inside the window + keeping the pointer below the text line). `[ir-damage]` confirms the
+detected change is **rows 53-69, 281 diffbytes = the glyph** — the IDENTICAL signature to wasm's rows 70-92,
+281 bytes. Valid apples-to-apples.
+- **NATIVE ir = ~10ms** (5.4 / 9.6 / 10.0 / 10.3 / 10.4 / 10.9; median ~10, min 5.4), render confirmed.
+- **WASM ir = ~64ms** (committed). Same GTK/mousepad/Xvfb software, same metric.
+⇒ **The ~54ms gap is RUNTIME-INDUCED, NOT a GTK floor.** The "hard render floor" conclusion is RETRACTED —
+it rested on the confounded native ~6ms (which timed the cursor, like the old wasm artifact). Native renders
+the glyph in ~10ms, so **<10ms is REACHABLE and this is a CORE problem.** Per-step: native ~1.4ms/step ×7,
+wasm ~9ms/step ×7 — the runtime adds ~7.6ms PER frame step. RE-OPENED: find what the runtime adds per step
+(guest-block/poll_wait wake latency dominates; wasm compute is only ~2.9× so ~4ms of the 9ms, leaving ~5ms
+of wake/dispatch latency per step). The native Docker harness (`scratchpad/native-ir/`) is the new reference.
+
+#### (superseded by the native result above) ★★ CORRECTION (2026-06-30, user-prompted): the "guest-side GTK floor" was NOT established — RE-OPENED
+A user pointed out: if the ~8ms-per-step pacing were GTK's intrinsic frame-clock behavior, **native GTK (same
+code) on the same Xvfb would be just as slow** — so the wasm-vs-native gap, IF real, means runtime overhead,
+not a floor. But the native ~6ms baseline is measured by a DIFFERENT, confounded method (strided hash +
+first-change via `xdotool`, no pacing) — the very artifact we fixed in wasm — so it almost certainly catches
+the cursor sprite, not the glyph. **We have NO valid native glyph-render number, so the "hard floor"
+conclusion was premature and is RETRACTED.** OPEN QUESTION: measure native mousepad-on-Xvfb with the
+trustworthy method (warm + blink-off + glyph-region). If native renders the glyph in ~a few ms, the wasm
+~64ms is RUNTIME-induced (CORE-attackable, the ~8ms-per-step wake/timer latency); if native is also ~50ms,
+it's a GTK-on-Xvfb floor. This decides whether <10ms is a CORE problem. DO THIS before declaring any floor.
+
 > ## ★★★ RESOLUTION (2026-06-30): the "ir ~88ms" was a MEASUREMENT ARTIFACT — true single-keystroke ir is ~33ms (<50ms, target MET) ★★★
 > The ir probe (`host/src/main.rs` ~1447-1472) types **"HELLO" (5 chars)** and the typist-pacing sleep is
 > **15ms AFTER EACH char** (`xinput::type`, main.rs:522). That `xi.run("type HELLO")` is **synchronous and
@@ -241,7 +294,9 @@ The `/goal` references this section for detail; keep it current.
 
 **Targets (2026-06-30, ir<10ms goal):** primary **single-keystroke input→response (ir) < 10ms** (≥3 runs,
 render green). fp tracked (~2.08s) but NOT gating under this goal. The 50ms target is retired; ir is measured
-HONESTLY now (single keystroke, no pacing artifact). Native ref ~6ms.
+HONESTLY now (single keystroke, no pacing artifact). **Native ref = ~10ms** (trustworthy, same method,
+Docker `scratchpad/native-ir/`; the old "~6ms" was the confounded cursor artifact). Wasm ~64ms ⇒ ~54ms is
+RUNTIME overhead and <10ms is reachable in CORE — the "floor" was retracted.
 **Current committed baseline (TRUSTWORTHY metric, inline-dispatch default-ON, 2026-06-30):** ir **~70ms**
 (59-74ms), render green, fp ~2.08s. Was ~98ms before the inline-dispatch win. Need ~7× more to <10ms.
 **Dispatch levers A/C-lite are a REAL WIN after all** (~98→70ms) — the earlier "null/refuted" was a confounded
@@ -294,7 +349,8 @@ one lands, ir is unmeasurable to the precision the goal requires — SURFACED fo
 | T-render4 | **PWPROF: 97% of poll_wait requests are 100+ms** (the guest blocks ~indefinitely, NOT ~8ms frame timeouts). So mousepad is WOKEN ~8ms later by an INTERNAL event (not the X server — no S>C in the gaps), ~7×/keystroke. The ~8ms is the cadence of a guest-internal wakeup (a timer/frame-clock thread poking the GMainContext wakeup pipe), NOT the requested timeout or the 3ms clamp | OPEN → find what fires every ~8ms inside mousepad: a guest timer thread (does the runtime's per-arm timer / setTimeout granularity inflate it? → CORE lever) vs GTK frame-clock intrinsic pacing (floor). Probe: timer-arm trace + the worker/wakeup-pipe path during the gap |
 | T-render5 | the 3ms `JAVASCRIPT_NET_POLL_MAX_WAIT` clamp: TESTED clamp=1/3/10ms → ir ~60/62/67ms. Tighter clamp = guest notices its ~8ms deadline sooner, but only **~2ms total** effect — the clamp is NOT the gap cause, just the notice-latency margin | CLOSED — marginal (~2ms); not worth changing the tuned 3ms default. No kernel-pipe wakeups either (pipetrace ~11 writes/run), so the ~8ms is the guest's own GSource/frame-clock deadline, not a runtime wake |
 
-**★★★ HARD RENDER FLOOR (2026-06-30) — <10ms is NOT reachable in CORE; the remaining ~50ms is guest-side GTK frame-clock pacing ★★★**
+**[RETRACTED 2026-06-30 — see "NATIVE COMPARISON RESOLVED" above: native renders the same glyph in ~10ms, so the ~54ms is RUNTIME overhead, NOT a guest floor. The block below was WRONG.]**
+**~~★★★ HARD RENDER FLOOR (2026-06-30) — <10ms is NOT reachable in CORE; the remaining ~50ms is guest-side GTK frame-clock pacing ★★★~~**
 After landing the inline-dispatch family (net.poll + fd.poll + accept) — ir **~98ms → ~62ms** vs the trustworthy
 metric — the remaining ~50-60ms is decomposed and attributed: **mousepad renders ONE keystroke over ~7 redraw
 steps, each gated by an ~8ms guest-internal frame-clock/GSource deadline.** Evidence: server replies in ~60µs
