@@ -2040,6 +2040,33 @@ pub(crate) fn with_ring_backing_slices<R>(
     Some(f(req_slice, resp_slice))
 }
 
+/// Two ring backing stores (request + response) for one guest's T1 SAB ring, carried from the session loop to the
+/// sidecar servicing side over the in-process RuntimeEvent channel. `SharedRef` is `Send` + `Clone`; we provide a
+/// pointer-identity `PartialEq` + a `Debug` impl so the enclosing `RuntimeEvent` (which derives Debug, Clone,
+/// PartialEq) compiles when it gains a `T1RingReady(RingBacking)` variant.
+#[derive(Clone)]
+#[allow(dead_code)]
+pub(crate) struct RingBacking {
+    pub req: v8::SharedRef<v8::BackingStore>,
+    pub resp: v8::SharedRef<v8::BackingStore>,
+}
+
+impl std::fmt::Debug for RingBacking {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RingBacking")
+            .field("req_len", &self.req.byte_length())
+            .field("resp_len", &self.resp.byte_length())
+            .finish()
+    }
+}
+
+impl PartialEq for RingBacking {
+    fn eq(&self, other: &Self) -> bool {
+        let ptr = |b: &v8::SharedRef<v8::BackingStore>| b.data().map(|d| d.as_ptr());
+        ptr(&self.req) == ptr(&other.req) && ptr(&self.resp) == ptr(&other.resp)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
