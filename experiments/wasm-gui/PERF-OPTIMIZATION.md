@@ -131,6 +131,18 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — L-F (loop iterations), from existing host-side data.** The glib main loops iterate
+  **~168k times in 185s (~900/sec — busy, NOT blocking)** (≈ the `net.poll_wait` count). With the 178s
+  of compute that is **~1ms of compute per loop iteration** — so the 178s ≈ 168k iterations × ~1ms (the
+  glib prepare/check/dispatch machinery in wasm + per-iteration work). **Whether each iteration is real
+  GTK work or a non-progressing spin is exactly the P2 question.** Two attack surfaces: cut the
+  per-iteration cost (~1ms is high for a glib iteration) and/or cut the iteration count (168k is high if
+  spinning). NOTE: the guest-side `__pollstat`/`__rpcprof` gates do NOT activate for X clients
+  (`SECURE_EXEC_*` debug vars don't reach X-client `process.env` even after the cenv allowlist add — a
+  separate plumbing gap); not chased because `[rpcprof-host]` (host-side) already carries the per-isolate
+  poll counts. **Next: P2 (V8 CpuProfiler)** — break the ~1ms/iteration into glib machinery vs
+  `ffi_call`/GObject vs GTK work. Artifact: `/tmp/p2lite-mousepad.log`.
+
 - **2026-06-27 — DECISIVE: single-app startup is COMPUTE-BOUND (the RPC-vs-CPU split, measured).**
   mousepad dual-profile (P1 sidecar + P1-guest, ~185s wall): **guest-side RPC blocking = 952ms** (640k
   RPCs, mostly ~1µs *in-process* `__agentOsSyncRpc.callSync` — NOT cross-process round-trips); sidecar
