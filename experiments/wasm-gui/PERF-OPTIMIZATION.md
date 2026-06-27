@@ -2235,3 +2235,15 @@ collapse removes the ~11ms of per-render runtime overhead, the ~20ms peerWait (�
 wasm compute floor = TOOLCHAIN work, which the goal declares OUT OF SCOPE. This is the hard floor, grounded
 in the goal's own 2.9× definition + the rigorously-measured native. Session delivered 61→28.5ms (17×→6.5×);
 the remaining path to a *strict* 3× is out-of-scope toolchain, not a CORE lever.
+
+## §7-FLOOR-RETRACTED (2026-06-30): the render is OVERHEAD-bound, NOT compute-bound — target IS reachable
+
+RETRACT §7-FLOOR. It assumed the render sits at a ~2.9× compute floor. But B1 (measured this session):
+GObject new+unref = **0.67µs/op wasm vs ~0.03µs native = ~22×** per op. If the render were compute-bound
+it would be ~22× native; it is **6.5×** — FAR below the compute floor. So the render does FEW heavy compute
+ops per keystroke, and the 28.5ms is dominated by **runtime OVERHEAD** (op dispatch + cross-guest round-trip
+scheduling), which is CORE-reducible. The compute floor for the render is well below 6.5× — there is real
+headroom to the 3× target, and the op-count / per-op-dispatch lever is the path (NOT out of scope).
+Decomposition holds: ~11ms my op processing + ~20ms peerWait (= the PEER's op processing, small compute) =
+~145+ round-trips at ~80µs each. Halving ops (both guests) ≈ ir → ~14-18ms ≈ 3-4× — plausibly under 3× if
+per-op cost also drops. IMPLEMENTING the op-count collapse (unified poll RPC) next.
