@@ -474,6 +474,7 @@ impl WasmExecution {
                 return Ok(Some(event));
             }
             let poll_timeout = self.deadline_capped_timeout(timeout);
+            let __pe_t0 = secure_exec_bridge::perf_now_micros();
             match self
                 .inner
                 .poll_event(poll_timeout)
@@ -481,8 +482,18 @@ impl WasmExecution {
                 .map_err(map_javascript_error)?
             {
                 Some(event) => {
+                    let __pe_dt = secure_exec_bridge::perf_now_micros().saturating_sub(__pe_t0);
+                    if __pe_dt > 1_000_000 && wasm_pump_probe_enabled() {
+                        eprintln!("[pump] inner.poll_event(async) blocked {__pe_dt}us (timeout={}ms)", poll_timeout.as_millis());
+                    }
                     if let JavascriptExecutionEvent::SyncRpcRequest(request) = &event {
-                        if self.handle_internal_sync_rpc(request)? {
+                        let __h0 = secure_exec_bridge::perf_now_micros();
+                        let handled = self.handle_internal_sync_rpc(request)?;
+                        let __hdt = secure_exec_bridge::perf_now_micros().saturating_sub(__h0);
+                        if __hdt > 1_000_000 && wasm_pump_probe_enabled() {
+                            eprintln!("[pump] handle_internal(async) {} took {__hdt}us", request.method);
+                        }
+                        if handled {
                             continue;
                         }
                         if let Some(signal_state) = self.handle_signal_state_sync_rpc(request)? {
@@ -513,14 +524,28 @@ impl WasmExecution {
                 return Ok(Some(event));
             }
             let poll_timeout = self.deadline_capped_timeout(timeout);
+            // L-N pump probe (SECURE_EXEC_PATHOPENPROF): time inner.poll_event_blocking (event-delivery
+            // wait) vs handle_internal (servicing) on the shared perf clock; log multi-second stalls so the
+            // ~21s executor-pump stall is attributed to delivery vs servicing.
+            let __pe_t0 = secure_exec_bridge::perf_now_micros();
             match self
                 .inner
                 .poll_event_blocking(poll_timeout)
                 .map_err(map_javascript_error)?
             {
                 Some(event) => {
+                    let __pe_dt = secure_exec_bridge::perf_now_micros().saturating_sub(__pe_t0);
+                    if __pe_dt > 1_000_000 && wasm_pump_probe_enabled() {
+                        eprintln!("[pump] inner.poll_event_blocking blocked {__pe_dt}us (timeout={}ms)", poll_timeout.as_millis());
+                    }
                     if let JavascriptExecutionEvent::SyncRpcRequest(request) = &event {
-                        if self.handle_internal_sync_rpc(request)? {
+                        let __h0 = secure_exec_bridge::perf_now_micros();
+                        let handled = self.handle_internal_sync_rpc(request)?;
+                        let __hdt = secure_exec_bridge::perf_now_micros().saturating_sub(__h0);
+                        if __hdt > 1_000_000 && wasm_pump_probe_enabled() {
+                            eprintln!("[pump] handle_internal {} took {__hdt}us", request.method);
+                        }
+                        if handled {
                             continue;
                         }
                         if let Some(signal_state) = self.handle_signal_state_sync_rpc(request)? {
@@ -989,6 +1014,12 @@ fn wasm_internal_rpc_trace_enabled() -> bool {
 fn rpcprof_enabled() -> bool {
     static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *EN.get_or_init(|| std::env::var("SECURE_EXEC_RPCPROF").map(|v| v == "1").unwrap_or(false))
+}
+
+/// L-N executor-pump probe gate (SECURE_EXEC_PATHOPENPROF=1, default-OFF).
+fn wasm_pump_probe_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_PATHOPENPROF").map(|v| v == "1").unwrap_or(false))
 }
 
 type RpcProfRegistry = std::sync::Mutex<(u64, std::collections::HashMap<String, (u64, u128)>)>;

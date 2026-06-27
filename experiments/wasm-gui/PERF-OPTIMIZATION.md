@@ -279,6 +279,31 @@ levers as profiling surfaces new costs (recursion).
   poll_event / `inner.poll_event`) — what is it blocked on from ~19.7s to ~40.6s (a long inner.poll_event
   wait? a blocking op on the session thread?). The perf clock now makes that a one-measurement question.
   Render gate green. Artifacts: `/tmp/mp-final.log`, `2026-06-28-intake-stall-perfclock.txt`.
+  - **FOLLOW-UP (pump probe, same run): the stall is ABOVE the executor.** Instrumented the executor's
+    `poll_event`/`poll_event_blocking` to log any >1s `inner.poll_event` (delivery) or `handle_internal`
+    (servicing) — and NEITHER fired during the 20s window. So the executor's poll loop is fast WHEN
+    CALLED; the 20s is that mousepad's `poll_event` **isn't being CALLED for ~20s**. → the stall is in
+    the SIDECAR's main execution-pump loop (the single thread that pumps all guests' `poll_event`): it is
+    busy/blocked elsewhere (another guest's pump, or a blocking op on that thread) and does not service
+    mousepad's execution for ~20s. This is L-A (single-thread serialization) at the PUMP layer. **Next:
+    instrument the sidecar's per-guest pump scheduler** (where it calls `execution.poll_event` round-robin)
+    to see which guest/op holds the pump thread ~20s. Pump probes committed (default-OFF, `[pump]`).
+  - **BOTTOM OF THE STACK (code-read trace, no new build): a pump/event SCHEDULING-WAKEUP gap, NOT a busy
+    queue.** Full request path: guest `sync_bridge_callback` → `ctx.sync_call` (host_call.rs:239) sends a
+    `RuntimeEvent::BridgeCall` via `send_event` and blocks on `recv_response` (session.rs:1976 — a clean
+    `self.rx.recv()`, so the isolate thread is FREE, not spinning). The response returns only after the
+    sidecar services the BridgeCall (runtime-event loop → `JavascriptSyncRpcRequest` → pump
+    `execution.poll_event` → `handle_internal` → `respond_sync_rpc_success` → `send_bridge_response` →
+    `self.rx`). **Key reconciliation:** P1 already showed total sidecar SERVICE time ≈ 1.3s, so during the
+    20s the sidecar is IDLE — it is NOT busy-queued behind 20s of work. So mousepad's BridgeCall is sent
+    at ~20s but the sidecar's runtime-event/pump task is **not scheduled to pick it up until ~40s despite
+    being idle** = a tokio task-wakeup / pump-scheduling gap (the pump isn't notified on a new BridgeCall,
+    or polls guests on a cadence that starves a newly-launched guest during the boot fan-in). **Fix
+    direction (CORE, v8-runtime/sidecar):** make the runtime-event/pump wakeup event-driven on inbound
+    BridgeCalls (don't let a newly-launched guest's first RPC wait for an unrelated scheduling tick), OR
+    give each guest's BridgeCall its own wakeable completion path. Validate via the perf clock
+    (issue→service gap) before/after. This is the actual lever toward the targets; it is a focused
+    v8-runtime/sidecar scheduling change for a fresh pass.
 
 - **2026-06-27 — ★★★ path_open's 21s = ONE `/dev/urandom` open blocked ~20s, and it is BRIDGE-DELIVERY /
   THREAD-SCHEDULING latency, NOT kernel work.** Built a `path_open` drill (`SECURE_EXEC_PATHOPENPROF`,
