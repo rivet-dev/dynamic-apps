@@ -7967,6 +7967,11 @@ function createNodeSyncRpcBridge() {
   const KIND_INDEX = 2;
   const REQUEST_LENGTH_INDEX = 3;
   const RESPONSE_LENGTH_INDEX = 4;
+  // D14 hopsplit probe (SECURE_EXEC_HOPSPLIT, default-OFF): the worker writes its own
+  // same-thread internal wall (woken -> response-in-SAB) here, in microseconds, so the main
+  // thread can subtract it from the total hop and isolate the two cross-thread WAKE handoffs
+  // (main->worker, worker->main) that the worker-less D14 restructure would remove.
+  const WORKER_DELTA_US_INDEX = 5;
   const STATE_IDLE = 0;
   const STATE_REQUEST_READY = 1;
   const STATE_RESPONSE_READY = 2;
@@ -7974,7 +7979,9 @@ function createNodeSyncRpcBridge() {
   const STATUS_OK = 0;
   const STATUS_ERROR = 1;
   const KIND_JSON = 3;
-  const signalBuffer = new SharedArrayBuffer(5 * Int32Array.BYTES_PER_ELEMENT);
+  const __hopsplit = (() => { try { return process.env.SECURE_EXEC_HOPSPLIT === '1'; } catch (_e) { return false; } })();
+  let __hsClockRef = null;
+  const signalBuffer = new SharedArrayBuffer(6 * Int32Array.BYTES_PER_ELEMENT);
   const dataBuffer = new SharedArrayBuffer(NODE_SYNC_RPC_DATA_BYTES);
   const signal = new Int32Array(signalBuffer);
   const data = new Uint8Array(dataBuffer);
@@ -7991,6 +7998,7 @@ function createNodeSyncRpcBridge() {
     const KIND_INDEX = 2;
     const REQUEST_LENGTH_INDEX = 3;
     const RESPONSE_LENGTH_INDEX = 4;
+    const WORKER_DELTA_US_INDEX = 5;
     const STATE_IDLE = 0;
     const STATE_REQUEST_READY = 1;
     const STATE_RESPONSE_READY = 2;
@@ -8001,11 +8009,13 @@ function createNodeSyncRpcBridge() {
     const signal = new Int32Array(workerData.signalBuffer);
     const data = new Uint8Array(workerData.dataBuffer);
     const responseFd = workerData.responseFd;
+    const hopsplit = !!workerData.hopsplit;
+    const hsNow = hopsplit ? (() => { try { return require('node:perf_hooks').performance.now.bind(require('node:perf_hooks').performance); } catch (_e) { return null; } })() : null;
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
     let responseBuffer = '';
 
-    function setResponse(status, bytes) {
+    function setResponse(status, bytes, deltaUs) {
       let payload = bytes;
       let nextStatus = status;
       if (payload.byteLength > data.byteLength) {
@@ -8023,6 +8033,9 @@ function createNodeSyncRpcBridge() {
       Atomics.store(signal, STATUS_INDEX, nextStatus);
       Atomics.store(signal, KIND_INDEX, KIND_JSON);
       Atomics.store(signal, RESPONSE_LENGTH_INDEX, payload.byteLength);
+      // Publish the worker's same-thread internal wall BEFORE flipping STATE_RESPONSE_READY so the
+      // main thread reads a consistent value once it observes the response.
+      if (hopsplit) Atomics.store(signal, WORKER_DELTA_US_INDEX, (deltaUs | 0));
       Atomics.store(signal, STATE_INDEX, STATE_RESPONSE_READY);
       Atomics.notify(signal, STATE_INDEX, 1);
     }
@@ -8063,16 +8076,20 @@ function createNodeSyncRpcBridge() {
           break;
         }
 
+        const __wStart = (hopsplit && hsNow) ? hsNow() : 0;
         try {
           const responseLine = readResponseLineSync();
-          setResponse(STATUS_OK, encoder.encode(responseLine));
+          const __d = (hopsplit && hsNow) ? Math.round((hsNow() - __wStart) * 1000) : 0;
+          setResponse(STATUS_OK, encoder.encode(responseLine), __d);
         } catch (error) {
+          const __d = (hopsplit && hsNow) ? Math.round((hsNow() - __wStart) * 1000) : 0;
           setResponse(
             STATUS_ERROR,
             encoder.encode(JSON.stringify({
               message: error instanceof Error ? error.message : String(error),
               code: typeof error?.code === 'string' ? error.code : 'ERR_AGENT_OS_NODE_SYNC_RPC',
             })),
+            __d,
           );
         }
       }
@@ -8089,6 +8106,7 @@ function createNodeSyncRpcBridge() {
       signalBuffer,
       dataBuffer,
       responseFd: NODE_SYNC_RPC_RESPONSE_FD,
+      hopsplit: __hopsplit,
     },
   });
   worker.unref?.();
@@ -8126,6 +8144,14 @@ function createNodeSyncRpcBridge() {
       throw error;
     }
 
+    // D14 hopsplit probe (default-OFF): real-clock stamps on the main thread; combined with the
+    // worker's published same-thread internal wall they split the hop into request-issue +
+    // worker-internal (irreducible sidecar+pipe wait) + the two cross-thread WAKE handoffs (the part
+    // a worker-less main-thread-blocking restructure would remove). originalPerformance is the REAL
+    // clock (the guest-facing performance.now is frozen to 0); bound lazily, never guest-exposed.
+    const __hsNow = __hopsplit ? (__hsClockRef || (__hsClockRef = ((typeof originalPerformance === 'object' && originalPerformance && typeof originalPerformance.now === 'function') ? originalPerformance.now.bind(originalPerformance) : () => Date.now()))) : null;
+    const __t0 = __hsNow ? __hsNow() : 0;
+
     // The request travels to the sidecar over the request pipe; the `data` SAB only carries the
     // RESPONSE. Staging the request through `data` (with a full-buffer `data.fill(0)` scrub and an
     // encode/decode round-trip) was dead work that memset the whole multi-MB buffer on every hop.
@@ -8137,6 +8163,7 @@ function createNodeSyncRpcBridge() {
     Atomics.store(signal, RESPONSE_LENGTH_INDEX, 0);
     Atomics.store(signal, STATE_INDEX, STATE_REQUEST_READY);
     Atomics.notify(signal, STATE_INDEX, 1);
+    const __t1 = __hsNow ? __hsNow() : 0;
 
     while (true) {
       const result = Atomics.wait(
@@ -8149,6 +8176,28 @@ function createNodeSyncRpcBridge() {
         break;
       }
       throw new Error(`secure-exec Node sync RPC timed out while handling ${method}`);
+    }
+
+    if (__hsNow) {
+      const __t2 = __hsNow();
+      const __workerUs = Atomics.load(signal, WORKER_DELTA_US_INDEX) | 0;
+      const __totalUs = Math.round((__t2 - __t0) * 1000);
+      const __issueUs = Math.round((__t1 - __t0) * 1000);
+      const __wakeUs = __totalUs - __issueUs - __workerUs;
+      const H = (globalThis.__hsA = globalThis.__hsA || { n: 0, total: 0, issue: 0, worker: 0, wake: 0, max: 0 });
+      H.n++; H.total += __totalUs; H.issue += __issueUs; H.worker += __workerUs; H.wake += __wakeUs;
+      if (__totalUs > H.max) H.max = __totalUs;
+      if (H.n % 200 === 0) {
+        try {
+          process.stderr.write('[hopsplit] worker-path hops=' + H.n
+            + ' avgTotalUs=' + (H.total / H.n).toFixed(0)
+            + ' avgIssueUs=' + (H.issue / H.n).toFixed(0)
+            + ' avgWorkerInternalUs=' + (H.worker / H.n).toFixed(0)
+            + ' avgWakeHandoffsUs=' + (H.wake / H.n).toFixed(0)
+            + ' (D14-removable=' + (H.total ? (100 * H.wake / H.total).toFixed(0) : '0') + '%)'
+            + ' maxTotalUs=' + H.max.toFixed(0) + '\n');
+        } catch (_e) {}
+      }
     }
 
     const status = Atomics.load(signal, STATUS_INDEX);
@@ -8834,6 +8883,7 @@ try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; 
 try { if (process.env.SECURE_EXEC_RTPROBE === '1') globalThis.__rtprobe = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_DRAINPROF === '1') globalThis.__drainprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_POLLSTAT === '1') globalThis.__pollstat = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_HOPSPLIT === '1') globalThis.__hopsplit = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_PATHOPENPROF === '1') globalThis.__pathopenprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
 function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
@@ -11206,9 +11256,33 @@ function callSyncRpc(method, args = []) {
     method,
     args: encodeSyncRpcValue(args),
   });
+  // D14 hopsplit probe (default-OFF) on the worker-LESS direct path: if this path is hot, there is no
+  // worker to remove, so the split is write-leg (request deliver) vs read-leg (blocking readSync until
+  // the sidecar writes the response = irreducible sidecar dispatch + pipe). Confirms worker-vs-direct.
+  const __hsd = !!globalThis.__hopsplit;
+  const __hsdNow = __hsd ? (globalThis.__hsClock || (globalThis.__hsClock = ((typeof originalPerformance === 'object' && originalPerformance && typeof originalPerformance.now === 'function') ? originalPerformance.now.bind(originalPerformance) : () => Date.now()))) : null;
+  const __d0 = __hsdNow ? __hsdNow() : 0;
   writeSync(NODE_SYNC_RPC_REQUEST_FD, `${payload}\n`);
+  const __d1 = __hsdNow ? __hsdNow() : 0;
 
   const response = JSON.parse(readSyncRpcLine());
+  if (__hsdNow) {
+    const __d2 = __hsdNow();
+    const D = (globalThis.__hsD = globalThis.__hsD || { n: 0, total: 0, write: 0, read: 0, max: 0 });
+    const __totalUs = Math.round((__d2 - __d0) * 1000);
+    const __writeUs = Math.round((__d1 - __d0) * 1000);
+    D.n++; D.total += __totalUs; D.write += __writeUs; D.read += __totalUs - __writeUs;
+    if (__totalUs > D.max) D.max = __totalUs;
+    if (D.n % 200 === 0) {
+      try {
+        process.stderr.write('[hopsplit] direct-path hops=' + D.n
+          + ' avgTotalUs=' + (D.total / D.n).toFixed(0)
+          + ' avgWriteLegUs=' + (D.write / D.n).toFixed(0)
+          + ' avgReadLegUs=' + (D.read / D.n).toFixed(0)
+          + ' maxTotalUs=' + D.max.toFixed(0) + '\n');
+      } catch (_e) {}
+    }
+  }
   if (response?.ok) {
     return decodeSyncRpcValue(response.result);
   }
