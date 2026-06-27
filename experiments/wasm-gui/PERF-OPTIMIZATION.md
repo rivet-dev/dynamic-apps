@@ -233,8 +233,20 @@ loop is ~6-8% CPU. **So the ~87% idle CPU is NOT the dispatch loop / pump — it
 and is UNDIAGNOSED** (candidates: a busy-looping spawned tokio task on the current-thread runtime, the tokio
 IO/timer driver, or poll_event_wire — NOT yet measured). My earlier "pump = 217µs = the spin" inference was
 WRONG (corrected per the CLAUDE.md "verify before asserting" lesson; `try_lock` on poll_event was null,
-consistent with the pump being cheap). The 87% idle spin is real (measured twice via /proc) and a genuine
-invariant violation, but its source needs a fresh diagnosis (e.g. a CPU sampler or per-tokio-task accounting).
+consistent with the pump being cheap). The 87% idle spin is real (measured via /proc, ~99-100% of a core) and a genuine invariant violation.
+**Further pinned (2026-07-01):** `/proc/<tid>/syscall` shows the main thread is "running" (USER SPACE) ~98%
+of samples; `strace -c` over 2s idle = only ~117 clock_nanosleep/s + 46 futex (≈2% syscalls). So it's a
+**user-space busy-poll in the tokio current-thread runtime — it parks only ~117/s instead of per-tick.**
+PUMP_INTERVAL=10000 (40× slower) → STILL ~99% idle CPU, so the pump/interval is NOT the spinner. The cause is
+a select! future that is **always-ready so the runtime never parks** — with the pump excluded, that is
+`process_event_notify` (a guest emitting sync-RPCs continuously) or the `event_ready` drain. ROOT (connects to
+the op-count): **the guests don't go idle — they spin-emit**, and the 3ms poll clamp + the 250µs pump are
+both timer-poll fallbacks papering over an INCOMPLETE NOTIFY GRAPH (the CLAUDE.md anti-pattern: tasks #25/#26).
+**THE real lever (substantial, on-goal): COMPLETE the readiness notify graph** so every event source pokes the
+notify → then the guests block truly (0% idle, native-like), the clamp + pump can be removed/slowed, the
+per-render op-count drops (fewer spin re-polls), and the cross-guest churn shrinks. First step needs finding
+the missed-notify edges (the events only the clamp/pump catch — a default-off "missed-wake detector", task
+#27) OR a user-space CPU profiler to name the always-ready future (none available in this sandbox).
 - `PUMP_INTERVAL_US=2000` → ir WORSE (~75ms + a 730ms spike) — the 250µs pump IS load-bearing for ir (some
   events reach the guest only via the pump, not the F1 notify). Don't slow it. (This finding stands.)
 
