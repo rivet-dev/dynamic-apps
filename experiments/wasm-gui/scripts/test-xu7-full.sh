@@ -49,7 +49,7 @@ mkdir -p "$(dirname "$PNG")"
 
 echo "running XU3 session -> fb=$FB png=$PNG log=$OUT"
 WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=50 APP_SETTLE_MS=4000 \
-timeout 200 env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
+timeout "$(( ${TIMEOUT:-120} + 45 ))" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
   --dbus-service "$EXP/xfconfd.wasm" \
