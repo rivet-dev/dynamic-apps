@@ -17,10 +17,9 @@ use crate::protocol::{
     OwnershipScope, ProcessExitedEvent, ProcessKilledResponse, ProcessOutputEvent,
     ProcessSnapshotEntry, ProcessSnapshotResponse, ProcessSnapshotStatus, ProcessStartedResponse,
     PtyResizedResponse, RequestFrame, ResizePtyRequest, ResponseFrame, ResponsePayload,
-    SidecarRequestPayload, SignalDispositionAction,
-    SignalHandlerRegistration, SignalStateResponse, SocketStateEntry, StdinClosedResponse,
-    StdinWrittenResponse, StreamChannel, VmFetchRequest, VmFetchResponse, WasmPermissionTier,
-    WriteStdinRequest, ZombieTimerCountResponse,
+    SidecarRequestPayload, SignalDispositionAction, SignalHandlerRegistration, SignalStateResponse,
+    SocketStateEntry, StdinClosedResponse, StdinWrittenResponse, StreamChannel, VmFetchRequest,
+    VmFetchResponse, WasmPermissionTier, WriteStdinRequest, ZombieTimerCountResponse,
 };
 use crate::service::{
     audit_fields, dirname, emit_security_audit_event, emit_structured_event, javascript_error,
@@ -16810,7 +16809,7 @@ fn install_kernel_stdin_pipe(kernel: &mut SidecarKernel, pid: u32) -> Result<u32
         .fd_close(EXECUTION_DRIVER_NAME, pid, read_fd)
         .map_err(kernel_error)?;
     Ok(write_fd)
-    }
+}
 
 fn requested_pty_window_size(env: &BTreeMap<String, String>) -> Option<(u16, u16)> {
     let cols = env
