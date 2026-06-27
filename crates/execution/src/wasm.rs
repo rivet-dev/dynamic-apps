@@ -2347,11 +2347,20 @@ fn build_wasm_internal_env(
         WASM_MODULE_PATH_ENV.to_string(),
         resolved_module.specifier.clone(),
     );
-    if let Ok(module_bytes) = fs::read(&resolved_module.resolved_path) {
-        internal_env.insert(
-            String::from("AGENT_OS_WASM_MODULE_BASE64"),
-            v8_runtime::base64_encode_pub(&module_bytes),
-        );
+    // wasi-threads workers reuse the spawning execution's already-compiled module from the process
+    // registry (by token) and never read AGENT_OS_WASM_MODULE_BASE64 (see the worker branch in the WASM
+    // runner: `module = globalThis.__threadMod`, "No module bytes are read here"). Reading + base64-
+    // encoding the (tens-of-MB) module on EVERY worker spawn was pure waste: ~0.8s/spawn of CPU run
+    // synchronously on the sidecar's single select! task (starving the event pump), plus it bloated the
+    // inline runner source the worker isolate then had to parse. Only the non-worker leader needs it.
+    let is_worker_thread = request.env.contains_key(WASM_THREAD_TOKEN_ENV);
+    if !is_worker_thread {
+        if let Ok(module_bytes) = fs::read(&resolved_module.resolved_path) {
+            internal_env.insert(
+                String::from("AGENT_OS_WASM_MODULE_BASE64"),
+                v8_runtime::base64_encode_pub(&module_bytes),
+            );
+        }
     }
     internal_env.insert(
         WASM_GUEST_ARGV_ENV.to_string(),

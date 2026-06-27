@@ -1822,6 +1822,12 @@ where
         let poll_deferred = std::cell::Cell::new(false);
         let poll_waiter = std::sync::Arc::clone(&self.poll_waiter);
 
+        // [rpc-block] default-OFF (SECURE_EXEC_PERFCLOCK=1): time each synchronous sync-RPC dispatch so
+        // the residual pump-starvation (a slow RPC serviced inline on the single select! task) can be
+        // attributed to a specific method. Deferred net.poll_wait is skipped (answered off-thread).
+        let __m0 = secure_exec_bridge::perf_clock_enabled()
+            .then(secure_exec_bridge::perf_now_micros);
+
         let response: Result<Value, SidecarError> = match request.method.as_str() {
             // Cross-boundary monotonic perf clock (SECURE_EXEC_PERFCLOCK=1, default-OFF): the guest's
             // callSyncRpc can route here, so __perf_now is answered in this dispatch layer too.
@@ -2238,6 +2244,15 @@ where
                 })
             }
         };
+
+        if let Some(s) = __m0 {
+            if !poll_deferred.get() {
+                let t = secure_exec_bridge::perf_now_micros().saturating_sub(s);
+                if t > 300_000 {
+                    eprintln!("[rpc-block] {} took {}us", request.method, t);
+                }
+            }
+        }
 
         // A deferred `net.poll_wait` will be completed off-thread by the waiter pool; skip inline
         // response delivery so the call id is answered exactly once.

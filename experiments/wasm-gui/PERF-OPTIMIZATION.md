@@ -134,6 +134,13 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **L-P — Worker-thread module base64 re-encode. [★ LANDED 2026-06-28]** Every `wasm.thread_spawn` ran
+  `fs::read`+base64 of the tens-of-MB module into `AGENT_OS_WASM_MODULE_BASE64` (~0.8s) on the select!
+  task, but workers reuse the parent's compiled module from the registry by token and never read it. FIX:
+  skip the encode for worker spawns. thread_spawn ~0.8s→<0.3s; pump-starvation 16.9s→12.8s. After this the
+  sidecar pump-starvation class is FLATTENED (no sync-RPC >50ms explains the residual; remaining gaps are
+  small + largely guest-compute idle). Next ROI is guest-side (L-J/L-L), not the pump.
+
 - **L-O — Thread-exit full-tree filesystem sync-back. [★ LANDED 2026-06-28 — was the dominant 20s
   stall]** Every wasi-thread child exit ran `sync_process_host_writes_to_kernel` (full host-shadow-tree
   walk) on the single stdio `select!` task, ~20s each, starving the event pump that services all guests'
@@ -271,6 +278,30 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-28 — ★★★ LEVER L-P LANDED + sidecar-pump-starvation lever class FLATTENED.** After L-O,
+  re-profiled the residual with `[rpc-block]` (times each synchronous sync-RPC dispatch in
+  `handle_javascript_sync_rpc_request`, default-OFF). Single biggest residual cost = **`wasm.thread_spawn`
+  ~0.8s each × 5 = ~4.0s**, serviced inline on the select! task. Drill (`[spawn-block]`): the cost was in
+  `start_wasm_javascript_execution` for WORKERS (worker=true), NOT compilation — it was
+  `build_wasm_internal_env` doing `fs::read` + **base64-encode of the tens-of-MB module** into
+  `AGENT_OS_WASM_MODULE_BASE64` on EVERY worker spawn, which the worker then IGNORES (the WASM-runner
+  worker branch reuses `globalThis.__threadMod` from the process registry by token: "No module bytes are
+  read here"). Pure waste + it bloated the inline runner source the worker isolate had to parse.
+  - **FIX (CORE, wasm.rs `build_wasm_internal_env`):** skip the module `fs::read`+base64 when the spawn is
+    a worker thread (`request.env` has `AGENT_OS_WASM_THREAD_TOKEN`). Only the non-worker leader inlines it.
+  - **BEFORE/AFTER (mousepad B2):** `wasm.thread_spawn` ~0.8s → <0.3s (off the `[rpc-block]` radar);
+    total pump-starvation **16.9s → 12.8s** (−~4s). Renders clean.
+  - **★ Lever class FLATTENED (documented diminishing returns):** lowering `[rpc-block]` to >50ms shows
+    NO sync-RPC method explains the residual (only `net.listen` 2× = 0.19s). The remaining ~12.8s is
+    **145 small 50–500ms `[pump-gap]`s, max 1.39s** — no single dominant cost, and largely legitimate
+    guest-compute idle (the pump-gap probe bills idle as "starvation" — it can't tell idle from starved
+    without a pending-BridgeCall check). So the **sidecar select!/pump-starvation class has no remaining
+    single-lever ROI.** Combined this turn (L-O+L-P): pump-starvation **56.9s → 12.8s (−44s, 78%)**.
+  - **Re-rank → next class is GUEST-SIDE, not the sidecar pump.** The dominant wall-clock cost is now the
+    original baseline's guest blocking time: `net_poll` ~44.7s + `path_open` ~21.2s (the L-J sync-RPC
+    round-trip-latency / L-L thundering-herd poll-wakeup class, task #32). That is a deep, separate lever
+    (L-L was attempted+reverted once) for a focused effort — NOT in the select!/pump path this turn fixed.
 
 - **2026-06-28 — ★★★★ LEVER L-O LANDED: thread-exit filesystem sync-back was the 20s stall. FIXED in CORE.**
   Using the perf clock, drilled the 20s startup stall through the full stack to its exact source —
