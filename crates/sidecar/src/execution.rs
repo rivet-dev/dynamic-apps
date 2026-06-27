@@ -20406,6 +20406,26 @@ where
             }
         }
         "net.poll" => {
+            // D13 (SECURE_EXEC_DRAINHOSTPROF, default-OFF): stamp the host-side service time of this
+            // drain handler to split the guest-observed ~717us drain wall into host-service vs
+            // V8-boundary+main-thread-queue. Stamp here at entry; `drainhostprof_finish` records at the
+            // return points below. perf_now_micros is the same shared clock the guest DRAINPROF uses.
+            let __dhp_entry_us = if crate::state::drainhostprof_enabled() {
+                secure_exec_bridge::perf_now_micros()
+            } else {
+                0
+            };
+            macro_rules! drainhostprof_finish {
+                ($had_data:expr, $bytes:expr) => {
+                    if __dhp_entry_us != 0 {
+                        crate::state::drainhostprof_record(
+                            secure_exec_bridge::perf_now_micros().saturating_sub(__dhp_entry_us),
+                            $had_data,
+                            $bytes,
+                        );
+                    }
+                };
+            }
             // BATCH drain: arg0 may be an ARRAY of socket ids — the guest net_poll drain polls ALL of a
             // process's connected sockets in ONE round-trip instead of one net.poll per socket (the
             // dominant futex cost for a multi-client wasm X server). Poll each and return an array of
@@ -20420,6 +20440,7 @@ where
                         .unwrap_or_default();
                 let wait = clamp_javascript_net_poll_wait(wait_ms);
                 let mut events: Vec<Value> = Vec::with_capacity(ids.len());
+                let mut __dhp_bytes: usize = 0;
                 for sid in &ids {
                     let drain_path: Option<String> =
                         process.unix_sockets.get(sid).and_then(|s| s.remote_path.clone());
@@ -20435,6 +20456,7 @@ where
                         Some(JavascriptTcpSocketEvent::Data(chunk)) => {
                             xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
                             waketrace_drain(drain_path.as_deref(), chunk.len());
+                            __dhp_bytes += chunk.len();
                             json!({ "type": "data", "data": javascript_sync_rpc_bytes_value(&chunk) })
                         }
                         Some(JavascriptTcpSocketEvent::End) => json!({ "type": "end" }),
@@ -20465,6 +20487,7 @@ where
                     };
                     events.push(ev);
                 }
+                drainhostprof_finish!(__dhp_bytes > 0, __dhp_bytes);
                 return Ok(Value::Array(events));
             }
             let socket_id = javascript_sync_rpc_arg_str(&request.args, 0, "net.poll socket id")?;
@@ -20495,19 +20518,26 @@ where
                 Some(JavascriptTcpSocketEvent::Data(chunk)) => {
                     xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
                     waketrace_drain(drain_path.as_deref(), chunk.len());
+                    drainhostprof_finish!(true, chunk.len());
                     Ok(json!({
                         "type": "data",
                         "data": javascript_sync_rpc_bytes_value(&chunk),
                     }))
                 }
-                Some(JavascriptTcpSocketEvent::End) => Ok(json!({
+                Some(JavascriptTcpSocketEvent::End) => {
+                    drainhostprof_finish!(false, 0);
+                    Ok(json!({
                     "type": "end",
-                })),
-                Some(JavascriptTcpSocketEvent::Error { code, message }) => Ok(json!({
+                    }))
+                }
+                Some(JavascriptTcpSocketEvent::Error { code, message }) => {
+                    drainhostprof_finish!(false, 0);
+                    Ok(json!({
                     "type": "error",
                     "code": code,
                     "message": message,
-                })),
+                    }))
+                }
                 Some(JavascriptTcpSocketEvent::Close { had_error }) => {
                     if let Some(socket) = process.tcp_sockets.remove(socket_id) {
                         if let Some(listener_id) = socket.listener_id.as_deref() {
@@ -20522,12 +20552,16 @@ where
                             }
                         }
                     }
+                    drainhostprof_finish!(false, 0);
                     Ok(json!({
                         "type": "close",
                         "hadError": had_error,
                     }))
                 }
-                None => Ok(Value::Null),
+                None => {
+                    drainhostprof_finish!(false, 0);
+                    Ok(Value::Null)
+                }
             }
         }
         // Wait until ANY of this process's sockets becomes readable (or the timeout elapses), so a

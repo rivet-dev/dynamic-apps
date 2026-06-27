@@ -619,6 +619,66 @@ fn hopprof_record(wait: u64, wake: u64, resp: u64, clean: bool) {
     }
 }
 
+/// D13 drain host-service profiler gate (SECURE_EXEC_DRAINHOSTPROF=1, default-OFF). The guest-side
+/// DRAINPROF (D8) measures the WHOLE `net.poll` drain round-trip wall (~717us for a tiny X event),
+/// while D12 found the poll_wait host bridge plumbing is only ~31us. This gate stamps the host-side
+/// service time of the `net.poll` drain handler (entry->exit on the shared `perf_now_micros` clock)
+/// so the residual = guest-wall - host-service = V8 sync-call suspend/resume + the time the request
+/// queued behind OTHER guests' sync RPCs on the single main thread (the contention F3 attacks). If
+/// host-service is ~tens of us, the ~717us is queue+boundary (reduce RPC COUNT, F3's real value); if
+/// host-service is most of it, the socket.poll/encode path is the lever. Cheap OnceLock gate.
+pub(crate) fn drainhostprof_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_DRAINHOSTPROF").map(|v| v == "1").unwrap_or(false)
+    })
+}
+
+#[derive(Default)]
+struct DrainHostProfAcc {
+    n: u64,
+    svc_us: u128,
+    svc_max: u64,
+    data_n: u64,
+    data_svc_us: u128,
+    data_bytes: u128,
+}
+
+fn drainhostprof_acc() -> &'static Mutex<DrainHostProfAcc> {
+    static ACC: std::sync::OnceLock<Mutex<DrainHostProfAcc>> = std::sync::OnceLock::new();
+    ACC.get_or_init(|| Mutex::new(DrainHostProfAcc::default()))
+}
+
+/// Record one `net.poll` drain handler's host-side service time (µs). `had_data`/`bytes` split out
+/// the productive drains (the ones F3 would fold away) from empty re-scans. Prints every 200.
+pub(crate) fn drainhostprof_record(svc_us: u64, had_data: bool, bytes: usize) {
+    if let Ok(mut a) = drainhostprof_acc().lock() {
+        a.n += 1;
+        a.svc_us += svc_us as u128;
+        if svc_us > a.svc_max {
+            a.svc_max = svc_us;
+        }
+        if had_data {
+            a.data_n += 1;
+            a.data_svc_us += svc_us as u128;
+            a.data_bytes += bytes as u128;
+        }
+        if a.n % 200 == 0 {
+            let n = a.n as u128;
+            let dn = a.data_n.max(1) as u128;
+            eprintln!(
+                "[drainhostprof] drains={} | hostSvc avgUs={} maxUs={} | withData={} dataSvcAvgUs={} dataAvgBytes={}",
+                a.n,
+                a.svc_us / n,
+                a.svc_max,
+                a.data_n,
+                a.data_svc_us / dn,
+                a.data_bytes / dn,
+            );
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct SocketReadiness {
     generation: std::sync::Mutex<u64>,
