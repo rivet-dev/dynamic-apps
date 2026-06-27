@@ -11916,7 +11916,17 @@ const hostNetImport = {
         // the guest-observed X round-trip latency (peer-process + wakeup-propagation).
         const __rt0 = globalThis.__rtprobe ? callSyncRpc('__perf_now', []) : 0;
         const __genBefore = readyGen;
-        const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
+        // L-L fd-scoped wakeups (sidecar gated by SECURE_EXEC_FD_SCOPED_POLL): if the ENTIRE poll set is
+        // connected host-net DATA sockets (no kernel pipes, no listeners), pass their socket ids so the
+        // sidecar only wakes this blocked poll when one of THOSE sockets fires — not on an unrelated
+        // process event (the ~59% spurious cross-fd wakes). Any pipe/listener in the set => omit the ids
+        // and the sidecar uses its global-generation wait (so a pipe/accept wake is never missed).
+        const scopedIds = (!pollSetHasPipes && drainSockets.length === n)
+          ? drainSockets.map((s) => s.socketId)
+          : null;
+        const r = scopedIds
+          ? callSyncRpc('net.poll_wait', [readyGen, remain, scopedIds])
+          : callSyncRpc('net.poll_wait', [readyGen, remain]);
         readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
         if (globalThis.__rtprobe) {
           const __rt1 = callSyncRpc('__perf_now', []);

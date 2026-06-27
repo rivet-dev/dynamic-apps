@@ -575,6 +575,22 @@ pub(crate) fn gaptrace_enabled() -> bool {
     *EN.get_or_init(|| std::env::var("SECURE_EXEC_GAPTRACE").map(|v| v == "1").unwrap_or(false))
 }
 
+/// L-L fd-scoped poll wakeups (`SECURE_EXEC_FD_SCOPED_POLL=1`, default-OFF). When on, a `net.poll_wait`
+/// whose awaited set is purely host-net data sockets only completes when one of THOSE sockets fires
+/// (per-key generation), eliminating the ~59% spurious cross-fd wakes the process-wide generation
+/// otherwise delivers. Off => the global-generation path, byte-for-byte unchanged.
+pub(crate) fn fd_scoped_poll_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_FD_SCOPED_POLL").map(|v| v == "1").unwrap_or(false))
+}
+
+/// Allocate a process-unique source key for a socket's fd-scoped readiness (L-L). Monotonic, never 0
+/// (0 means "no key" in scoped snapshots), wraps harmlessly far beyond any realistic socket count.
+pub(crate) fn next_readiness_key() -> u64 {
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+    NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+}
+
 #[derive(Default)]
 struct HopProfAcc {
     n: u64,
@@ -701,6 +717,12 @@ pub(crate) struct SocketReadiness {
     /// hop-profiler is on; a pool worker reads it on a productive wake to size the notify->resume
     /// condvar-wake latency. `0` = never notified under the profiler.
     last_notify_us: std::sync::atomic::AtomicU64,
+    /// L-L (fd-scoped wakeups, `SECURE_EXEC_FD_SCOPED_POLL`): per-source generation map keyed by a
+    /// socket's `readiness_key`. A reader thread bumps its source's gen via `notify_key` BEFORE the
+    /// global `notify()` bump, so a scoped waiter woken by the global condvar can tell whether one of
+    /// the *specific* fds it awaits actually fired (vs an unrelated event in the same process — the 59%
+    /// spurious-wake case). Empty/untouched on the default (non-scoped) path: zero default-path cost.
+    key_gens: std::sync::Mutex<std::collections::HashMap<u64, u64>>,
 }
 
 impl std::fmt::Debug for DirectPollWaiter {
@@ -716,6 +738,7 @@ impl SocketReadiness {
             signal: std::sync::Condvar::new(),
             direct: Mutex::new(Vec::new()),
             last_notify_us: std::sync::atomic::AtomicU64::new(0),
+            key_gens: std::sync::Mutex::new(std::collections::HashMap::new()),
         }
     }
 
@@ -830,6 +853,64 @@ impl SocketReadiness {
             Err(_) => (last_seen, false),
         }
     }
+
+    /// L-L fd-scoped wakeups: like `notify()`, but also advance the per-source generation for `key`
+    /// FIRST, so a scoped waiter woken by the global bump observes the source change with happens-before
+    /// (key write → global bump under its lock → waiter reads global then key). The global `notify()`
+    /// still wakes non-scoped waiters and the global condvar, so this is strictly additive.
+    pub(crate) fn notify_key(&self, key: u64) {
+        if let Ok(mut keys) = self.key_gens.lock() {
+            let e = keys.entry(key).or_insert(0);
+            *e = e.wrapping_add(1);
+        }
+        self.notify();
+    }
+
+    /// Non-blocking read of a source's per-key generation (0 if never fired). Snapshotted at poll_wait
+    /// registration so the pool worker can detect whether THIS source advanced.
+    pub(crate) fn snapshot_key(&self, key: u64) -> u64 {
+        self.key_gens
+            .lock()
+            .map(|k| k.get(&key).copied().unwrap_or(0))
+            .unwrap_or(0)
+    }
+
+    /// L-L scoped block: wake only when one of the AWAITED sources (`keys`, snapshotted at `snaps`)
+    /// actually advances, or the deadline elapses. Driven by the global condvar (`wait_changed`): each
+    /// global bump is a candidate; if none of the awaited keys changed it was a spurious cross-fd wake,
+    /// so we re-block on the remaining timeout instead of returning to the guest. Returns the same
+    /// `(generation, changed)` contract as `wait_changed` (changed=true => an awaited source fired).
+    pub(crate) fn wait_changed_scoped(
+        &self,
+        last_seen: u64,
+        keys: &[u64],
+        snaps: &[u64],
+        deadline: std::time::Instant,
+    ) -> (u64, bool) {
+        let mut seen = last_seen;
+        loop {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                return (seen, false);
+            }
+            let (generation, changed) = self.wait_changed(seen, remaining);
+            if !changed {
+                // Global generation did not advance within the slice => deadline/timeout: non-productive.
+                return (generation, false);
+            }
+            seen = generation;
+            // Global advanced: did one of OUR sources fire? (Compare current per-key gen vs the snapshot
+            // taken at registration.) If so, this is a productive wake; else it was a spurious cross-fd
+            // event and we loop to re-block on the remaining time.
+            let awaited_fired = keys
+                .iter()
+                .zip(snaps.iter())
+                .any(|(k, s)| self.snapshot_key(*k) != *s);
+            if awaited_fired {
+                return (generation, true);
+            }
+        }
+    }
 }
 
 /// A deferred `net.poll_wait` whose blocking wait runs on a [`PollWaiterPool`] thread instead of the
@@ -853,6 +934,11 @@ pub(crate) struct PendingPollWait {
     /// CAS-win `claimed` before responding so exactly one of {reader, pool} fires. `None` => legacy path
     /// (the pool always completes), byte-for-byte unchanged.
     pub(crate) claimed: Option<Arc<std::sync::atomic::AtomicBool>>,
+    /// L-L fd-scoped wakeups: the awaited sources' `readiness_key`s and their generation snapshots taken
+    /// at registration. Non-empty => the pool worker completes only when one of these sources fires
+    /// (`wait_changed_scoped`), filtering spurious cross-fd wakes. Empty => global-generation wait.
+    pub(crate) scoped_keys: Vec<u64>,
+    pub(crate) scoped_snaps: Vec<u64>,
 }
 
 /// Thread pool that owns the *blocking* part of `net.poll_wait`. The sidecar's single sync-RPC main
@@ -923,8 +1009,18 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
                 q = queue.signal.wait(q).expect("poll-waiter queue poisoned");
             }
         };
-        let remaining = wait.deadline.saturating_duration_since(Instant::now());
-        let (generation, changed) = wait.readiness.wait_changed(wait.last_seen, remaining);
+        let (generation, changed) = if wait.scoped_keys.is_empty() {
+            let remaining = wait.deadline.saturating_duration_since(Instant::now());
+            wait.readiness.wait_changed(wait.last_seen, remaining)
+        } else {
+            // L-L: complete only when one of the awaited host-net sockets actually fired.
+            wait.readiness.wait_changed_scoped(
+                wait.last_seen,
+                &wait.scoped_keys,
+                &wait.scoped_snaps,
+                wait.deadline,
+            )
+        };
         // Direct path: the reader thread may have already completed this wait on data. CAS-claim before
         // responding so we never double-complete; if we lost, the reader served it — skip silently.
         if let Some(claimed) = &wait.claimed {
@@ -1490,6 +1586,10 @@ pub(crate) struct ActiveUnixSocket {
     pub(crate) saw_local_shutdown: Arc<AtomicBool>,
     pub(crate) saw_remote_end: Arc<AtomicBool>,
     pub(crate) close_notified: Arc<AtomicBool>,
+    /// L-L fd-scoped wakeups: a process-unique source id for this socket. The reader thread bumps
+    /// `SocketReadiness::notify_key(readiness_key)` on data/EOF; the `net.poll_wait` handler maps the
+    /// guest's awaited socket ids to these keys so a scoped wait only completes when THIS socket fires.
+    pub(crate) readiness_key: u64,
 }
 
 /// One entry in a process's inline-net-drain registry: just enough of an

@@ -1923,6 +1923,7 @@ impl ActiveUnixSocket {
         let saw_local_shutdown = Arc::new(AtomicBool::new(false));
         let saw_remote_end = Arc::new(AtomicBool::new(false));
         let close_notified = Arc::new(AtomicBool::new(false));
+        let readiness_key = crate::state::next_readiness_key();
         spawn_unix_socket_reader(
             read_stream,
             sender.clone(),
@@ -1931,6 +1932,7 @@ impl ActiveUnixSocket {
             Arc::clone(&close_notified),
             readiness,
             remote_path.clone(),
+            readiness_key,
         );
 
         Ok(Self {
@@ -1943,6 +1945,7 @@ impl ActiveUnixSocket {
             saw_local_shutdown,
             saw_remote_end,
             close_notified,
+            readiness_key,
         })
     }
 
@@ -12847,10 +12850,22 @@ fn spawn_unix_socket_reader(
     close_notified: Arc<AtomicBool>,
     readiness: Arc<crate::state::SocketReadiness>,
     remote_path: Option<String>,
+    readiness_key: u64,
 ) {
     thread::spawn(move || {
         let mut stream = stream;
         let mut buffer = vec![0_u8; 64 * 1024];
+        // L-L: when fd-scoped wakeups are on, bump THIS socket's per-source generation (which also does
+        // the global notify) so a scoped waiter awaiting this socket completes while ignoring unrelated
+        // process events. Off => the plain global notify, byte-for-byte unchanged.
+        let scoped = crate::state::fd_scoped_poll_enabled();
+        let wake = |r: &crate::state::SocketReadiness| {
+            if scoped {
+                r.notify_key(readiness_key);
+            } else {
+                r.notify();
+            }
+        };
         loop {
             match stream.read(&mut buffer) {
                 Ok(0) => {
@@ -12862,7 +12877,7 @@ fn spawn_unix_socket_reader(
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: false });
                     }
                     // Wake any guest poll blocked on this process's sockets so it observes the EOF.
-                    readiness.notify();
+                    wake(&readiness);
                     break;
                 }
                 Ok(bytes_read) => {
@@ -12876,7 +12891,7 @@ fn spawn_unix_socket_reader(
                         break;
                     }
                     // Data is now queued on this socket's channel: wake a blocked guest poll.
-                    readiness.notify();
+                    wake(&readiness);
                 }
                 Err(error) => {
                     let code = io_error_code(&error);
@@ -12887,7 +12902,7 @@ fn spawn_unix_socket_reader(
                     if !close_notified.swap(true, Ordering::SeqCst) {
                         let _ = sender.send(JavascriptTcpSocketEvent::Close { had_error: true });
                     }
-                    readiness.notify();
+                    wake(&readiness);
                     break;
                 }
             }
@@ -21103,6 +21118,43 @@ where
                 );
                 return Ok(json!({ "generation": current }));
             }
+            // L-L fd-scoped wakeups (SECURE_EXEC_FD_SCOPED_POLL): if the guest passed the host-net socket
+            // ids it is awaiting (arg 2) and EVERY one resolves to a keyed unix socket in THIS process,
+            // collect their per-source keys + current-generation snapshots so the pool worker completes
+            // only when one of THOSE sockets fires (filtering the ~59% spurious cross-fd wakes). Any
+            // unresolved id (listener, tcp, kernel pipe, worker-owned) leaves the set empty => the global
+            // generation wait, byte-for-byte unchanged (never miss a wake). Snapshot is consistent with
+            // the lost-wakeup guard: current == last_seen here, and any key bump also bumps `current`.
+            let (scoped_keys, scoped_snaps): (Vec<u64>, Vec<u64>) =
+                if crate::state::fd_scoped_poll_enabled() && owner_socket_readiness.is_none() {
+                    match request.args.get(2).and_then(|v| v.as_array()) {
+                        Some(ids) if !ids.is_empty() => {
+                            let mut keys = Vec::with_capacity(ids.len());
+                            let mut snaps = Vec::with_capacity(ids.len());
+                            let mut all_resolved = true;
+                            for id in ids {
+                                match id.as_str().and_then(|s| process.unix_sockets.get(s)) {
+                                    Some(sock) => {
+                                        keys.push(sock.readiness_key);
+                                        snaps.push(readiness.snapshot_key(sock.readiness_key));
+                                    }
+                                    None => {
+                                        all_resolved = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if all_resolved {
+                                (keys, snaps)
+                            } else {
+                                (Vec::new(), Vec::new())
+                            }
+                        }
+                        _ => (Vec::new(), Vec::new()),
+                    }
+                } else {
+                    (Vec::new(), Vec::new())
+                };
             // Defer the blocking wait off the main thread, if deferral is enabled for this dispatch
             // and this runtime can complete a response off-thread. `SECURE_EXEC_ASYNC_POLL=0` forces
             // the legacy inline-blocking path (A/B switch for diagnosing lost-wakeup vs latency).
@@ -21143,6 +21195,8 @@ where
                         } else {
                             0
                         },
+                        scoped_keys: scoped_keys.clone(),
+                        scoped_snaps: scoped_snaps.clone(),
                     });
                     deferred.set(true);
                     return Ok(Value::Null);
@@ -21159,6 +21213,8 @@ where
                     } else {
                         0
                     },
+                    scoped_keys,
+                    scoped_snaps,
                 });
                 deferred.set(true);
                 return Ok(Value::Null);

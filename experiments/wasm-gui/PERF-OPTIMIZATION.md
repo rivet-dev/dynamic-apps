@@ -2013,3 +2013,28 @@ This is in-scope CORE (the readiness model + the runtime's `net_poll` shim, NOT 
 
 ### VERDICT
 NOT a compute floor. The target is blocked only by unattempted CORE work (fd-scoped wakeups). Implementing.
+
+---
+
+## §7-LEVER-1 RESULT (2026-06-30): fd-scoped wakeups IMPLEMENTED — real, but ir-NULL
+
+Implemented L-L fd-scoped `net.poll_wait` wakeups, gated `SECURE_EXEC_FD_SCOPED_POLL=1` (default-OFF):
+per-socket `readiness_key` + generation in `SocketReadiness`; reader threads `notify_key`; the poll_wait
+handler maps the guest's awaited host-net socket ids → keys + snapshots; the pool worker completes only
+when an AWAITED source fires (`wait_changed_scoped`), re-blocking on spurious cross-fd wakes. Guest
+`net_poll` passes its data-socket ids when the poll set is purely data sockets (no pipes/listeners → falls
+back to the global wait, never missing a pipe/accept wake). Files: state.rs, execution.rs, node_import_cache.rs.
+
+- **Works:** POLLSTAT spurious wakes **59% → 35%**, innerBlocks **181 → 124**. Scoped path verified engaging.
+- **ir: NULL.** Default 65/49/61 (median 61) vs flag-on 46/62/61 (median 61), both render-green. The spurious
+  reduction does NOT move ir.
+- **Why:** spurious wakes are CHEAP — the guest wakes, re-scans its 1 fd in ~µs, re-blocks, WITHOUT a
+  productive cross-guest round-trip. Eliminating them saves CPU/contention, not wall-clock ir.
+
+### Refined lever map (the important correction)
+ir is bound by the **PRODUCTIVE** cross-guest round-trips (~45 × ~1.3ms peerWait ≈ 58ms = the measured ir),
+NOT the spurious wakes. So the op-count that matters is the productive round-trip latency, which lives in
+the RPC/deferred-response DELIVERY path (poll_wait pool completion → deferred responder → event channel →
+stdio select loop → isolate resume), possibly gated by the 250µs event-pump tick — NOT the spurious-wake
+count. Next lever = drive down the per-productive-exchange delivery latency (or RPCs-per-exchange / a
+shared-memory inter-guest ring), targeting the ~1.3ms/exchange. fd-scoped stays gated (CPU win, ir-null).
