@@ -1639,6 +1639,61 @@ pub fn register_sync_bridge_fns(
     BridgeFnStore { _data: data }
 }
 
+/// D15 syncsplit probe (SECURE_EXEC_SYNCSPLIT=1, default-OFF). Decomposes one applySync hop's
+/// guest-side transport floor (D13: ~710us for a net.poll DRAIN whose host service is ~3us) into
+/// its three Rust-side segments on a real monotonic clock: arg-serialize (V8 ValueSerializer of the
+/// call args), host-roundtrip (ctx.sync_call = channel send + the guest thread parking on
+/// recv_response until the host event-loop thread services + responds = the cross-thread WAKE
+/// latency), and result-deserialize (V8 ValueDeserializer of the response). Tells us which segment
+/// owns the floor: if host-roundtrip dominates while D12's host-side service is ~3us, the floor is
+/// OS thread park/unpark scheduling (attackable by F10: same-thread inline dispatch or a tighter
+/// wake), not marshalling. Aggregated per-method, flushed to stderr every 200 hops/method.
+fn syncsplit_enabled() -> bool {
+    static GATE: OnceLock<bool> = OnceLock::new();
+    *GATE.get_or_init(|| std::env::var("SECURE_EXEC_SYNCSPLIT").as_deref() == Ok("1"))
+}
+
+struct SyncSplitAgg {
+    n: u64,
+    ser_us: u64,
+    rt_us: u64,
+    de_us: u64,
+    rt_max_us: u64,
+}
+
+fn syncsplit_record(method: &str, ser_us: u64, rt_us: u64, de_us: u64) {
+    use std::sync::Mutex;
+    static MAP: OnceLock<Mutex<HashMap<String, SyncSplitAgg>>> = OnceLock::new();
+    let map = MAP.get_or_init(|| Mutex::new(HashMap::new()));
+    let Ok(mut guard) = map.lock() else { return };
+    let agg = guard.entry(method.to_string()).or_insert(SyncSplitAgg {
+        n: 0,
+        ser_us: 0,
+        rt_us: 0,
+        de_us: 0,
+        rt_max_us: 0,
+    });
+    agg.n += 1;
+    agg.ser_us += ser_us;
+    agg.rt_us += rt_us;
+    agg.de_us += de_us;
+    if rt_us > agg.rt_max_us {
+        agg.rt_max_us = rt_us;
+    }
+    if agg.n % 200 == 0 {
+        eprintln!(
+            "[syncsplit] {} hops={} avgTotalUs={} | serUs={} rtUs={} deUs={} | rtMaxUs={}",
+            method,
+            agg.n,
+            (agg.ser_us + agg.rt_us + agg.de_us) / agg.n,
+            agg.ser_us / agg.n,
+            agg.rt_us / agg.n,
+            agg.de_us / agg.n,
+            agg.rt_max_us,
+        );
+    }
+}
+
 /// V8 FunctionTemplate callback for sync-blocking bridge calls.
 fn sync_bridge_callback<'s>(
     scope: &mut v8::HandleScope<'s>,
@@ -1687,6 +1742,14 @@ fn sync_bridge_callback<'s>(
         }
     }
 
+    // D15 syncsplit probe: real-clock stamps bracketing the three transport segments (default-OFF).
+    let split = syncsplit_enabled();
+    let t0 = if split {
+        Some(std::time::Instant::now())
+    } else {
+        None
+    };
+
     // Serialize V8 arguments into reusable buffer (avoids per-call allocation)
     let encoded_args = match serialize_v8_args_with_session_buffer(scope, &args, buffers) {
         Ok(encoded_args) => encoded_args,
@@ -1698,9 +1761,12 @@ fn sync_bridge_callback<'s>(
             return;
         }
     };
+    let t1 = t0.map(|_| std::time::Instant::now());
 
     // Perform sync-blocking bridge call
-    match ctx.sync_call(&data.method, encoded_args) {
+    let sync_result = ctx.sync_call(&data.method, encoded_args);
+    let t2 = t1.map(|_| std::time::Instant::now());
+    match sync_result {
         Ok(Some(result_bytes)) => {
             // Try V8 deserialization in a TryCatch scope; if it fails,
             // treat as raw binary (Uint8Array) — covers status=2 raw binary
@@ -1743,6 +1809,17 @@ fn sync_bridge_callback<'s>(
             }
             scope.throw_exception(exc);
         }
+    }
+
+    // D15 syncsplit probe: record the three segments (serialize / host-roundtrip / deserialize).
+    if let (Some(t0), Some(t1), Some(t2)) = (t0, t1, t2) {
+        let t3 = std::time::Instant::now();
+        syncsplit_record(
+            &data.method,
+            t1.duration_since(t0).as_micros() as u64,
+            t2.duration_since(t1).as_micros() as u64,
+            t3.duration_since(t2).as_micros() as u64,
+        );
     }
 }
 
