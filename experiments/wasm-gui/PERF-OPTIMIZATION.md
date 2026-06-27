@@ -219,6 +219,26 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★ INPUT→RESPONSE — DIRECT LEVER SWEEP (2026-06-29, user-prioritized): all 3 CORE latency knobs NULL.**
+  Per user direction ("focus on input→response, more important") I attacked ir directly with every relevant
+  CORE knob (no rebuild — all existing env knobs), ≥3 runs each on the ir metric:
+  | knob | ir (≥3 runs) | verdict |
+  | --- | --- | --- |
+  | default (3ms poll clamp) | 236/288/246 (~257) | baseline |
+  | `SECURE_EXEC_POLL_MAX_WAIT_MS=1` (lower clamp) | 196/275/239 (~237) | within noise — NULL |
+  | `SECURE_EXEC_POLL_DIRECT=1` (reader completes poll directly) | ~246 | NULL |
+  | `SECURE_EXEC_T1_RING=1` (bulk-SAB fb write, M8.6) | 250/208/233 (~230) | within noise — NULL |
+  ir run-to-run variance is huge (196–288 ms, ±40%) — itself a signal that ir is **scheduling-variance +
+  round-trip-count bound**, not a single tunable latency. The wake-cause histogram shows deadline%=92–96
+  (both isolates wake mostly on the 3ms timer, few notifies), but lowering the clamp barely moved ir → the
+  deadline wakes are genuine idle, not the bottleneck (same conclusion L-Q reached for first-paint). The fb
+  write is NOT the cost either (T1 null). **Conclusion: ir's ~234 ms is the GUEST-DRIVEN X-redraw round-trip
+  COUNT (GTK does many X round-trips per char-insert redraw; immutable per Constraint #5) × the
+  per-round-trip cross-isolate floor + wasm compute — the same walls as first-paint. No CORE-runtime latency
+  lever moves it (all 3 measured null).** To reach <50 ms needs fewer guest round-trips (immutable) or
+  faster wasm (toolchain-dead). ir is in the goal's own disproven-latency class, now confirmed by direct
+  measurement on the ir metric (not just inferred from first-paint).
+
 - **★★ INPUT→RESPONSE (the 2nd target metric) — characterized + closed (2026-06-29).** I'd only ever
   reported ir as "unchanged"; now measured WHY it's ~234ms (target <50ms). The probe injects one XTEST
   KeyPress (the first 'H' is sent immediately; the 15ms inter-key pace in `type_text` is AFTER it, so does
