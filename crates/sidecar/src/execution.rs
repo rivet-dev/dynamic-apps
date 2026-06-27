@@ -20995,6 +20995,26 @@ where
             let timeout_ms =
                 javascript_sync_rpc_arg_u64_optional(&request.args, 1, "net.poll_wait timeout ms")?
                     .unwrap_or_default();
+            // PWPROF (SECURE_EXEC_POLLWAITPROF=1, default-OFF): histogram the guest's REQUESTED poll_wait
+            // timeout (pre-clamp). If the ir gaps are GTK frame-clock pacing, the modal request is the
+            // frame interval (~8-16ms); if the guest asks for tiny/zero timeouts, the gap is compute.
+            if std::env::var("SECURE_EXEC_POLLWAITPROF").as_deref() == Ok("1") {
+                use std::sync::atomic::{AtomicU64, Ordering};
+                static BUCKETS: [AtomicU64; 8] = [
+                    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
+                    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
+                ];
+                static N: AtomicU64 = AtomicU64::new(0);
+                let b = match timeout_ms { 0 => 0, 1..=2 => 1, 3..=4 => 2, 5..=8 => 3, 9..=16 => 4, 17..=33 => 5, 34..=100 => 6, _ => 7 };
+                BUCKETS[b].fetch_add(1, Ordering::Relaxed);
+                let n = N.fetch_add(1, Ordering::Relaxed) + 1;
+                if n % 2000 == 0 {
+                    eprintln!("[pwprof] n={} requested-timeout buckets ms: [0]={} [1-2]={} [3-4]={} [5-8]={} [9-16]={} [17-33]={} [34-100]={} [100+]={}",
+                        n, BUCKETS[0].load(Ordering::Relaxed), BUCKETS[1].load(Ordering::Relaxed), BUCKETS[2].load(Ordering::Relaxed),
+                        BUCKETS[3].load(Ordering::Relaxed), BUCKETS[4].load(Ordering::Relaxed), BUCKETS[5].load(Ordering::Relaxed),
+                        BUCKETS[6].load(Ordering::Relaxed), BUCKETS[7].load(Ordering::Relaxed));
+                }
+            }
             let wait = clamp_javascript_net_poll_wait(timeout_ms);
             // For a worker thread, wait on the OWNING process's readiness (its sockets live there);
             // `process` stays the worker so the deferred response is delivered on its channel. Owned
