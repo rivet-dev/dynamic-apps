@@ -437,6 +437,32 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 
 ### Verdict log (newest first)
 
+- **2026-06-29 — L-R drill (corrected): fixed a tooling bug, got REAL client data — the 9.5s is
+  DISTRIBUTED, no single 88× hop; biggest chunk is worker-thread coordination.** Found + fixed a bug: the
+  host's CLIENT launch (`run_xdemo`) forwards only an ALLOWLIST of `SECURE_EXEC_*` vars, missing
+  `SECURE_EXEC_RTPROBE`/`SECURE_EXEC_PERFCLOCK`, so ALL prior mousepad `[rt]` data was empty (the X server
+  worked because it launches via the all-forwarding `execute_env` path). Added both to the allowlist; now
+  client perf probes work. Also added a cumulative `[pump-starve]` accumulator to the pump-gap probe.
+  **REAL mousepad numbers (B2, perf-clock):**
+  - **Main thread**: ~300 blocking polls to first-paint, outer round-trip **avg 2.6 ms** (max 13 ms);
+    67 productive (real X replies) × 2.6 ms ≈ **174 ms ≈ native's 110 ms — X round-trips are NOT the
+    bottleneck.**
+  - **Worker thread** (GLib/GIO thread): ~1000 blocking polls, **86 % deadline/clamp wakes** (~3.1 s of
+    re-poll waiting), prodAvg ~1 ms.
+  - **Pump-starvation in the first-paint window: ~1.4 s** (windowed cumulative; the 17 s total is almost
+    all the PRE-X fixture install, a separate harness cost).
+  - **Composition of the 9.5 s:** worker-thread waits ~3–4 s + pump-starve ~1.4 s + deadline-discovery
+    ~0.5–0.8 s (matches the clamp 3→1 ms test saving ~0.5 s) + GTK compute + X round-trips ~0.2 s. It is
+    **death by a thousand cuts** — native does the whole thing in 110 ms, so every op is ~88× and they
+    accumulate; there is NO single fat hop to cut.
+  - **Re-ranked next levers (by measured chunk):** (1) **worker-thread coordination** (~3–4 s) — the GLib
+    worker does ~1000 deadline-spins; understand what it waits on and whether the main↔worker GWakeup
+    handoff or the single-threaded-sidecar serialization is the cost; (2) **pump-starvation** (~1.4 s,
+    L-O class — find the in-window holders); (3) the fixture-install path (~15 s, separate, harness-only).
+  - **REFUTED this round:** the X round-trip itself (≈native), and (again) the poll clamp as a major lever
+    (only ~0.5 s). Probes + env-forward fix committed; no speedup landed yet — this round corrected the
+    measurement and re-localized the lever to worker-coordination + distributed per-op overhead.
+
 - **2026-06-28 — L-R DRILL: round-trip is wait-bound + serialized through the single-threaded sidecar;
   several hops REFUTED.** Built `[rt]`/`[rt-outer]` probes (`SECURE_EXEC_RTPROBE=1`, needs PERFCLOCK on;
   perf-clock-stamp the blocking `net.poll_wait` inner + the whole outer `net_poll`). Findings on B2

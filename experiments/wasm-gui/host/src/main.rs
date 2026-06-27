@@ -1204,6 +1204,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_POLLSTAT",
                     "SECURE_EXEC_IMPORTPROF",
                     "SECURE_EXEC_IMPORTPROF_EVERY",
+                    "SECURE_EXEC_RTPROBE",
+                    "SECURE_EXEC_PERFCLOCK",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {
@@ -1293,6 +1295,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_POLLSTAT",
                     "SECURE_EXEC_IMPORTPROF",
                     "SECURE_EXEC_IMPORTPROF_EVERY",
+                    "SECURE_EXEC_RTPROBE",
+                    "SECURE_EXEC_PERFCLOCK",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {

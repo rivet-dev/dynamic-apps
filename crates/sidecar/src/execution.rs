@@ -3749,16 +3749,35 @@ where
         if secure_exec_bridge::perf_clock_enabled() {
             use std::sync::atomic::{AtomicU64, Ordering};
             static LAST_PUMP_US: AtomicU64 = AtomicU64::new(0);
+            // Cumulative pump-starvation accounting: sum (gap - one timer interval) over all gaps >2ms,
+            // and the count, so we can see how much wall-clock the pump is NOT running (vs the 250us
+            // cadence) even when each gap is small. Printed every ~2000 passes.
+            static CUM_STARVE_US: AtomicU64 = AtomicU64::new(0);
+            static GAP_COUNT: AtomicU64 = AtomicU64::new(0);
+            static PASSES: AtomicU64 = AtomicU64::new(0);
             let now_us = secure_exec_bridge::perf_now_micros();
             let prev = LAST_PUMP_US.swap(now_us, Ordering::Relaxed);
             if prev != 0 {
                 let gap_us = now_us.saturating_sub(prev);
+                if gap_us > 2_000 {
+                    CUM_STARVE_US.fetch_add(gap_us.saturating_sub(250), Ordering::Relaxed);
+                    GAP_COUNT.fetch_add(1, Ordering::Relaxed);
+                }
                 if gap_us > 50_000 {
                     eprintln!(
-                        "[pump-gap] {}us gap between pump passes (entry at perf {}us) — sidecar async task starved",
+                        "[pump-gap] {}us gap between pump passes (entry at perf {}us)",
                         gap_us, now_us
                     );
                 }
+            }
+            let p = PASSES.fetch_add(1, Ordering::Relaxed) + 1;
+            if p % 2000 == 0 {
+                eprintln!(
+                    "[pump-starve] cumulative={}ms over {} gaps>2ms (now perf {}ms) — time the pump was NOT running",
+                    CUM_STARVE_US.load(Ordering::Relaxed) / 1000,
+                    GAP_COUNT.load(Ordering::Relaxed),
+                    now_us / 1000,
+                );
             }
         }
         let mut emitted_any = false;
