@@ -3636,7 +3636,7 @@ function createRpcBackedFsSync(fromGuestDir = '/') {
         return writeToStdioFd(normalizedFd, write.payload);
       }
       return normalizeFsBytesResult(
-        callSync('fs.writeSync', [normalizedFd, write.payload, write.position]),
+        callSync('fs.writeSync', [normalizedFd, maybeBulkEncodeFsPayload(write.payload), write.position]),
         'fs.writeSync result',
       );
     },
@@ -7822,6 +7822,32 @@ function hardenProperty(target, key, value) {
   } catch (error) {
     throw new Error(`Failed to harden property ${String(key)}`, { cause: error });
   }
+}
+
+// T1 bulk transport: route a large fs write payload through the per-guest bulk SAB (__secure_exec_t1_bulk) via a
+// memcpy instead of base64'ing it (the ~1.2MB+ framebuffer writes that starve the single service thread). Writes
+// [len:u32 LE @0][payload @4] into the bulk SAB and returns a {__agentOsType:'bulk', len} ref the kernel resolves by
+// reading the bulk SAB. Falls back to the raw payload (-> base64) when the bulk SAB is absent (T1 off) or the payload
+// is small / larger than the buffer. fs.writeSync passes a single payload per call, so a single-slot buffer suffices.
+const T1_BULK_MIN_BYTES = 64 * 1024;
+function maybeBulkEncodeFsPayload(payload) {
+  const bulk = globalThis.__secure_exec_t1_bulk;
+  if (
+    bulk &&
+    payload &&
+    typeof payload.byteLength === 'number' &&
+    payload.byteLength >= T1_BULK_MIN_BYTES &&
+    payload.byteLength + 4 <= bulk.byteLength
+  ) {
+    const bytes =
+      payload instanceof Uint8Array
+        ? payload
+        : new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength);
+    new DataView(bulk).setUint32(0, bytes.byteLength, true);
+    new Uint8Array(bulk).set(bytes, 4);
+    return { __agentOsType: 'bulk', len: bytes.byteLength };
+  }
+  return payload;
 }
 
 function encodeSyncRpcValue(value) {
