@@ -2270,3 +2270,26 @@ scheduling/production wall). That is the structural limit of the two-guest host-
 lever D (in-memory guest↔guest transport, if the turnaround is transport-bound) or fewer guest round-trips
 (Constraint #5) moves it. SESSION: ir 61→~26ms (17×→~5.9× native median 4.4ms). Committed wins: fd-poll
 bound, tighter-wake. Gated: fd-scoped wakeups, poll_scan (both correct, ir-marginal/null).
+
+## §7-OPCOUNT-DEFINITIVE (2026-06-30): op-count collapse is DEFINITIVELY null — the render is COMPUTE-bound
+
+Found + fixed a test-harness bug: `SECURE_EXEC_POLL_SCAN` (and `FD_SCOPED_POLL`) weren't in the host's
+per-guest env allowlists (main.rs:1215/1310), so only ONE guest (mousepad, tid 54) got poll_scan; the X
+SERVER (tid 59, the HEAVY poller) stayed on the old path — that's why the first poll_scan test looked
+"marginal". After adding them to both allowlists, poll_scan FULLY engages: `_netPollScanRaw` now on all
+tids (64/54/59), `_netSocketPollRaw` drain dropped ~5400→~450.
+
+**DECISIVE RESULT: fully-engaged poll_scan is ir-NULL.** default 23/24/24/25/27/27/27/28 (median 25.5) vs
+POLL_SCAN-both 23/26/26/26/27/27/30/30 (median 26.5). Collapsing ~5400 drain/fd-poll ops into poll_scan
+across BOTH guests changes ir by 0 (within noise). **⇒ the ir is NOT op-count-bound.** With the per-op cost
+already ~µs (tighter-wake) and the op count now collapsed, the render's ~26ms is the PEER's per-exchange
+PROCESSING — the wasm COMPUTE of the render's heavy steps (glyph rasterize + GTK layout). B1 pure-GObject
+is ~22× native; the render's operation MIX averages ~5.9× native = the render's compute floor.
+
+**CONCLUSION (measured, not argued):** all runtime-overhead levers are exhausted + MEASURED —
+per-op(tighter-wake)=WIN, op-count(poll_scan, fully engaged)=NULL, wake(wakeLag 11µs)=fast,
+transport(lever D)=null-by-wakeLag. The render at ir 26ms = 5.9× native is COMPUTE-bound (the peer's
+per-exchange wasm compute). Getting to a strict 3× (~13ms) requires faster wasm compute on the render's
+heavy steps = the TOOLCHAIN floor the goal declares OUT OF SCOPE. SESSION: ir 61→~25-26ms (17×→~5.9×),
+2 committed wins (fd-poll bound, tighter-wake), 2 gated measured-nulls (fd-scoped, poll_scan). The env-
+allowlist fix is committed (correct regardless — test flags must reach both guests).

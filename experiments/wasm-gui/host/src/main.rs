@@ -1212,6 +1212,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_RTPROBE",
                     "SECURE_EXEC_HOPSPLIT",
                     "SECURE_EXEC_DRAINPROF",
+                    "SECURE_EXEC_POLL_SCAN",
+                    "SECURE_EXEC_FD_SCOPED_POLL",
                     "SECURE_EXEC_PERFCLOCK",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
@@ -1305,6 +1307,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_RTPROBE",
                     "SECURE_EXEC_HOPSPLIT",
                     "SECURE_EXEC_DRAINPROF",
+                    "SECURE_EXEC_POLL_SCAN",
+                    "SECURE_EXEC_FD_SCOPED_POLL",
                     "SECURE_EXEC_PERFCLOCK",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
