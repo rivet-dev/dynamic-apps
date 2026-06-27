@@ -904,6 +904,10 @@ async fn run_xdemo(
     dbus_services: &[String],
 ) -> Result<()> {
     let s = Session::connect(sidecar).await?;
+    // Milestone clock for the B2/B3 first-paint breakdown: timestamps the setup-serialization phases
+    // (X server / dbus / xfconfd / client launch) so first-paint can be split into harness setup vs the
+    // app's own init. Logged via `[milestone +Nms]` lines (always on; cheap).
+    let demo_start = std::time::Instant::now();
     let server_abs = abs_path(server)?;
     // Each client spec is "wasm_path arg1 arg2 ...": resolve the path, keep the args.
     let mut client_specs: Vec<(String, Vec<String>)> = Vec::new();
@@ -991,6 +995,7 @@ async fn run_xdemo(
     }
     s.execute_env("xserver", &server_abs, &sargv, srv_env).await?;
     eprintln!("secure-exec: started X server {server_abs} {server_args:?}");
+    eprintln!("[milestone +{}ms] X server launched", demo_start.elapsed().as_millis());
 
     // B2 first-paint benchmark probe (SECURE_EXEC_FIRSTPAINT=1, default-OFF). Samples the shared X
     // framebuffer and emits ONE number — `[firstpaint] <ms>` — the moment the screen first crosses a
@@ -1067,6 +1072,7 @@ async fn run_xdemo(
         }
         s.execute_env("dbusd", &dbusd_abs, &dbus_argv, denv).await?;
         eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
+        eprintln!("[milestone +{}ms] dbus-daemon launched", demo_start.elapsed().as_millis());
         // Let it bind /tmp/.dbus/session before any client connects.
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
 
@@ -1089,6 +1095,7 @@ async fn run_xdemo(
             }
             s.execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv).await?;
             eprintln!("secure-exec: started dbus service {svc_abs}");
+            eprintln!("[milestone +{}ms] dbus service {i} launched", demo_start.elapsed().as_millis());
             // Let it register its name + go idle before the next service / the X clients.
             tokio::time::sleep(std::time::Duration::from_secs(4)).await;
         }
@@ -1325,6 +1332,7 @@ async fn run_xdemo(
                 }
                 s.execute_env(&id, path, &argv, cenv).await?;
                 eprintln!("secure-exec: launched {id} ({path})");
+                eprintln!("[milestone +{}ms] {id} launched", demo_start.elapsed().as_millis());
                 launched += 1;
                 last_launch = tokio::time::Instant::now();
                 last_activity = tokio::time::Instant::now();
@@ -2082,6 +2090,7 @@ mod window {
                             let id = format!("xclient{launched}");
                             let _ = s_launch.execute_env(&id, &path_abs, &argv, cenv).await;
                             eprintln!("secure-exec: launched {id} ({path})");
+                eprintln!("[milestone +{}ms] {id} launched", demo_start.elapsed().as_millis());
                             launched += 1;
                             last_launch = tokio::time::Instant::now();
                         }

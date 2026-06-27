@@ -279,6 +279,29 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★★ PHASE-0 BENCHMARK SUITE BUILT (B0/B1/B2) + B2 TARGET MET + RPC-vs-CPU SPLIT
+  MEASURED.** Built `scripts/bench-suite.sh` (one runnable suite, each emits ONE number, all via the
+  default-OFF `SECURE_EXEC_FIRSTPAINT` probe / `--exec`):
+  | Benchmark | Number | Meaning |
+  |---|---|---|
+  | **B0** raw libX11 window (no GTK) | **~1.97s** first-paint | VM + X-server + libX11 + window-map FLOOR |
+  | **B1** pure GObject (bench-gobject) | **0.69 µs/op** new+unref, 0.16 µs/op emit, 0.56 µs/op set+get | compute is FAST |
+  | **B2** single GTK app (mousepad) | **~9.7–9.9s** first-paint | **<10s TARGET MET** (3 runs: 9.9/9.7/9.7; suite run 9.876s) |
+  - **★ DECISIVE RPC-vs-CPU SPLIT (the Phase-0 question, answered with data):** B1 shows GObject compute
+    is ~0.69µs/op = NOT the bottleneck. B0 shows the X+libX11 floor is ~2s. The B0→B2 delta (~7.7s) is
+    GTK init's X-protocol round-trips + resource loading (CSS/theme/icons/pango shaping; pango-bench:
+    shape=109ms), which the importprof confirms is `net_poll`-DOMINATED (95% of mousepad's import time).
+    **The stack is WAIT/RPC-bound (cross-isolate X round-trips), not CPU-bound.**
+  - **★ B2 single-app target MET (~9.7s < 10s).** The earlier 15.4s was mousepad+dbus+xfconfd (6s of
+    hardcoded harness session-setup sleeps = a B3-class scenario), NOT a single app. Milestone probe
+    (`[milestone +Nms]` in `run_xdemo`): of the 15.4s, ~7.9s was harness session-serialization (dbus 2s
+    + xfconfd 4s hardcoded sleeps + gating) and ~7.3s was mousepad's own GTK init. Dropping the
+    desktop-session services (correct for "single app") → 9.7s, clean render (fontconfig 0, no traps).
+  - **Remaining (Section 8):** B3 (5-app Xfce desktop, <30s, painted+responsive) — the deep XU scenario,
+    historically contention-limited (~3 concurrent-guest ceiling); P2 (V8 Inspector `.cpuprofile`); and
+    pushing B2's ~9.7s down for margin (the GTK-init X-round-trip / L-J cross-isolate-latency lever — but
+    B2 already meets its target, so its ROI is now low). Constraint #5: bench-suite is pure harness.
+
 - **2026-06-28 — ★★★ B2 FIRST-PAINT EMITTER BUILT + TRUE BASELINE (~15.4s) + L-Q REFUTED.** Three findings:
   1. **The old wall-clock metric was meaningless.** `render-app.sh`/`run_xdemo` runs the host to its full
      `--timeout` (120s) then screenshots ONCE — so every "wall-clock 74–144s" number I had was just the
