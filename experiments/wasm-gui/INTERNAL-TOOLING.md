@@ -118,6 +118,15 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       sidecar↔isolate boundary. Default-OFF + gated so the guest cannot read a real clock by default
       (determinism). (`crates/bridge/src/lib.rs` `perf_now_micros`; sidecar `__perf_now` dispatch;
       guest `callSyncRpc('__perf_now')`.)
+- [x] **B2 first-paint emitter** (`SECURE_EXEC_FIRSTPAINT`) — the actual single-app first-paint benchmark
+      number. `run_xdemo` (host) spawns a sampler that reads the shared X framebuffer every 200ms and
+      emits ONE line `[firstpaint] <ms>` the moment coverage first crosses 2% non-black AFTER observing
+      this run's fresh black clear (the post-clear guard rejects a stale shadow-dir frame from a prior
+      run). Also emits `[firstpaint-curve] <ms> <pct>` on each ≥5% change so the paint timeline is
+      visible. t0 = X-server launch (end-to-end stack-to-pixels). Replaces the old screenshot-at-timeout
+      `render-app.sh` wall, which only measured `--timeout`, not paint. Baseline: mousepad ~15.4s.
+      (`experiments/wasm-gui/host/src/main.rs` `run_xdemo`.) NOTE: this is the harness B2; B0/B1/B3
+      emitters + P2 (V8 `.cpuprofile`) still TODO.
 - [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
       `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
       line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it

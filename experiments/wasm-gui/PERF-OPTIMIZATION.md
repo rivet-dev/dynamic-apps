@@ -279,6 +279,33 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — ★★★ B2 FIRST-PAINT EMITTER BUILT + TRUE BASELINE (~15.4s) + L-Q REFUTED.** Three findings:
+  1. **The old wall-clock metric was meaningless.** `render-app.sh`/`run_xdemo` runs the host to its full
+     `--timeout` (120s) then screenshots ONCE — so every "wall-clock 74–144s" number I had was just the
+     timeout, NOT first-paint. The actual target metric did not exist.
+  2. **Built B2 (CORE-adjacent harness, not a guest/core hack): `SECURE_EXEC_FIRSTPAINT=1`** spawns a
+     framebuffer sampler in `run_xdemo` (host) that emits ONE number — `[firstpaint] <ms>` — when the
+     shared X framebuffer first crosses 2% non-black AFTER its fresh black clear (the post-clear guard
+     filters a stale shadow-dir frame from a prior run; without it the first sample read a leftover 63.9%
+     frame and falsely reported ~250ms). Anchored at X-server launch = end-to-end stack-to-pixels.
+     **B2 baseline = 15.2s / 15.6s (two runs, stable).** Target <10s → gap ~1.5×, NOT the 7–14× the
+     143s number implied. Curve: fb clears at ~1.1s, stays 0% until a one-shot paint at ~15.2s.
+  3. **Composition of the 15.4s:** X-server boot + dbus-daemon (a hardcoded 2s sleep) + xfconfd setup +
+     launch gating (several seconds of harness serialization), then mousepad's own GTK init (~10s),
+     which is `net_poll`-bound (X protocol round-trips to the X-server isolate).
+  - **L-Q (raise the 3ms poll clamp) REFUTED by sweep.** `JAVASCRIPT_NET_POLL_MAX_WAIT`=3ms clamps every
+     guest poll; the wakeprof showed 93–99% DEADLINE (timeout) wakes, suggesting a respin storm. But a
+     sweep via the existing `SECURE_EXEC_POLL_MAX_WAIT_MS` knob (3 / 50 / 200 ms) showed **identical**
+     wall AND identical mousepad `net_poll` total (~40s, ~302 outer calls). So the deadline respins are
+     cheap off-thread (post-L-O) and the `net_poll` time is GENUINE cross-isolate wait, not clamp
+     overhead. The 3ms clamp is not a lever — do NOT raise it. (The deadline-wake % is mostly idle/legit
+     waiting, which the pump-gap/wakeprof probes bill as non-productive but cost no wall-clock.)
+  - **Re-rank (unchanged class, now quantified against the right metric):** the lever is the ~10s of
+     mousepad GTK-init `net_poll` = the per-X-round-trip cross-isolate latency (L-J). Each GTK X request
+     blocks on the X-server isolate replying; cutting that round-trip latency (or the harness setup
+     serialization for a cleaner solo-B2) is the path to <10s. Deep, separate lever for a focused pass.
+  - Constraint #5: B2 probe is pure measurement harness in `host/` (not guest/core). Default-OFF.
+
 - **2026-06-28 — ★★★ LEVER L-P LANDED + sidecar-pump-starvation lever class FLATTENED.** After L-O,
   re-profiled the residual with `[rpc-block]` (times each synchronous sync-RPC dispatch in
   `handle_javascript_sync_rpc_request`, default-OFF). Single biggest residual cost = **`wasm.thread_spawn`

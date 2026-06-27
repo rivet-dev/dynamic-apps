@@ -992,6 +992,60 @@ async fn run_xdemo(
     s.execute_env("xserver", &server_abs, &sargv, srv_env).await?;
     eprintln!("secure-exec: started X server {server_abs} {server_args:?}");
 
+    // B2 first-paint benchmark probe (SECURE_EXEC_FIRSTPAINT=1, default-OFF). Samples the shared X
+    // framebuffer and emits ONE number — `[firstpaint] <ms>` — the moment the screen first crosses a
+    // non-black coverage threshold (i.e. the X server + WM + app have actually drawn pixels). t0 is
+    // anchored here at X-server launch so the number is the end-to-end stack-to-pixels time the
+    // <10s/<30s targets are defined against. Pure measurement harness (not a guest/core change).
+    if std::env::var("SECURE_EXEC_FIRSTPAINT").map(|v| v == "1").unwrap_or(false) {
+        let vm_id = s.vm_id.clone();
+        let t0 = std::time::Instant::now();
+        tokio::spawn(async move {
+            let mut last_pct = -100.0f64;
+            let mut crossed = false;
+            // Guard against a stale framebuffer lingering from a previous run: only accept a first-paint
+            // crossing AFTER we have observed this run's fresh black clear (coverage near 0%).
+            let mut seen_clear = false;
+            loop {
+                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+                if t0.elapsed().as_secs() > 600 {
+                    break;
+                }
+                let Some((_, bytes)) = read_shadow_framebuffer(&vm_id, "data/Xvfb_screen0") else {
+                    continue;
+                };
+                // Framebuffer is 4 bytes/pixel; a pixel counts as painted if any channel exceeds a
+                // small threshold (ignores the black background + compression noise).
+                let (mut nonblack, mut total) = (0u64, 0u64);
+                let mut i = 0;
+                while i + 3 < bytes.len() {
+                    if bytes[i] > 16 || bytes[i + 1] > 16 || bytes[i + 2] > 16 {
+                        nonblack += 1;
+                    }
+                    total += 1;
+                    i += 4;
+                }
+                if total == 0 {
+                    continue;
+                }
+                let pct = 100.0 * nonblack as f64 / total as f64;
+                // Log the coverage time-series on any significant change so the paint curve is visible
+                // (distinguishes a one-shot background clear from progressive app rendering).
+                if (pct - last_pct).abs() >= 5.0 {
+                    eprintln!("[firstpaint-curve] {}ms {:.1}%", t0.elapsed().as_millis(), pct);
+                    last_pct = pct;
+                }
+                if pct < 2.0 {
+                    seen_clear = true;
+                }
+                if !crossed && seen_clear && pct > 2.0 {
+                    eprintln!("[firstpaint] {}ms ({:.1}% non-black)", t0.elapsed().as_millis(), pct);
+                    crossed = true;
+                }
+            }
+        });
+    }
+
     // Optional D-Bus session bus for a full desktop session (XU1+: xfsettingsd/xfce4-panel talk to the
     // bus via GDBus). Launch the unmodified dbus-daemon as another long-lived guest binding the session
     // socket; clients reach it via DBUS_SESSION_BUS_ADDRESS (passed in `inject`). The session.conf +
