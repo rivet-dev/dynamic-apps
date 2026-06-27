@@ -563,6 +563,18 @@ pub(crate) fn hopprof_enabled() -> bool {
     *EN.get_or_init(|| std::env::var("SECURE_EXEC_HOPPROF").map(|v| v == "1").unwrap_or(false))
 }
 
+/// GAPTRACE (SECURE_EXEC_GAPTRACE=1, default-OFF): per-event (NOT aggregated) log of each productive
+/// blocking poll_wait's segments with a `perf_now_micros` stamp, so an offline decoder can window the
+/// stream to the keystroke render (vs the [ir-mark] inject) and see, round-trip by round-trip, where one
+/// ~8ms gap goes: `peerWait` (register→notify = waiting for the peer guest to produce data — legitimate
+/// cross-guest causality) vs `wakeLag` (notify→resume) + `resp` (respond/channel-send) = the wake-delivery
+/// overhead a CORE lever could cut. If peerWait dominates, the fix is the peer's turnaround (recursive
+/// wasm overhead); if wakeLag/resp dominate, the wake path is the lever.
+pub(crate) fn gaptrace_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_GAPTRACE").map(|v| v == "1").unwrap_or(false))
+}
+
 #[derive(Default)]
 struct HopProfAcc {
     n: u64,
@@ -715,7 +727,7 @@ impl SocketReadiness {
     pub(crate) fn notify(&self) {
         // D12: stamp the notify time BEFORE waking waiters so a freshly-woken pool worker reads the
         // moment data became ready (gated; no clock read on the default path).
-        if hopprof_enabled() {
+        if hopprof_enabled() || gaptrace_enabled() {
             self.last_notify_us.store(
                 secure_exec_bridge::perf_now_micros(),
                 std::sync::atomic::Ordering::Relaxed,
@@ -936,7 +948,27 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
         // D12 hop decomposition (productive wakes only): resume_us is now; notify_us is when the data
         // became ready; registered_us is when the guest's poll was registered. Capture BEFORE respond
         // so `resp` covers only the respond_success/channel-send cost.
-        let hopprof = changed && hopprof_enabled();
+        if gaptrace_enabled() {
+            // Count EVERY pool completion (changed=notify vs deadline) so we see whether blocking
+            // poll_waits complete by data or by timeout, and how many there are at all.
+            use std::sync::atomic::{AtomicU64, Ordering};
+            static N_NOTIFY: AtomicU64 = AtomicU64::new(0);
+            static N_DEADLINE: AtomicU64 = AtomicU64::new(0);
+            if changed {
+                N_NOTIFY.fetch_add(1, Ordering::Relaxed);
+            } else {
+                N_DEADLINE.fetch_add(1, Ordering::Relaxed);
+            }
+            let tot = N_NOTIFY.load(Ordering::Relaxed) + N_DEADLINE.load(Ordering::Relaxed);
+            if tot % 200 == 0 {
+                eprintln!(
+                    "[gaptrace-count] pool completions: notify={} deadline={}",
+                    N_NOTIFY.load(Ordering::Relaxed),
+                    N_DEADLINE.load(Ordering::Relaxed)
+                );
+            }
+        }
+        let hopprof = changed && (hopprof_enabled() || gaptrace_enabled());
         let resume_us = if hopprof {
             secure_exec_bridge::perf_now_micros()
         } else {
@@ -961,7 +993,21 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
             // Guard against a stale/overlapping notify stamp (multiple waiters): clamp to non-negative.
             let wake_seg = resume_us.saturating_sub(notify_us);
             let resp_seg = responded_us.saturating_sub(resume_us);
-            hopprof_record(wait_seg, wake_seg, resp_seg, clean);
+            if gaptrace_enabled() {
+                // Per-event line (raw, no clean filter), epoch-stamped so it can be windowed to the
+                // [ir-mark] inject (epoch wall, cross-process comparable — perf_now is per-process).
+                let epoch = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_micros())
+                    .unwrap_or(0);
+                eprintln!(
+                    "[gaptrace] epoch={} call={} reg={} notify={} resume={} peerWaitUs={} wakeLagUs={} respUs={} clean={}",
+                    epoch, wait.call_id, wait.registered_us, notify_us, resume_us, wait_seg, wake_seg, resp_seg, clean
+                );
+            }
+            if hopprof_enabled() {
+                hopprof_record(wait_seg, wake_seg, resp_seg, clean);
+            }
         }
     }
 }

@@ -223,6 +223,27 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
+#### ★★★ THE "8ms" DEFINITIVELY EXPLAINED (2026-06-30, GAPTRACE per-event window) ★★★
+Built a per-event `SECURE_EXEC_GAPTRACE` probe (default-OFF; needs `SECURE_EXEC_PERFCLOCK=1` for the notify
+stamp) that logs each blocking poll_wait's segments and windows them to the `[ir-mark]` inject. Result for
+the keystroke render (~59ms window): **~9 blocking poll_waits, each ~1.2-2.5ms, and that block time is
+≈100% `peerWait` (register→notify = waiting for the PEER guest Xvfb to produce the reply). The local
+`wakeLag` (notify→resume) is ~6-22µs — negligible.** So:
+- The "~8ms gaps" were NEVER a timer / frame clock / local wake-path latency. The local wake is ~15µs (which
+  is exactly why poll-direct and the clamp correctly did nothing).
+- The render = **~9 cross-guest round-trips × ~2ms peer-turnaround (~18ms) + ~40ms of the guest churning
+  through its own many fast sync-RPCs/compute between waits.** The coarse xtrace "~8ms gaps" were 2-4 of
+  these ~2ms peer-waits clustered.
+- The ~2ms peer-turnaround = **Xvfb paying the wasm per-operation overhead on ITS side** (request delivery +
+  Xvfb's own wake ~15µs + Xvfb processing the request through its own syscalls + reply delivery). Native Xvfb
+  does the same in ~µs. It is recursive: BOTH guests pay the per-op overhead, and their ping-pong compounds.
+**⇒ The remaining lever is the cross-guest ROUND-TRIP / per-operation cost (peer-turnaround), NOT the local
+wake path (already ~15µs).** Two angles: (1) cut the per-operation overhead further so each guest's turnaround
+shrinks (diminishing — the inline family already did the cheap part), or (2) cut the NUMBER of cross-guest
+round-trips / per-render syscalls (wasm does far more ops/render than native's ~23 — the runtime fans one
+native poll/read into poll_wait+fd_poll+drain, and the guest spin-polls). Reducing op-count or a shared-mem
+ring (lever D) is the path to native's ~10ms. peerWait dist (whole run): median 1156µs, p90 2522µs, max 3016µs.
+
 #### ★ COMPLETE MEASUREMENTS LOG (2026-06-30) — every ir number we recorded, with how it was measured
 All B2 = Xvfb (800x600x24, -fbdir) + mousepad, single guest. ir = inject→framebuffer-change wall time.
 **The metric evolved as we found confounds — numbers are only comparable WITHIN the same metric row.**
