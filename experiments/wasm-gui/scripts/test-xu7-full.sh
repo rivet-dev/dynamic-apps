@@ -52,8 +52,10 @@ echo "running XU3 session -> fb=$FB png=$PNG log=$OUT"
 # to stay under the concurrent-heavy-guest scheduling ceiling (diagnostic for whether the panel paints when
 # contention is lower).
 if [ -n "${XU7_ONLY:-}" ]; then
-  # xfwm4 (WM) + a single named component, e.g. XU7_ONLY=xfdesktop (diagnostic: does it render solo?)
-  CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/${XU7_ONLY}.wasm")
+  # xfwm4 (WM) + a space-separated set of named components, e.g. XU7_ONLY="xfce4-panel xfdesktop"
+  # (diagnostic: do the named components render — solo or simultaneously?)
+  CLIENTS=(--client "$EXP/xfwm4.wasm")
+  for c in $XU7_ONLY; do CLIENTS+=(--client "$EXP/${c}.wasm"); done
 elif [ -n "${XU7_PANEL_ONLY:-}" ]; then
   CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/xfce4-panel.wasm")
 else
