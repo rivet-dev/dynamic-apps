@@ -250,6 +250,21 @@ All B2 = Xvfb (800x600x24, -fbdir) + mousepad, single guest. ir = inject→frame
 - `[pipetrace]`: ~11 kernel-pipe writes/run total (the ~8ms wake is NOT a pipe write).
 - HOPSPLIT d12 (dispatch-queue) pre-inline: `_netSocketPollRaw` 636µs, `_kernelFdPollRaw` 575µs, `_netServerAcceptRaw` 549-664µs, `_netSocketPollWaitRaw` 198-231µs. HOPPROF wakeLag 11µs, respond 35µs. DRAINHOSTPROF drain hostSvc 5µs, 28:1 empty:productive. rpc-profile total service work **572ms over a ~20s run** (~3% of one core).
 
+#### ★★★ MECHANISM FOUND (2026-06-30, native strace) — the ~50ms is per-round-trip poll_wait WAKE latency, NOT frame pacing ★★★
+`strace -ttt -T` on native mousepad through ONE keystroke (windowed to the keypress via `keytime.txt`):
+**native does the ENTIRE render as one tight ~2ms burst** — all ~23 X recvmsg/sendmsg on the X socket
+between **1.3ms and 3.3ms**, each `poll(fd, -1)` (block-until-ready) returning in **µs** (`<0.000003>`),
+then it idles (`poll(...,49)=Timeout <0.049>`). **Native has NO ~8ms gaps — there is no frame-clock pacing
+of the render.** ⇒ the wasm ~7-steps-×-~8ms structure is RUNTIME-INDUCED, NOT GTK. Native blocks
+`poll(fd,-1)` and the **kernel wakes it instantly (µs)** when the X server replies; the wasm runtime CLAMPS
+poll_wait to 3ms (`JAVASCRIPT_NET_POLL_MAX_WAIT`, can't block the shared dispatch thread) and routes the
+data-ready→guest-resume wake through its dispatch path. Each round-trip reply that native resumes from in µs,
+the wasm client resumes from in ~8ms → ~7 round-trips × ~8ms ≈ the ~50ms gap. **NEXT LEVER: cut the wasm
+poll_wait WAKE latency (data-available→guest-resumed) toward native's µs — make it truly event-driven +
+instant like `poll(-1)`, for the X-socket round-trip path (poll_wait is NOT inlined; net.poll/fd.poll/accept
+are).** Measure the wasm poll_wait wake latency directly to confirm ~8ms, then attack it (the clamp itself is
+only ~2ms per the sweep, so the lever is the wake/notify path, not the clamp value). This is squarely CORE.
+
 #### ★★★ NATIVE COMPARISON RESOLVED (2026-06-30) — the floor was FALSE; the ~54ms is RUNTIME overhead, <10ms IS a CORE problem ★★★
 Built a Docker native baseline (`debian + mousepad + Xvfb + xdotool`) and measured native with the SAME
 trustworthy method as wasm (warm `HelloWorld`, caret-blink OFF, top-200-row glyph region, PointerRoot focus
