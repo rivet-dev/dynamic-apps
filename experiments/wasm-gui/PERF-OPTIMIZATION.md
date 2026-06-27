@@ -437,6 +437,35 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 
 ### Verdict log (newest first)
 
+- **2026-06-29 — ★★★★★ MAJOR REDIAGNOSIS: mousepad first-paint is COMPUTE-BOUND, not wait-bound. The
+  goal's premise ("98.6% parked in the poll loop = pure waiting") was a V8-profiler MISREAD.** Two
+  independent measurements prove it:
+  1. **importprof (authoritative):** mousepad's main thread spends only **~2.4s total in ALL imports**
+     (net_poll 0.96s, path_filestat_get 0.74s, path_open 0.16s, …) over the ~9.5s to first-paint. So
+     **~7s is on-CPU wasm execution, NOT blocked in any host call.** If the hot function were blocked in
+     `net.poll_wait`, net_poll's import time would be ~9s; it is 0.96s.
+  2. **[rt-outer]:** the main thread spends only ~390ms in *blocking* net_poll (150 × 2.6ms). Not waiting.
+  - The P2 cpuprofile's "98.6% in wasm-function[14120]" is REAL on-CPU compute (a leaf function, no
+    callees, called from 6+ sites — a hot primitive or tight loop), not blocked-host-call attribution.
+  - **V8 already runs it ~optimally — tiering is NOT the lever (L-V null):** A/B of wasm exec-tier flags
+    (new `SECURE_EXEC_V8_WASM_FLAGS` knob): baseline 9.9s, `--wasm-tiering-budget=1000` 9.7s (noise),
+    `--no-liftoff` (TurboFan-only) **12.8s** (the eager optimizing compile dominates). So the ~7s is the
+    guest wasm genuinely executing, run about as fast as V8 can.
+  - **What this means for the lever:** the entire prior Phase-1 direction (cross-isolate / per-round-trip
+    latency) was chasing the WRONG bottleneck — the X round-trips are already near-native (~174ms) and
+    the sidecar is fine. The real cost is **guest wasm compute** (~70× native: native mousepad 110ms vs
+    9.5s). The hot leaf (14120) is in the guest binary (`mousepad.wasm`); next step is to symbolize it
+    (rebuild mousepad `SECURE_EXEC_KEEP_NAMES=1`, a heavy but one-off diagnostic) to learn whether it is
+    (a) a runtime-provided libc/toolchain primitive we compile (registry/native — OPTIMIZABLE in CORE,
+    e.g. a slow memcpy/malloc/hash or the fpcast-emu indirect-call thunk path) or (b) guest GTK -Oz code
+    (immutable per Constraint #5). Note: even a normal `-O2` wasm would be ~2–3× native (~300ms), so the
+    ~30× over THAT points at a toolchain/runtime code-gen issue (fpcast-emu thunks, `-Oz` size-opt, or
+    the indirect-call convention), several of which ARE in our toolchain (`registry/native` + the
+    cross-compile), i.e. CORE-fixable.
+  - **NEXT (re-ranked §9):** symbolize 14120 → if libc/toolchain, optimize it (rebuild the toolchain
+    primitive); if it's the fpcast-emu indirect-call path, that's the highest-leverage CORE target (GTK
+    is indirect-call-heavy). The per-round-trip latency lever is DE-RANKED (it was the wrong premise).
+
 - **2026-06-29 — L-U (lazy wasm compile) REFUTED; surgical levers EXHAUSTED → the remaining lever is
   architectural.** The single in-window pump holder is ONE `ExecuteRequest` holding the select! task
   ~0.88s = mousepad's wasm module compile (V8 eagerly compiles the large statically-linked GTK module at

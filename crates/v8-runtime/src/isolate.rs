@@ -117,6 +117,15 @@ pub fn init_v8_platform() {
         if std::env::var("SECURE_EXEC_WASM_LAZY").map(|v| v == "1").unwrap_or(false) {
             v8::V8::set_flags_from_string("--wasm-lazy-compilation");
         }
+        // A/B knob for V8 wasm execution-tier flags (diagnostic). mousepad first-paint is COMPUTE-bound
+        // (~7s on-CPU wasm), so the suspect is single-pass GTK-init code staying in the Liftoff baseline
+        // tier (unoptimized) instead of tiering up to TurboFan. Pass flags like `--no-liftoff` (TurboFan
+        // only) or `--wasm-tiering-budget=<n>` (tier up sooner) to measure the compute-vs-compile tradeoff.
+        if let Ok(flags) = std::env::var("SECURE_EXEC_V8_WASM_FLAGS") {
+            if !flags.is_empty() {
+                v8::V8::set_flags_from_string(&flags);
+            }
+        }
         v8::icu::set_common_data_74(&ICU_COMMON_DATA.0)
             .expect("failed to initialize V8 ICU common data");
         let platform = v8::new_default_platform(0, false).make_shared();
