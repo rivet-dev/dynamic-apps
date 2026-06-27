@@ -97,6 +97,21 @@ concurrency must be **per-process inside one VM**, not per-VM.
 **Risk:** this is the security TCB. A coarse single `Mutex` avoids data races by construction, but the change is
 pervasive and must be reviewed. Do NOT ship a half-converted state.
 
+## ★ The contention point is EVERY shared single-threaded service guest (scope co-location accordingly)
+
+The starvation generalizes beyond Xvfb. A guest gets *stuck* (0%, not just slow) when it issues a synchronous
+request to a **shared single-threaded service guest** that is contended by another client:
+- **Xvfb** (X server) — serves all X clients on one thread.
+- **dbus-daemon** (session bus) — serves all bus clients on one thread. *Direct evidence:* the panel failed with
+  "Failed to connect to the D-BUS session bus: Timeout" under contention; xfdesktop's xfconf calls route over this bus.
+- **xfconfd** (config) — a bus service, same pattern.
+
+Each is throughput-limited by the per-round-trip wake latency, so with 2+ clients the 2nd client's synchronous
+calls hang past their (GLib, un-tunable per Constraint #5) timeouts → stuck. **Implication for Path B:** co-location
+must put the **service daemons (Xvfb, dbus-daemon, xfconfd) in the same isolate as the clients** (in-process IPC for
+X *and* D-Bus), or the bottleneck simply moves from Xvfb to the bus. Co-locate the whole desktop session, not just
+X.
+
 ## Path B — co-locate the X server + clients (sidesteps the kernel refactor)
 
 Run Xvfb + its X clients in **one isolate** and short-circuit their loopback X socket **in-isolate** so X-protocol
