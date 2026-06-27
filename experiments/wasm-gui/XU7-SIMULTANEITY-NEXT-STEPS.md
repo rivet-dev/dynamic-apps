@@ -37,10 +37,27 @@ type-feasible — but `Send` is necessary, not sufficient (see Path A constraint
 
 ---
 
-## Path A — intra-VM per-process concurrency (the direct fix)
+## ★ Which path? (refined by the idle-thread finding — read first)
+
+The sidecar sync-RPC service thread is **~99% idle**, yet the 2nd guest starves to 0% even at 450s. That means
+the bottleneck is **latency/dependency, not throughput**: guests are blocked *waiting* on cross-thread wakes and on
+**Xvfb** (the single X-server guest) serving multiple clients serially at ~180µs per round-trip — not on the
+service thread being saturated. Implication:
+
+- **Path A (service multiplex) is questionable on its own** — multiplexing an *idle* thread adds little; the
+  interleaving-serialization penalty it removes is small when the loop is 99% idle. It may help at the margin but
+  is unlikely to be the decisive fix.
+- **Path B (co-location) directly attacks the root** — making client↔Xvfb X round-trips in-process eliminates the
+  ~180µs IPC wake latency that dominates, so the single X server can serve multiple clients fast enough.
+
+**Before committing to a path, confirm the bottleneck on a quiet box** with `SECURE_EXEC_RPCPROF=1`: check whether
+per-round-trip latency rises with a 2nd guest (→ interleaving, path A helps) or stays ~flat while Xvfb's request
+throughput is the limit (→ path B). Current evidence favors **B**.
+
+## Path A — intra-VM per-process concurrency
 
 Make the VM service concurrent guests' sync-RPCs in parallel (20 cores here, ~10 free), so a busy/active guest
-doesn't starve co-tenants.
+doesn't starve co-tenants. (Caveat above: the idle service thread makes this less certain to help than B.)
 
 **Scope (why it's multi-day):** all guest sync-RPCs funnel through a single-threaded `&mut self` event loop
 (`crates/sidecar/src/execution.rs:~4130` drains `ActiveExecutionEvent::JavascriptSyncRpcRequest` →
