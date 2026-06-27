@@ -298,3 +298,54 @@ NEXT-FIRE PLAN (clean, fresh-context):
 
 This is the one remaining deep cross-crate TCB edit; doing it on a definitively-resolved site (not a guess) is the
 "read architecture first" discipline. v8-runtime side is fully done + verified.
+
+## Step 4 access path resolved (2026-06-27, part 7)
+The execution crate holds the EmbeddedV8Runtime as a process-global shared Arc via
+`shared_embedded_runtime_client()` (crates/execution/src/v8_host.rs:182) -> `.runtime: Arc<EmbeddedV8Runtime>`. But
+that fn + SharedEmbeddedRuntimeClient are PRIVATE to the execution crate, and the sidecar does not reference them.
+So NO per-execution threading is needed -- instead expose ONE pub accessor from the execution crate:
+  `pub fn shared_t1_handoff() -> Option<crate::session::T1RingHandoff>` (or via v8-runtime re-export)
+  = shared_embedded_runtime_client().ok().map(|c| c.runtime.t1_handoff())
+Then at the desktop's servicing site (6524 or 17019, pending the empirical run), before the base64 dispatch:
+  if let Some(h) = execution::shared_t1_handoff() {
+      if let Some(rb) = v8_runtime::session::t1_handoff_get(&h, session_id) {
+          // serve the request from rb's request ring + write the response into rb's response ring via
+          // with_ring_backing_slices(&rb.req,&rb.resp, |req_slice,resp_slice| SabRingReader/Writer drain) ...
+      }
+  }
+This keeps the sidecar forbid-unsafe (the unsafe slice is in with_ring_backing_slices) and needs no signature
+ripple. Remaining: (a) the empirical site (in flight), (b) the pub accessor, (c) the servicing read/serve/write
+using SabRingReader+Writer over the safe slices, (d) the guest runner routing, (e) re-measure.
+
+## Interception layer CORRECTED (2026-06-27, part 8) — transport seam, not dispatch
+The desktop's kernel-forwarded sync-RPCs reach service_javascript_sync_rpc via service.rs:2198
+(handle_javascript_sync_rpc_request "javascript sync RPC bridge dispatch") -- NOT the execution.rs child/http arms
+(those markers never fired; removed). BUT per the Phase-1 design, T1 swaps the PAYLOAD TRANSPORT, not the dispatch:
+the seam is where the request/response RECORD is serialized cbor<->json<->base64 (crates/execution/src/v8_runtime.rs
+cbor_to_json/json_to_cbor ~409-473, base64 for Buffer at 449-450; + javascript.rs value marshalling). T1: read the
+request record from the G->K ring instead of base64-decode; write the response record to the K->G ring instead of
+base64-encode; keep respond_sync_rpc_success as the SIGNAL. So the servicing edit lives at the transport encode/decode
+in the execution crate (where the guest runner's RingChannel writes/reads), gated by the per-session ring handoff.
+ALSO: the design says reuse the EXISTING per-guest AGENT_OS_NODE_SYNC_RPC_DATA_BYTES dataBuffer SAB (header + 2 ring
+regions in it) -- my allocate_t1_ring_sab made a SEPARATE SAB; either works, but reusing the dataBuffer matches the
+runner's existing access + saves a SAB. Decision: keep the separate ring SABs for now (simpler, already wired +
+exposed as globals __secure_exec_t1_req/resp); revisit if the runner can't see them. Next: implement the
+read-request-from-ring / write-response-to-ring at the transport encode/decode, gated on the ring being present.
+
+## Seam fully traced (2026-06-27, part 9) — the two chokepoints in javascript.rs
+RESPONSE chokepoint: crates/execution/src/javascript.rs:1323 `JavascriptExecution::respond_sync_rpc_success`
+(does `json_to_cbor_payload(&payload)` then hands to `spawn_javascript_sync_rpc_response_writer`, javascript.rs:204).
+T1 edit: when this session has a ring, write the cbor response RECORD to the K->G ring (SabRingWriter over the
+response ring SAB) instead of the normal writer path; keep the existing signal.
+REQUEST chokepoint: the guest's sync-RPC request enters JavascriptExecution (receive path near the response-writer
+spawn / the sync-RPC main loop) -- pin exactly before editing. T1 edit: read the request RECORD from the G->K ring
+(SabRingReader, hostile-validated) instead of base64-decode.
+WIRING: JavascriptExecution must reach the per-session ring backing -- the EmbeddedV8Runtime t1_handoff() (already
+added) keyed by session_id; the execution holds session_id, so fetch RingBacking once and hold it on the execution.
+The ring read/write uses the SAME SabRingReader/Writer logic as sab_ring.rs (the unsafe slice via
+with_ring_backing_slices stays in v8-runtime). Gate everything on the ring being present (t1_ring_enabled +
+handoff entry) so the base64 path is the default fallback.
+STATUS: v8-runtime side LIVE+verified; servicing site + transport seam + both chokepoints now located precisely.
+Remaining = implement the two chokepoint edits (response @1323, request @receive) + JavascriptExecution ring access
++ guest runner routing, then re-run/measure. Baseline run today: multi-app session builds clean + runs to exit 0
+but PARTIAL (blank 800x600, no app window, 0/400 panel cols) -- the perf wall T1 targets.

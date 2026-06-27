@@ -29,8 +29,10 @@ Start with Root-1:
    research proved that WRONG: `call_ref` type-checks like `call_indirect`, so it can't run GObject's UB casts any
    faster; the real cost is binaryen fpcast-emu's uniform max-arity padding, not the opcode. See `PERF-FINDINGS.md`)*.
    The ~13s GObject cascade is fpcast-emu padding every indirect call to one wide uniform arity. **Quick win
-   (hours):** `link-xapp.sh:24` uses BARE `--fpcast-emu` (binaryen default arity) — add
-   `--pass-arg=max-func-params@<measured-true-max>` (GObject closures are 1–4 ptr args). **Root cause (days):**
+   (hours) — PARTLY DONE (see C3):** the `@64` arity tuning is ALREADY applied to the heavy GTK guests
+   (`scripts/build-gtk-app.sh:99`, measured 3.7×); only the X clients (`link-xapp.sh`) and Xvfb (`@128`,
+   over-provisioned vs the measured true-max ~25) remain — add `--pass-arg=max-func-params@<measured-true-max>`
+   there. (`PERF-FINDINGS.md:88`'s "no max-func-params tuning exists" is stale.) **Root cause (days):**
    force per-signature C marshallers to kill `g_cclosure_marshal_generic`, then drop/scope `--fpcast-emu`. Speeds
    every guest AND relieves Root-2. No new attack surface. *(Start here.)*
 2. **T1 — in-process serialization elimination** *(was "SAB ring transport"; DEMOTED/REFRAMED by the ultracode
@@ -58,6 +60,64 @@ conformance).
 **Three roots of slowness (don't conflate):** Root-1 = in-guest compute (indirect calls) → typed-func-refs only;
 Root-2 = single-service-thread serialization → T1 + multiplex; Root-3 = byte-copy throughput → T1 + shared
 segments. **MEASURE before/after every change** (constraint #4).
+
+### ⚖ REVIEW CORRECTIONS (2026-06-26) — from `ARCH-REVIEW-2026-06.md`
+
+A read-only architecture review (5-dimension agent sweep + adversarial verification, all claims cited to
+file:line in `ARCH-REVIEW-2026-06.md`) returned an overall **ADJUST**: the four levers above are the right
+scaffolding, but the sequencing rests on an unmeasured number and the session banked a half-wired feature. The
+roadmap above stands; apply these corrections to it.
+
+- **C1 — [blocker, free, DO FIRST] Measure `busy_pct` before any deep perf wiring.** The baseline reports only
+  `count × servicing-µs` and *infers* "cost = round-trip overhead." The tracer already computes
+  `busy_pct = busy_us/wall` (`crates/sidecar/src/rpc_trace.rs:56-59,225`) — the one number that decides the whole
+  ordering: **~100% ⇒ saturated ⇒ Root-2 / count-reduction primary; ≪100% ⇒ latency-bound ⇒ T1 Phase-2 doorbell
+  or Root-1**. It has never been read off. Re-run `SECURE_EXEC_TRACE` + watchdog, report `busy_pct` + wall-clock.
+  No code. *Gate C2–C4 on the result.*
+- **C2 — [sequencing] Root-2 is likely the PREREQUISITE, not a "do-after-Root-1" step.** The measured wall is
+  single-thread serialization (4 guests collapse at ~211–251s, `ROOT-2-MULTIPLEX-DESIGN.md:3`; one
+  current-thread runtime + one `&mut sidecar`, `stdio.rs:106-118`). Making each poll cheaper (T1) cannot unblock
+  guests that serialize on one thread. If C1 shows saturation, do Root-2 (the D→B incremental plan,
+  `ROOT-2-MULTIPLEX-DESIGN.md:16-22`) **before/with** the levers, not after.
+- **C3 — [doc contradiction, fix] `PERF-ARCHITECTURE-RESOLVED.md:48` re-promotes T1 to "CONFIRMED primary lever
+  cutting base64+postMessage across 70k polls," directly contradicting the T1 demotion at item 2 above.** Code
+  adjudicates for the demotion: `cbor_to_json` base64s ONLY `Cbor::Bytes` (`execution/src/v8_runtime.rs:447-451`),
+  and ~58k of the ~70k polls (`__kernel_fd_poll`, `net.poll_wait`) carry zero bytes. T1 Phase 1 helps only binary
+  control payloads, NOT the dominant integer polls. Reconcile `PERF-ARCHITECTURE-RESOLVED.md` to match item 2;
+  re-scope T1 accordingly and stop calling it the 70k-poll fix.
+- **C4 — [debt, decide now] The T1 SAB ring is HALF-WIRED: finish-or-revert.** `sab_ring.rs` (15 tests) +
+  `shm_registry.rs` (7 tests, `#[allow(dead_code)]`) have zero callers outside their own test modules. The
+  producer side allocates 2×256 KiB/guest under `SECURE_EXEC_T1_RING` (`v8-runtime/session.rs:965-973`) but
+  **no consumer exists** (`t1_handoff_get` has zero sidecar callers; no guest `RingChannel`). When the flag is on
+  the sidecar allocates real memory nothing reads — the worst state. Given C1/C3, the recommended call is **revert
+  the producer-side allocation now**, keep `sab_ring.rs`/`shm_registry.rs` as the reviewed foundation, and
+  re-introduce only when measurement justifies T1.
+- **C5 — [security, before T1 goes live] Use atomic/volatile access to the guest-shared SAB.** The kernel
+  reads/writes the SAB via plain slice ops (`sab_ring.rs:50-53,63,119-124`) over memory the guest can mutate
+  concurrently — a formal data race with no acquire/release ordering (x86-benign, but a benign guest can be
+  spuriously torn down). Read/write header words as `AtomicU32`/volatile to match the JS-side `Atomics`. The
+  validation logic is otherwise sound by construction (kernel-owned `ring_size`/`consumer_index`, copy-out then
+  validate, reject-not-clamp, hostile fuzz; sidecar stays `forbid(unsafe_code)`).
+- **C6 — [XU7 acceptance] "Renders" is currently proven by an OUT-OF-BAND framebuffer scrape** from the host
+  shadow dir (`host/src/main.rs:1357-1359`) precisely because an in-band wire readback starves under load. A
+  static frame off the side-channel says nothing about interactivity. **XU7 acceptance requires an in-band
+  input→visible-response proof measured over the wire**, not a host-side FB read.
+- **C7 — [constraint-#5 fidelity] Fix the VTE fork→posix_spawn shim's silent gaps.** `__se_fork_record_close`
+  has no caller (no `__wrap_close`) and `__wrap_setsid` is a no-op, so child `close()`/`setsid()` are dropped; a
+  `fork()` not followed by `execve()` runs in-process with corrupt state (`toolchain/vte-syscompat/fork_shim.c:25,27-53`,
+  `pty_proc_shim.c:78`). Keep the layer; close the gaps and `abort()` loudly on a non-exec fork. (Lands with the
+  approved `proc_spawn`.)
+- **C8 — [robustness] Promote universally-correct POSIX shims to default-on.** The empty-path→ENOENT shim and
+  friends link only when per-app env flags are set (`scripts/build-gtk-app.sh:51-69`); a libc-boundary-correct
+  behavior shouldn't depend on each build remembering a flag. Fold the unconditional ones into the standard link
+  set (`cross-env.sh`/`libhostcompat`).
+- **C9 — [hygiene] Remove dead instrumentation.** `SECURE_EXEC_ROOT2_TRACE` is forwarded by the host
+  (`host/src/main.rs:1124,1208`) but read by no crate (dead-cap); the `PTYDIAG __wrap_open` `fprintf`
+  (`toolchain/wasi-empty-path-shim.c`) logs on every `/dev` open in production builds — gate behind `-D` or
+  remove. (`SECURE_EXEC_TRACE` itself is correctly `OnceLock`-gated; keep.)
+
+**Net:** C1 (free) reorders the roadmap and may show C4 should be reverted rather than finished. C2 is a
+re-sequencing of existing items; C3–C9 are corrections/debt, not new direction — hence ADJUST, not RETHINK.
 
 **Deliberate out-of-scope** (record, don't re-investigate): GL passthrough (software raster is the one data
 path); the "C" single shared-address-space VM + a wasm PIC dynamic linker (revisit only when a guest needs real
