@@ -2107,3 +2107,28 @@ Post fd-poll fix (ir ~46ms), swept the obvious follow-ups — all NULL (within �
 Conclusion: the per-op *bound* levers are exhausted at the fd-poll fix. Remaining cost is the per-exchange
 peer turnaround (~20 exchanges × ~2.3ms). Next: fresh render-window decomposition to find the new dominant
 per-hop cost (fd-poll is out of the way), else lever D (shared-mem ring) for the structural round-trips.
+
+## §7-DECOMP (2026-06-30): where the post-fd-poll ~46ms goes + the next lever
+
+Render op counts (window) × SYNCSPLIT per-op costs (post-fix):
+- **poll_wait blocking (peerWait) ≈ 28ms** — the structural cross-guest turnaround (~20 exchanges).
+- **per-op park/unpark floor ≈ 12ms** — ~100 hot ops (fd_poll 366µs, drain 109µs, write 92µs, accept
+  73µs). SYNCSPLIT proves this ~100µs/op is NOT marshalling (ser 15µs + de 5µs); it is the
+  host-roundtrip = the guest thread PARKING on the *separate* bridge thread + unpark. Even an INLINE op
+  (handled on the bridge thread, not the service loop) still costs one guest-thread park/unpark.
+
+### Next lever (identified, substantial): SAME-THREAD inline dispatch
+The hot inline ops (`_kernelFdPollRaw`/`_netSocketPollRaw`/`_netServerAcceptRaw`/`_netSocketPollWaitRaw`
+fast path) are serviced by lock-free `KernelPollHandle`/Arc handlers that need NO `&mut` kernel — so they
+could be dispatched SYNCHRONOUSLY in the V8 isolate thread (inside `sync_bridge_callback`, before
+`ctx.sync_call`'s channel-send+park), eliminating the ~100µs park/unpark per hot op ≈ **~10ms**. Requires
+injecting an `Arc<dyn InlineSyncDispatch>` from the execution crate into v8-runtime's `BridgeContext`
+(crosses the v8-runtime↔execution boundary; touches the fundamental sync-RPC path — do gated + careful).
+The codebase comment at bridge.rs:1649 already names this ("attackable by F10: same-thread inline
+dispatch or a tighter wake").
+
+### Remaining after that: the ~28ms structural peerWait → lever D (shared-memory inter-guest ring).
+
+### Session ledger: ir 61→46ms (~25%), 17×→13× native (native 3.5ms). fd-poll bound was the big per-op
+floor. Knob follow-ups (fd-scoped+bound0, clamp) null. Two substantial levers remain (same-thread
+dispatch ~10ms, lever D for the ~28ms structural). Not at 3× (10.5ms); the remaining path is architectural.
