@@ -13640,6 +13640,7 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
       })();
       const buffer = Buffer.alloc(requestedLength);
       const posBefore = handle.position ?? 0;
+      const __fr_t0 = globalThis.__pathopenprof ? Date.now() : 0;
       const bytesRead = fsModule.readSync(
         handle.targetFd,
         buffer,
@@ -13647,6 +13648,11 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
         requestedLength,
         handle.position ?? 0,
       );
+      if (globalThis.__pathopenprof) {
+        const s = (globalThis.__fdReadStat = globalThis.__fdReadStat || { n: 0, bytes: 0, ms: 0 });
+        s.n += 1; s.bytes += bytesRead; s.ms += (Date.now() - __fr_t0);
+        if (s.n <= 5 || s.n % 20 === 0) { try { process.stderr.write('[fdread] n=' + s.n + ' bytes=' + s.bytes + ' ms=' + s.ms + '\n'); } catch (_e) {} }
+      }
       handle.position = (handle.position ?? 0) + bytesRead;
       const written = writeBytesToGuestIovs(iovs, iovsLen, buffer.subarray(0, bytesRead));
       fdTrace(`fd_read guest-file fd=${numericFd} targetFd=${handle.targetFd} req=${requestedLength} posBefore=${posBefore} bytesRead=${bytesRead} written=${written} posAfter=${handle.position}`);
@@ -13727,6 +13733,7 @@ wasiImport.fd_pread = (fd, iovs, iovsLen, offset, nreadPtr) => {
         return total >>> 0;
       })();
       const buffer = Buffer.alloc(requestedLength);
+      const __pr_t0 = globalThis.__pathopenprof ? Date.now() : 0;
       const bytesRead = fsModule.readSync(
         handle.targetFd,
         buffer,
@@ -13734,6 +13741,11 @@ wasiImport.fd_pread = (fd, iovs, iovsLen, offset, nreadPtr) => {
         requestedLength,
         Number(offset),
       );
+      if (globalThis.__pathopenprof) {
+        const s = (globalThis.__fdReadStat = globalThis.__fdReadStat || { n: 0, bytes: 0, ms: 0 });
+        s.n += 1; s.bytes += bytesRead; s.ms += (Date.now() - __pr_t0);
+        if (s.n <= 5 || s.n % 20 === 0) { try { process.stderr.write('[fdread] n=' + s.n + ' bytes=' + s.bytes + ' ms=' + s.ms + '\n'); } catch (_e) {} }
+      }
       const written = writeBytesToGuestIovs(iovs, iovsLen, buffer.subarray(0, bytesRead));
       return writeGuestUint32(nreadPtr, written);
     } catch {

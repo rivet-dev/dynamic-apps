@@ -231,6 +231,15 @@ levers as profiling surfaces new costs (recursion).
     only fix is provisioning (`fc-cache`/`gtk-update-icon-cache` in the fixtures/base-FS), not
     sidecar/kernel/runtime. The "batch fs.stat RPCs" premise is false (RPC service ~177ms, in-process
     `fd_read`).
+  - **GTK-init file reads are NOT a base64-bridge lever — RULED OUT by direct measurement (2026-06-29).**
+    The last candidate: WASI `fd_read`/`fd_pread` for guest files calls `fsModule.readSync` (the base64
+    bridge, like the module), so GTK's font/icon reads *could* have been a hidden base64 cost. Instrumented
+    both paths (`[fdread]` cumulative bytes/ms, default-off): **mousepad moves only 16 bytes total** through
+    guest-file reads (n=1). (The X server's one 1.9MB/75ms read is the framebuffer.) So fontconfig/icon
+    bytes are NOT pulled through the bridge — fontconfig reads only small font-table headers + writes its
+    cache; the ~1.4s is COMPUTE + cache-absence (+ wasm overhead), with no I/O-transport lever. No mmap
+    base64-read path exists either (`grep mmap` empty in runner + sidecar). Confirms the cost is provisioning
+    (ship the cache) or toolchain (dead), not CORE runtime.
   - **guest GTK/GSettings compute (~0.5s) — toolchain-dead** (prior; GObject ~2.8× native, fpcast infeasible).
   **Conclusion: <2s is unreachable within CORE-only; the CORE ceiling is ~4.0s as delivered. Reaching <2s
   requires widening scope (provision the caches ≈ ~1.4s, the biggest lever) — the user's call when ready.**
