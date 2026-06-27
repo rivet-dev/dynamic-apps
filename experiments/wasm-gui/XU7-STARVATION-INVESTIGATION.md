@@ -175,7 +175,7 @@ Proof experiment · Debug needed · Result.
   named full run; ~594 polls/sec). Burns a core and floods the sidecar with zero-wait RPCs. Open
   question (now T-J): WHY it spins, and whether quieting it unblocks xfwm4/render (causality test).
 
-### T-J — Why xfconfd spins at timeout=0 (spurious GSource readiness) · **OPEN** · priority 1 · (NEW 2026-06-27, from T-I)
+### T-J — Why xfconfd spins at timeout=0 (GWakeup pipe read() misrouted to net_recv) · **PROVEN + FIXED** · priority 1 · (NEW 2026-06-27, from T-I)
 - **Hypothesis:** xfconfd's GLib main loop iterates with timeout=0 because some GSource's `prepare()`
   reports ready (or an fd reports POLLIN/POLLHUP) every iteration, but `dispatch()` never clears it —
   classic GLib busy-spin on an always-ready fd (e.g. a socket/pipe at EOF still reporting readable, an
@@ -188,17 +188,30 @@ Proof experiment · Debug needed · Result.
 - **Proof experiment:** `SECURE_EXEC_NET_TRACE=1` (filter xfconfd's stderr) to see its poll fd set +
   revents per iteration; identify the always-ready fd. Then a causality test: quiet/fix it and re-measure.
 - **Debug needed:** net trace (exists); maybe a t=0-path poll trace (small add) if the spin is ready=0.
-- **Result:** **ROOT NARROWED to a KERNEL PIPE (not a socket; clock sub-hypothesis REFUTED).** The
-  per-socket-state trace shows both polled fds are tagged `:pipe` (isKernelPipeFd=true): **fd 0x50000005
-  is a kernel pipe perpetually POLLIN-readable (re=1, ~13,419 identical polls), never drained**, and
-  companion **fd 0x50000007 wants POLLOUT but is `re=0` (not writable)** — the signature of a **pipe
-  full of undrained data** (readable + write-blocked). Readiness comes from `__kernel_fd_poll`
-  (node_import_cache.rs:11631), NOT the socket readChunks path. So GLib spins on a forever-readable
-  kernel pipe it never drains. Leading cause: a **GDBus worker↔main wakeup pipe that fills and never
-  drains in single-threaded wasm** (matches the known "GDBus worker-thread GMainContext wakeup"
-  blocker; explains why xfconfd=GDBus-primary spins but xfwm4=X-primary doesn't), or a no-op-stub
-  inotify fd. Subagent identifying which pipe + the platform fix. Artifacts:
-  `gui-progress/2026-06-27T19/{xu7-spin2,xu7-sockstate}.log`.
+- **Result: PROVEN, ROOT CAUSE = read() of the GWakeup kernel pipe is misrouted to `net_recv`.** The
+  spin fd is glib's **GWakeup** kernel pipe (cross-isolate, range-encoded `0x50000000+`). The GDBus
+  worker correctly **writes** the wakeup byte (`write fd=0x5000000a` → `__kernel_fd_write` ✓) and
+  **poll** sees it readable (`__kernel_fd_poll(fd 9)` → revents=1 ✓). But `g_wakeup_acknowledge`'s
+  `read(0x50000009)` is intercepted by the guest libc's **`--wrap=read` shim (`dbus_creds.o`'s
+  `__wrap_read`)**, which classifies **every fd `>= 0x40000000` as a host_net socket** and routes it to
+  `recv()` → `net_recv`. Kernel-pipe fds (`0x50000000+`) sit inside that range, so the wakeup read is
+  sent to the socket bridge. `net_recv` returned `BADF` (no such socket); the C `recv()` shim surfaces
+  `-1` as **EAGAIN**, so the pipe is **never drained** → poll stays readable forever → infinite
+  `timeout=0` spin. **Decisive proof (instrumented `node_import_cache.rs`):** `WASICALL
+  host_net/net_recv fd=0x50000009` ×5364 (the wakeup read end going to `net_recv`); `wasiImport.fd_read`
+  invoked **0×** for any fd; `__kernel_fd_read` reached the sidecar **0×**. The earlier "undrained pipe"
+  reading was right; the missing piece was *why the drain never ran* — the read never reached the pipe.
+- **FIX (platform layer, Constraint #5 — glib untouched):** `net_recv` (the host_net bridge in
+  `crates/execution/src/node_import_cache.rs`) now detects a kernel-pipe fd (`isKernelPipeFd`) and
+  drains the real kernel pipe via a new `kernelPipeRecv` (→ `__kernel_fd_read`) instead of treating it
+  as a socket. Mirrors the existing `fd_read`/`fd_write` kernel-pipe routing.
+- **VALIDATION (`gdbus-loop-probe` — faithful GWakeup repro; artifact `/tmp/tj-fix.log`):**
+  - *Before:* `poll fds=[9]` readable ×5616, read never drains, probe spins → never completes.
+  - *After:* pipetrace shows the correct cycle — `write fd=10 <- 1B` → `poll fds=[9] -> revents=[1]`
+    → **`read fd=9 -> 1B`** → `read fd=9 -> ERR(EAGAIN)` (drains then empty). poll(fd9) total **22**
+    lines (was 5616). Probe **connects to the session bus (`:1.0`), runs its main loop 12s with no
+    spin, exits 0**. (The temporary `gwakeup.c`/`gmain.c` `g_printerr` probes used to pin this are
+    reverted — glib stays upstream.)
 
 ### T-K — Frozen CLOCK_MONOTONIC (Linux-fidelity defect, separate from the spin) · **OPEN** · priority 3 · (NEW 2026-06-27)
 - **Hypothesis:** `_clockTimeGet` (wasm.rs:3322) returns frozen `Date.now()*1e6` for ALL clock ids,
@@ -254,8 +267,20 @@ This doc is **recursive**: investigation creates new theories.
 
 ### Verdict log (newest first)
 
-- **2026-06-27 — ★★ ROOT CONFIRMED: per-isolate socket-table gap (wasi-thread worker can't see the
-  connection socket).** Thread-tagged op breakdown of the bare-GDBus repro: the **GDBus worker isolate
+- **2026-06-27 — ✗ CORRECTION: the "per-isolate socket-table gap" root (entry below) is WRONG.**
+  Cross-isolate host_net socket sharing **already exists** (commit `1a4cd28c`, verified in-tree):
+  `net_owner_process_id` strips `~thread~` (service.rs:90); the dispatch redirects a worker's `net.*`
+  ops to the OWNER process (service.rs:2172-2189); `guest_net_fds` + `net.resolve_guest_fd` resolve
+  fd→socketId cross-isolate (state.rs:324, service.rs:2138); `owner_socket_readiness` shares the
+  wakeup for `poll_wait`. So the worker CAN reach the parent's sockets. It does **0 socket ops not
+  because it can't, but because it never puts the connection fd in its poll set** — the connection
+  GSource is on MAIN's context. The spin is the worker's OWN GMainContext wakeup pipe being readable
+  and never acknowledged = **T-J** (GLib/GDBus worker-context wakeup), NOT a socket gap. My error:
+  I inferred "can't access" from "0 socket ops" without checking the existing cross-isolate mechanism.
+  Sharing the socket table would NOT fix the spin. Real root = T-J; pinning its exact GLib trigger
+  needs glib-internal visibility. (Stale: INTERNAL-TOOLING.md "worker EBADF" note + node_import_cache
+  BADF comments predate `1a4cd28c`.)
+- **2026-06-27 — ★★ ROOT (RETRACTED — see correction above): per-isolate socket-table gap.** Thread-tagged op breakdown of the bare-GDBus repro: the **GDBus worker isolate
   does ZERO socket ops** (`net.poll`=0, `net.connect`/`write`/`accept`=0) — it only polls kernel pipes
   (`__kernel_fd_poll`=11222) + `net.poll_wait`. MAIN holds the socket (`net.connect`, `net.poll`=10612).
   So a wasi-thread worker isolate gets its **own empty `hostNetSockets`** (unlike Linux threads, which

@@ -12193,6 +12193,11 @@ const hostNetImport = {
     }
   },
   net_recv(fd, bufPtr, bufLen, flags, retReceivedPtr) {
+    if (isKernelPipeFd(fd)) {
+      // A kernel-pipe fd (e.g. glib GWakeup) reached the socket recv bridge via the guest's
+      // --wrap=read shim; drain the real kernel pipe instead of treating it as a host_net socket.
+      return kernelPipeRecv(Number(fd) >>> 0, bufPtr, bufLen, retReceivedPtr);
+    }
     const socket = getHostNetSocket(fd);
     if (!socket) {
       netTrace('recv fd=' + fd + ' BADF (no socket in this isolate; known=' + hostNetSockets.size + ')');
@@ -13401,7 +13406,6 @@ function kernelPipeFdWrite(fd, iovs, iovsLen, nwrittenPtr) {
 function kernelPipeFdRead(fd, iovs, iovsLen, nreadPtr) {
   try {
     const requestedLength = kernelPipeIovTotal(iovs, iovsLen);
-    if (globalThis.__nettrace) netTrace('kpipe_read ATTEMPT fd=' + fd + ' req=' + requestedLength);
     if (requestedLength === 0) {
       return writeGuestUint32(nreadPtr, 0);
     }
@@ -13426,6 +13430,40 @@ function kernelPipeFdRead(fd, iovs, iovsLen, nreadPtr) {
     return writeGuestUint32(nreadPtr, written);
   } catch (e) {
     if (globalThis.__nettrace) netTrace('kpipe_read THREW fd=' + fd + ' err=' + (e && e.message ? e.message : e));
+    return WASI_ERRNO_FAULT;
+  }
+}
+// recv() variant of the kernel-pipe drain, used when a kernel-pipe fd reaches the host_net recv
+// bridge. The guest libc's --wrap=read shim (dbus_creds) classifies every fd >= 0x40000000 as a
+// host_net socket and routes its read() to recv(); kernel-pipe fds (0x50000000+) fall in that range,
+// so glib's stock GWakeup read() lands here instead of fd_read. Kernel pipes are not sockets: drain
+// the real kernel pipe so the GWakeup byte is consumed. Without this the pipe never empties, poll
+// keeps reporting it readable, and the GMainContext busy-spins forever (XU7 multi-app starvation).
+function kernelPipeRecv(fd, bufPtr, bufLen, retReceivedPtr) {
+  try {
+    const requestedLength = Number(bufLen) >>> 0;
+    if (requestedLength === 0) {
+      return writeGuestUint32(retReceivedPtr, 0);
+    }
+    const result = callSyncRpc('__kernel_fd_read', [kernelPipeKernelFd(fd), requestedLength]);
+    const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+    if (parsed == null) {
+      return WASI_ERRNO_AGAIN; // pipe drained, writers open -> would block (glib drains until EAGAIN)
+    }
+    if (parsed.done) {
+      return writeGuestUint32(retReceivedPtr, 0); // all write ends closed -> EOF
+    }
+    const b64 = parsed.dataBase64;
+    if (typeof b64 !== 'string') {
+      return WASI_ERRNO_AGAIN;
+    }
+    const bin = atob(b64);
+    const chunk = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) {
+      chunk[i] = bin.charCodeAt(i) & 0xff;
+    }
+    return writeGuestBytes(bufPtr, bufLen, chunk, retReceivedPtr);
+  } catch {
     return WASI_ERRNO_FAULT;
   }
 }
