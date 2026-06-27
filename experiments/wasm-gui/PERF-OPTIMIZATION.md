@@ -344,6 +344,95 @@ then attack the dominant hop. Levers ranked by expected ROI:
 Validate every fix on BOTH numbers (B2 first-paint via `SECURE_EXEC_FIRSTPAINT`, input via
 `SECURE_EXEC_INPUTLATENCY`), before/after, against the native baseline (`scripts/native-baseline.sh`).
 
+## 10. Working guide (everything needed to continue) — READ THIS FIRST EACH SESSION
+
+### 10.1 Where the work lives
+- **Workspace:** `/home/nathan/secure-exec-wasmgui` — an **isolated jj workspace** (NOT the shared default
+  workspace, which other sessions move `@` in and wipe uncommitted edits). Always work here.
+- **Branch/bookmark:** all perf work commits to **`perf-pivot-work`**. Commit pattern (focused, my files
+  only — the tree has other sessions' churn + huge untracked binaries):
+  `JJ_EDITOR=true jj split -m "<conventional msg>" <my files...>` then `jj bookmark set perf-pivot-work -r @-`.
+  Conventional-commit titles, no agent attribution (see repo CLAUDE.md).
+- **Spec (this file)** is the source of truth; **`INTERNAL-TOOLING.md`** catalogs every probe;
+  progress at `~/progress/secure-exec/2026-06-27-perf-optimization/` (update each milestone + save artifacts).
+
+### 10.2 Build + deploy (separate target dir to avoid clobbering the shared one)
+```
+export CARGO_HOME=/home/nathan/sx-wg-cargo
+# sidecar (embeds v8-runtime; rebuild this after ANY crates/* change, incl. v8-runtime):
+cargo build -p secure-exec-sidecar --target-dir /home/nathan/sx-wg-target
+cp -f /home/nathan/sx-wg-target/debug/secure-exec-sidecar target/debug/
+# host (the benchmark harness):
+cargo build -p wasm-gui-host       --target-dir /home/nathan/sx-wg-target
+cp -f /home/nathan/sx-wg-target/debug/wasm-gui-host        target/debug/
+```
+Run scripts use `$REPO/target/debug/{secure-exec-sidecar,wasm-gui-host}`, so the `cp` is required.
+
+### 10.3 The two numbers (run them yourself; subagents are read-only)
+- **B2 first-paint** (single GTK app): `SECURE_EXEC_FIRSTPAINT=1` + a single-app host run (X server +
+  app ONLY — NO dbus/xfconfd; those add ~6s of harness session-sleeps and belong to B3). Easiest:
+  `bash experiments/wasm-gui/scripts/bench-suite.sh b2`. Emits `[firstpaint] <ms>`.
+- **input→response**: `SECURE_EXEC_INPUTLATENCY=1` on a single-app run with `--timeout ~16` (must exceed
+  first-paint so the post-loop probe fires while the app is alive). Emits `[input-response] <ms>`.
+  Single-app host invocation template (no dbus): see `bench-suite.sh`'s `firstpaint_run` + the §10.6 example.
+- **Native reference**: `docker build -f scripts/Dockerfile.native-baseline -t fp-baseline scripts/ &&
+  docker run --rm fp-baseline /firstpaint.sh mousepad input` → `[firstpaint]` + `[input-response]`.
+- **Machine is CONTENDED** (shared box, other sessions): wall-clock swings wildly (the old 74–144s was
+  the harness `--timeout`, never paint). Run each number **≥3×**, report the range, and trust the
+  internal/perf-clock metrics over wall-clock. Render gate = PNG produced + `fontconfig errors: 0` + no
+  `FATAL/unreachable/trap` in the log.
+
+### 10.4 Profilers / probes (all default-OFF, env-gated; full catalog in INTERNAL-TOOLING.md)
+- `SECURE_EXEC_PERFCLOCK=1` — cross-boundary monotonic µs clock, SAME value in guest (`__perf_now` sync-RPC)
+  and sidecar (`secure_exec_bridge::perf_now_micros()`). **The tool for splitting a round-trip into
+  hops.** Also enables `[pump-gap]` (sidecar pump starvation).
+- `SECURE_EXEC_CPUPROFILE=<path>` — P2 V8 `.cpuprofile` per isolate (`<path>.<n>`); load in Chrome DevTools.
+- `SECURE_EXEC_RPC_PROFILE=1` / `SECURE_EXEC_RPCPROF=1` — sidecar per-method service time / guest-side.
+- `SECURE_EXEC_IMPORTPROF=1` — per-wasm-import wall time per isolate (shows net_poll dominance).
+- `SECURE_EXEC_WAKEPROF=1` — `net.poll_wait` wake-cause histogram (notify vs deadline).
+- `SECURE_EXEC_POLL_DIRECT=1` — **L-S lever** (reader thread completes a peer's poll directly).
+- `SECURE_EXEC_POLL_MAX_WAIT_MS=<n>` — poll clamp (L-Q **refuted** — does nothing; don't pursue).
+- `APP_SETTLE_MS`, `INJECT_DELAY_MS`, `POST_INJECT_DELAY_MS` — harness launch/inject gating.
+
+### 10.5 Anatomy of ONE X round-trip (where the ~3.3 ms lives → where to instrument/fix)
+Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In the runtime:
+1. Guest `net_send(request)` — sync-RPC: guest `callSyncRpc` (`node_import_cache.rs` ~11132) →
+   `__agentOsSyncRpc.callSync` → wasm-runner method switch (`wasm.rs` ~4497) → host fn → sidecar.
+2. Guest `net_poll(wait)` — blocks. Handler: `execution.rs:20495` (`net.poll_wait`):
+   `clamp_javascript_net_poll_wait` → fast-path inline if ready, else **defer to the PollWaiterPool**
+   (`state.rs:702`+; `register_direct_or_current` for the direct path, else pool). The isolate thread
+   parks in `recv_response` (`session.rs:1976`, `self.rx.recv()`).
+3. The X-server **isolate** must be scheduled to read the request + write the reply. Its socket data
+   triggers a readiness `notify()` (`state.rs` `SocketReadiness`) that wakes the pool worker
+   (`poll_waiter_loop` ~759 → `wait_changed` ~660, a condvar).
+4. Reply delivery: pool worker → `respond_success` → SessionCommand channel → guest `recv_response`
+   returns → guest re-runs wasm + `net_recv(reply)`.
+- The **pump** (`pump_process_events`, `execution.rs:3734`) is driven by `event_pump.tick()` every **250 µs**
+  (`stdio.rs:42`) on a SINGLE `tokio::select!` (`stdio.rs` ~194) — the L-O fairness fix lives here.
+- **Hops to attack (L-R):** the readiness-notify → pool-condvar → channel → isolate-wake → wasm-re-entry
+  chain; base64/SAB marshaling of net payloads (apply the M8.6 binary-SAB `dataBuffer` path to X traffic);
+  and the 3-sync-RPCs-per-exchange count (send+poll+recv). Perf-clock-stamp each to find the dominant one.
+
+### 10.6 Loop discipline (every iteration)
+1. **Measure** the suspected hop with the perf clock (adding logs is always allowed; never optimize
+   without a number proving the cost).
+2. **Fix in CORE** secure-exec (sidecar / kernel / `crates/v8-runtime` / bridge) — big + risky is fine;
+   NEVER a boutique Xubuntu/glib/GTK/guest hack (**Constraint #5**). The guest binaries are immutable.
+3. **Re-measure** before/after on BOTH numbers (first-paint + input→response), ≥3 runs each.
+4. **Regression gate green** (render clean), Constraint #5 verified, diagnostic default-OFF.
+5. **Record** lever + numbers + verdict here (top of the verdict log) + progress.html + an artifact; re-rank §9.
+6. Recurse until the Phase-1 objective (§2) holds or the latency lever's ROI flattens (documented).
+
+### 10.7 Known gotchas
+- The sidecar **integration test harness is pre-broken** by another session's `rpc_trace`/`poll_waiter`
+  symbol churn in `crates/sidecar/tests/` — `cargo test -p secure-exec-sidecar` won't compile. The **lib
+  builds clean**; verify behaviorally (render gate). Not your bug; don't try to fix it.
+- New `MAX_*`/timeout constants must be cataloged in `crates/sidecar/tests/fixtures/limits-inventory.json`
+  (the limits audit) — classify as `invariant` for scheduling/fairness bounds.
+- `crates/bridge` + `crates/sidecar` are `#![forbid(unsafe_code)]`; `crates/v8-runtime` allows unsafe.
+- Pyodide/large assets exceed jj's snapshot size — commit with
+  `jj --config snapshot.max-new-file-size=16777216 ...` or keep them untracked.
+
 ---
 
 ### Verdict log (newest first)
